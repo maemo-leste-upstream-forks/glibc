@@ -38,7 +38,14 @@ locales: $(stamp_install) debian/control $(mkdir)/sysdeps.mk
 	-gzip -9f $(tmpdir)/$@$(docdir)/$@/*
 	$(INSTALL_DATA) debian/copyright $(tmpdir)/$@$(docdir)/$@/.
 
-	cp -a debian/locales/* $(tmpdir)/$@/.
+	for dirs in usr; do \
+		cp -a debian/locales/$$dirs $(tmpdir)/$@/ ; \
+	done
+	$(make_directory) $(tmpdir)/$@/DEBIAN
+	for files in conffiles config postinst postrm; do \
+		cp debian/locales/DEBIAN/$$files $(tmpdir)/$@/DEBIAN/ ; \
+	done
+	po2debconf debian/locales/DEBIAN/templates > $(tmpdir)/$@/DEBIAN/templates
 
 	# Add in the list of SUPPORTED locales
 	perl -i -pe 'BEGIN {undef $$/; open(IN, "'"$(tmpdir)/$@$(datadir)/i18n/SUPPORTED"'"); $$j=<IN>;} s/__SUPPORTED_LOCALES__/$$j/g;' $(tmpdir)/$@/DEBIAN/config
