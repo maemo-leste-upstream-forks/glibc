@@ -17,10 +17,19 @@ rm -rf /usr/lib/locale/* || true
 
 umask 022
 
+is_entry_ok() {
+  if [ -n "$locale" -a -n "$charset" ] ; then
+    true
+  else
+    echo "error: Bad entry '$locale $charset'"
+    false
+  fi
+}
+
 echo "Generating locales..."
 while read locale charset; do \
-	case $locale in \#*) continue;; esac; \
-	[ -n "$locale" -a -n "$charset" ] || continue
+	case $locale in \#*) continue;; "") continue;; esac; \
+	is_entry_ok || continue
 	echo -n "  `echo $locale | sed 's/\([^.\@]*\).*/\1/'`"; \
 	echo -n ".$charset"; \
 	echo -n `echo $locale | sed 's/\([^\@]*\)\(\@.*\)*/\2/'`; \
