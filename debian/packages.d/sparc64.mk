@@ -8,7 +8,7 @@ stamp_configure_64	= $(stamp_configure)_64
 
 flags_64 = -g0 -O2 -Wall -finline-limit=3000
 
-MYCC = gcc-3.0 -m64
+MYCC = gcc-3.2 -m64
 
 ifeq ($(log_build),/dev/tty)
   log_build_64 = /dev/tty
@@ -49,8 +49,7 @@ $(stamp_configure_64): $(stamp_unpack) $(stamp_patch)
 		$(srcdir)/configure --host=sparc64-linux \
 		--build=sparc64-linux --prefix=/usr --without-cvs \
 		--disable-profile --enable-static --enable-kernel=2.4.0 \
-		--enable-add-ons="$(add-ons)" --disable-sanity-checks \
-		$(with_headers)
+		--enable-add-ons="$(add-ons)" $(with_headers)
 
 	touch $@
 

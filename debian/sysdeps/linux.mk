@@ -47,12 +47,7 @@ endif
 # Minimum Kernel supported
 with_headers += --enable-kernel=$(MIN_KERNEL_SUPPORTED)
 
-# s390 needs this, and also uses gcc-3.0
+# s390 needs this
 ifeq ($(DEB_HOST_GNU_CPU),s390)
-  extra_config_options := --enable-omitfp --disable-sanity-checks
-endif
-
-# hppa uses gcc-3.0
-ifeq ($(DEB_BUILD_ARCH),hppa)
-  extra_config_options := --disable-sanity-checks
+  extra_config_options := --enable-omitfp
 endif
