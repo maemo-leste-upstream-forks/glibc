@@ -10,9 +10,9 @@ set -e
 #	First find out if devpts is available. Also check if devfs
 #	is already mounted - in that case we don't want to use devpts.
 #
-devpts_avail=`grep -sci '[<[:space:]]devpts' /proc/filesystems || true`
-devpts_mounted=`grep -sci '/dev/pts' /proc/mounts || true`
-devfs_mounted=`grep -sci '[<[:space:]]/dev[>[:space:]].*devfs' /proc/mounts || true`
+devpts_avail=`grep -ci '[<[:space:]]devpts' /proc/filesystems || true`
+devpts_mounted=`grep -ci '/dev/pts' /proc/mounts || true`
+devfs_mounted=`grep -ci '[<[:space:]]/dev[>[:space:]].*devfs' /proc/mounts || true`
 
 if [ "$devfs_mounted" = 0 ] && [ "$devpts_avail" != 0 ]
 then
