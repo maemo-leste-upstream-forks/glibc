@@ -9,7 +9,7 @@ if [ "$1" != abort-upgrade ] && [ "`uname -s`" = Linux ]; then
 
     if dpkg --compare-versions "$kernel_ver" lt 2.4.0; then
 	echo "This package requires you to be running a 2.4.0 kernel. Using an"
-	echo "older kernel will cause sever failures so long as this package is"
+	echo "older kernel will cause severe failures so long as this package is"
 	echo "installed."
 	exit 1
     fi
