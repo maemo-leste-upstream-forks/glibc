@@ -55,6 +55,56 @@ then
 	if [ -e /var/run/utmpd.rw ]; then rm -f /var/run/utmpd.rw; fi
     fi
 
+    # NSS authentication trouble guard
+    if dpkg --compare-versions $2 lt 2.2.94-1; then
+	check="xdm kdm gdm postgresql xscreensaver"
+	# Only get the ones that are installed, and configured
+	service=$(dpkg -s $check 2> /dev/null | awk 'BEGIN{RS="\n\n";FS="\n"}{if ( $2 ~ /Status: .* installed$/ ) { print $1 } }' | cut -f 2 -d ' ')
+
+	echo
+	echo "Name Service Switch has changed in the C Library: pre-installation question."
+	echo
+	echo "Running programs may not be able to do NSS lookups until they are restarted."
+	echo "Some services can not accept all authentication after extracting glibc"
+	echo "package into your system.  This script automatically restarts some packages"
+	echo "for example ssh or telnetd, but other packages for example xdm"
+	echo "cannot restart because if it restarts automatically, then your X11 session"
+	echo "is disconnected.  So you have to logout and stop xdm; you have to"
+	echo "restart all such services after upgrading libc6 with your hands."
+	echo "Known packages that are needed to stop before installing glibc 2.3:"
+	echo "        $check"
+	echo 
+
+	if [ -n "$service" ]; then 
+	    echo "This script detects services which need to stop: $service"
+	    echo "If you are invoking these services, please stop before upgrading."
+	else
+	    echo "This script does not detect services which need to stop."
+	fi
+	echo "If you want to stop upgrade for the present, please answer the below"
+	echo "question as No."
+	echo 
+	frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
+	if [ "$frontend" = noninteractive ]; then
+	    echo "Non-interactive mode, upgrade glibc forcely"
+	    answer=yes
+	else
+	    echo -n "Do you want to upgrade glibc? [Y/n] "
+	    read answer
+	    case $answer in
+		Y*|y*) answer=yes ;;
+		N*|n*) answer=no ;;
+		*) answer=yes ;;
+	    esac
+	fi
+	echo
+	if [ "$answer" = no ]; then
+	    echo "Stopped glibc upgrade.  Please retry upgrade after you check"
+	    echo "or stop services with your hands."
+	    exit 1
+	fi
+    fi
+
     # This will keep us from using hwcap libs (optimized) during an
     # upgrade.
     touch /etc/ld.so.nohwcap

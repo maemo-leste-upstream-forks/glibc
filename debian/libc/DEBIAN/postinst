@@ -200,16 +200,17 @@ then
 	    echo "done."
 	    if [ -n "$services" ]; then
 		echo
-		echo "Name Service Switch has changed in the C Library."
+		echo "Name Service Switch has changed in the C Library: post-installation question."
 		echo "Running programs may not be able to do NSS lookups until they are"
 		echo "restarted (for services such as ssh, this can affect your ability to"
 		echo "login)."
-		echo "Note: restarting sshd should not affect any existing connections."
+		echo "Note: restarting sshd/telnetd should not affect any existing connections."
 		echo
 		echo "The services detected are: $services"
 		echo
 		echo "If other services begin to fail mysteriously after this upgrade,"
-		echo "it may be necessary to restart them too."
+		echo "it may be necessary to restart them too.  We strongly recommend"
+		echo "you to reboot your machine to avoid the NSS related trouble."
 		echo
 		frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
 		if [ "$frontend" = noninteractive ]; then
