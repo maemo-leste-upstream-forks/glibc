@@ -19,7 +19,7 @@ while read locale charset; do \
 	echo -n '...'; \
         if [ -f $LOCALES/$locale ]; then input=$locale; else \
         input=`echo $locale | sed 's/\([^.]*\)[^@]*\(.*\)/\1\2/'`; fi; \
-	localedef -i $input -c -f $charset $locale -A /etc/locale.alias; \
+	localedef -i $input -c -f $charset -A /etc/locale.alias $locale; \
 	echo ' done'; \
 done < $LOCALEGEN
 echo "Generation complete."
