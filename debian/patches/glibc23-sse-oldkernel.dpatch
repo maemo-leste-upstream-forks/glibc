@@ -6,7 +6,7 @@
 # DP: Author: Daniel Jacobowitz <dan@debian.org>
 # DP: Upstream status: Not submitted
 # DP: Details: Should be submitted, must be regenerated against CVS
-# DP: Date: 2003-11-01
+# DP: Date: 2003-11-01 (Updated 2003-11-02)
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
@@ -75,3 +75,68 @@ exit 0
 +}
 +
  #endif /* dl-procinfo.h */
+--- glibc-2.3.2/sysdeps/generic/libc-start.c.orig	2003-11-02 23:11:51.000000000 -0500
++++ glibc-2.3.2/sysdeps/generic/libc-start.c	2003-11-02 23:34:42.000000000 -0500
+@@ -23,6 +23,10 @@
+ #include <bp-start.h>
+ #include <bp-sym.h>
+ 
++#include <dl-osinfo.h>
++#include <dl-librecon.h>
++#include <dl-machine.h>
++
+ extern void __libc_init_first (int argc, char **argv, char **envp);
+ 
+ extern int __libc_multiple_libcs;
+@@ -123,15 +127,28 @@ LIBC_START_MAIN (int (*main) (int, char 
+ #  endif
+   _dl_aux_init (auxvec);
+ # endif
+-# ifdef DL_SYSDEP_OSCHECK
+   if (!__libc_multiple_libcs)
+     {
++# ifdef DL_SYSDEP_OSCHECK
+       /* This needs to run to initiliaze _dl_osversion before TLS
+ 	 setup might check it.  */
+       DL_SYSDEP_OSCHECK (__libc_fatal);
+-    }
+ # endif
+ 
++  /* Moved here so that we can frob hwcap early enough.  */
++# ifdef DL_OSVERSION_INIT
++      DL_OSVERSION_INIT;
++# endif
++
++# ifdef DL_PLATFORM_INIT
++      DL_PLATFORM_INIT;
++# endif
++
++      /* Now determine the length of the platform string.  */
++      if (_dl_platform != NULL)
++	_dl_platformlen = strlen (_dl_platform);
++    }
++
+   /* Initialize the thread library at least a bit since the libgcc
+      functions are using thread functions if these are available and
+      we need to setup errno.  If there is no thread library and we
+--- glibc-2.3.2/elf/dl-support.c.orig	2003-11-02 22:55:47.000000000 -0500
++++ glibc-2.3.2/elf/dl-support.c	2003-11-02 23:24:40.000000000 -0500
+@@ -252,18 +252,6 @@ _dl_non_dynamic_init (void)
+       if (__access ("/etc/suid-debug", F_OK) != 0)
+ 	unsetenv ("MALLOC_CHECK_");
+     }
+-
+-#ifdef DL_PLATFORM_INIT
+-  DL_PLATFORM_INIT;
+-#endif
+-
+-#ifdef DL_OSVERSION_INIT
+-  DL_OSVERSION_INIT;
+-#endif
+-
+-  /* Now determine the length of the platform string.  */
+-  if (_dl_platform != NULL)
+-    _dl_platformlen = strlen (_dl_platform);
+ }
+ 
+ 
