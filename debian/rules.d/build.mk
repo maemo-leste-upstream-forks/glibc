@@ -43,7 +43,7 @@ endif
 	  fi; \
 	fi; \
 	cd $(DEB_BUILDDIR) && \
-		CC=$(call xx,CC) \
+		CC="$(call xx,CC)" \
 		AUTOCONF=false \
 		$(CURDIR)/$(DEB_SRCDIR)/configure \
 		--host=$(call xx,configure_target) \
