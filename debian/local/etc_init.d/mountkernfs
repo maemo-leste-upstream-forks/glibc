@@ -16,7 +16,7 @@ set -e
 #	to be compiled in at all).
 #
 devpts_avail=`grep -ci '[<[:space:]]devpts' /proc/filesystems || true`
-devpts_mounted=`grep -ci ' /dev/pts' /proc/mounts || true`
+devpts_mounted=`grep -ci '[<[:space:]]/dev/pts' /proc/mounts || true`
 
 if [ "$devpts_avail" != 0 ]
 then
@@ -48,28 +48,28 @@ fi
 #
 tmpfs_avail=`grep -ci '[<[:space:]]tmpfs' /proc/filesystems || true`
 shmfs_avail=`grep -ci '[<[:space:]]shmfs' /proc/filesystems || true`
-tmpfs_mounted=`grep -ci ' /dev/shm' /proc/mounts || true`
+tmpfs_mounted=`grep -ci '[<[:space:]]/dev/shm' /proc/mounts || true`
 
 if [ "$tmpfs_avail" != 0 ] || [ "$shmfs_avail" != 0 ]
 then
 	# Create mountpoint
 	[ -d /dev/shm ] || mkdir --mode=755 /dev/shm
-fi
 
-if [ -z ${TMPFS_SIZE} ]; then
-	tmpfs_opt=
-else
-	tmpfs_opt="-osize=${TMPFS_SIZE}"
-fi
+	if [ -z ${TMPFS_SIZE} ]; then
+		tmpfs_opt=
+	else
+		tmpfs_opt="-osize=${TMPFS_SIZE}"
+	fi
 
-if [ "$tmpfs_mounted" = 0 ]
-then
-	if [ "$tmpfs_avail" != 0 ]
+	if [ "$tmpfs_mounted" = 0 ]
 	then
-		mount -t tmpfs $tmpfs_opt tmpfs /dev/shm
-	elif [ "$shmfs_avail" != 0 ]
-	then
-		mount -t shmfs $tmpfs_opt shmfs /dev/shm
+		if [ "$tmpfs_avail" != 0 ]
+		then
+			mount -t tmpfs $tmpfs_opt tmpfs /dev/shm
+		elif [ "$shmfs_avail" != 0 ]
+		then
+			mount -t shmfs $tmpfs_opt shmfs /dev/shm
+		fi
 	fi
 fi
 
@@ -80,9 +80,38 @@ fi
 #	The current practice is that /sys is used for mounting sysfs.
 #
 sysfs_avail=`grep -ci '[<[:space:]]sysfs' /proc/filesystems || true`
-sysfs_mounted=`grep -ci ' /sys' /proc/mounts || true`
+sysfs_mounted=`grep -ci '[<[:space:]]/sys' /proc/mounts || true`
 
 if [ "$sysfs_avail" != 0 ] && [ "$sysfs_mounted" = 0 ]
 then
 	mount -t sysfs sysfs /sys
+fi
+
+
+### usbfs mount
+#
+#	usbfs/usbdevfs is used for USB related binaries/libraries.
+#	"usbfs" and "usbdevfs" is the exact same filesystem.
+#	"usbdevfs" was renamed to "usbfs" by linux usb developers,
+#	because people sometimes mistook it as a part of devfs.  usbfs
+#	will be altered by other filesystem (e.g. sysfs), and no
+#	package does not use it, then this mount operation should be
+#	dropped.
+#	
+usbfs_avail=`grep -ci '[<[:space:]]usbfs' /proc/filesystems || true`
+usbdevfs_avail=`grep -ci '[<[:space:]]usbdevfs' /proc/filesystems || true`
+usbfs_mounted=`grep -ci '[<[:space:]]/proc/bus/usb' /proc/mounts || true`
+
+if [ "$usbfs_avail" != 0 ] || [ "$usbdevfs_avail" != 0 ]
+then
+	if [ -d /proc/bus/usb ] && [ "$usbfs_mounted" = 0 ]
+	then
+		if [ "$usbfs_avail" != 0 ]
+		then
+			mount -t usbfs usbfs /proc/bus/usb
+		elif [ "$usbdevfs_avail" != 0 ]
+		then
+			mount -t usbdevfs usbdevfs /proc/bus/usb
+		fi
+	fi
 fi
