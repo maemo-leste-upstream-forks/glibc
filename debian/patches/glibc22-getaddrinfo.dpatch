@@ -29,7 +29,7 @@ exit 0
 @@ -275,11 +275,12 @@
    do {								\
      tmpbuflen *= 2;						\
-     tmpbuf = __alloca (tmpbuflen);				\
+     tmpbuf = extend_alloca (tmpbuf, tmpbuflen, 2 * tmpbuflen); \
 -    rc = __gethostbyname2_r (name, _family, &th, tmpbuf,	\
 +    rc = __gethostbyname2_r (_name, _family, &th, tmpbuf,	\
           tmpbuflen, &h, &herrno);				\
