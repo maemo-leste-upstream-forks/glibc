@@ -6,6 +6,15 @@ glibc (2.3.2.ds1-20) unstable; urgency=high
       system call utimes() is not defined on hppa.  Patched by Randolph Chung
       <tausq@debian.org>.  (Closes: #284449)
 
+    - Fix ia64 unwind FTBFS.  Patched by Matthias Klose <doko@debian.org>:
+      - debian/patches/glibc232-ia64-unwindinfo.dpatch: Modify Makeconfig
+        which unconditionally set the libunwind macro to -lunwind, until the
+        it's safe again to regenerate the configure script, on advice of
+        Jeff Bailey.  (Closes: #284563)
+      - debian/control.in/main: Tighten build dependency on ia64 to
+        gcc-3.3_3.3.5-4.
+      - debian/control: Likewise.
+
     - debian/local/manpages/locale.1: Add the description about
       /usr/share/i18n/SUPPORTED.  Requested by Guillermo S. Romero
       <gsromero@alumnos.euitt.upm.es>.  (Closes: #284137)

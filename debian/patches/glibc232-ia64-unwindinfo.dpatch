@@ -10,7 +10,7 @@
 # DP: Patch author: David Mosberger <davidm@napali.hpl.hp.com>
 # DP: Upstream status: In CVS
 # DP: Status Details: 
-# DP: Date: 2004-11-26
+# DP: Date: 2004-11-26, update 2004-12-21.
 
 PATCHLEVEL=3
 
@@ -57,6 +57,12 @@ GLIBC patches:
 	        (_init): Add unwind directives.
 	        (_fini): Likewise.
 
+gotom: -20 adds another patch from doko:
+
+#  * Makeconfig: Uconditionally set the libunwind macro to -lunwind,
+#    until the it's safe again to regenerate the configure script, on
+#    advice of Jeff Bailey. Closes: #284563.
+
 diff -urN orig/glibc-2.3.2.ds1/build-tree/glibc-2.3.2/Makeconfig glibc-2.3.2.ds1/build-tree/glibc-2.3.2/Makeconfig
 --- orig/glibc-2.3.2.ds1/build-tree/glibc-2.3.2/Makeconfig	2004-10-29 09:19:49.973173566 -0700
 +++ glibc-2.3.2.ds1/build-tree/glibc-2.3.2/Makeconfig	2004-10-28 10:47:59.000000000 -0700
@@ -75,7 +81,7 @@ diff -urN orig/glibc-2.3.2.ds1/build-tree/glibc-2.3.2/Makeconfig glibc-2.3.2.ds1
  link-extra-libs-static = $(link-extra-libs)
  endif
  endif
-@@ -511,7 +511,19 @@
+@@ -511,7 +511,22 @@
  link-extra-libs-bounded = $(foreach lib,$(LDLIBS-$(@F:%-bp=%)),$(common-objpfx)$(lib)_b.a)
  
  ifndef gnulib
@@ -83,6 +89,9 @@ diff -urN orig/glibc-2.3.2.ds1/build-tree/glibc-2.3.2/Makeconfig glibc-2.3.2.ds1
 +ifneq ($(have-cc-with-libunwind),yes)
 +  libunwind =
 +else
++  libunwind = -lunwind
++endif
++ifeq ($(shell uname -m),ia64)
 +  libunwind = -lunwind
 +endif
 +ifneq ($(have-as-needed),yes)
