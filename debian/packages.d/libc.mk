@@ -33,12 +33,7 @@ endif
 		$(INSTALL_PROGRAM) $(install_root)$(bindir)/lddlibc4 $(tmpdir)/$@$(bindir)/.; \
 	fi
 	$(make_directory) $(tmpdir)/$@/sbin
-ifeq ($(DEB_HOST_GNU_SYSTEM),gnu)
-	# Fake ldconfig script for HURD
-	$(INSTALL_SCRIPT) debian/ldconfig-hurd.sh $(tmpdir)/$@/sbin/ldconfig
-else
 	$(INSTALL_PROGRAM) $(install_root)/sbin/ldconfig $(tmpdir)/$@/sbin
-endif
 	$(make_directory) $(tmpdir)/$@$(sbindir)
 	$(INSTALL_PROGRAM) $(addprefix $(install_root)$(sbindir)/, \
 		zic iconvconfig) $(tmpdir)/$@$(sbindir)/.
