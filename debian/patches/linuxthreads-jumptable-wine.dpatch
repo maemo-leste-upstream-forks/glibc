@@ -1,0 +1,65 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Move a new function to the end of the list.
+# DP: Related bugs: 210347
+# DP: Author: Jakub Jelinek
+# DP: Upstream status: In CVS
+# DP: Date: Sep. 12, 2003
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+2003-09-10  Jakub Jelinek  <jakub@redhat.com>
+
+	* sysdeps/pthread/pthread-functions.h (struct pthread_functions): Move
+	ptr___pthread_cond_timedwait to the end of the structure to avoid
+	breaking Wine unnecessarily.
+
+Index: glibc-2.3.2/linuxthreads/sysdeps/pthread/pthread-functions.h
+===================================================================
+RCS file: /big/fsf/rsync/glibc-cvs/libc/linuxthreads/sysdeps/pthread/pthread-functions.h,v
+retrieving revision 1.2
+retrieving revision 1.3
+diff -u -p -r1.2 -r1.3
+--- glibc-2.3.2/linuxthreads/sysdeps/pthread/pthread-functions.h	2 Sep 2003 00:36:28 -0000	1.2
++++ glibc-2.3.2/linuxthreads/sysdeps/pthread/pthread-functions.h	10 Sep 2003 22:27:19 -0000	1.3
+@@ -27,7 +27,8 @@
+ struct fork_block;
+ 
+ /* Data type shared with libc.  The libc uses it to pass on calls to
+-   the thread functions.  */
++   the thread functions.  Wine pokes directly into this structure,
++   so if possible avoid breaking it and append new hooks to the end.  */
+ struct pthread_functions
+ {
+   pid_t (*ptr_pthread_fork) (struct fork_block *);
+@@ -54,8 +55,6 @@ struct pthread_functions
+ 				  const pthread_condattr_t *);
+   int (*ptr___pthread_cond_signal) (pthread_cond_t *);
+   int (*ptr___pthread_cond_wait) (pthread_cond_t *, pthread_mutex_t *);
+-  int (*ptr___pthread_cond_timedwait) (pthread_cond_t *, pthread_mutex_t *,
+-				       const struct timespec *);
+   int (*ptr_pthread_equal) (pthread_t, pthread_t);
+   void (*ptr___pthread_exit) (void *);
+   int (*ptr_pthread_getschedparam) (pthread_t, int *, struct sched_param *);
+@@ -82,6 +81,8 @@ struct pthread_functions
+ 				struct sigaction *oact);
+   int (*ptr_pthread_sigwait) (const sigset_t *set, int *sig);
+   int (*ptr_pthread_raise) (int sig);
++  int (*ptr___pthread_cond_timedwait) (pthread_cond_t *, pthread_mutex_t *,
++				       const struct timespec *);
+ };
+ 
+ /* Variable in libc.so.  */
