@@ -1,6 +1,6 @@
-.TH ldconfig 8 "30 September 2000"
+.TH ldconfig 8 "30 October 2000"
 .SH NAME
-ldconfig \- determine run-time link bindings
+ldconfig \- configure dynamic linker run-time bindings
 .SH SYNOPSIS
 ldconfig
 .RB [OPTION...]
@@ -22,9 +22,13 @@ determining which versions should have their links updated.
 ignores symbolic links when scanning for libraries.
 .PP
 .B ldconfig
-will attempt to deduce the type of ELF libs (ie. libc5 or libc6/glibc)
-based on what C libs if any the library was linked against, therefore when
+will attempt to deduce the type of ELF libs (ie. libc 5.x or libc 6.x (glibc))
+based on what C libraries if any the library was linked against, therefore when
 making dynamic libraries, it is wise to explicitly link against libc (use -lc).
+.B ldconfig
+is capable of storing multiple ABI types of libraries into a single cache on
+architectures which allow native running of multiple ABIs, like
+ia32/ia64/x86_64 or sparc32/sparc64.
 .PP
 Some existing libs do not contain enough information to allow the deduction of
 their type, therefore the
@@ -45,9 +49,10 @@ are no longer legal unless they also have an expected type specifier.
 .PP
 .B ldconfig
 should normally be run by the super-user as it may require write
-permission on some root owned directories and files.
-It is normally run automatically at bootup, from /etc/rc, or manually
-whenever new DLL's are installed.
+permission on some root owned directories and files. If you use
+.B -r
+option to change the root directory, you don't have to be super-user though
+as long as you have sufficient right to that directory tree.
 .SH OPTIONS
 .TP
 .B \-v\ \-\-verbose
@@ -115,30 +120,20 @@ Print usage information.
 .B \-V\ \-\-version
 Print version and exit.
 .SH EXAMPLES
-In the bootup file
-.I /etc/rc
-having the line
 .RS
-
-/sbin/ldconfig -v
-
+# /sbin/ldconfig -v
 .RE
 will set up the correct links for the shared binaries and rebuild
 the cache.
-.TP
-On the command line
 .RS
-
 # /sbin/ldconfig -n /lib
-
 .RE
-as root after the installation of a new DLL, will properly update the
+as root after the installation of a new shared library will properly update the
 shared library symbolic links in /lib.
-
 .SH FILES
 .PD 0
 .TP 20
-.B /lib/ld.so, /lib/ld-linux.so.*
+.B /lib/ld-linux.so.*
 execution time linker/loader
 .TP 20
 .B /etc/ld.so.conf
@@ -160,15 +155,11 @@ shared libraries
 .BR ld.so (8).
 .SH BUGS
 .LP
-.BR ldconfig 's
-functionality, in conjunction with
-.BR ld.so ,
-is only available for executables compiled using libc version 4.4.3 or greater.
-.PP
 .BR ldconfig ,
 being a user process, must be run manually and has no means of dynamically
 determining and relinking shared libraries for use by
 .BR ld.so
-when a new DLL is installed.
+when a new shared library is installed.
 .SH AUTHORS
-David Engel and Mitch D'Souza.
+Andreas Jaeger.
+Manual page written by David Engel and Mitch D'Souza.
