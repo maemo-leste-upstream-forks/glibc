@@ -12,7 +12,7 @@ sparc64_LIBDIR = 64
  
 sparcv9_MIN_KERNEL_SUPPORTED = 2.4.18
 sparcv9_configure_target=sparcv9-linux
-sparcv9_extra_cflags = -mcpu=v9 -mtune=ultrasparc -g0 -O3 -fomit-frame-pointer -D__USE_STRING_INLINES
+sparcv9_extra_cflags = -mcpu=v8 -mtune=ultrasparc -g0 -O3 -fomit-frame-pointer -D__USE_STRING_INLINES
 sparcv9_extra_config_options = $(extra_config_options) --disable-profile
 sparcv9_add-ons = linuxthreads $(add-ons)
 sparcv9_LIBDIR = /v9
