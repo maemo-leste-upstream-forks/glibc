@@ -123,8 +123,11 @@ push @{$libc_dev_c{'Replaces'}}, 'netkit-rpc';
 push @{$libc_c{'Replaces'}}, 'netbase (<< 4.0)';
 push @{$libc_dev_c{'Replaces'}}, 'netbase (<< 4.0)';
 
-# Conflict old wine
-push @{$libc_c{'Conflicts'}}, 'wine (<< 0.0.20021007-1)';
+# Conflict old wine - didn't like NPTL
+push @{$libc_c{'Conflicts'}}, 'wine (<< 0.0.20031118-1)';
+
+# Conflict some packages because of bad errno handling
+push @{$libc_c{'Conflicts'}}, 'cyrus-imapd (<< 1.5.19-15)';
 
 # Make sure we only have one version of libc-dev installed
 push @{$libc_dev_c{'Provides'}}, 'libc-dev';
