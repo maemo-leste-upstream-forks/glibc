@@ -1,0 +1,105 @@
+#! /bin/sh -e
+
+# DP: Some fixes that allow openoffice to build correctly.
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+This fixes the missing sqrtl entry in libm on powerpc.
+
+2002-05-10  Andreas Schwab  <schwab@suse.de>;
+
+	* sysdeps/powerpc/fpu/w_sqrt.c: Add sqrtl alias.
+
+Index: sysdeps/powerpc/fpu/w_sqrt.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/powerpc/fpu/w_sqrt.c,v
+retrieving revision 1.2
+diff -u -p -a -u -p -a -r1.2 sysdeps/powerpc/fpu/w_sqrt.c
+--- sysdeps/powerpc/fpu/w_sqrt.c	6 Jul 2001 04:56:02 -0000	1.2
++++ sysdeps/powerpc/fpu/w_sqrt.c	10 May 2002 08:40:46 -0000
+@@ -1,5 +1,5 @@
+ /* Single-precision floating point square root.
+-   Copyright (C) 1997 Free Software Foundation, Inc.
++   Copyright (C) 1997, 2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -139,3 +139,8 @@ weak_alias (__sqrt, sqrt)
+ /* Strictly, this is wrong, but the only places where _ieee754_sqrt is
+    used will not pass in a negative result.  */
+ strong_alias(__sqrt,__ieee754_sqrt)
++
++#ifdef NO_LONG_DOUBLE
++weak_alias (__sqrt, __sqrtl)
++weak_alias (__sqrt, sqrtl)
++#endif
+Index: sysdeps/unix/sysv/linux/semctl.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/semctl.c,v
+retrieving revision 1.12
+diff -u -p -r1.12 semctl.c
+--- sysdeps/unix/sysv/linux/semctl.c	6 Jul 2001 04:56:13 -0000	1.12
++++ sysdeps/unix/sysv/linux/semctl.c	28 Apr 2002 21:03:16 -0000
+@@ -69,8 +69,23 @@ __old_semctl (int semid, int semnum, int
+ 
+   va_start (ap, cmd);
+ 
+-  /* Get the argument.  */
+-  arg = va_arg (ap, union semun);
++  /* Get the argument only if required.  */
++  arg.buf = NULL;
++  switch (cmd)
++    {
++    case SETVAL:        /* arg.val */
++    case GETALL:        /* arg.array */
++    case SETALL:
++    case IPC_STAT:      /* arg.buf */
++    case IPC_SET:
++    case SEM_STAT:
++    case IPC_INFO:      /* arg.__buf */
++    case SEM_INFO:
++      va_start (ap, cmd);
++      arg = va_arg (ap, union semun);
++      va_end (ap);
++      break;
++    }
+ 
+   va_end (ap);
+ 
+@@ -88,8 +103,23 @@ __new_semctl (int semid, int semnum, int
+ 
+   va_start (ap, cmd);
+ 
+-  /* Get the argument.  */
+-  arg = va_arg (ap, union semun);
++  /* Get the argument only if required.  */
++  arg.buf = NULL;
++  switch (cmd)
++    {
++    case SETVAL:        /* arg.val */
++    case GETALL:        /* arg.array */
++    case SETALL:
++    case IPC_STAT:      /* arg.buf */
++    case IPC_SET:
++    case SEM_STAT:
++    case IPC_INFO:      /* arg.__buf */
++    case SEM_INFO:
++      va_start (ap, cmd);
++      arg = va_arg (ap, union semun);
++      va_end (ap);
++      break;
++    }
+ 
+   va_end (ap);
+ 

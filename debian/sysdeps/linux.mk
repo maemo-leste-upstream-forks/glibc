@@ -1,11 +1,7 @@
-ifeq ($(DEB_HOST_GNU_CPU),i386)
+ifeq ($(DEB_HOST_GNU_CPU),m68k)
   MIN_KERNEL_SUPPORTED := 2.0.30
 else
-  ifeq ($(DEB_HOST_GNU_CPU),m68k)
-    MIN_KERNEL_SUPPORTED := 2.0.30
-  else
-    MIN_KERNEL_SUPPORTED := 2.2.0
-  endif
+  MIN_KERNEL_SUPPORTED := 2.2.0
 endif
 
 # XXX: disabled for now
