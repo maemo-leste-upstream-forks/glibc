@@ -7,19 +7,17 @@ set -e
 [ "`uname -s`" = "Linux" ] || exit 0
 
 #
-#	First find out if devpts is available. Also check if devfs
-#	is already mounted - in that case we don't want to use devpts.
+#	First find out if devpts is available.
 #
-#	As of 2.5.68, devpts is not automounted when using devfs.
-#	So even in that case, devpts needs to be mounted via the
-#	devpts.sh script as well as the case that devfs is not used.
+#	As of 2.5.68, devpts is not automounted when using devfs. So we
+#	mount devpts if it is compiled in (older devfs didn't require it
+#	to be compiled in at all).
 #
 devpts_avail=`grep -ci '[<[:space:]]devpts' /proc/filesystems || true`
 devpts_mounted=`grep -ci '/dev/pts' /proc/mounts || true`
-devfs_mounted=`grep -ci '[<[:space:]]/dev[>[:space:]].*devfs' /proc/mounts || true`
-kernel_ver=`uname -r`
 
-prepare_and_mount() {
+if [ "$devpts_avail" != 0 ]
+then
 	#
 	#	Create mountpoint and multiplexor device.
 	#
@@ -32,18 +30,5 @@ prepare_and_mount() {
 	if [ "$devpts_mounted" = 0 ]
 	then
 		mount -t devpts devpts /dev/pts -ogid=${TTYGRP},mode=${TTYMODE}
-	fi
-}
-
-if [ "$devpts_avail" != 0 ]
-then
-	if dpkg --compare-versions "$kernel_ver" ge 2.5.68
-	then
-		prepare_and_mount
-	else
-		if [ "$devfs_mounted" = 0 ]
-		then
-			prepare_and_mount
-		fi
 	fi
 fi
