@@ -8,8 +8,8 @@ $(libc)-dbg: $(stamp_install) debian/control $(mkdir)/sysdeps.mk
 	$(INSTALL_DATA) $(install_root)/lib/*-$(VERSION).so \
 		$(tmpdir)/$@$(libdir)/debug/.
 ifeq ($(threads),yes)
-	$(INSTALL_DATA) $(install_root)/lib/libpthread-0.9.so \
-	$(tmpdir)/$@$(libdir)/debug/libpthread-0.9.so
+	$(INSTALL_DATA) $(install_root)/lib/libpthread-0.10.so \
+	$(tmpdir)/$@$(libdir)/debug/libpthread-0.10.so
 	$(INSTALL_DATA) $(install_root)/lib/libthread_db-1.0.so \
 	$(tmpdir)/$@$(libdir)/debug/.
 endif

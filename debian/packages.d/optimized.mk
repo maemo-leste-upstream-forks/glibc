@@ -78,7 +78,7 @@ $(libc)-$(OPT): $(stamp_install_opt) debian/control $(mkdir)/sysdeps.mk \
 	$(INSTALL_PROGRAM) $(install_root_opt)/lib/libc-$(VERSION).so $(tmpdir)/$@/lib/$(OPT)/.
 	$(INSTALL_DATA) $(install_root_opt)/lib/libSegFault.so $(tmpdir)/$@/lib/$(OPT)/.
 ifeq ($(threads),yes)
-	$(INSTALL_DATA) $(install_root_opt)/lib/libpthread-0.9.so $(tmpdir)/$@/lib/$(OPT)/.
+	$(INSTALL_DATA) $(install_root_opt)/lib/libpthread-0.10.so $(tmpdir)/$@/lib/$(OPT)/.
 	$(INSTALL_DATA) $(install_root_opt)/lib/libthread_db-1.0.so $(tmpdir)/$@/lib/$(OPT)/.
 endif
 	@set -e; \
@@ -88,7 +88,7 @@ endif
 	cd $(tmpdir)/$@ && \
 	$(STRIP) lib/$(OPT)/lib*-$(VERSION).so
 ifeq ($(threads),yes)
-	$(STRIP) $(tmpdir)/$@/lib/$(OPT)/libpthread-0.9.so
+	$(STRIP) $(tmpdir)/$@/lib/$(OPT)/libpthread-0.10.so
 	$(STRIP) $(tmpdir)/$@/lib/$(OPT)/libthread_db-1.0.so
 endif
 	# Get rid of the NSS libs, they don't get used anyway

@@ -77,7 +77,7 @@ $(libc)-sparc64: $(stamp_install_64) debian/control $(mkdir)/sysdeps.mk \
 	$(INSTALL_PROGRAM) $(install_root_64)/lib64/libc-$(VERSION).so $(tmpdir)/$@/lib64/.
 	$(INSTALL_DATA) $(install_root_64)/lib64/libSegFault.so $(tmpdir)/$@/lib64/.
 ifeq ($(threads),yes)
-	$(INSTALL_DATA) $(install_root_64)/lib64/libpthread-0.9.so $(tmpdir)/$@/lib64/.
+	$(INSTALL_DATA) $(install_root_64)/lib64/libpthread-0.10.so $(tmpdir)/$@/lib64/.
 	$(INSTALL_DATA) $(install_root_64)/lib64/libthread_db-1.0.so $(tmpdir)/$@/lib64/.
 endif
 	@set -e; \
@@ -87,7 +87,7 @@ endif
 	cd $(tmpdir)/$@ && \
 	$(STRIP) lib64/lib*-$(VERSION).so
 ifeq ($(threads),yes)
-	$(STRIP) $(tmpdir)/$@/lib64/libpthread-0.9.so
+	$(STRIP) $(tmpdir)/$@/lib64/libpthread-0.10.so
 	$(STRIP) $(tmpdir)/$@/lib64/libthread_db-1.0.so
 endif
 	$(INSTALL_PROGRAM) $(install_root_64)/lib64/ld-$(VERSION).so \

@@ -9,7 +9,7 @@ $(libc): $(stamp_install) debian/control $(mkdir)/sysdeps.mk debian/libc/DEBIAN/
 	$(INSTALL_PROGRAM) $(install_root)/lib/libc-$(VERSION).so $(tmpdir)/$@/lib/.
 	$(INSTALL_DATA) $(install_root)/lib/libSegFault.so $(tmpdir)/$@/lib/.
 ifeq ($(threads),yes)
-	$(INSTALL_DATA) $(install_root)/lib/libpthread-0.9.so $(tmpdir)/$@/lib/.
+	$(INSTALL_DATA) $(install_root)/lib/libpthread-0.10.so $(tmpdir)/$@/lib/.
 	$(INSTALL_DATA) $(install_root)/lib/libthread_db-1.0.so $(tmpdir)/$@/lib/.
 endif
 	@set -ex; cd $(install_root)/lib && \
@@ -73,7 +73,7 @@ ifeq ($(DEB_BUILD_OPTION_STRIP),yes)
 	-$(STRIP) --strip-unneeded -R .note $(tmpdir)/$@$(bindir)/* $(tmpdir)/$@$(sbindir)/* \
 		$(tmpdir)/$@/sbin/*
 ifeq ($(threads),yes)
-	$(STRIP) --strip-debug -R .note -R .comment $(tmpdir)/$@/lib/libpthread-0.9.so
+	$(STRIP) --strip-debug -R .note -R .comment $(tmpdir)/$@/lib/libpthread-0.10.so
 	$(STRIP) --strip-unneeded -R .note -R .comment $(tmpdir)/$@/lib/libthread_db-1.0.so
 endif
 	$(STRIP) $(tmpdir)/$@$(libdir)/gconv/*.so
