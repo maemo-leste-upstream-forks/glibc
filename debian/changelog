@@ -7,12 +7,21 @@ glibc (2.3.2.ds1-12) unstable; urgency=low
      set CONFIG_TMPFS on 2.4.  (Closes: #230758)
    - debian/local/etc_init.d/mountkernfs: Check each mount directory is
      actually directory or not.  (Closes: #234813)
-   - debian/local/etc_init.d/mountkernfs: remove "set -e". (Closes: #232122)
+   - debian/local/etc_init.d/mountkernfs: remove "set -e".
    - debian/debhelper.in/libc.postinst: use invoke-rc.d to invoke
      mountkernfs when it's available, suggested by Junichi Uekawa
      <dancer@netfort.gr.jp>.  (Closes: #230008)
-   - debian/debhelper.in/libc.preinst: devpts.sh is actually replaced to
-     mountkernfs.  (Closes: #230857)
+
+   - debian/debhelper.in/libc.install: drop installing three files:
+     debian/local/etc_init.d/mountkernfs, debian/local/etc_default/devpts,
+     and debian/local/etc_default/tmpfs.  Because initscripts now provides
+     those files.  (Closes: #238963)
+   - debian/debhelper.in/libc.preinst: devpts.sh should be actually replaced to
+     mountkernfs.  But by now mounting filesystems should be done with
+     mountvirtfs in initscripts.  Initscripts needs to remove devpts.sh and
+     mountkernfs.
+   - debian/debhelper.in/libc.postinst: likewise.
+
    - debian/debhelper.in/libc.preinst: Fix kernel version detection correctly.
      Patched by Goswin von Brederlow <brederlo@informatik.uni-tuebingen.de>.
      (Closes: #241395).
@@ -40,8 +49,9 @@ glibc (2.3.2.ds1-12) unstable; urgency=low
    - debian/patches/alpha-rtsigaction-fix.dpatch: Fix alpha sigaction with
      SA_SIGINFO (rt_sigaction), keep program execution after exiting signal
      handler, with correctly calling rt_sigreturn.  (Closes: #221969)
-   - debian/patches/translation-fr.dpatch: Fix fr.po translation typo.
-     Patched by Petter Reinholdtsen <pere@hungry.com>.  (Closes: #243183)
+   - debian/patches/translation-fr.dpatch: Include fr.po translation patch.
+     Patched by Petter Reinholdtsen <pere@hungry.com>.  Related bug #243183
+     is currently suspended.
    - debian/patches/locale-et_EE.dpatch: Fix et_EE locale incorrect charset.
      Patched by Petter Reinholdtsen <pere@hungry.com>.  (Closes: #208238)
 
@@ -165,7 +175,7 @@ glibc (2.3.2.ds1-12) unstable; urgency=low
     - Fix provides of udebs.  (Closes: #183143)
     - Use debhelper udeb knowledge.
 
- -- Daniel Jacobowitz <dan@debian.org>  Mon,  9 Feb 2004 14:05:18 -0500
+ -- GOTO Masanori <gotom@debian.org>  Wed, 21 Apr 2004 00:40:55 +0900
 
 glibc (2.3.2.ds1-11) unstable; urgency=low
 
