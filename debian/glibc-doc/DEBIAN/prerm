@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = remove ]; then
+    install-info --quiet --remove libc
+
+    install-info --quiet --remove /usr/share/doc/glibc-doc/libc.info.gz
+
+    if command -v install-docs >/dev/null 2>&1; then
+	install-docs -r glibc-manual >/dev/null 2>&1
+    fi
+    if [ -d /usr/doc ]; then
+	package=$(basename $0 .prerm)
+	if [ -L /usr/doc/$package ]; then
+	    rm /usr/doc/$package ;
+	fi
+    fi
+fi

@@ -1,0 +1,29 @@
+#!/bin/bash
+set -e
+
+SUPPORTED_LOCALES="__SUPPORTED_LOCALES__"
+
+if test -f /etc/locale.gen; then
+  LG=/etc/locale.gen
+  SELECTED_LOCALES=$(egrep -v "^#|^$" $LG | tr "\n" "," | sed -e "s/,/, /g" -e "s/, *$//")
+else
+  LG=/dev/null
+fi
+
+SUPPORTED_LOCALES=$( (cat $LG && echo "$SUPPORTED_LOCALES") | egrep -hv "^#|^$" | sort -u | tr "\n" "," | sed -e "s/,/, /g" -e "s/, *$//")
+
+. /usr/share/debconf/confmodule
+db_version 2.0
+
+db_set locales/locales_to_be_generated "${SELECTED_LOCALES}"
+db_subst locales/locales_to_be_generated locales "${SUPPORTED_LOCALES}"
+db_capb multiselect
+db_input medium locales/locales_to_be_generated || true
+db_go
+
+db_get locales/locales_to_be_generated && DEFAULT_LOCALES=$(echo $RET | sed -e 's/ [^ ]*,/,/g' -e 's/ [^ ]*$//')
+
+test -z "$DEFAULT_LOCALES" || DEFAULT_LOCALES=", $DEFAULT_LOCALES"
+db_subst locales/default_environment_locale locales Leave alone, None, C$DEFAULT_LOCALES
+db_input medium locales/default_environment_locale || true
+db_go

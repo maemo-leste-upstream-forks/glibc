@@ -1,0 +1,44 @@
+#! /bin/sh -e
+
+# DP: PA-RISC correct unwind settings.
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+diff -urN glibc-2.2.5/sysdeps/unix/sysv/linux/configure glibc-2.2.5.orig/sysdeps/unix/sysv/linux/configure
+--- glibc-2.2.5/sysdeps/unix/sysv/linux/configure	Sun Jan 27 11:05:18 2002
++++ glibc-2.2.5.orig/sysdeps/unix/sysv/linux/configure	Sat Jan 26 22:36:22 2002
+@@ -68,7 +68,8 @@
+     arch_minimum_kernel=2.4.0
+     ;;
+   hppa*)
+-    arch_minimum_kernel=2.3.99
++    arch_minimum_kernel=2.4.4
++    libc_cv_gcc_unwind_find_fde=yes
+     ;;
+   mips*)
+     arch_minimum_kernel=2.2.15
+diff -urN glibc-2.2.5/sysdeps/unix/sysv/linux/configure.in glibc-2.2.5.orig/sysdeps/unix/sysv/linux/configure.in
+--- glibc-2.2.5/sysdeps/unix/sysv/linux/configure.in	Sun Jan 27 11:05:18 2002
++++ glibc-2.2.5.orig/sysdeps/unix/sysv/linux/configure.in	Sat Jan 26 22:32:43 2002
+@@ -55,7 +55,8 @@
+     arch_minimum_kernel=2.4.0
+     ;;
+   hppa*)
+-    arch_minimum_kernel=2.3.99
++    arch_minimum_kernel=2.4.4
++    libc_cv_gcc_unwind_find_fde=yes
+     ;;
+   mips*)
+     arch_minimum_kernel=2.2.15

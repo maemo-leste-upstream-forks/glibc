@@ -1,0 +1,32 @@
+#! /bin/sh -e
+
+# DP: Variosu LSB conformance patches
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+2002-03-02  Thorsten Kukuk  <kukuk@suse.de>
+
+	* sysdeps/unix/nice.c: Use getpriority() for the return value
+
+--- sysdeps/unix/nice.c
++++ sysdeps/unix/nice.c	2002/03/02 09:40:14
+@@ -43,7 +43,7 @@
+ 
+   result = setpriority (PRIO_PROCESS, 0, prio + incr);
+   if (result != -1)
+-    return prio + incr;
++    return getpriority (PRIO_PROCESS, 0);
+   else
+     return -1;
+ 

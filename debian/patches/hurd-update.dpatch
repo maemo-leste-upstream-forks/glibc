@@ -1,0 +1,128 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Hurd update from CVS to suport libio, and fix a bug in tmpfile
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+--- ChangeLog~	Sat Apr  6 16:52:17 2002
++++ ChangeLog	Sat Apr  6 16:50:13 2002
+@@ -0,0 +1,12 @@
++2002-04-19  Roland McGrath  <roland@frob.com>
++
++        * sysdeps/mach/hurd/tmpfile.c: Create a file descriptor and use fdopen.
++
++2002-03-31  Roland McGrath  <roland@frob.com>
++
++        * hurd/hurdselect.c (_hurd_select): Fix
++        MACH_MSG_TYPE_INTEGER_T -> integer_t in sizeof.
++        Use a union rather than casts to compare mach_msg_type_t as int.
++
++2002-03-25  Roland McGrath  <roland@frob.com>
++
++        * hurd/hurdchdir.c (_hurd_change_directory_port_from_name): Don't
++        check off the end of NAME when it's shorter than 2 chars.
++        Reported by Ognyan Kulev <ogi@fmi.uni-sofia.bg>.
++
+--- hurd/hurdchdir.c~	Mon Jul  9 20:52:46 2001
++++ hurd/hurdchdir.c	Sat Apr  6 16:50:35 2002
+@@ -2 +2 @@
+-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
++   Copyright (C) 1999,2001,02 Free Software Foundation, Inc.
+@@ -39 +39 @@ _hurd_change_directory_port_from_name (s
+-  if (name[len - 2] == '/' && name[len - 1] == '.')
++  if (len >= 2 && name[len - 2] == '/' && name[len - 1] == '.')
+--- hurd/hurdselect.c~	Sat Nov 10 12:15:39 2001
++++ hurd/hurdselect.c	Sat Apr  6 16:50:31 2002
+@@ -66,0 +67,8 @@ _hurd_select (int nfds,
++  union typeword		/* Use this to avoid unkosher casts.  */
++    {
++      mach_msg_type_t type;
++      uint32_t word;
++    };
++  assert (sizeof (union typeword) == sizeof (mach_msg_type_t));
++  assert (sizeof (uint32_t) == sizeof (mach_msg_type_t));
++
+@@ -285 +293 @@ _hurd_select (int nfds,
+-	      mach_msg_type_t err_type;
++	      union typeword err_type;
+@@ -291 +299 @@ _hurd_select (int nfds,
+-	      mach_msg_type_t err_type;
++	      union typeword err_type;
+@@ -293 +301 @@ _hurd_select (int nfds,
+-	      mach_msg_type_t result_type;
++	      union typeword result_type;
+@@ -306,3 +314,4 @@ _hurd_select (int nfds,
+-	  const mach_msg_type_t inttype =
+-	    { MACH_MSG_TYPE_INTEGER_T, sizeof (MACH_MSG_TYPE_INTEGER_T) * 8,
+-	      1, 1, 0, 0 };
++	  const union typeword inttype =
++	  { type:
++	    { MACH_MSG_TYPE_INTEGER_T, sizeof (integer_t) * 8, 1, 1, 0, 0 }
++	  };
+@@ -312 +321 @@ _hurd_select (int nfds,
+-	      *(int *) &msg.error.err_type == *(int *) &inttype)
++	      msg.error.err_type.word == inttype.word)
+@@ -326 +335 @@ _hurd_select (int nfds,
+-		  *(int *) &msg.success.result_type != *(int *) &inttype ||
++		  msg.success.result_type.word != inttype.word ||
+diff -u -p -r1.1 -r1.1.2.1
+--- sysdeps/mach/hurd/tmpfile.c~	13 Nov 2001 10:07:11 -0000	1.1
++++ sysdeps/mach/hurd/tmpfile.c	20 Apr 2002 21:28:19 -0000	1.1.2.1
+@@ -1,5 +1,5 @@
+ /* Open a stdio stream on an anonymous temporary file.  Hurd version.
+-   Copyright (C) 2001 Free Software Foundation, Inc.
++   Copyright (C) 2001,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -20,7 +20,9 @@
+ #include <stdio.h>
+ #include <hurd.h>
+ #include <hurd/fs.h>
++#include <hurd/fd.h>
+ #include <fcntl.h>
++#include <unistd.h>
+ 
+ #ifdef USE_IN_LIBIO
+ # include <iolibio.h>
+@@ -37,6 +39,7 @@ tmpfile (void)
+ {
+   error_t err;
+   file_t file;
++  int fd;
+   FILE *f;
+ 
+   /* Get a port to the directory that will contain the file.  */
+@@ -51,10 +54,16 @@ tmpfile (void)
+   if (err)
+     return __hurd_fail (err), NULL;
+ 
+-  /* Open a stream on the port to the unnamed file.
++  /* Get a file descriptor for that port.  POSIX.1 requires that streams
++     returned by tmpfile allocate file descriptors as fopen would.  */
++  fd = _hurd_intern_fd (file, O_RDWR, 1); /* dealloc on error */
++  if (fd < 0)
++    return NULL;
++
++  /* Open a stream on the unnamed file.
+      It will cease to exist when this stream is closed.  */
+-  if ((f = __fopenport (file, "w+b")) == NULL)
+-    __mach_port_deallocate (__mach_task_self (), file);
++  if ((f = __fdopen (fd, "w+b")) == NULL)
++    __close (fd);
+ 
+   return f;
+ }

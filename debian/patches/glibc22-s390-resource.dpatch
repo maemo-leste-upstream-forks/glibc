@@ -1,0 +1,32 @@
+#! /bin/sh -e
+
+# DP: Adapt sysdeps/unix/sysv/linux/s390/bits/resource.h
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    *)
+        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+        exit 1
+esac
+exit 0
+ 
+--- sysdeps/unix/sysv/linux/s390/s390-32/bits/resource.h	Tue Jul 10 00:57:28 2001
++++ sysdeps/unix/sysv/linux/s390/s390-32/bits/resource.h.new	Wed Jan 30 10:35:56 2002
+@@ -76,7 +76,11 @@
+   RLIMIT_MEMLOCK = 8,
+ #define RLIMIT_MEMLOCK RLIMIT_MEMLOCK
+ 
+-  RLIMIT_NLIMITS = 10,
++  /* Maximum number of file locks.  */
++  RLIMIT_LOCKS = 10,
++#define RLIMIT_LOCKS RLIMIT_LOCKS
++
++  RLIMIT_NLIMITS = 11,
+   RLIM_NLIMITS = RLIMIT_NLIMITS
+ #define RLIMIT_NLIMITS RLIMIT_NLIMITS
+ #define RLIM_NLIMITS RLIM_NLIMITS

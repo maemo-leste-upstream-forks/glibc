@@ -1,0 +1,1746 @@
+#! /bin/sh -e
+
+# DP: PA-RISC Patches for LinuxThreads
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+        exit 1
+esac
+exit 0
+
+diff -urN glibc-2.2.4.orig/linuxthreads/internals.h glibc-2.2.4/linuxthreads/internals.h
+--- glibc-2.2.4.orig/linuxthreads/internals.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/internals.h	Wed Nov 14 09:43:58 2001
+@@ -28,7 +28,8 @@
+ #include <sys/types.h>
+ #include <bits/libc-tsd.h> /* for _LIBC_TSD_KEY_N */
+ 
+-extern long int testandset (int *spinlock);
++extern int try_lock(__atomic_lock_t *spinlock);
++extern int lock_held(__atomic_lock_t *spinlock);
+ extern int __compare_and_swap (long int *p, long int oldval, long int newval);
+ 
+ #include "pt-machine.h"
+@@ -107,7 +108,7 @@
+ 
+ struct pthread_atomic {
+   long p_count;
+-  int p_spinlock;
++  __atomic_lock_t p_spinlock;
+ };
+ 
+ /* Context info for read write locks. The pthread_rwlock_info structure
+diff -urN glibc-2.2.4.orig/linuxthreads/oldsemaphore.c glibc-2.2.4/linuxthreads/oldsemaphore.c
+--- glibc-2.2.4.orig/linuxthreads/oldsemaphore.c	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/oldsemaphore.c	Wed Nov 14 09:43:58 2001
+@@ -73,7 +73,7 @@
+ 	errno = ENOSYS;
+ 	return -1;
+     }
+-  sem->sem_spinlock = __LT_SPINLOCK_INIT;
++  sem->sem_spinlock = __ATOMIC_LOCK_INIT;
+   sem->sem_status = ((long)value << 1) + 1;
+   return 0;
+ }
+diff -urN glibc-2.2.4.orig/linuxthreads/pt-machine.c glibc-2.2.4/linuxthreads/pt-machine.c
+--- glibc-2.2.4.orig/linuxthreads/pt-machine.c	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/pt-machine.c	Wed Nov 14 09:43:58 2001
+@@ -19,7 +19,9 @@
+ 
+ #define PT_EI
+ 
+-extern long int testandset (int *spinlock);
++#include <pthread.h>
++
++extern int try_lock(__atomic_lock_t *spinlock);
+ extern int __compare_and_swap (long int *p, long int oldval, long int newval);
+ 
+ #include <pt-machine.h>
+diff -urN glibc-2.2.4.orig/linuxthreads/spinlock.c glibc-2.2.4/linuxthreads/spinlock.c
+--- glibc-2.2.4.orig/linuxthreads/spinlock.c	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/spinlock.c	Wed Nov 14 09:43:58 2001
+@@ -25,12 +25,12 @@
+ #include "restart.h"
+ 
+ #if !defined HAS_COMPARE_AND_SWAP || defined TEST_FOR_COMPARE_AND_SWAP
+-static void __pthread_acquire(int * spinlock);
++static void __pthread_acquire(__atomic_lock_t * spinlock);
+ 
+-static inline void __pthread_release(int * spinlock)
++static inline void __pthread_release(__atomic_lock_t * spinlock)
+ {
+   WRITE_MEMORY_BARRIER();
+-  *spinlock = __LT_SPINLOCK_INIT;
++  *spinlock = __ATOMIC_LOCK_INIT;
+   __asm __volatile ("" : "=m" (*spinlock) : "0" (*spinlock));
+ }
+ #endif
+@@ -271,12 +271,12 @@
+ struct wait_node {
+   struct wait_node *next;	/* Next node in null terminated linked list */
+   pthread_descr thr;		/* The thread waiting with this node */
+-  int abandoned;		/* Atomic flag */
++  __atomic_lock_t abandoned;	/* Atomic flag */
+ };
+ 
+ static long wait_node_free_list;
+ #if !defined HAS_COMPARE_AND_SWAP || defined TEST_FOR_COMPARE_AND_SWAP
+-static int wait_node_free_list_spinlock;
++static __atomic_lock_t wait_node_free_list_spinlock = __ATOMIC_LOCK_INIT;
+ #endif
+ 
+ /* Allocate a new node from the head of the free list using an atomic
+@@ -303,8 +303,7 @@
+       new_node = (struct wait_node *) wait_node_free_list;
+       wait_node_free_list = (long) new_node->next;
+     }
+-    WRITE_MEMORY_BARRIER();
+-    wait_node_free_list_spinlock = 0;
++    __pthread_release(&wait_node_free_list_spinlock);
+ 
+     if (new_node == 0)
+       return malloc(sizeof *wait_node_alloc());
+@@ -346,8 +345,7 @@
+     __pthread_acquire(&wait_node_free_list_spinlock);
+     wn->next = (struct wait_node *) wait_node_free_list;
+     wait_node_free_list = (long) wn;
+-    WRITE_MEMORY_BARRIER();
+-    wait_node_free_list_spinlock = 0;
++    __pthread_release(&wait_node_free_list_spinlock);
+     return;
+   }
+ #endif
+@@ -427,7 +425,7 @@
+       if (self == NULL)
+ 	self = thread_self();
+ 
+-      wait_node.abandoned = 0;
++      wait_node.abandoned = __ATOMIC_LOCK_INIT;
+       wait_node.next = (struct wait_node *) lock->__status;
+       wait_node.thr = self;
+       lock->__status = (long) &wait_node;
+@@ -453,7 +451,7 @@
+       wait_node.thr = self;
+       newstatus = (long) &wait_node;
+     }
+-    wait_node.abandoned = 0;
++    wait_node.abandoned = __ATOMIC_LOCK_INIT;
+     wait_node.next = (struct wait_node *) oldstatus;
+     /* Make sure the store in wait_node.next completes before performing
+        the compare-and-swap */
+@@ -502,7 +500,7 @@
+       if (self == NULL)
+ 	self = thread_self();
+ 
+-      p_wait_node->abandoned = 0;
++      p_wait_node->abandoned = __ATOMIC_LOCK_INIT;
+       p_wait_node->next = (struct wait_node *) lock->__status;
+       p_wait_node->thr = self;
+       lock->__status = (long) p_wait_node;
+@@ -525,7 +523,7 @@
+       p_wait_node->thr = self;
+       newstatus = (long) p_wait_node;
+     }
+-    p_wait_node->abandoned = 0;
++    p_wait_node->abandoned = __ATOMIC_LOCK_INIT;
+     p_wait_node->next = (struct wait_node *) oldstatus;
+     /* Make sure the store in wait_node.next completes before performing
+        the compare-and-swap */
+@@ -546,7 +544,7 @@
+ 
+   if (oldstatus != 0) {
+     if (timedsuspend(self, abstime) == 0) {
+-      if (!testandset(&p_wait_node->abandoned))
++      if (!try_lock(&p_wait_node->abandoned))
+ 	return 0; /* Timeout! */
+ 
+       /* Eat oustanding resume from owner, otherwise wait_node_free() below
+@@ -625,7 +623,7 @@
+     while (p_node != (struct wait_node *) 1) {
+       int prio;
+ 
+-      if (p_node->abandoned) {
++      if (lock_held(&p_node->abandoned)) {
+ 	/* Remove abandoned node. */
+ #if defined TEST_FOR_COMPARE_AND_SWAP
+ 	if (!__pthread_has_cas)
+@@ -656,7 +654,7 @@
+ 	p_max_prio = p_node;
+       }
+ 
+-      /* This canno6 jump backward in the list, so no further read
++      /* This cannot jump backward in the list, so no further read
+          barrier is needed. */
+       pp_node = &p_node->next;
+       p_node = *pp_node;
+@@ -675,7 +673,7 @@
+        thread timed out and abandoned the node in which case we repeat the
+        whole unlock operation. */
+ 
+-    if (!testandset(&p_max_prio->abandoned)) {
++    if (!try_lock(&p_max_prio->abandoned)) {
+ #if defined TEST_FOR_COMPARE_AND_SWAP
+       if (!__pthread_has_cas)
+ #endif
+@@ -713,7 +711,7 @@
+ #if !defined HAS_COMPARE_AND_SWAP || defined TEST_FOR_COMPARE_AND_SWAP
+ 
+ int __pthread_compare_and_swap(long * ptr, long oldval, long newval,
+-                               int * spinlock)
++                               __atomic_lock_t * spinlock)
+ {
+   int res;
+ 
+@@ -751,14 +749,14 @@
+    - When nanosleep() returns, we try again, doing MAX_SPIN_COUNT
+      sched_yield(), then sleeping again if needed. */
+ 
+-static void __pthread_acquire(int * spinlock)
++static void __pthread_acquire(__atomic_lock_t * spinlock)
+ {
+   int cnt = 0;
+   struct timespec tm;
+ 
+   READ_MEMORY_BARRIER();
+ 
+-  while (testandset(spinlock)) {
++  while (try_lock(spinlock)) {
+     if (cnt < MAX_SPIN_COUNT) {
+       sched_yield();
+       cnt++;
+diff -urN glibc-2.2.4.orig/linuxthreads/spinlock.h glibc-2.2.4/linuxthreads/spinlock.h
+--- glibc-2.2.4.orig/linuxthreads/spinlock.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/spinlock.h	Wed Nov 14 09:43:58 2001
+@@ -14,7 +14,6 @@
+ 
+ #include <bits/initspin.h>
+ 
+-
+ /* There are 2 compare and swap synchronization primitives with
+    different semantics:
+ 
+@@ -37,10 +36,10 @@
+ 
+ extern int __pthread_has_cas;
+ extern int __pthread_compare_and_swap(long * ptr, long oldval, long newval,
+-                                      int * spinlock);
++                                      __atomic_lock_t * spinlock);
+ 
+ static inline int compare_and_swap(long * ptr, long oldval, long newval,
+-                                   int * spinlock)
++                                   __atomic_lock_t * spinlock)
+ {
+   if (__builtin_expect (__pthread_has_cas, 1))
+     return __compare_and_swap(ptr, oldval, newval);
+@@ -50,15 +49,11 @@
+ 
+ #elif defined(HAS_COMPARE_AND_SWAP)
+ 
+-#ifdef IMPLEMENT_TAS_WITH_CAS
+-#define testandset(p) !__compare_and_swap((long int *) p, 0, 1)
+-#endif
+-
+ #ifdef HAS_COMPARE_AND_SWAP_WITH_RELEASE_SEMANTICS
+ 
+ static inline int
+ compare_and_swap_with_release_semantics (long * ptr, long oldval,
+-					 long newval, int * spinlock)
++					 long newval, __atomic_lock_t * spinlock)
+ {
+   return __compare_and_swap_with_release_semantics (ptr, oldval,
+ 						    newval);
+@@ -67,7 +62,7 @@
+ #endif
+ 
+ static inline int compare_and_swap(long * ptr, long oldval, long newval,
+-                                   int * spinlock)
++                                   __atomic_lock_t * spinlock)
+ {
+   return __compare_and_swap(ptr, oldval, newval);
+ }
+@@ -75,10 +70,10 @@
+ #else
+ 
+ extern int __pthread_compare_and_swap(long * ptr, long oldval, long newval,
+-                                      int * spinlock);
++                                      __atomic_lock_t * spinlock);
+ 
+ static inline int compare_and_swap(long * ptr, long oldval, long newval,
+-                                   int * spinlock)
++                                   __atomic_lock_t * spinlock)
+ {
+   return __pthread_compare_and_swap(ptr, oldval, newval, spinlock);
+ }
+@@ -99,7 +94,7 @@
+ static inline void __pthread_init_lock(struct _pthread_fastlock * lock)
+ {
+   lock->__status = 0;
+-  lock->__spinlock = __LT_SPINLOCK_INIT;
++  lock->__spinlock = __ATOMIC_LOCK_INIT;
+ }
+ 
+ static inline int __pthread_trylock (struct _pthread_fastlock * lock)
+@@ -109,7 +104,7 @@
+ #endif
+ #if !defined HAS_COMPARE_AND_SWAP || defined TEST_FOR_COMPARE_AND_SWAP
+   {
+-    return (testandset(&lock->__spinlock) ? EBUSY : 0);
++    return (try_lock(&lock->__spinlock) ? EBUSY : 0);
+   }
+ #endif
+ 
+@@ -136,7 +131,7 @@
+ static inline void __pthread_alt_init_lock(struct _pthread_fastlock * lock)
+ {
+   lock->__status = 0;
+-  lock->__spinlock = __LT_SPINLOCK_INIT;
++  lock->__spinlock = __ATOMIC_LOCK_INIT;
+ }
+ 
+ static inline int __pthread_alt_trylock (struct _pthread_fastlock * lock)
+@@ -148,7 +143,7 @@
+   {
+     int res = EBUSY;
+ 
+-    if (testandset(&lock->__spinlock) == 0)
++    if (try_lock(&lock->__spinlock) == 0)
+       {
+ 	if (lock->__status == 0)
+ 	  {
+@@ -156,7 +151,7 @@
+ 	    WRITE_MEMORY_BARRIER();
+ 	    res = 0;
+ 	  }
+-	lock->__spinlock = __LT_SPINLOCK_INIT;
++	lock->__spinlock = __ATOMIC_LOCK_INIT;
+       }
+     return res;
+   }
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/alpha/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/alpha/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/alpha/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/alpha/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -39,8 +39,8 @@
+ 
+ 
+ /* Spinlock implementation; required.  */
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock (int *spinlock)
+ {
+   long int ret, temp;
+ 
+@@ -58,9 +58,10 @@
+ 	: "m"(*spinlock)
+         : "memory");
+ 
+-  return ret;
++  return (int) ret;
+ }
+ 
++#define lock_held(p) *(p)
+ 
+ /* Begin allocating thread stacks at this address.  Default is to allocate
+    them just below the initial program stack.  */
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/arm/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/arm/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/arm/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/arm/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -29,8 +29,8 @@
+    time; let's hope nobody tries to use one.  */
+ 
+ /* Spinlock implementation; required.  */
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock(__atomic_lock_t *spinlock)
+ {
+   register unsigned int ret;
+ 
+@@ -41,6 +41,7 @@
+   return ret;
+ }
+ 
++#define lock_held(p) *(p)
+ 
+ /* Get some notion of the current stack.  Need not be exactly the top
+    of the stack, just something somewhere in the current frame.  */
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/cris/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/cris/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/cris/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/cris/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -22,10 +22,10 @@
+ # define PT_EI extern inline
+ #endif
+ 
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock(__atomic_lock_t *spinlock)
+ {
+-  register unsigned long int ret;
++  register unsigned int ret;
+ 
+   /* Note the use of a dummy output of *spinlock to expose the write.  The
+      memory barrier is to stop *other* writes being moved past this code.  */
+@@ -42,6 +42,7 @@
+   return ret;
+ }
+ 
++#define lock_held(p) *(p)
+ 
+ /* Get some notion of the current stack.  Need not be exactly the top
+    of the stack, just something somewhere in the current frame.
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/hppa/pspinlock.c glibc-2.2.4/linuxthreads/sysdeps/hppa/pspinlock.c
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/hppa/pspinlock.c	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/hppa/pspinlock.c	Wed Nov 14 09:43:58 2001
+@@ -21,18 +21,20 @@
+ #include <pthread.h>
+ #include "internals.h"
+ 
++/* LDCW, the only atomic read-write operation PA-RISC has. *sigh*.  */
++#define __ldcw(a) ({ \
++	unsigned __ret; \
++	__asm__ __volatile__("ldcw 0(%1),%0" : "=r" (__ret) : "r" (a)); \
++	__ret; \
++})
++
+ int
+ __pthread_spin_lock (pthread_spinlock_t *lock)
+ {
+-  unsigned int val;
+-
+-  do
+-    asm volatile ("ldcw %1,%0"
+-		  : "=r" (val), "=m" (*lock)
+-		  : "m" (*lock));
+-  while (!val);
++	while (__ldcw (*lock) == 0)
++		while (*lock == 0) ;
+ 
+-  return 0;
++	return 0;
+ }
+ weak_alias (__pthread_spin_lock, pthread_spin_lock)
+ 
+@@ -40,11 +42,7 @@
+ int
+ __pthread_spin_trylock (pthread_spinlock_t *lock)
+ {
+-  unsigned int val;
+-
+-  asm volatile ("ldcw %1,%0"
+-		: "=r" (val), "=m" (*lock)
+-		: "m" (*lock));
++  unsigned int val = __ldcw(*lock);
+ 
+   return val ? 0 : EBUSY;
+ }
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/hppa/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/hppa/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/hppa/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/hppa/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -19,6 +19,7 @@
+    write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+    Boston, MA 02111-1307, USA.  */
+ 
++#include <sys/types.h>
+ #include <bits/initspin.h>
+ 
+ #ifndef PT_EI
+@@ -30,16 +31,39 @@
+ #define CURRENT_STACK_FRAME  stack_pointer
+ register char * stack_pointer __asm__ ("%r30");
+ 
++/* Get/Set thread-specific pointer.  We have to call into the kernel to
++ * modify it, but we can read it in user mode.  */
++
++#define THREAD_SELF __get_cr27()
++
++static inline struct _pthread_descr_struct * __get_cr27(void)
++{
++	long cr27;
++	asm("mfctl %%cr27, %0" : "=r" (cr27) : );
++	return (struct _pthread_descr_struct *) cr27;
++}
++
++#define INIT_THREAD_SELF(descr, nr) __set_cr27(descr)
++
++static inline void __set_cr27(struct _pthread_descr_struct * cr27)
++{
++	asm(
++		"ble	0xe0(%%sr2, %%r0)\n\t"
++		"copy	%0, %%r26"
++	 : : "r" (cr27) : "r26" );
++}
++
++/* We want the OS to assign stack addresses.  */
++#define FLOATING_STACKS	1
++#define ARCH_STACK_MAX_SIZE	8*1024*1024
+ 
+ /* The hppa only has one atomic read and modify memory operation,
+    load and clear, so hppa spinlocks must use zero to signify that
+    someone is holding the lock.  */
+ 
+-#define xstr(s) str(s)
+-#define str(s) #s
+ /* Spinlock implementation; required.  */
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock(__atomic_lock_t *spinlock)
+ {
+   int ret;
+ 
+@@ -50,5 +74,9 @@
+ 
+   return ret == 0;
+ }
+-#undef str
+-#undef xstr
++
++PT_EI int
++lock_held(__atomic_lock_t *spinlock)
++{
++	return spinlock->lock == 0;
++}
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/i386/i686/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/i386/i686/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/i386/i686/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/i386/i686/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -30,10 +30,10 @@
+ 
+ 
+ /* Spinlock implementation; required.  */
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock (int *spinlock)
+ {
+-  long int ret;
++  int ret;
+ 
+   __asm__ __volatile__ (
+ 	"xchgl %0, %1"
+@@ -44,6 +44,7 @@
+   return ret;
+ }
+ 
++#define lock_held(p) *(p)
+ 
+ /* Compare-and-swap for semaphores.  It's always available on i686.  */
+ #define HAS_COMPARE_AND_SWAP
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/i386/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/i386/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/i386/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/i386/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -29,10 +29,10 @@
+ 
+ 
+ /* Spinlock implementation; required.  */
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock(__atomic_lock_t *spinlock)
+ {
+-  long int ret;
++  int ret;
+ 
+   __asm__ __volatile__(
+        "xchgl %0, %1"
+@@ -43,6 +43,7 @@
+   return ret;
+ }
+ 
++#define lock_held(p) *(p)
+ 
+ /* Compare-and-swap for semaphores.
+    Available on the 486 and above, but not on the 386.
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/ia64/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/ia64/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/ia64/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/ia64/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -97,8 +97,8 @@
+ #endif /* ELF_MACHINE_NAME */
+ 
+ /* Spinlock implementation; required.  */
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock(__atomic_lock_t *spinlock)
+ {
+   long int ret;
+ 
+@@ -108,5 +108,7 @@
+        : "r"(1), "1"(__atomic_fool_gcc (spinlock))
+        : "memory");
+ 
+-  return ret;
++  return (int) ret;
+ }
++
++#define lock_held(p) *(p)
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/m68k/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/m68k/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/m68k/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/m68k/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -25,8 +25,8 @@
+ 
+ 
+ /* Spinlock implementation; required.  */
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock(__atomic_lock_t *spinlock)
+ {
+   char ret;
+ 
+@@ -38,6 +38,7 @@
+   return ret;
+ }
+ 
++#define lock_held(p) *(p)
+ 
+ /* Get some notion of the current stack.  Need not be exactly the top
+    of the stack, just something somewhere in the current frame.  */
+--- glibc-2.2.5/linuxthreads/sysdeps/mips/pt-machine.h~	Sat Mar  2 19:37:24 2002
++++ glibc-2.2.5/linuxthreads/sysdeps/mips/pt-machine.h	Sat Mar  2 19:38:20 2002
+@@ -33,12 +33,13 @@
+ 
+ /* Spinlock implementation; required.  */
+ 
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock (__atomic_lock_t *spinlock)
+ {
+   return _test_and_set (spinlock, 1);
+ }
+ 
++#define lock_held(p) *(p)
+ 
+ /* Get some notion of the current stack.  Need not be exactly the top
+    of the stack, just something somewhere in the current frame.  */
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/powerpc/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/powerpc/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/powerpc/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/powerpc/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -39,7 +39,13 @@
+ /* note that test-and-set(x) is the same as !compare-and-swap(x, 0, 1) */
+ 
+ #define HAS_COMPARE_AND_SWAP_WITH_RELEASE_SEMANTICS
+-#define IMPLEMENT_TAS_WITH_CAS
++
++static inline int try_lock(__atomic_lock_t *p)
++{
++  return !__compare_and_swap((long int *) p, 0, 1);
++}
++
++#define lock_held(p) *(p)
+ 
+ PT_EI int
+ __compare_and_swap (long int *p, long int oldval, long int newval)
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/pthread/bits/initspin.h glibc-2.2.4/linuxthreads/sysdeps/pthread/bits/initspin.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/pthread/bits/initspin.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/pthread/bits/initspin.h	Wed Nov 14 09:43:58 2001
+@@ -20,9 +20,8 @@
+ /* Initial value of a spinlock.  Most platforms should use zero,
+    unless they only implement a "test and clear" operation instead of
+    the usual "test and set". */
+-#define __LT_SPINLOCK_INIT 0
++#define __ATOMIC_LOCK_INIT  0
+ 
+ /* Macros for lock initializers, using the above definition. */
+-#define __LOCK_INITIALIZER { 0, __LT_SPINLOCK_INIT }
+-#define __ALT_LOCK_INITIALIZER { 0, __LT_SPINLOCK_INIT }
+-#define __ATOMIC_INITIALIZER { 0, __LT_SPINLOCK_INIT }
++#define __LOCK_INITIALIZER { 0, 0 }
++#define __ATOMIC_INITIALIZER { 0, 0 }
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/pthread/bits/libc-lock.h glibc-2.2.4/linuxthreads/sysdeps/pthread/bits/libc-lock.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/pthread/bits/libc-lock.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/pthread/bits/libc-lock.h	Wed Nov 14 09:43:58 2001
+@@ -63,12 +63,12 @@
+    initialized locks must be set to one due to the lack of normal
+    atomic operations.) */
+ 
+-#if __LT_SPINLOCK_INIT == 0
++#ifdef __LOCK_INITIALISER_NOT_ZERO
+ #  define __libc_lock_define_initialized(CLASS,NAME) \
+-  CLASS __libc_lock_t NAME;
++  CLASS __libc_lock_t NAME = PTHREAD_MUTEX_INITIALIZER;
+ #else
+ #  define __libc_lock_define_initialized(CLASS,NAME) \
+-  CLASS __libc_lock_t NAME = PTHREAD_MUTEX_INITIALIZER;
++  CLASS __libc_lock_t NAME;
+ #endif
+ 
+ #define __libc_rwlock_define_initialized(CLASS,NAME) \
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/pthread/bits/pthreadtypes.h glibc-2.2.4/linuxthreads/sysdeps/pthread/bits/pthreadtypes.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/pthread/bits/pthreadtypes.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/pthread/bits/pthreadtypes.h	Wed Nov 14 09:43:58 2001
+@@ -22,11 +22,13 @@
+ #define __need_schedparam
+ #include <bits/sched.h>
+ 
++typedef int __atomic_lock_t;
++
+ /* Fast locks (not abstract because mutexes and conditions aren't abstract). */
+ struct _pthread_fastlock
+ {
+   long int __status;   /* "Free" or "taken" or head of waiting list */
+-  int __spinlock;      /* Used by compare_and_swap emulation. Also,
++  __atomic_lock_t __spinlock;  /* Used by compare_and_swap emulation. Also,
+ 			  adaptive SMP lock stores spin count here. */
+ };
+ 
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/s390/s390-32/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/s390/s390-32/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/s390/s390-32/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/s390/s390-32/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -24,8 +24,8 @@
+ #endif
+ 
+ /* Spinlock implementation; required.  */
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock (int *spinlock)
+ {
+   int ret;
+ 
+@@ -41,6 +41,7 @@
+   return ret;
+ }
+ 
++#define lock_held(p) *(p)
+ 
+ /* Get some notion of the current stack.  Need not be exactly the top
+    of the stack, just something somewhere in the current frame.  */
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/s390/s390-64/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/s390/s390-64/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/s390/s390-64/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/s390/s390-64/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -24,7 +24,7 @@
+ #endif
+ 
+ /* Spinlock implementation; required.  */
+-PT_EI long int
++PT_EI int
+ testandset (int *spinlock)
+ {
+   int ret;
+@@ -41,6 +41,7 @@
+   return ret;
+ }
+ 
++#define lock_held(p) *(p)
+ 
+ /* Get some notion of the current stack.  Need not be exactly the top
+    of the stack, just something somewhere in the current frame.  */
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/sh/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/sh/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/sh/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/sh/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -24,8 +24,8 @@
+ #endif
+ 
+ /* Spinlock implementation; required.  */
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock(__atomic_lock_t *spinlock)
+ {
+   int ret;
+ 
+@@ -39,6 +39,7 @@
+   return (ret == 0);
+ }
+ 
++#define lock_held(p) *(p)
+ 
+ /* Get some notion of the current stack.  Need not be exactly the top
+    of the stack, just something somewhere in the current frame.  */
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/sparc/sparc32/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/sparc/sparc32/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/sparc/sparc32/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/sparc/sparc32/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -24,8 +24,8 @@
+ #endif
+ 
+ /* Spinlock implementation; required.  */
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock (int *spinlock)
+ {
+   int ret;
+ 
+@@ -36,6 +36,7 @@
+   return ret;
+ }
+ 
++#define lock_held(p) *(p)
+ 
+ /* Memory barrier; default is to do nothing */
+ #define MEMORY_BARRIER() __asm__ __volatile__("stbar" : : : "memory")
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/sparc/sparc64/pt-machine.h glibc-2.2.4/linuxthreads/sysdeps/sparc/sparc64/pt-machine.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/sparc/sparc64/pt-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/sparc/sparc64/pt-machine.h	Wed Nov 14 09:43:58 2001
+@@ -25,8 +25,8 @@
+ 
+ 
+ /* Spinlock implementation; required.  */
+-PT_EI long int
+-testandset (int *spinlock)
++PT_EI int
++try_lock (int *spinlock)
+ {
+   int ret;
+ 
+@@ -36,6 +36,7 @@
+   return ret;
+ }
+ 
++#define lock_held(p) *(p)
+ 
+ /* Memory barrier; default is to do nothing */
+ #define MEMORY_BARRIER() \
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/unix/sysv/linux/hppa/bits/initspin.h glibc-2.2.4/linuxthreads/sysdeps/unix/sysv/linux/hppa/bits/initspin.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/unix/sysv/linux/hppa/bits/initspin.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/linuxthreads/sysdeps/unix/sysv/linux/hppa/bits/initspin.h	Wed Nov 14 09:43:58 2001
+@@ -19,9 +19,12 @@
+ 
+ /* Initial value of a spinlock.  PA-RISC only implements atomic load
+    and clear so this must be non-zero. */
+-#define __LT_SPINLOCK_INIT 1
++#define __ATOMIC_LOCK_INIT  ((__atomic_lock_t) { 1 })
+ 
+ /* Macros for lock initializers, using the above definition. */
+-#define __LOCK_INITIALIZER { 0, __LT_SPINLOCK_INIT }
+-#define __ALT_LOCK_INITIALIZER { 0, __LT_SPINLOCK_INIT }
+-#define __ATOMIC_INITIALIZER { 0, __LT_SPINLOCK_INIT }
++#define __LOCK_INITIALIZER { { 1 }, 0 }
++#define __ATOMIC_INITIALIZER { 0, { 1 } }
++
++/* Tell the generic code it can't put locks in the bss section */
++
++#define __LOCK_INITIALISER_NOT_ZERO
+diff -urN glibc-2.2.4.orig/linuxthreads/sysdeps/unix/sysv/linux/hppa/bits/pthreadtypes.h glibc-2.2.4/linuxthreads/sysdeps/unix/sysv/linux/hppa/bits/pthreadtypes.h
+--- glibc-2.2.4.orig/linuxthreads/sysdeps/unix/sysv/linux/hppa/bits/pthreadtypes.h	Wed Dec 31 19:00:00 1969
++++ glibc-2.2.4/linuxthreads/sysdeps/unix/sysv/linux/hppa/bits/pthreadtypes.h	Wed Nov 14 09:43:58 2001
+@@ -0,0 +1,146 @@
++/* Linuxthreads - a simple clone()-based implementation of Posix        */
++/* threads for Linux.                                                   */
++/* Copyright (C) 1996 Xavier Leroy (Xavier.Leroy@inria.fr)              */
++/*                                                                      */
++/* This program is free software; you can redistribute it and/or        */
++/* modify it under the terms of the GNU Library General Public License  */
++/* as published by the Free Software Foundation; either version 2       */
++/* of the License, or (at your option) any later version.               */
++/*                                                                      */
++/* This program is distributed in the hope that it will be useful,      */
++/* but WITHOUT ANY WARRANTY; without even the implied warranty of       */
++/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        */
++/* GNU Library General Public License for more details.                 */
++
++#if !defined _BITS_TYPES_H && !defined _PTHREAD_H
++# error "Never include <bits/pthreadtypes.h> directly; use <sys/types.h> instead."
++#endif
++
++#ifndef _BITS_PTHREADTYPES_H
++#define _BITS_PTHREADTYPES_H	1
++
++#define __need_schedparam
++#include <bits/sched.h>
++
++typedef struct {
++	int lock;
++} __attribute__((aligned (16))) __atomic_lock_t;
++
++/* Fast locks (not abstract because mutexes and conditions aren't abstract). */
++struct _pthread_fastlock
++{
++  __atomic_lock_t __spinlock;  /* Used by compare_and_swap emulation. Also,
++			  adaptive SMP lock stores spin count here. */
++  long int __status;   /* "Free" or "taken" or head of waiting list */
++};
++
++#ifndef _PTHREAD_DESCR_DEFINED
++/* Thread descriptors */
++typedef struct _pthread_descr_struct *_pthread_descr;
++# define _PTHREAD_DESCR_DEFINED
++#endif
++
++
++/* Attributes for threads.  */
++typedef struct __pthread_attr_s
++{
++  int __detachstate;
++  int __schedpolicy;
++  struct __sched_param __schedparam;
++  int __inheritsched;
++  int __scope;
++  size_t __guardsize;
++  int __stackaddr_set;
++  void *__stackaddr;
++  size_t __stacksize;
++} pthread_attr_t;
++
++
++/* Conditions (not abstract because of PTHREAD_COND_INITIALIZER */
++typedef struct
++{
++  struct _pthread_fastlock __c_lock; /* Protect against concurrent access */
++  _pthread_descr __c_waiting;        /* Threads waiting on this condition */
++} pthread_cond_t;
++
++
++/* Attribute for conditionally variables.  */
++typedef struct
++{
++  int __dummy;
++} pthread_condattr_t;
++
++/* Keys for thread-specific data */
++typedef unsigned int pthread_key_t;
++
++
++/* Mutexes (not abstract because of PTHREAD_MUTEX_INITIALIZER).  */
++/* (The layout is unnatural to maintain binary compatibility
++    with earlier releases of LinuxThreads.) */
++typedef struct
++{
++  int __m_reserved;               /* Reserved for future use */
++  int __m_count;                  /* Depth of recursive locking */
++  _pthread_descr __m_owner;       /* Owner thread (if recursive or errcheck) */
++  int __m_kind;                   /* Mutex kind: fast, recursive or errcheck */
++  struct _pthread_fastlock __m_lock; /* Underlying fast lock */
++} pthread_mutex_t;
++
++
++/* Attribute for mutex.  */
++typedef struct
++{
++  int __mutexkind;
++} pthread_mutexattr_t;
++
++
++/* Once-only execution */
++typedef int pthread_once_t;
++
++
++#ifdef __USE_UNIX98
++/* Read-write locks.  */
++typedef struct _pthread_rwlock_t
++{
++  struct _pthread_fastlock __rw_lock; /* Lock to guarantee mutual exclusion */
++  int __rw_readers;                   /* Number of readers */
++  _pthread_descr __rw_writer;         /* Identity of writer, or NULL if none */
++  _pthread_descr __rw_read_waiting;   /* Threads waiting for reading */
++  _pthread_descr __rw_write_waiting;  /* Threads waiting for writing */
++  int __rw_kind;                      /* Reader/Writer preference selection */
++  int __rw_pshared;                   /* Shared between processes or not */
++} pthread_rwlock_t;
++
++
++/* Attribute for read-write locks.  */
++typedef struct
++{
++  int __lockkind;
++  int __pshared;
++} pthread_rwlockattr_t;
++#endif
++
++#ifdef __USE_XOPEN2K
++/* POSIX spinlock data type.  */
++typedef volatile int pthread_spinlock_t __attribute__((aligned (16)));
++
++/* POSIX barrier. */
++typedef struct {
++  struct _pthread_fastlock __ba_lock; /* Lock to guarantee mutual exclusion */
++  int __ba_required;                  /* Threads needed for completion */
++  int __ba_present;                   /* Threads waiting */
++  _pthread_descr __ba_waiting;        /* Queue of waiting threads */
++} pthread_barrier_t;
++
++/* barrier attribute */
++typedef struct {
++  int __pshared;
++} pthread_barrierattr_t;
++
++#endif
++
++
++/* Thread identifiers */
++typedef unsigned long int pthread_t;
++
++#endif	/* bits/pthreadtypes.h */
+diff -urN glibc-2.2.4.orig/sysdeps/hppa/dl-fptr.c glibc-2.2.4/sysdeps/hppa/dl-fptr.c
+--- glibc-2.2.4.orig/sysdeps/hppa/dl-fptr.c	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/sysdeps/hppa/dl-fptr.c	Wed Nov 14 09:43:58 2001
+@@ -29,8 +29,7 @@
+ #ifdef _LIBC_REENTRANT
+ # include <pt-machine.h>
+ 
+-/* Remember, we use 0 to mean that a lock is taken on PA-RISC. */
+-static int __hppa_fptr_lock = 1;
++static __atomic_lock_t __hppa_fptr_lock = __ATOMIC_LOCK_INIT;
+ #endif
+ 
+ /* Because ld.so is now versioned, these functions can be in their own
+@@ -66,7 +65,7 @@
+ #ifdef _LIBC_REENTRANT
+   /* Make sure we are alone. We don't need a lock during bootstrap. */
+   if (mem == NULL)
+-    while (testandset (&__hppa_fptr_lock));
++    while (try_lock(&__hppa_fptr_lock));
+ #endif
+ 
+   /* Search the sorted linked list for an existing entry for this
+@@ -126,9 +125,8 @@
+ 
+ found:
+ #ifdef _LIBC_REENTRANT
+-  /* Release the lock.  Again, remember, zero means the lock is taken!  */
+   if (mem == NULL)
+-    __hppa_fptr_lock = 1;
++    __hppa_fptr_lock = __ATOMIC_LOCK_INIT;
+ #endif
+ 
+   /* Set bit 30 to indicate to $$dyncall that this is a PLABEL. */
+@@ -147,7 +145,7 @@
+ 
+ #ifdef _LIBC_REENTRANT
+   /* Make sure we are alone.  */
+-  while (testandset (&__hppa_fptr_lock));
++  while (try_lock(&__hppa_fptr_lock));
+ #endif
+ 
+   /* Search the sorted linked list for the first entry for this object.  */
+@@ -180,8 +178,7 @@
+     }
+ 
+ #ifdef _LIBC_REENTRANT
+-  /* Release the lock. */
+-  __hppa_fptr_lock = 1;
++  __hppa_fptr_lock = __ATOMIC_LOCK_INIT;
+ #endif
+ }
+ 
+@@ -191,9 +188,11 @@
+   Elf32_Addr addr = (Elf32_Addr) address;
+   struct hppa_fptr *f;
+ 
++  address = (unsigned long)address &~ 3; /* Clear the bottom two bits.  See make_fptr. */
++
+ #ifdef _LIBC_REENTRANT
+   /* Make sure we are alone.  */
+-  while (testandset (&__hppa_fptr_lock));
++  while (try_lock(&__hppa_fptr_lock));
+ #endif
+ 
+   for (f = __fptr_root; f != NULL; f = f->next)
+@@ -204,8 +203,7 @@
+       }
+ 
+ #ifdef _LIBC_REENTRANT
+-  /* Release the lock.   */
+-  __hppa_fptr_lock = 1;
++  __hppa_fptr_lock = __ATOMIC_LOCK_INIT;
+ #endif
+ 
+   return addr;
+diff -urN glibc-2.2.4.orig/sysdeps/hppa/dl-machine.h glibc-2.2.4/sysdeps/hppa/dl-machine.h
+--- glibc-2.2.4.orig/sysdeps/hppa/dl-machine.h	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/sysdeps/hppa/dl-machine.h	Wed Nov 14 09:46:02 2001
+@@ -28,8 +28,15 @@
+ #include <link.h>
+ #include <assert.h>
+ 
++# define VALID_ELF_OSABI(osabi)		((osabi == ELFOSABI_SYSV) || (osabi == ELFOSABI_LINUX))
++# define VALID_ELF_ABIVERSION(ver)	(ver == 0)
++# define VALID_ELF_HEADER(hdr,exp,size) \
++  memcmp (hdr,exp,size-2) == 0 \
++  && VALID_ELF_OSABI (hdr[EI_OSABI]) \
++  && VALID_ELF_ABIVERSION (hdr[EI_ABIVERSION])
++
+ /* These must match the definition of the stub in bfd/elf32-hppa.c. */
+-#define SIZEOF_PLT_STUB (4*4)
++#define SIZEOF_PLT_STUB (7*4)
+ #define GOT_FROM_PLT_STUB (4*4)
+ 
+ /* A PLABEL is a function descriptor.  Properly they consist of just
+@@ -66,45 +73,41 @@
+   return ehdr->e_machine == EM_PARISC;
+ }
+ 
+-
+ /* Return the link-time address of _DYNAMIC.  */
+ static inline Elf32_Addr
++elf_machine_dynamic (void) __attribute__ ((const));
++
++static inline Elf32_Addr
+ elf_machine_dynamic (void)
+ {
+   Elf32_Addr dynamic;
+ 
+-#if 0
+-  /* Use this method if GOT address not yet set up.  */
+-  asm (
+-"	b,l	1f,%0\n"
++  asm ("b,l	1f,%0\n"
+ "	depi	0,31,2,%0\n"
+ "1:	addil	L'_GLOBAL_OFFSET_TABLE_ - ($PIC_pcrel$0 - 8),%0\n"
+ "	ldw	R'_GLOBAL_OFFSET_TABLE_ - ($PIC_pcrel$0 - 12)(%%r1),%0\n"
+-      : "=r" (dynamic) : : "r1");
+-#else
+-  /* This works because we already have our GOT address available.  */
+-  dynamic = (Elf32_Addr) &_DYNAMIC;
+-#endif
++       : "=r" (dynamic) : : "r1");
+ 
+   return dynamic;
+ }
+ 
+ /* Return the run-time load address of the shared object.  */
+ static inline Elf32_Addr
++elf_machine_load_address (void) __attribute__ ((const));
++
++static inline Elf32_Addr
+ elf_machine_load_address (void)
+ {
+-  Elf32_Addr dynamic, dynamic_linkaddress;
++  Elf32_Addr dynamic;
+ 
+   asm (
+ "	b,l	1f,%0\n"
+ "	depi	0,31,2,%0\n"
+ "1:	addil	L'_DYNAMIC - ($PIC_pcrel$0 - 8),%0\n"
+-"	ldo	R'_DYNAMIC - ($PIC_pcrel$0 - 12)(%%r1),%1\n"
+-"	addil	L'_GLOBAL_OFFSET_TABLE_ - ($PIC_pcrel$0 - 16),%0\n"
+-"	ldw	R'_GLOBAL_OFFSET_TABLE_ - ($PIC_pcrel$0 - 20)(%%r1),%0\n"
+-   : "=r" (dynamic_linkaddress), "=r" (dynamic) : : "r1");
++"	ldo	R'_DYNAMIC - ($PIC_pcrel$0 - 12)(%%r1),%0\n"
++   : "=r" (dynamic) : : "r1");
+ 
+-  return dynamic - dynamic_linkaddress;
++  return dynamic - elf_machine_dynamic ();
+ }
+ 
+ /* Fixup a PLT entry to bounce directly to the function at VALUE.  */
+@@ -167,41 +170,39 @@
+ 	      fptr = (struct hppa_fptr *) (reloc->r_offset + l_addr);
+ 	      if (r_sym != 0)
+ 		{
+-		  /* Relocate the pointer to the stub.  */
+-		  fptr->func += l_addr;
+-		  /* Instead of the LTP value, we put the reloc offset
+-		     here.  The trampoline code will load the proper
+-		     LTP and pass the reloc offset to the fixup
+-		     function.  */
+-		  fptr->gp = iplt - jmprel;
+ 		  if (!got)
+ 		    {
+ 		      static union {
+ 			unsigned char c[8];
+ 			Elf32_Addr i[2];
+ 		      } sig = {{0x00,0xc0,0xff,0xee, 0xde,0xad,0xbe,0xef}};
++		      const Elf32_Rela *last_rel;
++
++		      last_rel = (const Elf32_Rela *) end_jmprel - 1;
++
++		      /* The stub is immediately after the last .plt
++			 entry.  Rely on .plt relocs being ordered.  */
++		      if (last_rel->r_offset == 0)
++			return 0;
+ 
+ 		      /* Find our .got section.  It's right after the
+ 			 stub.  */
+-		      got = (Elf32_Addr *) (fptr->func + GOT_FROM_PLT_STUB);
++		      got = (Elf32_Addr *) (last_rel->r_offset + l_addr
++					    + 8 + SIZEOF_PLT_STUB);
+ 
+-		      /* Sanity check to see if the address we are
+-                         going to check below is within a reasonable
+-                         approximation of the bounds of the PLT (or,
+-                         at least, is at an address that won't fault
+-                         on read).  Then check for the magic signature
+-                         above. */
+-		      if (fptr->func < (Elf32_Addr) fptr + sizeof(*fptr))
+-			  return 0;
+-		      if (fptr->func >
+-			  ((Elf32_Addr) fptr
+-			   + SIZEOF_PLT_STUB
+-			   + ((l->l_info[DT_PLTRELSZ]->d_un.d_val / sizeof (Elf32_Rela))
+-			      * 8)))
+-			return 0;
++		      /* Check the magic signature.  */
+ 		      if (got[-2] != sig.i[0] || got[-1] != sig.i[1])
+ 			return 0; /* No lazy linking for you! */
+ 		    }
++
++		  /* Relocate the pointer to the stub.  */
++		  fptr->func = (Elf32_Addr) got - GOT_FROM_PLT_STUB;
++
++		  /* Instead of the LTP value, we put the reloc offset
++		     here.  The trampoline code will load the proper
++		     LTP and pass the reloc offset to the fixup
++		     function.  */
++		  fptr->gp = iplt - jmprel;
+ 		}
+ 	      else
+ 		{
+@@ -271,22 +272,24 @@
+ "	stw	%r25,-40(%sp)\n" /* argc */				\
+ "	stw	%r24,-44(%sp)\n" /* argv */				\
+ 									\
+-	/* We need the LTP, and we need it now. */			\
+-	/* $PIC_pcrel$0 points 8 bytes past the current instruction,	\
+-	   just like a branch reloc.  This sequence gets us the runtime	\
+-	   address of _DYNAMIC. */					\
++	/* We need the LTP, and we need it now.				\
++	   $PIC_pcrel$0 points 8 bytes past the current instruction,	\
++	   just like a branch reloc.  This sequence gets us the		\
++	   runtime address of _DYNAMIC. */				\
+ "	bl	0f,%r19\n"						\
+ "	depi	0,31,2,%r19\n"	/* clear priviledge bits */		\
+ "0:	addil	L'_DYNAMIC - ($PIC_pcrel$0 - 8),%r19\n"			\
+ "	ldo	R'_DYNAMIC - ($PIC_pcrel$0 - 12)(%r1),%r26\n"		\
+ 									\
+-	/* Also get the link time address from the first entry of the GOT.  */ \
++	/* The link time address is stored in the first entry of the	\
++	   GOT.  */							\
+ "	addil	L'_GLOBAL_OFFSET_TABLE_ - ($PIC_pcrel$0 - 16),%r19\n"	\
+ "	ldw	R'_GLOBAL_OFFSET_TABLE_ - ($PIC_pcrel$0 - 20)(%r1),%r20\n" \
+ 									\
+ "	sub	%r26,%r20,%r20\n"	/* Calculate load offset */	\
+ 									\
+-	/* Rummage through the dynamic entries, looking for DT_PLTGOT.  */ \
++	/* Rummage through the dynamic entries, looking for		\
++	   DT_PLTGOT.  */						\
+ "	ldw,ma	8(%r26),%r19\n"						\
+ "1:	cmpib,=,n 3,%r19,2f\n"	/* tag == DT_PLTGOT? */			\
+ "	cmpib,<>,n 0,%r19,1b\n"						\
+@@ -306,8 +309,8 @@
+ 	   |         32 bytes of magic       |				\
+ 	   |---------------------------------|				\
+ 	   | 32 bytes argument/sp save area  |				\
+-	   |---------------------------------|  ((current->mm->env_end) + 63 & ~63) \
+-	   |         N bytes of slack        |				\
++	   |---------------------------------|  ((current->mm->env_end)	\
++	   |         N bytes of slack        |	 + 63 & ~63)		\
+ 	   |---------------------------------|				\
+ 	   |      envvar and arg strings     |				\
+ 	   |---------------------------------|				\
+@@ -375,7 +378,7 @@
+ "	bl	_dl_init,%r2\n"						\
+ "	ldo	4(%r23),%r23\n"	/* delay slot */			\
+ 									\
+-	/* Reload argc, argv  to the registers start.S expects them in (feh) */ \
++	/* Reload argc, argv to the registers start.S expects.  */	\
+ "	ldw	-40(%sp),%r25\n"					\
+ "	ldw	-44(%sp),%r24\n"					\
+ 									\
+@@ -387,8 +390,8 @@
+ "	.word	0xdeadbeef\n"						\
+ "	.previous\n"							\
+ 									\
+-	/* %r3 contains a function pointer, we need to mask out the lower \
+-	 * bits and load the gp and jump address. */			\
++	/* %r3 contains a function pointer, we need to mask out the	\
++	   lower bits and load the gp and jump address. */		\
+ "	depi	0,31,2,%r3\n"						\
+ "	ldw	0(%r3),%r2\n"						\
+ "	addil	LT'__dl_fini_plabel,%r19\n"				\
+@@ -406,42 +409,40 @@
+    Enter with r19 = reloc offset, r20 = got-8, r21 = fixup ltp.  */
+ #define TRAMPOLINE_TEMPLATE(tramp_name, fixup_name) \
+   extern void tramp_name (void);		    \
+-  asm ( "\
+-	/* Trampoline for " #tramp_name " */
+-	.globl " #tramp_name "
+-	.type " #tramp_name ",@function
+-" #tramp_name ":
+-	/* Save return pointer */
+-	stw	%r2,-20(%sp)
+-	/* Save argument registers in the call stack frame. */
+-	stw	%r26,-36(%sp)
+-	stw	%r25,-40(%sp)
+-	stw	%r24,-44(%sp)
+-	stw	%r23,-48(%sp)
+-	/* Build a call frame. */
+-	stwm	%sp,64(%sp)
+-
+-	/* Set up args to fixup func.  */
+-	ldw	8+4(%r20),%r26	/* got[1] == struct link_map *  */
+-	copy	%r19,%r25	/* reloc offset  */
+-
+-	/* Call the real address resolver. */
+-	bl	" #fixup_name ",%r2
+-	copy	%r21,%r19	/* delay slot, set fixup func ltp */
+-
+-	ldwm	-64(%sp),%sp
+-	/* Arguments. */
+-	ldw	-36(%sp),%r26
+-	ldw	-40(%sp),%r25
+-	ldw	-44(%sp),%r24
+-	ldw	-48(%sp),%r23
+-	/* Return pointer. */
+-	ldw	-20(%sp),%r2
+-	/* Call the real function. */
+-	ldw	0(%r28),%r22
+-	bv	%r0(%r22)
+-	ldw	4(%r28),%r19
+-");
++  asm (".globl " #tramp_name "\n"					\
++"	.type " #tramp_name ",@function\n"				\
++ #tramp_name ":\n"							\
++	/* Save return pointer */					\
++"	stw	%r2,-20(%sp)\n"						\
++	/* Save argument registers in the call stack frame. */		\
++"	stw	%r26,-36(%sp)\n"					\
++"	stw	%r25,-40(%sp)\n"					\
++"	stw	%r24,-44(%sp)\n"					\
++"	stw	%r23,-48(%sp)\n"					\
++	/* Build a call frame, and save structure pointer. */		\
++"	stwm	%r28,64(%sp)\n"						\
++									\
++	/* Set up args to fixup func.  */				\
++"	ldw	8+4(%r20),%r26\n" /* got[1] == struct link_map *  */	\
++"	copy	%r19,%r25\n"	  /* reloc offset  */			\
++									\
++	/* Call the real address resolver. */				\
++"	bl	" #fixup_name ",%r2\n"					\
++"	copy	%r21,%r19\n"	  /* delay slot, set fixup func ltp */	\
++									\
++"	ldw	0(%r28),%r22\n"	  /* load up the returned func ptr */	\
++"	ldw	4(%r28),%r19\n"						\
++"	ldwm	-64(%sp),%r28\n"					\
++	/* Arguments. */						\
++"	ldw	-36(%sp),%r26\n"					\
++"	ldw	-40(%sp),%r25\n"					\
++"	ldw	-44(%sp),%r24\n"					\
++"	ldw	-48(%sp),%r23\n"					\
++	/* Call the real function. */					\
++"	bv	%r0(%r22)\n"						\
++	/* Return pointer. */						\
++"	ldw	-20(%sp),%r2\n"						\
++       );
+ 
+ #ifndef PROF
+ #define ELF_MACHINE_RUNTIME_TRAMPOLINE			\
+@@ -531,7 +532,7 @@
+ 	return;
+ #endif
+       /* .eh_frame can have unaligned relocs.  */
+-      if (reloc_addr & 3)
++      if ((unsigned long)reloc_addr & 3)
+ 	{
+ 	  char *rel_addr = (char *) reloc_addr;
+ 	  rel_addr[0] = value >> 24;
+@@ -567,14 +568,14 @@
+ 	   probably haven't relocated the necessary values by this
+ 	   point so we have to find them ourselves. */
+ 
+-	asm ("bl	0f,%0
+-	      depi	0,31,2,%0
+-0:	      addil	L'__boot_ldso_fptr - ($PIC_pcrel$0 - 8),%0
+-	      ldo	R'__boot_ldso_fptr - ($PIC_pcrel$0 - 12)(%%r1),%1
+-	      addil	L'__fptr_root - ($PIC_pcrel$0 - 16),%0
+-	      ldo	R'__fptr_root - ($PIC_pcrel$0 - 20)(%%r1),%2
+-	      addil	L'__fptr_count - ($PIC_pcrel$0 - 24),%0
+-	      ldo	R'__fptr_count - ($PIC_pcrel$0 - 28)(%%r1),%3"
++	asm ("bl	0f,%0\n\t"
++	     "depi	0,31,2,%0\n\t"
++	     "0:\taddil	L'__boot_ldso_fptr - ($PIC_pcrel$0 - 8),%0\n\t"
++	     "ldo	R'__boot_ldso_fptr - ($PIC_pcrel$0 - 12)(%%r1),%1\n\t"
++	     "addil	L'__fptr_root - ($PIC_pcrel$0 - 16),%0\n\t"
++	     "ldo	R'__fptr_root - ($PIC_pcrel$0 - 20)(%%r1),%2\n\t"
++	     "addil	L'__fptr_count - ($PIC_pcrel$0 - 24),%0\n\t"
++	     "ldo	R'__fptr_count - ($PIC_pcrel$0 - 28)(%%r1),%3"
+ 	     :
+ 	     "=r" (dot),
+ 	     "=r" (p_boot_ldso_fptr),
+diff -urN glibc-2.2.4.orig/sysdeps/ia64/dl-fptr.c glibc-2.2.4/sysdeps/ia64/dl-fptr.c
+--- glibc-2.2.4.orig/sysdeps/ia64/dl-fptr.c	Wed Nov 14 09:47:09 2001
++++ glibc-2.2.4/sysdeps/ia64/dl-fptr.c	Wed Nov 14 09:43:58 2001
+@@ -40,7 +40,7 @@
+     struct ia64_fdesc *free_list;
+     unsigned int npages;		/* # of pages to allocate */
+ #ifdef _LIBC_REENTRANT
+-    volatile int lock;
++    __atomic_lock_t lock;
+     sigset_t full_sigset;
+ #endif
+     /* the next to members MUST be consecutive! */
+@@ -73,7 +73,7 @@
+   if (!__sigismember (&(l)->full_sigset, SIGINT))		\
+     __sigfillset (&(l)->full_sigset);				\
+ 								\
+-  while (testandset ((int *) &(l)->lock))			\
++  while (try_lock (&(l)->lock))					\
+     {								\
+       struct timespec ts;					\
+       if (i > 0)						\
+@@ -88,7 +88,7 @@
+   __sigprocmask (SIG_BLOCK, &(l)->full_sigset, &_saved_set);
+ # define unlock(l)						\
+   __sigprocmask (SIG_SETMASK, &_saved_set, NULL);		\
+-  (l)->lock = 0;						\
++  (l)->lock = __ATOMIC_LOCK_INIT;				\
+ }
+ #else
+ # define lock(l)
+diff -urN glibc-2.2.4.orig/sysdeps/unix/sysv/linux/hppa/bits/msq.h glibc-2.2.4/sysdeps/unix/sysv/linux/hppa/bits/msq.h
+--- glibc-2.2.4.orig/sysdeps/unix/sysv/linux/hppa/bits/ipc.h	Wed Dec 31 19:00:00 1969
++++ glibc-2.2.4/sysdeps/unix/sysv/linux/hppa/bits/ipc.h	Mon Jul 23 19:57:52 2001
+@@ -0,0 +1,63 @@
++/* Copyright (C) 1995-1999, 2000 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#ifndef _SYS_IPC_H
++# error "Never use <bits/ipc.h> directly; include <sys/ipc.h> instead."
++#endif
++
++#include <bits/types.h>
++#include <bits/wordsize.h>
++
++/* Mode bits for `msgget', `semget', and `shmget'.  */
++#define IPC_CREAT	01000		/* Create key if key does not exist. */
++#define IPC_EXCL	02000		/* Fail if key exists.  */
++#define IPC_NOWAIT	04000		/* Return error on wait.  */
++
++/* Control commands for `msgctl', `semctl', and `shmctl'.  */
++#define IPC_RMID	0		/* Remove identifier.  */
++#define IPC_SET		1		/* Set `ipc_perm' options.  */
++#define IPC_STAT	2		/* Get `ipc_perm' options.  */
++#ifdef __USE_GNU
++# define IPC_INFO	3		/* See ipcs.  */
++#endif
++
++/* Special key values.  */
++#define IPC_PRIVATE	((__key_t) 0)	/* Private key.  */
++
++
++/* Data structure used to pass permission information to IPC operations.  */
++struct ipc_perm
++  {
++    __key_t __key;			/* Key.  */
++    __uid_t uid;			/* Owner's user ID.  */
++    __gid_t gid;			/* Owner's group ID.  */
++    __uid_t cuid;			/* Creator's user ID.  */
++    __gid_t cgid;			/* Creator's group ID.  */
++#if __WORDSIZE == 32
++    unsigned short int __pad1;
++    unsigned short int mode;		/* Read/write permission.  */
++    unsigned short int __pad2;
++#else
++    __mode_t mode;			/* Read/write permission.  */
++    unsigned short int __pad2;
++#endif
++    unsigned short int __seq;		/* Sequence number.  */
++    unsigned int __pad3;
++    unsigned long long int __unused1;
++    unsigned long long int __unused2;
++  };
+diff -urN glibc-2.2.4.orig/sysdeps/unix/sysv/linux/hppa/bits/msq.h glibc-2.2.4/sysdeps/unix/sysv/linux/hppa/bits/msq.h
+--- glibc-2.2.4.orig/sysdeps/unix/sysv/linux/hppa/bits/msq.h	Wed Dec 31 19:00:00 1969
++++ glibc-2.2.4/sysdeps/unix/sysv/linux/hppa/bits/msq.h	Fri Nov 16 22:50:12 2001
+@@ -0,0 +1,84 @@
++/* Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#ifndef _SYS_MSG_H
++# error "Never use <bits/msq.h> directly; include <sys/msg.h> instead."
++#endif
++
++#include <bits/types.h>
++#include <bits/wordsize.h>
++
++/* Define options for message queue functions.  */
++#define MSG_NOERROR	010000	/* no error if message is too big */
++#ifdef __USE_GNU
++# define MSG_EXCEPT	020000	/* recv any msg except of specified type */
++#endif
++
++/* Types used in the structure definition.  */
++typedef unsigned long int msgqnum_t;
++typedef unsigned long int msglen_t;
++
++
++/* Structure of record for one message inside the kernel.
++   The type `struct msg' is opaque.  */
++struct msqid_ds
++{
++  struct ipc_perm msg_perm;	/* structure describing operation permission */
++#if __WORDSIZE == 32
++  unsigned int __pad1;
++#endif
++  __time_t msg_stime;		/* time of last msgsnd command */
++#if __WORDSIZE == 32
++  unsigned int __pad2;
++#endif
++  __time_t msg_rtime;		/* time of last msgrcv command */
++#if __WORDSIZE == 32
++  unsigned int __pad3;
++#endif
++  __time_t msg_ctime;		/* time of last change */
++  unsigned long int __msg_cbytes; /* current number of bytes on queue */
++  msgqnum_t msg_qnum;		/* number of messages currently on queue */
++  msglen_t msg_qbytes;		/* max number of bytes allowed on queue */
++  __pid_t msg_lspid;		/* pid of last msgsnd() */
++  __pid_t msg_lrpid;		/* pid of last msgrcv() */
++  unsigned long int __unused1;
++  unsigned long int __unused2;
++};
++
++#ifdef __USE_MISC
++
++# define msg_cbytes	__msg_cbytes
++
++/* ipcs ctl commands */
++# define MSG_STAT 11
++# define MSG_INFO 12
++
++/* buffer for msgctl calls IPC_INFO, MSG_INFO */
++struct msginfo
++  {
++    int msgpool;
++    int msgmap;
++    int msgmax;
++    int msgmnb;
++    int msgmni;
++    int msgssz;
++    int msgtql;
++    unsigned short int msgseg;
++  };
++
++#endif /* __USE_MISC */
+diff -urN glibc-2.2.4.orig/sysdeps/unix/sysv/linux/hppa/bits/sem.h glibc-2.2.4/sysdeps/unix/sysv/linux/hppa/bits/sem.h
+--- glibc-2.2.4.orig/sysdeps/unix/sysv/linux/hppa/bits/sem.h	Wed Dec 31 19:00:00 1969
++++ glibc-2.2.4/sysdeps/unix/sysv/linux/hppa/bits/sem.h	Fri Nov 16 22:50:05 2001
+@@ -0,0 +1,92 @@
++/* Copyright (C) 1995, 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#ifndef _SYS_SEM_H
++# error "Never include <bits/sem.h> directly; use <sys/sem.h> instead."
++#endif
++
++#include <sys/types.h>
++#include <bits/wordsize.h>
++
++/* Flags for `semop'.  */
++#define SEM_UNDO	0x1000		/* undo the operation on exit */
++
++/* Commands for `semctl'.  */
++#define GETPID		11		/* get sempid */
++#define GETVAL		12		/* get semval */
++#define GETALL		13		/* get all semval's */
++#define GETNCNT		14		/* get semncnt */
++#define GETZCNT		15		/* get semzcnt */
++#define SETVAL		16		/* set semval */
++#define SETALL		17		/* set all semval's */
++
++
++/* Data structure describing a set of semaphores.  */
++struct semid_ds
++{
++  struct ipc_perm sem_perm;		/* operation permission struct */
++#if __WORDSIZE == 32
++  unsigned int __pad1;
++#endif
++  __time_t sem_otime;			/* last semop() time */
++#if __WORDSIZE == 32
++  unsigned int __pad2;
++#endif
++  __time_t sem_ctime;			/* last time changed by semctl() */
++  unsigned long int sem_nsems;		/* number of semaphores in set */
++  unsigned long int __unused1;
++  unsigned long int __unused2;
++};
++
++/* The user should define a union like the following to use it for arguments
++   for `semctl'.
++
++   union semun
++   {
++     int val;				<= value for SETVAL
++     struct semid_ds *buf;		<= buffer for IPC_STAT & IPC_SET
++     unsigned short int *array;		<= array for GETALL & SETALL
++     struct seminfo *__buf;		<= buffer for IPC_INFO
++   };
++
++   Previous versions of this file used to define this union but this is
++   incorrect.  One can test the macro _SEM_SEMUN_UNDEFINED to see whether
++   one must define the union or not.  */
++#define _SEM_SEMUN_UNDEFINED	1
++
++#ifdef __USE_MISC
++
++/* ipcs ctl cmds */
++# define SEM_STAT 18
++# define SEM_INFO 19
++
++struct  seminfo
++{
++  int semmap;
++  int semmni;
++  int semmns;
++  int semmnu;
++  int semmsl;
++  int semopm;
++  int semume;
++  int semusz;
++  int semvmx;
++  int semaem;
++};
++
++#endif /* __USE_MISC */
+diff -urN glibc-2.2.4.orig/sysdeps/unix/sysv/linux/hppa/bits/shm.h glibc-2.2.4/sysdeps/unix/sysv/linux/hppa/bits/shm.h
+--- glibc-2.2.4.orig/sysdeps/unix/sysv/linux/hppa/bits/shm.h	Wed Dec 31 19:00:00 1969
++++ glibc-2.2.4/sysdeps/unix/sysv/linux/hppa/bits/shm.h	Fri Nov 16 22:23:16 2001
+@@ -0,0 +1,103 @@
++/* Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#ifndef _SYS_SHM_H
++# error "Never include <bits/shm.h> directly; use <sys/shm.h> instead."
++#endif
++
++#include <bits/types.h>
++#include <bits/wordsize.h>
++
++/* Permission flag for shmget.  */
++#define SHM_R		0400		/* or S_IRUGO from <linux/stat.h> */
++#define SHM_W		0200		/* or S_IWUGO from <linux/stat.h> */
++
++/* Flags for `shmat'.  */
++#define SHM_RDONLY	010000		/* attach read-only else read-write */
++#define SHM_RND		020000		/* round attach address to SHMLBA */
++#define SHM_REMAP	040000		/* take-over region on attach */
++
++/* Commands for `shmctl'.  */
++#define SHM_LOCK	11		/* lock segment (root only) */
++#define SHM_UNLOCK	12		/* unlock segment (root only) */
++
++
++/* Type to count number of attaches.  */
++typedef unsigned long int shmatt_t;
++
++/* Data structure describing a set of semaphores.  */
++struct shmid_ds
++  {
++    struct ipc_perm shm_perm;		/* operation permission struct */
++#if __WORDSIZE == 32
++    unsigned int __pad1;
++#endif
++    __time_t shm_atime;			/* time of last shmat() */
++#if __WORDSIZE == 32
++    unsigned int __pad2;
++#endif
++    __time_t shm_dtime;			/* time of last shmdt() */
++#if __WORDSIZE == 32
++    unsigned int __pad3;
++#endif
++    __time_t shm_ctime;			/* time of last change by shmctl() */
++#if __WORDSIZE == 32
++    unsigned int __pad4;
++#endif
++    size_t shm_segsz;			/* size of segment in bytes */
++    __pid_t shm_cpid;			/* pid of creator */
++    __pid_t shm_lpid;			/* pid of last shmop */
++    shmatt_t shm_nattch;		/* number of current attaches */
++    unsigned long int __unused1;
++    unsigned long int __unused2;
++  };
++
++#ifdef __USE_MISC
++
++/* ipcs ctl commands */
++# define SHM_STAT 	13
++# define SHM_INFO 	14
++
++/* shm_mode upper byte flags */
++# define SHM_DEST	01000	/* segment will be destroyed on last detach */
++# define SHM_LOCKED	02000   /* segment will not be swapped */
++
++struct	shminfo
++  {
++    unsigned long shmmax;
++    unsigned long shmmin;
++    unsigned long shmmni;
++    unsigned long shmseg;
++    unsigned long shmall;
++    unsigned long __unused1;
++    unsigned long __unused2;
++    unsigned long __unused3;
++    unsigned long __unused4;
++  };
++
++struct shm_info
++  {
++    int used_ids;
++    unsigned long int shm_tot;	/* total allocated shm */
++    unsigned long int shm_rss;	/* total resident shm */
++    unsigned long int shm_swp;	/* total swapped shm */
++    unsigned long int swap_attempts;
++    unsigned long int swap_successes;
++  };
++
++#endif /* __USE_MISC */

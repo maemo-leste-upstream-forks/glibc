@@ -1,0 +1,192 @@
+#! /bin/sh -e
+
+# DP: Fix sparc64 wrt to newer binutils
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+Hi!
+
+The following makes glibc back into bootstrapland on sparc64.
+The main problem is that elf_machine_load_address relied on .got
+coming before .dynamic and this has changed recently in binutils, so
+with recent binutils the load address was 1MB off from what it should be.
+
+2002-03-11  Jakub Jelinek  <jakub@redhat.com>
+
+	* sysdeps/i386/elf/configure.in: Fix comment.
+	* sysdeps/i386/elf/configure: Rebuilt.
+
+	* sysdeps/sparc/sparc64/configure.in: New.
+	* sysdeps/sparc/sparc64/configure: New.
+	* sysdeps/sparc/sparc64/dl-machine.h (elf_machine_load_address): Fix
+	if .dynamic comes before .got.
+	* config.h.in (SPARC64_DYNAMIC_BEFORE_GOT): Add.
+
+	* sysdeps/sparc/sparc64/hp-timing.h (HP_TIMING_DIFF,
+	HP_TIMING_ACCUM): Fix typos.
+
+--- libc/sysdeps/i386/elf/configure.in.jj	Fri Feb  8 11:37:56 2002
++++ libc/sysdeps/i386/elf/configure.in	Mon Mar 11 16:10:06 2002
+@@ -1,6 +1,6 @@
+ sinclude(./aclocal.m4)dnl Autoconf lossage
+ GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
+-# Local configure fragment for sysdeps/unix/sysv/linux.
++# Local configure fragment for sysdeps/i386/elf.
+ 
+ if test "$usetls" != no; then
+ # Check for support of thread-local storage handling in assembler and
+--- libc/sysdeps/i386/elf/configure.jj	Fri Feb  8 11:37:56 2002
++++ libc/sysdeps/i386/elf/configure	Mon Mar 11 16:10:15 2002
+@@ -1,4 +1,4 @@
+- # Local configure fragment for sysdeps/unix/sysv/linux.
++ # Local configure fragment for sysdeps/i386/elf.
+ 
+ if test "$usetls" != no; then
+ # Check for support of thread-local storage handling in assembler and
+--- libc/sysdeps/sparc/sparc64/configure.in.jj	Mon Mar 11 16:10:42 2002
++++ libc/sysdeps/sparc/sparc64/configure.in	Mon Mar 11 16:50:28 2002
+@@ -0,0 +1,26 @@
++sinclude(./aclocal.m4)dnl Autoconf lossage
++GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
++# Local configure fragment for sysdeps/sparc/sparc64.
++
++# Check whether .got section comes before or after .dynamic
++AC_CACHE_CHECK(where sparc64 .dynamic section comes before .got,
++	       libc_cv_sparc64_dynamic_before_got, [dnl
++changequote(,)
++${CC-cc} $CFLAGS -shared -Wl,--verbose 2>&1 \
++  | grep '^[ 	]*\.\(got\|dynamic\)[^A-Za-z0-9_]' > conftest.order
++changequote([,])
++if test `cat conftest.order | wc -l` != 2; then
++  AC_ERROR(Couldn't figure .got/.dynamic relative placement)
++else
++  changequote(,)
++  if head -n 1 conftest.order | grep '^[ 	]*\.got'; then
++    libc_cv_sparc64_dynamic_before_got=no
++  else
++    libc_cv_sparc64_dynamic_before_got=yes
++  fi
++  changequote([,])
++fi
++rm -f conftest*])
++if test $libc_cv_sparc64_dynamic_before_got = yes; then
++  AC_DEFINE(SPARC64_DYNAMIC_BEFORE_GOT)
++fi
+--- libc/sysdeps/sparc/sparc64/configure.jj	Mon Mar 11 16:27:01 2002
++++ libc/sysdeps/sparc/sparc64/configure	Mon Mar 11 16:50:32 2002
+@@ -0,0 +1,33 @@
++ # Local configure fragment for sysdeps/sparc/sparc64.
++
++# Check whether .got section comes before or after .dynamic
++echo $ac_n "checking where sparc64 .dynamic section comes before .got""... $ac_c" 1>&6
++echo "configure:6: checking where sparc64 .dynamic section comes before .got" >&5
++if eval "test \"`echo '$''{'libc_cv_sparc64_dynamic_before_got'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  
++${CC-cc} $CFLAGS -shared -Wl,--verbose 2>&1 \
++  | grep '^[ 	]*\.\(got\|dynamic\)[^A-Za-z0-9_]' > conftest.order
++
++if test `cat conftest.order | wc -l` != 2; then
++  { echo "configure: error: Couldn't figure .got/.dynamic relative placement" 1>&2; exit 1; }
++else
++  
++  if head -n 1 conftest.order | grep '^[ 	]*\.got'; then
++    libc_cv_sparc64_dynamic_before_got=no
++  else
++    libc_cv_sparc64_dynamic_before_got=yes
++  fi
++  
++fi
++rm -f conftest*
++fi
++
++echo "$ac_t""$libc_cv_sparc64_dynamic_before_got" 1>&6
++if test $libc_cv_sparc64_dynamic_before_got = yes; then
++  cat >> confdefs.h <<\EOF
++#define SPARC64_DYNAMIC_BEFORE_GOT 1
++EOF
++
++fi
+--- libc/sysdeps/sparc/sparc64/dl-machine.h.jj	Thu Feb 28 19:39:10 2002
++++ libc/sysdeps/sparc/sparc64/dl-machine.h	Mon Mar 11 16:55:37 2002
+@@ -77,14 +77,19 @@ elf_machine_load_address (void)
+ 
+      The following method relies on the fact that sparcv9 ABI maximal
+      page length is 1MB and all ELF segments on sparc64 are aligned
+-     to 1MB.  Also, it relies on _DYNAMIC coming after _GLOBAL_OFFSET_TABLE_
+-     and assumes that they both fit into the first 1MB of the RW segment.
+-     This should be true for some time unless ld.so grows too much, at the
+-     moment the whole stripped ld.so is 128KB and only smaller part of that
+-     is in the RW segment.  */
++     to 1MB.  Also assumes that they both fit into the first 1MB of
++     the RW segment.  This should be true for some time unless ld.so
++     grows too much, at the moment the whole stripped ld.so is 128KB
++     and only smaller part of that is in the RW segment.  */
+ 
++#ifdef SPARC64_DYNAMIC_BEFORE_GOT
++  /* If _DYNAMIC comes before _GLOBAL_OFFSET_TABLE_...  */
++  return ((Elf64_Addr)elf_pic_register - *elf_pic_register) & ~0xfffffUL;
++#else
++  /* ... and if _DYNAMIC comes after _GLOBAL_OFFSET_TABLE_.  */
+   return ((Elf64_Addr)elf_pic_register - *elf_pic_register + 0xfffff)
+ 	 & ~0xfffffUL;
++#endif
+ }
+ 
+ /* We have 4 cases to handle.  And we code different code sequences
+--- libc/config.h.in.jj	Thu Feb 28 19:39:07 2002
++++ libc/config.h.in	Mon Mar 11 16:54:33 2002
+@@ -140,6 +140,10 @@
+ /* Mach specific: define if the `host_page_size' RPC is available.  */
+ #undef	HAVE_HOST_PAGE_SIZE
+ 
++/* Sparc64 specific: define if .dynamic section comes before .got for
++   shared libs.  */
++#undef  SPARC64_DYNAMIC_BEFORE_GOT
++
+ /*
+  */
+ 
+--- libc/sysdeps/sparc/sparc64/hp-timing.h.jj	Sun Feb  3 10:35:37 2002
++++ libc/sysdeps/sparc/sparc64/hp-timing.h	Mon Mar 11 01:09:19 2002
+@@ -37,14 +37,14 @@ typedef unsigned long int hp_timing_t;
+ #define HP_TIMING_DIFF_INIT() \
+   do {									      \
+     int __cnt = 5;							      \
+-    GL(hp_timing_overhead) = ~0ull;					      \
++    GL(dl_hp_timing_overhead) = ~0ull;					      \
+     do									      \
+       {									      \
+ 	hp_timing_t __t1, __t2;						      \
+ 	HP_TIMING_NOW (__t1);						      \
+ 	HP_TIMING_NOW (__t2);						      \
+-	if (__t2 - __t1 < GL(hp_timing_overhead))			      \
+-	  GL(hp_timing_overhead) = __t2 - __t1;				      \
++	if (__t2 - __t1 < GL(dl_hp_timing_overhead))			      \
++	  GL(dl_hp_timing_overhead) = __t2 - __t1;			      \
+       }									      \
+     while (--__cnt > 0);						      \
+   } while (0)
+@@ -53,7 +53,7 @@ typedef unsigned long int hp_timing_t;
+ 
+ #define HP_TIMING_ACCUM(Sum, Diff)				\
+ do {								\
+-  hp_timing_t __diff = (Diff) - GL(hp_timing_overhead);		\
++  hp_timing_t __diff = (Diff) - GL(dl_hp_timing_overhead);	\
+   hp_timing_t tmp1, tmp2;					\
+   __asm__ __volatile__("1: ldx	[%3], %0\n\t"			\
+ 		       "add	%0, %2, %1\n\t"			\
+
+	Jakub

@@ -1,0 +1,36 @@
+#! /bin/sh -e
+
+# DP: Fixes security vulnerability in NSS DNS code.
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+2002-07-02  Andreas Schwab  <schwab@suse.de>
+
+	* resolv/nss_dns/dns-network.c (getanswer_r): Reduce linebuflen
+	in parallel to bumping up the buffer pointer.
+
+--- resolv/nss_dns/dns-network.c.~1.10.~	2001-07-16 10:43:47.000000000 +0200
++++ resolv/nss_dns/dns-network.c	2002-06-27 13:35:41.000000000 +0200
+@@ -328,7 +328,9 @@ getanswer_r (const querybuf *answer, int
+ 	    }
+ 	  cp += n;
+ 	  *alias_pointer++ = bp;
+-	  bp += strlen (bp) + 1;
++	  n = strlen (bp) + 1;
++	  bp += n;
++	  linebuflen -= n;
+ 	  result->n_addrtype = class == C_IN ? AF_INET : AF_UNSPEC;
+ 	  ++have_answer;
+ 	}
+

@@ -1,0 +1,19 @@
+#! /bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+    update-rc.d nscd defaults 19 > /dev/null
+    /etc/init.d/nscd restart
+    if [ -d /usr/doc ]; then
+	package=$(basename $0 .postinst)
+	if [ ! -e /usr/doc/$package ]; then
+	    (cd /usr/doc;
+		if [ -d ../share/doc/$package ]; then
+		    ln -s ../share/doc/$package $package ;
+		fi
+            )
+	fi
+    fi
+fi
+exit 0
+

@@ -1,0 +1,36 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Use @ifnottex instead of @ifinfo
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+--- manual/libc.texinfo~	2001/02/09 09:06:18	1.86
++++ manual/libc.texinfo	2001/02/09 18:23:15
+@@ -22,7 +22,7 @@
+ @set UPDATED 28 Aug 1999
+ @set ISBN 1-882114-53-1
+ 
+-@ifinfo
++@ifnottex
+ This file documents the GNU C library.
+ 
+ This is Edition @value{EDITION}, last updated @value{UPDATED},
+@@ -53,5 +53,5 @@
+      funds for GNU development.
+-@end ifinfo
++@end ifnottex
+ 
+ @iftex
+ @shorttitlepage The GNU C Library Reference Manual
