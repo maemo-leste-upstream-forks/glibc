@@ -59,9 +59,19 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 
 	$(call xx,extra_pkg_install)
 
+ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	if [ ! $(NOSTRIP_$(curpass)) ]; then \
-	  dh_strip -p$(curpass); \
+	  dh_strip -p$(curpass) -Xlibpthread; \
+
+	  # libpthread must be stripped separately; GDB needs the
+	  # non-dynamic symbol table in order to load the thread
+	  # debugging library.
+
+	  find debian/$(curpass) -name libpthread-\*.so -exec \
+	    strip --strip-debug --remove-section=.comment \
+	    --remove-section=.note '{}' ';' || true
 	fi
+endif
 
 	dh_compress -p$(curpass)
 	dh_fixperms -p$(curpass) -Xpt_chown
