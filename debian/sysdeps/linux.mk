@@ -4,7 +4,7 @@ MIN_KERNEL_SUPPORTED := 2.2.0
 ifeq ($(DEB_HOST_GNU_CPU),sparc)
   cpus = v9
   as_flags_v9 = -Wa,-Av9a
-  cpu_flags_v9 = -mtune=ultrasparc -mv8plus
+  cpu_flags_v9 = -mtune=ultrasparc -mv8
 endif
 ifeq ($(DEB_HOST_GNU_CPU),i386)
   # Nifty little vardep thingie
