@@ -9,7 +9,7 @@ db_version 2.0
 if test -f /etc/locale.gen; then
   LG=/etc/locale.gen
   SELECTED_LOCALES=$(egrep -v "^#|^$" $LG | tr "\n" "," | sed -e "s/,/, /g" -e "s/, *$//")
-  db_set locales/locales_to_be_generated "${SELECTED_LOCALES}"
+  grep -q "XXX GENERATED XXX" /etc/locale.gen && db_set locales/locales_to_be_generated "${SELECTED_LOCALES}"
 else
   LG=/dev/null
 fi

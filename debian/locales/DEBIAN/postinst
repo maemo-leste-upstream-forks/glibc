@@ -8,9 +8,10 @@ if [ "$1" = configure ]; then
     . /usr/share/debconf/confmodule
     db_version 2.0
 
+    LEAVE_FLAG="yes"
     if test ! -e $LG || grep -q "XXX GENERATED XXX" $LG || dpkg --compare-versions "$2" le 2.2.4-7; then
 	db_get locales/locales_to_be_generated && SELECTED_LOCALES=$RET
-	echo $SELECTED_LOCALES | grep -q "Leave alone" && LEAVE_FLAG="yes"
+	echo $SELECTED_LOCALES | grep -q "Leave alone" || LEAVE_FLAG=
 	if test -z $LEAVE_FLAG; then
 	    cat > $LG << EOF
 # This file lists locales that you wish to have built. You can find a list
