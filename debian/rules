@@ -81,7 +81,9 @@ ifeq ($(NO_LOG),)
 	@if [ -s $(log_build) ]; then savelog $(log_build); fi
 endif
 	@echo 'Building GNU C Library for a $(DEB_BUILD_GNU_TYPE) host.'
-	$(MAKE) -C $(objdir) PARALLELMFLAGS="$(PARALLELMFLAGS)" 2>&1 | tee $(log_build)
+	date >$(log_build)
+	$(MAKE) -C $(objdir) PARALLELMFLAGS="$(PARALLELMFLAGS)" 2>&1 | tee -a $(log_build)
+	date >>$(log_build)
 	@echo 'Running GNU C Library test suite.'
 	$(MAKE) -f debian/rules check
 	touch $@
@@ -92,7 +94,9 @@ ifeq ($(NO_LOG),)
 	@if [ -s $(log_test) ]; then savelog $(log_test); fi
 endif
 	$(warning Please check results before uploading in case of test failures.)
-	-$(MAKE) -k SHELL=/bin/bash -C $(objdir) check 2>&1 | tee $(log_test)
+	date >$(log_test)
+	-$(MAKE) -k SHELL=/bin/bash -C $(objdir) check 2>&1 | tee -a $(log_test)
+	date >>$(log_test)
 endif
 
 install: $(stamp_install)
