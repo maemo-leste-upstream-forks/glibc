@@ -129,6 +129,13 @@ push @{$libc_c{'Conflicts'}}, 'wine (<< 0.0.20031118-1)';
 # Conflict some packages because of bad errno handling
 push @{$libc_c{'Conflicts'}}, 'cyrus-imapd (<< 1.5.19-15)';
 
+# Conflict old gcc because they have /usr/hppa64-linux/include symlink
+# (Bug#239020)
+if ($DEB_HOST_GNU_TYPE eq "hppa-linux") {
+    push @{$libc_dev_c{'Conflicts'}}, ('gcc-3.3-hppa64 (<= 1:3.3.3-4)',
+	'gcc-3.4-hppa64 (<= 3.4-0pre2)');
+}
+
 # Make sure we only have one version of libc-dev installed
 push @{$libc_dev_c{'Provides'}}, 'libc-dev';
 push @{$libc_dev_c{'Conflicts'}}, 'libc-dev';
