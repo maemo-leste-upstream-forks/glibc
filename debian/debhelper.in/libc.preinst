@@ -123,6 +123,11 @@ check_dirs () {
     if expr $dir : "/lib.*" > /dev/null; then
       continue
     fi
+    # Skip ia32-libs package on ia64, and similar libraries
+    # (not sure why these get added to /etc/ld.so.conf)
+    if expr $dir : "/emul/.*" > /dev/null; then
+      continue
+    fi
     if test -d $dir; then
       output=$(ls $dir | egrep '^lib(c|m|pthread|rt|dl)\.so\.[^/]*$' |\
 	       egrep -v '^lib[cm]\.so\.[45].*$' 2>/dev/null)
