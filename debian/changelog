@@ -15,6 +15,12 @@ glibc (2.3.1-9) unstable; urgency=low
       H. S. Teoh and GOTO Masanori. (Closes: #117680)
     - debian/patches/glibc23-asserth-decls.dpatch: Applied patches send by
       Jeroen T. Vermeulen <jtv@bulletproof>. (Closes: #106253, #164571)
+    - debian/libc/DEBIAN/postinst: Removed 'logind' from checking list
+      because it does not exist.
+    - debian/libc/DEBIAN/postinst: Replaced dpkg -s from apache2 to
+      apache2-common correctly.
+    - debian/libc/DEBIAN/postinst: Redirect dpkg stderr message to /dev/null,
+      which is showed if there are not installed packages. (Closes: #168481)
 
  -- Daniel Jacobowitz <dan@debian.org>  Wed, 25 Dec 2002 12:19:36 -0500
 
@@ -152,7 +158,7 @@ glibc (2.3.1-4) unstable; urgency=low
     - debian/packages.d/sparc64.mk: fix build error.
     - debian/libc/DEBIAN/postinst: modify apache2 service,
       apache2 ships its init script in apache2-common, but the script
-      is in apache2. So replace from apach2-common to apach2 is needed.
+      is in apache2. So replace from apache2-common to apache2 is needed.
       Closes: #165959
     - debian/patches/cvs.patch: Hurd trailing slash handling fixed.
       Closes: #162414
