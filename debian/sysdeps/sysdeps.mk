@@ -42,16 +42,8 @@ ifeq ($(DEB_BUILD_OPTION_PARALLEL),yes)
   endif
 endif
 
-# Reduce optimization level of build on i386.  This needs to
-# be properly put into sysdeps somewhere until the bug is
-# fixed. - JB 2002-Oct-17
-ifeq ($(DEB_HOST_GNU_CPU),i386)
-BUILD_CFLAGS = -O
-HOST_CFLAGS = -O
-else
 BUILD_CFLAGS = -O2
 HOST_CFLAGS = -pipe -O2 -fstrict-aliasing
-endif
 
 ifeq ($(DEB_BUILD_OPTION_DEBUG),yes)
 BUILD_CFLAGS += -g
