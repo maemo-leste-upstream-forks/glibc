@@ -10,6 +10,7 @@
 
 SHELL=/bin/sh -e
 
+DEB_HOST_ARCH         := $(shell dpkg-architecture -qDEB_HOST_ARCH)
 DEB_HOST_GNU_CPU      := $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
 DEB_HOST_GNU_TYPE     := $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_HOST_GNU_SYSTEM   := $(shell dpkg-architecture -qDEB_HOST_GNU_SYSTEM)
@@ -21,6 +22,11 @@ DEB_HOST_GNU_CPU_ALT  :=
 DEB_HOST_GNU_TYPE_ALT :=
 
 DEBVERSION:=$(shell LC_ALL=C dpkg-parsechangelog | sed -ne 's/^Version: *\([^2]*\)/\1/p')
+
+perfect_make_check_archs := i386 powerpc sparc alpha s390
+ifeq ($(DEB_HOST_ARCH), $(findstring $(DEB_HOST_ARCH),$(perfect_make_check_archs)))
+  with_perfect_make_check := yes
+endif
 
 mkdir := debian/sysdeps
 
@@ -94,9 +100,14 @@ ifeq ($(NO_TEST),)
 ifeq ($(NO_LOG),)
 	@if [ -s $(log_test) ]; then savelog $(log_test); fi
 endif
-	$(warning Please check results before uploading in case of test failures.)
 	date >$(log_test)
+ifeq ($(with_perfect_make_check),yes)
+	$(warning Failures in this testsuite will cause the build to fail.)
+	$(MAKE) -k SHELL=/bin/bash -C $(objdir) check 2>&1 | tee -a $(log_test)
+else
+	$(warning Please check results before uploading in case of test failures.)
 	-$(MAKE) -k SHELL=/bin/bash -C $(objdir) check 2>&1 | tee -a $(log_test)
+endif
 	date >>$(log_test)
 endif
 
