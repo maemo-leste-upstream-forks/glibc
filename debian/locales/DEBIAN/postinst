@@ -31,8 +31,10 @@ EOF
 	fi
     fi
 
-    # Update requested locales
+    # Update requested locales.  Remove all old locale dir and 
+    # locale-archive before generating new locale data.
     if test -z $LEAVE_FLAG; then
+	rm -rf /usr/lib/locale/*
 	/usr/sbin/locale-gen
     fi
 
