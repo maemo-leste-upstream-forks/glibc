@@ -11,6 +11,7 @@
 # DP:    archives for 12/23/2002 for a better alternative (not implemented
 # DP:    yet)
 # DP: Date: Dec 24, 2002
+# DP: Updated: Jan 2, 2003
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
@@ -26,15 +27,42 @@ esac
 exit 0
 
 # append the patch here and adjust the -p? flag in the patch calls.
---- glibc-2.3.1/sysdeps/generic/errno.c.orig	2002-12-24 10:08:44.000000000 -0500
-+++ glibc-2.3.1/sysdeps/generic/errno.c	2002-12-24 10:09:01.000000000 -0500
+diff -ur glibc-2.3.1.bak/inet/herrno.c glibc-2.3.1/inet/herrno.c
+--- glibc-2.3.1.bak/inet/herrno.c	2003-01-02 10:54:16.000000000 -0500
++++ glibc-2.3.1/inet/herrno.c	2003-01-02 10:55:25.000000000 -0500
+@@ -38,8 +38,8 @@
+    visible at link time.  Programs must use the accessor functions.  */
+ # if defined HAVE_ELF && defined SHARED && defined DO_VERSIONING
+ #  include <shlib-compat.h>
+-compat_symbol (libc, h_errno, h_errno, GLIBC_2_0);
+-compat_symbol (libc, _h_errno, _h_errno, GLIBC_2_0);
++// compat_symbol (libc, h_errno, h_errno, GLIBC_2_0);
++// compat_symbol (libc, _h_errno, _h_errno, GLIBC_2_0);
+ # endif
+ #endif
+ 
+diff -ur glibc-2.3.1.bak/resolv/res_libc.c glibc-2.3.1/resolv/res_libc.c
+--- glibc-2.3.1.bak/resolv/res_libc.c	2003-01-02 10:54:16.000000000 -0500
++++ glibc-2.3.1/resolv/res_libc.c	2003-01-02 10:54:45.000000000 -0500
+@@ -38,7 +38,7 @@
+    visible at link time.  Programs must use the accessor functions.  */
+ # if defined HAVE_ELF && defined SHARED && defined DO_VERSIONING
+ #  include <shlib-compat.h>
+-compat_symbol (libc, _res, _res, GLIBC_2_0);
++// compat_symbol (libc, _res, _res, GLIBC_2_0);
+ # endif
+ #endif
+ 
+diff -ur glibc-2.3.1.bak/sysdeps/generic/errno.c glibc-2.3.1/sysdeps/generic/errno.c
+--- glibc-2.3.1.bak/sysdeps/generic/errno.c	2003-01-02 10:54:16.000000000 -0500
++++ glibc-2.3.1/sysdeps/generic/errno.c	2003-01-02 10:55:16.000000000 -0500
 @@ -36,7 +36,7 @@
     visible at link time.  Programs must use the accessor functions.  */
  # if defined HAVE_ELF && defined SHARED && defined DO_VERSIONING
  #  include <shlib-compat.h>
 -compat_symbol (libc, errno, errno, GLIBC_2_0);
 -compat_symbol (libc, _errno, _errno, GLIBC_2_0);
-+//compat_symbol (libc, errno, errno, GLIBC_2_0);
-+//compat_symbol (libc, _errno, _errno, GLIBC_2_0);
++// compat_symbol (libc, errno, errno, GLIBC_2_0);
++// compat_symbol (libc, _errno, _errno, GLIBC_2_0);
  # endif
  #endif
