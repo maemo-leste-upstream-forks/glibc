@@ -204,7 +204,8 @@ $(stamp)debhelper:
 debhelper-clean:
 	dh_clean 
 
-	rm -f debian/*.install
+	rm -f debian/*.install*
+	rm -f debian/*.install.*
 	rm -f debian/*.manpages
 	rm -f debian/*.links
 	rm -f debian/*.postinst
