@@ -13,9 +13,9 @@ ifeq ($(DEB_HOST_GNU_CPU),i386)
   as_flags_$(OPT) = 
 endif
 
-#ifeq ($(DEB_HOST_GNU_CPU),sparc)
-#  arch_packages += $(libc)-sparc64 $(libc)-dev-sparc64
-#endif
+ifeq ($(DEB_HOST_GNU_CPU),sparc)
+  arch_packages += $(libc)-sparc64 $(libc)-dev-sparc64
+endif
 
 ifeq ($(DEB_HOST_GNU_CPU),s390)
   arch_packages += $(libc)-s390x $(libc)-dev-s390x
