@@ -59,7 +59,7 @@ if ($DEB_HOST_GNU_TYPE =~ m/^i386-linux$/) {
 
 # The db2 changes left libnss-db broken, except for the newer version
 # which uses db3
-push @{$libc_c{'Conflicts'}}, 'libnss-db (<< 2.2-3)';
+push @{$libc_c{'Conflicts'}}, 'libnss-db (<< 2.2-6)';
 
 # From now on we provide our own ldconfig and ldd, so we don't need ldso
 push @{$libc_dev_c{'Replaces'}}, 'ldso (<= 1.9.11-9)';
