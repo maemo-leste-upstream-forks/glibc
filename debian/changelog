@@ -59,6 +59,9 @@ glibc (2.3.2.ds1-14) unstable; urgency=low
         glibc can build at least gcc-3.3 and later.  And this will make it
         possible to build glibc with gcc-3.4 when gcc-3.4 becomes the default
         on amd64 without changing glibc again.
+      - debian/sysdeps/amd64.mk: Use workaround -g0 option when gcc-3.4 is
+        used, because gcc-3.4 on amd64 with -g0 + nested functions are broken:
+        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=260710
 
   * Andreas Jochens <aj@andaco.de>
 
@@ -68,6 +71,8 @@ glibc (2.3.2.ds1-14) unstable; urgency=low
     - Add a new file debian/sysdeps/amd64.mk with GLIBC_PASSES += nptl
       (Closes: #248192)
     - debian/sysdeps/amd64.mk: Use gcc instead of gcc-3.3 on amd64.
+    - debian/patches/fno-unit-at-a-time.dpatch: Add -fno-unit-at-a-time
+      test to configure for amd64 + gcc-3.4.  (Closes: #261082)
 
  -- GOTO Masanori <gotom@debian.org>  Mon, 31 May 2004 23:43:29 +0900
 
