@@ -20,7 +20,7 @@ exit 0
 diff -urN glibc-2.2.5.old/ChangeLog glibc-2.2.5/ChangeLog
 --- glibc-2.2.5.old/ChangeLog   Sat Apr 27 22:28:07 2002
 +++ glibc-2.2.5/ChangeLog       Tue Apr 23 10:45:10 2002
-@@ -0,0 +1,10 @@
+@@ -0,0 +1,16 @@
 +2002-07-31  Jeff Bailey  <jbailey@gnu.org>
 +
 +        * libio/stdio.h (sys_errlist, sys_nerr, _sys_errlist, _sys_nerr):
@@ -30,6 +30,12 @@ diff -urN glibc-2.2.5.old/ChangeLog glibc-2.2.5/ChangeLog
 +        declare sys_errlist and sys_nerr.
 +        * sysdeps/unix/sysv/linux/bits/sys_errlist.h: New file.  Does
 +        provide declarations.
++
++2002-05-19  Ulrich Drepper  <drepper@redhat.com>
++
++        * sysdeps/unix/sysv/linux/errlist.c: Remove extra weak alias
++        definiton of _old_sys_nerr.  Define _old_sys_errlist as strong
++        alias.
 +
 diff -urN glibc-2.2.5/libio/stdio.h glibc-upstream/libio/stdio.h
 --- glibc-2.2.5/glibc-2.2.5/libio/stdio.h	Mon Jul  9 20:53:17 2001
@@ -147,3 +153,23 @@ diff -urN /dev/null glibc-2.2.5/sysdeps/unix/sysv/linux/bits/sys_errlist.h
 +extern int _sys_nerr;
 +extern __const char *__const _sys_errlist[];
 +#endif
+diff -urN glibc-2.2.5/glibc-2.2.5/sysdeps/unix/sysv/linux/errlist.c glibc-upstream/sysdeps/unix/sysv/linux/errlist.c
+--- glibc-2.2.5/glibc-2.2.5/sysdeps/unix/sysv/linux/errlist.c Mon Jul  9 20:57:07 2001
++++ glibc-upstream/sysdeps/unix/sysv/linux/errlist.c Tue Jun 11 19:40:17 2002@@ -1,4 +1,4 @@
+-/* Copyright (C) 1998, 2000 Free Software Foundation, Inc.
++/* Copyright (C) 1998, 2000, 2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -38,10 +38,9 @@
+ const int __old_sys_nerr = OLD_ERRLIST_SIZE;
+ 
+ strong_alias (__old_sys_nerr, _old_sys_nerr);
+-weak_alias (__old_sys_nerr, _old_sys_nerr)
+ compat_symbol (libc, __old_sys_nerr, _sys_nerr, GLIBC_2_0);
+ compat_symbol (libc, _old_sys_nerr, sys_nerr, GLIBC_2_0);
+-weak_alias (__old_sys_errlist, _old_sys_errlist);
++strong_alias (__old_sys_errlist, _old_sys_errlist);
+ compat_symbol (libc, __old_sys_errlist, _sys_errlist, GLIBC_2_0);
+ compat_symbol (libc, _old_sys_errlist, sys_errlist, GLIBC_2_0);
+ #endif
