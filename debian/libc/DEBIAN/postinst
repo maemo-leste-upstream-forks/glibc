@@ -201,7 +201,8 @@ then
 		echo "If other services begin to fail mysteriously after this upgrade,"
 		echo "it may be necessary to restart them too."
 		echo
-		if [ "$DEBIAN_FRONTEND" = noninteractive ]; then
+		frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
+		if [ "$frontend" = noninteractive ]; then
 		    echo "Non-interactive mode, restarting services"
 		    answer=yes
 		else
