@@ -127,6 +127,11 @@ push @{$libc_dev_c{'Replaces'}}, 'netbase (<< 4.0)';
 push @{$libc_c{'Conflicts'}}, 'wine (<< 0.0.20021007-1)';
 push @{$libc_c{'Conflicts'}}, 'php4 (<< 4:4.2.3-5)';
 
+# Conflict old file-rc, because file-rc put their file in /usr/lib/file-rc
+# but now file-rc 0.7.0 put in /usr/share/file-rc.  This change affects
+# libc6.postinst file check place.
+push @{$libc_c{'Conflicts'}}, 'file-rc (<< 0.7.0)';
+
 # Make sure we only have one version of libc-dev installed
 push @{$libc_dev_c{'Provides'}}, 'libc-dev';
 push @{$libc_dev_c{'Conflicts'}}, 'libc-dev';
