@@ -1,4 +1,4 @@
-shlib_depend = $(libc) (>= 2.3.1-1)
+shlib_depend = $(libc) (>= 2.3.2-1)
 
 debian/libc/DEBIAN/shlibs: debian/rules.d/shlibs.mk $(DEB_HOST_GNU_TYPE)
 	(cat $(objdir)/soversions.i | while read lib so_ver sym_ver; do \
