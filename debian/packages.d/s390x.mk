@@ -45,6 +45,7 @@ $(stamp_configure_64): $(stamp_unpack) $(stamp_patch)
 	echo "LIBGD = no"		>> $(objdir_64)/configparms
 	echo "cross-compiling = yes"	>> $(objdir_64)/configparms
 	echo 
+	ln -s $(LINUX_SOURCE)/include/asm-s390x $(objdir_64)/asm # Hack
 	cd $(objdir_64) && CC="$(MYCC)" CFLAGS="$(flags_64)" \
 	$(srcdir)/configure --host=s390x-linux \
 		--build=s390-linux --prefix=/usr --without-cvs \
