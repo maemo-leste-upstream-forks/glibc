@@ -14,6 +14,11 @@ $(glibc)-doc:	$(stamp_install) debian/control $(mkdir)/sysdeps.mk
 		mv $$manfile `echo $$manfile | sed 's/\.man/\.3/'`; \
 	done
 	-gzip -9f $(tmpdir)/$@$(mandir)/man?/*
+	for manfile in [ pthread_getspecific.3.gz pthread_key_delete.3.gz \
+			 pthread_setspecific.3.gz ]; do \
+		ln -sf pthread_key_create.3.gz \
+			$(tmpdir)/$@$(mandir)/man3/$$manfile ;	\
+	done
 
 	$(make_directory) $(tmpdir)/$@$(docdir)/$@
 	$(MAKE) -C $(objdir) subdirs=manual info
