@@ -10,6 +10,9 @@ libc-udeb: $(stamp_install) debian/control $(mkdir)/sysdeps.mk
 	$(INSTALL_DATA) $(install_root)/lib/libm-$(VERSION).so $(tmpdir)/$@/lib/.
 	$(INSTALL_DATA) $(install_root)/lib/libdl-$(VERSION).so $(tmpdir)/$@/lib/.
 	$(INSTALL_PROGRAM) $(install_root)/lib/libc-$(VERSION).so $(tmpdir)/$@/lib/.
+ifeq ($(threads),yes)
+	$(INSTALL_DATA) $(install_root)/lib/libpthread-0.10.so $(tmpdir)/$@/lib/.
+endif
 
 ifeq ($(DEB_HOST_GNU_SYSTEM),gnu)
 # Why doesn't the glibc makefile install this?
