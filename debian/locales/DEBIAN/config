@@ -23,7 +23,11 @@ db_go
 
 db_get locales/locales_to_be_generated && DEFAULT_LOCALES=$(echo $RET | sed -e 's/ [^ ]*,/,/g' -e 's/ [^ ]*$//')
 
-test -z "$DEFAULT_LOCALES" || DEFAULT_LOCALES=", $DEFAULT_LOCALES"
-db_subst locales/default_environment_locale locales Leave alone, None, C$DEFAULT_LOCALES
+if test -z "$DEFAULT_LOCALES"; then
+    DEFAULT_LOCALES=C
+else
+    DEFAULT_LOCALES="C, $DEFAULT_LOCALES"
+fi
+db_subst locales/default_environment_locale locales $DEFAULT_LOCALES
 db_input medium locales/default_environment_locale || true
 db_go
