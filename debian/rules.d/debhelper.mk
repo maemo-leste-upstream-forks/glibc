@@ -210,5 +210,6 @@ debhelper-clean:
 	rm -f debian/*.templates
 	rm -f debian/*.dirs
 	rm -f debian/*.docs
+	rm -f debian/*.doc-base
 
 	rm -f $(stamp)binaryinst*
