@@ -1,12 +1,12 @@
 #! /bin/sh -e
 
 # All lines beginning with `# DP:' are a description of the patch.
-# DP: Description: Update timezone info
+# DP: Description: Update timezone info to tzcode2004b and tzdata2004b.
 # DP: Related bugs: Many in the BTS
-# DP: Author: Ulrich Drepper
+# DP: Dpatch Author: GOTO Masanori <gotom@debian.org>
 # DP: Upstream status: In CVS
 # DP: Status Details: 
-# DP: Date: November 5th, 2003
+# DP: Date: 2004-07-29
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
@@ -22,15 +22,52 @@ esac
 exit 0
 
 # append the patch here and adjust the -p? flag in the patch calls.
---- timezone/asia	2003-11-05 10:37:29.000000000 -0500
-+++ timezone/asia	2003-10-06 13:46:22.000000000 -0400
+diff -Nuar timezone.org/asia timezone/asia
+--- timezone.org/asia	2004-07-29 13:05:53.000000000 +0900
++++ timezone/asia	2004-07-29 13:06:22.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)asia	7.71
-+# @(#)asia	7.72
++# @(#)asia	7.75
  
  # This data is by no means authoritative; if you think you know better,
  # go ahead and edit the file (and please send any changes to
-@@ -736,44 +736,19 @@
+@@ -335,6 +335,16 @@
+ # Instead of putting back clocks at the end of October, Georgia
+ # will stay on daylight savings time this winter to save energy,
+ # President Eduard Shevardnadze decreed Wednesday.
++#
++# From the BBC via Joseph S. Myers (2004-06-27):
++#  	
++# Georgia moved closer to Western Europe on Sunday...  The former Soviet
++# republic has changed its time zone back to that of Moscow.  As a result it
++# is now just four hours ahead of Greenwich Mean Time, rather than five hours
++# ahead.  The switch was decreed by the pro-Western president of Georgia,
++# Mikhail Saakashvili, who said the change was partly prompted by the process
++# of integration into Europe.
++
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ Zone	Asia/Tbilisi	2:59:16 -	LMT	1880
+ 			2:59:16	-	TBMT	1924 May  2 # Tbilisi Mean Time
+@@ -345,7 +355,8 @@
+ 			3:00 E-EurAsia	GE%sT	1994 Sep lastSun
+ 			4:00 E-EurAsia	GE%sT	1996 Oct lastSun
+ 			4:00	1:00	GEST	1997 Mar lastSun
+-			4:00 E-EurAsia	GE%sT
++			4:00 E-EurAsia	GE%sT	2004 Jun 27
++			3:00 RussiaAsia	GE%sT
+ 
+ # East Timor
+ 
+@@ -380,7 +391,7 @@
+ 
+ # India
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+-Zone	Asia/Calcutta	5:53:28 -	LMT	1880
++Zone	Asia/Calcutta	5:53:28 -	LMT	1880	# Kolkata
+ 			5:53:20	-	HMT	1941 Oct    # Howrah Mean Time?
+ 			6:30	-	BURT	1942 May 15 # Burma Time
+ 			5:30	-	IST	1942 Sep
+@@ -736,44 +747,19 @@
  			2:20:40	-	JMT	1918	# Jerusalem Mean Time?
  			2:00	Zion	I%sT
  
@@ -87,7 +124,7 @@ exit 0
  
  
  
-@@ -926,7 +901,7 @@
+@@ -926,7 +912,7 @@
  			6:00	-	SHET	1982 Apr  1
  			5:00 RussiaAsia	SHE%sT	1991
  			5:00	-	SHET	1991 Dec 16 # independence
@@ -96,8 +133,104 @@ exit 0
  			4:00 RussiaAsia	AQT%sT
  # West Kazakhstan
  Zone	Asia/Oral	3:25:24	-	LMT	1924 May  2 # or Ural'sk
---- timezone/australasia	2003-11-05 10:37:29.000000000 -0500
-+++ timezone/australasia	2003-10-06 13:46:22.000000000 -0400
+@@ -1036,22 +1022,29 @@
+ Rule	NBorneo	1935	1941	-	Sep	14	0:00	0:20	TS # one-Third Summer
+ Rule	NBorneo	1935	1941	-	Dec	14	0:00	0	-
+ #
+-# Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ # peninsular Malaysia
+-Zone Asia/Kuala_Lumpur	6:46:48 -	LMT	1880
+-			6:55:24	-	SMT	1905 Jun # Singapore Mean Time
+-			7:00	-	MALT	1933	 # Malaya Time
+-			7:20	-	MALT	1942 Feb 15
+-			9:00	-	JST	1945 Sep 2
+-			7:20	-	MALT	1950
+-			7:30	-	MALT	1982 May
++# The data here are taken from Mok Ly Yng (2003-10-30)
++# <http://www.math.nus.edu.sg/aslaksen/teaching/timezone.html>.
++# Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
++Zone Asia/Kuala_Lumpur	6:46:46 -	LMT	1901 Jan  1
++			6:55:25	-	SMT	1905 Jun  1 # Singapore M.T.
++			7:00	-	MALT	1933 Jan  1 # Malaya Time
++			7:00	0:20	MALST	1936 Jan  1
++			7:20	-	MALT	1941 Sep  1
++			7:30	-	MALT	1942 Feb 16
++			9:00	-	JST	1945 Sep 12
++			7:30	-	MALT	1982 Jan  1
+ 			8:00	-	MYT	# Malaysia Time
+ # Sabah & Sarawak
++# From Paul Eggert (2003-11-01):
++# The data here are mostly from Shanks, but the 1942, 1945 and 1982
++# transition dates are from Mok Ly Yng.
++# Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ Zone Asia/Kuching	7:21:20	-	LMT	1926 Mar
+ 			7:30	-	BORT	1933	# Borneo Time
+-			8:00	NBorneo	BOR%sT	1942
+-			9:00	-	JST	1945 Sep 2
+-			8:00	-	BORT	1982 May
++			8:00	NBorneo	BOR%sT	1942 Feb 16
++			9:00	-	JST	1945 Sep 12
++			8:00	-	BORT	1982 Jan  1
+ 			8:00	-	MYT
+ 
+ # Maldives
+@@ -1103,6 +1096,15 @@
+ #
+ # [The province of Selenge is omitted from the above lists.]
+ 
++# From Ganbold Ts., Ulaanbaatar <ganbold@micom.mng.net> (2004-04-17):
++# Daylight saving occurs at 02:00 local time last Saturday of March.
++# It will change back to normal at 02:00 local time last Saturday of
++# September.... As I remember this rule was changed in 2001.
++#
++# From Paul Eggert (2004-04-17):
++# For now, assume Rives McDow's informant got confused about Friday vs
++# Saturday, and that his 2001 dates should have 1 added to them.
++
+ # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
+ Rule	Mongol	1983	1984	-	Apr	1	0:00	1:00	S
+ Rule	Mongol	1983	only	-	Oct	1	0:00	0	-
+@@ -1112,8 +1114,9 @@
+ Rule	Mongol	1985	1998	-	Mar	lastSun	2:00s	1:00	S
+ Rule	Mongol	1984	1998	-	Sep	lastSun	2:00s	0	-
+ # IATA SSIM (1999-09) says Mongolia no longer observes DST.
+-Rule	Mongol	2001	only	-	Apr	27	2:00s	1:00	S
+-Rule	Mongol	2001	only	-	Sep	28	2:00s	0	-
++Rule	Mongol	2001	only	-	Apr	lastSat	2:00	1:00	S
++Rule	Mongol	2001	max	-	Sep	lastSat	2:00	0	-
++Rule	Mongol	2002	max	-	Mar	lastSat	2:00	1:00	S
+ 
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ # Hovd, a.k.a. Chovd, Dund-Us, Dzhargalant, Khovd, Jirgalanta
+@@ -1320,15 +1323,18 @@
+ 			3:00	-	AST
+ 
+ # Singapore
++# The data here are taken from Mok Ly Yng (2003-10-30)
++# <http://www.math.nus.edu.sg/aslaksen/teaching/timezone.html>.
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+-Zone	Asia/Singapore	6:55:24 -	LMT	1880
+-			6:55:24	-	SMT	1905 Jun # Singapore Mean Time
+-			7:00	-	MALT	1933	 # Malaya Time
+-			7:20	-	MALT	1942 Feb 15
+-			9:00	-	JST	1945 Sep  2
+-			7:20	-	MALT	1950
++Zone	Asia/Singapore	6:55:25 -	LMT	1901 Jan  1
++			6:55:25	-	SMT	1905 Jun  1 # Singapore M.T.
++			7:00	-	MALT	1933 Jan  1 # Malaya Time
++			7:00	0:20	MALST	1936 Jan  1
++			7:20	-	MALT	1941 Sep  1
++			7:30	-	MALT	1942 Feb 16
++			9:00	-	JST	1945 Sep 12
+ 			7:30	-	MALT	1965 Aug  9 # independence
+-			7:30	-	SGT	1982 May # Singapore Time
++			7:30	-	SGT	1982 Jan  1 # Singapore Time
+ 			8:00	-	SGT
+ 
+ # Spratly Is
+diff -Nuar timezone.org/australasia timezone/australasia
+--- timezone.org/australasia	2004-07-29 13:05:53.000000000 +0900
++++ timezone/australasia	2004-07-29 13:04:18.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)australasia	7.68
 +# @(#)australasia	7.69
@@ -257,15 +390,29 @@ exit 0
  ###############################################################################
  
  # The International Date Line
---- timezone/backward	2002-04-05 22:40:00.000000000 -0500
-+++ timezone/backward	2003-10-06 13:46:22.000000000 -0400
-@@ -1,4 +1,4 @@
+diff -Nuar timezone.org/backward timezone/backward
+--- timezone.org/backward	2004-07-29 13:05:53.000000000 +0900
++++ timezone/backward	2004-07-29 13:06:22.000000000 +0900
+@@ -1,12 +1,17 @@
 -# @(#)backward	7.23
-+# @(#)backward	7.24
++# @(#)backward	7.26
  
  # This file provides links between current names for time zones
  # and their old names.  Many names changed in late 1993.
-@@ -36,7 +36,7 @@
+ 
+ Link	America/Adak		America/Atka
++Link	America/Argentina/Buenos_Aires	America/Buenos_Aires
++Link	America/Argentina/Catamarca	America/Catamarca
++Link	America/Argentina/Cordoba	America/Cordoba
+ Link	America/Tijuana		America/Ensenada
+ Link	America/Indianapolis	America/Fort_Wayne
++Link	America/Argentina/Jujuy	America/Jujuy
+ Link	America/Indiana/Knox	America/Knox_IN
++Link	America/Argentina/Mendoza	America/Mendoza
+ Link	America/Rio_Branco	America/Porto_Acre
+ Link	America/Cordoba		America/Rosario
+ Link	America/St_Thomas	America/Virgin
+@@ -36,7 +41,7 @@
  Link	America/Halifax		Canada/Atlantic
  Link	America/Winnipeg	Canada/Central
  Link	America/Regina		Canada/East-Saskatchewan
@@ -274,11 +421,21 @@ exit 0
  Link	America/Edmonton	Canada/Mountain
  Link	America/St_Johns	Canada/Newfoundland
  Link	America/Vancouver	Canada/Pacific
---- timezone/europe	2003-11-05 10:37:29.000000000 -0500
-+++ timezone/europe	2003-10-06 13:46:22.000000000 -0400
+@@ -65,7 +70,7 @@
+ Link	America/Tijuana		Mexico/BajaNorte
+ Link	America/Mazatlan	Mexico/BajaSur
+ Link	America/Mexico_City	Mexico/General
+-Link	America/Denver		Navajo
++Link	America/Shiprock	Navajo
+ Link	Pacific/Auckland	NZ
+ Link	Pacific/Chatham		NZ-CHAT
+ Link	Pacific/Pago_Pago	Pacific/Samoa
+diff -Nuar timezone.org/europe timezone/europe
+--- timezone.org/europe	2004-07-29 13:05:53.000000000 +0900
++++ timezone/europe	2004-07-29 13:06:22.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)europe	7.83
-+# @(#)europe	7.84
++# @(#)europe	7.88
  
  # This data is by no means authoritative; if you think you know better,
  # go ahead and edit the file (and please send any changes to
@@ -298,7 +455,7 @@ exit 0
  # about Dublin, so we use 1880-08-02, the legal transition time.
  
 -# From Paul Eggert (1999-01-30):
-+# From Paul Eggert (2003-07-29):
++# From Paul Eggert (2003-09-27):
  # Summer Time was first seriously proposed by William Willett (1857-1915),
  # a London builder and member of the Royal Astronomical Society
  # who circulated a pamphlet ``The Waste of Daylight'' (1907)
@@ -318,7 +475,7 @@ exit 0
 +# it was eventually adopted as a wartime measure in 1916.
 +# See: Summer Time Arrives Early, The Times (2000-05-18).
 +# A monument to Willett was unveiled on 1927-05-21, in an open space in
-+# a 45-acre wood near Chiselhurst, Kent that was purchased by popular
++# a 45-acre wood near Chislehurst, Kent that was purchased by popular
 +# subscription and open to the public.  On the south face of the monolith,
 +# designed by G. W. Miller, is the the William Willett Memorial Sundial,
 +# which is permanently set to Summer Time.
@@ -335,7 +492,28 @@ exit 0
  
  # From Paul Eggert (1996-09-03):
  # The OED Supplement says that the English originally said ``Daylight Saving''
-@@ -1323,7 +1337,7 @@
+@@ -693,6 +707,9 @@
+ # Croatia
+ # see Serbia and Montenegro
+ 
++# Cyprus
++# See the `asia' file.
++
+ # Czech Republic
+ # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
+ Rule	Czech	1945	only	-	Apr	 8	2:00s	1:00	S
+@@ -904,6 +921,10 @@
+ 			2:00	Finland	EE%sT	1981 Mar 29 2:00
+ 			2:00	EU	EE%sT
+ 
++# Aaland Is
++Link	Europe/Helsinki	Europe/Mariehamn
++
++
+ # France
+ 
+ # From Ciro Discepolo (2000-12-20):
+@@ -1323,7 +1344,7 @@
  			2:00	1:00	EEST	1989 Sep lastSun 2:00s
  			2:00	Latvia	EE%sT	1997 Jan 21
  			2:00	EU	EE%sT	2000 Feb 29
@@ -344,7 +522,7 @@ exit 0
  			2:00	EU	EE%sT
  
  # Liechtenstein
-@@ -1750,8 +1764,10 @@
+@@ -1750,8 +1771,10 @@
  Rule	Port	1981	1982	-	Mar	lastSun	 1:00s	1:00	S
  Rule	Port	1983	only	-	Mar	lastSun	 2:00s	1:00	S
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
@@ -356,18 +534,98 @@ exit 0
  			 0:00	Port	WE%sT	1966 Apr  3 2:00
  			 1:00	-	CET	1976 Sep 26 1:00
  			 0:00	Port	WE%sT	1983 Sep 25 1:00s
---- timezone/iso3166.tab	2003-11-05 10:37:29.000000000 -0500
-+++ timezone/iso3166.tab	2003-10-06 13:46:22.000000000 -0400
-@@ -6,7 +6,7 @@
+@@ -1815,7 +1838,7 @@
+ #
+ # From Andrey A. Chernov <ache@nagual.ru> (1996-10-04):
+ # `MSK' and `MSD' were born and used initially on Moscow computers with
+-# Unix-like OSes by several developer groups (e.g. Demos group, Kiae group)....
++# UNIX-like OSes by several developer groups (e.g. Demos group, Kiae group)....
+ # The next step was the UUCP network, the Relcom predecessor
+ # (used mainly for mail), and MSK/MSD was actively used there.
+ #
+@@ -1936,28 +1959,26 @@
+ 			 7:00	Russia	IRK%sT	1992 Jan 19 2:00s
+ 			 8:00	Russia	IRK%sT
+ #
+-# From Oscar van Vlijmen (2001-08-25): [This region consists of]
++# From Oscar van Vlijmen (2003-10-18): [This region consists of]
+ # Aginskij Buryatskij avtonomnyj okrug, Amurskaya oblast',
+ # [parts of] Respublika Sakha (Yakutiya), Chitinskaya oblast'.
+-#
+-# From Alan Pritchard (2001-08-24): [The Sakha districts are:]
+-# Aldansky, Amginsky, Anabarsky, Bulunsky, Churapchinsky,
+-# Eveno-Bytantaisky, Gorny, Khangalassky, Kobyaisky, Lensky,
+-# Megino-Kangalassky, Mirninsky, Namsky, Nyurbinsky, Olenyoksky,
+-# Olyokminsky, Srednekolymsky, Suntarsky, Tattinsky, Ust-Aldansky,
+-# Verkhnekolymsky, Verkhnevilyuisky, Vilyuisky, Zhigansky.
++# The Sakha districts are: Aldanskij, Amginskij, Anabarskij,
++# Bulunskij, Verkhnekolymskij, Verkhnevilyujskij, Vilyujskij, Gornyj,
++# Zhiganskij, Kobyajskij, Lenskij, Megino-Kangalasskij, Mirninskij,
++# Namskij, Nyurbinskij, Olenekskij, Olekminskij, Srednekolymskij,
++# Suntarskij, Tattinskij, Ust'-Aldanskij, Khangalasskij,
++# Churapchinskij, Eveno-Bytantajskij.
+ Zone Asia/Yakutsk	 8:38:40 -	LMT	1919 Dec 15
+ 			 8:00	-	YAKT	1930 Jun 21 # Yakutsk Time
+ 			 9:00	Russia	YAK%sT	1991 Mar 31 2:00s
+ 			 8:00	Russia	YAK%sT	1992 Jan 19 2:00s
+ 			 9:00	Russia	YAK%sT
+ #
+-# From Oscar van Vlijmen (2001-08-25): [This region consists of]
++# From Oscar van Vlijmen (2003-10-18): [This region consists of]
+ # Evrejskaya avtonomnaya oblast', Khabarovskij kraj, Primorskij kraj,
+ # [parts of] Respublika Sakha (Yakutiya).
+-#
+-# From Alan Pritchard (2001-08-24): [The Sakha districts are:]
+-# Tomponsky, Ust-Maisky, Ust-Yansky, Verkhoyansky.
++# The Sakha districts are: Verkhoyanskij, Tomponskij, Ust'-Majskij,
++# Ust'-Yanskij.
+ Zone Asia/Vladivostok	 8:47:44 -	LMT	1922 Nov 15
+ 			 9:00	-	VLAT	1930 Jun 21 # Vladivostok Time
+ 			10:00	Russia	VLA%sT	1991 Mar 31 2:00s
+@@ -1974,11 +1995,11 @@
+ 			11:00	Russia	SAK%sT	1997 Mar lastSun 2:00s
+ 			10:00	Russia	SAK%sT
+ #
+-# From Oscar van Vlijmen (2001-08-25): [This region consists of]
++# From Oscar van Vlijmen (2003-10-18): [This region consists of]
+ # Magadanskaya oblast', Respublika Sakha (Yakutiya).
+-#
+-# From Alan Pritchard (2001-08-24): [The Sakha districts are:]
+-# Abyisky, Allaikhovsky, Momsky, Nizhnekolymsky, Oimyakonsky.
++# Probably also: Kuril Islands.
++# The Sakha districts are: Abyjskij, Allaikhovskij, Momskij,
++# Nizhnekolymskij, Ojmyakonskij.
+ Zone Asia/Magadan	10:03:12 -	LMT	1924 May  2
+ 			10:00	-	MAGT	1930 Jun 21 # Magadan Time
+ 			11:00	Russia	MAG%sT	1991 Mar 31 2:00s
+diff -Nuar timezone.org/iso3166.tab timezone/iso3166.tab
+--- timezone.org/iso3166.tab	2004-07-29 13:05:53.000000000 +0900
++++ timezone/iso3166.tab	2004-07-29 13:06:22.000000000 +0900
+@@ -1,12 +1,12 @@
+ # ISO 3166 alpha-2 country codes
+ #
+-# @(#)iso3166.tab	1.9
++# @(#)iso3166.tab	1.15
+ #
+-# From Paul Eggert <eggert@twinsun.com> (2003-02-04):
++# From Paul Eggert <eggert@twinsun.com> (2004-06-14):
  #
  # This file contains a table with the following columns:
  # 1.  ISO 3166-1 alpha-2 country code, current as of
 -#     ISO 3166-1 Newsletter No. V-7 (2003-01-14).  See:
-+#     ISO 3166-1 Newsletter No. V-8 (2003-07-23).  See:
++#     ISO 3166-1 Newsletter No. V-10 (2004-04-26).  See:
  #     <a href="http://www.iso.org/iso/en/prods-services/iso3166ma/index.html">
  #     ISO 3166 Maintenance agency (ISO 3166/MA)
  #     </a>.
-@@ -69,6 +69,7 @@
+@@ -36,6 +36,7 @@
+ AT	Austria
+ AU	Australia
+ AW	Aruba
++AX	Aaland Islands
+ AZ	Azerbaijan
+ BA	Bosnia & Herzegovina
+ BB	Barbados
+@@ -69,6 +70,7 @@
  CN	China
  CO	Colombia
  CR	Costa Rica
@@ -375,7 +633,7 @@ exit 0
  CU	Cuba
  CV	Cape Verde
  CX	Christmas Island
-@@ -256,7 +257,6 @@
+@@ -256,7 +258,6 @@
  WS	Samoa (Western)
  YE	Yemen
  YT	Mayotte
@@ -383,52 +641,57 @@ exit 0
  ZA	South Africa
  ZM	Zambia
  ZW	Zimbabwe
---- timezone/leapseconds	2002-01-28 23:18:04.000000000 -0500
-+++ timezone/leapseconds	2003-09-22 15:50:51.000000000 -0400
+diff -Nuar timezone.org/leapseconds timezone/leapseconds
+--- timezone.org/leapseconds	2004-07-29 13:05:53.000000000 +0900
++++ timezone/leapseconds	2004-07-29 13:06:22.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)leapseconds	7.15
-+# @(#)leapseconds	7.16
++# @(#)leapseconds	7.17
  
  # Allowance for leapseconds added to each timezone file.
  
-@@ -44,8 +44,8 @@
+@@ -44,37 +44,38 @@
  Leap	1997	Jun	30	23:59:60	+	S
  Leap	1998	Dec	31	23:59:60	+	S
  
 -#                  INTERNATIONAL EARTH ROTATION SERVICE (IERS)
 -#   	       SERVICE INTERNATIONAL DE LA ROTATION TERRESTRE
-+# 		INTERNATIONAL EARTH ROTATION SERVICE (IERS)
-+# 		SERVICE INTERNATIONAL DE LA ROTATION TERRESTRE
++# 	INTERNATIONAL EARTH ROTATION AND REFERENCE SYSTEMS SERVICE (IERS)
++# 
++# SERVICE INTERNATIONAL DE LA ROTATION TERRESTRE ET DES SYSTEMES DE REFERENCE
  # 
  # SERVICE DE LA ROTATION TERRESTRE
  # OBSERVATOIRE DE PARIS
-@@ -54,27 +54,26 @@
+ # 61, Av. de l'Observatoire 75014 PARIS (France)
+ # Tel.      : 33 (0) 1 40 51 22 26
  # FAX       : 33 (0) 1 40 51 22 91
- # Internet  : iers@obspm.fr
+-# Internet  : iers@obspm.fr
++# Internet  : services.iers@obspm.fr
++# 
++# 						Paris, 15 January 2004
  # 
 -#                                               Paris, 14 January 2002
-+# 				 		Paris, 1 July 2003
++# 						Bulletin C 27
  # 
 -#                                               Bulletin C 23
-+# 						Bulletin C 26
- # 
--#                                               To authorities responsible
--#                                               for the measurement and
--#                                               distribution of time
 +# 						To authorities responsible
 +# 						for the measurement and
 +# 						distribution of time
  # 
--#                          INFORMATION ON UTC - TAI
+-#                                               To authorities responsible
+-#                                               for the measurement and
+-#                                               distribution of time
 +# 			INFORMATION ON UTC - TAI
+ # 
+-#                          INFORMATION ON UTC - TAI
++# NO positive leap second will be introduced at the end of June 2004.
++# The difference between UTC and the International Atomic Time TAI is:
  # 
 -# NO positive leap second will be introduced at the end of June 2002.
 -# The difference between UTC and the International Atomic Time TAI is :		
-+# NO positive leap second will be introduced at the end of December 2003.
-+# The difference between UTC and the International Atomic Time TAI is:
- # 		
+-# 		
 -#     from 1999 January 1, 0h UTC, until further notice : UTC-TAI = -32 s
-+# 	from 1999 January 1, 0h UTC, until further notice: UTC-TAI = -32 s
++# 	from 1999 January 1, 0h UTC, until further notice : UTC-TAI = -32 s
  # 
  # Leap seconds can be introduced in UTC at the end of the months of December
 -# or June,  depending on the evolution of UT1-TAI. Bulletin C is mailed every
@@ -443,15 +706,122 @@ exit 0
 +# 					Daniel GAMBIS
 +# 					Director
 +# 					Earth Orientation Center of IERS
---- timezone/northamerica	2003-11-05 10:37:29.000000000 -0500
-+++ timezone/northamerica	2003-10-06 13:46:22.000000000 -0400
++# 					Observatoire de Paris, France
+diff -Nuar timezone.org/northamerica timezone/northamerica
+--- timezone.org/northamerica	2004-07-29 13:05:53.000000000 +0900
++++ timezone/northamerica	2004-07-29 13:06:22.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)northamerica	7.62
-+# @(#)northamerica	7.63
++# @(#)northamerica	7.69
  # also includes Central America and the Caribbean
  
  # This data is by no means authoritative; if you think you know better,
-@@ -685,9 +685,15 @@
+@@ -193,10 +193,6 @@
+ #	Samoa standard time
+ # The law doesn't give abbreviations.
+ #
+-# From Paul Eggert (1995-12-19):
+-# Shanks uses 1983-10-30, not 1983-11-30, for the 1983 transitions.
+-# Go with Shanks.
+-#
+ # From Paul Eggert (2000-01-08), following a heads-up from Rives McDow:
+ # Public law 106-564 (2000-12-23) introduced the abbreviation
+ # "Chamorro Standard Time" for time in Guam and the Northern Marianas.
+@@ -228,7 +224,9 @@
+ 
+ # US central time, represented by Chicago
+ 
+-# Alabama, Arkansas, Florida panhandle, Illinois, western Indiana
++# Alabama, Arkansas, Florida panhandle (Bay, Calhoun, Escambia,
++# Gulf, Holmes, Jackson, Okaloosa, Santa Rosa, Walton, and
++# Washington counties), Illinois, western Indiana
+ # (Gibson, Jasper, Lake, LaPorte, Newton, Porter, Posey, Spencer,
+ # Vanderburgh, and Warrick counties), Iowa, most of Kansas, western
+ # Kentucky, Louisiana, Minnesota, Mississippi, Missouri, eastern
+@@ -258,7 +256,7 @@
+ 
+ # US mountain time, represented by Denver
+ #
+-# Colorado, southern Idaho, far western Kansas, Montana, western
++# Colorado, far western Kansas, Montana, western
+ # Nebraska, Nevada border (Jackpot, Owyhee, and Mountain City),
+ # New Mexico, southwestern North Dakota, far eastern Oregon,
+ # western South Dakota, far western Texas (El Paso County, Hudspeth County,
+@@ -280,7 +278,9 @@
+ 
+ # US Pacific time, represented by Los Angeles
+ #
+-# California, northern Idaho, most of Nevada, most of Oregon, and Washington
++# California, northern Idaho (Benewah, Bonner, Boundary, Clearwater,
++# Idaho, Kootenai, Latah, Lewis, Nez Perce, and Shoshone counties),
++# most of Nevada, most of Oregon, and Washington
+ #
+ # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER
+ Rule	CA	1948	only	-	Mar	14	2:00	1:00	D
+@@ -319,13 +319,14 @@
+ 			 -8:00	US	P%sT	1946
+ 			 -8:00	-	PST	1969
+ 			 -8:00	US	P%sT	1983 Oct 30 2:00
++			 -9:00	US	Y%sT	1983 Nov 30
+ 			 -9:00	US	AK%sT
+ Zone America/Yakutat	 14:41:05 -	LMT	1867 Oct 18
+ 			 -9:18:55 -	LMT	1900 Aug 20 12:00
+ 			 -9:00	-	YST	1942
+ 			 -9:00	US	Y%sT	1946
+ 			 -9:00	-	YST	1969
+-			 -9:00	US	Y%sT	1983 Oct 30 2:00
++			 -9:00	US	Y%sT	1983 Nov 30
+ 			 -9:00	US	AK%sT
+ Zone America/Anchorage	 14:00:24 -	LMT	1867 Oct 18
+ 			 -9:59:36 -	LMT	1900 Aug 20 12:00
+@@ -334,6 +335,7 @@
+ 			-10:00	-	CAT	1967 Apr
+ 			-10:00	-	AHST	1969
+ 			-10:00	US	AH%sT	1983 Oct 30 2:00
++			 -9:00	US	Y%sT	1983 Nov 30
+ 			 -9:00	US	AK%sT
+ Zone America/Nome	 12:58:21 -	LMT	1867 Oct 18
+ 			-11:01:38 -	LMT	1900 Aug 20 12:00
+@@ -342,6 +344,7 @@
+ 			-11:00	-	NST	1967 Apr
+ 			-11:00	-	BST	1969
+ 			-11:00	US	B%sT	1983 Oct 30 2:00
++			 -9:00	US	Y%sT	1983 Nov 30
+ 			 -9:00	US	AK%sT
+ Zone America/Adak	 12:13:21 -	LMT	1867 Oct 18
+ 			-11:46:38 -	LMT	1900 Aug 20 12:00
+@@ -350,6 +353,7 @@
+ 			-11:00	-	NST	1967 Apr
+ 			-11:00	-	BST	1969
+ 			-11:00	US	B%sT	1983 Oct 30 2:00
++			-10:00	US	AH%sT	1983 Nov 30
+ 			-10:00	US	HA%sT
+ # Shanks writes that part of southwest Alaska (e.g. Aniak)
+ # switched from -11:00 to -10:00 on 1968-09-22 at 02:00,
+@@ -405,14 +409,20 @@
+ 			-7:00	-	MST
+ # From Arthur David Olson (1988-02-13):
+ # A writer from the Inter Tribal Council of Arizona, Inc.,
+-# notes in private correspondence dated 12/28/87 that "Presently, only the
++# notes in private correspondence dated 1987-12-28 that "Presently, only the
+ # Navajo Nation participates in the Daylight Saving Time policy, due to its
+ # large size and location in three states."  (The "only" means that other
+ # tribal nations don't use DST.)
+ 
+ Link America/Denver America/Shiprock
+ 
+-# Southern Idaho and eastern Oregon switched four weeks late in 1974.
++# Southern Idaho (Ada, Adams, Bannock, Bear Lake, Bingham, Blaine,
++# Boise, Bonneville, Butte, Camas, Canyon, Caribou, Cassia, Clark,
++# Custer, Elmore, Franklin, Fremont, Gem, Gooding, Jefferson, Jerome,
++# Lemhi, Lincoln, Madison, Minidoka, Oneida, Owyhee, Payette, Power,
++# Teton, Twin Falls, Valley, Washington counties) and eastern Oregon
++# switched four weeks late in 1974.
++# 
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ Zone America/Boise	-7:44:49 -	LMT	1883 Nov 18 12:00
+ 			-8:00	US	P%sT	1923 May 13 2:00
+@@ -685,9 +695,15 @@
  # Except where otherwise noted, Shanks is the source for entries through 1990,
  # and IATA SSIM is the source for entries after 1990.
  #
@@ -470,7 +840,7 @@ exit 0
  #
  # See the `europe' file for Greenland.
  
-@@ -743,7 +749,8 @@
+@@ -743,7 +759,8 @@
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule	Canada	1918	only	-	Apr	14	2:00	1:00	D
  Rule	Canada	1918	only	-	Oct	31	2:00	0	S
@@ -480,7 +850,7 @@ exit 0
  Rule	Canada	1945	only	-	Sep	30	2:00	0	S
  Rule	Canada	1974	1986	-	Apr	lastSun	2:00	1:00	D
  Rule	Canada	1974	max	-	Oct	lastSun	2:00	0	S
-@@ -759,27 +766,20 @@
+@@ -759,27 +776,20 @@
  # but excluding, say, Black Tickle.
  
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
@@ -515,7 +885,7 @@ exit 0
  # For 1946-9 Whitman gives May 5,4,9,1 - Oct 1,5,3,2, and for 1950 he gives
  # Apr 30 - Sep 24; go with Shanks.
  Rule	StJohns	1946	1950	-	May	Sun>=8	2:00	1:00	D
-@@ -797,18 +797,24 @@
+@@ -797,18 +807,24 @@
  # St John's has an apostrophe, but Posix file names can't have apostrophes.
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
  Zone America/St_Johns	-3:30:52 -	LMT	1884
@@ -542,7 +912,7 @@ exit 0
  			-3:30	StJohns	N%sT	1966 Mar 15 2:00
  			-4:00	StJohns	A%sT
  
-@@ -830,8 +836,6 @@
+@@ -830,8 +846,6 @@
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule Halifax	1916	only	-	Apr	 1	0:00	1:00	D
  Rule Halifax	1916	only	-	Oct	 1	0:00	0	S
@@ -551,7 +921,7 @@ exit 0
  Rule Halifax	1920	only	-	May	 9	0:00	1:00	D
  Rule Halifax	1920	only	-	Aug	29	0:00	0	S
  Rule Halifax	1921	only	-	May	 6	0:00	1:00	D
-@@ -850,6 +854,7 @@
+@@ -850,6 +864,7 @@
  Rule Halifax	1929	only	-	Sep	 3	0:00	0	S
  Rule Halifax	1930	only	-	Sep	15	0:00	0	S
  Rule Halifax	1931	1932	-	Sep	Mon>=24	0:00	0	S
@@ -559,7 +929,7 @@ exit 0
  Rule Halifax	1933	only	-	Apr	30	0:00	1:00	D
  Rule Halifax	1933	only	-	Oct	 2	0:00	0	S
  Rule Halifax	1934	only	-	May	20	0:00	1:00	D
-@@ -862,33 +867,55 @@
+@@ -862,33 +877,55 @@
  Rule Halifax	1937	1941	-	Sep	Mon>=24	0:00	0	S
  Rule Halifax	1939	only	-	May	28	0:00	1:00	D
  Rule Halifax	1940	1941	-	May	Sun>=1	0:00	1:00	D
@@ -625,7 +995,7 @@ exit 0
  # says that Atikokan, Ontario currently does not observe DST,
  # but will vote on 11-10 whether to use EST/EDT.
  # He also writes that the
-@@ -915,43 +942,99 @@
+@@ -915,43 +952,115 @@
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule	Mont	1917	only	-	Mar	25	2:00	1:00	D
  Rule	Mont	1917	only	-	Apr	24	0:00	0	S
@@ -650,10 +1020,18 @@ exit 0
 -Rule	Mont	1933	1940	-	Apr	Sun>=24	0:00	1:00	D
 -Rule	Mont	1933	only	-	Oct	 1	0:00	0	S
 -Rule	Mont	1934	1939	-	Sep	Sun>=24	0:00	0	S
-+Rule	Mont	1927	1937	-	Apr	lastSat	24:00	1:00	D
-+Rule	Mont	1927	1937	-	Sep	lastSat	24:00	0	S
-+Rule	Mont	1938	1940	-	Apr	lastSun	0:00	1:00	D
-+Rule	Mont	1938	1939	-	Sep	lastSun	0:00	0	S
++# The 1927-to-1937 rules can be expressed more simply as
++# Rule	Mont	1927	1937	-	Apr	lastSat	24:00	1:00	D
++# Rule	Mont	1927	1937	-	Sep	lastSat	24:00	0	S
++# The rules below avoid use of 24:00
++# (which pre-1998 versions of zic cannot handle).
++Rule	Mont	1927	only	-	May	1	0:00	1:00	D
++Rule	Mont	1927	1932	-	Sep	lastSun	0:00	0	S
++Rule	Mont	1928	1931	-	Apr	lastSun	0:00	1:00	D
++Rule	Mont	1932	only	-	May	1	0:00	1:00	D
++Rule	Mont	1933	1940	-	Apr	lastSun	0:00	1:00	D
++Rule	Mont	1933	only	-	Oct	1	0:00	0	S
++Rule	Mont	1934	1939	-	Sep	lastSun	0:00	0	S
 +Rule	Mont	1946	1973	-	Apr	lastSun	2:00	1:00	D
  Rule	Mont	1945	1948	-	Sep	lastSun	2:00	0	S
 -Rule	Mont	1946	1986	-	Apr	lastSun	2:00	1:00	D
@@ -673,14 +1051,19 @@ exit 0
 +# Shanks says 1923-09-19; assume it's a typo and that "-16" was meant.
 +Rule	Toronto	1922	1926	-	Sep	Sun>=15	2:00	0	S
 +Rule	Toronto	1924	1927	-	May	Sun>=1	2:00	1:00	D
-+Rule	Toronto	1927	1928	-	Sep	lastSun	2:00	0	S
-+Rule	Toronto	1928	only	-	Apr	lastSun	2:00	1:00	D
-+Rule	Toronto	1929	only	-	Apr	lastSun	0:00	1:00	D
-+Rule	Toronto	1929	only	-	Sep	lastSun	0:00	0	S
-+Rule	Toronto	1930	1937	-	Apr	lastSat	24:00	1:00	D
-+Rule	Toronto	1930	1937	-	Sep	lastSat	24:00	0	S
-+Rule	Toronto	1938	1940	-	Apr	lastSun	0:00	1:00	D
-+Rule	Toronto	1938	1939	-	Sep	lastSun	0:00	0	S
++# The 1927-to-1939 rules can be expressed more simply as
++# Rule	Toronto	1927	1937	-	Sep	Sun>=25	2:00	0	S
++# Rule	Toronto	1928	1937	-	Apr	Sun>=25	2:00	1:00	D
++# Rule	Toronto	1938	1940	-	Apr	lastSun	2:00	1:00	D
++# Rule	Toronto	1938	1939	-	Sep	lastSun	2:00	0	S
++# The rules below avoid use of Sun>=25
++# (which pre-2004 versions of zic cannot handle).
++Rule	Toronto	1927	1932	-	Sep	lastSun	2:00	0	S
++Rule	Toronto	1928	1931	-	Apr	lastSun	2:00	1:00	D
++Rule	Toronto	1932	only	-	May	1	2:00	1:00	D
++Rule	Toronto	1933	1940	-	Apr	lastSun	2:00	1:00	D
++Rule	Toronto	1933	only	-	Oct	1	2:00	0	S
++Rule	Toronto	1934	1939	-	Sep	lastSun	2:00	0	S
 +Rule	Toronto	1945	1946	-	Sep	lastSun	2:00	0	S
 +Rule	Toronto	1946	only	-	Apr	lastSun	2:00	1:00	D
 +Rule	Toronto	1947	1949	-	Apr	lastSun	0:00	1:00	D
@@ -698,15 +1081,19 @@ exit 0
 +# Willett (1914-03) writes (p. 17) "In the Cities of Fort William, and
 +# Port Arthur, Ontario, the principle of the Bill has been in
 +# operation for the past three years, and in the City of Moose Jaw,
-+# Saskatchewan, for one year."  Assume that the Thunder Bay region
-+# observed DST starting 1910, and Moose Jaw starting 1912, as this
-+# matches the Toronto Star report about Moose Jaw.  For lack of better
-+# info, assume the Thunder Bay region used Willett's proposal, namely
-+# third Sunday in April at 02:00 to third Sunday in September at
-+# 03:00; also assume that they continued until Canada instituted
-+# uniform DST in 1918.
-+Rule	Thunder	1910	1917	-	Apr	Sun>=15	2:00s	1:00	D
-+Rule	Thunder	1910	1917	-	Sep	Sun>=15	2:00s	0	S
++# Saskatchewan, for one year."
++
++# From David Bryan via Tory Tronrud, Director/Curator,
++# Thunder Bay Museum (2003-11-12):
++# There is some suggestion, however, that, by-law or not, daylight
++# savings time was being practiced in Fort William and Port Arthur
++# before 1909.... [I]n 1910, the line between the Eastern and Central
++# Time Zones was permanently moved about two hundred miles west to
++# include the Thunder Bay area....  When Canada adopted daylight
++# savings time in 1916, Fort William and Port Arthur, having done so
++# already, did not change their clocks....  During the Second World
++# War,... [t]he cities agreed to implement DST during the summer
++# months for the remainder of the war years.
 +
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
  Zone America/Montreal	-4:54:16 -	LMT	1884
@@ -724,9 +1111,8 @@ exit 0
 +			-5:00	Toronto	E%sT	1974
 +			-5:00	Canada	E%sT
  Zone America/Thunder_Bay -5:57:00 -	LMT	1895
-+			-5:00	Thunder	E%sT	1918
-+			-5:00	Canada	E%sT	1940 Sep 29
-+			-5:00	1:00	EDT	1942 Feb  9 2:00s
++			-6:00	-	CST	1910
++			-5:00	-	EST	1942
  			-5:00	Canada	E%sT	1970
  			-5:00	Mont	E%sT	1973
  			-5:00	-	EST	1974
@@ -741,7 +1127,7 @@ exit 0
  			-6:00	Canada	C%sT
  
  
-@@ -964,7 +1047,8 @@
+@@ -964,7 +1073,8 @@
  Rule	Winn	1918	only	-	Oct	31	2:00	0	S
  Rule	Winn	1937	only	-	May	16	2:00	1:00	D
  Rule	Winn	1937	only	-	Sep	26	2:00	0	S
@@ -751,7 +1137,7 @@ exit 0
  Rule	Winn	1945	only	-	Sep	lastSun	2:00	0	S
  Rule	Winn	1946	only	-	May	12	2:00	1:00	D
  Rule	Winn	1946	only	-	Oct	13	2:00	0	S
-@@ -992,6 +1076,20 @@
+@@ -992,6 +1102,20 @@
  
  # Saskatchewan
  
@@ -772,7 +1158,7 @@ exit 0
  # From Paul Eggert (2000-10-02):
  # Shanks writes that since 1970 most of this region has been like Regina.
  # Some western towns (e.g. Swift Current) switched from MST/MDT to CST in 1972.
-@@ -1034,12 +1132,14 @@
+@@ -1034,12 +1158,14 @@
  Rule	Regina	1937	only	-	Oct	Sun>=8	0:00	0	S
  Rule	Regina	1938	only	-	Oct	Sun>=1	0:00	0	S
  Rule	Regina	1939	1941	-	Oct	Sun>=8	0:00	0	S
@@ -790,7 +1176,7 @@ exit 0
  Rule	Regina	1959	only	-	Oct	lastSun	2:00	0	S
  #
  Rule	Swift	1957	only	-	Apr	lastSun	2:00	1:00	D
-@@ -1067,7 +1167,8 @@
+@@ -1067,7 +1193,8 @@
  Rule	Edm	1920	1923	-	Apr	lastSun	2:00	1:00	D
  Rule	Edm	1920	only	-	Oct	lastSun	2:00	0	S
  Rule	Edm	1921	1923	-	Sep	lastSun	2:00	0	S
@@ -800,7 +1186,7 @@ exit 0
  Rule	Edm	1945	only	-	Sep	lastSun	2:00	0	S
  Rule	Edm	1947	only	-	Apr	lastSun	2:00	1:00	D
  Rule	Edm	1947	only	-	Sep	lastSun	2:00	0	S
-@@ -1093,7 +1194,8 @@
+@@ -1093,7 +1220,8 @@
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule	Vanc	1918	only	-	Apr	14	2:00	1:00	D
  Rule	Vanc	1918	only	-	Oct	31	2:00	0	S
@@ -810,7 +1196,7 @@ exit 0
  Rule	Vanc	1945	only	-	Sep	30	2:00	0	S
  Rule	Vanc	1946	1986	-	Apr	lastSun	2:00	1:00	D
  Rule	Vanc	1946	only	-	Oct	13	2:00	0	S
-@@ -1219,7 +1321,8 @@
+@@ -1219,7 +1347,8 @@
  Rule	NT_YK	1918	only	-	Oct	27	2:00	0	S
  Rule	NT_YK	1919	only	-	May	25	2:00	1:00	D
  Rule	NT_YK	1919	only	-	Nov	 1	0:00	0	S
@@ -820,7 +1206,7 @@ exit 0
  Rule	NT_YK	1945	only	-	Sep	30	2:00	0	S
  Rule	NT_YK	1965	only	-	Apr	lastSun	0:00	2:00	DD
  Rule	NT_YK	1965	only	-	Oct	lastSun	2:00	0	S
-@@ -1412,7 +1515,7 @@
+@@ -1412,7 +1541,7 @@
  Rule	Mexico	1939	only	-	Jun	25	0:00	0	S
  Rule	Mexico	1940	only	-	Dec	9	0:00	1:00	D
  Rule	Mexico	1941	only	-	Apr	1	0:00	0	S
@@ -829,7 +1215,7 @@ exit 0
  Rule	Mexico	1944	only	-	May	1	0:00	0	S
  Rule	Mexico	1950	only	-	Feb	12	0:00	1:00	D
  Rule	Mexico	1950	only	-	Jul	30	0:00	0	S
-@@ -1682,7 +1785,8 @@
+@@ -1682,7 +1811,8 @@
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule	Salv	1987	1988	-	May	Sun>=1	0:00	1:00	D
  Rule	Salv	1987	1988	-	Sep	lastSun	0:00	0	S
@@ -839,7 +1225,7 @@ exit 0
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
  Zone America/El_Salvador -5:56:48 -	LMT	1921		# San Salvador
  			-6:00	Salv	C%sT
-@@ -1812,7 +1916,8 @@
+@@ -1812,7 +1942,8 @@
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
  Zone America/Miquelon	-3:44:40 -	LMT	1911 May 15	# St Pierre
  			-4:00	-	AST	1980 May
@@ -849,15 +1235,264 @@ exit 0
  
  # St Vincent and the Grenadines
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
---- timezone/southamerica	2003-11-05 10:37:29.000000000 -0500
-+++ timezone/southamerica	2003-10-06 13:46:22.000000000 -0400
+diff -Nuar timezone.org/private.h timezone/private.h
+--- timezone.org/private.h	2001-06-10 05:29:20.000000000 +0900
++++ timezone/private.h	2004-07-29 13:06:22.000000000 +0900
+@@ -21,7 +21,7 @@
+ 
+ #ifndef lint
+ #ifndef NOID
+-static char	privatehid[] = "@(#)private.h	7.52";
++static char	privatehid[] = "@(#)private.h	7.53";
+ #endif /* !defined NOID */
+ #endif /* !defined lint */
+ 
+@@ -288,7 +288,7 @@
+ #endif /* HAVE_INCOMPATIBLE_CTIME_R */
+ 
+ /*
+-** UNIX was a registered trademark of UNIX System Laboratories in 1993.
++** UNIX was a registered trademark of The Open Group in 2003.
+ */
+ 
+ #endif /* !defined PRIVATE_H */
+diff -Nuar timezone.org/southamerica timezone/southamerica
+--- timezone.org/southamerica	2004-07-29 13:05:53.000000000 +0900
++++ timezone/southamerica	2004-07-29 13:06:22.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)southamerica	7.46
-+# @(#)southamerica	7.49
++# @(#)southamerica	7.52
  
  # This data is by no means authoritative; if you think you know better,
  # go ahead and edit the file (and please send any changes to
-@@ -443,12 +443,13 @@
+@@ -141,6 +141,13 @@
+ # This kind of things had always been done this way in Argentina.
+ # We are still -03:00 all year round in all of the country.
+ #
++# From Mariano Absatz (2004-05-21):
++# Today it was officially published that the Province of Mendoza is changing
++# its timezone this winter... starting tomorrow night....
++# http://www.gobernac.mendoza.gov.ar/boletin/pdf/20040521-27158-normas.pdf
++# From Paul Eggert (2004-05-24):
++# It's Law No. 7,210.  This change is due to a public power emergency, so for
++# now we'll assume it's for this year only.
+ #
+ # From Paul Eggert (2002-01-22):
+ # <a href="http://www.spicasc.net/horvera.html">
+@@ -148,17 +155,47 @@
+ # </a> says that standard time in Argentina from 1894-10-31
+ # to 1920-05-01 was -4:16:48.25.  Go with this more-precise value
+ # over Shanks.
++#
++# From Mariano Absatz (2004-06-05):
++# These media articles from a major newspaper mostly cover the current state:
++# http://www.lanacion.com.ar/04/05/27/de_604825.asp
++# http://www.lanacion.com.ar/04/05/28/de_605203.asp
++#
++# The following eight (8) provinces pulled clocks back to UTC-04:00 at
++# midnight Monday May 31st. (that is, the night between 05/31 and 06/01).
++# Apparently, all nine provinces would go back to UTC-03:00 at the same
++# time in October 17th.
++#
++# Catamarca, Chubut, La Rioja, San Juan, San Luis, Santa Cruz,
++# Tierra del Fuego, Tucuman.
++#
++# From Mariano Absatz (2004-06-14):
++# ... this weekend, the Province of Tucuman decided it'd go back to UTC-03:00
++# yesterday midnight (that is, at 24:00 Saturday 12th), since the people's
++# annoyance with the change is much higher than the power savings obtained....
++#
++# From Gwillim Law (2004-06-14):
++# http://www.lanacion.com.ar/04/06/10/de_609078.asp ...
++#     "The time change in Tierra del Fuego was a conflicted decision from
++#   the start.  The government had decreed that the measure would take
++#   effect on June 1, but a normative error forced the new time to begin
++#   three days earlier, from a Saturday to a Sunday....
++# Our understanding was that the change was originally scheduled to take place
++# on June 1 at 00:00 in Chubut, Santa Cruz, Tierra del Fuego (and some other
++# provinces).  Sunday was May 30, only two days earlier.  So the article
++# contains a contradiction.  I would give more credence to the Saturday/Sunday
++# date than the "three days earlier" phrase, and conclude that Tierra del
++# Fuego set its clocks back at 2004-05-30 00:00.
+ 
+ # Unless otherwise specified, data are from Shanks through 1992, from
+ # the IATA otherwise.  As noted below, Shanks says that
+-# America/Cordoba split into 7 subregions during 1991/1992, but we
++# America/Cordoba split into 6 subregions during 1991/1992, but we
+ # haven't verified this yet so for now we'll keep it a single region.
+ #
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ #
+-# Buenos Aires (BA), Capital Federal (CF), Santa Cruz (SC),
+-# Tierra del Fuego, Antartida e Islas del Atlantico Sur (TF)
+-Zone America/Buenos_Aires -3:53:48 -	LMT	1894 Oct 31
++# Buenos Aires (BA), Capital Federal (CF),
++Zone America/Argentina/Buenos_Aires -3:53:48 - LMT 1894 Oct 31
+ 			-4:16:48 -	CMT	1920 May # Cordoba Mean Time
+ 			-4:00	-	ART	1930 Dec
+ 			-4:00	Arg	AR%sT	1969 Oct  5
+@@ -167,24 +204,30 @@
+ 			-3:00	-	ART
+ #
+ # Santa Fe (SF), Entre Rios (ER), Corrientes (CN), Misiones (MN), Chaco (CC),
+-# Formosa (FM), Salta (SA), Tucuman (TM), Santiago del Estero (SE),
+-# Cordoba (CB), La Rioja (LR), San Juan (SJ), San Luis (SL), La Pampa (LP),
+-# Neuquen (NQ), Rio Negro (RN), Chubut (CH)
++# Formosa (FM), Salta (SA), Santiago del Estero (SE), Cordoba (CB),
++# San Luis (SL), La Pampa (LP), Neuquen (NQ), Rio Negro (RN)
+ #
+ # Shanks also makes the following claims, which we haven't verified:
+ # - Formosa switched to -3:00 on 1991-01-07.
+-# - La Rioja and San Juan switched to -4:00 on 1991-03-01
+-#   and then to -3:00 on 1991-05-07.
+ # - Misiones switched to -3:00 on 1990-12-29.
+ # - Chaco switched to -3:00 on 1991-01-04.
+ # - San Luis switched to -4:00 on 1990-03-14, then to -3:00 on 1990-10-15,
+ #   then to -4:00 on 1991-03-01, then to -3:00 on 1991-06-01.
+ # - Santiago del Estero switched to -4:00 on 1991-04-01,
+ #   then to -3:00 on 1991-04-26.
+-# If we need to add Zones for these areas, we may need to have a subdirectory
+-# for Argentina, as e.g. "America/San_Luis" is too ambiguious.
+ #
+-Zone America/Cordoba	-4:16:48 -	LMT	1894 Oct 31
++Zone America/Argentina/Cordoba -4:16:48 - LMT	1894 Oct 31
++			-4:16:48 -	CMT	1920 May
++			-4:00	-	ART	1930 Dec
++			-4:00	Arg	AR%sT	1969 Oct  5
++			-3:00	Arg	AR%sT	1991 Mar  3
++			-4:00	-	WART	1991 Oct 20
++			-3:00	Arg	AR%sT	1999 Oct  3
++			-4:00	Arg	AR%sT	2000 Mar  3
++			-3:00	-	ART
++#
++# Tucuman (TM)
++Zone America/Argentina/Tucuman -4:20:52 - LMT	1894 Oct 31
+ 			-4:16:48 -	CMT	1920 May
+ 			-4:00	-	ART	1930 Dec
+ 			-4:00	Arg	AR%sT	1969 Oct  5
+@@ -192,10 +235,38 @@
+ 			-4:00	-	WART	1991 Oct 20
+ 			-3:00	Arg	AR%sT	1999 Oct  3
+ 			-4:00	Arg	AR%sT	2000 Mar  3
++			-3:00	-	ART	2004 Jun  1
++			-4:00	-	WART	2004 Jun 13
++			-3:00	-	ART
++#
++# La Rioja (LR)
++Zone America/Argentina/La_Rioja -4:27:24 - LMT	1894 Oct 31
++			-4:16:48 -	CMT	1920 May
++			-4:00	-	ART	1930 Dec
++			-4:00	Arg	AR%sT	1969 Oct  5
++			-3:00	Arg	AR%sT	1991 Mar  1
++			-4:00	-	WART	1991 May  7
++			-3:00	Arg	AR%sT	1999 Oct  3
++			-4:00	Arg	AR%sT	2000 Mar  3
++			-3:00	-	ART	2004 Jun  1
++			-4:00	-	WART	2004 Jun 20
++			-3:00	-	ART
++#
++# San Juan (SJ)
++Zone America/Argentina/San_Juan -4:34:04 - LMT	1894 Oct 31
++			-4:16:48 -	CMT	1920 May
++			-4:00	-	ART	1930 Dec
++			-4:00	Arg	AR%sT	1969 Oct  5
++			-3:00	Arg	AR%sT	1991 Mar  1
++			-4:00	-	WART	1991 May  7
++			-3:00	Arg	AR%sT	1999 Oct  3
++			-4:00	Arg	AR%sT	2000 Mar  3
++			-3:00	-	ART	2004 Jun  1
++			-4:00	-	WART	2004 Oct 17
+ 			-3:00	-	ART
+ #
+ # Jujuy (JY)
+-Zone America/Jujuy	-4:21:12 -	LMT	1894 Oct 31
++Zone America/Argentina/Jujuy -4:21:12 -	LMT	1894 Oct 31
+ 			-4:16:48 -	CMT	1920 May
+ 			-4:00	-	ART	1930 Dec
+ 			-4:00	Arg	AR%sT	1969 Oct  5
+@@ -209,7 +280,7 @@
+ 			-3:00	-	ART
+ #
+ # Catamarca (CT)
+-Zone America/Catamarca	-4:23:08 -	LMT	1894 Oct 31
++Zone America/Argentina/Catamarca -4:23:08 - LMT	1894 Oct 31
+ 			-4:16:48 -	CMT	1920 May
+ 			-4:00	-	ART	1930 Dec
+ 			-4:00	Arg	AR%sT	1969 Oct  5
+@@ -217,10 +288,12 @@
+ 			-4:00	-	WART	1991 Oct 20
+ 			-3:00	Arg	AR%sT	1999 Oct  3
+ 			-4:00	Arg	AR%sT	2000 Mar  3
++			-3:00	-	ART	2004 Jun  1
++			-4:00	-	WART	2004 Jun 20
+ 			-3:00	-	ART
+ #
+ # Mendoza (MZ)
+-Zone America/Mendoza	-4:35:16 -	LMT	1894 Oct 31
++Zone America/Argentina/Mendoza -4:35:16 - LMT	1894 Oct 31
+ 			-4:16:48 -	CMT	1920 May
+ 			-4:00	-	ART	1930 Dec
+ 			-4:00	Arg	AR%sT	1969 Oct  5
+@@ -232,6 +305,44 @@
+ 			-4:00	-	WART	1992 Oct 18
+ 			-3:00	Arg	AR%sT	1999 Oct  3
+ 			-4:00	Arg	AR%sT	2000 Mar  3
++			-3:00	-	ART	2004 May 23
++			-4:00	-	WART	2004 Oct 17
++			-3:00	-	ART
++#
++# Chubut (CH)
++# The name "Comodoro Rivadavia" exceeds the 14-byte POSIX limit.
++Zone America/Argentina/ComodRivadavia -4:30:00 - LMT	1894 Oct 31
++			-4:16:48 -	CMT	1920 May
++			-4:00	-	ART	1930 Dec
++			-4:00	Arg	AR%sT	1969 Oct  5
++			-3:00	Arg	AR%sT	1991 Mar  3
++			-4:00	-	WART	1991 Oct 20
++			-3:00	Arg	AR%sT	1999 Oct  3
++			-4:00	Arg	AR%sT	2000 Mar  3
++			-3:00	-	ART	2004 Jun  1
++			-4:00	-	WART	2004 Jun 20
++			-3:00	-	ART
++#
++# Santa Cruz (SC)
++Zone America/Argentina/Rio_Gallegos -4:36:52 - LMT 1894 Oct 31
++			-4:16:48 -	CMT	1920 May # Cordoba Mean Time
++			-4:00	-	ART	1930 Dec
++			-4:00	Arg	AR%sT	1969 Oct  5
++			-3:00	Arg	AR%sT	1999 Oct  3
++			-4:00	Arg	AR%sT	2000 Mar  3
++			-3:00	-	ART	2004 Jun  1
++			-4:00	-	WART	2004 Jun 20
++			-3:00	-	ART
++#
++# Tierra del Fuego, Antartida e Islas del Atlantico Sur (TF)
++Zone America/Argentina/Ushuaia -4:33:12 - LMT 1894 Oct 31
++			-4:16:48 -	CMT	1920 May # Cordoba Mean Time
++			-4:00	-	ART	1930 Dec
++			-4:00	Arg	AR%sT	1969 Oct  5
++			-3:00	Arg	AR%sT	1999 Oct  3
++			-4:00	Arg	AR%sT	2000 Mar  3
++			-3:00	-	ART	2004 May 30
++			-4:00	-	WART	2004 Jun 20
+ 			-3:00	-	ART
+ 
+ # Aruba
+@@ -389,10 +500,10 @@
+ Rule	Brazil	1993	only	-	Jan	31	 0:00	0	-
+ # Decree <a href="http://pcdsh01.on.br/HV942.htm">942</a> (1993-09-28)
+ # adopted by same states, plus AM.
+-# Decree <a href="http://pcdsh01.on.br/HV1252.htm">1,252</a> (1994-09-22)
+-# adopted by same states, minus AM.
++# Decree <a href="http://pcdsh01.on.br/HV1252.htm">1,252</a> (1994-09-22;
++# web page corrected 2004-01-07) adopted by same states, minus AM.
+ # Decree <a href="http://pcdsh01.on.br/HV1636.htm">1,636</a> (1995-09-14)
+-# adopted by same states, plus TO.
++# adopted by same states, plus MT and TO.
+ # Decree <a href="http://pcdsh01.on.br/HV1674.htm">1,674</a> (1995-10-13)
+ # adds AL, SE.
+ Rule	Brazil	1993	1995	-	Oct	Sun>=11	 0:00	1:00	S
+@@ -443,25 +554,37 @@
  # Decree 4,399 (2002-10-01) repeals DST in AL, CE, MA, PB, PE, PI, RN, SE.
  # <a href="http://www.presidencia.gov.br/CCIVIL/decreto/2002/D4399.htm"></a>
  Rule	Brazil	2002	only	-	Nov	 3	 0:00	1:00	S
@@ -876,7 +1511,23 @@ exit 0
  # and are quite possibly wrong, but are more likely than no DST at all.
  
  
-@@ -462,6 +463,9 @@
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ #
+-# Atlantic islands: Fernando de Noronha, Trindade, Martin Vaz,
+-# Atol das Rocas, and Penedos de Sao Pedro e Sao Paulo
++# Fernando de Noronha (administratively part of PE)
+ Zone America/Noronha	-2:09:40 -	LMT	1914
+ 			-2:00	Brazil	FN%sT	1990 Sep 17
++			-2:00	-	FNT	1999 Sep 30
++			-2:00	Brazil	FN%sT	2000 Oct 15
++			-2:00	-	FNT	2001 Sep 13
++			-2:00	Brazil	FN%sT	2002 Oct  1
+ 			-2:00	-	FNT
++# Other Atlantic islands have no permanent settlement.
++# These include Trindade and Martin Vaz (administratively part of ES),
++# Atol das Rocas (RN), and Penedos de Sao Pedro e Sao Paulo (PE).
++# Fernando de Noronha was a separate territory from 1942-09-02 to 1989-01-01;
++# it also included the Penedos.
  #
  # Amapa (AP), east Para (PA)
  # East Para includes Belem, Maraba, Serra Norte, and Sao Felix do Xingu.
@@ -886,7 +1537,7 @@ exit 0
  Zone America/Belem	-3:13:56 -	LMT	1914
  			-3:00	Brazil	BR%sT	1988 Sep 12
  			-3:00	-	BRT
-@@ -489,7 +493,8 @@
+@@ -489,7 +612,8 @@
  Zone America/Araguaina	-3:12:48 -	LMT	1914
  			-3:00	Brazil	BR%sT	1990 Sep 17
  			-3:00	-	BRT	1995 Sep 14
@@ -896,7 +1547,7 @@ exit 0
  #
  # Alagoas (AL), Sergipe (SE)
  Zone America/Maceio	-2:22:52 -	LMT	1914
-@@ -502,7 +507,14 @@
+@@ -502,7 +626,14 @@
  			-3:00	Brazil	BR%sT	2002 Oct  1
  			-3:00	-	BRT
  #
@@ -912,7 +1563,7 @@ exit 0
  # Espirito Santo (ES), Rio de Janeiro (RJ), Sao Paulo (SP), Parana (PR),
  # Santa Catarina (SC), Rio Grande do Sul (RS)
  Zone America/Sao_Paulo	-3:06:28 -	LMT	1914
-@@ -510,10 +522,15 @@
+@@ -510,10 +641,15 @@
  			-3:00	1:00	BRST	1964
  			-3:00	Brazil	BR%sT
  #
@@ -930,7 +1581,7 @@ exit 0
  # west Para (PA), Rondonia (RO)
  # West Para includes Altamira, Oribidos, Prainha, Oriximina, and Santarem.
  Zone America/Porto_Velho -4:15:36 -	LMT	1914
-@@ -528,6 +545,8 @@
+@@ -528,6 +664,8 @@
  			-4:00	-	AMT
  #
  # east Amazonas (AM): Boca do Acre, Jutai, Manaus, Floriano Peixoto
@@ -939,8 +1590,34 @@ exit 0
  Zone America/Manaus	-4:00:04 -	LMT	1914
  			-4:00	Brazil	AM%sT	1988 Sep 12
  			-4:00	-	AMT	1993 Sep 28
---- timezone/zdump.c	2001-03-15 20:07:38.000000000 -0500
-+++ timezone/zdump.c	2003-09-22 15:50:15.000000000 -0400
+@@ -792,13 +930,22 @@
+ 			-4:00	Para	PY%sT
+ 
+ # Peru
++#
++# <a href="news:xrGmb.39935$gA1.13896113@news4.srv.hcvlny.cv.net">
++# From Evelyn C. Leeper via Mark Brader (2003-10-26):</a>
++# When we were in Peru in 1985-1986, they apparently switched over 
++# sometime between December 29 and January 3 while we were on the Amazon.
++#
++# From Paul Eggert (2003-11-02):
++# Shanks doesn't have this transition.  Assume 1986 was like 1987.
++
+ # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
+ Rule	Peru	1938	only	-	Jan	 1	0:00	1:00	S
+ Rule	Peru	1938	only	-	Apr	 1	0:00	0	-
+ Rule	Peru	1938	1939	-	Sep	lastSun	0:00	1:00	S
+ Rule	Peru	1939	1940	-	Mar	Sun>=24	0:00	0	-
+-Rule	Peru	1987	only	-	Jan	 1	0:00	1:00	S
+-Rule	Peru	1987	only	-	Apr	 1	0:00	0	-
++Rule	Peru	1986	1987	-	Jan	 1	0:00	1:00	S
++Rule	Peru	1986	1987	-	Apr	 1	0:00	0	-
+ Rule	Peru	1990	only	-	Jan	 1	0:00	1:00	S
+ Rule	Peru	1990	only	-	Apr	 1	0:00	0	-
+ # IATA is ambiguous for 1993/1995; go with Shanks.
+diff -Nuar timezone.org/zdump.c timezone/zdump.c
+--- timezone.org/zdump.c	2004-07-29 13:05:53.000000000 +0900
++++ timezone/zdump.c	2004-07-29 13:04:18.000000000 +0900
 @@ -1,8 +1,4 @@
 -#ifndef lint
 -#ifndef NOID
@@ -972,15 +1649,16 @@ exit 0
  				argv[0], argv[0]);
  			(void) exit(EXIT_FAILURE);
  	}
---- timezone/zic.c	2003-11-05 10:37:29.000000000 -0500
-+++ timezone/zic.c	2003-09-22 15:50:02.000000000 -0400
+diff -Nuar timezone.org/zic.c timezone/zic.c
+--- timezone.org/zic.c	2004-07-29 13:05:53.000000000 +0900
++++ timezone/zic.c	2004-07-29 13:06:22.000000000 +0900
 @@ -1,8 +1,4 @@
 -#ifndef lint
 -#ifndef NOID
 -static char	elsieid[] = "@(#)zic.c	7.107";
 -#endif /* !defined NOID */
 -#endif /* !defined lint */
-+static char	elsieid[] = "@(#)zic.c	7.113";
++static char	elsieid[] = "@(#)zic.c	7.116";
  
  #include "private.h"
  #include "locale.h"
@@ -1005,7 +1683,16 @@ exit 0
  	while ((c = getopt(argc, argv, "d:l:p:L:vsy:")) != EOF && c != -1)
  		switch (c) {
  			default:
-@@ -1165,14 +1166,15 @@
+@@ -941,6 +942,8 @@
+ 			error(errstring);
+ 			return 0;
+ 	}
++	if (noise && hh == HOURSPERDAY)
++		warning(_("24:00 not handled by pre-1998 versions of zic"));
+ 	return eitol(sign) *
+ 		(eitol(hh * MINSPERHOUR + mm) *
+ 		eitol(SECSPERMIN) + eitol(ss));
+@@ -1165,14 +1168,15 @@
  		error(_("time before zero"));
  		return;
  	}
@@ -1027,7 +1714,7 @@ exit 0
  	tod = gethms(fields[LP_TIME], _("invalid time of day"), FALSE);
  	cp = fields[LP_CORR];
  	{
-@@ -1325,9 +1327,9 @@
+@@ -1325,9 +1329,9 @@
  		return;
  	} else if (noise) {
  		if (rp->r_loyear < min_year_representable)
@@ -1039,15 +1726,65 @@ exit 0
  	}
  	if (rp->r_loyear > rp->r_hiyear) {
  		error(_("starting year greater than ending year"));
---- timezone/zone.tab	2003-11-05 10:37:29.000000000 -0500
-+++ timezone/zone.tab	2003-10-06 13:46:22.000000000 -0400
+@@ -2146,8 +2150,8 @@
+ 				--i;
+ 			}
+ 		if (i < 0 || i >= len_months[isleap(y)][m]) {
+-			error(_("no day in month matches rule"));
+-			(void) exit(EXIT_FAILURE);
++			if (noise)
++				warning(_("rule goes past start/end of month--will not work with pre-2004 versions of zic"));
+ 		}
+ 	}
+ 	if (dayoff < 0 && !TYPE_SIGNED(time_t))
+@@ -2241,5 +2245,5 @@
+ }
+ 
+ /*
+-** UNIX was a registered trademark of UNIX System Laboratories in 1993.
++** UNIX was a registered trademark of The Open Group in 2003.
+ */
+diff -Nuar timezone.org/zone.tab timezone/zone.tab
+--- timezone.org/zone.tab	2004-07-29 13:05:53.000000000 +0900
++++ timezone/zone.tab	2004-07-29 13:06:22.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)zone.tab	1.28
-+# @(#)zone.tab	1.29
++# @(#)zone.tab	1.30
  #
  # TZ zone descriptions
  #
-@@ -74,12 +74,14 @@
+@@ -41,11 +41,17 @@
+ AQ	-7824+10654	Antarctica/Vostok	Vostok Station, S Magnetic Pole
+ AQ	-6640+14001	Antarctica/DumontDUrville	Dumont-d'Urville Base, Terre Adelie
+ AQ	-690022+0393524	Antarctica/Syowa	Syowa Station, E Ongul I
+-AR	-3436-05827	America/Buenos_Aires	E Argentina (BA, DF, SC, TF)
+-AR	-3124-06411	America/Cordoba	most locations (CB,CC,CH,CN,ER,FM,LP,LR,MN,NQ,RN,SA,SE,SF,SJ,SL,TM)
+-AR	-2411-06518	America/Jujuy	Jujuy (JY)
+-AR	-2828-06547	America/Catamarca	Catamarca (CT)
+-AR	-3253-06849	America/Mendoza	Mendoza (MZ)
++AR	-3436-05827	America/Argentina/Buenos_Aires	Buenos Aires (BA, CF)
++AR	-3124-06411	America/Argentina/Cordoba	most locations (CB, CC, CN, ER, FM, LP, MN, NQ, RN, SA, SE, SF, SL)
++AR	-2411-06518	America/Argentina/Jujuy	Jujuy (JY)
++AR	-3124-06411	America/Argentina/Tucuman	Tucuman (TM)
++AR	-2828-06547	America/Argentina/Catamarca	Catamarca (CT)
++AR	-2926-06651	America/Argentina/La_Rioja	La Rioja (LR)
++AR	-3132-06831	America/Argentina/San_Juan	San Juan (SJ)
++AR	-3253-06849	America/Argentina/Mendoza	Mendoza (MZ)
++AR	-4552-06730	America/Argentina/ComodRivadavia	Chubut (CH)
++AR	-5138-06913	America/Argentina/Rio_Gallegos	Santa Cruz (SC)
++AR	-5448-06818	America/Argentina/Ushuaia	Tierra del Fuego (TF)
+ AS	-1416-17042	Pacific/Pago_Pago
+ AT	+4813+01620	Europe/Vienna
+ AU	-3133+15905	Australia/Lord_Howe	Lord Howe Island
+@@ -59,6 +65,7 @@
+ AU	-1228+13050	Australia/Darwin	Northern Territory
+ AU	-3157+11551	Australia/Perth	Western Australia
+ AW	+1230-06858	America/Aruba
++AX	+6006+01957	Europe/Mariehamn
+ AZ	+4023+04951	Asia/Baku
+ BA	+4352+01825	Europe/Sarajevo
+ BB	+1306-05937	America/Barbados
+@@ -74,12 +81,14 @@
  BO	-1630-06809	America/La_Paz
  BR	-0351-03225	America/Noronha	Atlantic islands
  BR	-0127-04829	America/Belem	Amapa, E Para
@@ -1065,7 +1802,7 @@ exit 0
  BR	-0846-06354	America/Porto_Velho	W Para, Rondonia
  BR	+0249-06040	America/Boa_Vista	Roraima
  BR	-0308-06001	America/Manaus	E Amazonas
-@@ -94,7 +96,8 @@
+@@ -94,7 +103,8 @@
  CA	+4439-06336	America/Halifax	Atlantic Time - Nova Scotia (most places), NB, W Labrador, E Quebec & PEI
  CA	+4612-05957	America/Glace_Bay	Atlantic Time - Nova Scotia - places that did not observe DST 1966-1971
  CA	+5320-06025	America/Goose_Bay	Atlantic Time - E Labrador
@@ -1075,7 +1812,7 @@ exit 0
  CA	+4901-08816	America/Nipigon	Eastern Time - Ontario & Quebec - places that did not observe DST 1967-1973
  CA	+4823-08915	America/Thunder_Bay	Eastern Time - Thunder Bay, Ontario
  CA	+6608-06544	America/Pangnirtung	Eastern Standard Time - Pangnirtung, Nunavut
-@@ -130,6 +133,7 @@
+@@ -130,6 +140,7 @@
  CN	+3929+07559	Asia/Kashgar	southwest Xinjiang Uyghur
  CO	+0436-07405	America/Bogota
  CR	+0956-08405	America/Costa_Rica
@@ -1083,7 +1820,7 @@ exit 0
  CU	+2308-08222	America/Havana
  CV	+1455-02331	Atlantic/Cape_Verde
  CX	-1025+10543	Indian/Christmas
-@@ -275,7 +279,7 @@
+@@ -275,7 +286,7 @@
  NR	-0031+16655	Pacific/Nauru
  NU	-1901+16955	Pacific/Niue
  NZ	-3652+17446	Pacific/Auckland	most locations
@@ -1092,7 +1829,7 @@ exit 0
  OM	+2336+05835	Asia/Muscat
  PA	+0858-07932	America/Panama
  PE	-1203-07703	America/Lima
-@@ -393,7 +397,6 @@
+@@ -393,7 +404,6 @@
  WS	-1350-17144	Pacific/Apia
  YE	+1245+04512	Asia/Aden
  YT	-1247+04514	Indian/Mayotte
