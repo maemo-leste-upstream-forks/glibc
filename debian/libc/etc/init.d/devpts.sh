@@ -14,7 +14,7 @@ devpts_avail=`grep -sci '[<[:space:]]devpts' /proc/filesystems || true`
 devpts_mounted=`grep -sci '/dev/pts' /proc/mounts || true`
 devfs_mounted=`grep -sci '[<[:space:]]/dev[>[:space:]].*devfs' /proc/mounts || true`
 
-if [ $devfs_mounted = 0 ] && [ $devpts_avail != 0 ]
+if [ "$devfs_mounted" = 0 ] && [ "$devpts_avail" != 0 ]
 then
 	#
 	#	Create mountpoint and multiplexor device.
@@ -25,7 +25,7 @@ then
 	#
 	#	Mount /dev/pts if needed.
 	#
-	if [ $devpts_mounted = 0 ]
+	if [ "$devpts_mounted" = 0 ]
 	then
 		mount -t devpts devpts /dev/pts -ogid=${TTYGRP},mode=${TTYMODE}
 	fi
