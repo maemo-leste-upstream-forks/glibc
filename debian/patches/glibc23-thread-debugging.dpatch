@@ -1,0 +1,232 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Export symbols needed for thread debugging.
+# DP: Author: Daniel Jacobowitz <dan@debian.org>
+# DP: Upstream status: Pending
+# DP: Date: 2003-11-01
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+2003-11-01  Daniel Jacobowitz  <drow@mvista.com>
+
+	* Versions: Add libthread_db symbols.
+	* specific.c: Export pthread_keys as __pthread_keys.
+
+2003-11-01  Daniel Jacobowitz  <drow@mvista.com>
+
+	* td_symbol_list.c (symbol_list_arr): Use __pthread_keys instead
+	of pthread_keys.
+
+2003-11-01  Daniel Jacobowitz  <drow@mvista.com>
+
+	* Versions: Add libthread_db symbols.
+	* init.c (nptl_version): Rename to __nptl_version.
+	* allocatestack.c: Export stack_used as __stack_used.
+
+2003-11-01  Daniel Jacobowitz  <drow@mvista.com>
+
+	* structs.def: Use __stack_used and __nptl_version.
+	* td_ta_new.c (td_ta_new): Look up __nptl_version.
+	* td_ta_thr_iter.c (td_ta_thr_iter): Look up __stack_used.
+	* td_thr_validate.c (td_thr_validate): Look up __stack_used.
+
+ linuxthreads/Versions            |   15 +++++++++++
+ linuxthreads/specific.c          |    1 
+ linuxthreads_db/td_symbol_list.c |    2 -
+ nptl/Versions                    |   51 +++++++++++++++++++++++++++++++++++++++
+ nptl/allocatestack.c             |    1 
+ nptl/init.c                      |    2 -
+ nptl_db/structs.def              |    4 +--
+ nptl_db/td_ta_new.c              |    2 -
+ nptl_db/td_ta_thr_iter.c         |    2 -
+ nptl_db/td_thr_validate.c        |    2 -
+ 10 files changed, 75 insertions(+), 7 deletions(-)
+
+--- glibc-2.3.2/nptl/Versions.orig	2003-11-01 12:45:21.000000000 -0500
++++ glibc-2.3.2/nptl/Versions	2003-11-01 12:46:26.000000000 -0500
+@@ -228,5 +228,56 @@ libpthread {
+     __pthread_initialize_minimal; __pthread_cleanup_upto;
+     __pthread_clock_gettime; __pthread_clock_settime;
+     __pthread_unwind;
++
++    # For libthread_db
++    _thread_db_sizeof_pthread;
++    _thread_db_pthread_list;
++    _thread_db_pthread_report_events;
++    _thread_db_pthread_tid;
++    _thread_db_pthread_start_routine;
++    _thread_db_pthread_cancelhandling;
++    _thread_db_pthread_schedpolicy;
++    _thread_db_pthread_schedparam_sched_priority;
++    _thread_db_pthread_specific;
++    _thread_db_pthread_eventbuf;
++    _thread_db_pthread_eventbuf_eventmask;
++    _thread_db_pthread_eventbuf_eventmask_event_bits;
++    _thread_db_pthread_nextevent;
++    _thread_db_sizeof_list_t;
++    _thread_db_list_t_next;
++    _thread_db_list_t_prev;
++    _thread_db_sizeof_td_thr_events_t;
++    _thread_db_td_thr_events_t_event_bits;
++    _thread_db_sizeof_td_eventbuf_t;
++    _thread_db_td_eventbuf_t_eventnum;
++    _thread_db_td_eventbuf_t_eventdata;
++    __stack_used;
++    __stack_user;
++    __nptl_version;
++    __nptl_create_event;
++    __nptl_death_event;
++    __nptl_threads_events;
++    __nptl_nthreads;
++    _thread_db___nptl_nthreads;
++    __nptl_last_event;
++    _thread_db___nptl_last_event;
++    __pthread_keys;
++    _thread_db___pthread_keys;
++    _thread_db_sizeof_pthread_key_struct;
++    _thread_db_pthread_key_struct_seq;
++    _thread_db_pthread_key_struct_destr;
++    _thread_db_sizeof_pthread_key_data;
++    _thread_db_pthread_key_data_seq;
++    _thread_db_pthread_key_data_data;
++    _thread_db_sizeof_pthread_key_data_level2;
++    _thread_db_pthread_key_data_level2_data;
++    _thread_db_link_map_l_tls_modid;
++    _thread_db_dtv_dtv;
++    _thread_db_pthread_dtvp;
++    _thread_db_const_thread_area;
++    _thread_db_register64;
++    _thread_db_register32;
++    _thread_db_register64_thread_area;
++    _thread_db_register32_thread_area;
+   }
+ }
+--- glibc-2.3.2/nptl/init.c.orig	2003-09-01 20:34:06.000000000 -0400
++++ glibc-2.3.2/nptl/init.c	2003-11-01 12:43:16.000000000 -0500
+@@ -62,7 +62,7 @@ size_t __static_tls_size;
+ size_t __static_tls_align_m1;
+ 
+ /* Version of the library, used in libthread_db to detect mismatches.  */
+-static const char nptl_version[] = VERSION;
++static const char __nptl_version[] = VERSION;
+ 
+ 
+ #if defined USE_TLS && !defined SHARED
+--- glibc-2.3.2/nptl/allocatestack.c.orig	2003-11-01 12:36:36.000000000 -0500
++++ glibc-2.3.2/nptl/allocatestack.c	2003-11-01 12:38:52.000000000 -0500
+@@ -98,6 +98,7 @@ static LIST_HEAD (stack_cache);
+ 
+ /* List of the stacks in use.  */
+ static LIST_HEAD (stack_used);
++strong_alias (stack_used, __stack_used);
+ 
+ /* List of the threads with user provided stacks in use.  No need to
+    initialize this, since it's done in __pthread_initialize_minimal.  */
+diff -urp glibc-2.3.2/nptl_db.orig/structs.def glibc-2.3.2/nptl_db/structs.def
+--- glibc-2.3.2/nptl_db.orig/structs.def	2003-09-09 02:58:25.000000000 -0400
++++ glibc-2.3.2/nptl_db/structs.def	2003-11-01 12:44:34.000000000 -0500
+@@ -48,9 +48,9 @@ DB_STRUCT (td_eventbuf_t)
+ DB_STRUCT_FIELD (td_eventbuf_t, eventnum)
+ DB_STRUCT_FIELD (td_eventbuf_t, eventdata)
+ 
+-DB_SYMBOL (stack_used)
++DB_SYMBOL (__stack_used)
+ DB_SYMBOL (__stack_user)
+-DB_SYMBOL (nptl_version)
++DB_SYMBOL (__nptl_version)
+ DB_SYMBOL (__nptl_create_event)
+ DB_SYMBOL (__nptl_death_event)
+ DB_SYMBOL (__nptl_threads_events)
+diff -urp glibc-2.3.2/nptl_db.orig/td_ta_new.c glibc-2.3.2/nptl_db/td_ta_new.c
+--- glibc-2.3.2/nptl_db.orig/td_ta_new.c	2003-09-09 03:17:00.000000000 -0400
++++ glibc-2.3.2/nptl_db/td_ta_new.c	2003-11-01 12:44:00.000000000 -0500
+@@ -40,7 +40,7 @@ td_ta_new (struct ps_prochandle *ps, td_
+   LOG ("td_ta_new");
+ 
+   /* Check whether the versions match.  */
+-  if (td_lookup (ps, SYM_nptl_version, &versaddr) != PS_OK)
++  if (td_lookup (ps, SYM___nptl_version, &versaddr) != PS_OK)
+     return TD_NOLIBTHREAD;
+   if (ps_pdread (ps, versaddr, versbuf, sizeof (versbuf)) != PS_OK)
+     return TD_ERR;
+diff -urp glibc-2.3.2/nptl_db.orig/td_ta_thr_iter.c glibc-2.3.2/nptl_db/td_ta_thr_iter.c
+--- glibc-2.3.2/nptl_db.orig/td_ta_thr_iter.c	2003-09-09 03:17:00.000000000 -0400
++++ glibc-2.3.2/nptl_db/td_ta_thr_iter.c	2003-11-01 12:37:43.000000000 -0500
+@@ -140,7 +140,7 @@ td_ta_thr_iter (const td_thragent_t *ta_
+ 
+   /* And the threads with stacks allocated by the implementation.  */
+   if (err == TD_OK)
+-    err = DB_GET_SYMBOL (list, ta, stack_used);
++    err = DB_GET_SYMBOL (list, ta, __stack_used);
+   if (err == TD_OK)
+     err = iterate_thread_list (ta, callback, cbdata_p, state, ti_pri, list, 0);
+ 
+diff -urp glibc-2.3.2/nptl_db.orig/td_thr_validate.c glibc-2.3.2/nptl_db/td_thr_validate.c
+--- glibc-2.3.2/nptl_db.orig/td_thr_validate.c	2003-09-09 03:17:00.000000000 -0400
++++ glibc-2.3.2/nptl_db/td_thr_validate.c	2003-11-01 12:37:32.000000000 -0500
+@@ -67,7 +67,7 @@ td_thr_validate (const td_thrhandle_t *t
+      using implementation allocated stacks.  */
+   if (err == TD_NOTHR)
+     {
+-      err = DB_GET_SYMBOL (list, th->th_ta_p, stack_used);
++      err = DB_GET_SYMBOL (list, th->th_ta_p, __stack_used);
+       if (err == TD_OK)
+ 	err = check_thread_list (th, list);
+     }
+--- glibc-2.3.2/linuxthreads_db/td_symbol_list.c.orig	2003-11-01 13:09:24.000000000 -0500
++++ glibc-2.3.2/linuxthreads_db/td_symbol_list.c	2003-11-01 13:09:35.000000000 -0500
+@@ -29,7 +29,7 @@ static const char *symbol_list_arr[] =
+   [PTHREAD_LAST_EVENT] = "__pthread_last_event",
+   [PTHREAD_HANDLES_NUM] = "__pthread_handles_num",
+   [PTHREAD_HANDLES] = "__pthread_handles",
+-  [PTHREAD_KEYS] = "pthread_keys",
++  [PTHREAD_KEYS] = "__pthread_keys",
+   [LINUXTHREADS_PTHREAD_THREADS_MAX] = "__linuxthreads_pthread_threads_max",
+   [LINUXTHREADS_PTHREAD_KEYS_MAX] = "__linuxthreads_pthread_keys_max",
+   [LINUXTHREADS_PTHREAD_SIZEOF_DESCR] = "__linuxthreads_pthread_sizeof_descr",
+--- glibc-2.3.2/linuxthreads/Versions.orig	2003-11-01 13:10:32.000000000 -0500
++++ glibc-2.3.2/linuxthreads/Versions	2003-11-01 13:12:09.000000000 -0500
+@@ -174,5 +174,20 @@ libpthread {
+     # Internal libc interface to libpthread
+     __pthread_initialize;
+     __pthread_kill_other_threads_np;
++
++    # For libthread_db
++    __pthread_threads_events;
++    __pthread_last_event;
++    __pthread_handles_num;
++    __pthread_handles;
++    __pthread_keys;
++    __linuxthreads_pthread_threads_max;
++    __linuxthreads_pthread_keys_max;
++    __linuxthreads_pthread_sizeof_descr;
++    __linuxthreads_create_event;
++    __linuxthreads_death_event;
++    __linuxthreads_reap_event;
++    __linuxthreads_initial_report_events;
++    __linuxthreads_version;
+   }
+ }
+--- glibc-2.3.2/linuxthreads/specific.c.orig	2003-11-01 13:10:13.000000000 -0500
++++ glibc-2.3.2/linuxthreads/specific.c	2003-11-01 13:10:27.000000000 -0500
+@@ -28,6 +28,7 @@
+ 
+ static struct pthread_key_struct pthread_keys[PTHREAD_KEYS_MAX] =
+   { { 0, NULL } };
++strong_alias (pthread_keys, __pthread_keys);
+ 
+ /* For debugging purposes put the maximum number of keys in a variable.  */
+ const int __linuxthreads_pthread_keys_max = PTHREAD_KEYS_MAX;
