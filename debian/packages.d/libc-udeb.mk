@@ -37,8 +37,8 @@ endif
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@ $(libc-udeb_control_flags) \
 		-DProvides="$(shell perl debian/debver2localesdep.pl \
 		$(DEBVERSION))" -fdebian/files~
-	dpkg-distaddfile libc-udeb_$(DEBVERSION)_$(shell dpkg-architecture -qDEB_BUILD_ARCH).udeb debian-installer required
+	dpkg-distaddfile libc-udeb_$(DEBVERSION)_$(shell dpkg-architecture -qDEB_HOST_ARCH).udeb debian-installer required
 	chown -R root.root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@
-	dpkg --build $(tmpdir)/$@ ../libc-udeb_$(DEBVERSION)_$(shell dpkg-architecture -qDEB_BUILD_ARCH).udeb
+	dpkg --build $(tmpdir)/$@ ../libc-udeb_$(DEBVERSION)_$(shell dpkg-architecture -qDEB_HOST_ARCH).udeb
 
