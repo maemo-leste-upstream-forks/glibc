@@ -5,19 +5,27 @@
 nscd.conf \- configuration file for Name Service Caching Daemon
 .hy 0
 .SH DESCRIPTION
-The caches
+.I /etc/nscd.conf
+configures the caches used by
 .BR nscd (8)
-uses as well as some generic options can be configured in
-.IR /etc/nscd.conf .
+as well as some generic options.
+.BR nscd (8)
+is able to use a configuration file at a different location,
+when supplied with the
+.IR -f &quot;, &quot; --config-file
+command line option.
 
 .PP
 The configuration file consists of a set of lines.
-All empty lines, and all text on a line after a '#', will be ignored.
-All remaining lines denote the setting of an option. There are two
-kinds of options: General options influence
+Empty lines, and text after a '#' is ignored.
+All remaining lines denote the setting of an option.
+White space before and after options, and between
+options and option arguments is ignored.
+
+There are two kinds of options: General options influence
 .BR nscd (8)'s
-general behaviour, while cache options only affect the named cache.
-Options are set like this:
+general behaviour, while cache related options only affect the
+specified cache. Options are set like this:
 .nf
 
   general_option option
@@ -42,8 +50,8 @@ If
 is higher than
 .BR 0 ,
 .BR nscd (8)
-will create some debug output. The higher the level, the more output that
-is produced.
+will create some debug output. The higher the level, the more verbose
+the output.
 .TP
 .BI threads \ #threads
 This option sets the number of threads that
@@ -76,12 +84,12 @@ or
 argument. Also note that some services require that nscd run as root, so
 using this may break those lookup services.
 .SH CACHE OPTIONS
-All cache options take two arguments, the first one denoting
-the service or cache the options is going to affect. Currently
+All cache options take two arguments. The first one denotes
+the service or cache the option should affect. Currently
 .I service
 can be one of
 .BR passwd ,
-.B group
+.BR group ,
 or
 .BR hosts .
 .TP
@@ -108,7 +116,7 @@ the cache. This defaults to 20 seconds for the
 .B password
 and
 .B host
-cache and to 60 seconds for the
+caches and to 60 seconds for the
 .B group
 cache.
 .TP

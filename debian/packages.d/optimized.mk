@@ -50,7 +50,7 @@ $(stamp_configure_opt): $(stamp_unpack) $(stamp_patch)
 	cd $(objdir_opt) && CC="$(CC)" CFLAGS="$(opt_flags)" \
 		$(srcdir)/configure --host=$(DEB_HOST_GNU_TYPE) \
 		--build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --without-cvs \
-		--disable-profile --disable-static --enable-kernel=2.4.0 \
+		--disable-profile --enable-kernel=2.4.1 \
 		--enable-add-ons="$(add-ons)" $(with_headers)
 
 	touch $@
