@@ -8,8 +8,6 @@ stamp_configure_64	= $(stamp_configure)_64
 
 flags_64 = -g0 -O2 -Wall -finline-limit=3000
 
-MYCC = gcc-3.3 -m64
-
 ifeq ($(log_build),/dev/tty)
   log_build_64 = /dev/tty
 else
@@ -33,8 +31,8 @@ endif
 $(stamp_configure_64): $(stamp_unpack) $(stamp_patch)
 	$(make_directory) $(objdir_64) $(stampdir)
 	rm -f $(objdir_64)/configparms
-	echo "CC = $(MYCC)"		>> $(objdir_64)/configparms
-	echo "BUILD_CC = $(MYCC)"	>> $(objdir_64)/configparms
+	echo "CC = $(CC)"		>> $(objdir_64)/configparms
+	echo "BUILD_CC = $(CC)"		>> $(objdir_64)/configparms
 	echo "CFLAGS = $(flags_64)"	>> $(objdir_64)/configparms
 	echo "BUILD_CFLAGS = $(flags_64)"	>> $(objdir_64)/configparms
 	echo "BASH := /bin/bash"	>> $(objdir_64)/configparms
@@ -45,7 +43,7 @@ $(stamp_configure_64): $(stamp_unpack) $(stamp_patch)
 	echo "LIBGD = no"		>> $(objdir_64)/configparms
 	echo "cross-compiling = yes"	>> $(objdir_64)/configparms
 	echo 
-	cd $(objdir_64) && CC="$(MYCC)" CFLAGS="$(flags_64)" \
+	cd $(objdir_64) && CC="$(CC)" CFLAGS="$(flags_64)" \
 		$(srcdir)/configure --host=sparc64-linux \
 		--build=sparc64-linux --prefix=/usr --without-cvs \
 		--disable-profile --enable-static --enable-kernel=2.4.1 \
