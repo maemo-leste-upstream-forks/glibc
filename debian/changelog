@@ -1,16 +1,22 @@
 glibc (2.3.1-1) unstable; urgency=low
 
   * This is the "twilight" release...
-  
+
   * Jeff Bailey <jbailey@nisa.net>
     - Upgrade tarballs to 2.3.1
     - version: Update to 2.3.1
 
-    - debian/rules: Fail build on failed `make check'.
-
     - debian/sysdeps/linux.mk: Do not build optimized libraries
     - debian/rules.d/control.mk: Likewise
-  
+
+    - debian/control.in/main: Require binutils 2.13.90.0.10-1 for ppc
+
+    - debian/patches/elf-machine-rela-mips.dpatch: New file
+    - debian/patches/0list: Update accordingly.
+
+    - debian/rules: Use -O on i386.  This should go somewhere else,
+    but I want to get this release out.
+
   * XXX Below here was during the 2.3 development, and never released.
 
   * Jeff Bailey <jbailey@nisa.net>
@@ -56,7 +62,7 @@ glibc (2.3.1-1) unstable; urgency=low
     - debian/patches/fhs-linux-paths.dpatch: Update to new template format
 
     - .cvsignore: New file
-  
+
   * XXX Below here was during the 2.2.93 development, and never released.
 
   * Jeff Bailey <jbailey@nisa.net>
@@ -154,7 +160,7 @@ glibc (2.3.1-1) unstable; urgency=low
 
        glibc22-hppa-pthreads, glibc22-hppa-rela, ia64-perf
 
-     - debian/rules: memset.S works on ppc now, so stop deleting it.  Thanks 
+     - debian/rules: memset.S works on ppc now, so stop deleting it.  Thanks
        to Jack Howarth <howarth@fuse.net> for letting us know.
 
      - debian/sysdeps/gnu.mk: Remove --enable-libio, now set by default.  Add
@@ -200,7 +206,7 @@ glibc (2.3.1-1) unstable; urgency=low
       Franz Sirl <Franz.Sirl-kernel@lauterbach.com>.
       Closes: #155606
 
- -- Jeff Bailey <jbailey@nisa.net>  Fri, 30 Aug 2002 17:27:04 -0400
+ -- Jeff Bailey <jbailey@nisa.net>  Thu, 17 Oct 2002 08:37:52 -0400
 
 glibc (2.2.5-15) unstable; urgency=low
 

@@ -95,7 +95,7 @@ ifeq ($(NO_LOG),)
 endif
 	$(warning Please check results before uploading in case of test failures.)
 	date >$(log_test)
-	$(MAKE) SHELL=/bin/bash -C $(objdir) check 2>&1 | tee -a $(log_test)
+	-$(MAKE) -k SHELL=/bin/bash -C $(objdir) check 2>&1 | tee -a $(log_test)
 	date >>$(log_test)
 endif
 
@@ -123,10 +123,16 @@ endif
 	rm -f $(objdir)/configparms
 	echo "CC = $(CC)"		  >> $(objdir)/configparms
 	echo "BUILD_CC = $(BUILD_CC)"	  >> $(objdir)/configparms
-#	DISABLE CFLAGS for now until better solution is found
-#	for ldconfig miscompile - JB 2002-Oct-03
-#	echo "CFLAGS = $(HOST_CFLAGS)"	  >> $(objdir)/configparms
-#	echo "BUILD_CFLAGS = -O2"	  >> $(objdir)/configparms
+#	Reduce optimization level of build on i386.  This needs to
+#	be properly put into sysdeps somewhere until the bug is
+#	fixed. - JB 2002-Oct-17
+ifeq ($(DEB_HOST_GNU_CPU),i386)
+	echo "CFLAGS = -O"		  >> $(objdir)/configparms
+	echo "BUILD_CFLAGS = -O"	  >> $(objdir)/configparms
+else
+	echo "CFLAGS = $(HOST_CFLAGS)"	  >> $(objdir)/configparms
+	echo "BUILD_CFLAGS = -O2"	  >> $(objdir)/configparms
+endif
 	echo "BASH := /bin/bash"	  >> $(objdir)/configparms
 	echo "KSH := /bin/bash"		  >> $(objdir)/configparms
 	echo "mandir = $(mandir)"	  >> $(objdir)/configparms
