@@ -149,7 +149,7 @@ endif
 	-find $(tmpdir)/$@$(docdir)/$@ -type f | xargs -r gzip -9f
 	$(INSTALL_DATA) debian/copyright $(tmpdir)/$@$(docdir)/$@/.
 
-	cp -a debian/libc-dev/{postinst,prerm} $(tmpdir)/$@/DEBIAN
+	cp -a debian/libc-dev/preinst $(tmpdir)/$@/DEBIAN
 
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@
 	chown -R root.root $(tmpdir)/$@
