@@ -9,7 +9,11 @@ else
     ifeq ($(DEB_HOST_GNU_SYSTEM),gnu)
       libc = libc0.3
     else
-      libc = libc6
+      ifeq ($(DEB_HOST_GNU_SYSTEM),freebsd)
+        libc = libc1
+      else
+        libc = libc6
+      endif
     endif
   endif
 endif

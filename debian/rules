@@ -64,7 +64,7 @@ include debian/rules.d/source.mk
 clean: debian/control setperms
 	rm -rf glibc-$(VERSION)
 	rm -f debian/libc/DEBIAN/shlibs
-	rm -f debian/control.in/libc{6,6.1,0.3}
+	rm -f debian/control.in/libc{6,6.1,0.3,1}
 	rm -f debian/files debian/substvars log-*
 	rm -f unpacked-source patched-source patched-sourceT -r patched
 	rm -f `find debian -name 'libc*' -type l`
@@ -110,7 +110,7 @@ configure: $(stamp_configure)
 $(stamp_configure): $(stamp_unpack) $(stamp_patch)
 	$(make_directory) $(objdir) $(stampdir)
 	chmod 755 glibc-$(VERSION)/scripts/cpp # XXX Hack!
-ifneq ($(DEB_HOST_GNU_SYSTEM),gnu)
+ifeq ($(DEB_HOST_GNU_SYSTEM),linux)
 	@if [ "$(num_headers)" != "1" ]; then \
 		echo; \
 		echo "Either you have more than one set of kernel headers in /usr/src"; \
@@ -133,7 +133,7 @@ endif
 	echo "infodir = $(infodir)"	  >> $(objdir)/configparms
 	echo "libexecdir = $(libexecdir)" >> $(objdir)/configparms
 	echo "LIBGD = no"		  >> $(objdir)/configparms
-ifeq ($(DEB_HOST_GNU_SYSTEM),gnu)
+ifneq ($(DEB_HOST_GNU_SYSTEM),linux)
 	echo "slibdir = /lib"		  >> $(objdir)/configparms
 	echo "rootsbindir = /sbin"	  >> $(objdir)/configparms
 	echo "sysconfdir = /etc"	  >> $(objdir)/configparms

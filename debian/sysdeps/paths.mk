@@ -7,8 +7,8 @@ libdir=$(prefix)/lib
 docdir=$(prefix)/share/doc
 mandir=$(prefix)/share/man
 sbindir=$(prefix)/sbin
-ifeq ($(DEB_HOST_GNU_SYSTEM),linux)
- libexecdir=$(prefix)/lib
-else
+ifeq ($(DEB_HOST_GNU_SYSTEM),gnu)
  libexecdir=$(prefix)/libexec
+else
+ libexecdir=$(prefix)/lib
 endif
