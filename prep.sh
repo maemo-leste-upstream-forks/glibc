@@ -103,5 +103,4 @@ finish() {
 # Glibc
 unpack glibc-${TARBALL_VERSION}.tar.bz2 in . creating glibc-${TARBALL_VERSION}
 overlay glibc-linuxthreads-${TARBALL_VERSION}.tar.bz2 on glibc-${TARBALL_VERSION}
-overlay db1-addon-2.1.3.tar.bz2 on glibc-${TARBALL_VERSION}
 finish glibc-${TARBALL_VERSION} ./glibc-${VERSION}

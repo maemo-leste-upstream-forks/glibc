@@ -1,4 +1,4 @@
-shlib_depend = $(libc) (>= 2.2.4-4)
+shlib_depend = $(libc) (>= 2.2.5-13)
 
 debian/libc/DEBIAN/shlibs: debian/rules.d/shlibs.mk $(DEB_HOST_GNU_TYPE)
 	(cat $(objdir)/soversions.i | while read lib so_ver sym_ver; do \
@@ -7,7 +7,6 @@ debian/libc/DEBIAN/shlibs: debian/rules.d/shlibs.mk $(DEB_HOST_GNU_TYPE)
 		    line=`echo $$so_ver | awk -F. '{print $$1 " " $$3}'`; \
 		    echo "/lib/$$line $(shlib_depend)"; \
 		    echo "$$line $(shlib_depend)";; \
-		libdb|libdb1) echo "libdb $$so_ver";; \
 		*) echo "$$lib $$so_ver $(shlib_depend)";; \
 	    esac; \
 	done;) > $@; exit 0
