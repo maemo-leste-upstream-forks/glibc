@@ -6,7 +6,7 @@ Build-Depends-Indep: perl, latex2html
 Build-Conflicts: kernel-headers-2.4.19-sparc [!sparc], kernel-headers-2.4.18-sparc [!sparc]
 Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
 Uploaders: Ben Collins <bcollins@debian.org>, GOTO Masanori <gotom@debian.or.jp>, Philip Blundell <pb@nexus.co.uk>, Jeff Bailey <jbailey@nisa.net>
-Standards-Version: 3.1.1
+Standards-Version: 3.5.7.0
 
 Package: glibc-doc
 Architecture: all
@@ -296,6 +296,27 @@ Description: GNU C Library: 64bit Development Libraries for UltraSPARC
  Contains the symlinks and object files needed to compile and link programs
  which use the standard C library. This is the 64bit version of the
  library, meant for UltraSPARC systems.
+
+Package: libc6-s390x
+Architecture: s390
+Section: base
+Priority: required
+Depends: libc6 (= ${Source-Version})
+Description: GNU C Library: 64bit Shared libraries for IBM zSeries
+ This package includes shared versions of the standard C library and the
+ standard math library, as well as many others. This is the 64bit version
+ of the library, meant for zSeries systems.
+
+Package: libc6-dev-s390x
+Architecture: s390
+Section: devel
+Priority: standard
+Depends: libc6-s390x (= ${Source-Version}), libc6-dev (= ${Source-Version}), gcc-3.2 (>= 3.2.1-0pre1)
+Description: GNU C Library: 64bit Development Libraries for IBM zSeries
+ Contains the symlinks and object files needed to compile and link programs
+ which use the standard C library. This is the 64bit version of the
+ library, meant for zSeries systems.
+
 Package: libc-udeb
 Architecture: any
 Section: debian-installer
@@ -308,3 +329,4 @@ Description: GNU C Library: Shared libraries and Timezone data - udeb
  .
  This package contains a minimal set of libraries needed for the debian
  installer.  Do not install it on a normal system.
+

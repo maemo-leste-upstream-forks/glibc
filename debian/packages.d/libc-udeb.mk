@@ -29,8 +29,10 @@ endif
 	# Install the libs under their sonames.
 	set -ex; cd $(tmpdir)/$@/lib; \
 	for f in *.so; do \
-	mv $$f `readelf -W --dynamic $$f | grep SONAME | \
-		sed -e 's/.*\[//' -e 's/].*//'`; done
+	if [ ! -L $$f ]; then \
+  	  mv $$f `readelf -W --dynamic $$f | grep SONAME | \
+		sed -e 's/.*\[//' -e 's/].*//'`; fi; \
+	done
 
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@ $(libc-udeb_control_flags) \
 		-DProvides="$(shell perl debian/debver2localesdep.pl \

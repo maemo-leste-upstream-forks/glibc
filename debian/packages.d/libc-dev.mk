@@ -61,13 +61,13 @@ ifeq ($(DEB_HOST_GNU_CPU),sparc)
 	rm -rf $(tmpdir)/$@$(includedir)/asm-sparc64
 else
 ifeq ($(DEB_HOST_GNU_CPU),s390)
- # IBM zSeries has a 32/64 build setup, make sure we support it
- cp -R $(LINUX_SOURCE)/include/asm-{s390,s390x} \
- $(tmpdir)/$@$(includedir)/.
- $(INSTALL_PROGRAM) $(LINUX_SOURCE)/generate-asm.sh \
- $(tmpdir)/$@$(bindir)/generate-asm
- $(tmpdir)/$@$(bindir)/generate-asm $(tmpdir)/$@$(includedir)/
- rm -rf $(tmpdir)/$@$(includedir)/asm-s390x
+	# IBM zSeries has a 32/64 build setup, make sure we support it
+	cp -R $(LINUX_SOURCE)/include/asm-{s390,s390x} \
+	$(tmpdir)/$@$(includedir)/.
+	$(INSTALL_PROGRAM) $(LINUX_SOURCE)/generate-asm.sh \
+	$(tmpdir)/$@$(bindir)/generate-asm
+	$(tmpdir)/$@$(bindir)/generate-asm $(tmpdir)/$@$(includedir)/
+	rm -rf $(tmpdir)/$@$(includedir)/asm-s390x
 else
 	cp -R $(LINUX_SOURCE)/include/asm/. $(tmpdir)/$@$(includedir)/asm/
 endif

@@ -172,7 +172,7 @@ then
 	    check=$(dpkg -s $check | awk 'BEGIN{RS="\n\n";FS="\n"}{if ( $2 ~ /Status: .* installed$/ ) { print $1 } }' | cut -f 2 -d ' ')
 	    # apache2 ships its init script in apache2-common, but the
 	    # script is apache2
-	    check=$(sed 's/apache2-common/apache2/' $check)
+	    check=$(echo $check | sed 's/apache2-common/apache2/g')
 	    # We have to list inetd explicitly, because the package is a
 	    # different name from it's init script
 	    check="$check inetd"
