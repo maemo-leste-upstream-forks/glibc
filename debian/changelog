@@ -1,3 +1,63 @@
+glibc (2.3.2-1) unstable; urgency=low
+
+  * GOTO Masanori <gotom@debian.or.jp>
+    - Updated glibc 2.3.2.
+    - debian/patches/cvs.dpatch: update 2003-03-23 upstream cvs.
+    - version: bump up to 2.3.2.
+    - rules.d/shlibs.mk: bump up to 2.3.2.
+    - debian/sysdeps/sysdeps.mk: i386 optimization level is back to -O2.
+
+    - These debian/patches/<below files> are removed from cvs because
+      they are no longer being used and were superceeded by CVS patches:
+      * document-fix.dpatch
+      * glibc23-cert-rpcxdr.dpatch
+      * glibc23-getdents64-fix.dpatch
+      * glibc23-getaddrinfo.dpatch
+      * glibc23-hppa-shmlba.dpatch
+      * glibc23-m68k-madv.dpatch
+      * glibc23-malloc-check.dpatch
+      * glibc23-regcomp.dpatch
+      * signal-texi.dpatch
+
+      * glibc23-ia64-strncpy.dpatch: pending.
+
+    - These debian/patches/<below files> are removed from cvs because
+      they are no longer being used and already fixed the previous versions:
+      * rtsig.dpatch
+      * crypt.dpatch
+      * s390x-lib64.dpatch
+      * hurd-fork-fix.dpatch
+
+    - These debian/patches/<below files> are fixed to apply for glibc
+      2.3.2 + cvs.dpatch.
+      * alpha-pic.dpatch: Fix the diff conflict.
+      * glibc23-hppa-Rminkernel.dpatch: likewise.
+      * libgcc-compat-all.dpatch: remove reflected entries in glibc-2.3.2.
+      * libgcc-compat-other.dpatch: likewise.
+
+    - These bugs are fixed in this update:
+      * glibc 2.3.2 can handle errno correctly if 32 bit uid or gid is used
+        and errno=ENOSYS is defined before geteuid() is called.
+        (Closes: #183694)
+      * Submitter Neil's patch is applied in the upstream.  (Closes: #181701)
+      * cfmakeraw definition in manual terminal.texi is fixed with my patch.
+        It can be reassign only to manpages-dev.
+      * sparc and powerpc has O_DIRECT definition in fcntl.h.
+        (Closes: #157142, #157143)
+      * The definition both __bswap_16 and __bswap_32 in bits/byteswap.h is
+        fixed and it can be ready for non-gcc C-compilers.  (Closes: #181910)
+      * BSD derived random functions are correctly braced into #if defined
+        __USE_BSD with my patch.  (Closes: #108619)
+      * Dynamic loading problems with the recent OpenOffice.org and KDE
+        is fixed.  (Closes: #171695, #184696)
+      * Missing ntp_adjtime weak reference on alpha is defined.
+        (Closes: #182654)
+      * Sparc64 sysdep.h typo is fixed.  (Closes: #185648)
+      * stdio-common/sscanf.c for libc6-sparc64 with gcc-3.3 can become to be
+        compiled.  (Closes: #185649)
+
+ -- GOTO Masanori <gotom@debian.or.jp>  Sun, 23 Mar 2003 02:39:58 +0900
+
 glibc (2.3.1-16) unstable; urgency=high
 
   * GOTO Masanori <gotom@debian.or.jp>
