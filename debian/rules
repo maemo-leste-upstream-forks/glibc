@@ -132,7 +132,7 @@ ifeq ($(DEB_HOST_GNU_SYSTEM),gnu)
 	echo "rootsbindir = /sbin"	  >> $(objdir)/configparms
 	echo "sysconfdir = /etc"	  >> $(objdir)/configparms
 endif
-	cd $(objdir) && $(srcdir)/configure --host=$(DEB_HOST_GNU_TYPE) \
+	cd $(objdir) && CC=$(CC) $(srcdir)/configure --host=$(DEB_HOST_GNU_TYPE) \
 		--build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --without-cvs \
 		--enable-add-ons="$(add-ons)" $(with_headers) $(extra_config_options)
 

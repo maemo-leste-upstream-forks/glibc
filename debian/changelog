@@ -26,6 +26,15 @@ glibc (2.2.92-1) unstable; urgency=low
      - rules: memset.S works on ppc now, so stop deleting it.  Thanks 
        to Jack Howarth <howarth@fuse.net> for letting us know.
 
+     - sysdeps/gnu.mk: Remove --enable-libio, now set by default.  Add
+       NO_TEST = yes, make check does not run on i386-gnu.
+
+     - sysdeps/tools.mk: Hardcode gcc-3.2 for $(CC) and $(BUILD_CC)
+       until gcc-defaults switches.
+
+     - rules: use CC=$(CC) when calling configure to get any changed
+       definitions.
+
  -- Jeff Bailey <jbailey@nisa.net>  Fri, 30 Aug 2002 17:27:04 -0400
 
 glibc (2.2.5-15) unstable; urgency=low
