@@ -43,6 +43,7 @@ locales: $(stamp_install) debian/control $(mkdir)/sysdeps.mk
 	# Add in the list of SUPPORTED locales
 	perl -i -pe 'BEGIN {undef $$/; open(IN, "'"$(tmpdir)/$@$(datadir)/i18n/SUPPORTED"'"); $$j=<IN>;} s/__SUPPORTED_LOCALES__/$$j/g;' $(tmpdir)/$@/DEBIAN/config
 
+	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@ $($@_control_flags) \
 		-DDepends="glibc-$(DEBVERSION), debconf (>= 0.2.26)"
 	chown -R root.root $(tmpdir)/$@

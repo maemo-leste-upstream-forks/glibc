@@ -22,6 +22,7 @@ endif
 	gzip -9fv $(tmpdir)/$@$(docdir)/$@/changelog.Debian
 	$(INSTALL_DATA) debian/copyright $(tmpdir)/$@$(docdir)/$@/.
 
+	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@
 	chown -R root.root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@

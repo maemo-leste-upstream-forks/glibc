@@ -100,6 +100,7 @@ endif
 		$(tmpdir)/$@/usr/lib64/.
 	$(make_directory) $(tmpdir)/$@$(docdir)
 	ln -sf $(libc) $(tmpdir)/$@$(docdir)/$@
+	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@
 	chown -R root.root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@
@@ -151,6 +152,7 @@ endif
 
 	# cp -a debian/libc-dev/{postinst,prerm} $(tmpdir)/$@/DEBIAN
 
+	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@
 	chown -R root.root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@

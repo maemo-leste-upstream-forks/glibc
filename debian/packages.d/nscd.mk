@@ -32,6 +32,7 @@ endif
 		$(tmpdir)/$@$(mandir)/man8/.
 	-gzip -9f $(tmpdir)/$@$(mandir)/man?/*
 
+	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@
 	chown -R root.root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@

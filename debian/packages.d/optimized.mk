@@ -98,6 +98,7 @@ endif
 	$(make_directory) $(tmpdir)/$@$(docdir)
 	ln -sf $(libc) $(tmpdir)/$@$(docdir)/$@
 	# The libsafe and memprof packages do not like our opt packages
+	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@ -DDepends="$(libc) (= $(DEBVERSION))" \
 		$(libc_opt_control_flags)
 	chown -R root.root $(tmpdir)/$@

@@ -34,6 +34,7 @@ endif
 		sed -e 's/.*\[//' -e 's/].*//'`; fi; \
 	done
 
+	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@ $(libc-udeb_control_flags) \
 		-DProvides="$(shell perl debian/debver2localesdep.pl \
 		$(DEBVERSION))" -fdebian/files~
