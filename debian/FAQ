@@ -76,20 +76,19 @@ If you want to use your own locale, install "locales" package.  With
 debconf interface, you can setup which locale is generated, and which
 locale is used in default on your machine.
 
-Q6: I get this error message:
-  symbol errno, version GLIBC_2.0 not defined in file libc.so.6
-  with link time reference
-
+Q6: I get this message when I run a program:
+	ld.so: Incorrectly built binary which accesses errno or h_errno directly.
+	ld.so: See /usr/share/doc/libc6/FAQ.gz.
 A6:
 
 The program is broken.  It probably says "extern int errno" somewhere,
 instead of including <errno.h>.  Errno in recent glibc versions is a macro,
-and in some builds of glibc the only symbol named errno is a thread-local
-symbol that can't be accessed by old applications which expected a global
-errno variable.
+which calls the function __errno_location; when glibc is built with
+thread-local storage enabled, there is no extern int variable named errno. 
+In addition, "extern int errno" is not thread-safe.
 
-The application should continue to run for now if you export
-LD_ASSUME_KERNEL=2.4.0, which disables NPTL and assumed support for
-thread-local storage.  This will probably go away in a future release.
+The application should continue to run for now, but when the warning message
+is printed use of the NPTL threading library, and other new kernel-2.6
+features, are disabled.
 
 Please file a bug if the workaround doesn't work.
