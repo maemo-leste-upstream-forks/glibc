@@ -2,27 +2,29 @@ MIN_KERNEL_SUPPORTED := 2.2.0
 
 # Sparc and i386 have some optimized libs
 ifeq ($(DEB_HOST_GNU_CPU),sparc)
-  cpus = v9
-  as_flags_v9 = -Wa,-Av9a
-  cpu_flags_v9 = -mtune=ultrasparc -mv8
+  cpus = sparcv9
+  OPT_SUBDIR = v9
 endif
 ifeq ($(DEB_HOST_GNU_CPU),i386)
-  # Nifty little vardep thingie
   cpus = i586 i686
-  cpu_flags_$(OPT) = -mcpu=$(OPT)
-  as_flags_$(OPT) = 
+  OPT_SUBDIR = $(OPT)
 endif
 
+OPT_TARGET = $(OPT)-linux
+
+# Uncomment this to enable optimized libraries
+# opt_packages += $(addprefix opt-$(libc)-,$(cpus))
+
+
+# sparc and s390 have alternative 64-bit libs
 ifeq ($(DEB_HOST_GNU_CPU),sparc)
-  arch_packages += $(libc)-sparc64 $(libc)-dev-sparc64
+  opt_packages += sparc64
 endif
 
 ifeq ($(DEB_HOST_GNU_CPU),s390)
-  arch_packages += $(libc)-s390x $(libc)-dev-s390x
+  opt_packages += s390x
 endif
 
-# Uncomment this to build optimized libraries
-# opt_packages += $(addprefix opt-$(libc)-,$(cpus))
 
 config-os = linux-gnu
 threads = yes

@@ -243,6 +243,15 @@ glibc (2.3.2-1) unstable; urgency=low
     - Remove build-dep for gcc-3.3 on sparc.
     - Really fix devpts.sh so that it mounts devpts whenever devpts is
       available and not mounted.
+    - sparcv8-target.dpatch: New patch that enables v8 optimizations for
+      sparc-linux compiles. Debian specific. For some reason config.sub
+      doesn't recognize sparcv8, else I'd just pass sparcv8-linux as the host
+      target.
+    - Change how things are passed to configure for optimized packages, so
+      that we let glibc set all the optimizations for us.
+    - Change how sparc64 and s390x are built. Before the binary stage would
+      force the build of the packages. Now, the build/install phases dep on
+      the same for sparc64 and s390x. Same way that the OPT packages are done.
 
  -- GOTO Masanori <gotom@debian.or.jp>  Sun, 23 Mar 2003 02:39:58 +0900
 
@@ -255,6 +264,7 @@ glibc (2.3.1-17) unstable; urgency=low
       (Closes: #165258, #165915, #184036, #184495, #188724)
     - debian/libc/DEBIAN/postinst: Edit NSS restarting messages to
       adopt some preinst messages.
+    - Cleanup optimized and sparc64 builds.
 
  -- GOTO Masanori <gotom@debian.or.jp>  Sat, 19 Apr 2003 22:01:40 +0900
 

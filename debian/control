@@ -2,8 +2,8 @@ Source: glibc
 Section: libs
 Priority: required
 Build-Depends: gettext (>= 0.10.37-1), make (>= 3.78-4), dpkg-dev (>= 1.4.1.5), debianutils (>= 1.13.1), tar (>= 1.13.11), bzip2, texinfo (>= 4.0), kernel-headers-2.4 [!hurd-i386], mig (>= 1.3-2) [hurd-i386], hurd-dev (>= 20020608-1) [hurd-i386], gnumach-dev [hurd-i386], texi2html, file, gcc-3.2, autoconf, binutils (>= 2.13.90.0.10-1) [!s390], binutils (>= 2.13.90.0.4-1) [s390]
-Build-Depends-Indep: perl, latex2html
-Build-Conflicts: kernel-headers-2.4.19-sparc [!sparc], kernel-headers-2.4.18-sparc [!sparc]
+Build-Depends-Indep: perl, latex2html, po-debconf
+Build-Conflicts: kernel-headers-2.4.20-sparc [!sparc], kernel-headers-2.4.21-sparc [!sparc]
 Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
 Uploaders: Ben Collins <bcollins@debian.org>, GOTO Masanori <gotom@debian.or.jp>, Philip Blundell <pb@nexus.co.uk>, Jeff Bailey <jbailey@nisa.net>, Daniel Jacobowitz <dan@debian.org>
 Standards-Version: 3.5.7.0
@@ -108,7 +108,6 @@ Description: GNU C Library: PIC archive library
 Package: libc6.1
 Architecture: alpha ia64
 Section: base
-Conflicts: wine (<< 0.0.20021007-1), php4 (<< 4:4.2.3-5)
 Priority: required
 Description: GNU C Library: Shared libraries and Timezone data
  Contains the standard libraries that are used by nearly all programs on
@@ -165,7 +164,6 @@ Description: GNU C Library: PIC archive library
 Package: libc0.3
 Architecture: hurd-i386
 Section: base
-Conflicts: wine (<< 0.0.20021007-1)
 Priority: required
 Description: GNU C Library: Shared libraries and Timezone data
  Contains the standard libraries that are used by nearly all programs on
@@ -222,7 +220,6 @@ Description: GNU C Library: PIC archive library
 Package: libc1
 Architecture: freebsd-i386
 Section: base
-Conflicts: wine (<< 0.0.20021007-1)
 Priority: required
 Description: GNU C Library: Shared libraries and Timezone data
  Contains the standard libraries that are used by nearly all programs on
@@ -280,7 +277,7 @@ Package: libc6-sparc64
 Architecture: sparc
 Section: base
 Priority: required
-Depends: libc6 (= ${Source-Version})
+Depends: libc6 (= ${Source-Version}), lib64gcc1
 Conflicts: gcc-3.0 (<< 1:3.0.4ds3-11), libgcc1 (<< 1:3.0.4ds3-11), fakeroot (<< 0.4.5-2.7)
 Description: GNU C Library: 64bit Shared libraries for UltraSPARC
  This package includes shared versions of the standard C library and the

@@ -1,17 +1,17 @@
-# Build 64bit libraries
+# Build 64-bit libraries
 
-objdir_64		= $(objdir)_64
-install_root_64		= $(install_root)_64
-stamp_install_64	= $(stamp_install)_64
-stamp_build_64		= $(stamp_build)_64
-stamp_configure_64	= $(stamp_configure)_64
+objdir_64		= $(objdir)_sparc64
+install_root_64		= $(install_root)_sparc64
+stamp_install_64	= $(stamp_install)_sparc64
+stamp_build_64		= $(stamp_build)_sparc64
+stamp_configure_64	= $(stamp_configure)_sparc64
 
-flags_64 = -g0 -O2 -Wall -finline-limit=3000
+MYCC = $(CC) -m64
 
 ifeq ($(log_build),/dev/tty)
   log_build_64 = /dev/tty
 else
-  log_build_64 = $(log_build)_64
+  log_build_64 = $(log_build)_sparc6
 endif
 
 $(stamp_install_64): $(stamp_build_64)
@@ -20,36 +20,25 @@ $(stamp_install_64): $(stamp_build_64)
 	$(MAKE) -C $(objdir_64) install_root=$(install_root_64) install
 	touch $@
 
+sparc64-build: $(stamp_build_64)
 $(stamp_build_64): $(stamp_configure_64)
 ifeq ($(NO_LOG),)
 	@if [ -s $(log_build_64) ]; then savelog $(log_build_64); fi
 endif
-	@echo 'Building GNU C Library for a $(DEB_BUILD_GNU_TYPE) host (64bit).'
+	@echo 'Building GNU C Library for a sparc64-linux host.'
 	$(MAKE) -C $(objdir_64) PARALLELMFLAGS="$(PARALLELMFLAGS)" 2>&1 | tee $(log_build_64)
 	touch $@
 
 $(stamp_configure_64): $(stamp_unpack) $(stamp_patch)
 	$(make_directory) $(objdir_64) $(stampdir)
-	rm -f $(objdir_64)/configparms
-	echo "CC = $(CC)"		>> $(objdir_64)/configparms
-	echo "BUILD_CC = $(CC)"		>> $(objdir_64)/configparms
-	echo "CFLAGS = $(flags_64)"	>> $(objdir_64)/configparms
-	echo "BUILD_CFLAGS = $(flags_64)"	>> $(objdir_64)/configparms
-	echo "BASH := /bin/bash"	>> $(objdir_64)/configparms
-	echo "KSH := /bin/bash"		>> $(objdir_64)/configparms
-	echo "mandir = $(mandir)"	>> $(objdir_64)/configparms
-	echo "infodir = $(infodir)"	>> $(objdir_64)/configparms
-	echo "libexecdir = $(libexecdir)"	>> $(objdir_64)/configparms
-	echo "LIBGD = no"		>> $(objdir_64)/configparms
-	echo "cross-compiling = yes"	>> $(objdir_64)/configparms
-	echo 
-	cd $(objdir_64) && CC="$(CC)" CFLAGS="$(flags_64)" \
+	cd $(objdir_64) && CC="$(MYCC)" \
 		$(srcdir)/configure --host=sparc64-linux \
-		--build=sparc64-linux --prefix=/usr --without-cvs \
-		--disable-profile --enable-static --enable-kernel=2.4.1 \
-		--enable-add-ons="$(add-ons)" $(with_headers)
-
+		--build=sparc-linux --prefix=/usr --without-cvs \
+		--disable-profile --enable-static --enable-kernel=2.4.18 \
+		--enable-omitfp --enable-add-ons="$(add-ons)" $(with_headers)
 	touch $@
+
+sparc64-pkg: $(libc)-sparc64 $(libc)-dev-sparc64
 
 $(libc)-sparc64: $(stamp_install_64) debian/control $(mkdir)/sysdeps.mk \
   debian/libc/DEBIAN/shlibs
@@ -84,9 +73,6 @@ ifeq ($(threads),yes)
 endif
 	$(INSTALL_PROGRAM) $(install_root_64)/lib64/ld-$(VERSION).so \
 		$(tmpdir)/$@/lib64/.
-	#### XXX
-	test -e /lib64/ld-linux.so.2 && \
-		$(INSTALL_PROGRAM) /lib64/ld-*.so $(tmpdir)/$@/lib64/ld-$(VERSION).so
 	cp -vdf $(install_root_64)/lib64/ld*.so.* \
 		$(tmpdir)/$@/lib64/.
 	cp -vfa $(install_root_64)/usr/lib64/gconv \

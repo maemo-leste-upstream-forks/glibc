@@ -22,6 +22,7 @@ $(stamp_install_64): $(stamp_build_64)
 	$(MAKE) -C $(objdir_64) install_root=$(install_root_64) install
 	touch $@
 
+s390x-build: $(stamp_build_64)
 $(stamp_build_64): $(stamp_configure_64)
 ifeq ($(NO_LOG),)
 	@if [ -s $(log_build_64) ]; then savelog $(log_build_64); fi
@@ -53,6 +54,8 @@ $(stamp_configure_64): $(stamp_unpack) $(stamp_patch)
 		--enable-add-ons="$(add-ons)" $(with_headers)
 
 	touch $@
+
+s390x-pkg: $(libc)-s390x $(libc)-dev-s390x
 
 $(libc)-s390x: $(stamp_install_64) debian/control $(mkdir)/sysdeps.mk \
   debian/libc/DEBIAN/shlibs

@@ -21,6 +21,11 @@ DEB_BUILD_GNU_SYSTEM  := $(shell dpkg-architecture -qDEB_BUILD_GNU_SYSTEM)
 DEB_HOST_GNU_CPU_ALT  :=
 DEB_HOST_GNU_TYPE_ALT :=
 
+# Architecures can modify this to build special targets. For example,
+# sparc could do sparcv8-linux, since glibc can optimize for
+# sparc32/sparcv8 in sysdeps.
+configure_target := $(DEB_HOST_GNU_TYPE)
+
 DEBVERSION:=$(shell LC_ALL=C dpkg-parsechangelog | sed -ne 's/^Version: *\([^2]*\)/\1/p')
 
 perfect_make_check_archs := i386 powerpc sparc alpha s390
@@ -87,7 +92,7 @@ $(stamp_build): $(stamp_configure)
 ifeq ($(NO_LOG),)
 	@if [ -s $(log_build) ]; then savelog $(log_build); fi
 endif
-	@echo 'Building GNU C Library for a $(DEB_BUILD_GNU_TYPE) host.'
+	@echo 'Building GNU C Library for a $(configure_target) host.'
 	date >$(log_build)
 	$(MAKE) -C $(objdir) PARALLELMFLAGS="$(PARALLELMFLAGS)" 2>&1 | tee -a $(log_build)
 	date >>$(log_build)
@@ -148,7 +153,7 @@ ifneq ($(DEB_HOST_GNU_SYSTEM),linux)
 	echo "rootsbindir = /sbin"	  >> $(objdir)/configparms
 	echo "sysconfdir = /etc"	  >> $(objdir)/configparms
 endif
-	cd $(objdir) && CC=$(CC) $(srcdir)/configure --host=$(DEB_HOST_GNU_TYPE) \
+	cd $(objdir) && CC=$(CC) $(srcdir)/configure --host=$(configure_target) \
 		--build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --without-cvs \
 		--enable-add-ons="$(add-ons)" $(with_headers) $(extra_config_options)
 
