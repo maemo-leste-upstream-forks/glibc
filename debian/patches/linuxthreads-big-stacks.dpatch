@@ -1,0 +1,33 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Increase stack size for benefit of WineX
+# DP: Thanks to Brian Almeida <bma@tynian.net>
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+
+diff -urNad /usr/src/glibc/glibc-2.3.2/linuxthreads/descr.h glibc-2.3.2/linuxthreads/descr.h
+--- linuxthreads/descr.h     2002-12-28 11:06:33.000000000 +0100
++++ linuxthreads/descr.h    2003-08-13 19:05:09.000000000 +0200
+@@ -218,7 +218,7 @@
+    THREAD_SELF implementation is used, this must be a power of two and
+    a multiple of PAGE_SIZE.  */
+ #ifndef STACK_SIZE
+-#define STACK_SIZE  (2 * 1024 * 1024)
++#define STACK_SIZE  (8 * 1024 * 1024)
+ #endif
+
+ /* Get some notion of the current stack.  Need not be exactly the top
