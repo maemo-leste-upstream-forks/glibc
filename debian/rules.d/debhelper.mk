@@ -44,6 +44,13 @@ endef
 # Should each of these have per-package options?
 
 $(patsubst %,binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES)) :: binaryinst_% : $(stamp)binaryinst_%
+
+# Make sure the debug packages are built last, since other packages may add
+# files to them.
+debug-packages = $(filter %-dbg,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES))
+non-debug-packages = $(filter-out %-dbg,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES))
+$(patsubst %,$(stamp)binaryinst_%,$(debug-packages)):: $(patsubst %,$(stamp)binaryinst_%,$(non-debug-packages))
+
 $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES)):: $(stamp)debhelper
 	@echo Running debhelper for $(curpass)
 	dh_testroot
@@ -60,14 +67,37 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	$(call xx,extra_pkg_install)
 
 ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
-	# libpthread must be stripped separately; GDB needs the
+	# libpthread must be stripped specially; GDB needs the
 	# non-dynamic symbol table in order to load the thread
-	# debugging library.
-	if [ ! $(NOSTRIP_$(curpass)) ]; then \
-	  dh_strip -p$(curpass) -Xlibpthread; \
-	  find debian/$(curpass) -name libpthread-\*.so -exec \
-	    strip --strip-debug --remove-section=.comment \
-	    --remove-section=.note '{}' ';' || true; \
+	# debugging library.  We keep a full copy of the symbol
+	# table in libc6-dbg but basic thread debugging should
+	# work even without that package installed.
+
+	# We use a wrapper script so that we only include the bare
+	# minimum in /usr/lib/debug/lib for backtraces; anything
+	# else takes too long to load in GDB.
+
+	if test $(NOSTRIP_$(curpass)) != 1; then			\
+	  chmod a+x debian/wrapper/objcopy;				\
+	  export PATH=$(shell pwd)/debian/wrapper:$$PATH;		\
+	  dh_strip -p$(curpass) -Xlibpthread --keep-debug;		\
+	  mkdir -p debian/$(libc)-dbg/usr/lib/debug;			\
+	  if test -d debian/$(curpass)/usr/lib/debug; then		\
+	    cd debian/$(curpass)/usr/lib/debug;				\
+	    find . -type f -name \*.so\*				\
+	      | cpio -pd $(shell pwd)/debian/$(libc)-dbg/usr/lib/debug;	\
+	    rm -rf debian/$(curpass)/usr/lib/debug;			\
+	  fi;								\
+	  (cd debian/$(curpass);					\
+	   find . -name libpthread-\*.so -exec				\
+	     debian/wrapper/objcopy --only-keep-debug '{}'		\
+	     ../$(libc)-dbg/usr/lib/debug/'{}' ';' || true;		\
+	   find . -name libpthread-\*.so -exec objcopy			\
+	     --add-gnu-debuglink=../$(libc)-dbg/usr/lib/debug/'{}'	\
+	     '{}' ';' || true);						\
+	  find debian/$(curpass) -name libpthread-\*.so -exec		\
+	    strip --strip-debug --remove-section=.comment		\
+	    --remove-section=.note '{}' ';' || true;			\
 	fi
 endif
 
@@ -106,7 +136,7 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): $(stamp)debhelper
 	dpkg-distaddfile $(curpass)_$(DEB_VERSION)_$(DEB_BUILD_ARCH).udeb debian-installer required
 	dh_builddeb -p$(curpass) --filename=$(curpass)_$(DEB_VERSION)_$(DEB_BUILD_ARCH).udeb
 
-
+	touch $@
 
 #Ugly kludge:
 # I'm running out of time to get this sorted out properly.  Basically

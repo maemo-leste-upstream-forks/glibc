@@ -6,7 +6,7 @@ glibc (2.3.2.ds1-12) unstable; urgency=low
 
   * Jeff Bailey <jbailey@nisa.net>
 
-   - debian/debhelper.in/libc.preinst: Don't use awk except in 
+   - debian/debhelper.in/libc.preinst: Don't use awk except in
      upgrade mode.  (Closes: #229461)
      Thanks to Bastian Blank <waldi@debian.org> for the fix.
    - debian/debhelper.in/libc.postinst: Respect DEBIAN_FRONTEND=noninteractive
@@ -22,7 +22,26 @@ glibc (2.3.2.ds1-12) unstable; urgency=low
      missing include in malloc.c (Both in upstream)
    - debian/patches/00list: Update
 
- -- GOTO Masanori <gotom@debian.or.jp>  Sun, 25 Jan 2004 03:48:17 +0900
+  * Daniel Jacobowitz <dan@debian.org>
+
+    - Add separate-debug-info files to libc6-dbg to allow backtraces through
+      optimized libraries (Closes: #227097, #219459)
+      - debian/control.in/main: Bump build dependencies for binutils and
+        debhelper.
+      - debian/control.in/libc-dbg: Update package description.
+      - debian/rules: Set NOSTRIP after loading sysdeps rules files, so that
+        it actually gets set.
+      - debian/rules.d/debhelper.mk: Generate separate debug info libraries.
+        Touch stamp file for libc-udeb.
+      - debian/sysdeps/i386.mk, debian/sysdeps/linux.mk, s390x_extra_cflags,
+        debian/sysdeps/sparc.mk: Use -g1 instead of -g0 so that we get
+        unwind information.
+      - debian/wrapper/objcopy: Wrapper script to remove excess debug
+        info, for now.
+    - Remove tabs from debian/changelog, since they confuse
+      dpkg-parsechangelog.
+
+ -- Daniel Jacobowitz <dan@debian.org>  Mon, 26 Jan 2004 22:29:54 -0500
 
 glibc (2.3.2.ds1-11) unstable; urgency=low
 
@@ -870,7 +889,7 @@ glibc (2.3.2-1) experimental; urgency=low
       * Timezone data is updated to tzdata2003a.
         (Closes: #140788, #149862, #186210, #164719, #190322)
       * /usr/bin/locale -a searches both /usr/lib/locale/<locale>/ and
-       	/usr/lib/locale/locale-archive in this release. (Closes: #166979)
+               /usr/lib/locale/locale-archive in this release. (Closes: #166979)
       * Powerpc fpu_control.h is fixed to be enable to compile _FPU_SETCW
         macro.  (Closes: #137020)
       * The IA-64 versions of __sigsetjmp() and getcontext failed to restore
@@ -1563,8 +1582,8 @@ glibc (2.3.1-1) unstable; urgency=low
 
     - debian/patches/0list: adjust accordingly
                             Also, prune ia64-reloc-none from the list.
-			    I can't tell from the code snippet if this
-			    has been incorporated or not.
+                            I can't tell from the code snippet if this
+                            has been incorporated or not.
 
     - .cvsignore: Add the stamp directories
 
@@ -3495,10 +3514,10 @@ glibc (2.1.2-0pre12) unstable; urgency=low
       1999-07-25  Jakub Jelinek   <jj@ultra.linux.cz>
   
         * sysdeps/unix/sysv/linux/sparc/bits/types.h: Define always
-  	__qaddr_t.
-  	__ino64_t should be 32bit unsigned type on sparc32.
-  	Define __off64_t to __quad_t instead of __int64_t.
-  	Make __pic_pid_t unsigned on sparc32.
+          __qaddr_t.
+          __ino64_t should be 32bit unsigned type on sparc32.
+          Define __off64_t to __quad_t instead of __int64_t.
+          Make __pic_pid_t unsigned on sparc32.
 
   * Really change maintainer name to Debian GNU C Library Maintainers.
   
@@ -3902,9 +3921,9 @@ glibc (2.1-1) unstable; urgency=low
   * (debian/depflags.mk):
     $(libc): conflict and replace timezone, timezones; replace libdb2
   * (debian/rules):
-  	$(libc)-dev: copy subdirectories from $(KERNEL_HEADERS)/linux too.
-  	timezones: remove
-  	$(libc): Put timezone data, and the zic and zdump utils here
+          $(libc)-dev: copy subdirectories from $(KERNEL_HEADERS)/linux too.
+          timezones: remove
+          $(libc): Put timezone data, and the zic and zdump utils here
   * Sync with HURD again.
   * Removed hurd-utimes patch, it is integrated upstream.
 

@@ -116,9 +116,6 @@ DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg $(libc)-prof $(libc)
 DEB_INDEP_REGULAR_PACKAGES = glibc-doc locales
 DEB_UDEB_PACKAGES = libc-udeb
 
-# Don't run dh_strip on this package
-NOSTRIP_$(libc)-dbg = 1
-
 # Generic kernel version check
 define kernel_check
 (if [ $(CURRENT_KERNEL_VERSION) -lt $(1) ]; then \
@@ -132,6 +129,9 @@ endef
 -include debian/sysdeps/$(DEB_HOST_ARCH).mk
 
 include debian/sysdeps/depflags.mk
+
+# Don't run dh_strip on this package
+NOSTRIP_$(libc)-dbg = 1
 
 ifeq ($(threads),yes)
 DEB_ARCH_REGULAR_PACKAGES += nscd
