@@ -14,7 +14,7 @@ debian/control.in/libc0.3: debian/control.in/libc debian/rules.d/control.mk
 
 debian/control: debian/control.in/main $(DEB_HOST_GNU_TYPE) $(control_deps) \
 		   debian/sysdeps/soname.mk debian/sysdeps/config.mk \
-		   debian/rules.d/control.mk
+		   debian/rules.d/control.mk debian/sysdeps/depflags.pl
 	cat debian/control.in/main		>  $@T
 	cat debian/control.in/libc6		>> $@T
 	cat debian/control.in/libc6.1		>> $@T

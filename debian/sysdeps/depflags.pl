@@ -30,6 +30,9 @@ if ($DEB_HOST_GNU_SYSTEM eq "linux") {
     push @{$libc_c{'Suggests'}}, 'locales';
     push @{$libc_c{'Suggests'}}, "${glibc}-doc";
     push @{$libc_c{'Provides'}}, 'gconv-modules';
+    #db1 compat libraries from libc 2.0/2.1, we need to depend on them
+    #until after sarge is released
+    push @{$libc_c{'Depends'}}, "libdb1-compat";
     push @{$libc_dev_c{'Recommends'}}, 'c-compiler';
     push @{$libc_dev_c{'Suggests'}}, "${glibc}-doc";
     push @{$libc_dev_c{'Replaces'}}, ('man-db (<= 2.3.10-41)', 'gettext (<= 0.10.26-1)',
