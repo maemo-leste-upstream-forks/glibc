@@ -17,6 +17,8 @@ if [ "$1" = configure ]; then
             #   Comment previous defined locales
             sed -e 's/^[a-zA-Z]/#&/' $LG > $LG.tmp || true
             mv -f $LG.tmp $LG
+	    last=`tail -1 "$LG"`
+	    if test -n "$last"; then echo >> $LG; fi
         else
             cat > $LG << EOF
 # This file lists locales that you wish to have built. You can find a list
@@ -36,11 +38,6 @@ EOF
                 sed -e "s,#$locale *\$,$locale," $LG > $LG.tmp || true
                 mv -f $LG.tmp $LG
             else
-                #   Add a newline in case last line does not have one
-                echo >> $LG
-                #   Consecutive blank lines are replaced by a single line
-                cat -s $LG > $LG.tmp
-                mv -f $LG.tmp $LG
                 #   Add a new locale
                 echo $locale >> $LG
             fi
