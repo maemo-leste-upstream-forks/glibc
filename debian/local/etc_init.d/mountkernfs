@@ -1,11 +1,15 @@
 #! /bin/sh
 
-set -e
+# "set -e" is harmful because this script is failed when mount
+# operation is not succeeded under non-default filesystem layout.
+#set -e
 
 . /etc/default/devpts
 . /etc/default/tmpfs
 
 [ "`uname -s`" = "Linux" ] || exit 0
+
+[ -f /proc/filesystems ] || [ -f /proc/mounts ] || exit 0
 
 ### devpts mount
 #
