@@ -55,9 +55,13 @@ then
 	if [ -e /var/run/utmpd.rw ]; then rm -f /var/run/utmpd.rw; fi
     fi
     if dpkg --compare-versions "$2" lt 2.3.2.ds1-11; then
-	mv /etc/init.d/devpts.sh /etc/init.d/mountkernfs
+	if [ -f /etc/init.d/devpts.sh ]; then
+	    mv /etc/init.d/devpts.sh /etc/init.d/mountkernfs
+	fi
     elif dpkg --compare-versions "$2" eq 2.3.2.ds1-11; then
-	rm /etc/init.d/devpts.sh
+	if [ -f /etc/init.d/devpts.sh ]; then
+	    rm -f /etc/init.d/devpts.sh
+	fi
     fi
 
     # NSS authentication trouble guard
