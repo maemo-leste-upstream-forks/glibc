@@ -22,7 +22,7 @@ glibc (2.3.2-1) unstable; urgency=low
     - Updated glibc 2.3.2.
     - debian/patches/cvs.dpatch: rename it to 10_cvs.dpatch.
       I plan to introduce <2digitnumber>_<filename>.dpatch filename.
-    - debian/patches/10_cvs.dpatch: update 2003-05-11 upstream cvs.
+    - debian/patches/10_cvs.dpatch: update 2003-07-07 upstream cvs.
     - version: bump up to 2.3.2.
     - rules.d/shlibs.mk: bump up to 2.3.2.
     - debian/sysdeps/sysdeps.mk: i386 optimization level is back to -O2.
@@ -56,6 +56,7 @@ glibc (2.3.2-1) unstable; urgency=low
       * glibc23-hppa-Rminkernel.dpatch: likewise.
       * libgcc-compat-all.dpatch: remove reflected entries in glibc-2.3.2.
       * libgcc-compat-other.dpatch: likewise.
+      * ldconfig.dpatch: modify to be enable to compile again
 
     - These bugs are fixed in this update:
       * glibc 2.3.2 can handle errno correctly if 32 bit uid or gid is used
@@ -72,10 +73,10 @@ glibc (2.3.2-1) unstable; urgency=low
       * BSD derived random functions are correctly braced into #if defined
         __USE_BSD with my patch.  (Closes: #108619)
       * Dynamic loading problems with the recent OpenOffice.org, KDE, 
-        Wine/Mono, Quake3 Arena, and NVidia libGL library, is fixed.
+        Wine/Mono, Quake3 Arena, Oracle, and NVidia libGL library, is fixed.
         Glibc TLS does not properly handle using dlopen() to access shared
         libraries which utilize some TLS models.
-        (Closes: #171695, #184696, #167564, #192096)
+        (Closes: #171695, #184696, #167564, #192096, #200386)
       * Missing ntp_adjtime weak reference on alpha is defined.
         (Closes: #182654)
       * Sparc64 sysdep.h typo is fixed.  (Closes: #185648)
@@ -107,7 +108,7 @@ glibc (2.3.2-1) unstable; urgency=low
       * cos() now correctly returns the cosine, not the sine, of values near
         0.80 on machines lacking an optimised libm.  (Closes: #153548)
       * ioperm() returns -ENODEV on ARM machines without ISA or PCI.
-	(Closes: #199134)
+        (Closes: #199134)
 
     - debian/locales/usr/sbin/locale-gen: Fix the localedef invocation
       argument order, to run under POSIXLY_CORRECT=1 environment.
@@ -237,6 +238,8 @@ glibc (2.3.2-1) unstable; urgency=low
     - debian/patches/30_glibc232-base.dpatch: add that binutils 2.14.90.0.2
       has entered in sid, which contain the binutils portion of the base fix.
       Reported by Jack Howarth <howarth@fuse.net>.
+
+    - debian/patches/sparc32-buildfix.dpatch: added to fix sparc32 build.
 
   * Ben Collins <bcollins@debian.org>
     - debian/contron.in/sparc64: Remove the superflous (and incorrect) dep on
