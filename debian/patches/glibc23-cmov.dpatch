@@ -8,6 +8,7 @@
 # DP: Status Details: Not submitted
 # DP: Date: 2003-02-21
 # DP: Updated 2003-10-12 by dan@debian.org for TLS
+# DP: Updated 2004-01-02 to fix building with newer patches by jb.
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
@@ -23,9 +24,9 @@ esac
 exit 0
 
 # append the patch here and adjust the -p? flag in the patch calls.
---- libc/sysdeps/unix/sysv/linux/i386/dl-procinfo.h	2002-09-22 06:14:11.000000000 +0900
-+++ libc/sysdeps/unix/sysv/linux/i386/dl-procinfo.h.new	2003-01-19 01:18:55.000000000 +0900
-@@ -92,7 +92,7 @@
+--- libc/sysdeps/i386/dl-procinfo.h	2002-09-22 06:14:11.000000000 +0900
++++ libc/sysdeps/i386/dl-procinfo.h.new	2003-01-19 01:18:55.000000000 +0900
+@@ -57,7 +57,7 @@
    HWCAP_I386_AMD3D = 1 << 31,
  
    /* XXX Which others to add here?  */

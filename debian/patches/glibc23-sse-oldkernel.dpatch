@@ -6,7 +6,7 @@
 # DP: Author: Daniel Jacobowitz <dan@debian.org>
 # DP: Upstream status: Not submitted
 # DP: Details: Should be submitted, must be regenerated against CVS
-# DP: Date: 2003-11-01 (Updated 2003-11-02)
+# DP: Date: 2003-11-01 (Updated 2003-11-02) (Updated 2004-01-02)
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
@@ -52,29 +52,6 @@ exit 0
  }
  
  static inline Elf32_Addr
---- glibc-2.3.2/sysdeps/unix/sysv/linux/i386/dl-procinfo.h.orig	2003-11-01 15:50:41.000000000 -0500
-+++ glibc-2.3.2/sysdeps/unix/sysv/linux/i386/dl-procinfo.h	2003-11-01 15:51:48.000000000 -0500
-@@ -126,4 +126,20 @@ _dl_string_platform (const char *str)
-   return -1;
- };
- 
-+#define DL_ADJUST_PROCINFO dl_adjust_procinfo ()
-+
-+static inline void
-+__attribute__ ((unused, always_inline))
-+dl_adjust_procinfo (void)
-+{
-+  if (GL(dl_osversion) < 0x020400)
-+    {
-+      /* Unfortunately, while the capability is named OSFXSR, it's
-+	 actually hardware FXSR direct from CPUID.  And we can't test
-+	 CR4 ourselves, because we're in protected mode.  Disable it
-+	 for kernels which might not have actually enabled OSFXSR.  */
-+      GL(dl_hwcap) &= ~(HWCAP_I386_OSFXSR | HWCAP_I386_XMM | HWCAP_I386_XMM2);
-+    }
-+}
-+
- #endif /* dl-procinfo.h */
 --- glibc-2.3.2/sysdeps/generic/libc-start.c.orig	2003-11-02 23:11:51.000000000 -0500
 +++ glibc-2.3.2/sysdeps/generic/libc-start.c	2003-11-02 23:34:42.000000000 -0500
 @@ -23,6 +23,10 @@
@@ -140,3 +117,27 @@ exit 0
  }
  
  
+--- glibc-2.3.2/sysdeps/unix/sysv/linux/i386/dl-procinfo.h.old	2004-01-02 13:53:32.000000000 -0500
++++ glibc-2.3.2/sysdeps/unix/sysv/linux/i386/dl-procinfo.h	2004-01-02 13:55:18.000000000 -0500
+@@ -41,3 +41,21 @@
+ 
+   return 0;
+ }
++
++#define DL_ADJUST_PROCINFO dl_adjust_procinfo ()
++
++static inline void
++__attribute__ ((unused, always_inline))
++dl_adjust_procinfo (void)
++{
++  if (GL(dl_osversion) < 0x020400)
++    {
++      /* Unfortunately, while the capability is named OSFXSR, it's
++        actually hardware FXSR direct from CPUID.  And we can't test
++        CR4 ourselves, because we're in protected mode.  Disable it
++        for kernels which might not have actually enabled OSFXSR.  */
++      GL(dl_hwcap) &= ~(HWCAP_I386_OSFXSR | HWCAP_I386_XMM | HWCAP_I386_XMM2);
++    }
++}
++
++
