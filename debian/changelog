@@ -61,6 +61,8 @@ glibc (2.3.2-1) unstable; urgency=low
 	/usr/lib/locale/locale-archive in this release. (Closes: #166979)
       * Powerpc fpu_control.h is fixed to be enable to compile _FPU_SETCW
         macro.  (Closes: #137020)
+      * The IA-64 versions of __sigsetjmp() and getcontext failed to restore
+	ar.unat before returning, is fixed in this version.  (Closes: #186654)
 
     - debian/locales/usr/sbin/locale-gen: Fix the localedef invocation
       argument order, to run under POSIXLY_CORRECT=1 environment.
@@ -81,7 +83,7 @@ glibc (2.3.2-1) unstable; urgency=low
 
     - debian/locales/DEBIAN/postinst: add "rm -rf /usr/lib/locale/*"
       to remove all old locale dir and locale-archive in locales
-      configuration time.
+      configuration time.  Requested by Denis Barbier <barbier@linuxfr.org>.
 
  -- GOTO Masanori <gotom@debian.or.jp>  Sun, 23 Mar 2003 02:39:58 +0900
 
