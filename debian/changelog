@@ -5,15 +5,40 @@ glibc (2.3.2-9) unstable; urgency=low
     - debian/patches/82_glibc232-iconv-euc-jp-ms-fix.dpatch: Fix EUC-JP-MS
       does not work even if they are listed as available in iconv.
       Dpatched by Topia <topia@clovery.jp>.  (Closes: #212080)
+
     - debian/manpages/iconv.1: Fix typo in -o option.  Patched by
       Max Vozeler <max@hinterhof.net>.  (Closes: #211733)
+
     - debian/manpages/rpcgen.1: Fix typo which cause some infos for the '-o'
       option are not shown, and add -Sm option description.  Patched by
       Nicolas Francois <nicolas.francois@centraliens.net>.
       (Closes: #211984)
+
     - debian/libc/DEBIAN/preinst: Updated libc6 libnss restarting version
       from 2.2.94-1 to 2.3.2-2 in preinst.  Postinst code was already fixed
-      in 2.3.2-2.
+      in 2.3.2-2.  (Closes: #211825)
+
+    - debian/locales/DEBIAN/template: There is no reason to
+      set LANG=C in /etc/environment, so do not display this locale
+      in the locales/default_environment_locale question.
+    - debian/locales/DEBIAN/config: Likewise.
+    - debian/locales/DEBIAN/postinst: If /etc/environment sets the LANG
+      variable and a new configuration asks for not setting it, the
+      line was not removed from this file.
+    - debian/po/templates.pot: Update templates followed by above changes.
+    - debian/po/fr.po: Update accordingly using debconf-updatepo with new
+      translation.
+    - debian/po/ja.po: Likewise.
+    - debian/po/ca.po: Update accordingly using debconf-updatepo.
+    - debian/po/de.po: Likewise.
+    - debian/po/es.po: Likewise.
+    - debian/po/fr.po: Likewise.
+    - debian/po/ko.po: Likewise.
+    - debian/po/pt_BR.po: Likewise.
+    - debian/po/ru.po: Likewise.
+    - debian/po/nl.po: Update accordingly using debconf-updatepo with
+      fixing line invalid wrapping.
+      All patched by Denis Barbier <barbier@debian.org>.
 
  -- GOTO Masanori <gotom@debian.or.jp>  Mon, 22 Sep 2003 11:28:31 +0900
 

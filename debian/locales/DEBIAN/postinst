@@ -55,6 +55,8 @@ EOF
     # Set default LANG environment variable
     if [ -e $EE ]; then
         sed -e '/^ *LANG=/d' $EE > $EE.tmp || true
+        #  $EE has to be updated if $SELECTED is empty or 'None'
+        cp -f $EE.tmp $EE
     else
         :> $EE.tmp
     fi

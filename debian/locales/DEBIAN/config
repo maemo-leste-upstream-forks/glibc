@@ -44,13 +44,10 @@ while [ "$STATE" -ge 0 ]; do
     2)
         db_get locales/locales_to_be_generated && DEFAULT_LOCALES=$(echo $RET | sed -e 's/None,*//g' -e 's/ [^ ]*,/,/g' -e 's/ [^ ]*$//')
 
-        if test -z "$DEFAULT_LOCALES"; then
-            DEFAULT_LOCALES=C
-        else
-            DEFAULT_LOCALES="C, $DEFAULT_LOCALES"
+        if test -n "$DEFAULT_LOCALES"; then
+            db_subst locales/default_environment_locale locales $DEFAULT_LOCALES
+            db_input medium locales/default_environment_locale || true
         fi
-        db_subst locales/default_environment_locale locales $DEFAULT_LOCALES
-        db_input medium locales/default_environment_locale || true
         ;;
     *)
         break
