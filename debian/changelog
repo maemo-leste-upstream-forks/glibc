@@ -34,6 +34,22 @@ glibc (2.3.2.ds1-14) unstable; urgency=low
     - debian/local/usr_sbin/tzconfig: Fix typo: old_timezone vs oldtimezone.
       Reported by Kai Henningsen <kai@khms.westfalen.de>.  (Closes: #213159)
 
+    - Put amd64 port from Andreas Jochens.
+      - debian/control: Updated.
+      - debian/control.in: Modify Build-Depends: gcc-3.3 | gcc-3.4.
+        glibc can build at least gcc-3.3 and later.  And this will make it
+        possible to build glibc with gcc-3.4 when gcc-3.4 becomes the default
+        on amd64 without changing glibc again.
+
+  * Andreas Jochens <aj@andaco.de>
+
+    - debian/rules.d/control.mk: Add amd64 at the appropriate places.
+    - Add debian/patches/amd64-lib.dpatch to disable the biarch lib64 dir on
+      amd64 and enable this patch in debian/patches/00list.  (Closes: #246547)
+    - Add a new file debian/sysdeps/amd64.mk with GLIBC_PASSES += nptl
+      (Closes: #248192)
+    - debian/sysdeps/amd64.mk: Use gcc instead of gcc-3.3 on amd64.
+
  -- GOTO Masanori <gotom@debian.org>  Mon, 31 May 2004 23:43:29 +0900
 
 glibc (2.3.2.ds1-13) unstable; urgency=low
