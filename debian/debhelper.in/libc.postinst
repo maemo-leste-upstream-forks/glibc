@@ -191,11 +191,11 @@ then
 	    check="nis smail sendmail exim ssh netbase"
 	    check="$check ssh-nonfree postfix-tls wu-ftpd boa cron postfix"
 	    check="$check wu-ftpd-academ vsftpd slapd openldapd wwwoffle"
-	    check="$check cupsys lprng lpr autofs snmpd ssh-krb5 samba"
+	    check="$check cupsys lprng lpr lpr-ppd autofs snmpd ssh-krb5"
 	    check="$check courier-authdaemon mysql-server spamassassin"
 	    check="$check apache apache-ssl apache-perl apache2-common"
 	    check="$check proftpd proftpd-ldap proftpd-mysql proftpd-pgsql"
-	    check="$check dovecot-common cucipop rsync"
+	    check="$check dovecot-common cucipop rsync samba"
 	    # Only get the ones that are installed, and configured
 	    check=$(dpkg -s $check 2> /dev/null | egrep '^Package:|^Status:' | awk '{if ($1 ~ /^Package:/) { package=$2 } else if ($0 ~ /^Status: .* installed$/) { print package }}')
 	    # apache2 ships its init script in apache2-common, but the
@@ -207,6 +207,11 @@ then
 	    # dovecot-common ships its init script, but the
 	    # script name is dovecot for dovecot-{imapd,pop3d}.
 	    check=$(echo $check | sed 's/dovecot-common/dovecot/g')
+	    # lpr and lpr-ppd ship its init script, but the 
+	    # script name is lpd and lpd-ppd.  The inserted space is
+	    # intentional to not replace lprng.
+	    check=$(echo $check | sed 's/lpr /lpd /g')
+	    check=$(echo $check | sed 's/lpr-ppd /lpd-ppd /g')
 	    # We have to list inetd explicitly, because the package is a
 	    # different name from it's init script
 	    check="$check inetd"
