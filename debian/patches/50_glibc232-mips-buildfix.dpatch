@@ -1,0 +1,100 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: MIPS build fix for 2003-05-05 cvs.
+# DP: Author: Guido Guenther <agx@sigxcpu.org>
+# DP: Upstream status: Not submitted
+# DP: Status Details:
+# DP: Date: 2003-05-09
+# 2003-05-05  Thiemo Seufer  <ica2_ts@csv.ica.uni-stuttgart.de>
+# 
+# 	* sysdeps/mips/dl-machine.h: make declarations of elf_machine_rel{,a}
+# 	  compatible with the rest of the universe.
+# 
+# 2003-05-05  Guido Guenther  <agx@sigxcpu.org>
+# 
+# 	* sysdeps/unix/sysv/linux/mips/Makefile: create $(objpfx) so
+# 	  the syscall-lists can actually go somewhere.
+
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mips/dl-machine.h,v
+retrieving revision 1.68
+diff -u -p -u -r1.68 dl-machine.h
+--- sysdeps/mips/dl-machine.h	22 Mar 2003 12:50:46 -0000	1.68
++++ sysdeps/mips/dl-machine.h	5 May 2003 08:53:35 -0000
+@@ -534,13 +534,14 @@ static inline void
+ #endif
+ elf_machine_rel (struct link_map *map, const ElfW(Rel) *reloc,
+ 		 const ElfW(Sym) *sym, const struct r_found_version *version,
+-		 /* We use void* because the location to be relocated
+-		    is not required to be properly aligned for a
+-		    ELFW(Addr).  */
+-		 void /* ElfW(Addr) */ *const reloc_addr)
++		 ElfW(Addr) *const reloc_addr)
+ {
+   const unsigned long int r_type = ELFW(R_TYPE) (reloc->r_info);
+ 
++/* We use void* because the location to be relocated is not required
++   to be properly aligned for a ELFW(Addr).  */
++  void *const r_addr = reloc_addr;
++
+ #if !defined RTLD_BOOTSTRAP && !defined SHARED
+   /* This is defined in rtld.c, but nowhere in the static libc.a;
+      make the reference weak so static programs can still link.  This
+@@ -565,7 +566,7 @@ elf_machine_rel (struct link_map *map, c
+ 	/* Support relocations on mis-aligned offsets.  Should we ever
+ 	   implement RELA, this should be replaced with an assignment
+ 	   from reloc->r_addend.  */
+-	__builtin_memcpy (&reloc_value, reloc_addr, sizeof (reloc_value));
++	__builtin_memcpy (&reloc_value, r_addr, sizeof (reloc_value));
+ 
+ 	if (symidx)
+ 	  {
+@@ -613,7 +614,7 @@ elf_machine_rel (struct link_map *map, c
+ #endif
+ 	    reloc_value += map->l_addr;
+ 
+-	__builtin_memcpy (reloc_addr, &reloc_value, sizeof (reloc_value));
++	__builtin_memcpy (r_addr, &reloc_value, sizeof (reloc_value));
+       }
+       break;
+     case R_MIPS_NONE:		/* Alright, Wilbur.  */
+@@ -640,7 +641,7 @@ elf_machine_rel (struct link_map *map, c
+ 
+ static inline void
+ elf_machine_rel_relative (ElfW(Addr) l_addr, const ElfW(Rel) *reloc,
+-			  void /* ElfW(Addr) */ *const reloc_addr)
++			  ElfW(Addr) *const reloc_addr)
+ {
+   /* XXX Nothing to do.  There is no relative relocation, right?  */
+ }
+Index: sysdeps/unix/sysv/linux/mips/Makefile
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/mips/Makefile,v
+retrieving revision 1.8
+diff -u -p -u -r1.8 Makefile
+--- sysdeps/unix/sysv/linux/mips/Makefile	17 Mar 2003 15:50:05 -0000	1.8
++++ sysdeps/unix/sysv/linux/mips/Makefile	5 May 2003 08:53:35 -0000
+@@ -15,6 +15,7 @@ no_syscall_list_h = 1
+ # We generate not only SYS_<syscall>, pointing at SYS_<abi>_<syscall> if
+ # it exists, but also define SYS_<abi>_<syscall> for all ABIs.
+ $(objpfx)syscall-%.h $(objpfx)syscall-%.d: ../sysdeps/unix/sysv/linux/mips/sys/syscall.h
++	mkdir -p $(objpfx)
+ 	rm -f $(@:.h=.d)-t
+ 	{ \
+ 	 echo '/* Generated at libc build time from kernel syscall list.  */';\
