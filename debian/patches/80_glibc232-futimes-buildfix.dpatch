@@ -1,0 +1,40 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Build failure in sysdeps/unix/sysv/linux/futimes.c on arm,
+# DP:		mips, mipsel.
+# DP: Author: GOTO Masanori <gotom@debian.org>
+# DP: Upstream status: In CVS
+# DP: Status Details: Pulled from cvs.
+# DP: Date: 2003-08-08
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+Index: sysdeps/unix/sysv/linux/futimes.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/futimes.c,v
+retrieving revision 1.4
+retrieving revision 1.5
+diff -u -r1.4 -r1.5
+--- sysdeps/unix/sysv/linux/futimes.c	12 Jul 2003 22:50:45 -0000	1.4
++++ sysdeps/unix/sysv/linux/futimes.c	16 Jul 2003 00:09:41 -0000	1.5
+@@ -19,6 +19,7 @@
+ 
+ #include <errno.h>
+ #include <sysdep.h>
++#include <string.h>
+ #include <utime.h>
+ #include <sys/time.h>
+ #include <stdio-common/_itoa.h>
