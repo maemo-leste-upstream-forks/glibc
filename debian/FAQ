@@ -75,3 +75,21 @@ look locale (5).
 If you want to use your own locale, install "locales" package.  With
 debconf interface, you can setup which locale is generated, and which
 locale is used in default on your machine.
+
+Q6: I get this error message:
+  symbol errno, version GLIBC_2.0 not defined in file libc.so.6
+  with link time reference
+
+A6:
+
+The program is broken.  It probably says "extern int errno" somewhere,
+instead of including <errno.h>.  Errno in recent glibc versions is a macro,
+and in some builds of glibc the only symbol named errno is a thread-local
+symbol that can't be accessed by old applications which expected a global
+errno variable.
+
+The application should continue to run for now if you export
+LD_ASSUME_KERNEL=2.4.0, which disables NPTL and assumed support for
+thread-local storage.  This will probably go away in a future release.
+
+Please file a bug if the workaround doesn't work.
