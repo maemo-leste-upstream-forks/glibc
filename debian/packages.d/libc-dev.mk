@@ -50,7 +50,7 @@ ifeq ($(DEB_HOST_GNU_SYSTEM),linux)
 	cp -R $(LINUX_SOURCE)/include/linux/. $(tmpdir)/$@$(includedir)/linux/
 	cp -R $(LINUX_SOURCE)/include/asm/. $(tmpdir)/$@$(includedir)/asm/
 ifeq ($(DEB_HOST_GNU_CPU),sparc)
-	# Sparc has a 32/64 build setup, make sure we support it
+# Sparc has a 32/64 build setup, make sure we support it
 	cp -R $(LINUX_SOURCE)/include/asm-sparc \
 		$(tmpdir)/$@$(includedir)/.
 	cp -R $(LINUX_SOURCE)/include/asm-sparc64 \
@@ -60,12 +60,22 @@ ifeq ($(DEB_HOST_GNU_CPU),sparc)
 	$(tmpdir)/$@$(bindir)/generate-asm $(tmpdir)/$@$(includedir)/
 	rm -rf $(tmpdir)/$@$(includedir)/asm-sparc64
 else
+ifeq ($(DEB_HOST_GNU_CPU),s390)
+ # IBM zSeries has a 32/64 build setup, make sure we support it
+ cp -R $(LINUX_SOURCE)/include/asm-{s390,s390x} \
+ $(tmpdir)/$@$(includedir)/.
+ $(INSTALL_PROGRAM) $(LINUX_SOURCE)/generate-asm.sh \
+ $(tmpdir)/$@$(bindir)/generate-asm
+ $(tmpdir)/$@$(bindir)/generate-asm $(tmpdir)/$@$(includedir)/
+ rm -rf $(tmpdir)/$@$(includedir)/asm-s390x
+else
 	cp -R $(LINUX_SOURCE)/include/asm/. $(tmpdir)/$@$(includedir)/asm/
+endif
 endif
 	rm -rf $(tmpdir)/$@$(includedir)/linux/modules
 	rm -f $(tmpdir)/$@$(includedir)/linux/modversions.h
 endif
-	# Remove cruft from CVS trees
+# Remove cruft from CVS trees
 	find $(tmpdir)/$@$(includedir)/ -name CVS -type d | xargs -r rm -rf
 	find $(tmpdir)/$@$(includedir)/ -name '.#*' -type f | xargs rm -f
 	$(make_directory) $(tmpdir)/$@$(docdir)/$@

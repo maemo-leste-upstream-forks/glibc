@@ -1,5 +1,5 @@
 # Add opt to this line to generate optimized packages
-control_deps := $(addprefix debian/control.in/, libc6 libc6.1 libc0.3 libc1 sparc64) # 
+control_deps := $(addprefix debian/control.in/, libc6 libc6.1 libc0.3 libc1 sparc64 s390x) # 
 
 threads_archs := alpha arm i386 m68k mips mipsel powerpc sparc ia64 hppa s390 sh3 sh4 sh3eb sh4eb freebsd-i386
 
@@ -25,6 +25,7 @@ debian/control: debian/control.in/main $(DEB_HOST_GNU_TYPE) $(control_deps) \
 	cat debian/control.in/libc0.3		>> $@T
 	cat debian/control.in/libc1		>> $@T
 	cat debian/control.in/sparc64		>> $@T
+	cat debian/control.in/s390x		>> $@T
 #	Uncomment this line to enable optimized packages
 #	cat debian/control.in/opt		>> $@T
 	cat debian/control.in/libc-udeb         >> $@T

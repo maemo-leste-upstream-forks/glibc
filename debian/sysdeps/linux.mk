@@ -17,6 +17,10 @@ ifeq ($(DEB_HOST_GNU_CPU),sparc)
   arch_packages += $(libc)-sparc64 $(libc)-dev-sparc64
 endif
 
+ifeq ($(DEB_HOST_GNU_CPU),s390)
+  arch_packages += $(libc)-s390x $(libc)-dev-s390x
+endif
+
 # Uncomment this to build optimized libraries
 # opt_packages += $(addprefix opt-$(libc)-,$(cpus))
 
