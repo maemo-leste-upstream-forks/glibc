@@ -38,7 +38,7 @@ Description: GNU C Library: National Language (locale) data [support]
  by default. This created a package that unpacked to an excess of 30 megs.
 
 Package: nscd
-Architecture: alpha arm i386 m68k mips mipsel powerpc sparc ia64 hppa s390 sh3 sh4 sh3eb sh4eb
+Architecture: alpha arm i386 m68k mips mipsel powerpc sparc ia64 hppa s390 sh3 sh4 sh3eb sh4eb freebsd-i386
 Section: admin
 Priority: optional
 Depends: libc6 (>= ${Source-Version})
@@ -220,6 +220,63 @@ Description: GNU C Library: PIC archive library
  boot floppies. If you are not making your own set of Debian boot floppies
  using the `boot-floppies' package, you probably don't need this package.
 
+Package: libc1
+Architecture: freebsd-i386
+Section: base
+Priority: required
+Description: GNU C Library: Shared libraries and Timezone data
+ Contains the standard libraries that are used by nearly all programs on
+ the system. This package includes shared versions of the standard C library
+ and the standard math library, as well as many others.
+ Timezone data is also included.
+
+Package: libc1-dev
+Architecture: freebsd-i386
+Section: devel
+Priority: standard
+Depends: libc1 (= ${Source-Version})
+Recommends: c-compiler
+Suggests: glibc-doc
+Description: GNU C Library: Development Libraries and Header Files.
+ Contains the symlinks, headers, and object files needed to compile
+ and link programs which use the standard C library.
+
+Package: libc1-dbg
+Architecture: freebsd-i386
+Section: devel
+Priority: extra
+Depends: libc1 (= ${Source-Version})
+Description: GNU C Library: Libraries with debugging symbols
+ Contains unstripped shared libraries.
+ This package is provided primarily to provide a backtrace with
+ names in a debugger, this makes it somewhat easier to interpret core
+ dumps. The libraries are installed in /usr/lib/debug and can be
+ used by placing that directory in LD_LIBRARY_PATH.
+ Most people will not need this package.
+
+Package: libc1-prof
+Architecture: freebsd-i386
+Section: devel
+Priority: extra
+Depends: libc1 (= ${Source-Version})
+Description: GNU C Library: Profiling Libraries.
+ Static libraries compiled with profiling info (-pg) suitable for use
+ with gprof.
+
+Package: libc1-pic
+Architecture: freebsd-i386
+Section: devel
+Priority: optional
+Conflicts: libc-pic
+Provides: libc-pic, glibc-pic
+Depends: libc1 (= ${Source-Version})
+Description: GNU C Library: PIC archive library
+ Contains an archive library (ar file) composed of individual shared objects.
+ This is used for creating a library which is a smaller subset of the
+ standard libc shared library. The reduced library is used on the Debian
+ boot floppies. If you are not making your own set of Debian boot floppies
+ using the `boot-floppies' package, you probably don't need this package.
+
 Package: libc6-sparc64
 Architecture: sparc
 Section: base
@@ -239,60 +296,3 @@ Description: GNU C Library: 64bit Development Libraries for UltraSPARC
  Contains the symlinks and object files needed to compile and link programs
  which use the standard C library. This is the 64bit version of the
  library, meant for UltraSPARC systems.
-Package: libc6-v9
-Architecture: sparc
-Section: libs
-Priority: extra
-Pre-Depends: libc6 (= ${Source-Version})
-Description: GNU C Library: Shared libraries [v9 optimized]
- Contains the standard libraries that are used by nearly all programs on
- the system. This package includes shared versions of the standard C
- library and the standard math library, as well as many others.
- .
- This set of libraries is optimized for the UltraSPARC v9 ABI. It only
- needs to be installed on UltraSPARC machines. If you install this on a
- non-UltraSPARC, it wont even be used.
- .
- WARNING: Some commercial programs do not work well with these libraries.
- Most notably, IBM's JDK. If you experience problems with such
- applications, you will need to remove this package.
-
-Package: libc6-i586
-Architecture: i386
-Section: libs
-Priority: extra
-Pre-Depends: libc6 (= ${Source-Version})
-Description: GNU C Library: Shared libraries [i586 optimized]
- Contains the standard libraries that are used by nearly all programs on
- the system. This package includes shared versions of the standard C
- library and the standard math library, as well as many others.
- .
- This set of libraries is optimized for i586 machines. Only install this
- if you have a i586 class CPU (check the output of `uname -m'). This
- usually includes all standard Pentium class systems (including clones
- such as AMD). For Pentium Pro, Pentium II/III and Celeron, you should
- check libc6-i686 package.
- .
- WARNING: Some commercial programs do not work well with these libraries.
- Most notably, IBM's JDK. If you experience problems with such
- applications, you will need to remove this package.
-
-Package: libc6-i686
-Architecture: i386
-Section: libs
-Priority: extra
-Pre-Depends: libc6 (= ${Source-Version})
-Description: GNU C Library: Shared libraries [i686 optimized]
- Contains the standard libraries that are used by nearly all programs on
- the system. This package includes shared versions of the standard C
- library and the standard math library, as well as many others.
- .
- This set of libraries is optimized for i686 machines. Only install this
- if you have a i686 class CPU (check the output of `uname -m'). This
- usually includes Pentium Pro, Pentium II/III, Celeron CPU's and similar
- class CPU's (including clones such as AMD). For standard Pentium class
- machines, check the libc6-i586 package.
- .
- WARNING: Some commercial programs do not work well with these libraries.
- Most notably, IBM's JDK. If you experience problems with such
- applications, you will need to remove this package.

@@ -95,7 +95,7 @@ ifeq ($(NO_LOG),)
 endif
 	$(warning Please check results before uploading in case of test failures.)
 	date >$(log_test)
-	-$(MAKE) -k SHELL=/bin/bash -C $(objdir) check 2>&1 | tee -a $(log_test)
+	$(MAKE) SHELL=/bin/bash -C $(objdir) check 2>&1 | tee -a $(log_test)
 	date >>$(log_test)
 endif
 

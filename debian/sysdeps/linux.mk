@@ -17,7 +17,8 @@ ifeq ($(DEB_HOST_GNU_CPU),sparc)
   arch_packages += $(libc)-sparc64 $(libc)-dev-sparc64
 endif
 
-opt_packages += $(addprefix opt-$(libc)-,$(cpus))
+# Uncomment this to build optimized libraries
+# opt_packages += $(addprefix opt-$(libc)-,$(cpus))
 
 config-os = linux-gnu
 threads = yes
