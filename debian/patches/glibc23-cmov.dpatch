@@ -6,7 +6,7 @@
 # DP: Author: GOTO Masanori <gotom@debian.org>
 # DP: Upstream status: Not submitted
 # DP: Status Details: Not submitted
-# DP: Date: 2003-02-01
+# DP: Date: 2003-02-21
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
@@ -34,15 +34,14 @@ exit 0
  };
  
 --- libc/sysdeps/generic/dl-cache.c	2003-02-02 05:33:47.000000000 +0900
-+++ libc/sysdeps/generic/dl-cache.c.new	2003-02-02 05:35:15.000000000 +0900
-@@ -231,8 +231,8 @@
- 	  && (lib->hwcap & _DL_HWCAP_PLATFORM) != 0			      \
++++ libc/sysdeps/generic/dl-cache.c.new1	2003-02-21 09:18:19.000000000 +0900
+@@ -232,7 +232,8 @@
  	  && (lib->hwcap & _DL_HWCAP_PLATFORM) != platform)		      \
  	continue;							      \
--      if (hwcap								      \
+       if (hwcap								      \
 -	  && ((lib->hwcap & *hwcap & ~_DL_HWCAP_PLATFORM) > *hwcap))	      \
-+      if (hwcap	&& lib->hwcap != 0					      \
-+	  && ((lib->hwcap & *hwcap & ~_DL_HWCAP_PLATFORM) == 0))	      \
++	  && ((lib->hwcap & ~_DL_HWCAP_PLATFORM & *hwcap) <		      \
++	      (lib->hwcap & ~_DL_HWCAP_PLATFORM)))			      \
  	continue
        SEARCH_CACHE (cache_new);
      }
