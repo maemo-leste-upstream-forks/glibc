@@ -18,8 +18,15 @@ Universal Time is now:  $UTdate."
 }
 
 set_timezone() {
-    echo "Running 'tzconfig' to set this system's timezone."
-    /usr/sbin/tzconfig
+    frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
+    if [ "$frontend" = noninteractive ]; then
+        echo "Non-interactive mode, setting timezone to UTC.  Run tzconfig to change."
+        echo "UTC" >/etc/timezone
+        ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+    else
+        echo "Running 'tzconfig' to set this system's timezone."
+        /usr/sbin/tzconfig
+    fi
 }
 
 # Borrowed from sysvinit's postinst.
