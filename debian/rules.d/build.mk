@@ -31,6 +31,8 @@ ifneq ($(call xx,slibdir),)
 endif
 
 	# Prevent autoconf from running unexpectedly by setting it to false.
+	# Also explicitly pass CC down - this is needed to get -m64 on
+	# Sparc, et cetera.
 
 	configure_build=$(call xx,configure_build); \
 	if [ $(call xx,configure_target) = $$configure_build ]; then \
@@ -41,6 +43,7 @@ endif
 	  fi; \
 	fi; \
 	cd $(DEB_BUILDDIR) && \
+		CC=$(call xx,CC) \
 		AUTOCONF=false \
 		$(CURDIR)/$(DEB_SRCDIR)/configure \
 		--host=$(call xx,configure_target) \
