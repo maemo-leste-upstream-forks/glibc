@@ -4,7 +4,7 @@ Priority: required
 Build-Depends: gettext (>= 0.10.37-1), make (>= 3.80-1), dpkg-dev (>= 1.4.1.5), debianutils (>= 1.13.1), tar (>= 1.13.11), bzip2, texinfo (>= 4.0), linux-kernel-headers (>= 2.5.999-test7-bk-9) [!hurd-i386], mig (>= 1.3-2) [hurd-i386], hurd-dev (>= 20020608-1) [hurd-i386], gnumach-dev [hurd-i386], texi2html, file, gcc-3.3, autoconf, binutils (>= 2.14.90.0.7-5), sed (>= 4.0.5-4), gawk, debhelper (>= 4.1.76)
 Build-Depends-Indep: perl, po-debconf
 Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
-Uploaders: Ben Collins <bcollins@debian.org>, GOTO Masanori <gotom@debian.org>, Philip Blundell <pb@nexus.co.uk>, Jeff Bailey <jbailey@nisa.net>, Daniel Jacobowitz <dan@debian.org>
+Uploaders: Ben Collins <bcollins@debian.org>, GOTO Masanori <gotom@debian.org>, Philip Blundell <pb@nexus.co.uk>, Jeff Bailey <jbailey@raspberryginger.com>, Daniel Jacobowitz <dan@debian.org>
 Standards-Version: 3.6.1.0
 
 Package: glibc-doc
@@ -112,12 +112,13 @@ Architecture: arm i386 m68k mips mipsel powerpc sparc s390 hppa sh3 sh4 sh3eb sh
 Section: debian-installer
 Priority: extra
 Provides: libc6, libc-udeb, ${locale:Depends}
+Depends: libnss-dns-udeb, libnss-files-udeb
 Description: GNU C Library: Shared libraries - udeb
  Contains the standard libraries that are used by nearly all programs on
  the system. This package includes shared versions of the standard C library
  and the standard math library, as well as many others.
  .
- This package contains a minimal set of libraries needed for the debian
+ This package contains a minimal set of libraries needed for the Debian
  installer.  Do not install it on a normal system.
 
 Package: libc6.1
@@ -183,12 +184,13 @@ Architecture: alpha ia64
 Section: debian-installer
 Priority: extra
 Provides: libc6.1, libc-udeb, ${locale:Depends}
+Depends: libnss-dns-udeb, libnss-files-udeb
 Description: GNU C Library: Shared libraries - udeb
  Contains the standard libraries that are used by nearly all programs on
  the system. This package includes shared versions of the standard C library
  and the standard math library, as well as many others.
  .
- This package contains a minimal set of libraries needed for the debian
+ This package contains a minimal set of libraries needed for the Debian
  installer.  Do not install it on a normal system.
 
 Package: libc0.3
@@ -254,12 +256,13 @@ Architecture: hurd-i386
 Section: debian-installer
 Priority: extra
 Provides: libc0.3, libc-udeb, ${locale:Depends}
+Depends: libnss-dns-udeb, libnss-files-udeb
 Description: GNU C Library: Shared libraries - udeb
  Contains the standard libraries that are used by nearly all programs on
  the system. This package includes shared versions of the standard C library
  and the standard math library, as well as many others.
  .
- This package contains a minimal set of libraries needed for the debian
+ This package contains a minimal set of libraries needed for the Debian
  installer.  Do not install it on a normal system.
 
 Package: libc1
@@ -325,12 +328,13 @@ Architecture: freebsd-i386
 Section: debian-installer
 Priority: extra
 Provides: libc1, libc-udeb, ${locale:Depends}
+Depends: libnss-dns-udeb, libnss-files-udeb
 Description: GNU C Library: Shared libraries - udeb
  Contains the standard libraries that are used by nearly all programs on
  the system. This package includes shared versions of the standard C library
  and the standard math library, as well as many others.
  .
- This package contains a minimal set of libraries needed for the debian
+ This package contains a minimal set of libraries needed for the Debian
  installer.  Do not install it on a normal system.
 
 Package: libc6-sparc64
@@ -421,10 +425,10 @@ Description: GNU C Library: Shared libraries [i686 optimized]
  library and the standard math library, as well as many others.
  .
  This set of libraries is optimized for i686 machines, and will only be
- used if you are running a 2.6 kernel on an i686 class CPU (check the
- output of `uname -m').  This includes Pentium Pro, Pentium II/III/IV,
- Celeron CPU's and similar class CPU's (including clones such as AMD
- Athlon/Opteron, VIA C3 Nehemiah, but not VIA C3 Ezla).
+ used if you are running a 2.6 kernel on an i686 class CPU (check the 
+ output of `uname -m').  This includes Pentium Pro, Pentium II/III/IV, 
+ Celeron CPU's and similar class CPU's (including clones such as AMD 
+ Athlon/Opteron, VIA C3 Nehemiah, but not VIA C3 Ezla).  
  .
  This package includes support for NPTL.
  .
@@ -437,11 +441,24 @@ XC-Package-Type: udeb
 Architecture: any
 Section: debian-installer
 Priority: extra
-Description: GNU C Library: NSS helper for DNS
+Description: GNU C Library: NSS helper for DNS - udeb
  Contains the standard libraries that are used by nearly all programs on
  the system. This package includes shared versions of the standard C library
  and the standard math library, as well as many others.
  .
- This package contains dns nss helper needed for the debian installer.  Do not
- install it on a normal system.
+ This package contains the DNS NSS helper needed for the Debian installer.
+ Do not install it on a normal system.
+
+Package: libnss-files-udeb
+XC-Package-Type: udeb
+Architecture: any
+Section: debian-installer
+Priority: extra
+Description: GNU C Library: NSS helper for files - udeb
+ Contains the standard libraries that are used by nearly all programs on
+ the system. This package includes shared versions of the standard C library
+ and the standard math library, as well as many others.
+ .
+ This package contains the files NSS helper needed for the Debian installer.
+ Do not install it on a normal system.
 
