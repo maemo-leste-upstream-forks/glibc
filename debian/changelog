@@ -84,12 +84,20 @@ glibc (2.3.2-1) unstable; urgency=low
       generate-asm.sh.  The current libc-dev.mk assumes the existence of this
       script, but on s390 it's not existed.  Now libc-dev.mk s390 asm setup
       part does not use generate-asm.sh, and has the generate-asm.sh
-      functionality in its own.  This makes s390 build much easier.
+      functionality in its own.  This makes s390 which has 32/64 bit multi
+      libraries are much easier to build.
       Patched by Gerhard Tonn <GerhardTonn@gammatau.de>.
 
     - debian/locales/DEBIAN/postinst: add "rm -rf /usr/lib/locale/*"
       to remove all old locale dir and locale-archive in locales
       configuration time.  Requested by Denis Barbier <barbier@linuxfr.org>.
+
+    - debian/control: Change Section: from devel to libdevel for packages:
+      libc0.3-dev, libc6-dev, libc6-dev-s390x, libc6-dev-sparc64, libc6.1-dev
+      and libc1-dev.
+    - debian/control.in/libc: likewise.
+    - debian/control.in/s390x: likewise.
+    - debian/control.in/sparc64: likewise.
 
  -- GOTO Masanori <gotom@debian.or.jp>  Sun, 23 Mar 2003 02:39:58 +0900
 
