@@ -14,3 +14,8 @@ mkdir -p debian/tmp-$(curpass)/lib
 ln -s ld.so.1 debian/tmp-$(curpass)/lib/ld.so
 endef
 
+# Do not care about kernel versions for now.
+define kernel_check
+true
+endef
+
