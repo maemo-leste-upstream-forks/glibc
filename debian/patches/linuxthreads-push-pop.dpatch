@@ -1,0 +1,105 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Bring __libc_cleanup_push/pop from CVS for LinuxThreads
+# DP: Author: Daniel Jacobowitz
+# DP: Upstream status: In CVS
+# DP: Date: Sep. 12, 2003
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+Index: glibc-2.3.2/linuxthreads/ChangeLog
+===================================================================
+RCS file: /big/fsf/rsync/glibc-cvs/libc/linuxthreads/ChangeLog,v
+retrieving revision 1.701
+retrieving revision 1.702
+diff -u -p -r1.701 -r1.702
+--- glibc-2.3.2/linuxthreads/ChangeLog	14 Jul 2003 22:42:07 -0000	1.701
++++ glibc-2.3.2/linuxthreads/ChangeLog	20 Jul 2003 19:23:16 -0000	1.702
+@@ -1,3 +1,10 @@
++2003-07-20  Ulrich Drepper  <drepper@redhat.com>
++
++	* sysdeps/pthread/bits/libc-lock.h: Define __libc_cleanup_push and
++	__libc_cleanup_pop.
++
++	* tst-cancel-wrappers.sh: lseek and llseek are no cancellation points.
++
+ 2003-07-14  Ulrich Drepper  <drepper@redhat.com>
+ 
+ 	* sysdeps/unix/sysv/linux/sparc/sparc32/sysdep-cancel.h: Fix typo
+Index: glibc-2.3.2/linuxthreads/tst-cancel-wrappers.sh
+===================================================================
+RCS file: /big/fsf/rsync/glibc-cvs/libc/linuxthreads/tst-cancel-wrappers.sh,v
+retrieving revision 1.7
+retrieving revision 1.8
+diff -u -p -r1.7 -r1.8
+--- glibc-2.3.2/linuxthreads/tst-cancel-wrappers.sh	15 Jan 2003 00:58:12 -0000	1.7
++++ glibc-2.3.2/linuxthreads/tst-cancel-wrappers.sh	20 Jul 2003 19:22:15 -0000	1.8
+@@ -27,8 +27,6 @@ C["connect"]=1
+ C["creat"]=1
+ C["fcntl"]=1
+ C["fsync"]=1
+-C["llseek"]=1
+-C["lseek"]=1
+ C["msgrcv"]=1
+ C["msgsnd"]=1
+ C["msync"]=1
+Index: glibc-2.3.2/linuxthreads/sysdeps/pthread/bits/libc-lock.h
+===================================================================
+RCS file: /big/fsf/rsync/glibc-cvs/libc/linuxthreads/sysdeps/pthread/bits/libc-lock.h,v
+retrieving revision 1.29
+retrieving revision 1.30
+diff -u -p -r1.29 -r1.30
+--- glibc-2.3.2/linuxthreads/sysdeps/pthread/bits/libc-lock.h	5 Feb 2003 09:53:23 -0000	1.29
++++ glibc-2.3.2/linuxthreads/sysdeps/pthread/bits/libc-lock.h	20 Jul 2003 19:22:46 -0000	1.30
+@@ -250,6 +250,20 @@ typedef pthread_key_t __libc_key_t;
+       _pthread_cleanup_pop_restore (&_buffer, (DOIT));			      \
+     }
+ 
++#define __libc_cleanup_push(fct, arg) \
++  { struct _pthread_cleanup_buffer _buffer;				      \
++    int _avail = _pthread_cleanup_push != NULL;				      \
++    if (_avail) {							      \
++      _pthread_cleanup_push (&_buffer, (fct), (arg));			      \
++    }
++
++#define __libc_cleanup_pop(execute) \
++    if (_avail) {							      \
++      _pthread_cleanup_pop (&_buffer, execute);				      \
++    }									      \
++  }
++
++
+ /* Create thread-specific key.  */
+ #define __libc_key_create(KEY, DESTRUCTOR) \
+   (__libc_maybe_call (__pthread_key_create, (KEY, DESTRUCTOR), 1))
+@@ -352,6 +366,8 @@ weak_extern (BP_SYM (__pthread_getspecif
+ weak_extern (BP_SYM (__pthread_once))
+ weak_extern (__pthread_initialize)
+ weak_extern (__pthread_atfork)
++weak_extern (BP_SYM (_pthread_cleanup_push))
++weak_extern (BP_SYM (_pthread_cleanup_pop))
+ weak_extern (BP_SYM (_pthread_cleanup_push_defer))
+ weak_extern (BP_SYM (_pthread_cleanup_pop_restore))
+ # else
+@@ -377,6 +393,8 @@ weak_extern (BP_SYM (_pthread_cleanup_po
+ #  pragma weak __pthread_atfork
+ #  pragma weak _pthread_cleanup_push_defer
+ #  pragma weak _pthread_cleanup_pop_restore
++#  pragma weak _pthread_cleanup_push
++#  pragma weak _pthread_cleanup_pop
+ # endif
+ #endif
+ 
