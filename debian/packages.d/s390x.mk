@@ -46,7 +46,7 @@ $(stamp_configure_64): $(stamp_unpack) $(stamp_patch)
 	echo "cross-compiling = yes"	>> $(objdir_64)/configparms
 	echo 
 	cd $(objdir_64) && CC="$(MYCC)" CFLAGS="$(flags_64)" \
-	$(srcdir)/configure --host=s390xlinux \
+	$(srcdir)/configure --host=s390x-linux \
 		--build=s390-linux --prefix=/usr --without-cvs \
 		--disable-profile --enable-static --enable-kernel=2.4.0 \
 		--enable-add-ons="$(add-ons)" $(with_headers)
