@@ -117,7 +117,6 @@ endif
 
 	touch $@
 
-# We may eventually want $(libc)-udeb instead of libc-udeb.
 $(patsubst %,binaryinst_%,$(DEB_UDEB_PACKAGES)) :: binaryinst_% : $(stamp)binaryinst_%
 $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): $(stamp)debhelper
 	@echo Running debhelper for $(curpass)
@@ -132,9 +131,8 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): $(stamp)debhelper
 	# dh_makeshlibs -p$(curpass) -V "$(call xx,shlib_dep)"
 	dh_installdeb -p$(curpass)
 	# dh_shlibdeps -p$(curpass)
-	dh_gencontrol -p$(curpass) -- -fdebian/files~
-	dpkg-distaddfile $(curpass)_$(DEB_VERSION)_$(DEB_BUILD_ARCH).udeb debian-installer required
-	dh_builddeb -p$(curpass) --filename=$(curpass)_$(DEB_VERSION)_$(DEB_BUILD_ARCH).udeb
+	dh_gencontrol -p$(curpass)
+	dh_builddeb -p$(curpass)
 
 	touch $@
 
@@ -154,14 +152,9 @@ NPTL = $(filter nptl,$(GLIBC_PASSES))
 debhelper: $(stamp)debhelper
 $(stamp)debhelper:
 
-# This little bit of fun works around the bug that libc-udeb is misnamed:
-# It doesn't have the version number attached to it.  We'll piss off the
-# d-i folks *after* sarge has release by fixing this.  In the mean time
-# we suck it up and deal.
-
 	for x in `find debian/debhelper.in -type f -maxdepth 1`; do \
 	  y=debian/`basename $$x`; \
-	  z=`echo $$y | sed -e '/udeb/! s#/libc#/$(libc)#'`; \
+	  z=`echo $$y | sed -e 's#/libc#/$(libc)#'`; \
 	  cp $$x $$z; \
 	  sed -e "s#TMPDIR#debian/tmp-libc#" -i $$z; \
 	  sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$z; \
