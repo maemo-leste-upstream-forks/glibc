@@ -1,23 +1,21 @@
 This directory contains the files needed to build glibc for the Debian
 GNU/Linux and GNU/Hurd distributions.
 
-To build this package, you'll need this `debian' directory, and
-`glibc-VERSION.tar.gz', and `glibc-linuxthreads-LTVERSION.tar.gz' (the
-VERSIONS need not match). Put them all in a directory called
-`glibc-VERSION', and make sure that the `debian/rules', `debian/changelog',
-and `debian/sysdeps/config.mk' refer correctly to VERSION.  Then, you can
-run dpkg-buildpackage, which will automatically unpack the tarballs, and
-start the build.
+If you have pulled this version from CVS, you will probably need to go
+and get the tar.bz2 files that match the file 'version'.  You can
+generally find these at sources.redhat.com in pub/libc.  Put both the
+regular glibc tar.bz2 *AND* the matching linuxthreads tar.bz2.  After
+that follow the usual build procedures.  
 
 Compiling the GNU C library yourself requires a lot of resources.  For
-a complete build using dpkg-buildpackage you need at least 200MB free
+a complete build using dpkg-buildpackage you need at least 750MB free
 disk space and at least 16MB of RAM and 32MB of swap space (if you
 have only that much you're better off not running X at the same
 time). Note that the C library on the Hurd is also somewhat larger:
 you'll need over 800MB of free disk space to build Hurdish packages.
 
-A complete build runs for about 6 hours on a 486-133 and still just
-about 3 hours on a Pentium 133. The cause for this is the intricate
+A complete build takes 45 minutes on a Pentium III 735Mhz machine, and
+25 minutes to run the test suite.  The cause for this is the intricate
 Makefile structure of glibc which needs a lot of computing power for
 make to figure out the automatically generated dependencies.
 
