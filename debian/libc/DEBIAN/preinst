@@ -115,10 +115,11 @@ then
     fi
     # parisc64 boxes require latest fixes in the kernel 2.4.19-pa17 or later
     # (in 2.4.x), 2.5.53-pa3 or later (in 2.5.x), to function properly.
+    # Note that parisc64 kernel version scheme is "`uname -r`-64".
     if [ "$realarch" = parisc64 ]
     then
 	kernel_ver=`uname -r`
-	if dpkg --compare-versions "$kernel_ver" lt 2.4.19-pa17
+	if dpkg --compare-versions "$kernel_ver" lt 2.4.19-64
 	then
 		echo WARNING: This version of libc6 requires that you be running
 		echo atleast a 2.4.19-pa17 kernel (or 2.5.53-pa3 if you use
