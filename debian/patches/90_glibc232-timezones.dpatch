@@ -1,12 +1,12 @@
 #! /bin/sh -e
 
 # All lines beginning with `# DP:' are a description of the patch.
-# DP: Description: Update timezone info to tzcode2004b and tzdata2004b.
+# DP: Description: Update timezone info to tzdata2004e.
 # DP: Related bugs: Many in the BTS
 # DP: Dpatch Author: GOTO Masanori <gotom@debian.org>
 # DP: Upstream status: In CVS
 # DP: Status Details: 
-# DP: Date: 2004-07-29
+# DP: Date: 2004-10-14
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
@@ -23,11 +23,11 @@ exit 0
 
 # append the patch here and adjust the -p? flag in the patch calls.
 diff -Nuar timezone.org/asia timezone/asia
---- timezone.org/asia	2004-07-29 13:05:53.000000000 +0900
-+++ timezone/asia	2004-07-29 13:06:22.000000000 +0900
+--- timezone.org/asia	2004-10-14 01:27:07.000000000 +0900
++++ timezone/asia	2004-10-13 23:30:38.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)asia	7.71
-+# @(#)asia	7.75
++# @(#)asia	7.77
  
  # This data is by no means authoritative; if you think you know better,
  # go ahead and edit the file (and please send any changes to
@@ -67,7 +67,7 @@ diff -Nuar timezone.org/asia timezone/asia
  			5:53:20	-	HMT	1941 Oct    # Howrah Mean Time?
  			6:30	-	BURT	1942 May 15 # Burma Time
  			5:30	-	IST	1942 Sep
-@@ -736,44 +747,19 @@
+@@ -736,44 +747,39 @@
  			2:20:40	-	JMT	1918	# Jerusalem Mean Time?
  			2:00	Zion	I%sT
  
@@ -121,10 +121,30 @@ diff -Nuar timezone.org/asia timezone/asia
 +# the summer months (i.e. GMT+4).  However, no legislation in this
 +# direction is expected until the latter part of 2004 which is a long
 +# time off in terms of Israeli politics.
++
++# (2004-09-20):
++# The latest rumour, however, is that in 2005, when the clock changes to
++# Daylight Saving Time (date as yet unknown), the move will be a two-hour leap
++# forward (from UTC+0200 to UTC+0400) and then, in the fall, the clock will
++# move back only an hour to UTC+0300 thus effectively moving Israel's timezone
++# from UTC+0200 to UTC+0300.  However, no actual draft has been put before the
++# Knesset (Israel's Parliament) though the intention is to do so this
++# month [2004-09].
++
++# (2004-09-26):
++# Even though the draft law for the above did pass the Ministerial Committee
++# for Legislative Matters three months ago, it was voted down in today's
++# Cabinet meeting.  The current suggestion is to keep the current timezone at
++# UTC+0200 but have an extended period of Daylight Saving Time (UTC+0300) from
++# the beginning of Passover holiday in the spring to after the Tabernacle
++# holiday in the fall (i.e. the dates of which are governed by the Hebrew
++# calendar but this means at least 184 days of DST).  However, this is only a
++# suggestion that was raised in today's cabinet meeting and has not yet been
++# drafted.
  
  
  
-@@ -926,7 +912,7 @@
+@@ -926,7 +932,7 @@
  			6:00	-	SHET	1982 Apr  1
  			5:00 RussiaAsia	SHE%sT	1991
  			5:00	-	SHET	1991 Dec 16 # independence
@@ -133,7 +153,7 @@ diff -Nuar timezone.org/asia timezone/asia
  			4:00 RussiaAsia	AQT%sT
  # West Kazakhstan
  Zone	Asia/Oral	3:25:24	-	LMT	1924 May  2 # or Ural'sk
-@@ -1036,22 +1022,29 @@
+@@ -1036,22 +1042,29 @@
  Rule	NBorneo	1935	1941	-	Sep	14	0:00	0:20	TS # one-Third Summer
  Rule	NBorneo	1935	1941	-	Dec	14	0:00	0	-
  #
@@ -174,7 +194,7 @@ diff -Nuar timezone.org/asia timezone/asia
  			8:00	-	MYT
  
  # Maldives
-@@ -1103,6 +1096,15 @@
+@@ -1103,6 +1116,15 @@
  #
  # [The province of Selenge is omitted from the above lists.]
  
@@ -190,7 +210,7 @@ diff -Nuar timezone.org/asia timezone/asia
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule	Mongol	1983	1984	-	Apr	1	0:00	1:00	S
  Rule	Mongol	1983	only	-	Oct	1	0:00	0	-
-@@ -1112,8 +1114,9 @@
+@@ -1112,8 +1134,9 @@
  Rule	Mongol	1985	1998	-	Mar	lastSun	2:00s	1:00	S
  Rule	Mongol	1984	1998	-	Sep	lastSun	2:00s	0	-
  # IATA SSIM (1999-09) says Mongolia no longer observes DST.
@@ -202,7 +222,7 @@ diff -Nuar timezone.org/asia timezone/asia
  
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
  # Hovd, a.k.a. Chovd, Dund-Us, Dzhargalant, Khovd, Jirgalanta
-@@ -1320,15 +1323,18 @@
+@@ -1320,15 +1343,18 @@
  			3:00	-	AST
  
  # Singapore
@@ -229,8 +249,8 @@ diff -Nuar timezone.org/asia timezone/asia
  
  # Spratly Is
 diff -Nuar timezone.org/australasia timezone/australasia
---- timezone.org/australasia	2004-07-29 13:05:53.000000000 +0900
-+++ timezone/australasia	2004-07-29 13:04:18.000000000 +0900
+--- timezone.org/australasia	2004-10-14 01:27:07.000000000 +0900
++++ timezone/australasia	2003-10-27 13:21:35.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)australasia	7.68
 +# @(#)australasia	7.69
@@ -391,8 +411,8 @@ diff -Nuar timezone.org/australasia timezone/australasia
  
  # The International Date Line
 diff -Nuar timezone.org/backward timezone/backward
---- timezone.org/backward	2004-07-29 13:05:53.000000000 +0900
-+++ timezone/backward	2004-07-29 13:06:22.000000000 +0900
+--- timezone.org/backward	2004-10-14 01:27:07.000000000 +0900
++++ timezone/backward	2004-07-30 08:40:17.000000000 +0900
 @@ -1,12 +1,17 @@
 -# @(#)backward	7.23
 +# @(#)backward	7.26
@@ -431,8 +451,8 @@ diff -Nuar timezone.org/backward timezone/backward
  Link	Pacific/Chatham		NZ-CHAT
  Link	Pacific/Pago_Pago	Pacific/Samoa
 diff -Nuar timezone.org/europe timezone/europe
---- timezone.org/europe	2004-07-29 13:05:53.000000000 +0900
-+++ timezone/europe	2004-07-29 13:06:22.000000000 +0900
+--- timezone.org/europe	2004-10-14 01:27:07.000000000 +0900
++++ timezone/europe	2004-07-30 08:40:17.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)europe	7.83
 +# @(#)europe	7.88
@@ -599,8 +619,8 @@ diff -Nuar timezone.org/europe timezone/europe
  			10:00	-	MAGT	1930 Jun 21 # Magadan Time
  			11:00	Russia	MAG%sT	1991 Mar 31 2:00s
 diff -Nuar timezone.org/iso3166.tab timezone/iso3166.tab
---- timezone.org/iso3166.tab	2004-07-29 13:05:53.000000000 +0900
-+++ timezone/iso3166.tab	2004-07-29 13:06:22.000000000 +0900
+--- timezone.org/iso3166.tab	2004-10-14 01:27:07.000000000 +0900
++++ timezone/iso3166.tab	2004-07-30 08:40:17.000000000 +0900
 @@ -1,12 +1,12 @@
  # ISO 3166 alpha-2 country codes
  #
@@ -642,8 +662,8 @@ diff -Nuar timezone.org/iso3166.tab timezone/iso3166.tab
  ZM	Zambia
  ZW	Zimbabwe
 diff -Nuar timezone.org/leapseconds timezone/leapseconds
---- timezone.org/leapseconds	2004-07-29 13:05:53.000000000 +0900
-+++ timezone/leapseconds	2004-07-29 13:06:22.000000000 +0900
+--- timezone.org/leapseconds	2004-10-14 01:27:07.000000000 +0900
++++ timezone/leapseconds	2004-07-30 08:40:17.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)leapseconds	7.15
 +# @(#)leapseconds	7.17
@@ -708,8 +728,8 @@ diff -Nuar timezone.org/leapseconds timezone/leapseconds
 +# 					Earth Orientation Center of IERS
 +# 					Observatoire de Paris, France
 diff -Nuar timezone.org/northamerica timezone/northamerica
---- timezone.org/northamerica	2004-07-29 13:05:53.000000000 +0900
-+++ timezone/northamerica	2004-07-29 13:06:22.000000000 +0900
+--- timezone.org/northamerica	2004-10-14 01:27:07.000000000 +0900
++++ timezone/northamerica	2004-07-30 08:40:18.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)northamerica	7.62
 +# @(#)northamerica	7.69
@@ -1236,18 +1256,41 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  # St Vincent and the Grenadines
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
 diff -Nuar timezone.org/private.h timezone/private.h
---- timezone.org/private.h	2001-06-10 05:29:20.000000000 +0900
-+++ timezone/private.h	2004-07-29 13:06:22.000000000 +0900
+--- timezone.org/private.h	2004-10-14 01:27:07.000000000 +0900
++++ timezone/private.h	2004-10-13 23:30:38.000000000 +0900
 @@ -21,7 +21,7 @@
  
  #ifndef lint
  #ifndef NOID
 -static char	privatehid[] = "@(#)private.h	7.52";
-+static char	privatehid[] = "@(#)private.h	7.53";
++static char	privatehid[] = "@(#)private.h	7.54";
  #endif /* !defined NOID */
  #endif /* !defined lint */
  
-@@ -288,7 +288,7 @@
+@@ -190,11 +190,22 @@
+ ** But some newer errno.h implementations define it as a macro.
+ ** Fix the former without affecting the latter.
+ */
++
+ #ifndef errno
+ extern int errno;
+ #endif /* !defined errno */
+ 
+ /*
++** Some time.h implementations don't declare asctime_r.
++** Others might define it as a macro.
++** Fix the former without affecting the latter.
++*/
++
++#ifndef asctime_r
++extern char *	asctime_r();
++#endif
++
++/*
+ ** Private function declarations.
+ */
+ char *	icalloc P((int nelem, int elsize));
+@@ -288,7 +299,7 @@
  #endif /* HAVE_INCOMPATIBLE_CTIME_R */
  
  /*
@@ -1257,11 +1300,11 @@ diff -Nuar timezone.org/private.h timezone/private.h
  
  #endif /* !defined PRIVATE_H */
 diff -Nuar timezone.org/southamerica timezone/southamerica
---- timezone.org/southamerica	2004-07-29 13:05:53.000000000 +0900
-+++ timezone/southamerica	2004-07-29 13:06:22.000000000 +0900
+--- timezone.org/southamerica	2004-10-14 01:27:07.000000000 +0900
++++ timezone/southamerica	2004-10-13 23:30:38.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)southamerica	7.46
-+# @(#)southamerica	7.52
++# @(#)southamerica	7.54
  
  # This data is by no means authoritative; if you think you know better,
  # go ahead and edit the file (and please send any changes to
@@ -1279,7 +1322,7 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  #
  # From Paul Eggert (2002-01-22):
  # <a href="http://www.spicasc.net/horvera.html">
-@@ -148,17 +155,47 @@
+@@ -148,17 +155,61 @@
  # </a> says that standard time in Argentina from 1894-10-31
  # to 1920-05-01 was -4:16:48.25.  Go with this more-precise value
  # over Shanks.
@@ -1314,6 +1357,20 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
 +# contains a contradiction.  I would give more credence to the Saturday/Sunday
 +# date than the "three days earlier" phrase, and conclude that Tierra del
 +# Fuego set its clocks back at 2004-05-30 00:00.
++#
++# From Steffen Thorsen (2004-10-05):
++# The previous law 7210 which changed the province of Mendoza's time zone
++# back in May have been modified slightly in a new law 7277, which set the
++# new end date to 2004-09-26 (original date was 2004-10-17).
++# http://www.gobernac.mendoza.gov.ar/boletin/pdf/20040924-27244-normas.pdf
++#
++# From Mariano Absatz (2004-10-05):
++# San Juan changed from UTC-03:00 to UTC-04:00 at midnight between
++# Sunday, May 30th and Monday, May 31st.  It changed back to UTC-03:00
++# at midnight between Saturday, July 24th and Sunday, July 25th....
++# http://www.sanjuan.gov.ar/prensa/archivo/000329.html
++# http://www.sanjuan.gov.ar/prensa/archivo/000426.html
++# http://www.sanjuan.gov.ar/prensa/archivo/000441.html
  
  # Unless otherwise specified, data are from Shanks through 1992, from
  # the IATA otherwise.  As noted below, Shanks says that
@@ -1331,7 +1388,7 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  			-4:16:48 -	CMT	1920 May # Cordoba Mean Time
  			-4:00	-	ART	1930 Dec
  			-4:00	Arg	AR%sT	1969 Oct  5
-@@ -167,24 +204,30 @@
+@@ -167,24 +218,19 @@
  			-3:00	-	ART
  #
  # Santa Fe (SF), Entre Rios (ER), Corrientes (CN), Misiones (MN), Chaco (CC),
@@ -1356,6 +1413,15 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  #
 -Zone America/Cordoba	-4:16:48 -	LMT	1894 Oct 31
 +Zone America/Argentina/Cordoba -4:16:48 - LMT	1894 Oct 31
+ 			-4:16:48 -	CMT	1920 May
+ 			-4:00	-	ART	1930 Dec
+ 			-4:00	Arg	AR%sT	1969 Oct  5
+@@ -194,8 +240,47 @@
+ 			-4:00	Arg	AR%sT	2000 Mar  3
+ 			-3:00	-	ART
+ #
++# Tucuman (TM)
++Zone America/Argentina/Tucuman -4:20:52 - LMT	1894 Oct 31
 +			-4:16:48 -	CMT	1920 May
 +			-4:00	-	ART	1930 Dec
 +			-4:00	Arg	AR%sT	1969 Oct  5
@@ -1363,17 +1429,6 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
 +			-4:00	-	WART	1991 Oct 20
 +			-3:00	Arg	AR%sT	1999 Oct  3
 +			-4:00	Arg	AR%sT	2000 Mar  3
-+			-3:00	-	ART
-+#
-+# Tucuman (TM)
-+Zone America/Argentina/Tucuman -4:20:52 - LMT	1894 Oct 31
- 			-4:16:48 -	CMT	1920 May
- 			-4:00	-	ART	1930 Dec
- 			-4:00	Arg	AR%sT	1969 Oct  5
-@@ -192,10 +235,38 @@
- 			-4:00	-	WART	1991 Oct 20
- 			-3:00	Arg	AR%sT	1999 Oct  3
- 			-4:00	Arg	AR%sT	2000 Mar  3
 +			-3:00	-	ART	2004 Jun  1
 +			-4:00	-	WART	2004 Jun 13
 +			-3:00	-	ART
@@ -1400,17 +1455,17 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
 +			-4:00	-	WART	1991 May  7
 +			-3:00	Arg	AR%sT	1999 Oct  3
 +			-4:00	Arg	AR%sT	2000 Mar  3
-+			-3:00	-	ART	2004 Jun  1
-+			-4:00	-	WART	2004 Oct 17
- 			-3:00	-	ART
- #
++			-3:00	-	ART	2004 May 31
++			-4:00	-	WART	2004 Jul 25
++			-3:00	-	ART
++#
  # Jujuy (JY)
 -Zone America/Jujuy	-4:21:12 -	LMT	1894 Oct 31
 +Zone America/Argentina/Jujuy -4:21:12 -	LMT	1894 Oct 31
  			-4:16:48 -	CMT	1920 May
  			-4:00	-	ART	1930 Dec
  			-4:00	Arg	AR%sT	1969 Oct  5
-@@ -209,7 +280,7 @@
+@@ -209,7 +294,7 @@
  			-3:00	-	ART
  #
  # Catamarca (CT)
@@ -1419,7 +1474,7 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  			-4:16:48 -	CMT	1920 May
  			-4:00	-	ART	1930 Dec
  			-4:00	Arg	AR%sT	1969 Oct  5
-@@ -217,10 +288,12 @@
+@@ -217,10 +302,12 @@
  			-4:00	-	WART	1991 Oct 20
  			-3:00	Arg	AR%sT	1999 Oct  3
  			-4:00	Arg	AR%sT	2000 Mar  3
@@ -1433,12 +1488,12 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  			-4:16:48 -	CMT	1920 May
  			-4:00	-	ART	1930 Dec
  			-4:00	Arg	AR%sT	1969 Oct  5
-@@ -232,6 +305,44 @@
+@@ -232,6 +319,44 @@
  			-4:00	-	WART	1992 Oct 18
  			-3:00	Arg	AR%sT	1999 Oct  3
  			-4:00	Arg	AR%sT	2000 Mar  3
 +			-3:00	-	ART	2004 May 23
-+			-4:00	-	WART	2004 Oct 17
++			-4:00	-	WART	2004 Sep 26
 +			-3:00	-	ART
 +#
 +# Chubut (CH)
@@ -1478,7 +1533,19 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  			-3:00	-	ART
  
  # Aruba
-@@ -389,10 +500,10 @@
+@@ -309,6 +434,11 @@
+ # the Government decided to postpone DST, instead of changing the Constitution
+ # (maybe, for the next elections, it will be possible to change the clock)...
+ 
++# From Rodrigo Severo (2004-10-04):
++# It's just the biannual change made necessary by the much hyped, supposedly
++# modern Brazilian eletronic voting machines which, apparently, can't deal
++# with a time change between the first and the second rounds of the elections.
++
+ # From Paul Eggert (2002-10-10):
+ # The official decrees referenced below are mostly taken from
+ # <a href="http://pcdsh01.on.br/DecHV.html">
+@@ -389,10 +519,10 @@
  Rule	Brazil	1993	only	-	Jan	31	 0:00	0	-
  # Decree <a href="http://pcdsh01.on.br/HV942.htm">942</a> (1993-09-28)
  # adopted by same states, plus AM.
@@ -1492,22 +1559,26 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  # Decree <a href="http://pcdsh01.on.br/HV1674.htm">1,674</a> (1995-10-13)
  # adds AL, SE.
  Rule	Brazil	1993	1995	-	Oct	Sun>=11	 0:00	1:00	S
-@@ -443,25 +554,37 @@
+@@ -443,25 +573,41 @@
  # Decree 4,399 (2002-10-01) repeals DST in AL, CE, MA, PB, PE, PI, RN, SE.
  # <a href="http://www.presidencia.gov.br/CCIVIL/decreto/2002/D4399.htm"></a>
  Rule	Brazil	2002	only	-	Nov	 3	 0:00	1:00	S
 +# Decree 4,844 (2003-09-24; corrected 2003-09-26) repeals DST in BA, MT, TO.
 +# <a href="http://www.presidencia.gov.br/CCIVIL/decreto/2003/D4844.htm"></a>
-+Rule	Brazil	2003	max	-	Oct	Sun>=15	 0:00	1:00	S
++Rule	Brazil	2003	only	-	Oct	19	 0:00	1:00	S
++# Decree 5,223 (2004-10-01) reestablishes DST in MT.
++# <a href="http://www.planalto.gov.br/ccivil_03/_Ato2004-2006/2004/Decreto/D5223.htm"></a>
++Rule	Brazil	2004	only	-	Nov	 2	 0:00	1:00	S
 +# The latest ruleset listed above says that the following states observe DST:
-+# DF, ES, GO, MG, MS, PR, RJ, RS, SC, SP.
++# DF, ES, GO, MG, MS, MT, PR, RJ, RS, SC, SP.
  #
 -Rule	Brazil	2003	max	-	Oct	Sun>=8	 0:00	1:00	S
 -# The latest decree listed above says that the following states observe DST:
 -# BA, DF, ES, GO, MG, MS, MT, PR, RJ, RS, SC, SP, TO.
 -#
 -# For dates after mid-2003, the above rules with TO="max" are guesses
-+# For dates after mid-2004, the above rules with TO="max" are guesses
++Rule	Brazil	2005	max	-	Oct	Sun>=15	 0:00	1:00	S
++# For dates after mid-2005, the above rules with TO="max" are guesses
  # and are quite possibly wrong, but are more likely than no DST at all.
  
  
@@ -1537,7 +1608,7 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  Zone America/Belem	-3:13:56 -	LMT	1914
  			-3:00	Brazil	BR%sT	1988 Sep 12
  			-3:00	-	BRT
-@@ -489,7 +612,8 @@
+@@ -489,7 +635,8 @@
  Zone America/Araguaina	-3:12:48 -	LMT	1914
  			-3:00	Brazil	BR%sT	1990 Sep 17
  			-3:00	-	BRT	1995 Sep 14
@@ -1547,7 +1618,7 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  #
  # Alagoas (AL), Sergipe (SE)
  Zone America/Maceio	-2:22:52 -	LMT	1914
-@@ -502,7 +626,14 @@
+@@ -502,7 +649,14 @@
  			-3:00	Brazil	BR%sT	2002 Oct  1
  			-3:00	-	BRT
  #
@@ -1563,25 +1634,23 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  # Espirito Santo (ES), Rio de Janeiro (RJ), Sao Paulo (SP), Parana (PR),
  # Santa Catarina (SC), Rio Grande do Sul (RS)
  Zone America/Sao_Paulo	-3:06:28 -	LMT	1914
-@@ -510,10 +641,15 @@
+@@ -510,8 +664,14 @@
  			-3:00	1:00	BRST	1964
  			-3:00	Brazil	BR%sT
  #
 -# Mato Grosso (MT), Mato Grosso do Sul (MS)
--Zone America/Cuiaba	-3:44:20 -	LMT	1914
 +# Mato Grosso do Sul (MS)
 +Zone America/Campo_Grande -3:38:28 -	LMT	1914
++			-4:00	Brazil	AM%sT
++#
++# Mato Grosso (MT)
+ Zone America/Cuiaba	-3:44:20 -	LMT	1914
++			-4:00	Brazil	AM%sT	2003 Sep 24
++			-4:00	-	AMT	2004 Oct  4
  			-4:00	Brazil	AM%sT
  #
-+# Mato Grosso (MT)
-+Zone America/Cuiaba	-3:44:20 -	LMT	1914
-+			-4:00	Brazil	AM%sT	2003 Sep 24
-+			-4:00	-	AMT
-+#
  # west Para (PA), Rondonia (RO)
- # West Para includes Altamira, Oribidos, Prainha, Oriximina, and Santarem.
- Zone America/Porto_Velho -4:15:36 -	LMT	1914
-@@ -528,6 +664,8 @@
+@@ -528,6 +688,8 @@
  			-4:00	-	AMT
  #
  # east Amazonas (AM): Boca do Acre, Jutai, Manaus, Floriano Peixoto
@@ -1590,7 +1659,7 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  Zone America/Manaus	-4:00:04 -	LMT	1914
  			-4:00	Brazil	AM%sT	1988 Sep 12
  			-4:00	-	AMT	1993 Sep 28
-@@ -792,13 +930,22 @@
+@@ -792,13 +954,22 @@
  			-4:00	Para	PY%sT
  
  # Peru
@@ -1615,22 +1684,109 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  Rule	Peru	1990	only	-	Jan	 1	0:00	1:00	S
  Rule	Peru	1990	only	-	Apr	 1	0:00	0	-
  # IATA is ambiguous for 1993/1995; go with Shanks.
+@@ -882,6 +1053,11 @@
+ Rule	Uruguay	1990	1991	-	Oct	Sun>=21	 0:00	1:00	S
+ Rule	Uruguay	1992	only	-	Oct	18	 0:00	1:00	S
+ Rule	Uruguay	1993	only	-	Feb	28	 0:00	0	-
++# From Eduardo Cota (2004-09-20):
++# The uruguayan government has decreed a change in the local time....
++# http://www.presidencia.gub.uy/decretos/2004091502.htm
++Rule	Uruguay	2004	only	-	Sep	Sun>=15	 0:00	1:00	S
++Rule	Uruguay	2005	only	-	Mar	Sun>=8	 0:00	0	-
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ Zone America/Montevideo	-3:44:44 -	LMT	1898 Jun 28
+ 			-3:44:44 -	MMT	1920 May  1	# Montevideo MT
 diff -Nuar timezone.org/zdump.c timezone/zdump.c
---- timezone.org/zdump.c	2004-07-29 13:05:53.000000000 +0900
-+++ timezone/zdump.c	2004-07-29 13:04:18.000000000 +0900
+--- timezone.org/zdump.c	2004-10-14 01:27:07.000000000 +0900
++++ timezone/zdump.c	2004-10-13 23:30:38.000000000 +0900
 @@ -1,8 +1,4 @@
 -#ifndef lint
 -#ifndef NOID
 -static char	elsieid[] = "@(#)zdump.c	7.29";
 -#endif /* !defined NOID */
 -#endif /* !defined lint */
-+static char	elsieid[] = "@(#)zdump.c	7.31";
++static char	elsieid[] = "@(#)zdump.c	7.40";
  
  /*
  ** This code has been made independent of the rest of the time
-@@ -163,6 +159,11 @@
+@@ -68,16 +64,15 @@
+ #define isleap(y) ((((y) % 4) == 0 && ((y) % 100) != 0) || ((y) % 400) == 0)
+ #endif /* !defined isleap */
+ 
+-#if HAVE_GETTEXT - 0
++#if HAVE_GETTEXT
+ #include "locale.h"	/* for setlocale */
+ #include "libintl.h"
+-#endif /* HAVE_GETTEXT - 0 */
++#endif /* HAVE_GETTEXT */
+ 
+ #ifndef GNUC_or_lint
+ #ifdef lint
+ #define GNUC_or_lint
+-#endif /* defined lint */
+-#ifndef lint
++#else /* !defined lint */
+ #ifdef __GNUC__
+ #define GNUC_or_lint
+ #endif /* defined __GNUC__ */
+@@ -87,8 +82,7 @@
+ #ifndef INITIALIZE
+ #ifdef GNUC_or_lint
+ #define INITIALIZE(x)	((x) = 0)
+-#endif /* defined GNUC_or_lint */
+-#ifndef GNUC_or_lint
++#else /* !defined GNUC_or_lint */
+ #define INITIALIZE(x)
+ #endif /* !defined GNUC_or_lint */
+ #endif /* !defined INITIALIZE */
+@@ -100,11 +94,11 @@
+ */
+ 
+ #ifndef _
+-#if HAVE_GETTEXT - 0
++#if HAVE_GETTEXT
+ #define _(msgid) gettext(msgid)
+-#else /* !(HAVE_GETTEXT - 0) */
++#else /* !HAVE_GETTEXT */
+ #define _(msgid) msgid
+-#endif /* !(HAVE_GETTEXT - 0) */
++#endif /* !HAVE_GETTEXT */
+ #endif /* !defined _ */
+ 
+ #ifndef TZ_DOMAIN
+@@ -114,8 +108,7 @@
+ #ifndef P
+ #ifdef __STDC__
+ #define P(x)	x
+-#endif /* defined __STDC__ */
+-#ifndef __STDC__
++#else /* !defined __STDC__ */
+ #define P(x)	()
+ #endif /* !defined __STDC__ */
+ #endif /* !defined P */
+@@ -133,6 +126,7 @@
+ static size_t	longest;
+ static char *	progname;
+ static void	show P((char * zone, time_t t, int v));
++static void	dumptime P((const struct tm * tmp));
+ 
+ int
+ main(argc, argv)
+@@ -154,15 +148,19 @@
+ 	struct tm		newtm;
+ 
+ 	INITIALIZE(cuttime);
+-#if HAVE_GETTEXT - 0
+-	(void) setlocale(LC_CTYPE, "");
++#if HAVE_GETTEXT
+ 	(void) setlocale(LC_MESSAGES, "");
+ #ifdef TZ_DOMAINDIR
+ 	(void) bindtextdomain(TZ_DOMAIN, TZ_DOMAINDIR);
+-#endif /* defined(TEXTDOMAINDIR) */
++#endif /* defined TEXTDOMAINDIR */
  	(void) textdomain(TZ_DOMAIN);
- #endif /* HAVE_GETTEXT - 0 */
+-#endif /* HAVE_GETTEXT - 0 */
++#endif /* HAVE_GETTEXT */
  	progname = argv[0];
 +	for (i = 1; i < argc; ++i)
 +		if (strcmp(argv[i], "--version") == 0) {
@@ -1640,7 +1796,7 @@ diff -Nuar timezone.org/zdump.c timezone/zdump.c
  	vflag = 0;
  	cutoff = NULL;
  	while ((c = getopt(argc, argv, "c:v")) == 'c' || c == 'v')
-@@ -172,7 +173,7 @@
+@@ -172,7 +170,7 @@
  	if ((c != EOF && c != -1) ||
  		(optind == argc - 1 && strcmp(argv[optind], "=") == 0)) {
  			(void) fprintf(stderr,
@@ -1649,9 +1805,72 @@ diff -Nuar timezone.org/zdump.c timezone/zdump.c
  				argv[0], argv[0]);
  			(void) exit(EXIT_FAILURE);
  	}
+@@ -323,7 +321,7 @@
+ 		return -delta(oldp, newp);
+ 	result = 0;
+ 	for (tmy = oldp->tm_year; tmy < newp->tm_year; ++tmy)
+-		result += DAYSPERNYEAR + isleap(tmy + TM_YEAR_BASE);
++		result += DAYSPERNYEAR + isleap(tmy + (long) TM_YEAR_BASE);
+ 	result += newp->tm_yday - oldp->tm_yday;
+ 	result *= HOURSPERDAY;
+ 	result += newp->tm_hour - oldp->tm_hour;
+@@ -343,10 +341,12 @@
+ 	struct tm *	tmp;
+ 
+ 	(void) printf("%-*s  ", (int) longest, zone);
+-	if (v)
+-		(void) printf("%.24s UTC = ", asctime(gmtime(&t)));
++	if (v) {
++		dumptime(gmtime(&t));
++		(void) printf(" UTC = ");
++	}
+ 	tmp = localtime(&t);
+-	(void) printf("%.24s", asctime(tmp));
++	dumptime(tmp);
+ 	if (*abbr(tmp) != '\0')
+ 		(void) printf(" %s", abbr(tmp));
+ 	if (v) {
+@@ -370,3 +370,37 @@
+ 	result = tzname[tmp->tm_isdst];
+ 	return (result == NULL) ? &nada : result;
+ }
++
++static void
++dumptime(timeptr)
++register const struct tm *	timeptr;
++{
++	static const char	wday_name[][3] = {
++		"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
++	};
++	static const char	mon_name[][3] = {
++		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
++		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
++	};
++	register const char *	wn;
++	register const char *	mn;
++
++	/*
++	** The packaged versions of localtime and gmtime never put out-of-range
++	** values in tm_wday or tm_mon, but since this code might be compiled
++	** with other (perhaps experimental) versions, paranoia is in order.
++	*/
++	if (timeptr->tm_wday < 0 || timeptr->tm_wday >=
++		(int) (sizeof wday_name / sizeof wday_name[0]))
++			wn = "???";
++	else		wn = wday_name[timeptr->tm_wday];
++	if (timeptr->tm_mon < 0 || timeptr->tm_mon >=
++		(int) (sizeof mon_name / sizeof mon_name[0]))
++			mn = "???";
++	else		mn = mon_name[timeptr->tm_mon];
++	(void) printf("%.3s %.3s%3d %.2d:%.2d:%.2d %ld",
++		wn, mn,
++		timeptr->tm_mday, timeptr->tm_hour,
++		timeptr->tm_min, timeptr->tm_sec,
++		timeptr->tm_year + (long) TM_YEAR_BASE);
++}
 diff -Nuar timezone.org/zic.c timezone/zic.c
---- timezone.org/zic.c	2004-07-29 13:05:53.000000000 +0900
-+++ timezone/zic.c	2004-07-29 13:06:22.000000000 +0900
+--- timezone.org/zic.c	2004-10-14 01:27:07.000000000 +0900
++++ timezone/zic.c	2004-07-30 08:40:18.000000000 +0900
 @@ -1,8 +1,4 @@
 -#ifndef lint
 -#ifndef NOID
@@ -1745,8 +1964,8 @@ diff -Nuar timezone.org/zic.c timezone/zic.c
 +** UNIX was a registered trademark of The Open Group in 2003.
  */
 diff -Nuar timezone.org/zone.tab timezone/zone.tab
---- timezone.org/zone.tab	2004-07-29 13:05:53.000000000 +0900
-+++ timezone/zone.tab	2004-07-29 13:06:22.000000000 +0900
+--- timezone.org/zone.tab	2004-10-14 01:27:07.000000000 +0900
++++ timezone/zone.tab	2004-07-30 08:40:19.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)zone.tab	1.28
 +# @(#)zone.tab	1.30
