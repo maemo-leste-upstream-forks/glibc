@@ -5,6 +5,17 @@ glibc (2.3.2-8) unstable; urgency=low
     - debian/control.in/main: add gawk to Build-Depends, since testsuite
       apparently requires it.
 
+    - debian/patches/pthread-cleanup.dpatch: Vector __pthread_cleanup_push
+      and __pthread_cleanup_pop through __libc_pthread_functions.
+      (Closes: #205234)
+
+    - debian/patches/arm-no-hwcap.dpatch: Admit HWCAP_FAST_MULT again,
+      since we want to start using this for openssh.
+    - debian/patches/arm-updates.dpatch: Add some miscellaneous arm
+      changes taken from upstream.
+    - debian/patches/arm-vfork.dpatch: Avoid bad interaction between
+      vfork and libpthread.
+
   * GOTO Masanori  <gotom@debian.org>
 
     - debian/patches/80_glibc232-fesetround-fix.dpatch: Fix fesetround static

@@ -1,0 +1,240 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: miscellaneous ARM changes from upstream
+# DP: Related bugs: 
+# DP: Author: Phil Blundell
+# DP: Upstream status: In CVS
+# DP: Status Details: 
+# DP: Date: 
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+
+2003-09-17  Philip Blundell  <philb@gnu.org>
+
+	* sysdeps/arm/dl-machine.h (CALL_ROUTINE): Deleted.
+	(BX): Define.
+	(ELF_MACHINE_RUNTIME_TRAMPOLINE): Optimise a little.
+
+	* sysdeps/arm/sysdep.h (DO_RET): New.
+
+	* sysdeps/unix/sysv/linux/arm/vfork.S: Add #error if __NR_vfork
+	required but not defined.  Improve test of error code.
+
+Index: sysdeps/arm/dl-machine.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/arm/dl-machine.h,v
+retrieving revision 1.43
+diff -u -r1.43 dl-machine.h
+--- sysdeps/arm/dl-machine.h	31 Jul 2003 06:33:51 -0000	1.43
++++ sysdeps/arm/dl-machine.h	17 Sep 2003 17:01:52 -0000
+@@ -123,22 +123,10 @@
+   return lazy;
+ }
+ 
+-/* This code is used in dl-runtime.c to call the `fixup' function
+-   and then redirect to the address it returns.  */
+-   // macro for handling PIC situation....
+-#ifdef PIC
+-#define CALL_ROUTINE(x) "\
+-	ldr sl,0f\n\
+-	add 	sl, pc, sl\n\
+-1:	ldr	r2, 2f\n\
+-	mov	lr, pc\n\
+-	add	pc, sl, r2\n\
+-	b	3f\n\
+-0:	.word	_GLOBAL_OFFSET_TABLE_ - 1b - 4\n\
+-2:	.word " #x "(GOTOFF)\n\
+-3:	"
++#if defined(__THUMB_INTERWORK__)
++#define BX(x) "bx\t" #x
+ #else
+-#define CALL_ROUTINE(x) " bl " #x
++#define BX(x) "mov\tpc, " #x
+ #endif
+ 
+ #ifndef PROF
+@@ -153,8 +141,11 @@
+ 	@	ip contains &GOT[n+3] (pointer to function)\n\
+ 	@	lr points to &GOT[2]\n\
+ \n\
+-	@ save almost everything; lr is already on the stack\n\
+-	stmdb	sp!,{r0-r3,sl,fp}\n\
++	@ stack arguments\n\
++	stmdb	sp!,{r0-r3}\n\
++\n\
++	@ get pointer to linker struct\n\
++	ldr	r0, [lr, #-4]\n\
+ \n\
+ 	@ prepare to call fixup()\n\
+ 	@ change &GOT[n+3] into 8*n        NOTE: reloc are 8 bytes each\n\
+@@ -162,20 +153,17 @@
+ 	sub	r1, r1, #4\n\
+ 	add	r1, r1, r1\n\
+ \n\
+-	@ get pointer to linker struct\n\
+-	ldr	r0, [lr, #-4]\n\
+-\n\
+ 	@ call fixup routine\n\
+-	" CALL_ROUTINE(fixup) "\n\
++	bl	fixup\n\
+ \n\
+ 	@ save the return\n\
+ 	mov	ip, r0\n\
+ \n\
+-	@ restore the stack\n\
+-	ldmia	sp!,{r0-r3,sl,fp,lr}\n\
++	@ get arguments and return address back\n\
++	ldmia	sp!, {r0-r3,lr}\n\
+ \n\
+ 	@ jump to the newly found address\n\
+-	mov	pc, ip\n\
++	" BX(ip) "\n\
+ \n\
+ 	.size _dl_runtime_resolve, .-_dl_runtime_resolve\n\
+ \n\
+@@ -183,8 +171,11 @@
+ 	.type _dl_runtime_profile, #function\n\
+ 	.align 2\n\
+ _dl_runtime_profile:\n\
+-	@ save almost everything; lr is already on the stack\n\
+-	stmdb	sp!,{r0-r3,sl,fp}\n\
++	@ stack arguments\n\
++	stmdb	sp!, {r0-r3}\n\
++\n\
++	@ get pointer to linker struct\n\
++	ldr	r0, [lr, #-4]\n\
+ \n\
+ 	@ prepare to call fixup()\n\
+ 	@ change &GOT[n+3] into 8*n        NOTE: reloc are 8 bytes each\n\
+@@ -192,20 +183,17 @@
+ 	sub	r1, r1, #4\n\
+ 	add	r1, r1, r1\n\
+ \n\
+-	@ get pointer to linker struct\n\
+-	ldr	r0, [lr, #-4]\n\
+-\n\
+ 	@ call profiling fixup routine\n\
+-	" CALL_ROUTINE(profile_fixup) "\n\
++	bl	profile_fixup\n\
+ \n\
+ 	@ save the return\n\
+ 	mov	ip, r0\n\
+ \n\
+-	@ restore the stack\n\
+-	ldmia	sp!,{r0-r3,sl,fp,lr}\n\
++	@ get arguments and return address back\n\
++	ldmia	sp!, {r0-r3,lr}\n\
+ \n\
+ 	@ jump to the newly found address\n\
+-	mov	pc, ip\n\
++	" BX(ip) "\n\
+ \n\
+ 	.size _dl_runtime_resolve, .-_dl_runtime_resolve\n\
+ 	.previous\n\
+@@ -225,8 +213,11 @@
+ 	@	ip contains &GOT[n+3] (pointer to function)\n\
+ 	@	lr points to &GOT[2]\n\
+ \n\
+-	@ save almost everything; return add is already on the stack\n\
+-	stmdb	sp!,{r0-r3,sl,fp}\n\
++	@ stack arguments\n\
++	stmdb	sp!, {r0-r3}\n\
++\n\
++	@ get pointer to linker struct\n\
++	ldr	r0, [lr, #-4]\n\
+ \n\
+ 	@ prepare to call fixup()\n\
+ 	@ change &GOT[n+3] into 8*n        NOTE: reloc are 8 bytes each\n\
+@@ -234,20 +225,17 @@
+ 	sub	r1, r1, #4\n\
+ 	add	r1, r1, r1\n\
+ \n\
+-	@ get pointer to linker struct\n\
+-	ldr	r0, [lr, #-4]\n\
+-\n\
+ 	@ call profiling fixup routine\n\
+-	" CALL_ROUTINE(fixup) "\n\
++	bl	fixup\n\
+ \n\
+ 	@ save the return\n\
+ 	mov	ip, r0\n\
+ \n\
+-	@ restore the stack\n\
+-	ldmia	sp!,{r0-r3,sl,fp,lr}\n\
++	@ get arguments and return address back\n\
++	ldmia	sp!, {r0-r3,lr}\n\
+ \n\
+ 	@ jump to the newly found address\n\
+-	mov	pc, ip\n\
++	" BX(ip) "\n\
+ \n\
+ 	.size _dl_runtime_profile, .-_dl_runtime_profile\n\
+ 	.previous\n\
+Index: sysdeps/unix/sysv/linux/arm/vfork.S
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/arm/vfork.S,v
+retrieving revision 1.7
+diff -u -r1.7 vfork.S
+--- sysdeps/unix/sysv/linux/arm/vfork.S	27 Mar 2003 02:45:46 -0000	1.7
++++ sysdeps/unix/sysv/linux/arm/vfork.S	17 Sep 2003 17:01:52 -0000
+@@ -38,8 +38,7 @@
+ 	b	PLTJMP(C_SYMBOL_NAME(__syscall_error))
+ # else
+ 	/* Check if vfork syscall is known at all.  */
+-	ldr	a2, =-ENOSYS
+-	teq	a1, a2
++	cmn	a2, #ENOSYS
+ 	bne	PLTJMP(C_SYMBOL_NAME(__syscall_error))
+ # endif
+ #endif
+@@ -50,6 +49,8 @@
+ 	cmn	a1, #4096
+ 	RETINSTR(movcc, pc, lr)
+     	b	PLTJMP(C_SYMBOL_NAME(__syscall_error))
++#elif !defined __NR_vfork
++# error "__NR_vfork not available and __ASSUME_VFORK_SYSCALL defined"
+ #endif
+ 
+ PSEUDO_END (__vfork)
+Index: sysdeps/arm/sysdep.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/arm/sysdep.h,v
+retrieving revision 1.9
+diff -u -r1.9 sysdep.h
+--- sysdeps/arm/sysdep.h	21 Mar 2003 20:51:59 -0000	1.9
++++ sysdeps/arm/sysdep.h	17 Sep 2003 17:05:26 -0000
+@@ -52,11 +52,20 @@
+ 	ldm##cond	base,reglist
+ #define RETINSTR(instr, regs...)\
+ 	instr	regs
++#ifdef __THUMB_INTERWORK__
++#define DO_RET(_reg)		\
++	bx _reg
++#else
++#define DO_RET(_reg)		\
++	mov pc, _reg
++#endif
+ #else  /* APCS-26 */
+ #define LOADREGS(cond, base, reglist...)\
+ 	ldm##cond	base,reglist^
+ #define RETINSTR(instr, regs...)\
+ 	instr##s	regs
++#define DO_RET(_reg)		\
++	movs pc, _reg
+ #endif
+ 
+ /* Define an entry point visible from C.  */
