@@ -26,7 +26,7 @@ glibc (2.3.2.ds1-11) unstable; urgency=low
      non-Linux.
    - debian/patches/glibc23-cmov.dpatch: Update for moved i386 HWCAP
      definitions.
-   - debian/patches/glibc23-sse-oldkernel.dpatch: Updated for 
+   - debian/patches/glibc23-sse-oldkernel.dpatch: Updated for
      severelly munged sysdeps/unix/sysv/linux/i386/dl-procinfo.h
      Thanks to Barry deFreese for helping get these in order.
 
@@ -40,7 +40,6 @@ glibc (2.3.2.ds1-11) unstable; urgency=low
    - debian/sysdeps/sparc.mk: Revert Ben's change of '-mcpu=v8
      -mtune=ultrasparc'.  This was misleading because it was always
      overridden by the glibc Makefile and had no effect.
-   
 
   * Phil Blundell <pb@debian.org>
 
@@ -58,6 +57,11 @@ glibc (2.3.2.ds1-11) unstable; urgency=low
       README.Debian.gz.
       - debian/patches/glibc23-errno-hack.dpatch, debian/FAQ
     - Redirect dpkg -s sysvinit's stderr to /dev/null (Closes: #225601).
+    - Fix <bits/syscall.h> on MIPS targets.  Thanks to Guido Guenther
+      for testing and improvements to the patch (Closes: #223891, #226483).
+      - debian/patches/mips-asm-unistd.dpatch
+    - Fix for GCC <sgidefs.h> changes from Thiemo Seufer (Closes: #224744).
+      - debian/patches/mips-sgidefs.dpatch
 
   * GOTO Masanori  <gotom@debian.org>
 
@@ -79,7 +83,7 @@ glibc (2.3.2.ds1-11) unstable; urgency=low
     - debian/local/etc_init.d/mountkernfs: fix devpts_mounted to check
       its pathname is exactly started from the top directory.
 
-    - debian/debhelper.in/libc.preinst: fix preinst does not stop 
+    - debian/debhelper.in/libc.preinst: fix preinst does not stop
       on mips even if it's kernel version is < 2.4.22.  (Closes: #223769)
 
     - debian/po/pt_BR.po: Update pt_BR debconf template translation.
@@ -87,7 +91,7 @@ glibc (2.3.2.ds1-11) unstable; urgency=low
     - debian/po/nl.po: Update nl debconf template translation.
       Patched by cobaco <cobaco@linux.be>.  (Closes: #220693)
 
- -- Daniel Jacobowitz <dan@debian.org>  Sat, 13 Dec 2003 16:33:14 -0500
+ -- Daniel Jacobowitz <dan@debian.org>  Mon, 19 Jan 2004 16:15:12 -0500
 
 glibc (2.3.2.ds1-10) unstable; urgency=low
 
