@@ -167,6 +167,8 @@ then
 	    check="$check ssh-nonfree postfix-tls wu-ftpd boa cron postfix"
 	    check="$check wu-ftpd-academ slapd openldapd logind wwwoffle"
 	    check="$check lprng lpr autofs snmpd ssh-krb5 apache2"
+	    check="$check rsh-server telnetd cyrus-imapd cyrus21-common"
+	    check="$check uw-imapd uw-imapd-ssl"
 	    # Only get the ones that are installed, and configured
 	    check=$(dpkg -s $check | awk 'BEGIN{RS="\n\n";FS="\n"}{if ( $2 ~ /Status: .* installed$/ ) { print $1 } }' | cut -f 2 -d ' ')
 	    # We have to list inetd explicitly, because the package is a
