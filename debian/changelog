@@ -5,17 +5,28 @@ glibc (2.3.2.ds1-12) unstable; urgency=low
    - debian/local/etc_init.d/mountkernfs: Fix typo.  (Closes: #229340)
    - debian/local/etc_init.d/mountkernfs: Fix error if the kernel does not
      set CONFIG_TMPFS on 2.4.  (Closes: #230758)
+   - debian/local/etc_init.d/mountkernfs: Check each mount directory is
+     actually directory or not.  (Closes: #234813)
+   - debian/local/etc_init.d/mountkernfs: remove "set -e". (Closes: #232122)
    - debian/debhelper.in/libc.postinst: use invoke-rc.d to invoke
      mountkernfs when it's available, suggested by Junichi Uekawa
      <dancer@netfort.gr.jp>.  (Closes: #230008)
+   - debian/debhelper.in/libc.preinst: devpts.sh is actually replaced to
+     mountkernfs.  (Closes: #230857)
 
    - debian/patches/51_glibc232-hppa-nopltrel.dpatch: Do not process
      lezy relocations if no DT_PLTREL is present.  Reported by
      Richard Hirst <rhirst@linuxcare.com> and Patched by
      Carlos O'Donell <carlos@baldric.uwo.ca>.  (Closes: #228375)
+   - debian/patches/glibc232-ppc32-nanosecond.dpatch: Fix ppc32 stat
+     reports bogus nanosecond data.  Patched by Anton Blanchard
+     <anton@samba.org>.  (Closes: #231358)
 
    - debian/debhelper.in/libc.postinst: add rsync to NSS checking code.
      (Closes: #229196)
+   - debian/debhelper.in/libc.preinst: add kernel version check code if
+     real i386 is used.  (Closes: #231538)
+
    - debian/po/da.po: added.  Patched by Morten Brix Pedersen <morten@wtf.dk>.
      (Closes: #230669)
    - debian/po/cs.po: added.  Patched by Miroslav Kure
