@@ -7,6 +7,10 @@ LOCALES=/usr/share/i18n/locales
 
 [ -f $LOCALEGEN -a -s $LOCALEGEN ] || exit 0;
 
+# Remove all old locale dir and locale-archive before generating new
+# locale data.
+rm -rf /usr/lib/locale/* || true
+
 umask 022
 
 echo "Generating locales..."

@@ -2,52 +2,73 @@
 set -e
 
 LG="/etc/locale.gen"
+EE="/etc/environment"
 
 if [ "$1" = configure ]; then
 
     . /usr/share/debconf/confmodule
     db_version 2.0
 
-    LEAVE_FLAG="yes"
-    if test ! -e $LG || grep -q "XXX GENERATED XXX" $LG || dpkg --compare-versions "$2" le 2.2.4-7; then
-	db_get locales/locales_to_be_generated && SELECTED_LOCALES=$RET
-	echo $SELECTED_LOCALES | grep -q "Leave alone" || LEAVE_FLAG=
-	if test -z $LEAVE_FLAG; then
-	    cat > $LG << EOF
+    db_get locales/locales_to_be_generated && SELECTED_LOCALES=$RET
+    db_get locales/default_environment_locale && SELECTED="$RET"
+
+    if [ -n "$SELECTED_LOCALES" ]; then
+        if [ -e $LG ]; then
+            #   Comment previous defined locales
+            sed -e 's/^[a-zA-Z]/#&/' $LG > $LG.tmp || true
+            mv -f $LG.tmp $LG
+        else
+            cat > $LG << EOF
 # This file lists locales that you wish to have built. You can find a list
 # of valid supported locales at /usr/share/i18n/SUPPORTED. Other
 # combinations are possible, but may not be well tested. If you change
 # this file, you need to rerun locale-gen.
 #
-# XXX GENERATED XXX
-#
-# NOTE!!! If you change this file by hand, and want to continue
-# maintaining manually, remove the above line. Otherwise, use the command
-# "dpkg-reconfigure locales" to manipulate this file. You can manually
-# change this file without affecting the use of debconf, however, since it
-# does read in your changes.
 
 EOF
-	    echo $SELECTED_LOCALES | sed -e 's/, /,/g' | tr ',' '\n' >> $LG
-	fi
+        fi
+        list=`echo $SELECTED_LOCALES | sed -e 's/, /,/g'`
+        save_IFS=$IFS
+        IFS=,
+        for locale in $list; do
+            if grep -q "^#$locale *\$" $LG; then
+                #   Uncomment previous defined locales
+                sed -e "s,#$locale *\$,$locale," $LG > $LG.tmp || true
+                mv -f $LG.tmp $LG
+            else
+                #   Add a newline in case last line does not have one
+                echo >> $LG
+                #   Consecutive blank lines are replaced by a single line
+                cat -s $LG > $LG.tmp
+                mv -f $LG.tmp $LG
+                #   Add a new locale
+                echo $locale >> $LG
+            fi
+        done
+        IFS=$save_IFS
+    else
+        if [ -e $LG ]; then
+            sed -e 's/^[a-zA-Z]/#&/' $LG > $LG.tmp || true
+            mv -f $LG.tmp $LG
+        fi
     fi
+    # Update requested locales.
+    /usr/sbin/locale-gen
 
-    # Update requested locales.  Remove all old locale dir and 
-    # locale-archive before generating new locale data.
-    if test -z $LEAVE_FLAG; then
-	rm -rf /usr/lib/locale/*
-	/usr/sbin/locale-gen
+    # Set default LANG environment variable
+    if [ -e $EE ]; then
+        sed -e '/^ *LANG=/d' $EE > $EE.tmp || true
+    else
+        :> $EE.tmp
     fi
-
-    # Set default LANG environment var
-    db_get locales/default_environment_locale && SELECTED="$RET"
-    if [ -n "$SELECTED" -a "$SELECTED" != "Leave alone" ]; then
-	umask 022
-	grep -v '^LANG=' /etc/environment > /etc/environment.tmp 2> /dev/null || true
-	test "$SELECTED" = "None" || echo "LANG=$SELECTED" >> /etc/environment.tmp
-	cat /etc/environment.tmp > /etc/environment
-	rm -f /etc/environment.tmp
+    if [ -n "$SELECTED" ] && [ "$SELECTED" != "None" ]; then
+        #   Add a newline in case last line does not have one
+        echo >> $EE.tmp
+        echo "LANG=$SELECTED" >> $EE.tmp
+        #   Consecutive blank lines are replaced by a single line
+        cat -s $EE.tmp > $EE
     fi
+    rm -f $EE.tmp
 fi
 
 # We remove a relic of the past /usr/doc/<package> symlinks.
@@ -56,3 +77,4 @@ package=`basename $0 .postinst`
 if [ -L "/usr/doc/$package" ]; then
     rm -f "/usr/doc/$package"
 fi
+

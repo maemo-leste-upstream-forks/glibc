@@ -115,6 +115,28 @@ glibc (2.3.2-1) unstable; urgency=low
       Denis Barbier <barbier@linuxfr.org>
     - debian/locales/DEBIAN/postinst: likewise.
 
+    - debian/locales/DEBIAN/{config,postinst,templates}: Debconf must not
+      be used to store configuration items; another even more important is
+      that user changes in configuration files must be preserved.
+      These files are now fixed with this issue.  Patched by Denis Barbier
+      <barbier@linuxfr.org>.  Some suggestions by Joey Hess <joeyh@debian.org>.
+    - debian/locales/DEBIAN/config:
+      * Replace /bin/bash by /bin/sh on the shebang line.
+      * Add support for backing up.  
+      * Parse configuration files and set debconf values.
+    - debian/locales/DEBIAN/postinst:
+      * Recreate configuration files from debconf values and run locale-gen
+      * As explained by Joey Hess, this script should be safer because some
+        border cases are now taken into account: configuration files might
+        have no EOL at EOF, and line order is preserved.
+    - debian/locales/DEBIAN/templates: 
+      * Apply patch from #117509 and another typo fix by Joey Hess
+        (Closes: #117509)
+      * In locales/locales_to_be_generated, Choices is no more translatable
+        because it is set to Choices: ${locales}
+    - debian/locales/usr/sbin/locale-gen: 
+      * Clean up /usr/lib/locale/ before generating locales
+
     - debian/control: Change Section: from devel to libdevel for packages:
       libc0.3-dev, libc6-dev, libc6-dev-s390x, libc6-dev-sparc64, libc6.1-dev
       and libc1-dev.

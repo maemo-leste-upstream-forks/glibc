@@ -1,33 +1,58 @@
-#!/bin/bash
+#!/bin/sh
 set -e
-
-SUPPORTED_LOCALES="__SUPPORTED_LOCALES__"
 
 . /usr/share/debconf/confmodule
 db_version 2.0
+db_capb backup multiselect
 
-if test -f /etc/locale.gen; then
-  LG=/etc/locale.gen
-  SELECTED_LOCALES=$(egrep -v "^#|^$" $LG | tr "\n" "," | sed -e "s/,/, /g" -e "s/, *$//")
-  grep -q "XXX GENERATED XXX" /etc/locale.gen && db_set locales/locales_to_be_generated "${SELECTED_LOCALES}"
+#   Initializes debconf default values from the ones found in
+#   configuration files
+if [ -e /etc/locale.gen ]; then
+    LG=/etc/locale.gen
+    SELECTED_LOCALES=$(sed -e '/^[a-zA-Z]/!d' $LG | tr '\n' ',' | sed -e 's/,/, /g' -e 's/, *$//')
+    db_set locales/locales_to_be_generated "${SELECTED_LOCALES}"
 else
-  LG=/dev/null
+    LG=/dev/null
+fi
+if [ -e /etc/environment ]; then
+    db_set locales/default_environment_locale $(awk 'BEGIN {lang="None"} /^LANG=/ {gsub("\"", ""); sub("LANG=", ""); lang=$0;} END {print lang}' /etc/environment)
+else
+    db_set locales/default_environment_locale None
 fi
 
-SUPPORTED_LOCALES=$( (cat $LG && echo "$SUPPORTED_LOCALES") | egrep -hv "^#|^$" | sort -u | tr "\n" "," | sed -e "s/,/, /g" -e "s/, *$//")
-
+#   Add a newline in case /etc/locale.gen has no trailing newline at EOF
+SUPPORTED_LOCALES="
+__SUPPORTED_LOCALES__"
+SUPPORTED_LOCALES=$( (cat $LG && echo "$SUPPORTED_LOCALES") | sed -e '/^[a-zA-Z]/!d' | sort -u | tr '\n' ',' | sed -e 's/,/, /g' -e 's/, *$//')
 db_subst locales/locales_to_be_generated locales "${SUPPORTED_LOCALES}"
-db_capb multiselect
-db_input medium locales/locales_to_be_generated || true
-db_go
 
-db_get locales/locales_to_be_generated && DEFAULT_LOCALES=$(echo $RET | sed -e 's/Leave alone,*//g' -e 's/ [^ ]*,/,/g' -e 's/ [^ ]*$//')
+STATE=1
+while [ "$STATE" -ge 0 ]; do
+    case "$STATE" in
+    0)
+        exit 1
+        ;;
+    1)
+        db_input medium locales/locales_to_be_generated || true
+        ;;
+    2)
+        db_get locales/locales_to_be_generated && DEFAULT_LOCALES=$(echo $RET | sed -e 's/None,*//g' -e 's/ [^ ]*,/,/g' -e 's/ [^ ]*$//')
 
-if test -z "$DEFAULT_LOCALES"; then
-    DEFAULT_LOCALES=C
-else
-    DEFAULT_LOCALES="C, $DEFAULT_LOCALES"
-fi
-db_subst locales/default_environment_locale locales $DEFAULT_LOCALES
-db_input medium locales/default_environment_locale || true
-db_go
+        if test -z "$DEFAULT_LOCALES"; then
+            DEFAULT_LOCALES=C
+        else
+            DEFAULT_LOCALES="C, $DEFAULT_LOCALES"
+        fi
+        db_subst locales/default_environment_locale locales $DEFAULT_LOCALES
+        db_input medium locales/default_environment_locale || true
+        ;;
+    *)
+        break
+        ;;
+    esac
+    if db_go; then
+        STATE=$(($STATE + 1))
+    else
+        STATE=$(($STATE - 1))
+    fi
+done
