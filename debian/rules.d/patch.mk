@@ -1,5 +1,7 @@
 patch_dir := $(top_srcdir)debian/patches
 
+setup: patch
+
 patch: $(stamp_patch)
 $(stamp_patch): $(stamp_unpack)
 	if [ ! -d patched ]; then mkdir patched; fi
