@@ -105,6 +105,7 @@ exit 0
 -	print "#define __NR_O32__exit __NR_O32_exit";
 -	print "#define __NR_N32__exit __NR_N32_exit";
 +    awk > asm-unistd.h '
++BEGIN { print "#include <sgidefs.h>"; }
 +/^#if _MIPS_SIM == _MIPS_SIM_ABI32/,/^#endif.*_MIPS_SIM_ABI32/ {
 +  if (/^#define __NR_Linux/) { print; next; }
 +  if (/^#define __NR_/) {
