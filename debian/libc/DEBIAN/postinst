@@ -137,6 +137,19 @@ filerc() {
     echo ""
 }
 
+# We remove a relic of the past /usr/doc/<package> symlinks.
+# This script should keep at least until sarge release.
+package=`basename $0 .postinst`
+if [ -L "/usr/doc/$package" ]; then
+    rm -f "/usr/doc/$package"
+fi
+# I'm so lazy that libc6-{dbg,dev,pic,prof} are removed in this file - gotom.
+for surfix in -dbg -dev -pic -prof; do
+    package_name="$package""$surfix"
+    if [ -L "/usr/doc/$package_name" ]; then
+	rm -f "/usr/doc/$package_name"
+    fi
+done
 
 if [ "$1" = "configure" ]
 then
