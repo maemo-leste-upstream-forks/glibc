@@ -48,7 +48,7 @@ $(stamp_configure_64): $(stamp_unpack) $(stamp_patch)
 	cd $(objdir_64) && CC="$(MYCC)" CFLAGS="$(flags_64)" \
 		$(srcdir)/configure --host=sparc64-linux \
 		--build=sparc64-linux --prefix=/usr --without-cvs \
-		--disable-profile --enable-static --enable-kernel=2.4.0 \
+		--disable-profile --enable-static --enable-kernel=2.4.1 \
 		--enable-add-ons="$(add-ons)" $(with_headers)
 
 	touch $@
