@@ -150,7 +150,7 @@ endif
 
 	touch $@
 
-arch_packages  += $(libc) $(libc)-dev $(libc)-prof $(libc)-dbg \
+arch_packages  += $(libc) libc-udeb $(libc)-dev $(libc)-prof $(libc)-dbg \
 $(libc)-pic $(addsuffix -pkg,$(opt_packages))
 
 indep_packages = locales $(glibc)-doc
@@ -171,6 +171,7 @@ binary-indep: $(indep_packages)
 binary-arch: $(arch_packages)
 
 include $(package_rules)/libc.mk
+include $(package_rules)/libc-udeb.mk
 include $(package_rules)/libc-dev.mk
 include $(package_rules)/libc-dbg.mk
 include $(package_rules)/libc-pic.mk

@@ -160,13 +160,13 @@ then
 	if [ ! -d /var/mail ] && [ ! -L /var/mail ]; then
 	    ln -sf spool/mail /var/mail
 	fi
-	if dpkg --compare-versions $2 lt 2.1.95-1; then
+	if dpkg --compare-versions $2 lt 2.2.94-1; then
 	    echo -n "Checking for services that may need to be restarted..."
 
 	    check="nis smail sendmail exim ssh netbase apache proftpd"
 	    check="$check ssh-nonfree postfix-tls wu-ftpd boa cron postfix"
 	    check="$check wu-ftpd-academ slapd openldapd logind wwwoffle"
-	    check="$check lprng lpr autofs snmpd"
+	    check="$check lprng lpr autofs snmpd ssh-krb5 apache2"
 	    # Only get the ones that are installed, and configured
 	    check=$(dpkg -s $check | awk 'BEGIN{RS="\n\n";FS="\n"}{if ( $2 ~ /Status: .* installed$/ ) { print $1 } }' | cut -f 2 -d ' ')
 	    # We have to list inetd explicitly, because the package is a

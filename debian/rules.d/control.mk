@@ -27,6 +27,7 @@ debian/control: debian/control.in/main $(DEB_HOST_GNU_TYPE) $(control_deps) \
 	cat debian/control.in/sparc64		>> $@T
 #	Uncomment this line to enable optimized packages
 #	cat debian/control.in/opt		>> $@T
+	cat debian/control.in/libc-udeb         >> $@T
 	sed -e 's%@libc@%$(libc)%g;s%@glibc@%$(glibc)%g' \
 	    -e 's%@threads_archs@%$(threads_archs)%g' < $@T > $@
 	rm $@T
