@@ -4,7 +4,10 @@ set -e
 
 LOCALEGEN=/etc/locale.gen
 LOCALES=/usr/share/i18n/locales
-unset POSIXLY_CORRECT
+if [ -n "$POSIXLY_CORRECT" ]; then
+  unset POSIXLY_CORRECT
+fi
+
 
 [ -f $LOCALEGEN -a -s $LOCALEGEN ] || exit 0;
 
