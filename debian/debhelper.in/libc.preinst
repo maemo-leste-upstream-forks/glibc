@@ -179,6 +179,20 @@ fi
 
 if [ "$1" != abort-upgrade ] && [ "`uname -s`" = Linux ]
 then
+    # Test to make sure z < 255, in x.y.z-n form of kernel version
+    kernel_rev=$(uname -r | awk -F '[.-]' '{print $3}')
+    if [ "$kernel_rev" -ge 255 ]
+    then
+        echo WARNING: Your kernel version indicates a revision number
+        echo of 255 or greater.  Glibc has a number of built in
+        echo assumptions that this revision number is less than 255.
+        echo If you've built your own kernel, please make sure that any 
+        echo custom version numbers are appended to the upstream
+        echo kernel number with a dash or some other delimiter.
+
+        exit 1
+    fi
+
     # SPARC sun4m requires a recent kernel
     realarch=`uname -m`
     if [ "$realarch" = sparc ]
