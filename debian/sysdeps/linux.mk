@@ -39,8 +39,11 @@ $(stamp)mkincludedir:
 	rm -rf debian/include
 	mkdir debian/include
 	ln -s $(LINUX_HEADERS)/linux debian/include
-	ln -s $(LINUX_HEADERS)/asm-generic debian/include
-	ln -s $(LINUX_HEADERS)/asm debian/include
+	# Link all asm directories.  We can't just link asm and asm-generic
+	# because of explicit references to <asm-sparc/*> and
+	# <asm-sparc64/*>.
+	find $(LINUX_HEADERS) -maxdepth 1 -type d -name asm\* \
+	  -exec ln -s '{}' debian/include ';'
 
 	# To make configure happy if libc6-dev is not installed.
 	touch debian/include/assert.h
