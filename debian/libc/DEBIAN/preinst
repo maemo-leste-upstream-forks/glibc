@@ -27,10 +27,10 @@ then
 		if [ -f /var/run/utmp ]; then
 		    cp /dev/null /var/run/utmp
 		    if grep '^utmp:' /etc/group; then
-			chown root.utmp /var/run/utmp
+			chown root:utmp /var/run/utmp
 			chmod 664 /var/run/utmp
 		    else
-			chown root.root /var/run/utmp
+			chown root:root /var/run/utmp
 			chmod 644 /var/run/utmp
 		    fi
 		fi
@@ -38,10 +38,10 @@ then
 		    savelog /var/log/wtmp
 		    touch /var/log/wtmp
 		    if grep '^utmp:' /etc/group; then
-			chown root.utmp /var/log/wtmp
+			chown root:utmp /var/log/wtmp
 			chmod 664 /var/log/wtmp
 		    else
-			chown root.root /var/log/wtmp
+			chown root:root /var/log/wtmp
 			chmod 644 /var/log/wtmp
 		    fi
 		fi

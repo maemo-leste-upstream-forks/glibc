@@ -94,7 +94,7 @@ endif
 
 	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@ $(libc_dev_control_flags)
-	chown -R root.root $(tmpdir)/$@
+	chown -R root:root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@
 	dpkg --build $(tmpdir)/$@ ..
 

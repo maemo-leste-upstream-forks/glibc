@@ -42,6 +42,6 @@ $(glibc)-doc:	$(stamp_install) debian/control $(mkdir)/sysdeps.mk
 	cp -a debian/$@/* $(tmpdir)/$@
 	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@
-	chown -R root.root $(tmpdir)/$@
+	chown -R root:root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@
 	dpkg --build $(tmpdir)/$@ ..

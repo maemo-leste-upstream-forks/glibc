@@ -24,7 +24,7 @@ endif
 
 	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@
-	chown -R root.root $(tmpdir)/$@
+	chown -R root:root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@
 	# Make ld.so executable
 	chmod 755 $(tmpdir)/$@$(libdir)/debug/ld-$(VERSION).so

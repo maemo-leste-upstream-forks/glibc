@@ -43,7 +43,7 @@ endif
 		-DProvides="$(shell perl debian/debver2localesdep.pl \
 		$(DEBVERSION))" -fdebian/files~
 	dpkg-distaddfile libc-udeb_$(DEBVERSION)_$(shell dpkg-architecture -qDEB_HOST_ARCH).udeb debian-installer required
-	chown -R root.root $(tmpdir)/$@
+	chown -R root:root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@
 	dpkg --build $(tmpdir)/$@ ../libc-udeb_$(DEBVERSION)_$(shell dpkg-architecture -qDEB_HOST_ARCH).udeb
 
