@@ -67,11 +67,6 @@ $(libc)-sparc64: $(stamp_install_64) debian/control $(mkdir)/sysdeps.mk \
 
 	$(make_directory) $(tmpdir)/$@/lib64 $(tmpdir)/$@/usr/lib64
 
-	# Compatibility links
-	$(make_directory) $(tmpdir)/$@/lib $(tmpdir)/$@/usr/lib
-	ln -s ../lib64 $(tmpdir)/$@/lib/64
-	ln -s ../lib64 $(tmpdir)/$@/usr/lib/64
-
 	$(INSTALL_DATA) $(install_root_64)/lib64/lib*-$(VERSION).so $(tmpdir)/$@/lib64/.
 	$(INSTALL_PROGRAM) $(install_root_64)/lib64/libc-$(VERSION).so $(tmpdir)/$@/lib64/.
 	$(INSTALL_DATA) $(install_root_64)/lib64/libSegFault.so $(tmpdir)/$@/lib64/.
