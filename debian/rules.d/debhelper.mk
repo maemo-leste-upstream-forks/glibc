@@ -77,7 +77,7 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	# minimum in /usr/lib/debug/lib for backtraces; anything
 	# else takes too long to load in GDB.
 
-	if test "$(NOSTRIP_$(curpass))" = 1; then			\
+	if test "$(NOSTRIP_$(curpass))" != 1; then			\
 	  chmod a+x debian/wrapper/objcopy;				\
 	  export PATH=$(shell pwd)/debian/wrapper:$$PATH;		\
 	  dh_strip -p$(curpass) -Xlibpthread --keep-debug;		\
@@ -86,11 +86,12 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	    cd debian/$(curpass)/usr/lib/debug;				\
 	    find . -type f -name \*.so\*				\
 	      | cpio -pd $(shell pwd)/debian/$(libc)-dbg/usr/lib/debug;	\
+	    cd ../../../../..;						\
 	    rm -rf debian/$(curpass)/usr/lib/debug;			\
 	  fi;								\
 	  (cd debian/$(curpass);					\
 	   find . -name libpthread-\*.so -exec				\
-	     debian/wrapper/objcopy --only-keep-debug '{}'		\
+	     ../../debian/wrapper/objcopy --only-keep-debug '{}'	\
 	     ../$(libc)-dbg/usr/lib/debug/'{}' ';' || true;		\
 	   find . -name libpthread-\*.so -exec objcopy			\
 	     --add-gnu-debuglink=../$(libc)-dbg/usr/lib/debug/'{}'	\
