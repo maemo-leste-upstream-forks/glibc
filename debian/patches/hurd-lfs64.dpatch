@@ -1,0 +1,1732 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Hurd update from CVS to suport LFS
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+        exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+diff -X .ignore -urN glibc-2.2.5.old/ChangeLog glibc-2.2.5/ChangeLog
+--- glibc-2.2.5.old/ChangeLog	Tue Jun 11 19:49:29 2002
++++ glibc-2.2.5/ChangeLog	Tue Jun 11 19:26:39 2002
+@@ -0,0 +1,63 @@
++2002-07-31  Roland McGrath  <roland@frob.com>
++
++        * sysdeps/mach/hurd/Versions (ld: GLIBC_2.0): __fxstat -> __fxstat64,
++        __xstat -> __xstat64, __lseek -> __libc_lseek64.  Completes 2002-06-09
++        sysdeps/mach/hurd/dl-sysdep.c change.
++
++2002-06-09  Roland McGrath  <roland@frob.com>
++
++	Update to new Hurd RPC interfaces supporting 64-bit file sizes.
++	* sysdeps/mach/hurd/configure.in: Check for <hurd/version.h> with
++	value of HURD_INTERFACE_VERSION >= 20020609.
++	* sysdeps/mach/hurd/configure: Regenerated.
++	* shlib-versions (.*-.*-gnu-gnu.*): Set libhurduser=0.3.
++	* sysdeps/mach/hurd/xstatconv.c (xstat64_conv): Rewritten to
++	convert a struct stat64 into a struct stat and return 0 or -1
++	with errno set to EOVERFLOW.
++	* sysdeps/mach/hurd/statfsconv.c (statfs64_conv): Likewise
++	for struct statfs64 to struct statfs.
++	* sysdeps/mach/hurd/xstat.c (__xstat): Use converter and call ...
++	* sysdeps/mach/hurd/xstat64.c (__xstat64): ... this, real work here.
++	* sysdeps/mach/hurd/fxstat.c (__fxstat): Likewise.
++	* sysdeps/mach/hurd/fxstat64.c (__fxstat64): Likewise.
++	* sysdeps/mach/hurd/lxstat.c (__lxstat): Likewise.
++	* sysdeps/mach/hurd/lxstat64.c (__lxstat64): Likewise.
++	* sysdeps/mach/hurd/statfs.c (__statfs): Likewise.
++	* sysdeps/mach/hurd/statfs64.c (__statfs64): Likewise.
++	* sysdeps/mach/hurd/fstatfs.c (__fstatfs): Likewise.
++	* sysdeps/mach/hurd/fstatfs64.c (__fstatfs64): Likewise.
++	* sysdeps/mach/hurd/pwrite64.c (__libc_pwrite64): Do real work here.
++	* sysdeps/mach/hurd/pwrite.c (__libc_pwrite): Call that.
++	* sysdeps/mach/hurd/pread64.c (__libc_pread64): Do real work here.
++	* sysdeps/mach/hurd/pread.c (__libc_pread): Call that.
++	* sysdeps/mach/hurd/lseek64.c (__libc_lseek64): Do real work here.
++	* sysdeps/mach/hurd/lseek.c (__libc_lseek): Call that.
++	* sysdeps/mach/hurd/readdir64.c (__readdir64): Do real work here.
++	* sysdeps/mach/hurd/readdir.c (__readdir): Call that.
++	* sysdeps/mach/hurd/readdir64_r.c (__readdir64_r): Do real work here.
++	* sysdeps/mach/hurd/readdir_r.c (__readdir64_r): Call that.
++	* hurd/lookup-retry.c (__hurd_file_name_lookup_retry):
++	Use struct stat64 for io_stat argument.
++	* sysdeps/mach/hurd/readlink.c (__readlink): Likewise.
++	* hurd/fopenport.c (seekio): Remove EOVERFLOW check, pass POS directly
++	to io_seek.
++	* hurd/fd-read.c (_hurd_fd_read): Use loff_t for OFFSET argument.
++	* hurd/fd-write.c (_hurd_fd_write): Likewise.
++	* hurd/hurd/fd.h: Update decls.
++	* sysdeps/mach/hurd/getcwd.c
++	(_hurd_canonicalize_directory_name_internal): Use ino64_t
++	and struct dirent64.
++	* sysdeps/mach/hurd/dl-sysdep.c (open_file): Use struct stat64.
++	(__xstat): Renamed to __xstat64, use struct stat64 for argument.
++	(__fxstat): Renamed to __fxstat64, use struct stat64 for argument.
++	(__lseek): Renamed to __libc_lseek64, use off64_t for argument.
++
++2002-06-08  Roland McGrath  <roland@frob.com>
++
++	* sysdeps/mach/hurd/dirstream.h (struct __dirstream): Use size_t
++	instead of unsigned long int for __allocation and __size members.
++
++2002-06-07  Roland McGrath  <roland@frob.com>
++
++	* sysdeps/mach/hurd/bits/environments.h: File removed.
++
+diff -X .ignore -urN glibc-2.2.5.old/hurd/fd-read.c glibc-2.2.5/hurd/fd-read.c
+--- glibc-2.2.5.old/hurd/fd-read.c	Fri Jul  6 00:54:47 2001
++++ glibc-2.2.5/hurd/fd-read.c	Tue Jun 11 19:29:52 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1993,94,95,97,99 Free Software Foundation, Inc.
++/* Copyright (C) 1993,94,95,97,99,2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -23,7 +23,7 @@
+ #include <string.h>
+ 
+ error_t
+-_hurd_fd_read (struct hurd_fd *fd, void *buf, size_t *nbytes, off_t offset)
++_hurd_fd_read (struct hurd_fd *fd, void *buf, size_t *nbytes, loff_t offset)
+ {
+   error_t err;
+   char *data;
+diff -X .ignore -urN glibc-2.2.5.old/hurd/fd-write.c glibc-2.2.5/hurd/fd-write.c
+--- glibc-2.2.5.old/hurd/fd-write.c	Fri Jul  6 00:54:47 2001
++++ glibc-2.2.5/hurd/fd-write.c	Tue Jun 11 19:29:52 2002
+@@ -1,5 +1,5 @@
+ /* _hurd_fd_write -- write to a file descriptor; handles job control et al.
+-   Copyright (C) 1993,94,95,97,99 Free Software Foundation, Inc.
++   Copyright (C) 1993,94,95,97,99,2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -24,7 +24,7 @@
+ 
+ error_t
+ _hurd_fd_write (struct hurd_fd *fd,
+-		const void *buf, size_t *nbytes, off_t offset)
++		const void *buf, size_t *nbytes, loff_t offset)
+ {
+   error_t err;
+   mach_msg_type_number_t wrote;
+diff -X .ignore -urN glibc-2.2.5.old/hurd/fopenport.c glibc-2.2.5/hurd/fopenport.c
+--- glibc-2.2.5.old/hurd/fopenport.c	Tue Nov 13 05:06:41 2001
++++ glibc-2.2.5/hurd/fopenport.c	Tue Jun 11 19:29:52 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1994,95,97,2000,01 Free Software Foundation, Inc.
++/* Copyright (C) 1994,95,97,2000,01,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -70,23 +70,8 @@
+ #endif
+ 	int whence)
+ {
+-  off_t res;
+-  error_t error;
+-
+-  /* XXX We don't really support large files on the Hurd.  So if POS
+-     doesn't fit in an `off_t', we'll return `-1' and set errno.  EOVERFLOW
+-     probably isn't the right error value, but seems appropriate here.  */
+-  if ((off_t) *pos != *pos)
+-    {
+-      __set_errno (EOVERFLOW);
+-      return -1;
+-    }
+-
+-  error = __io_seek ((file_t) cookie, *pos, whence, &res);
+-  if (error)
+-    return __hurd_fail (error);
+-  *pos = res;
+-  return 0;
++  error_t err = __io_seek ((file_t) cookie, *pos, whence, pos);
++  return err ? __hurd_fail (err) : 0;
+ }
+ 
+ /* Close the file associated with COOKIE.
+diff -X .ignore -urN glibc-2.2.5.old/hurd/hurd/fd.h glibc-2.2.5/hurd/hurd/fd.h
+--- glibc-2.2.5.old/hurd/hurd/fd.h	Fri Jul  6 00:54:47 2001
++++ glibc-2.2.5/hurd/hurd/fd.h	Tue Jun 11 19:30:01 2002
+@@ -1,5 +1,6 @@
+ /* File descriptors.
+-   Copyright (C) 1993,94,95,96,97,98,99,2000,01 Free Software Foundation, Inc.
++   Copyright (C) 1993,94,95,96,97,98,99,2000,01,02
++   	Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -214,9 +215,9 @@
+    If successful, stores the amount actually read or written in *NBYTES.  */
+ 
+ extern error_t _hurd_fd_read (struct hurd_fd *fd,
+-			      void *buf, size_t *nbytes, off_t offset);
++			      void *buf, size_t *nbytes, loff_t offset);
+ extern error_t _hurd_fd_write (struct hurd_fd *fd,
+-			       const void *buf, size_t *nbytes, off_t offset);
++			       const void *buf, size_t *nbytes, loff_t offset);
+ 
+ 
+ /* Call *RPC on PORT and/or CTTY; if a call on CTTY returns EBACKGROUND,
+diff -X .ignore -urN glibc-2.2.5.old/hurd/lookup-retry.c glibc-2.2.5/hurd/lookup-retry.c
+--- glibc-2.2.5.old/hurd/lookup-retry.c	Fri Jul  6 00:54:47 2001
++++ glibc-2.2.5/hurd/lookup-retry.c	Tue Jun 11 19:29:57 2002
+@@ -1,5 +1,5 @@
+ /* hairy bits of Hurd file name lookup
+-   Copyright (C) 1992,93,94,95,96,97,99,2001 Free Software Foundation, Inc.
++   Copyright (C) 1992,93,94,95,96,97,99,2001,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -136,7 +136,7 @@
+ 		     we follow root-owned symlinks; if that is deemed
+ 		     undesireable, we can add a final check for that
+ 		     one exception to our general translator-based rule.  */
+-		  struct stat st;
++		  struct stat64 st;
+ 		  err = __io_stat (*result, &st);
+ 		  if (!err
+ 		      && (st.st_mode & (S_IPTRANS|S_IATRANS)))
+diff -X .ignore -urN glibc-2.2.5.old/shlib-versions glibc-2.2.5/shlib-versions
+--- glibc-2.2.5.old/shlib-versions	Sat Mar 23 14:50:11 2002
++++ glibc-2.2.5/shlib-versions	Tue Jun 11 19:27:14 2002
+@@ -57,8 +57,8 @@
+ # libmachuser.so.1 corresponds to mach/*.defs as of Utah's UK22 release.
+ .*-.*-gnu-gnu.*		libmachuser=1
+ 
+-# libhurduser.so.0.0 corresponds to hurd/*.defs as of 7 May 1996.
+-.*-.*-gnu-gnu.*		libhurduser=0.0
++# libhurduser.so.0.3 corresponds to hurd/*.defs as of 11 June 2002.
++.*-.*-gnu-gnu.*		libhurduser=0.3
+ 
+ %ifndef USE_IN_LIBIO
+ # libc.so.0.2 is for the Hurd alpha release 0.2.
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/bits/environments.h glibc-2.2.5/sysdeps/mach/hurd/bits/environments.h
+--- glibc-2.2.5.old/sysdeps/mach/hurd/bits/environments.h	Fri Jul  6 00:55:58 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/bits/environments.h	Wed Dec 31 19:00:00 1969
+@@ -1,53 +0,0 @@
+-/* Copyright (C) 1998, 2001 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, write to the Free
+-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+-   02111-1307 USA.  */
+-
+-#ifndef _UNISTD_H
+-# error "Never include this file directly.  Use <unistd.h> instead"
+-#endif
+-
+-/* This header should define the following symbols under the described
+-   situations.  A value `1' means that the model is always supported,
+-   `-1' means it is never supported.  Undefined means it cannot be
+-   statically decided.
+-
+-   _POSIX_V6_ILP32_OFF32   32bit int, long, pointers, and off_t type
+-   _POSIX_V6_ILP32_OFFBIG  32bit int, long, and pointers and larger off_t type
+-
+-   _POSIX_V6_LP64_OFF32	   64bit long and pointers and 32bit off_t type
+-   _POSIX_V6_LPBIG_OFFBIG  64bit long and pointers and large off_t type
+-
+-   The macros _XBS5_ILP32_OFF32, _XBS5_ILP32_OFFBIG, _XBS5_LP64_OFF32, and
+-   _XBS5_LPBIG_OFFBIG were used in previous versions of the Unix standard
+-   and are available only for compatibility.
+-*/
+-
+-/* By default we have 32-bit wide `int', `long int', pointers and
+-   `off_t'.  */
+-#define _POSIX_V6_ILP32_OFF32	1
+-#define _XBS5_ILP32_OFF32	1
+-
+-/* We can never (yet) provide an environment with the above size but
+-   a 64-bit size `off_t'.  */
+-#define _POSIX_V6_ILP32_OFFBIG	-1
+-#define _XBS5_ILP32_OFFBIG	-1
+-
+-/* We can never provide environments with 64-bit wide pointers.  */
+-#define _POSIX_V6_LP64_OFF64	-1
+-#define _POSIX_V6_LPBIG_OFFBIG	-1
+-#define _XBS5_LP64_OFF64	-1
+-#define _XBS5_LPBIG_OFFBIG	-1
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/configure glibc-2.2.5/sysdeps/mach/hurd/configure
+--- glibc-2.2.5.old/sysdeps/mach/hurd/configure	Tue Jun 11 20:20:49 2002
++++ glibc-2.2.5/sysdeps/mach/hurd/configure	Tue Jun 11 19:38:54 2002
+@@ -27,3 +27,37 @@
+     fi
+     ;;
+ esac
++
++echo $ac_n "checking Hurd header version""... $ac_c" 1>&6
++echo "configure:33: checking Hurd header version" >&5
++if eval "test \"`echo '$''{'libc_cv_hurd_version'+set}'`\" = set"; then
++  echo $ac_n "(cached) $ac_c" 1>&6
++else
++  cat > conftest.$ac_ext <<EOF
++#line 38 "configure"
++#include "confdefs.h"
++#include <hurd/version.h>
++int main() {
++
++#define NEED_VERSION 20020609
++#if HURD_INTERFACE_VERSION < NEED_VERSION
++# error Hurd version too old: HURD_INTERFACE_VERSION < NEED_VERSION
++#endif
++; return 0; }
++EOF
++if { (eval echo configure:49: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++  rm -rf conftest*
++  libc_cv_hurd_version=ok
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  libc_cv_hurd_version=bad
++fi
++rm -f conftest*
++fi
++
++echo "$ac_t""$libc_cv_hurd_version" 1>&6
++if test "x$libc_cv_hurd_version" != xok; then
++  { echo "configure: error: Hurd headers not installed or too old" 1>&2; exit 1; }
++fi
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/configure.in glibc-2.2.5/sysdeps/mach/hurd/configure.in
+--- glibc-2.2.5.old/sysdeps/mach/hurd/configure.in	Tue Jun 11 20:20:49 2002
++++ glibc-2.2.5/sysdeps/mach/hurd/configure.in	Tue Jun 11 19:38:54 2002
+@@ -29,3 +29,16 @@
+     fi
+     ;;
+ esac
++
++AC_CACHE_CHECK(Hurd header version, libc_cv_hurd_version, [dnl
++AC_TRY_COMPILE(dnl
++[#include <hurd/version.h>], [
++#define NEED_VERSION 20020609
++#if HURD_INTERFACE_VERSION < NEED_VERSION
++# error Hurd version too old: HURD_INTERFACE_VERSION < NEED_VERSION
++#endif],
++	       libc_cv_hurd_version=ok,
++	       libc_cv_hurd_version=bad)])
++if test "x$libc_cv_hurd_version" != xok; then
++  AC_MSG_ERROR(Hurd headers not installed or too old)
++fi
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/dirstream.h glibc-2.2.5/sysdeps/mach/hurd/dirstream.h
+--- glibc-2.2.5.old/sysdeps/mach/hurd/dirstream.h	Fri Jul  6 00:55:56 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/dirstream.h	Tue Jun 11 19:38:54 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
++/* Copyright (C) 1993,94,95,96,97,2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -34,8 +34,8 @@
+     int __entry_data;		/* Entry number `__data' corresponds to.  */
+     char *__ptr;		/* Current pointer into the block.  */
+     int __entry_ptr;		/* Entry number `__ptr' corresponds to.  */
+-    unsigned long int __allocation; /* Space allocated for the block.  */
+-    unsigned long int __size;	/* Total valid data in the block.  */
++    size_t __allocation;	/* Space allocated for the block.  */
++    size_t __size;		/* Total valid data in the block.  */
+     __libc_lock_define (, __lock) /* Mutex lock for this structure.  */
+   };
+ 
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/dl-sysdep.c glibc-2.2.5/sysdeps/mach/hurd/dl-sysdep.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/dl-sysdep.c	Sat Sep  8 13:16:44 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/dl-sysdep.c	Tue Jun 11 19:38:54 2002
+@@ -1,5 +1,5 @@
+ /* Operating system support for run-time dynamic linker.  Hurd version.
+-   Copyright (C) 1995,96,97,98,99,2000,2001 Free Software Foundation, Inc.
++   Copyright (C) 1995,96,97,98,99,2000,01,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -269,7 +269,7 @@
+    error.  If STAT is non-zero, stat the file into that stat buffer.  */
+ static error_t
+ open_file (const char *file_name, int flags,
+-	   mach_port_t *port, struct stat *stat)
++	   mach_port_t *port, struct stat64 *stat)
+ {
+   enum retry_type doretry;
+   char retryname[1024];		/* XXX string_t LOSES! */
+@@ -406,8 +406,8 @@
+ }
+ 
+ 
+-off_t weak_function
+-__lseek (int fd, off_t offset, int whence)
++off64_t weak_function
++__libc_lseek64 (int fd, off64_t offset, int whence)
+ {
+   error_t err;
+ 
+@@ -477,7 +477,7 @@
+ }
+ 
+ int weak_function
+-__fxstat (int vers, int fd, struct stat *buf)
++__fxstat64 (int vers, int fd, struct stat64 *buf)
+ {
+   error_t err;
+ 
+@@ -491,7 +491,7 @@
+ }
+ 
+ int weak_function
+-__xstat (int vers, const char *file, struct stat *buf)
++__xstat64 (int vers, const char *file, struct stat64 *buf)
+ {
+   error_t err;
+   mach_port_t port;
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/fstatfs.c glibc-2.2.5/sysdeps/mach/hurd/fstatfs.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/fstatfs.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/fstatfs.c	Tue Jun 11 19:38:54 2002
+@@ -1,5 +1,5 @@
+ /* fstatfs -- Return information about the filesystem on which FD resides.
+-   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
++   Copyright (C) 1996,97,2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -17,21 +17,16 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
+-#include <hurd.h>
+-#include <hurd/fd.h>
+ #include <sys/statfs.h>
+-#include <stddef.h>
++
++#include "statfsconv.c"
+ 
+ /* Return information about the filesystem on which FD resides.  */
+ int
+ __fstatfs (int fd, struct statfs *buf)
+ {
+-  error_t err;
+-
+-  if (err = HURD_DPORT_USE (fd, __file_statfs (port, buf)))
+-    return __hurd_dfail (fd, err);
+-
+-  return 0;
++  struct statfs64 buf64;
++  return __fstatfs64 (fd, &buf64) ?: statfs64_conv (buf, &buf64);
+ }
+ 
+ weak_alias (__fstatfs, fstatfs)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/fstatfs64.c glibc-2.2.5/sysdeps/mach/hurd/fstatfs64.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/fstatfs64.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/fstatfs64.c	Tue Jun 11 19:38:54 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2001 Free Software Foundation, Inc.
++/* Copyright (C) 2001,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -17,6 +17,8 @@
+    02111-1307 USA.  */
+ 
+ #include <sys/statfs.h>
++#include <hurd.h>
++#include <hurd/fd.h>
+ 
+ #include "statfsconv.c"
+ 
+@@ -24,17 +26,11 @@
+ int
+ __fstatfs64 (int fd, struct statfs64 *buf)
+ {
+-  int result;
+-  struct statfs buf32;
++  error_t err;
+ 
+-  /* XXX We simply call __fstatfs and convert the result to `struct
+-     statfs64'.  We can probably get away with that since we don't
+-     support large files on the Hurd yet.  */
+-  result = __fstatfs (fd, &buf32);
+-  if (result == 0)
+-    statfs64_conv (&buf32, buf);
++  if (err = HURD_DPORT_USE (fd, __file_statfs (port, buf)))
++    return __hurd_dfail (fd, err);
+ 
+-  return result;
++  return 0;
+ }
+-
+ weak_alias (__fstatfs64, fstatfs64)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/fxstat.c glibc-2.2.5/sysdeps/mach/hurd/fxstat.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/fxstat.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/fxstat.c	Tue Jun 11 19:38:54 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1992, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
++/* Copyright (C) 1992,93,94,95,96,97,2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -19,22 +19,15 @@
+ #include <errno.h>
+ #include <stddef.h>
+ #include <sys/stat.h>
+-#include <hurd.h>
+-#include <hurd/fd.h>
++
++#include "xstatconv.c"
+ 
+ /* Get information about the file descriptor FD in BUF.  */
+ int
+ __fxstat (int vers, int fd, struct stat *buf)
+ {
+-  error_t err;
+-
+-  if (vers != _STAT_VER)
+-    return __hurd_fail (EINVAL);
+-
+-  if (err = HURD_DPORT_USE (fd, __io_stat (port, buf)))
+-    return __hurd_dfail (fd, err);
+-
+-  return 0;
++  struct stat64 buf64;
++  return __fxstat64 (vers, fd, &buf64) ?: xstat64_conv (buf, &buf64);
+ }
+ 
+ weak_alias (__fxstat, _fxstat)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/fxstat64.c glibc-2.2.5/sysdeps/mach/hurd/fxstat64.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/fxstat64.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/fxstat64.c	Tue Jun 11 19:38:54 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2000 Free Software Foundation, Inc.
++/* Copyright (C) 2000,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -19,22 +19,20 @@
+ #include <errno.h>
+ #include <stddef.h>
+ #include <sys/stat.h>
+-
+-#include "xstatconv.c"
++#include <hurd.h>
++#include <hurd/fd.h>
+ 
+ /* Get information about the file descriptor FD in BUF.  */
+ int
+ __fxstat64 (int vers, int fd, struct stat64 *buf)
+ {
+-  int result;
+-  struct stat buf32;
++  error_t err;
++
++  if (vers != _STAT_VER)
++    return __hurd_fail (EINVAL);
+ 
+-  /* XXX We simply call __fxstat and convert the result to `struct
+-     stat64'.  We can probably get away with that since we don't
+-     support large files on the Hurd yet.  */
+-  result = __fxstat (vers, fd, &buf32);
+-  if (result == 0)
+-    xstat64_conv (&buf32, buf);
++  if (err = HURD_DPORT_USE (fd, __io_stat (port, buf)))
++    return __hurd_dfail (fd, err);
+ 
+-  return result;
++  return 0;
+ }
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/getcwd.c glibc-2.2.5/sysdeps/mach/hurd/getcwd.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/getcwd.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/getcwd.c	Tue Jun 11 19:38:54 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98 Free Software Foundation, Inc.
++/* Copyright (C) 1991,92,93,94,95,96,97,98,2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -44,7 +44,7 @@
+ {
+   error_t err;
+   mach_port_t rootid, thisid, rootdevid, thisdevid;
+-  ino_t rootino, thisino;
++  ino64_t rootino, thisino;
+   char *file_name;
+   register char *file_namep;
+   file_t parent;
+@@ -112,9 +112,9 @@
+ 	 THISID, THISDEV, and THISINO are its identity.
+ 	 Look in its parent (..) for a file with the same file number.  */
+ 
+-      struct dirent *d;
++      struct dirent64 *d;
+       mach_port_t dotid, dotdevid;
+-      ino_t dotino;
++      ino64_t dotino;
+       int mount_point;
+       file_t newp;
+       char *dirdata;
+@@ -175,7 +175,7 @@
+ 	  offset = 0;
+ 	  while (offset < dirdatasize)
+ 	    {
+-	      d = (struct dirent *) &dirdata[offset];
++	      d = (struct dirent64 *) &dirdata[offset];
+ 	      offset += d->d_reclen;
+ 
+ 	      /* Ignore `.' and `..'.  */
+@@ -189,7 +189,7 @@
+ 		  file_t try = __file_name_lookup_under (parent, d->d_name,
+ 							 O_NOLINK, 0);
+ 		  file_t id, devid;
+-		  ino_t fileno;
++		  ino64_t fileno;
+ 		  if (try == MACH_PORT_NULL)
+ 		    goto lose;
+ 		  err = __io_identity (try, &id, &devid, &fileno);
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/lseek.c glibc-2.2.5/sysdeps/mach/hurd/lseek.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/lseek.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/lseek.c	Tue Jun 11 19:38:55 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1991,92,93,94,95,97,2000 Free Software Foundation, Inc.
++/* Copyright (C) 1991,92,93,94,95,97,2000,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -16,19 +16,14 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
+-#include <errno.h>
+ #include <unistd.h>
+-#include <hurd.h>
+-#include <hurd/fd.h>
++#include <sys/types.h>
+ 
+ /* Seek to OFFSET on FD, starting from WHENCE.  */
+ off_t
+ __libc_lseek (int fd, off_t offset, int whence)
+ {
+-  error_t err;
+-  if (err = HURD_DPORT_USE (fd, __io_seek (port, offset, whence, &offset)))
+-    return __hurd_dfail (fd, err);
+-  return offset;
++  return __libc_lseek64 (fd, (off64_t) offset, whence);
+ }
+ 
+ weak_alias (__libc_lseek, __lseek)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/lseek64.c glibc-2.2.5/sysdeps/mach/hurd/lseek64.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/lseek64.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/lseek64.c	Tue Jun 11 19:38:55 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2000 Free Software Foundation, Inc.
++/* Copyright (C) 2000,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -16,25 +16,18 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
+-#include <errno.h>
+ #include <unistd.h>
+-#include <sys/types.h>
++#include <hurd.h>
++#include <hurd/fd.h>
+ 
+ /* Seek to OFFSET on FD, starting from WHENCE.  */
+ off64_t
+ __libc_lseek64 (int fd, off64_t offset, int whence)
+ {
+-  /* XXX We don't really support large files on the Hurd.  So if
+-     OFFSET doesn't fit in an `off_t', we'll return `-1' and set
+-     errno.  EOVERFLOW probably isn't the right error value, but seems
+-     appropriate here.  */
+-  if ((off_t) offset != offset)
+-    {
+-      __set_errno (EOVERFLOW);
+-      return -1;
+-    }
+-
+-  return __libc_lseek (fd, offset, whence);
++  error_t err;
++  if (err = HURD_DPORT_USE (fd, __io_seek (port, offset, whence, &offset)))
++    return __hurd_dfail (fd, err);
++  return offset;
+ }
+ 
+ weak_alias (__libc_lseek64, __lseek64)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/lxstat.c glibc-2.2.5/sysdeps/mach/hurd/lxstat.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/lxstat.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/lxstat.c	Tue Jun 11 19:38:55 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1992, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
++/* Copyright (C) 1992,93,94,95,96,97,2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -19,26 +19,13 @@
+ #include <errno.h>
+ #include <sys/stat.h>
+ #include <stddef.h>
+-#include <fcntl.h>
+-#include <hurd.h>
++
++#include "xstatconv.c"
+ 
+ int
+ __lxstat (int vers, const char *file, struct stat *buf)
+ {
+-  error_t err;
+-  file_t port;
+-
+-  if (vers != _STAT_VER)
+-    return __hurd_fail (EINVAL);
+-
+-  port = __file_name_lookup (file, O_NOLINK, 0);
+-  if (port == MACH_PORT_NULL)
+-    return -1;
+-  err = __io_stat (port, buf);
+-  __mach_port_deallocate (__mach_task_self (), port);
+-  if (err)
+-    return __hurd_fail (err);
+-  return 0;
++  struct stat64 buf64;
++  return __lxstat64 (vers, file, &buf64) ?: xstat64_conv (buf, &buf64);
+ }
+-
+ weak_alias (__lxstat, _lxstat)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/lxstat64.c glibc-2.2.5/sysdeps/mach/hurd/lxstat64.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/lxstat64.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/lxstat64.c	Tue Jun 11 19:38:55 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2000 Free Software Foundation, Inc.
++/* Copyright (C) 2000,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -19,22 +19,25 @@
+ #include <errno.h>
+ #include <stddef.h>
+ #include <sys/stat.h>
+-
+-#include "xstatconv.c"
++#include <fcntl.h>
++#include <hurd.h>
+ 
+ /* Get information about the file descriptor FD in BUF.  */
+ int
+ __lxstat64 (int vers, const char *file, struct stat64 *buf)
+ {
+-  int result;
+-  struct stat buf32;
++  error_t err;
++  file_t port;
+ 
+-  /* XXX We simply call __lxstat and convert the result to `struct
+-     stat64'.  We can probably get away with that since we don't
+-     support large files on the Hurd yet.  */
+-  result = __lxstat (vers, file, &buf32);
+-  if (result == 0)
+-    xstat64_conv (&buf32, buf);
++  if (vers != _STAT_VER)
++    return __hurd_fail (EINVAL);
+ 
+-  return result;
++  port = __file_name_lookup (file, O_NOLINK, 0);
++  if (port == MACH_PORT_NULL)
++    return -1;
++  err = __io_stat (port, buf);
++  __mach_port_deallocate (__mach_task_self (), port);
++  if (err)
++    return __hurd_fail (err);
++  return 0;
+ }
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/pread.c glibc-2.2.5/sysdeps/mach/hurd/pread.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/pread.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/pread.c	Tue Jun 11 19:38:55 2002
+@@ -1,6 +1,6 @@
+ /* Read block from given position in file without changing file pointer.
+    Hurd version.
+-   Copyright (C) 1999,2001 Free Software Foundation, Inc.
++   Copyright (C) 1999,2001,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -20,17 +20,11 @@
+ 
+ #include <errno.h>
+ #include <unistd.h>
+-#include <hurd/fd.h>
+ 
+ ssize_t
+ __libc_pread (int fd, void *buf, size_t nbytes, off_t offset)
+ {
+-  error_t err;
+-  if (offset < 0)
+-    err = EINVAL;
+-  else
+-    err = HURD_FD_USE (fd, _hurd_fd_read (descriptor, buf, &nbytes, offset));
+-  return err ? __hurd_dfail (fd, err) : nbytes;
++  return __libc_pread64 (fd, buf, nbytes, (off64_t) offset);
+ }
+ 
+ #ifndef __libc_pread
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/pread64.c glibc-2.2.5/sysdeps/mach/hurd/pread64.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/pread64.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/pread64.c	Tue Jun 11 19:38:55 2002
+@@ -1,6 +1,6 @@
+ /* Read block from given position in file without changing file pointer.
+    Hurd version.
+-   Copyright (C) 2001 Free Software Foundation, Inc.
++   Copyright (C) 2001,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -20,21 +20,17 @@
+ 
+ #include <errno.h>
+ #include <unistd.h>
++#include <hurd/fd.h>
+ 
+ ssize_t
+-__libc_pread64 (int fd, void *buf, size_t nbyte, off64_t offset)
++__libc_pread64 (int fd, void *buf, size_t nbytes, off64_t offset)
+ {
+-  /* XXX We don't really support large files on the Hurd.  So if
+-     OFFSET doesn't fit in an `off_t', we'll return `-1' and set
+-     errno.  EOVERFLOW probably isn't the right error value, but seems
+-     appropriate here.  */
+-  if ((off_t) offset != offset)
+-    {
+-      __set_errno (EOVERFLOW);
+-      return -1;
+-    }
+-
+-  return __libc_pread (fd, buf, nbyte, offset);
++  error_t err;
++  if (offset < 0)
++    err = EINVAL;
++  else
++    err = HURD_FD_USE (fd, _hurd_fd_read (descriptor, buf, &nbytes, offset));
++  return err ? __hurd_dfail (fd, err) : nbytes;
+ }
+ 
+ #ifndef __libc_pread64
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/pwrite.c glibc-2.2.5/sysdeps/mach/hurd/pwrite.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/pwrite.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/pwrite.c	Tue Jun 11 19:38:56 2002
+@@ -1,6 +1,6 @@
+ /* Write block at given position in file without changing file pointer.
+    Hurd version.
+-   Copyright (C) 1999,2001 Free Software Foundation, Inc.
++   Copyright (C) 1999,2001,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -20,19 +20,13 @@
+ 
+ #include <errno.h>
+ #include <unistd.h>
+-#include <hurd/fd.h>
+ 
+ /* Write NBYTES of BUF to FD at given position OFFSET without changing
+    the file position.  Return the number written, or -1.  */
+ ssize_t
+ __libc_pwrite (int fd, const void *buf, size_t nbytes, off_t offset)
+ {
+-  error_t err;
+-  if (offset < 0)
+-    err = EINVAL;
+-  else
+-    err = HURD_FD_USE (fd, _hurd_fd_write (descriptor, buf, &nbytes, offset));
+-  return err ? __hurd_dfail (fd, err) : nbytes;
++  return __libc_pwrite64 (fd, buf, nbytes, (off64_t) offset);
+ }
+ 
+ #ifndef __libc_pwrite
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/pwrite64.c glibc-2.2.5/sysdeps/mach/hurd/pwrite64.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/pwrite64.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/pwrite64.c	Tue Jun 11 19:38:56 2002
+@@ -1,6 +1,6 @@
+ /* Write block to given position in file without changing file pointer.
+    Hurd version.
+-   Copyright (C) 2001 Free Software Foundation, Inc.
++   Copyright (C) 2001,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -20,21 +20,17 @@
+ 
+ #include <errno.h>
+ #include <unistd.h>
++#include <hurd/fd.h>
+ 
+ ssize_t
+-__libc_pwrite64 (int fd, const void *buf, size_t nbyte, off64_t offset)
++__libc_pwrite64 (int fd, const void *buf, size_t nbytes, off64_t offset)
+ {
+-  /* XXX We don't really support large files on the Hurd.  So if
+-     OFFSET doesn't fit in an `off_t', we'll return `-1' and set
+-     errno.  EOVERFLOW probably isn't the right error value, but seems
+-     appropriate here.  */
+-  if ((off_t) offset != offset)
+-    {
+-      __set_errno (EOVERFLOW);
+-      return -1;
+-    }
+-
+-  return __libc_pwrite (fd, buf, nbyte, offset);
++  error_t err;
++  if (offset < 0)
++    err = EINVAL;
++  else
++    err = HURD_FD_USE (fd, _hurd_fd_write (descriptor, buf, &nbytes, offset));
++  return err ? __hurd_dfail (fd, err) : nbytes;
+ }
+ 
+ #ifndef __libc_pwrite64
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/readdir.c glibc-2.2.5/sysdeps/mach/hurd/readdir.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/readdir.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/readdir.c	Tue Jun 11 19:38:56 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
++/* Copyright (C) 1993,94,95,96,97,2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -17,90 +17,51 @@
+    02111-1307 USA.  */
+ 
+ #include <errno.h>
+-#include <limits.h>
+ #include <stddef.h>
+-#include <string.h>
+ #include <dirent.h>
+ #include <unistd.h>
+-#include <sys/types.h>
+-#include <hurd.h>
+-#include <hurd/fd.h>
+-#include "dirstream.h"
+-
++#include <endian.h>
++#include <assert.h>
+ 
+ /* Read a directory entry from DIRP.  */
+ struct dirent *
+ __readdir (DIR *dirp)
+ {
+-  struct dirent *dp;
++  struct dirent64 *entry64 = __readdir64 (dirp);
+ 
+-  if (dirp == NULL)
++  if (sizeof (struct dirent64) == sizeof (struct dirent))
++    /* We should in fact just be an alias to readdir64 on this machine.  */
++    return (struct dirent *) entry64;
++
++  /* These are all compile-time constants.  We know that d_ino is the first
++     member and that the layout of the following members matches exactly in
++     both structures.  */
++  assert (offsetof (struct dirent, d_ino) == 0);
++  assert (offsetof (struct dirent64, d_ino) == 0);
++# define MATCH(memb)							      \
++  assert (offsetof (struct dirent64, memb) - sizeof (entry64->d_ino)	      \
++	  == offsetof (struct dirent, memb) - sizeof (ino_t))
++  MATCH (d_reclen);
++  MATCH (d_type);
++  MATCH (d_namlen);
++# undef MATCH
++
++  if (entry64 == NULL)
++    return NULL;
++
++  struct dirent *const entry = ((void *) (&entry64->d_ino + 1)
++				- sizeof entry->d_ino);
++  const ino_t d_ino = entry64->d_ino;
++  if (d_ino != entry64->d_ino)
+     {
+-      errno = EINVAL;
++      __set_errno (EOVERFLOW);
+       return NULL;
+     }
+-
+-  __libc_lock_lock (dirp->__lock);
+-
+-  do
+-    {
+-      if (dirp->__ptr - dirp->__data >= dirp->__size)
+-	{
+-	  /* We've emptied out our buffer.  Refill it.  */
+-
+-	  char *data = dirp->__data;
+-	  int nentries;
+-	  error_t err;
+-
+-	  if (err = HURD_FD_PORT_USE (dirp->__fd,
+-				      __dir_readdir (port,
+-						     &data, &dirp->__size,
+-						     dirp->__entry_ptr,
+-						     -1, 0, &nentries)))
+-	    {
+-	      __hurd_fail (err);
+-	      dp = NULL;
+-	      break;
+-	    }
+-
+-	  /* DATA now corresponds to entry index DIRP->__entry_ptr.  */
+-	  dirp->__entry_data = dirp->__entry_ptr;
+-
+-	  if (data != dirp->__data)
+-	    {
+-	      /* The data was passed out of line, so our old buffer is no
+-		 longer useful.  Deallocate the old buffer and reset our
+-		 information for the new buffer.  */
+-	      __vm_deallocate (__mach_task_self (),
+-			       (vm_address_t) dirp->__data,
+-			       dirp->__allocation);
+-	      dirp->__data = data;
+-	      dirp->__allocation = round_page (dirp->__size);
+-	    }
+-
+-	  /* Reset the pointer into the buffer.  */
+-	  dirp->__ptr = dirp->__data;
+-
+-	  if (nentries == 0)
+-	    {
+-	      /* End of file.  */
+-	      dp = NULL;
+-	      break;
+-	    }
+-
+-	  /* We trust the filesystem to return correct data and so we
+-	     ignore NENTRIES.  */
+-	}
+-
+-      dp = (struct dirent *) dirp->__ptr;
+-      dirp->__ptr += dp->d_reclen;
+-      ++dirp->__entry_ptr;
+-
+-      /* Loop to ignore deleted files.  */
+-    } while (dp->d_fileno == 0);
+-
+-  __libc_lock_unlock (dirp->__lock);
+-
+-  return dp;
++# if BYTE_ORDER != BIG_ENDIAN	/* We just skipped over the zero high word.  */
++  entry->d_ino = d_ino;	/* ... or the nonzero low word, swap it.  */
++# endif
++  entry->d_reclen -= sizeof entry64->d_ino - sizeof entry->d_ino;
++  return entry;
+ }
++
+ weak_alias (__readdir, readdir)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/readdir64.c glibc-2.2.5/sysdeps/mach/hurd/readdir64.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/readdir64.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/readdir64.c	Tue Jun 11 19:38:57 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2001 Free Software Foundation, Inc.
++/* Copyright (C) 2001,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -17,25 +17,86 @@
+    02111-1307 USA.  */
+ 
+ #include <dirent.h>
+-#include <limits.h>
+ #include <stddef.h>
+-#include <string.h>
++#include <hurd.h>
++#include <hurd/fs.h>
++#include <hurd/fd.h>
++#include "dirstream.h"
+ 
+ /* Read a directory entry from DIRP.  */
+ struct dirent64 *
+ __readdir64 (DIR *dirp)
+ {
+-  struct dirent64 *result;
+-  static union
+-  {
+-    struct dirent64 d;
+-    char b[offsetof (struct dirent64, d_name) + UCHAR_MAX + 1];
+-  } u;
+-  int err;
++  struct dirent64 *dp;
+ 
+-  err = __readdir64_r (dirp, &u.d, &result);
++  if (dirp == NULL)
++    {
++      errno = EINVAL;
++      return NULL;
++    }
++
++  __libc_lock_lock (dirp->__lock);
++
++  do
++    {
++      if (dirp->__ptr - dirp->__data >= dirp->__size)
++	{
++	  /* We've emptied out our buffer.  Refill it.  */
++
++	  char *data = dirp->__data;
++	  int nentries;
++	  error_t err;
++
++	  if (err = HURD_FD_PORT_USE (dirp->__fd,
++				      __dir_readdir (port,
++						     &data, &dirp->__size,
++						     dirp->__entry_ptr,
++						     -1, 0, &nentries)))
++	    {
++	      __hurd_fail (err);
++	      dp = NULL;
++	      break;
++	    }
++
++	  /* DATA now corresponds to entry index DIRP->__entry_ptr.  */
++	  dirp->__entry_data = dirp->__entry_ptr;
++
++	  if (data != dirp->__data)
++	    {
++	      /* The data was passed out of line, so our old buffer is no
++		 longer useful.  Deallocate the old buffer and reset our
++		 information for the new buffer.  */
++	      __vm_deallocate (__mach_task_self (),
++			       (vm_address_t) dirp->__data,
++			       dirp->__allocation);
++	      dirp->__data = data;
++	      dirp->__allocation = round_page (dirp->__size);
++	    }
++
++	  /* Reset the pointer into the buffer.  */
++	  dirp->__ptr = dirp->__data;
++
++	  if (nentries == 0)
++	    {
++	      /* End of file.  */
++	      dp = NULL;
++	      break;
++	    }
++
++	  /* We trust the filesystem to return correct data and so we
++	     ignore NENTRIES.  */
++	}
++
++      dp = (struct dirent64 *) dirp->__ptr;
++      dirp->__ptr += dp->d_reclen;
++      ++dirp->__entry_ptr;
+ 
+-  return err ? NULL : result;
++      /* Loop to ignore deleted files.  */
++    } while (dp->d_fileno == 0);
++
++  __libc_lock_unlock (dirp->__lock);
++
++  return dp;
+ }
+ 
+ weak_alias (__readdir64, readdir64)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/readdir64_r.c glibc-2.2.5/sysdeps/mach/hurd/readdir64_r.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/readdir64_r.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/readdir64_r.c	Tue Jun 11 19:38:57 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2001 Free Software Foundation, Inc.
++/* Copyright (C) 2001,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -17,36 +17,96 @@
+    02111-1307 USA.  */
+ 
+ #include <dirent.h>
+-#include <limits.h>
+ #include <stddef.h>
+ #include <string.h>
++#include <hurd.h>
++#include <hurd/fs.h>
++#include <hurd/fd.h>
++#include "dirstream.h"
+ 
+ /* Read a directory entry from DIRP.  */
+ int
+ __readdir64_r (DIR *dirp, struct dirent64 *entry, struct dirent64 **result)
+ {
+-  struct dirent *result32;
+-  union
+-  {
+-    struct dirent d;
+-    char b[offsetof (struct dirent, d_name) + UCHAR_MAX + 1];
+-  } u;
+-  int err;
++  struct dirent64 *dp;
++  error_t err = 0;
+ 
+-  err = __readdir_r (dirp, &u.d, &result32);
+-  if (result32)
++  if (dirp == NULL)
+     {
+-      entry->d_fileno = result32->d_fileno;
+-      entry->d_reclen = result32->d_reclen;
+-      entry->d_type = result32->d_type;
+-      entry->d_namlen = result32->d_namlen;
+-      memcpy (entry->d_name, result32->d_name, result32->d_namlen + 1);
++      errno = EINVAL;
++      return errno;
++    }
++
++  __libc_lock_lock (dirp->__lock);
++
++  do
++    {
++      if (dirp->__ptr - dirp->__data >= dirp->__size)
++	{
++	  /* We've emptied out our buffer.  Refill it.  */
++
++	  char *data = dirp->__data;
++	  int nentries;
++
++	  if (err = HURD_FD_PORT_USE (dirp->__fd,
++				      __dir_readdir (port,
++						     &data, &dirp->__size,
++						     dirp->__entry_ptr,
++						     -1, 0, &nentries)))
++	    {
++	      __hurd_fail (err);
++	      dp = NULL;
++	      break;
++	    }
++
++	  /* DATA now corresponds to entry index DIRP->__entry_ptr.  */
++	  dirp->__entry_data = dirp->__entry_ptr;
++
++	  if (data != dirp->__data)
++	    {
++	      /* The data was passed out of line, so our old buffer is no
++		 longer useful.  Deallocate the old buffer and reset our
++		 information for the new buffer.  */
++	      __vm_deallocate (__mach_task_self (),
++			       (vm_address_t) dirp->__data,
++			       dirp->__allocation);
++	      dirp->__data = data;
++	      dirp->__allocation = round_page (dirp->__size);
++	    }
++
++	  /* Reset the pointer into the buffer.  */
++	  dirp->__ptr = dirp->__data;
++
++	  if (nentries == 0)
++	    {
++	      /* End of file.  */
++	      dp = NULL;
++	      break;
++	    }
++
++	  /* We trust the filesystem to return correct data and so we
++	     ignore NENTRIES.  */
++	}
++
++      dp = (struct dirent64 *) dirp->__ptr;
++      dirp->__ptr += dp->d_reclen;
++      ++dirp->__entry_ptr;
++
++      /* Loop to ignore deleted files.  */
++    } while (dp->d_fileno == 0);
++
++  if (dp)
++    {
++      *entry = *dp;
++      memcpy (entry->d_name, dp->d_name, dp->d_namlen + 1);
+       *result = entry;
+     }
+   else
+     *result = NULL;
+-      
+-  return err;
++
++  __libc_lock_unlock (dirp->__lock);
++
++  return dp ? 0 : err ? errno : 0;
+ }
+ 
+ weak_alias(__readdir64_r, readdir64_r)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/readdir_r.c glibc-2.2.5/sysdeps/mach/hurd/readdir_r.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/readdir_r.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/readdir_r.c	Tue Jun 11 19:38:57 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1993, 94, 95, 96, 1997, 2001 Free Software Foundation, Inc.
++/* Copyright (C) 1993,94,95,96,97,2001,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -32,85 +32,34 @@
+ int
+ __readdir_r (DIR *dirp, struct dirent *entry, struct dirent **result)
+ {
+-  struct dirent *dp;
+-  error_t err = 0;
++  if (sizeof (struct dirent64) == sizeof (struct dirent))
++    /* We should in fact just be an alias to readdir64_r on this machine.  */
++    return __readdir64_r (dirp,
++			  (struct dirent64 *) entry,
++			  (struct dirent64 **) result);
++
++  struct dirent64 *result64;
++  union
++  {
++    struct dirent64 d;
++    char b[offsetof (struct dirent64, d_name) + UCHAR_MAX + 1];
++  } u;
++  int err;
+ 
+-  if (dirp == NULL)
++  err = __readdir64_r (dirp, &u.d, &result64);
++  if (result64)
+     {
+-      errno = EINVAL;
+-      return errno;
+-    }
+-
+-  __libc_lock_lock (dirp->__lock);
+-
+-  do
+-    {
+-      if (dirp->__ptr - dirp->__data >= dirp->__size)
+-	{
+-	  /* We've emptied out our buffer.  Refill it.  */
+-
+-	  char *data = dirp->__data;
+-	  int nentries;
+-
+-	  if (err = HURD_FD_PORT_USE (dirp->__fd,
+-				      __dir_readdir (port,
+-						     &data, &dirp->__size,
+-						     dirp->__entry_ptr,
+-						     -1, 0, &nentries)))
+-	    {
+-	      __hurd_fail (err);
+-	      dp = NULL;
+-	      break;
+-	    }
+-
+-	  /* DATA now corresponds to entry index DIRP->__entry_ptr.  */
+-	  dirp->__entry_data = dirp->__entry_ptr;
+-
+-	  if (data != dirp->__data)
+-	    {
+-	      /* The data was passed out of line, so our old buffer is no
+-		 longer useful.  Deallocate the old buffer and reset our
+-		 information for the new buffer.  */
+-	      __vm_deallocate (__mach_task_self (),
+-			       (vm_address_t) dirp->__data,
+-			       dirp->__allocation);
+-	      dirp->__data = data;
+-	      dirp->__allocation = round_page (dirp->__size);
+-	    }
+-
+-	  /* Reset the pointer into the buffer.  */
+-	  dirp->__ptr = dirp->__data;
+-
+-	  if (nentries == 0)
+-	    {
+-	      /* End of file.  */
+-	      dp = NULL;
+-	      break;
+-	    }
+-
+-	  /* We trust the filesystem to return correct data and so we
+-	     ignore NENTRIES.  */
+-	}
+-
+-      dp = (struct dirent *) dirp->__ptr;
+-      dirp->__ptr += dp->d_reclen;
+-      ++dirp->__entry_ptr;
+-
+-      /* Loop to ignore deleted files.  */
+-    } while (dp->d_fileno == 0);
+-
+-  if (dp)
+-    {
+-      *entry = *dp;
+-      memcpy (entry->d_name, dp->d_name, dp->d_namlen + 1);
++      entry->d_fileno = result64->d_fileno;
++      entry->d_reclen = result64->d_reclen;
++      entry->d_type = result64->d_type;
++      entry->d_namlen = result64->d_namlen;
++      memcpy (entry->d_name, result64->d_name, result64->d_namlen + 1);
+       *result = entry;
+     }
+   else
+     *result = NULL;
+ 
+-  __libc_lock_unlock (dirp->__lock);
+-
+-  return dp ? 0 : err ? errno : 0;
++  return err;
+ }
+ 
+ weak_alias (__readdir_r, readdir_r)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/readlink.c glibc-2.2.5/sysdeps/mach/hurd/readlink.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/readlink.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/readlink.c	Tue Jun 11 19:38:57 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1991, 92, 93, 94, 95, 97 Free Software Foundation, Inc.
++/* Copyright (C) 1991,92,93,94,95,97,2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -33,7 +33,7 @@
+ {
+   error_t err;
+   file_t file;
+-  struct stat st;
++  struct stat64 st;
+ 
+   file = __file_name_lookup (file_name, O_READ | O_NOLINK, 0);
+   if (file == MACH_PORT_NULL)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/statfs.c glibc-2.2.5/sysdeps/mach/hurd/statfs.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/statfs.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/statfs.c	Tue Jun 11 19:38:57 2002
+@@ -1,5 +1,5 @@
+ /* statfs -- Return information about the filesystem on which FILE resides.
+-   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
++   Copyright (C) 1996,97,2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -17,25 +17,16 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
+-#include <hurd.h>
+ #include <sys/statfs.h>
+-#include <stddef.h>
++
++#include "statfsconv.c"
+ 
+ /* Return information about the filesystem on which FILE resides.  */
+ int
+ __statfs (const char *file, struct statfs *buf)
+ {
+-  error_t err;
+-  file_t port;
+-
+-  port = __file_name_lookup (file, 0, 0);
+-  if (port == MACH_PORT_NULL)
+-    return -1;
+-  err = __file_statfs (port, buf);
+-  __mach_port_deallocate (__mach_task_self (), port);
+-  if (err)
+-    return __hurd_fail (err);
+-  return 0;
++  struct statfs64 buf64;
++  return __statfs64 (file, &buf64) ?: statfs64_conv (buf, &buf64);
+ }
+ 
+ weak_alias (__statfs, statfs)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/statfs64.c glibc-2.2.5/sysdeps/mach/hurd/statfs64.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/statfs64.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/statfs64.c	Tue Jun 11 19:38:57 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2001 Free Software Foundation, Inc.
++/* Copyright (C) 2001,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -17,24 +17,22 @@
+    02111-1307 USA.  */
+ 
+ #include <sys/statfs.h>
+-
+-#include "statfsconv.c"
++#include <hurd.h>
+ 
+ /* Return information about the filesystem on which FILE resides.  */
+ int
+ __statfs64 (const char *file, struct statfs64 *buf)
+ {
+-  int result;
+-  struct statfs buf32;
+-
+-  /* XXX We simply call __statfs and convert the result to `struct
+-     statfs64'.  We can probably get away with that since we don't
+-     support large files on the Hurd yet.  */
+-  result = __statfs (file, &buf32);
+-  if (result == 0)
+-    statfs64_conv (&buf32, buf);
++  error_t err;
++  file_t port;
+ 
+-  return result;
++  port = __file_name_lookup (file, 0, 0);
++  if (port == MACH_PORT_NULL)
++    return -1;
++  err = __file_statfs (port, buf);
++  __mach_port_deallocate (__mach_task_self (), port);
++  if (err)
++    return __hurd_fail (err);
++  return 0;
+ }
+-
+ weak_alias (__statfs64, statfs64)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/statfsconv.c glibc-2.2.5/sysdeps/mach/hurd/statfsconv.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/statfsconv.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/statfsconv.c	Tue Jun 11 19:38:57 2002
+@@ -1,5 +1,5 @@
+ /* Convert between `struct statfs' format, and `struct statfs64' format.
+-   Copyright (C) 2001 Free Software Foundation, Inc.
++   Copyright (C) 2001,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -17,23 +17,33 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
+-#include <string.h>
+-#include <sys/stat.h>
++#include <sys/statfs.h>
++#include <errno.h>
+ 
+-static inline void
+-statfs64_conv (struct statfs *buf, struct statfs64 *buf64)
++static inline int
++statfs64_conv (struct statfs *buf, const struct statfs64 *buf64)
+ {
+-  memset (buf64, 0, sizeof (struct statfs64));
++# define DO(memb)							      \
++  buf->memb = buf64->memb;						      \
++  if (sizeof buf->memb != sizeof buf64->memb && buf->memb != buf64->memb)     \
++    {									      \
++      __set_errno (EOVERFLOW);						      \
++      return -1;							      \
++    }
++
++  DO (f_type);
++  DO (f_bsize);
++  DO (f_blocks);
++  DO (f_bfree);
++  DO (f_bavail);
++  DO (f_files);
++  DO (f_fsid);
++  DO (f_namelen);
++  DO (f_favail);
++  DO (f_frsize);
++  DO (f_flag);
+ 
+-  buf64->f_type = buf->f_type;
+-  buf64->f_bsize = buf->f_bsize;
+-  buf64->f_blocks = buf->f_blocks;
+-  buf64->f_bfree = buf->f_bfree;
+-  buf64->f_bavail = buf->f_bavail;
+-  buf64->f_files = buf->f_files;
+-  buf64->f_fsid = buf->f_fsid;
+-  buf64->f_namelen = buf->f_namelen;
+-  buf64->f_favail = buf->f_favail;
+-  buf64->f_frsize = buf->f_frsize;
+-  buf64->f_flag = buf->f_flag;
++# undef DO
++
++  return 0;
+ }
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/xstat.c glibc-2.2.5/sysdeps/mach/hurd/xstat.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/xstat.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/xstat.c	Tue Jun 11 19:38:57 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1992, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
++/* Copyright (C) 1992,93,94,95,96,97,2002 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -18,27 +18,14 @@
+ 
+ #include <errno.h>
+ #include <sys/stat.h>
+-#include <stddef.h>
+-#include <hurd.h>
++
++#include "xstatconv.c"
+ 
+ /* Get file information about FILE in BUF.  */
+ int
+ __xstat (int vers, const char *file, struct stat *buf)
+ {
+-  error_t err;
+-  file_t port;
+-
+-  if (vers != _STAT_VER)
+-    return __hurd_fail (EINVAL);
+-
+-  port = __file_name_lookup (file, 0, 0);
+-  if (port == MACH_PORT_NULL)
+-    return -1;
+-  err = __io_stat (port, buf);
+-  __mach_port_deallocate (__mach_task_self (), port);
+-  if (err)
+-    return __hurd_fail (err);
+-  return 0;
++  struct stat64 buf64;
++  return __xstat64 (vers, file, &buf64) ?: xstat64_conv (buf, &buf64);
+ }
+-
+ weak_alias (__xstat, _xstat)
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/xstat64.c glibc-2.2.5/sysdeps/mach/hurd/xstat64.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/xstat64.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/xstat64.c	Tue Jun 11 19:38:57 2002
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2000 Free Software Foundation, Inc.
++/* Copyright (C) 2000,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -19,22 +19,24 @@
+ #include <errno.h>
+ #include <stddef.h>
+ #include <sys/stat.h>
+-
+-#include "xstatconv.c"
++#include <hurd.h>
+ 
+ /* Get information about the file descriptor FD in BUF.  */
+ int
+ __xstat64 (int vers, const char *file, struct stat64 *buf)
+ {
+-  int result;
+-  struct stat buf32;
++  error_t err;
++  file_t port;
+ 
+-  /* XXX We simply call __xstat and convert the result to `struct
+-     stat64'.  We can probably get away with that since we don't
+-     support large files on the Hurd yet.  */
+-  result = __xstat (vers, file, &buf32);
+-  if (result == 0)
+-    xstat64_conv (&buf32, buf);
++  if (vers != _STAT_VER)
++    return __hurd_fail (EINVAL);
+ 
+-  return result;
++  port = __file_name_lookup (file, 0, 0);
++  if (port == MACH_PORT_NULL)
++    return -1;
++  err = __io_stat (port, buf);
++  __mach_port_deallocate (__mach_task_self (), port);
++  if (err)
++    return __hurd_fail (err);
++  return 0;
+ }
+diff -X .ignore -urN glibc-2.2.5.old/sysdeps/mach/hurd/xstatconv.c glibc-2.2.5/sysdeps/mach/hurd/xstatconv.c
+--- glibc-2.2.5.old/sysdeps/mach/hurd/xstatconv.c	Fri Jul  6 00:55:57 2001
++++ glibc-2.2.5/sysdeps/mach/hurd/xstatconv.c	Tue Jun 11 19:38:58 2002
+@@ -1,5 +1,5 @@
+ /* Convert between `struct stat' format, and `struct stat64' format.
+-   Copyright (C) 2000, 2001 Free Software Foundation, Inc.
++   Copyright (C) 2000,01,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -17,32 +17,52 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
+-#include <string.h>
++#include <errno.h>
+ #include <sys/stat.h>
+ 
+-static inline void
+-xstat64_conv (struct stat *buf, struct stat64 *buf64)
++static inline int
++xstat64_conv (struct stat *buf, const struct stat64 *buf64)
+ {
+-  memset (buf64, 0, sizeof (struct stat64));
++  if (sizeof *buf == sizeof *buf64
++      && sizeof buf->st_ino == sizeof buf64->st_ino
++      && sizeof buf->st_size == sizeof buf64->st_size
++      && sizeof buf->st_blocks == sizeof buf64->st_blocks)
++    {
++      *buf = *(struct stat *) buf64;
++      return 0;
++    }
++
++  buf->st_fstype = buf64->st_fstype;
++  buf->st_fsid = buf64->st_fsid;
++  buf->st_ino = buf64->st_ino;
++  buf->st_gen = buf64->st_gen;
++  buf->st_rdev = buf64->st_rdev;
++  buf->st_mode = buf64->st_mode;
++  buf->st_nlink = buf64->st_nlink;
++  buf->st_uid = buf64->st_uid;
++  buf->st_gid = buf64->st_gid;
++  buf->st_size = buf64->st_size;
++  buf->st_atime = buf64->st_atime;
++  buf->st_atime_usec = buf64->st_atime_usec;
++  buf->st_mtime = buf64->st_mtime;
++  buf->st_mtime_usec = buf64->st_mtime_usec;
++  buf->st_ctime = buf64->st_ctime;
++  buf->st_ctime_usec = buf64->st_ctime_usec;
++  buf->st_blksize = buf64->st_blksize;
++  buf->st_blocks = buf64->st_blocks;
++  buf->st_author = buf64->st_author;
++  buf->st_flags = buf64->st_flags;
++
++  if ((sizeof buf->st_ino != sizeof buf64->st_ino
++       && buf->st_ino != buf64->st_ino)
++      || (sizeof buf->st_size != sizeof buf64->st_size
++	  && buf->st_size != buf64->st_size)
++      || (sizeof buf->st_blocks != sizeof buf64->st_blocks
++	  && buf->st_blocks != buf64->st_blocks))
++    {
++      __set_errno (EOVERFLOW);
++      return -1;
++    }
+ 
+-  buf64->st_fstype = buf->st_fstype;
+-  buf64->st_fsid = buf->st_fsid;
+-  buf64->st_ino = buf->st_ino;
+-  buf64->st_gen = buf->st_gen;
+-  buf64->st_rdev = buf->st_rdev;
+-  buf64->st_mode = buf->st_mode;
+-  buf64->st_nlink = buf->st_nlink;
+-  buf64->st_uid = buf->st_uid;
+-  buf64->st_gid = buf->st_gid;
+-  buf64->st_size = buf->st_size;
+-  buf64->st_atime = buf->st_atime;
+-  buf64->st_atime_usec = buf->st_atime_usec;
+-  buf64->st_mtime = buf->st_mtime;
+-  buf64->st_mtime_usec = buf->st_mtime_usec;
+-  buf64->st_ctime = buf->st_ctime;
+-  buf64->st_ctime_usec = buf->st_ctime_usec;
+-  buf64->st_blksize = buf->st_blksize;
+-  buf64->st_blocks = buf->st_blocks;
+-  buf64->st_author = buf->st_author;
+-  buf64->st_flags = buf->st_flags;
++  return 0;
+ }
+diff -urN glibc-2.2.5.old/sysdeps/mach/hurd/Versions
+--- glibc-upstream/sysdeps/mach/hurd/Versions	Wed Jul 31 19:58:17 2002
++++ glibc-2.2.5/glibc-2.2.5/sysdeps/mach/hurd/Versions	Mon Nov  6 17:00:29 2000@@ -13,8 +13,8 @@
+     __hurd_threadvar_stack_mask;  __hurd_threadvar_stack_offset;
+ 
+     # functions that must be shared with libc
+-    __close; __fxstat64; __getcwd; __getpid; __libc_read; __libc_write;
+-    __libc_lseek64; __mmap; __open; __xstat64;
++    __close; __fxstat; __getcwd; __getpid; __libc_read; __libc_write;
++    __lseek; __mmap; __open; __xstat;
+     _exit; _hurd_intr_rpc_mach_msg;
+     abort;
+   }

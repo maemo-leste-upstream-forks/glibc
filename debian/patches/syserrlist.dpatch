@@ -1,0 +1,149 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Only declare sys_errlist and sys_nerr on linux.  From 2.2 CVS
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+diff -urN glibc-2.2.5.old/ChangeLog glibc-2.2.5/ChangeLog
+--- glibc-2.2.5.old/ChangeLog   Sat Apr 27 22:28:07 2002
++++ glibc-2.2.5/ChangeLog       Tue Apr 23 10:45:10 2002
+@@ -0,0 +1,10 @@
++2002-07-31  Jeff Bailey  <jbailey@gnu.org>
++
++        * libio/stdio.h (sys_errlist, sys_nerr, _sys_errlist, _sys_nerr):
++        Declarations moved to <bits/sys_errlist.h>.  Include that file.
++        * libio/Makefile (headers): Add bits/sys_errlist.h to the list.
++        * sysdeps/generic/bits/sys_errlist.h: New file.  This does *not*
++        declare sys_errlist and sys_nerr.
++        * sysdeps/unix/sysv/linux/bits/sys_errlist.h: New file.  Does
++        provide declarations.
++
+diff -urN glibc-2.2.5/libio/stdio.h glibc-upstream/libio/stdio.h
+--- glibc-2.2.5/glibc-2.2.5/libio/stdio.h	Mon Jul  9 20:53:17 2001
++++ glibc-upstream/libio/stdio.h	Wed Jul 31 20:05:23 2002
+@@ -1,5 +1,5 @@
+ /* Define ISO C stdio on top of C++ iostreams.
+-   Copyright (C) 1991, 1994-1999, 2000, 2001 Free Software Foundation, Inc.
++   Copyright (C) 1991,1994-1999,2000,01,02 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -545,16 +545,11 @@
+ /* Print a message describing the meaning of the value of errno.  */
+ extern void perror (__const char *__s) __THROW;
+ 
+-/* These variables normally should not be used directly.  The `strerror'
+-   function provides all the needed functionality.  */
+-#ifdef	__USE_BSD
+-extern int sys_nerr;
+-extern __const char *__const sys_errlist[];
+-#endif
+-#ifdef	__USE_GNU
+-extern int _sys_nerr;
+-extern __const char *__const _sys_errlist[];
+-#endif
++/* Provide the declarations for `sys_errlist' and `sys_nerr' if they
++   are available on this system.  Even if available, these variables
++   should not be used directly.  The `strerror' function provides
++   all the necessary functionality.  */
++#include <bits/sys_errlist.h>
+ 
+ 
+ #ifdef	__USE_POSIX
+diff -urN glibc-2.2.5.old/libio/Makefile glibc-2.2.5/libio/Makefile
+--- glibc-2.2.5/glibc-2.2.5/libio/Makefile	Fri Sep  7 13:58:25 2001
++++ glibc-upstream/libio/Makefile	Wed Jul 31 19:59:22 2002
+@@ -1,4 +1,4 @@
+-# Copyright (C) 1995,96,97,98,99,2000, 2001 Free Software Foundation, Inc.
++# Copyright (C) 1995,96,97,98,99,2000,01,02 Free Software Foundation, Inc.
+ # This file is part of the GNU C Library.
+ 
+ # The GNU C Library is free software; you can redistribute it and/or
+@@ -21,7 +21,8 @@
+ #
+ subdir	:= libio
+ 
+-headers	:= stdio.h libio.h _G_config.h bits/stdio.h bits/stdio-lock.h
++headers	:= stdio.h libio.h _G_config.h bits/stdio.h bits/stdio-lock.h \
++	   bits/sys_errlist.h
+ 
+ routines	:=							      \
+ 	filedoalloc iofclose iofdopen iofflush iofgetpos iofgets iofopen      \
+diff -urN /dev/null glibc-2.2.5/sysdeps/generic/bits/sys_errlist.h
+--- /dev/null	Wed Dec 31 19:00:00 1969
++++ glibc-upstream/sysdeps/generic/bits/sys_errlist.h	Wed Jul 31 19:33:32 2002
+@@ -0,0 +1,24 @@
++/* Declare sys_errlist and sys_nerr, or don't.  Don't version.
++   Copyright (C) 2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#ifndef _STDIO_H
++# error "Never include <bits/sys_errlist.h> directly; use <stdio.h> instead."
++#endif
++
++/* sys_errlist and sys_nerr are deprecated.  Use strerror instead.  */
+diff -urN /dev/null glibc-2.2.5/sysdeps/unix/sysv/linux/bits/sys_errlist.h
+--- /dev/null	Wed Dec 31 19:00:00 1969
++++ glibc-upstream/sysdeps/unix/sysv/linux/bits/sys_errlist.h	Wed Jul 31 19:33:32 2002
+@@ -0,0 +1,33 @@
++/* Declare sys_errlist and sys_nerr, or don't.  Compatibility (do) version.
++   Copyright (C) 2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#ifndef _STDIO_H
++# error "Never include <bits/sys_errlist.h> directly; use <stdio.h> instead."
++#endif
++
++/* sys_errlist and sys_nerr are deprecated.  Use strerror instead.  */
++
++#ifdef  __USE_BSD
++extern int sys_nerr;
++extern __const char *__const sys_errlist[];
++#endif
++#ifdef  __USE_GNU
++extern int _sys_nerr;
++extern __const char *__const _sys_errlist[];
++#endif
