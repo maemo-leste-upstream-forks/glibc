@@ -15,9 +15,9 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 
-source version
-
 debian/rules unpack
 
-diff -urN -x CVS -x nptl -x nptl_db -x .cvsignore -x '*texi' -x '*manual*' glibc-$VERSION $1 >cvs.patch
+SRCDIR=build-tree/glibc-*
+
+diff -urN -x CVS -x .cvsignore -x '*texi' -x '*manual*' $SRCDIR $1 >cvs.patch
 
