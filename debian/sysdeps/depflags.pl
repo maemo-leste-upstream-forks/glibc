@@ -112,9 +112,6 @@ if ($DEB_HOST_GNU_TYPE eq "alpha-linux") {
 # XXX: Our optimized libs do not like some programs
 push @{$libc_opt_c{'Conflicts'}}, ('libsafe', "memprof");
 
-# For now, we conflict with the optimized libs
-push @{$libc_c{'Conflicts'}}, ('libc6-i586', 'libc6-i686', 'libc6-v9');
-
 # Conflict/Replace netkit-rpc, and its manpages
 push @{$libc_c{'Conflicts'}}, 'netkit-rpc';
 push @{$libc_c{'Replaces'}}, 'netkit-rpc';
