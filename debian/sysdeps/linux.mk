@@ -42,7 +42,7 @@ $(stamp)mkincludedir:
 	# Link all asm directories.  We can't just link asm and asm-generic
 	# because of explicit references to <asm-sparc/*> and
 	# <asm-sparc64/*>.
-	find $(LINUX_HEADERS) -maxdepth 1 -type d -name asm\* \
+	find $(LINUX_HEADERS) -maxdepth 1 -xtype d -name asm\* \
 	  -exec ln -s '{}' debian/include ';'
 
 	# To make configure happy if libc6-dev is not installed.
