@@ -259,7 +259,11 @@ then
 		    echo "Restarting services possibly affected by the upgrade:"
 		    failed=""
 		    for service in $services; do
-			idl=$(ls /etc/rc${rl}.d/S??${service} 2> /dev/null | head -1)
+			if [ -f /usr/share/file-rc/rc -o -f /usr/lib/file-rc/rc ] && [ -f /etc/runlevel.conf ]; then
+			    idl=$(filerc $rl $service)
+			else
+			    idl=$(ls /etc/rc${rl}.d/S??${service} 2> /dev/null | head -1)
+			fi
 			echo -n "  $service: stopping..."
 			$idl stop > /dev/null 2>&1 || true
 			sleep 2
