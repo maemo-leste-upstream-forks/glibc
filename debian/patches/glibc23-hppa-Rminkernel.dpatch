@@ -4,7 +4,7 @@
 # DP: Author: Carlos O'Donell <carlos@baldric.uwo.ca>
 # DP: Upstream status: Debian-Specific
 # DP: Status Details: Overrides upstream requirement of 2.4.19
-# DP: Date: December 5th, 2002
+# DP: Date: December 5th, 2002, updated 2003-03-23 by gotom
 
 #
 # Comments from Carlos:
@@ -29,8 +29,8 @@ if [ $# -ne 2 ]; then
     exit 1
 fi
 case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
     *)
 	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
 	exit 1
@@ -38,23 +38,23 @@ esac
 exit 0
 
 # append the patch here and adjust the -p? flag in the patch calls.
---- glibc-2.3.1/sysdeps/unix/sysv/linux/configure.in	2002-12-05 10:40:28.000000000 -0500
-+++ glibc-2.3.1/sysdeps/unix/sysv/linux/configure.in	2002-12-05 10:40:49.000000000 -0500
+--- sysdeps/unix/sysv/linux/configure.in	2003-03-23 16:18:07.000000000 +0900
++++ sysdeps/unix/sysv/linux/configure.in.new	2003-03-23 16:19:08.000000000 +0900
 @@ -65,7 +65,7 @@
      ;;
    hppa*)
-     libc_cv_gcc_unwind_find_fde=yes  
+     libc_cv_gcc_unwind_find_fde=yes
 -    arch_minimum_kernel=2.4.19
 +    arch_minimum_kernel=2.4.17
      ;;
    m68k*)
      arch_minimum_kernel=2.0.10
---- glibc-2.3.1/sysdeps/unix/sysv/linux/configure	2002-12-05 10:40:31.000000000 -0500
-+++ glibc-2.3.1/sysdeps/unix/sysv/linux/configure	2002-12-05 10:41:08.000000000 -0500
-@@ -87,7 +87,7 @@
+--- sysdeps/unix/sysv/linux/configure	2003-03-23 16:15:05.000000000 +0900
++++ sysdeps/unix/sysv/linux/configure.new	2003-03-23 16:21:47.000000000 +0900
+@@ -106,7 +106,7 @@
      ;;
    hppa*)
-     libc_cv_gcc_unwind_find_fde=yes  
+     libc_cv_gcc_unwind_find_fde=yes
 -    arch_minimum_kernel=2.4.19
 +    arch_minimum_kernel=2.4.17
      ;;

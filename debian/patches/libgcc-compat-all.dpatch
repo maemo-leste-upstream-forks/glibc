@@ -3,7 +3,7 @@
 # DP: Description: libgcc-compat symbols for mips, sparc, alpha, & i386
 # DP: Author: Guido Guenther
 # DP: Upstream status: Not submitted
-# DP: Date: 2002-10-13, updated 2003-03-01
+# DP: Date: 2002-10-13, updated 2003-03-01, updated 2003-03-23 by gotom
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
@@ -18,53 +18,6 @@ case "$1" in
 esac
 exit 0
 
---- sysdeps/wordsize-32/divdi3.c.orig	Sun Feb 16 15:02:28 2003
-+++ sysdeps/wordsize-32/divdi3.c	Sun Feb 16 15:02:41 2003
-@@ -1,5 +1,5 @@
- /* 64-bit multiplication and division
--   Copyright (C) 1989, 1992-1999, 2000, 2001, 2002
-+   Copyright (C) 1989, 1992-1999, 2000, 2001, 2002, 2003
-    Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-@@ -294,7 +294,6 @@
-     w = -w;
-   return w;
- }
--INTDEF(__divdi3)
- 
- DWtype
- __moddi3 (DWtype u, DWtype v)
-@@ -329,3 +328,13 @@
-   __udivmoddi4 (u, v, &w);
-   return w;
- }
-+
-+/* We declare these with compat_symbol so that they are not visible at
-+   link time.  Programs must use the functions from libgcc.  */
-+#if defined HAVE_ELF && defined SHARED && defined DO_VERSIONING
-+# include <shlib-compat.h>
-+compat_symbol (libc, __divdi3, __divdi3, GLIBC_2_0);
-+compat_symbol (libc, __moddi3, __moddi3, GLIBC_2_0);
-+compat_symbol (libc, __udivdi3, __udivdi3, GLIBC_2_0);
-+compat_symbol (libc, __umoddi3, __umoddi3, GLIBC_2_0);
-+#endif
---- sysdeps/wordsize-32/lldiv.c.orig	Sun Feb 16 15:17:35 2003
-+++ sysdeps/wordsize-32/lldiv.c	Sun Feb 16 15:17:53 2003
-@@ -21,13 +21,6 @@
- 
- #include <inttypes.h>
- 
--#ifdef SHARED
--/* This is an ugly trick.  We cause the C code generated for the code
--   in lldiv.c to use __divdi3_internal instead of __divdi3 by defining
--   an alias on the assembler level.  */
--asm ("__divdi3 = __divdi3_internal");
--#endif
--
- #include <sysdeps/generic/lldiv.c>
- 
- #undef imaxdiv
 --- sysdeps/mips/Makefile.orig	Sun Oct 13 14:45:56 2002
 +++ sysdeps/mips/Makefile	Sun Oct 13 14:51:20 2002
 @@ -6,3 +6,11 @@
