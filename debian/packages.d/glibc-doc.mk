@@ -7,6 +7,14 @@ $(glibc)-doc:	$(stamp_install) debian/control $(mkdir)/sysdeps.mk
 	$(INSTALL_DATA) $(install_root)$(infodir)/*.info* $(tmpdir)/$@$(infodir)/.
 	-gzip -9f $(tmpdir)/$@$(infodir)/*
 
+	$(make_directory) $(tmpdir)/$@$(mandir)/man3
+	$(INSTALL_DATA) $(srcdir)/linuxthreads/man/*.man \
+		$(tmpdir)/$@$(mandir)/man3/.
+	for manfile in $(tmpdir)/$@$(mandir)/man3/*; do \
+		mv $$manfile `echo $$manfile | sed 's/\.man/\.3/'`; \
+	done
+	-gzip -9f $(tmpdir)/$@$(mandir)/man?/*
+
 	$(make_directory) $(tmpdir)/$@$(docdir)/$@
 	$(MAKE) -C $(objdir) subdirs=manual info
 	cd $(srcdir)/manual && texi2html -split_chapter libc.texinfo
