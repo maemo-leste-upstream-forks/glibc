@@ -54,6 +54,11 @@ then
 	if [ -e /var/run/utmpd.ro ]; then rm -f /var/run/utmpd.ro; fi
 	if [ -e /var/run/utmpd.rw ]; then rm -f /var/run/utmpd.rw; fi
     fi
+
+    # This will keep us from using hwcap libs (optimized) during an
+    # upgrade.
+    touch /etc/ld.so.nohwcap
+    echo glibc >> /etc/ld.so.nohwcap
 fi
 
 if [ "$1" != abort-upgrade ] && [ "`uname -s`" = Linux ]

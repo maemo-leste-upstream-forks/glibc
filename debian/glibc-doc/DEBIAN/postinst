@@ -10,15 +10,4 @@ if [ "$1" = configure ]; then
 	install-docs -i /usr/share/doc-base/glibc-manual >/dev/null 2>&1
 	echo "done."
     fi
-    if [ -d /usr/doc ]; then
-	package=$(basename $0 .postinst)
-	if [ ! -e /usr/doc/$package ]; then
-	    (cd /usr/doc;
-		if [ -d ../share/doc/$package ]; then
-		    ln -s ../share/doc/$package $package ;
-		fi
-            )
-	fi
-    fi
 fi
-

@@ -1,18 +1,17 @@
 MIN_KERNEL_SUPPORTED := 2.2.0
 
-# XXX: disabled for now
 # Sparc and i386 have some optimized libs
-#ifeq ($(DEB_HOST_GNU_CPU),sparc)
-#  cpus = v9
-#  as_flags_v9 = -Wa,-Av9a
-#  cpu_flags_v9 = -mtune=ultrasparc -mv8
-#endif
-#ifeq ($(DEB_HOST_GNU_CPU),i386)
-#  # Nifty little vardep thingie
-#  cpus = i586 i686
-#  cpu_flags_$(OPT) = -mcpu=$(OPT)
-#  as_flags_$(OPT) = 
-#endif
+ifeq ($(DEB_HOST_GNU_CPU),sparc)
+  cpus = v9
+  as_flags_v9 = -Wa,-Av9a
+  cpu_flags_v9 = -mtune=ultrasparc -mv8plus
+endif
+ifeq ($(DEB_HOST_GNU_CPU),i386)
+  # Nifty little vardep thingie
+  cpus = i586 i686
+  cpu_flags_$(OPT) = -mcpu=$(OPT)
+  as_flags_$(OPT) = 
+endif
 
 ifeq ($(DEB_HOST_GNU_CPU),sparc)
   arch_packages += $(libc)-sparc64 $(libc)-dev-sparc64

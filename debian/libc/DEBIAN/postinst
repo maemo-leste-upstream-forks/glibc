@@ -150,15 +150,10 @@ then
 
     ldconfig
 
-    if [ -d /usr/doc ]; then
-	package=$(package_name)
-	if [ ! -e /usr/doc/$package ]; then
-	    (cd /usr/doc;
-		if [ -d ../share/doc/$package ]; then
-		    ln -s ../share/doc/$package $package ;
-		fi
-            )
-	fi
+    if [ -f /etc/ld.so.nohwcap ]; then
+	grep -v glibc /etc/ld.so.nohwcap > /etc/ld.so.nohwcap.tmp
+	mv /etc/ld.so.nohwcap.tmp /etc/ld.so.nohwcap
+	test -s /etc/ld.so.nohwcap || rm -f /etc/ld.so.nohwcap
     fi
 
     if [ ! -z $2 ]; then

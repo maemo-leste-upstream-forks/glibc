@@ -13,6 +13,10 @@ if [ "$1" != abort-upgrade ] && [ "`uname -s`" = Linux ]; then
 	echo "installed."
 	exit 1
     fi
+
+    touch /etc/ld.so.nohwcap
+    echo OPT >> /etc/ld.so.nohwcap
+
 ifelse(OPT,i586,{
     case $cpu in
 	i[34]86)
