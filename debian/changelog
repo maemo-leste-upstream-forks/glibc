@@ -80,6 +80,12 @@ glibc (2.3.2-1) unstable; urgency=low
       The correct fix is to modify the kernel headers, but for the present
       we use it regardless of the kernel issue.
       Patched by Gerhard Tonn <GerhardTonn@gammatau.de>.
+    - debian/packages.d/libc-dev.mk: s390 kernel-headers package does not have
+      generate-asm.sh.  The current libc-dev.mk assumes the existence of this
+      script, but on s390 it's not existed.  Now libc-dev.mk s390 asm setup
+      part does not use generate-asm.sh, and has the generate-asm.sh
+      functionality in its own.  This makes s390 build much easier.
+      Patched by Gerhard Tonn <GerhardTonn@gammatau.de>.
 
     - debian/locales/DEBIAN/postinst: add "rm -rf /usr/lib/locale/*"
       to remove all old locale dir and locale-archive in locales

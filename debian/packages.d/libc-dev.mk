@@ -48,7 +48,6 @@ endif
 ifeq ($(DEB_HOST_GNU_SYSTEM),linux)
 	$(make_directory) $(addprefix $(LINUX_SOURCE)/include/,asm linux)
 	cp -R $(LINUX_SOURCE)/include/linux/. $(tmpdir)/$@$(includedir)/linux/
-	cp -R $(LINUX_SOURCE)/include/asm/. $(tmpdir)/$@$(includedir)/asm/
 ifeq ($(DEB_HOST_GNU_CPU),sparc)
 # Sparc has a 32/64 build setup, make sure we support it
 	cp -R $(LINUX_SOURCE)/include/asm-sparc \
@@ -64,9 +63,17 @@ ifeq ($(DEB_HOST_GNU_CPU),s390)
 	# IBM zSeries has a 32/64 build setup, make sure we support it
 	cp -R $(LINUX_SOURCE)/include/asm-{s390,s390x} \
 	$(tmpdir)/$@$(includedir)/.
-	$(INSTALL_PROGRAM) $(LINUX_SOURCE)/generate-asm.sh \
-	$(tmpdir)/$@$(bindir)/generate-asm
-	$(tmpdir)/$@$(bindir)/generate-asm $(tmpdir)/$@$(includedir)/
+	pushd $(tmpdir)/$@$(includedir) ; \
+	mkdir asm ; \
+	for i in `( ls asm-s390 ; ls asm-s390x ) | sort | uniq` ; do \
+		printf > asm/$$i "%s\n%s\n%s\n%s\n%s\n"	\
+			"#ifdef __s390x__"		\
+			"#include <asm-s390x/$$i>"	\
+			"#else"				\
+			"#include <asm-s390/$$i>"	\
+			"#endif" ;			\
+	done ; \
+	popd
 	rm -rf $(tmpdir)/$@$(includedir)/asm-s390x
 else
 	cp -R $(LINUX_SOURCE)/include/asm/. $(tmpdir)/$@$(includedir)/asm/
