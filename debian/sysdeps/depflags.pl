@@ -139,6 +139,9 @@ if ($DEB_HOST_GNU_TYPE eq "hppa-linux") {
 # Replace kerberos4th-dev (<< 1.2.2-10) for fixing #234347.
 push @{$libc_dev_c{'Replaces'}}, 'kerberos4th-dev (<< 1.2.2-10)';
 
+# Replace libc-dev (<< 2.3.2.ds1-14) for fixing #239170.
+push @{$libc_c{'Replaces'}}, 'libc6-dev (<< 2.3.2.ds1-14)';
+
 # Make sure we only have one version of libc-dev installed
 push @{$libc_dev_c{'Provides'}}, 'libc-dev';
 push @{$libc_dev_c{'Conflicts'}}, 'libc-dev';
