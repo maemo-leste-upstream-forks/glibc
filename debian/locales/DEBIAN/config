@@ -21,7 +21,7 @@ db_capb multiselect
 db_input medium locales/locales_to_be_generated || true
 db_go
 
-db_get locales/locales_to_be_generated && DEFAULT_LOCALES=$(echo $RET | sed -e 's/ [^ ]*,/,/g' -e 's/ [^ ]*$//')
+db_get locales/locales_to_be_generated && DEFAULT_LOCALES=$(echo $RET | sed -e 's/Leave alone,*//g' -e 's/ [^ ]*,/,/g' -e 's/ [^ ]*$//')
 
 if test -z "$DEFAULT_LOCALES"; then
     DEFAULT_LOCALES=C
