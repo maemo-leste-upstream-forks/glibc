@@ -37,7 +37,8 @@ glibc (2.3.2-1) unstable; urgency=low
     - These bugs are fixed in this update:
       * glibc 2.3.2 can handle errno correctly if 32 bit uid or gid is used
         and errno=ENOSYS is defined before geteuid() is called.
-        (Closes: #183694)
+	setfsuid(), setfsgid() and getgroups() are also fixed with my patch,
+	bug reported by Fumihiko Kakuma.  (Closes: #183694)
       * Submitter Neil's patch is applied in the upstream.  (Closes: #181701)
       * cfmakeraw definition in manual terminal.texi is fixed with my patch.
         It can be reassign only to manpages-dev.
@@ -55,7 +56,9 @@ glibc (2.3.2-1) unstable; urgency=low
       * stdio-common/sscanf.c for libc6-sparc64 with gcc-3.3 can become to be
         compiled.  (Closes: #185649)
       * Timezone data is updated to tzdata2003a.
-        (Closes: #140788, #149862, #186210)
+        (Closes: #140788, #149862, #186210, #164719)
+      * /usr/bin/locale -a searches both /usr/lib/locale/<locale>/ and
+	/usr/lib/locale/locale-archive in this release. (Closes: #166979)
 
     - debian/locales/usr/sbin/locale-gen: Fix the localedef invocation
       argument order, to run under POSIXLY_CORRECT=1 environment.
