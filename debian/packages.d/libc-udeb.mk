@@ -6,7 +6,9 @@ libc-udeb: $(stamp_install) debian/control $(mkdir)/sysdeps.mk
 	$(make_directory) $(tmpdir)/$@/lib
 	$(make_directory) $(tmpdir)/$@/DEBIAN
 	$(INSTALL_PROGRAM) $(install_root)/lib/ld-$(VERSION).so $(tmpdir)/$@/lib/.
-	$(INSTALL_DATA) $(install_root)/lib/lib{c,m,dl}-$(VERSION).so $(tmpdir)/$@/lib/.
+	$(INSTALL_DATA) $(install_root)/lib/libc-$(VERSION).so $(tmpdir)/$@/lib/.
+	$(INSTALL_DATA) $(install_root)/lib/libm-$(VERSION).so $(tmpdir)/$@/lib/.
+	$(INSTALL_DATA) $(install_root)/lib/libdl-$(VERSION).so $(tmpdir)/$@/lib/.
 	$(INSTALL_PROGRAM) $(install_root)/lib/libc-$(VERSION).so $(tmpdir)/$@/lib/.
 
 ifeq ($(DEB_HOST_GNU_SYSTEM),gnu)

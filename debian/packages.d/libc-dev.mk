@@ -51,7 +51,9 @@ ifeq ($(DEB_HOST_GNU_SYSTEM),linux)
 	cp -R $(LINUX_SOURCE)/include/asm/. $(tmpdir)/$@$(includedir)/asm/
 ifeq ($(DEB_HOST_GNU_CPU),sparc)
 	# Sparc has a 32/64 build setup, make sure we support it
-	cp -R $(LINUX_SOURCE)/include/asm-{sparc,sparc64} \
+	cp -R $(LINUX_SOURCE)/include/asm-sparc \
+		$(tmpdir)/$@$(includedir)/.
+	cp -R $(LINUX_SOURCE)/include/asm-sparc64 \
 		$(tmpdir)/$@$(includedir)/.
 	$(INSTALL_PROGRAM) $(LINUX_SOURCE)/generate-asm.sh \
 		$(tmpdir)/$@$(bindir)/generate-asm
