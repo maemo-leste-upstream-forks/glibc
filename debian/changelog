@@ -27,6 +27,15 @@ glibc (2.3.1-6) unstable; urgency=low
       __libc_waitpid, so on. This patch will be removed when sarge will be
       relased apparently. (Closes: #165358, #173201)
 
+    - debian/locales/DEBIAN/config: db_set is set if and only if locale.gen
+      is existed.  Patched by Masato Taruishi <taru@debian.org>
+      His note:
+       The previous config script always set locales_to_be_generated
+       even when /etc/locale.gen doesn't exist. So the question in
+       dpkg-preconfigure time became empty in dpkg --configure locales time. 
+       This change resolves long outstanding locales bug.
+      (Closes: #156386, #151784, #154244, #164523, #172439)
+
  -- Daniel Jacobowitz <dan@debian.org>  Mon,  2 Dec 2002 17:26:38 -0500
 
 glibc (2.3.1-5) unstable; urgency=low
