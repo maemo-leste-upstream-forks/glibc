@@ -148,10 +148,12 @@ clean:: debhelper-clean
 	rm -rf debian/include
 
 # Required Debian targets
-binary-indep: testroot debian/control $(build-tree) $(patsubst %,$(stamp)install_%,$(GLIBC_PASSES)) $(patsubst %,$(stamp)binaryinst_%,$(DEB_INDEP_REGULAR_PACKAGES))
+binary-indep: build testroot debian/control $(build-tree) \
+	$(patsubst %,$(stamp)install_%,$(GLIBC_PASSES)) \
+	$(patsubst %,$(stamp)binaryinst_%,$(DEB_INDEP_REGULAR_PACKAGES))
 # NOTE: Putting install_ stamps before binaryinst_ stamps in the list is the
 # wrong way to represent dependencies.  Fix this.
-binary-arch: testroot debian/control $(build-tree) \
+binary-arch: build testroot debian/control $(build-tree) \
 	$(patsubst %,$(stamp)install_%,$(GLIBC_PASSES)) \
 	$(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES)) \
 	$(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES))
