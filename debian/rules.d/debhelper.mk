@@ -77,7 +77,7 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	# minimum in /usr/lib/debug/lib for backtraces; anything
 	# else takes too long to load in GDB.
 
-	if test "$(NOSTRIP_$(curpass))" != 1; then			\
+	if test "$(NOSTRIP_$(curpass))" = 1; then			\
 	  chmod a+x debian/wrapper/objcopy;				\
 	  export PATH=$(shell pwd)/debian/wrapper:$$PATH;		\
 	  dh_strip -p$(curpass) -Xlibpthread --keep-debug;		\
