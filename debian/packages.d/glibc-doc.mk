@@ -9,7 +9,7 @@ $(glibc)-doc:	$(stamp_install) debian/control $(mkdir)/sysdeps.mk
 
 	$(make_directory) $(tmpdir)/$@$(docdir)/$@
 	$(MAKE) -C $(objdir) subdirs=manual info
-	cd $(srcdir)/manual && texi2html -split_chapter chapters.texi
+	cd $(srcdir)/manual && texi2html -split_chapter libc.texinfo
 	$(make_directory) $(tmpdir)/$@$(docdir)/$@/html
 	$(INSTALL_DATA) $(srcdir)/manual/*.html $(tmpdir)/$@$(docdir)/$@/html/.
 	ln -sf chapters_toc.html $(tmpdir)/$@$(docdir)/$@/html/index.html
