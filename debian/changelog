@@ -43,9 +43,13 @@ glibc (2.2.93-1) unstable; urgency=low
   * GOTO Masanori <gotom@debian.or.jp>
      - debian/packages.d/glibc-doc.mk: change texi2html processed file from
        chapters.texi to libc.texinfo. Closes: #159417
+     - debian/packages.d/libc-{dbg,pic,prof}.mk: fix /usr/doc removal
+       compilation failure.
+     - debian/libc/DEBIAN/postinst: Fix 'grep -v' failure if the size of
+       /etc/ld.so.nohwcap is 0.
+     - debian/rules.d/control.mk: Generate libc-opt control information.
 
      - Updating 2.2.9x fixes LSB 1.2 compliance. Closes: #156821
-
      - debian/control: add Depends: libdb1-compat.
        Until woody, libdb1 is included in libc6 package. However after sarge,
        libdb1 support is removed. libdb1-compat contains libdb1 which is
@@ -57,9 +61,6 @@ glibc (2.2.93-1) unstable; urgency=low
        Carlos O'Donell <carlos@baldric.uwo.ca>.
      - debian/patches/glibc22-hppa-fcntl-lfs.dpatch: added, patched by
        Randolph Chung <tausq@debian.org>. Closes: #160846
-
-     - packages.d/libc-{dbg,pic,prof}.mk: fix /usr/doc removal
-       compilation failure.
 
   * Ben Collins <bcollins@debian.org>
     - Make sparc64 build use gcc-3.2.
