@@ -101,7 +101,7 @@ then
 	fi
     fi
     # HPPA boxes require latest fixes in the kernel to function properly.
-    if [ "$realarch" = parisc64 ] || [ "$realarch" = parisc ]
+    if [ "$realarch" = parisc ]
     then
 	kernel_ver=`uname -r`
 	if dpkg --compare-versions "$kernel_ver" lt 2.4.17
@@ -110,6 +110,19 @@ then
 		echo atleast a 2.4.17 kernel in order to work properly. Earlier
 		echo kernels did not provide the proper functionality in order 
 		echo for the system to be stable. 
+		exit 1
+	fi
+    fi
+    # parisc64 boxes require latest fixes in the kernel to function properly.
+    if [ "$realarch" = parisc64 ]
+    then
+	kernel_ver=`uname -r`
+	if dpkg --compare-versions "$kernel_ver" lt 2.4.19-pa17
+	then
+		echo WARNING: This version of libc6 requires that you be running
+		echo atleast a 2.4.19-pa17 kernel in order to work properly.
+		echo Earlier kernels did not provide the proper functionality
+		echo in order for the system to be stable. 
 		exit 1
 	fi
     fi
