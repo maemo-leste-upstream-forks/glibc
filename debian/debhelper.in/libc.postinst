@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+export LC_ALL=C
 
 package_name()
 {
@@ -196,7 +197,7 @@ then
 	    check="$check proftpd proftpd-ldap proftpd-mysql proftpd-pgsql"
 	    check="$check dovecot-common cucipop rsync"
 	    # Only get the ones that are installed, and configured
-	    check=$(dpkg -s $check 2> /dev/null | awk 'BEGIN{RS="\n\n";FS="\n"}{if ( $2 ~ /Status: .* installed$/ ) { print $1 } }' | cut -f 2 -d ' ')
+	    check=$(dpkg -s $check 2> /dev/null | egrep '^Package:|^Status:' | awk '{if ($1 ~ /^Package:/) { package=$2 } else if ($0 ~ /^Status: .* installed$/) { print package }}')
 	    # apache2 ships its init script in apache2-common, but the
 	    # script is apache2
 	    check=$(echo $check | sed 's/apache2-common/apache2/g')
