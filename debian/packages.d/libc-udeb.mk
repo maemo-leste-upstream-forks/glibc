@@ -6,9 +6,10 @@ libc-udeb: $(stamp_install) debian/control $(mkdir)/sysdeps.mk
 	$(make_directory) $(tmpdir)/$@/lib
 	$(make_directory) $(tmpdir)/$@/DEBIAN
 	$(INSTALL_PROGRAM) $(install_root)/lib/ld-$(VERSION).so $(tmpdir)/$@/lib/.
-	$(INSTALL_DATA) $(install_root)/lib/libc-$(VERSION).so $(tmpdir)/$@/lib/.
 	$(INSTALL_DATA) $(install_root)/lib/libm-$(VERSION).so $(tmpdir)/$@/lib/.
 	$(INSTALL_DATA) $(install_root)/lib/libdl-$(VERSION).so $(tmpdir)/$@/lib/.
+	$(INSTALL_DATA) $(install_root)/lib/libresolv-$(VERSION).so $(tmpdir)/$@/lib/.
+	$(INSTALL_DATA) $(install_root)/lib/libnss_dns-$(VERSION).so $(tmpdir)/$@/lib/.
 	$(INSTALL_PROGRAM) $(install_root)/lib/libc-$(VERSION).so $(tmpdir)/$@/lib/.
 ifeq ($(threads),yes)
 	$(INSTALL_DATA) $(install_root)/lib/libpthread-0.10.so $(tmpdir)/$@/lib/.
