@@ -1,0 +1,60 @@
+Architecture builds
+===================
+
+ i386: -7 Built okay 
+ ia64: -5 Built okay.
+ alpha: -3 Built okay.
+ ppc: -6 Built okay.
+ sparc: Not built.
+ s390: -6 Built okay.
+ mips: Not built.
+ mipsel: Not built.
+ hppa: Not built.
+ m68k: Not built.
+ arm: Not built.
+ hurd-i386: Not built.
+ freebsd-i386: Not built.
+ netbsd-i386: Not built.
+
+Outstanding concerns
+====================
+
+  - gotom doesn't like local directory, prefers is still broken down by
+    package.
+
+TODO
+====
+
+* General:
+
+ - Before it leaves experimental, verify:
+   1) the file list of every package
+   2) the control information (dependencies etc.)
+   3) the shlibs files
+   4) the other contents of DEBIAN/
+
+   on every architecture against unstable to make sure we didn't lose
+   anything we didn't want to lose.
+
+   As of 2003-10-26 22:06:00 GMT, all of these are OK on i386.
+
+ - Make sure that prep.sh and version aren't in the root of the source
+   package.
+
+* libc:
+ - Only add some libraries to the optimized packages and to /lib/tls,
+   instead of all of them?
+ - Add patch to display (or ignore) linux-gate.so.1 in ldd.
+ - Check dpkg-shlibdeps for linux-gate.so.1 handling.
+ - Don't do make install for libc6-i686 if we aren't going to use the
+   results - it's very slow.  We may need to make install for nptl to
+   get the few headers that differ.
+
+* libc-dev:
+
+ - What do we do for headers on 32/64 systems?  Do we generate
+   #if wrappers for /usr/include?  This looks like a non-issue since
+   only asm needs it.
+ - -dev support for library variants like nptl?  64-bit libraries are
+   covered.
+

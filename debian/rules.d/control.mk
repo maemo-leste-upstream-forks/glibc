@@ -15,9 +15,8 @@ debian/control.in/libc0.3: debian/control.in/libc debian/rules.d/control.mk
 debian/control.in/libc1: debian/control.in/libc debian/rules.d/control.mk
 	sed -e 's%@libc@%libc1%g;s%@archs@%freebsd-i386%g' < $< > $@
 
-debian/control: debian/control.in/main $(DEB_HOST_GNU_TYPE) $(control_deps) \
-		   debian/sysdeps/soname.mk debian/sysdeps/config.mk \
-		   debian/rules.d/control.mk debian/sysdeps/depflags.pl
+debian/control: debian/control.in/main $(control_deps) \
+		   debian/rules.d/control.mk # debian/sysdeps/depflags.pl
 	cat debian/control.in/main		>  $@T
 	cat debian/control.in/libc6		>> $@T
 	cat debian/control.in/libc6.1		>> $@T
@@ -25,9 +24,8 @@ debian/control: debian/control.in/main $(DEB_HOST_GNU_TYPE) $(control_deps) \
 	cat debian/control.in/libc1		>> $@T
 	cat debian/control.in/sparc64		>> $@T
 	cat debian/control.in/s390x		>> $@T
-	# Uncomment this to add optimized package lists
-	# cat debian/control.in/opt		>> $@T
+	cat debian/control.in/opt		>> $@T
 	cat debian/control.in/libc-udeb         >> $@T
-	sed -e 's%@libc@%$(libc)%g;s%@glibc@%$(glibc)%g' \
+	sed -e 's%@libc@%$(libc)%g;s%@glibc@%glibc%g' \
 	    -e 's%@threads_archs@%$(threads_archs)%g' < $@T > $@
 	rm $@T

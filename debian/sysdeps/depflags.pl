@@ -28,13 +28,13 @@ if ($DEB_HOST_GNU_SYSTEM eq "gnu") {
 }
 if ($DEB_HOST_GNU_SYSTEM eq "linux") {
     push @{$libc_c{'Suggests'}}, 'locales';
-    push @{$libc_c{'Provides'}}, 'gconv-modules';
     #db1 compat libraries from libc 2.0/2.1, we need to depend on them
     #until after sarge is released
     push @{$libc_c{'Depends'}}, "libdb1-compat";
     push @{$libc_dev_c{'Recommends'}}, 'c-compiler';
     push @{$libc_dev_c{'Replaces'}}, ('man-db (<= 2.3.10-41)', 'gettext (<= 0.10.26-1)',
 		'ppp (<= 2.2.0f-24)', 'libgdbmg1-dev (<= 1.7.3-24)');
+    push @{$libc_dev_c{'Depends'}}, 'linux-kernel-headers';
 }
 
 # ${glibc}-doc is suggested by $libc_c and $libc_dev_c.
@@ -115,9 +115,6 @@ if ($DEB_HOST_GNU_TYPE eq "alpha-linux") {
 	'libreadlineg2-dev (<< 2.1-13.1)');
 }
 
-# XXX: Our optimized libs do not like some programs
-push @{$libc_opt_c{'Conflicts'}}, ('libsafe', "memprof");
-
 # Conflict/Replace netkit-rpc, and its manpages
 push @{$libc_c{'Conflicts'}}, 'netkit-rpc';
 push @{$libc_c{'Replaces'}}, 'netkit-rpc';
@@ -139,8 +136,6 @@ if ($type eq "libc") {
     %pkg = %libc_c;
 } elsif ($type eq "libc_dev") {
     %pkg = %libc_dev_c;
-} elsif ($type eq "libc_opt") {
-    %pkg = %libc_opt_c;
 } else {
     die "Unknown package $type";
 }

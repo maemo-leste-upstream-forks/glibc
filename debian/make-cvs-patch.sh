@@ -19,5 +19,5 @@ source version
 
 debian/rules unpack
 
-diff -urN -x CVS -x .cvsignore -x '*texi' -x '*manual*' glibc-$VERSION $1 >cvs.patch
+diff -urN -x CVS -x nptl -x nptl_db -x .cvsignore -x '*texi' -x '*manual*' glibc-$VERSION $1 >cvs.patch
 

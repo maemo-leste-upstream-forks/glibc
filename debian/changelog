@@ -1,11 +1,262 @@
-glibc (2.3.2-10) unstable; urgency=low
+glibc (2.3.2.ds1-8) experimental; urgency=low
+
+  * Daniel Jacobowitz <dan@debian.org>
+
+    - Don't use --enable-omitfp since we don't install libc_g.a.
+    - Enable NPTL for S/390.
+    - Fix the /lib/ld64.so.1 symlink for s390x.
+    - Update maintainer scripts for fixes lost in the rewrite.
+    - Enable NPTL for ia64.  Thanks to Ian Wienand for testing.
+    - Automatically cross-compile if the kernel is too old to build
+      an optimized library.
+    - Do not run make check if cross compiling.
+    - Fix msqid_ds on MIPS.  Dpatch from Guido Guenther, patch by
+      Thiemo Seufer (Closes: #215273, #200215, #217593).
+    - Check for old copies of glibc in a couple of places (Closes: #212224).
+    - Fix a libio compatibility code bug which crashed the Citrix client
+      (glibc23-libio-compat.dpatch).
+    - Remove fuzzy markers from fr.po.  Patch from Denis Barbier
+      <barbier@debian.org> (Closes: #217865).
+    - Re-add debian/patches/80_glibc232-locales-nb_NO-fix.dpatch, which had
+      gotten lost.
+    - Re-add typo fixes to iconv.1 and rpcgen.1.
+    - Merge iconv.1 fix to iconv.pod.
+    - Re-add fix for locale-gen and POSIXLY_CORRECT.
+    - Update ldso-disable-hwcap.dpatch and preinst/postinst scripts.
+    - Update maintainer scripts not to use basename; dpkg invokes the
+      scripts as tmp.ci/postinst, not libc6.postinst.
+
+  * Jeff Bailey <jbailey@nisa.net>
+
+    - debian/sysdeps/linux.mk: Use getconf _NPROCESSORS_ONLN instead
+      of /proc/cpuinfo to calculate NJOBS.  The cpuinfo file format
+      is not consistent between arch's.
+    - debian/.cvsignore: New file.
+
+  * GOTO Masanori <gotom@debian.org>
+
+    - debian/debhelper.in/locales.dirs: Add /usr/lib/locale, because
+      localedef stops to create locale data if this dir is not found.
+    - debian/debhelper.in/libc-otherbuild.preinst: Fix typo which
+      disturbs to install libc-otherbuild package.
+    - Dan's checking code for old copies in libc6 preinst fixes
+      installation breakage for example /usr/lib/debug is in
+      /etc/ld.so.conf, or so on.
+      (Closes: #165374, #212224).
+    - debhelper.in/libc.preinst: add kernel version sanity check for
+      sun4m arch which needs at least 2.4.21 due to hardware multiplication
+      instruction is used by default.  (Closes: #215010, #215012)
+    - debian/debhelper.in/libc.preinst: fix check_dirs return value.
+
+ -- Daniel Jacobowitz <dan@debian.org>  Tue, 28 Oct 2003 17:42:57 -0500
+
+glibc (2.3.2.ds1-7) experimental; urgency=low
+
+  * Daniel Jacobowitz <dan@debian.org>
+
+    - Fix TLS libraries, which belong in /lib/tls, not /libtls.
+    - Fix -march for NPTL libraries on i386 - was i686, should have
+      been i486.
+    - Move i686 libraries to /lib/tls/i686/cmov.
+    - Include make check output in the libc package.
+    - S/390 perversely uses /lib/ld64.so.1 as the dynamic linker; include
+      a symlink.
+    - Leave /lib64/ld64.so.1 executable on S/390.
+    - Generate SUPPORTED again.
+    - Update ldconfig to prefer /lib/tls to /lib/i686/cmov.
+    - Disable conflicts between optimized libraries and libsafe/memprof;
+      they've worked for a while.
+    - Switch the i686 optimized libraries to use NPTL, and update their
+      description.
+    - Fix dependencies for locales package.
+    - Include SONAME symlinks in libc6-dbg.
+    - Remove vestigial gconv-modules Provides.
+    - Install more files for libc6 and locales packages.
+    - Correct section for zdump.8 man page.
+    - Install ld.so.8 in the right directory (debhelper thinks that .so is a
+      language extension).
+    - Install info menu entries for functions provided by libc, in
+      glibc-doc.
+    - Include changelog in glibc-doc also.
+    - Re-add libc6-dev dependency on matching libc6.
+    - Fix libc-udeb build.
+
+  * Phil Blundell <pb@nexus.co.uk>
+
+    - debian/patches/arm-ioperm.dpatch: Try again.
+
+  * Jeff Bailey <jbailey@nisa.net>
+
+    Welcome back HPPA, Thanks to Carlos O'Donell <carlos@baldric.uwo.ca>
+
+    - debian/patches/50_glibc232-hppa-full-nptl-2003-10-22.dpatch: New.
+    - debian/patches/50_glibc23-hppa-entry.dpatch: Remove.
+    - debian/patches/glibc23-00-hppa-pthreads.dpatch: Remove.
+    - debian/patches/glibc23-01-hppa-dl-machine.dpatch: Remove.
+    - debian/patches/glibc23-07-hppa-atomicity.dpatch: Remove.
+    - debian/patches/glibc23-hppa-compat.dpatch: Remove.
+    - debian/patches/glibc23-hppa-malloc8.dpatch: Remove.
+
+    - debian/patches/00list: Update.
+
+    - debian/rules: Define NJOBS as 1.
+    - debian/sysdeps/linux.mk: Define NJOBS based on number of processors
+    - debian/rules.d/build.mk: Use -j $(NJOBS) during build.
+    Based on patch from Ian Wienand <ianw@gelato.unsw.edu.au>
+
+    - debian/debhelper.in/libc.install: Install pt_chown
+    - debian/rules.d/debhelper.mk: Don't clobber SUID on pt_chown
+    - debian/debhelper.in/glibc-doc.docs: Install DEB_SRCDIR/ChangeLog*
+    - debian/rules.d/build.mk: Don't run testsuite if DEB_BUILD_OPTIONS
+      contains nocheck
+
+    - debian/sysdeps/gnu.mk: Define slibdir.
+    - debian/rules.d/build.mk: Only set slibdir in configparms if its set.
+    - debian/debhelper.in/glibc-doc.doc-base: New file.
+    - debian/debhelper.in/glibc-doc.install: New file.
+    - debian/debhelper.in/glibc-doc.links: New file.
+    - debian/rules.d/build.mk: Generate HTML files.
+    - debian/rules.d/debhelper.mk: Map LIBC to $(libc) in generated files.
+    - debian/debhelper.in/libc.install: Install Linuxthreads ChangeLog.
+    - debian/debhelper.in/libc.docs: Install various docs.
+    - debian/sysdeps/kfreebsd-gnu.mk: New file.  Put in all the magic
+      from the old packaging.
+    - debian/sysdeps/kfreebsd.mk: Deleted.
+    - debian/sysdeps/gnu.mk: Add in GLIBC_OVERLAYS to allow patching to work,
+      create ld.so symlink at end of build.
+    - debian/sysdeps/sparc.mk: Change MIN_KERNEL_REQUIRED to
+      MIN_KERNEL_SUPPORTED.
+    - debian/sysdeps/s390.mk: Likewise.
+    - debian/rules: Define kernel_check macro.
+    - debian/sysdeps/linux.mk: Override kernel_check for Linux.
+    - debian/rules.d/build.mk: Call kernel_check macro when --build ==
+      --host
 
   * GOTO Masanori <gotom@debian.org>
 
     - debian/po/ru.po: Update.  Patched by Ilgiz Kalmetev
       <translator@ilgiz.pp.ru>.  (Closes: #214349)
 
- -- GOTO Masanori <gotom@debian.or.jp>  Sun, 26 Oct 2003 02:15:37 +0900
+ -- Daniel Jacobowitz <dan@debian.org>  Sat, 25 Oct 2003 15:09:02 -0400
+
+glibc (2.3.2.ds1-6) experimental; urgency=low
+
+  * Phil Blundell <pb@debian.org>
+
+    - debian/patches/arm-ioperm.dpatch: New.
+
+  * Daniel Jacobowitz <dan@debian.org>
+
+    - Add debhelper build dependency.
+    - Use linux-kernel-headers package for headers.
+    - Add S/390 support.
+    - Build libc6-dev-sparc64.
+
+ -- Daniel Jacobowitz <dan@debian.org>  Mon, 20 Oct 2003 16:27:39 -0400
+
+glibc (2.3.2.ds1-5) experimental; urgency=low
+
+  * Daniel Jacobowitz <dan@debian.org>
+
+    - Fix a thinko in i686 timing patch for non-HP_TIMING architectures.
+    - Add -k to make check.
+
+ -- Daniel Jacobowitz <dan@debian.org>  Mon, 13 Oct 2003 10:53:31 -0400
+
+glibc (2.3.2.ds1-4) experimental; urgency=low
+
+  * Daniel Jacobowitz <dan@debian.org>
+
+    - Update i686 timing patch to fix clock_gettime.
+    - Update glibc23-cmov patch to let ld load tls libraries from
+      ld.so.cache.
+    - Include symlinks in optimized library directories to placate
+      dpkg-shlibdeps.
+    - Fix shlibs files to include a version again.
+    - Re-enable make check.
+    - Update makeconfig.dpatch to fix a typo that broke make check.
+    - Add glibc-make-check-perms.dpatch to fix an upstream make check
+      problem.
+    - Build some optimized libraries using appropriate --build options
+      so that they can run make check.
+
+  * Jeff Bailey <jbailey@nisa.net>
+
+    - Build libraries for sparcv9 and sparc64.
+    - Enable TLS for ia64.
+
+ -- Daniel Jacobowitz <dan@debian.org>  Sun, 12 Oct 2003 19:42:11 -0400
+
+glibc (2.3.2.ds1-3) experimental; urgency=low
+
+  * Daniel Jacobowitz <dan@debian.org>
+
+    - Use ldd* in debhelper.in/libc6, because non-i386 arches don't have
+      lddlibc4.
+    - Include gconv-modules in libc6.
+    - Don't include some unnecessary generated kernel headers.
+    - Merge previous .dpatch files (Closes: #214470).
+    - Run depflags.pl again (Closes: #214468).
+    - Don't include profiled libraries in libc-dev (Closes: #214504).
+    - Ship /usr/include/asm-generic (Closes: #214512).
+
+ -- Daniel Jacobowitz <dan@debian.org>  Mon,  6 Oct 2003 21:18:28 -0400
+
+glibc (2.3.2.ds1-2) experimental; urgency=low
+
+  * Daniel Jacobowitz <dan@debian.org>
+
+    - Install the right headers in /usr/include/asm, instead of trying to
+      replace the directory with a symlink (Closes: #214233).
+    - Map DEB_HOST_GNU_CPU to a uname value for creating the asm symlink.
+    - Move libc6-dev's postinst back to preinst.
+    - Support multiple autoconf.h headers.
+    - Add an ia64 autoconf.h, from Branden Robinson.
+
+ -- Daniel Jacobowitz <dan@debian.org>  Sun,  5 Oct 2003 14:47:05 -0400
+
+glibc (2.3.2.ds1-1) experimental; urgency=low
+
+  * Essentially redo the debian/ packaging directory.
+
+    Specifically, the following directories were changed:
+    - debian/sysdeps/*: Redo into os-based and arch-based handling.
+    - debian/debhelper.in/*: Use debhelper for all package management.
+    - debian/rules.d/*: Split out rules file into logical pieces.
+    - debian/local/*: Move all of the files that Debian provides to here.
+
+    Update dpatch to more closely match the debian package:
+    - debian/patches/0list: Rename to 00list to match dpatch update.
+    - debian/rules.d/dpatch.mk: Sync with Debian package with the
+      following four changes:
+      1) Support srcdir != builddir builds.
+      2) Support $(stampdir)
+      3) patch target depends on unpack
+      4) Use $(DEB_SOURCE_PACKAGE) instead of $(PACKAGE)
+
+    Remove dependency on various kernel-headers packages, bring into
+    the package:
+    - linux-kernel-headers/: New directory, import from 2.6.0-test2
+
+    Add NPTL support on i386:
+    - debian/sysdeps/i386.mk: Add NPTL patterns, set minimum kernel.
+
+    Redo "DBS-Style" tarball support:
+    - debian/rules.d/tarball.mk: New file
+    - debian/sysdeps/linux.mk: Bring in linuxthreads and nptl overlays.
+    - prep.sh: Remove.
+    - version: Remove.
+
+    Update to recent CVS snapshot to support NPTL:
+    - debian/patches/10_cvs.dpatch: update
+
+    This cleanup project is the result of several discussions between
+    Jeff Bailey, GOTO Masanori, Daniel Jacobowitz, and Philip Blundell.
+
+    The initial work here was done by Jeff Bailey, Branden Robinson,
+    and Daniel Jacobowitz.
+
+ -- Daniel Jacobowitz <dan@debian.org>  Thu,  2 Oct 2003 13:47:40 -0400
 
 glibc (2.3.2-9) unstable; urgency=medium
 

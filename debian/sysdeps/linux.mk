@@ -1,59 +1,62 @@
+GLIBC_OVERLAYS ?= $(shell ls nptl* glibc-linuxthreads*)
 MIN_KERNEL_SUPPORTED := 2.2.0
+libc = libc6
 
-# Sparc and i386 have some optimized libs
-ifeq ($(DEB_HOST_GNU_CPU),sparc)
-  cpus = sparcv9
-  OPT_SUBDIR = v9
-endif
-ifeq ($(DEB_HOST_GNU_CPU),i386)
-  cpus = i586 i686
-  OPT_SUBDIR = $(OPT)
-endif
-
-OPT_TARGET = $(OPT)-linux
-
-# Uncomment this to enable optimized libraries
-# opt_packages += $(addprefix opt-$(libc)-,$(cpus))
-
-
-# sparc and s390 have alternative 64-bit libs
-ifeq ($(DEB_HOST_GNU_CPU),sparc)
-  opt_packages += sparc64
+# Support multiple makes at once based on number of processors
+# Common wisdom says parallel make can be up to 2n+1.
+# Should we do that to get faster builds?
+NJOBS:=$(shell getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)
+ifeq ($(NJOBS),-1)
+ NJOBS:=1
 endif
 
-ifeq ($(DEB_HOST_GNU_CPU),s390)
-  opt_packages += s390x
+ifeq ($(NJOBS),0)
+ NJOBS=1
 endif
 
-
-config-os = linux-gnu
+# Linuxthreads Config
 threads = yes
-add-ons += linuxthreads
+libc_add-ons = linuxthreads $(add-ons)
 
-# Try to find a version of kernel-headers to use
-
-# We check this later. If there is more than one, we fail
-num_headers := $(shell ls -d /usr/src/kernel-headers-* | wc -l | tr -d ' ')
-
-ifeq ($(cross_compiling),no)
-  ifndef LINUX_SOURCE
-    # kernel-headers-$linux-version package
-    LINUX_SOURCE := $(shell ls -d /usr/src/kernel-headers-* | tail -1)
-  else
-    # Get it from the environment
-    LINUX_SOURCE := $(strip $(shell echo ${LINUX_SOURCE}))
-    num_headers := 1
-  endif
-  with_headers := --with-headers=$(LINUX_SOURCE)/include
+ifndef LINUX_SOURCE
+  LINUX_HEADERS := /usr/include
 else
-  # Cross compiles can just use sys-include
-  with_headers :=
+  LINUX_HEADERS := $(LINUX_SOURCE)/include
 endif
 
 # Minimum Kernel supported
-with_headers += --enable-kernel=$(MIN_KERNEL_SUPPORTED)
+with_headers = --with-headers=$(shell pwd)/debian/include --enable-kernel=$(call xx,MIN_KERNEL_SUPPORTED)
 
-# s390 needs this
-ifeq ($(DEB_HOST_GNU_CPU),s390)
-  extra_config_options := --enable-omitfp
-endif
+# NPTL Config
+nptl_add-ons = nptl $(add-ons)
+nptl_extra_config_options = $(extra_config_options) --with-tls --with-__thread --disable-profile
+nptl_extra_cflags = -g0 -O3 -fomit-frame-pointer -D__USE_STRING_INLINES
+nptl_MIN_KERNEL_SUPPORTED = 2.6.0
+nptl_LIBDIR = /tls
+
+LINUX_HEADER_DIR = $(stamp)mkincludedir
+$(stamp)mkincludedir:
+	rm -rf debian/include
+	mkdir debian/include
+	ln -s $(LINUX_HEADERS)/linux debian/include
+	ln -s $(LINUX_HEADERS)/asm-generic debian/include
+	ln -s $(LINUX_HEADERS)/asm debian/include
+
+	# To make configure happy if libc6-dev is not installed.
+	touch debian/include/assert.h
+
+	touch $@
+
+# Also to make configure happy.
+export CPPFLAGS = -isystem $(shell pwd)/debian/include
+
+# This round of ugliness decomposes the Linux kernel version number
+# into an integer so it can be easily compared and then does so.
+CURRENT_KERNEL_VERSION=$(shell uname -r)
+define kernel_check
+(minimum=$$((`echo $(1) | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 65536 + \2 \* 256 + \3/'`)); \
+current=$$((`echo $(CURRENT_KERNEL_VERSION) | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 65536 + \2 \* 256 + \3/'`)); \
+if [ $$current -lt $$minimum ]; then \
+  false; \
+fi)
+endef
