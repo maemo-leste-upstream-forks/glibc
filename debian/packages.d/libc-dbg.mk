@@ -22,8 +22,6 @@ endif
 	gzip -9fv $(tmpdir)/$@$(docdir)/$@/changelog.Debian
 	$(INSTALL_DATA) debian/copyright $(tmpdir)/$@$(docdir)/$@/.
 
-	cp -a debian/$@/* $(tmpdir)/$@/DEBIAN
-
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@
 	chown -R root.root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@

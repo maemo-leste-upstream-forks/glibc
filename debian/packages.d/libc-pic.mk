@@ -26,7 +26,6 @@ endif
 	$(INSTALL_DATA) debian/copyright $(tmpdir)/$@$(docdir)/$@/.
 
 	$(make_directory) $(tmpdir)/$@/DEBIAN
-	cp -a debian/$@/* $(tmpdir)/$@/DEBIAN
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@
 	chown -R root.root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@
