@@ -33,7 +33,7 @@ EOF
 
     # Set default LANG environment var
     db_get locales/default_environment_locale && SELECTED="$RET"
-    if [ -n "$SELECTED" -a "$SELECTED" != "Leave alone" ]; then
+    if [ -n "$SELECTED" -a "$SELECTED" != "Leave" -a "$SELECTED" != "Leave," ]; then
 	umask 022
 	grep -v '^LANG=' /etc/environment > /etc/environment.tmp 2> /dev/null || true
 	test "$SELECTED" = "None" || echo "LANG=$SELECTED" >> /etc/environment.tmp
