@@ -4,11 +4,19 @@ glibc (2.3.2.ds1-17) unstable; urgency=high
 
     - debian/sysdeps/depflags.pl: Fix typo, from "kerberos4th-dev" to
       "kerberos4kth-dev".  (Closes: #266637)
-    - debian/patches/00list: add locale-byn_ER.dpatch that was missing
+    - debian/patches/00list: Add locale-byn_ER.dpatch that was missing
       when I fixed.  (Closes: #270998)
 
 
     - debian/local/manpages/tzselect.1: Fix typo.  (Closes: #269747)
+
+    - debian/debhelper.in/libc.preinst: Don't install glibc when kernel
+      is not 2.6 on amd64.
+    - debian/sysdeps/amd64.mk: Patch from Andreas Jochens:
+       - Drop the 'nptl' pass from GLIBC_PASSES.
+       - Use 'nptl' instead of 'linuxthreads' in the 'libc' pass (this 
+         requires kernel >= 2.6.0, but 2.4 is not supported by the amd64
+         port anyway).
 
  -- GOTO Masanori <gotom@debian.org>  Thu, 19 Aug 2004 12:39:35 +0900
 
