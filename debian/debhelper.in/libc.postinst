@@ -327,7 +327,11 @@ then
     fi
     # DO NOT FOLLOW THIS EXAMPLE IN OTHER PACKAGES
     updatercd mountkernfs start 35 S .
-    /etc/init.d/mountkernfs 2>/dev/null || true
+    if [ -x /usr/sbin/invoke-rc.d ]; then
+	invoke-rc.d mountkernfs start
+    else
+	/etc/init.d/mountkernfs 2>/dev/null || true
+    fi
 fi
 
 if [ "`uname -s`" = Linux ]; then
