@@ -17,7 +17,7 @@ $(stamp)binaryinst_$(libc)-pic:: $(stamp)debhelper
 	install --mode=0644 build-tree/$(DEB_HOST_ARCH)-libc/libresolv.map debian/$(libc)-pic/usr/lib/libresolv_pic.map
 
 # Some per-package extra files to install.
-define $(libc)_extra_pkg_install
+define $(libc)_extra_debhelper_pkg_install
 	install --mode=0644 $(DEB_SRCDIR)/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/changelog
 	install --mode=0644 $(DEB_SRCDIR)/linuxthreads/README debian/$(curpass)/usr/share/doc/$(curpass)/README.linuxthreads
 	install --mode=0644 $(DEB_SRCDIR)/linuxthreads/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/ChangeLog.linuxthreads
@@ -32,11 +32,11 @@ define $(libc)_extra_pkg_install
 	install --mode=0644 debian/FAQ debian/$(curpass)/usr/share/doc/$(curpass)/README.Debian
 endef
 
-define locales_extra_pkg_install
+define locales_extra_debhelper_pkg_install
 	install --mode=0644 $(DEB_SRCDIR)/localedata/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/changelog
 endef
 
-define glibc-doc_extra_pkg_install
+define glibc-doc_extra_debhelper_pkg_install
 	install --mode=0644 $(DEB_SRCDIR)/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/changelog
 	install --mode=0644 $(DEB_SRCDIR)/linuxthreads/FAQ.html debian/$(curpass)/usr/share/doc/$(curpass)/FAQ.linuxthreads.html
 endef
@@ -64,6 +64,9 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	dh_installdocs -p$(curpass) 
 	dh_link -p$(curpass)
 
+	# extra_debhelper_pkg_install is used for debhelper.mk only.
+	# when you want to install extra packages, use extra_pkg_install.
+	$(call xx,extra_debhelper_pkg_install)
 	$(call xx,extra_pkg_install)
 
 ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)

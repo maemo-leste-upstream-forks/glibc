@@ -12,3 +12,9 @@ BUILD_CC_VERSION := $(shell $(BUILD_CC) -dumpversion | sed 's/\([0-9]*\.[0-9]*\)
 ifeq ($(BUILD_CC_VERSION),3.4)
 	libc_extra_cflags += -g0
 endif
+
+# /lib64 and /usr/lib64 are provided by glibc instead base-files: #259302.
+define libc6_extra_pkg_install
+ln -sf lib debian/$(curpass)/lib64
+ln -sf lib debian/$(curpass)/usr/lib64
+endef
