@@ -101,6 +101,7 @@ endif
 	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@ $(libc_control_flags) \
 		-DProvides="$(shell perl debian/debver2localesdep.pl $(DEBVERSION))"
+	@set -ex ; cd $(tmpdir)/$@ ; find * -type f ! -regex "DEBIAN/.*" | xargs md5sum -- >DEBIAN/md5sums
 	chown -R root:root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@
 	dpkg --build $(tmpdir)/$@ ..

@@ -9,6 +9,12 @@ db_capb backup multiselect
 #   configuration files
 if [ -e /etc/locale.gen ]; then
     LG=/etc/locale.gen
+    #  Debconf templates in locales < 2.3.2 were completely different,
+    #  the locales/locales_to_be_generated question could have a "Leave alone"
+    #  value in which case locale-gen was not run.
+    #  With current implementation, this string has to be removed.
+    grep -q "Leave alone" $LG && sed -e '/^Leave alone/d' $LG > $LG.tmp && mv $LG.tmp $LG
+
     SELECTED_LOCALES=$(sed -e '/^[a-zA-Z]/!d' $LG | tr '\n' ',' | sed -e 's/,/, /g' -e 's/, *$//')
     db_set locales/locales_to_be_generated "${SELECTED_LOCALES}"
 else

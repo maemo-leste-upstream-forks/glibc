@@ -43,6 +43,7 @@ endif
 		-DProvides="$(shell perl debian/debver2localesdep.pl \
 		$(DEBVERSION))" -fdebian/files~
 	dpkg-distaddfile libc-udeb_$(DEBVERSION)_$(shell dpkg-architecture -qDEB_HOST_ARCH).udeb debian-installer required
+	@set -ex ; cd $(tmpdir)/$@ ; find * -type f ! -regex "DEBIAN/.*" | xargs md5sum -- >DEBIAN/md5sums
 	chown -R root:root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@
 	dpkg --build $(tmpdir)/$@ ../libc-udeb_$(DEBVERSION)_$(shell dpkg-architecture -qDEB_HOST_ARCH).udeb

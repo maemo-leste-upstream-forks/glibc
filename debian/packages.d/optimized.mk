@@ -82,6 +82,7 @@ endif
 	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@ -DDepends="$(libc) (= $(DEBVERSION))" \
 		$(libc_opt_control_flags)
+	@set -ex ; cd $(tmpdir)/$@ ; find * -type f ! -regex "DEBIAN/.*" | xargs md5sum -- >DEBIAN/md5sums
 	chown -R root:root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@
 	dpkg --build $(tmpdir)/$@ ..

@@ -81,6 +81,7 @@ endif
 	ln -sf $(libc) $(tmpdir)/$@$(docdir)/$@
 	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@
+	@set -ex ; cd $(tmpdir)/$@ ; find * -type f ! -regex "DEBIAN/.*" | xargs md5sum -- >DEBIAN/md5sums
 	chown -R root:root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@
 	dpkg --build $(tmpdir)/$@ ..
@@ -133,6 +134,7 @@ endif
 
 	find $(tmpdir)/$@ -name CVS -print -prune | xargs --no-run-if-empty rm -rf
 	dpkg-gencontrol -isp -p$@ -P$(tmpdir)/$@
+	@set -ex ; cd $(tmpdir)/$@ ; find * -type f ! -regex "DEBIAN/.*" | xargs md5sum -- >DEBIAN/md5sums
 	chown -R root:root $(tmpdir)/$@
 	chmod -R go=rX $(tmpdir)/$@
 	dpkg --build $(tmpdir)/$@ ..
