@@ -58,7 +58,7 @@ DEB_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' '
 DEB_TARBALL ?= $(shell ls glibc-[0-9]*.[0-9]*.[0-9]*.tar.*)
 
 DEB_SRCDIR ?= $(shell ls -d $(build-tree)/glibc-*)
-DEB_BUILDDIR ?= $(build-tree)/$(DEB_BUILD_ARCH)-$(curpass)
+DEB_BUILDDIR ?= $(build-tree)/$(DEB_HOST_ARCH)-$(curpass)
 
 # The kernel uses different CPU appreviations (uname output) than the GNU
 # tools do (config.sub).  Map them.
@@ -83,7 +83,8 @@ libexecdir=$(prefix)/lib
 
 BUILD_CC = gcc-3.3
 
-ifeq ($(cross_compiling),yes)
+# Set CC for cross-compiling
+ifneq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
 CC     = $(DEB_HOST_GNU_TYPE)-gcc
 else
 CC     = $(BUILD_CC)
