@@ -84,33 +84,22 @@ which are enabled by default and run as root, hence this is a
 
 --- sunrpc/xdr_array.c~  Tue May 21 12:34:05 2002
 +++ sunrpc/xdr_array.c   Tue May 21 12:33:58 2002
-@@ -1,6 +1,6 @@
--
- /*
-- * Copyright (c) 1986 - 1991 by Sun Microsystems, Inc.
-+ * Copyright 1986-1991, 2002 Sun Microsystems, Inc.  All rights
-reserved.
-+ * Use is subject to license terms.
-  */
-
- #pragma ident  "%Z%%M% %I%     %E% SMI"
-@@ -26,6 +26,7 @@
+@@ -45,6 +45,7 @@
  #include <rpc/types.h>
  #include <rpc/xdr.h>
- #include <memory.h>
+ #include <libintl.h>
 +#include <limits.h>
-
- #define        LASTUNSIGNED    ((u_int)0-1)
-
-@@ -57,7 +58,10 @@
-                return (FALSE);
-        }
-        c = *sizep;
--       if ((c > maxsize) && (xdrs->x_op != XDR_FREE)) {
+ 
+ #ifdef USE_IN_LIBIO
+ # include <wchar.h>
+@@ -81,7 +82,9 @@
+       return FALSE;
+     }
+   c = *sizep;
+-  if ((c > maxsize) && (xdrs->x_op != XDR_FREE))
 +
-+       /* Make sure that "c * elsize" doesn't overflow */
-+       if ((c > maxsize || UINT_MAX/elsize < c) &&
-+           (xdrs->x_op != XDR_FREE)) {
- #ifdef KERNEL
-                printf("xdr_array: bad size FAILED\n");
- #endif
++  /* Make sure that "c * elsize" doesn't overflow */
++  if ((c > maxsize || UINT_MAX/elsize < c) && (xdrs->x_op != XDR_FREE))
+     {
+       return FALSE;
+     }
