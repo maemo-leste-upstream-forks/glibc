@@ -1,0 +1,171 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Fix fesetround dl_hwcap undefined syymbol link time problem.
+# DP: Related bugs: #211135: /usr/lib/libm.a: Programs using fesetround don't static link: undefined reference to _dl_hwcap_mask
+# DP: Patch Author: Ulrich Drepper <drepper@redhat.com>, Jakub Jelinek  <jakub@redhat.com> and Roland McGrath  <roland@redhat.com>.
+# DP: Dpatch Author: GOTO Masanori <gotom@debian.org>
+# DP: Upstream status: In CVS
+# DP: Status Details: the latest cvs should be fixed.
+# DP: Date: 2003-09-17
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+Pulling cvs _dl_hwcap fix with my Elfw modification drop.
+
+revision 1.75
+date: 2003/07/29 21:27:35;  author: roland;  state: Exp;  lines: +0 -19
+2003-07-29  Roland McGrath  <roland@redhat.com>
+ 
+	* elf/Makefile: Revert accidental changes in last commit.
+	* elf/dl-support.c: Likewise.
+----------------------------
+revision 1.74
+date: 2003/07/29 08:56:53;  author: roland;  state: Exp;  lines: +21 -2
+2003-07-25  Jakub Jelinek  <jakub@redhat.com>
+ 
+	* elf/dl-support.c (_dl_hwcap): Add nocommon attribute.
+----------------------------
+revision 1.73
+date: 2003/07/22 22:18:27;  author: drepper;  state: Exp;  lines: +4 -0
+(_dl_hwcap): New variable.
+(_dl_aux_init): Initialize GL(dl_hwcap) for static binaries.
+
+
+--- elf/dl-support.c	2003-09-17 18:29:01.000000000 +0900
++++ elf/dl-support.c.gotom	2003-09-17 20:42:44.000000000 +0900
+@@ -123,6 +123,7 @@
+ 
+ struct ElfW(Phdr) *_dl_phdr;
+ size_t _dl_phnum;
++unsigned long int _dl_hwcap __attribute__ ((nocommon));
+ 
+ #ifdef NEED_DL_SYSINFO
+ /* Needed for improved syscall handling on at least x86/Linux.  */
+@@ -167,6 +168,9 @@
+       case AT_PHNUM:
+ 	GL(dl_phnum) = av->a_un.a_val;
+ 	break;
++      case AT_HWCAP:
++	GL(dl_hwcap) = av->a_un.a_val;
++	break;
+ #ifdef NEED_DL_SYSINFO
+       case AT_SYSINFO:
+ 	GL(dl_sysinfo) = av->a_un.a_val;
+
+2003-07-21  Ulrich Drepper  <drepper@redhat.com>
+
+	* sysdeps/i386/fpu/fedisblxcpt.c: Use dl_hwcap, not dl_hwcap_mask.
+	* sysdeps/i386/fpu/feenablxcpt.c: Likewise.
+	* sysdeps/i386/fpu/feholdexcpt.c: Likewise.
+	* sysdeps/i386/fpu/fesetround.c: Likewise.
+	* sysdeps/i386/fpu/ftestexcept.c: Likewise.
+
+Index: sysdeps/i386/fpu/fedisblxcpt.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/i386/fpu/fedisblxcpt.c,v
+retrieving revision 1.6
+retrieving revision 1.7
+diff -u -r1.6 -r1.7
+--- sysdeps/i386/fpu/fedisblxcpt.c	16 Jun 2003 08:01:54 -0000	1.6
++++ sysdeps/i386/fpu/fedisblxcpt.c	22 Jul 2003 00:12:32 -0000	1.7
+@@ -39,7 +39,7 @@
+   __asm__ ("fldcw %0" : : "m" (*&new_exc));
+ 
+   /* If the CPU supports SSE we set the MXCSR as well.  */
+-  if ((GL(dl_hwcap_mask) & HWCAP_I386_XMM) != 0)
++  if ((GL(dl_hwcap) & HWCAP_I386_XMM) != 0)
+     {
+       unsigned int xnew_exc;
+ 
+Index: sysdeps/i386/fpu/feenablxcpt.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/i386/fpu/feenablxcpt.c,v
+retrieving revision 1.6
+retrieving revision 1.8
+diff -u -r1.6 -r1.8
+--- sysdeps/i386/fpu/feenablxcpt.c	16 Jun 2003 08:01:10 -0000	1.6
++++ sysdeps/i386/fpu/feenablxcpt.c	22 Jul 2003 03:18:18 -0000	1.8
+@@ -39,16 +39,16 @@
+   __asm__ ("fldcw %0" : : "m" (*&new_exc));
+ 
+   /* If the CPU supports SSE we set the MXCSR as well.  */
+-  if ((GL(dl_hwcap_mask) & HWCAP_I386_XMM) != 0)
++  if ((GL(dl_hwcap) & HWCAP_I386_XMM) != 0)
+     {
+       unsigned int xnew_exc;
+ 
+       /* Get the current control word.  */
+-      __asm__ ("ldmxcsr %0" : "=m" (*&xnew_exc));
++      __asm__ ("stmxcsr %0" : "=m" (*&xnew_exc));
+ 
+       xnew_exc &= ~(excepts << 7);
+ 
+-      __asm__ ("stmxcsr %0" : : "m" (*&xnew_exc));
++      __asm__ ("ldmxcsr %0" : : "m" (*&xnew_exc));
+     }
+ 
+   return old_exc;
+Index: sysdeps/i386/fpu/feholdexcpt.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/i386/fpu/feholdexcpt.c,v
+retrieving revision 1.6
+retrieving revision 1.7
+diff -u -r1.6 -r1.7
+--- sysdeps/i386/fpu/feholdexcpt.c	16 Jun 2003 08:02:29 -0000	1.6
++++ sysdeps/i386/fpu/feholdexcpt.c	22 Jul 2003 00:12:32 -0000	1.7
+@@ -36,7 +36,7 @@
+   __asm__ ("fldcw %0" : : "m" (*&work));
+ 
+   /* If the CPU supports SSE we set the MXCSR as well.  */
+-  if ((GL(dl_hwcap_mask) & HWCAP_I386_XMM) != 0)
++  if ((GL(dl_hwcap) & HWCAP_I386_XMM) != 0)
+     {
+       unsigned int xwork;
+ 
+Index: sysdeps/i386/fpu/fesetround.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/i386/fpu/fesetround.c,v
+retrieving revision 1.5
+retrieving revision 1.6
+diff -u -r1.5 -r1.6
+--- sysdeps/i386/fpu/fesetround.c	29 Apr 2003 18:32:56 -0000	1.5
++++ sysdeps/i386/fpu/fesetround.c	22 Jul 2003 00:12:32 -0000	1.6
+@@ -38,7 +38,7 @@
+   __asm__ ("fldcw %0" : : "m" (*&cw));
+ 
+   /* If the CPU supports SSE we set the MXCSR as well.  */
+-  if ((GL(dl_hwcap_mask) & HWCAP_I386_XMM) != 0)
++  if ((GL(dl_hwcap) & HWCAP_I386_XMM) != 0)
+     {
+       unsigned int xcw;
+ 
+Index: sysdeps/i386/fpu/ftestexcept.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/i386/fpu/ftestexcept.c,v
+retrieving revision 1.3
+retrieving revision 1.4
+diff -u -r1.3 -r1.4
+--- sysdeps/i386/fpu/ftestexcept.c	29 Apr 2003 22:47:20 -0000	1.3
++++ sysdeps/i386/fpu/ftestexcept.c	22 Jul 2003 00:12:32 -0000	1.4
+@@ -33,7 +33,7 @@
+   __asm__ ("fnstsw %0" : "=a" (temp));
+ 
+   /* If the CPU supports SSE we test the MXCSR as well.  */
+-  if ((GL(dl_hwcap_mask) & HWCAP_I386_XMM) != 0)
++  if ((GL(dl_hwcap) & HWCAP_I386_XMM) != 0)
+     __asm__ ("stmxcsr %0" : "=m" (*&xtemp));
+ 
+   return (temp | xtemp) & excepts & FE_ALL_EXCEPT;
