@@ -60,7 +60,7 @@ $(libc)-sparc64: $(stamp_install_64) debian/control $(mkdir)/sysdeps.mk \
 	-rm -rf $(tmpdir)/$@
 
 	$(make_directory) $(tmpdir)/$@/DEBIAN
-	$(INSTALL_PROGRAM) debian/libc-sparc64/* $(tmpdir)/$@/DEBIAN
+	$(INSTALL_PROGRAM) debian/libc-sparc64/p* $(tmpdir)/$@/DEBIAN
 	cat debian/libc/DEBIAN/shlibs | sed -e 's_$(libc)_$@_' -e \
 		's_/lib/_/lib64/_' > \
 		$(tmpdir)/$@/DEBIAN/shlibs

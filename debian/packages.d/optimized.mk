@@ -62,12 +62,12 @@ $(libc)-$(OPT): $(stamp_install_opt) debian/control $(mkdir)/sysdeps.mk \
 	-rm -rf $(tmpdir)/$@
 
 	$(make_directory) $(tmpdir)/$@/DEBIAN
-	$(INSTALL_PROGRAM) debian/libc-opt/* $(tmpdir)/$@/DEBIAN
+	$(INSTALL_PROGRAM) debian/libc-opt/p* $(tmpdir)/$@/DEBIAN
 	# blah, not the m4's, process them
 	rm $(tmpdir)/$@/DEBIAN/*.m4
 	for m4 in debian/libc-opt/*.m4; do \
 		bn=`basename $$m4 .m4`; \
-		m4 -DOPT=$(OPT) debian/libc-opt/preinst.m4 > \
+		m4 -DOPT=$(OPT) $$m4 > \
 			$(tmpdir)/$@/DEBIAN/$$bn; \
 		chmod 755 $(tmpdir)/$@/DEBIAN/$$bn; \
 	done
