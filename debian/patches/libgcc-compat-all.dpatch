@@ -1,9 +1,9 @@
 #! /bin/sh -e
 
-# DP: Description: libgcc-compat symbols for mips, sparc & i386
+# DP: Description: libgcc-compat symbols for mips, sparc, alpha, & i386
 # DP: Author: Guido Guenther
 # DP: Upstream status: Not submitted
-# DP: Date: 2002-10-13, updated 2002-10-20
+# DP: Date: 2002-10-13, updated 2003-03-01
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
@@ -88,7 +88,7 @@ exit 0
  sgidefs.h
 --- /dev/null	Sat Mar 16 18:32:44 2002
 +++ sysdeps/mips/libgcc-compat.c	Sun Oct 20 17:11:59 2002
-@@ -0,0 +1,82 @@
+@@ -0,0 +1,66 @@
 +/* pre-.hidden libgcc compatibility
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -139,22 +139,6 @@ exit 0
 +symbol_version (__fixdfdi_internal, __fixdfdi, GLIBC_2.0);
 +
 +
-+extern int64_t __fixsfdi (float);
-+int64_t __fixsfdi_internal (float d)
-+{
-+  return __fixsfdi (d);
-+}
-+symbol_version (__fixsfdi_internal, __fixsfdi, GLIBC_2.0);
-+
-+
-+extern int64_t __fixunsdfdi (double);
-+int64_t __fixunsdfdi_internal (double d)
-+{
-+	  return __fixunsdfdi (d);
-+}
-+symbol_version (__fixunsdfdi_internal, __fixunsdfdi, GLIBC_2.0);
-+
-+
 +extern double __floatdidf (int64_t);
 +double __floatdidf_internal (int64_t u)
 +{
@@ -163,7 +147,7 @@ exit 0
 +symbol_version (__floatdidf_internal, __floatdidf, GLIBC_2.0);
 +
 +
-+floatdisf (int64_t);
++extern float floatdisf (int64_t);
 +float __floatdisf_internal (int64_t u)
 +{
 +  return __floatdisf (u);
@@ -179,7 +163,7 @@ exit 0
 +    # Functions from libgcc.
 +    __cmpdi2; __ucmpdi2;
 +    __divdi3; __moddi3; __udivdi3; __umoddi3;
-+    __fixdfdi; __fixsfdi; __fixunsdfdi; __floatdidf; __floatdisf;
++    __fixdfdi; __floatdidf; __floatdisf;
 +  }
 +}
 --- /dev/null	Sat Mar 16 18:32:44 2002
@@ -475,3 +459,76 @@ diff -u -u -r1.4 Dist
  }
    GLIBC_2.1 {
      # global variable
+--- /dev/null	Sat Mar 16 18:32:44 2002
++++ sysdeps/alpha/libgcc-compat.c	Sat Mar  1 21:19:36 2003
+@@ -0,0 +1,35 @@
++/* pre-.hidden libgcc compatibility
++   Copyright (C) 2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Guido Guenther <agx@sigxcpu.org>
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <stdint.h>
++#include <shlib-compat.h>
++
++#if SHLIB_COMPAT(libc, GLIBC_2_0, GLIBC_2_2_6)
++
++typedef int int128_t __attribute__((__mode__(TI)));
++
++extern int128_t __multi3 (int128_t, int128_t);
++int128_t INTUSE (__multi3) (int128_t x, int128_t y)
++{
++  return __multi3 (x, y);
++}
++symbol_version (INTUSE (__multi3), __multi3, GLIBC_2.0);
++
++#endif
+Index: sysdeps/alpha/Versions
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/alpha/Versions,v
+retrieving revision 1.2
+diff -u -u -r1.2 Versions
+--- sysdeps/alpha/Versions	20 Jan 1999 09:23:32 -0000	1.2
++++ sysdeps/alpha/Versions	1 Mar 2003 21:11:25 -0000
+@@ -3,6 +3,8 @@
+     # functions with special/multiple interfaces
+     __divqu; __remqu; __divqs; __remqs; __divlu; __remlu; __divls;
+     __remls; __divl; __reml; __divq; __remq; __divqu; __remqu;
++    # libgcc-compat
++    __multi3;
+   }
+ }
+ libm {
+Index: sysdeps/alpha/Makefile
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/alpha/Makefile,v
+retrieving revision 1.18
+diff -u -u -r1.18 Makefile
+--- sysdeps/alpha/Makefile	29 Jan 2002 03:53:32 -0000	1.18
++++ sysdeps/alpha/Makefile	2 Mar 2003 12:20:58 -0000
+@@ -47,3 +47,11 @@
+ # libc.so requires about 16k for the small data area, which is well
+ # below the 64k maximum.
+ pic-ccflag = -fpic
++
++ifeq ($(subdir),csu)
++ifeq (yes,$(build-shared))
++# Compatibility
++sysdep_routines += libgcc-compat
++shared-only-routines += libgcc-compat
++endif
++endif
