@@ -10,7 +10,9 @@ if [ "$1" = configure ]; then
 
     if test ! -e $LG || grep -q "XXX GENERATED XXX" $LG || dpkg --compare-versions "$2" le 2.2.4-7; then
 	db_get locales/locales_to_be_generated && SELECTED_LOCALES=$RET
-	cat > $LG << EOF
+	echo $SELECTED_LOCALES | grep -q "Leave alone" && LEAVE_FLAG="yes"
+	if test -z $LEAVE_FLAG; then
+	    cat > $LG << EOF
 # This file lists locales that you wish to have built. You can find a list
 # of valid supported locales at /usr/share/i18n/SUPPORTED. Other
 # combinations are possible, but may not be well tested. If you change
@@ -25,15 +27,18 @@ if [ "$1" = configure ]; then
 # does read in your changes.
 
 EOF
-	echo $SELECTED_LOCALES | sed -e 's/, /,/g' | tr ',' '\n' >> $LG
+	    echo $SELECTED_LOCALES | sed -e 's/, /,/g' | tr ',' '\n' >> $LG
+	fi
     fi
 
     # Update requested locales
-    /usr/sbin/locale-gen
+    if test -z $LEAVE_FLAG; then
+	/usr/sbin/locale-gen
+    fi
 
     # Set default LANG environment var
     db_get locales/default_environment_locale && SELECTED="$RET"
-    if [ -n "$SELECTED" -a "$SELECTED" != "Leave" -a "$SELECTED" != "Leave," ]; then
+    if [ -n "$SELECTED" -a "$SELECTED" != "Leave alone" ]; then
 	umask 022
 	grep -v '^LANG=' /etc/environment > /etc/environment.tmp 2> /dev/null || true
 	test "$SELECTED" = "None" || echo "LANG=$SELECTED" >> /etc/environment.tmp
