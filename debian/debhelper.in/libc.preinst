@@ -180,7 +180,8 @@ fi
 if [ "$1" != abort-upgrade ] && [ "`uname -s`" = Linux ]
 then
     # Test to make sure z < 255, in x.y.z-n form of kernel version
-    kernel_rev=$(uname -r | tr -- - . | cut -d. -f3)
+    # Also make sure we don't trip on x.y.zFOO-n form
+    kernel_rev=$(uname -r | tr -- - . | cut -d. -f3 | tr -d [:alpha:])
     if [ "$kernel_rev" -ge 255 ]
     then
         echo WARNING: Your kernel version indicates a revision number
