@@ -20,7 +20,7 @@ $(glibc)-doc:	$(stamp_install) debian/control $(mkdir)/sysdeps.mk
 	cd $(srcdir)/manual && texi2html -split_chapter libc.texinfo
 	$(make_directory) $(tmpdir)/$@$(docdir)/$@/html
 	$(INSTALL_DATA) $(srcdir)/manual/*.html $(tmpdir)/$@$(docdir)/$@/html/.
-	ln -sf chapters_toc.html $(tmpdir)/$@$(docdir)/$@/html/index.html
+	ln -sf libc.html $(tmpdir)/$@$(docdir)/$@/html/index.html
 	# This is blank for some reason
 	rm -f $(tmpdir)/$@$(docdir)/$@/html/chapters.html
 	$(INSTALL_DATA) $(srcdir)/manual/dir-add.info \
