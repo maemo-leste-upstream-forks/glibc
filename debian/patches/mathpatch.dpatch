@@ -1,0 +1,65 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Update from CVS for math test, hopefully gets rid of failures.
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+diff -urN glibc-2.2.5.old/ChangeLog glibc-2.2.5/ChangeLog
+--- glibc-2.2.5.old/ChangeLog   Sat Apr 27 22:28:07 2002
++++ glibc-2.2.5/ChangeLog       Tue Apr 23 10:45:10 2002
+@@ -0,0 +1,7 @@
++2002-07-16  Ulrich Drepper  <drepper@redhat.com>
++
++        * config.h.in: Fail if __FAST_MATH__ is defined.
++        * math/Makefile (CPPFLAGS-test-ifloat.c): Also define TEST_FAST_MATH.
++        (CPPFLAGS-test-idouble.c): Likewise.
++        (CPPFLAGS-test-ildouble.c): Likewise.
++
+diff -urN glibc-2.2.5/glibc-2.2.5/config.h.in glibc-upstream/config.h.in  
+--- glibc-2.2.5/glibc-2.2.5/config.h.in Sun Aug  4 10:01:38 2002
++++ glibc-upstream/config.h.in Wed Jul 17 19:14:00 2002
+@@ -2,6 +2,12 @@
+ # error "glibc cannot be compiled without optimization"
+ #endif
+ 
++/* Another evil option when it comes to compiling the C library is
++ *    --ffast-math since it alters the ABI.  */
++#if defined __FAST_MATH__ && !defined TEST_FAST_MATH
++# error "glibc must not be compiled with -ffast-math"
++#endif
++
+ /* Define if using GNU ld, with support for weak symbols in a.out,
+    and for symbol set and warning messages extensions in a.out and ELF.
+    This implies HAVE_WEAK_SYMBOLS; set by --with-gnu-ld.  */
+diff -urN glibc-2.2.5/glibc-2.2.5/math/Makefile glibc-upstream/math/Makefile
+--- glibc-2.2.5/glibc-2.2.5/math/Makefile Sat Aug  4 08:46:19 2001
++++ glibc-upstream/math/Makefile Wed Jul 17 19:15:11 2002
+@@ -122,9 +122,12 @@
+ CFLAGS-test-double.c = -fno-inline -ffloat-store
+ CFLAGS-test-ldouble.c = -fno-inline -ffloat-store
+ CFLAGS-test-tgmath.c = -fno-builtin
+-CPPFLAGS-test-ifloat.c = -U__LIBC_INTERNAL_MATH_INLINES -D__FAST_MATH__
+-CPPFLAGS-test-idouble.c = -U__LIBC_INTERNAL_MATH_INLINES -D__FAST_MATH__
+-CPPFLAGS-test-ildoubl.c = -U__LIBC_INTERNAL_MATH_INLINES -D__FAST_MATH__
++CPPFLAGS-test-ifloat.c = -U__LIBC_INTERNAL_MATH_INLINES -D__FAST_MATH__ \
++ -DTEST_FAST_MATH
++CPPFLAGS-test-idouble.c = -U__LIBC_INTERNAL_MATH_INLINES -D__FAST_MATH__ \
++ -DTEST_FAST_MATH
++CPPFLAGS-test-ildoubl.c = -U__LIBC_INTERNAL_MATH_INLINES -D__FAST_MATH__ \
++  -DTEST_FAST_MATH
+ 
+ distribute += libm-test.inc gen-libm-test.pl README.libm-test
+
