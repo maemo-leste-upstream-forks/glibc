@@ -18,18 +18,6 @@ exit 0
 
 --- sysdeps/unix/sysv/linux/arm/ioperm.c	20 Feb 2003 22:22:35 -0000	1.6
 +++ sysdeps/unix/sysv/linux/arm/ioperm.c	24 Oct 2003 20:59:38 -0000
-@@ -47,6 +47,11 @@
- #include <asm/page.h>
- #include <sys/sysctl.h>
- 
-+/* BUS_ISA was renamed to CTL_BUS_ISA in kernel 2.6.  */
-+#ifndef CTL_BUS_ISA
-+#define CTL_BUS_ISA BUS_ISA
-+#endif
-+
- #define PATH_ARM_SYSTYPE	"/etc/arm_systype"
- #define PATH_CPUINFO		"/proc/cpuinfo"
- 
 @@ -100,8 +105,8 @@
  {
    char systype[256];
