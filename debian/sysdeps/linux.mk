@@ -1,8 +1,4 @@
-ifeq ($(DEB_HOST_GNU_CPU),m68k)
-  MIN_KERNEL_SUPPORTED := 2.0.30
-else
-  MIN_KERNEL_SUPPORTED := 2.2.0
-endif
+MIN_KERNEL_SUPPORTED := 2.2.0
 
 # XXX: disabled for now
 # Sparc and i386 have some optimized libs
