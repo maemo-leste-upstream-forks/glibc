@@ -182,12 +182,14 @@ then
 	if dpkg --compare-versions $2 lt 2.3.2-2; then
 	    echo -n "Checking for services that may need to be restarted..."
 
-	    check="nis smail sendmail exim ssh netbase apache apache2-common"
-	    check="$check proftpd proftpd-ldap proftpd-mysql proftpd-pgsql"
+	    check="nis smail sendmail exim ssh netbase"
 	    check="$check ssh-nonfree postfix-tls wu-ftpd boa cron postfix"
 	    check="$check wu-ftpd-academ slapd openldapd wwwoffle"
 	    check="$check cupsys lprng lpr autofs snmpd ssh-krb5 samba"
 	    check="$check courier-authdaemon mysql-server spamassassin"
+	    check="$check apache apache2-common"
+	    check="$check proftpd proftpd-ldap proftpd-mysql proftpd-pgsql"
+	    check="$check dovecot-common"
 	    # Only get the ones that are installed, and configured
 	    check=$(dpkg -s $check 2> /dev/null | awk 'BEGIN{RS="\n\n";FS="\n"}{if ( $2 ~ /Status: .* installed$/ ) { print $1 } }' | cut -f 2 -d ' ')
 	    # apache2 ships its init script in apache2-common, but the
@@ -196,6 +198,9 @@ then
 	    # The name of proftpd-{ldap,mysql,pgsql} init script is
 	    # same as "proftpd".
 	    check=$(echo $check | sed 's/proftpd-.*/proftpd/g')
+	    # dovecot-common ships its init script, but the
+	    # script name is dovecot for dovecot-{imapd,pop3d}.
+	    check=$(echo $check | sed 's/dovecot-common/dovecot/g')
 	    # We have to list inetd explicitly, because the package is a
 	    # different name from it's init script
 	    check="$check inetd"
