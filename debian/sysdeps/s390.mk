@@ -6,7 +6,7 @@ s390x_configure_target = s390x-linux
 s390x_CC = $(CC) -m64
 s390x_add-ons = linuxthreads $(add-ons)
 libc6-s390x_shlib_dep = libc6-s390x (>= $(shlib_dep_ver))
-s390x_extra_cflags = -g1 -O3 -fomit-frame-pointer -D__USE_STRING_INLINES
+s390x_extra_cflags = -g1 -O3
 s390x_LIBDIR = 64
 s390x_extra_config_options := $(extra_config_options) --disable-profile
 

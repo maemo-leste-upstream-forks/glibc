@@ -6,7 +6,7 @@ DEB_ARCH_REGULAR_PACKAGES += libc6-i686
 # emulate the missing instructions on the i386.
 nptl_configure_target=i486-linux
 nptl_configure_build=i486-linux
-nptl_extra_cflags = -march=i486 -mcpu=i686 -g1 -O3 -fomit-frame-pointer -D__USE_STRING_INLINES
+nptl_extra_cflags = -march=i486 -mcpu=i686 -g1 -O3
 
 # We use -march=i686 and glibc's i686 routines use cmov, so require it.
 # A Debian-local glibc patch adds cmov to the search path.
@@ -14,7 +14,7 @@ nptl_extra_cflags = -march=i486 -mcpu=i686 -g1 -O3 -fomit-frame-pointer -D__USE_
 i686_add-ons = nptl $(add-ons)
 i686_configure_target=i686-linux
 i686_configure_build=i686-linux
-i686_extra_cflags = -march=i686 -mcpu=i686 -g1 -O3 -fomit-frame-pointer -D__USE_STRING_INLINES
+i686_extra_cflags = -march=i686 -mcpu=i686 -g1 -O3
 i686_LIBDIR = /tls/i686/cmov
 i686_MIN_KERNEL_SUPPORTED = 2.6.0
 i686_extra_config_options = $(extra_config_options) --disable-profile --with-tls --with-__thread
