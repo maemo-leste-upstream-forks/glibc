@@ -77,3 +77,19 @@ exit 0
 +weak_alias (__libc_waitpid, __waitpid)
 +libc_hidden_weak (__waitpid)
 +weak_alias (__libc_waitpid, waitpid)
+Index: sysdeps/unix/sysv/linux/not-cancel.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/not-cancel.h,v
+retrieving revision 1.4
+diff -u -r1.4 not-cancel.h
+--- sysdeps/unix/sysv/linux/not-cancel.h	15 Jul 2003 06:41:45 -0000	1.4
++++ sysdeps/unix/sysv/linux/not-cancel.h	21 Aug 2003 20:51:12 -0000
+@@ -47,7 +47,7 @@
+ 	    INTERNAL_SYSCALL (writev, err, 3, (fd), (iov), (n)); })
+ 
+ /* Uncancelable waitpid.  */
+-#ifdef __NR_waitpid
++#if defined (__NR_waitpid) && !defined(__arm__)
+ # define waitpid_not_cancel(pid, stat_loc, options) \
+   INLINE_SYSCALL (waitpid, 3, pid, stat_loc, options)
+ #else
