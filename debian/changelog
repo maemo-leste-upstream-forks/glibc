@@ -2,13 +2,21 @@ glibc (2.3.2.ds1-21) unstable; urgency=low
 
   * GOTO Masanori <gotom@debian.org>
 
+    - debian/patches/linuxthreads-sizefix.dpatch: Fix ia64 TLS_PRE_TCB_SIZE
+      alignment where TLS_DTV_AT_TP is defined between linuxthreads and nptl.
+      It breaks evolution on ia64 linuxthreads ld.so + nptl environment.
+      (Closes: #292673)
+
     - debian/debhelper.in/libc.manpages: Add tzconfig.8.  Reported by Matthijs
       Mohlmann <matthijs@cacholong.nl>.  (Closes: #182981)
-    - debian/local/manpages/iconv.1: Escape hyphens for Unicode environments.
-      Patched by Lars Wirzenius <liw@iki.fi>.  (Closes: #292013)
 
-    - debian/po/pl.po: Add Polish debconf translation.  Patched by Emilian
-      Nowak <emil5@go2.pl>.  (Closes: #294444)
+    - Lars Wirzenius <liw@iki.fi>:
+      - debian/local/manpages/iconv.1: Escape hyphens for Unicode
+        environments. (Closes: #292013)
+    - Emilian Nowak <emil5@go2.pl>:
+      - debian/po/pl.po: Add Polish debconf translation. (Closes: #294444)
+    - Matti Polla <mpo@iki.fi>:
+      - debian/po/fi.po: Add Finnish debconf translation. (Closes: #303816)
 
  -- GOTO Masanori <gotom@debian.org>  Mon, 14 Feb 2005 09:26:26 +0900
 
@@ -665,7 +673,7 @@ glibc (2.3.2.ds1-9) unstable; urgency=low
 
   * GOTO Masanori <gotom@debian.org>
 
-    - debian/po/es.po: Update.  Patched by Carlos Valdivia Yagüe
+    - debian/po/es.po: Update.  Patched by Carlos Valdivia Yag�¼e
       <valyag@dat.etsit.upm.es>.
     - debian/debhelper.in/libc.preinst: Replace s/libc6/glibc/
       in messages, actually there are not only libc6, but also
@@ -1179,7 +1187,7 @@ glibc (2.3.2-4) unstable; urgency=low
   * GOTO Masanori <gotom@debian.org>
 
     - debian/po/es.po: Updated Spanish (es) debconf template.
-      Patched by Carlos Valdivia Yagüe <valyag@dat.etsit.upm.es>.
+      Patched by Carlos Valdivia Yag�¼e <valyag@dat.etsit.upm.es>.
     - debian/patches/81_glibc232-utimes-fix.dpatch: Fix utimes wrong time
       calculation.  Patched by Paul Eggert <eggert@CS.UCLA.EDU>.
       (Closes: #204728, #202243, #205110)
