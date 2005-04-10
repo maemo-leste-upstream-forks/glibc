@@ -1,20 +1,23 @@
 #! /bin/sh -e
 
 # All lines beginning with `# DP:' are a description of the patch.
-# DP: Description: Update timezone info to tzdata2004e.
-# DP: Related bugs: Many in the BTS
-# DP: Dpatch Author: GOTO Masanori <gotom@debian.org>
+# DP: Description: Update timezone info to tzdata2005h.
+# DP: Related bugs: 
+# DP: Dpatch author: GOTO Masanori <gotom@debian.org>
+# DP: Patch author: 
 # DP: Upstream status: In CVS
 # DP: Status Details: 
-# DP: Date: 2004-10-14
+# DP: Date: 2005-04-10
+
+PATCHLEVEL=1
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
     exit 1
 fi
 case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
     *)
 	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
 	exit 1
@@ -22,22 +25,130 @@ esac
 exit 0
 
 # append the patch here and adjust the -p? flag in the patch calls.
-diff -Nuar timezone.org/asia timezone/asia
---- timezone.org/asia	2004-10-14 01:27:07.000000000 +0900
-+++ timezone/asia	2004-10-13 23:30:38.000000000 +0900
+diff -Nuar glibc-2.3.2/timezone/antarctica glibc-2.3.4/timezone/antarctica
+--- glibc-2.3.2/timezone/antarctica	2005-04-10 09:00:31.000000000 +0900
++++ glibc-2.3.4/timezone/antarctica	2005-04-10 08:52:13.000000000 +0900
+@@ -1,4 +1,4 @@
+-# @(#)antarctica	7.23
++# @(#)antarctica	7.24
+ 
+ # From Paul Eggert (1999-11-15):
+ # To keep things manageable, we list only locations occupied year-round; see
+@@ -90,19 +90,19 @@
+ # </a>
+ 
+ # Brazil - year-round base
+-# Ferraz, King George Island, since 1983/4
++# Comandante Ferraz, King George Island, -6205+05824, since 1983/4
+ 
+ # Chile - year-round bases and towns
+ # Escudero, South Shetland Is, -621157-0585735, since 1994
+-# Frei, King George Island, -6214-05848, since 1969-03-07
+-# O'Higgins, Antarctic Peninsula, -6319-05704, since 1948-02
+-# Prat, -6230-05941
+-# Villa Las Estrellas (a town), King George Island, since 1984-04-09
++# Presidente Eduadro Frei, King George Island, -6214-05848, since 1969-03-07
++# General Bernardo O'Higgins, Antarctic Peninsula, -6319-05704, since 1948-02
++# Capitan Arturo Prat, -6230-05941
++# Villa Las Estrellas (a town), around the Frei base, since 1984-04-09
+ # These locations have always used Santiago time; use TZ='America/Santiago'.
+ 
+ # China - year-round bases
+-# Great Wall, King George Island, since 1985-02-20
+-# Zhongshan, Larsemann Hills, Prydz Bay, since 1989-02-26
++# Great Wall, King George Island, -6213-05858, since 1985-02-20
++# Zhongshan, Larsemann Hills, Prydz Bay, -6922+07623, since 1989-02-26
+ 
+ # France - year-round bases
+ #
+@@ -145,14 +145,14 @@
+ 
+ 
+ # Germany - year-round base
+-# Georg von Neumayer
++# Georg von Neumayer, -7039-00815
+ 
+ # India - year-round base
+-# Dakshin Gangotri
++# Dakshin Gangotri, -7005+01200
+ 
+ # Japan - year-round bases
+-# Dome Fuji
+-# Syowa
++# Dome Fuji, -7719+03942
++# Syowa, -690022+0393524
+ #
+ # From Hideyuki Suzuki (1999-02-06):
+ # In all Japanese stations, +0300 is used as the standard time.  [See]
+@@ -171,7 +171,7 @@
+ # </a>
+ 
+ # S Korea - year-round base
+-# King Sejong, King George Island, since 1988
++# King Sejong, King George Island, -6213-05847, since 1988
+ 
+ # New Zealand - claims
+ # Balleny Islands (never inhabited)
+@@ -202,7 +202,8 @@
+ # Russia - year-round bases
+ # Bellingshausen, King George Island, -621159-0585337, since 1968-02-22
+ # Mirny, Davis coast, -6633+09301, since 1956-02
+-# Molodezhnaya, Alasheyev Bay, year-round from 1962-02 to 1999-07-01
++# Molodezhnaya, Alasheyev Bay, -6740+04551,
++#	year-round from 1962-02 to 1999-07-01
+ # Novolazarevskaya, Queen Maud Land, -7046+01150,
+ #	year-round from 1960/61 to 1992
+ 
+@@ -234,8 +235,8 @@
+ 			6:00	-	VOST	# Vostok time
+ 
+ # S Africa - year-round bases
+-# Marion Island
+-# Sanae
++# Marion Island, -4653+03752
++# Sanae, -7141-00250
+ 
+ # UK
+ #
+diff -Nuar glibc-2.3.2/timezone/asia glibc-2.3.4/timezone/asia
+--- glibc-2.3.2/timezone/asia	2005-04-10 09:00:31.000000000 +0900
++++ glibc-2.3.4/timezone/asia	2005-04-10 08:52:13.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)asia	7.71
-+# @(#)asia	7.77
++# @(#)asia	7.81
  
  # This data is by no means authoritative; if you think you know better,
  # go ahead and edit the file (and please send any changes to
-@@ -335,6 +335,16 @@
+@@ -107,7 +107,7 @@
+ 			3:00	-	BAKT	1957 Mar    # Baku Time
+ 			4:00 RussiaAsia BAK%sT	1991 Mar 31 2:00s
+ 			3:00	1:00	BAKST	1991 Aug 30 # independence
+-			3:00 RussiaAsia	AZ%sT	1992 Sep lastSun 2:00s
++			3:00 RussiaAsia	AZ%sT	1992 Sep lastSat 23:00
+ 			4:00	-	AZT	1996 # Azerbaijan time
+ 			4:00	EUAsia	AZ%sT	1997
+ 			4:00	Azer	AZ%sT
+@@ -137,8 +137,12 @@
+ # British Indian Ocean Territory
+ # Whitman and the 1995 CIA time zone map say 5:00, but the
+ # 1997 and later maps say 6:00.  Assume the switch occurred in 1996.
++# We have no information as to when standard time was introduced;
++# assume it occurred in 1907, the same year as Mauritius (which
++# then contained the Chagos Archipelago).
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+-Zone	Indian/Chagos	5:00	-	IOT	1996 # BIOT Time
++Zone	Indian/Chagos	4:49:40	-	LMT	1907
++			5:00	-	IOT	1996 # BIOT Time
+ 			6:00	-	IOT
+ 
+ # Brunei
+@@ -335,6 +339,16 @@
  # Instead of putting back clocks at the end of October, Georgia
  # will stay on daylight savings time this winter to save energy,
  # President Eduard Shevardnadze decreed Wednesday.
 +#
 +# From the BBC via Joseph S. Myers (2004-06-27):
-+#  	
++#
 +# Georgia moved closer to Western Europe on Sunday...  The former Soviet
 +# republic has changed its time zone back to that of Moscow.  As a result it
 +# is now just four hours ahead of Greenwich Mean Time, rather than five hours
@@ -48,7 +159,7 @@ diff -Nuar timezone.org/asia timezone/asia
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
  Zone	Asia/Tbilisi	2:59:16 -	LMT	1880
  			2:59:16	-	TBMT	1924 May  2 # Tbilisi Mean Time
-@@ -345,7 +355,8 @@
+@@ -345,7 +359,8 @@
  			3:00 E-EurAsia	GE%sT	1994 Sep lastSun
  			4:00 E-EurAsia	GE%sT	1996 Oct lastSun
  			4:00	1:00	GEST	1997 Mar lastSun
@@ -58,7 +169,7 @@ diff -Nuar timezone.org/asia timezone/asia
  
  # East Timor
  
-@@ -380,7 +391,7 @@
+@@ -380,7 +395,7 @@
  
  # India
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
@@ -67,13 +178,133 @@ diff -Nuar timezone.org/asia timezone/asia
  			5:53:20	-	HMT	1941 Oct    # Howrah Mean Time?
  			6:30	-	BURT	1942 May 15 # Burma Time
  			5:30	-	IST	1942 Sep
-@@ -736,44 +747,39 @@
+@@ -628,7 +643,8 @@
+ Rule	Zion	1988	only	-	Sep	 3	0:00	0	S
+ 
+ # From Ephraim Silverberg <ephraim@cs.huji.ac.il>
+-# (1997-03-04, 1998-03-16, 1998-12-28, 2000-01-17 and 2000-07-25):
++# (1997-03-04, 1998-03-16, 1998-12-28, 2000-01-17, 2000-07-25, 2004-12-22,
++# and 2005-02-17):
+ 
+ # According to the Office of the Secretary General of the Ministry of
+ # Interior, there is NO set rule for Daylight-Savings/Standard time changes.
+@@ -679,13 +695,13 @@
+ # time, Haim Ramon.  The official announcement regarding 1996-1998
+ # (with the dates for 1997-1998 no longer being relevant) can be viewed at:
+ #
+-#   ftp://ftp.huji.ac.il/pub/tz/announcements/1996-1998.ramon.ps.gz
++#   ftp://ftp.cs.huji.ac.il/pub/tz/announcements/1996-1998.ramon.ps.gz
+ #
+ # The dates for 1997-1998 were altered by his successor, Rabbi Eli Suissa.
+ #
+ # The official announcements for the years 1997-1999 can be viewed at:
+ #
+-#   ftp://ftp.huji.ac.il/pub/tz/announcements/YYYY.ps.gz
++#   ftp://ftp.cs.huji.ac.il/pub/tz/announcements/YYYY.ps.gz
+ #
+ #       where YYYY is the relevant year.
+ 
+@@ -705,12 +721,12 @@
+ #
+ # The official announcement for the start date of 2000 can be viewed at:
+ #
+-#	ftp://ftp.huji.ac.il/pub/tz/announcements/2000-start.ps.gz
++#	ftp://ftp.cs.huji.ac.il/pub/tz/announcements/2000-start.ps.gz
+ #
+ # The official announcement for the end date of 2000 and the dates
+ # for the years 2001-2004 can be viewed at:
+ #
+-#	ftp://ftp.huji.ac.il/pub/tz/announcements/2000-2004.ps.gz
++#	ftp://ftp.cs.huji.ac.il/pub/tz/announcements/2000-2004.ps.gz
+ 
+ # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
+ Rule	Zion	2000	only	-	Apr	14	2:00	1:00	D
+@@ -724,57 +740,80 @@
+ Rule	Zion	2004	only	-	Apr	 7	1:00	1:00	D
+ Rule	Zion	2004	only	-	Sep	22	1:00	0	S
+ 
+-# From Paul Eggert (2000-07-25):
+-# Here are guesses for rules after 2004.
+-# They are probably wrong, but they are more likely than no DST at all.
+-# Rule	NAME    FROM    TO      TYPE    IN      ON      AT      SAVE    LETTER/S
+-Rule	Zion	2005	max	-	Apr	 1	1:00	1:00	D
+-Rule	Zion	2005	max	-	Oct	 1	1:00	0	S
++# The proposed law agreed upon by the Knesset Interior Committee on
++# 2005-02-14 is that, for 2005 and beyond, DST starts at 02:00 the
++# last Friday before April 2nd (i.e. the last Friday in March or April
++# 1st itself if it falls on a Friday) and ends at 02:00 on the Saturday
++# night _before_ the fast of Yom Kippur.
++#
++# Those who can read Hebrew can view the announcement at:
++#
++#	ftp://ftp.cs.huji.ac.il/pub/tz/announcements/2005+beyond.ps
++
++# From Paul Eggert (2005-02-22):
++# I used Ephraim Silverberg's dst-israel.el program
++# <ftp://ftp.cs.huji.ac.il/pub/tz/software/dst-israel.el> (2005-02-20)
++# along with Ed Reingold's cal-hebrew in GNU Emacs 21.4,
++# to generate the transitions in this list.
++# (I replaced "lastFri" with "Fri>=26" by hand.)
++# The spring transitions below all correspond to the following Rule:
++#
++# Rule	Zion	2005	max	-	Mar	Fri>=26	2:00	1:00	D
++#
++# but older zic implementations (e.g., Solaris 8) do not support
++# "Fri>=26" to mean April 1 in years like 2005, so for now we list the
++# springtime transitions explicitly.
++
++# Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
++Rule	Zion	2005	only	-	Apr	 1	2:00	1:00	D
++Rule	Zion	2005	only	-	Oct	 9	2:00	0	S
++Rule	Zion	2006	2010	-	Mar	Fri>=26	2:00	1:00	D
++Rule	Zion	2006	only	-	Oct	 1	2:00	0	S
++Rule	Zion	2007	only	-	Sep	16	2:00	0	S
++Rule	Zion	2008	only	-	Oct	 5	2:00	0	S
++Rule	Zion	2009	only	-	Sep	27	2:00	0	S
++Rule	Zion	2010	only	-	Sep	12	2:00	0	S
++Rule	Zion	2011	only	-	Apr	 1	2:00	1:00	D
++Rule	Zion	2011	only	-	Oct	 2	2:00	0	S
++Rule	Zion	2012	2015	-	Mar	Fri>=26	2:00	1:00	D
++Rule	Zion	2012	only	-	Sep	23	2:00	0	S
++Rule	Zion	2013	only	-	Sep	 8	2:00	0	S
++Rule	Zion	2014	only	-	Sep	28	2:00	0	S
++Rule	Zion	2015	only	-	Sep	20	2:00	0	S
++Rule	Zion	2016	only	-	Apr	 1	2:00	1:00	D
++Rule	Zion	2016	only	-	Oct	 9	2:00	0	S
++Rule	Zion	2017	2021	-	Mar	Fri>=26	2:00	1:00	D
++Rule	Zion	2017	only	-	Sep	24	2:00	0	S
++Rule	Zion	2018	only	-	Sep	16	2:00	0	S
++Rule	Zion	2019	only	-	Oct	 6	2:00	0	S
++Rule	Zion	2020	only	-	Sep	27	2:00	0	S
++Rule	Zion	2021	only	-	Sep	12	2:00	0	S
++Rule	Zion	2022	only	-	Apr	 1	2:00	1:00	D
++Rule	Zion	2022	only	-	Oct	 2	2:00	0	S
++Rule	Zion	2023	2032	-	Mar	Fri>=26	2:00	1:00	D
++Rule	Zion	2023	only	-	Sep	24	2:00	0	S
++Rule	Zion	2024	only	-	Oct	 6	2:00	0	S
++Rule	Zion	2025	only	-	Sep	28	2:00	0	S
++Rule	Zion	2026	only	-	Sep	20	2:00	0	S
++Rule	Zion	2027	only	-	Oct	10	2:00	0	S
++Rule	Zion	2028	only	-	Sep	24	2:00	0	S
++Rule	Zion	2029	only	-	Sep	16	2:00	0	S
++Rule	Zion	2030	only	-	Oct	 6	2:00	0	S
++Rule	Zion	2031	only	-	Sep	21	2:00	0	S
++Rule	Zion	2032	only	-	Sep	12	2:00	0	S
++Rule	Zion	2033	only	-	Apr	 1	2:00	1:00	D
++Rule	Zion	2033	only	-	Oct	 2	2:00	0	S
++Rule	Zion	2034	2037	-	Mar	Fri>=26	2:00	1:00	D
++Rule	Zion	2034	only	-	Sep	17	2:00	0	S
++Rule	Zion	2035	only	-	Oct	 7	2:00	0	S
++Rule	Zion	2036	only	-	Sep	28	2:00	0	S
++Rule	Zion	2037	only	-	Sep	13	2:00	0	S
+ 
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ Zone	Asia/Jerusalem	2:20:56 -	LMT	1880
  			2:20:40	-	JMT	1918	# Jerusalem Mean Time?
  			2:00	Zion	I%sT
  
 -# From Ephraim Silverberg (2002-07-07):
-+# From Ephraim Silverberg (2003-03-23):
- #
+-#
 -# The Israeli government today adopted a proposal by Minister of Interior
 -# Eli Yishai to shorten the period of Daylight Savings Time for the year
 -# 2002 (only -- the dates for 2003 and 2004 are, so far, unaffected).
@@ -110,50 +341,77 @@ diff -Nuar timezone.org/asia timezone/asia
 -# change is the start date of DST in 2003 from Mar.28.03 (24th of Adar II)
 -# to Apr.18.03 (16th of Nisan) so that the Passover Seder will take place
 -# during Standard Time.  The start date for 2004 is already Nisan 16th.
-+# Minister of Interior Poraz has announced that he will respect the law
-+# passed in July 2000 (proposed at the time jointly by himself and
-+# then-MK David Azulai [Shas]) fixing the dates for 2000-2004.  Hence,
-+# the dates for 2003 and 2004 remain unchanged....
+-
+ 
+ 
+ ###############################################################################
+@@ -888,6 +927,13 @@
+ # - Qyzylorda switched from +5:00 to +6:00 on 1992-01-19 02:00.
+ # - Oral switched from +5:00 to +4:00 in spring 1989.
+ #
++# <a href="http://www.kazsociety.org.uk/news/2005/03/30.htm">
++# From Kazakhstan Embassy's News Bulletin #11 (2005-03-21):
++# </a>
++# The Government of Kazakhstan passed a resolution March 15 abolishing
++# daylight saving time citing lack of economic benefits and health
++# complications coupled with a decrease in productivity.
 +#
-+# As far as 2005 and beyond, no dates have been set.  However, the
-+# minister has mentioned that he wishes to propose to move Israel's
-+# timezone in 2005 from GMT+2 to GMT+3 and upon that have DST during
-+# the summer months (i.e. GMT+4).  However, no legislation in this
-+# direction is expected until the latter part of 2004 which is a long
-+# time off in terms of Israeli politics.
-+
-+# (2004-09-20):
-+# The latest rumour, however, is that in 2005, when the clock changes to
-+# Daylight Saving Time (date as yet unknown), the move will be a two-hour leap
-+# forward (from UTC+0200 to UTC+0400) and then, in the fall, the clock will
-+# move back only an hour to UTC+0300 thus effectively moving Israel's timezone
-+# from UTC+0200 to UTC+0300.  However, no actual draft has been put before the
-+# Knesset (Israel's Parliament) though the intention is to do so this
-+# month [2004-09].
-+
-+# (2004-09-26):
-+# Even though the draft law for the above did pass the Ministerial Committee
-+# for Legislative Matters three months ago, it was voted down in today's
-+# Cabinet meeting.  The current suggestion is to keep the current timezone at
-+# UTC+0200 but have an extended period of Daylight Saving Time (UTC+0300) from
-+# the beginning of Passover holiday in the spring to after the Tabernacle
-+# holiday in the fall (i.e. the dates of which are governed by the Hebrew
-+# calendar but this means at least 184 days of DST).  However, this is only a
-+# suggestion that was raised in today's cabinet meeting and has not yet been
-+# drafted.
- 
- 
- 
-@@ -926,7 +932,7 @@
+ #
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ #
+@@ -896,7 +942,8 @@
+ 			5:00	-	ALMT	1930 Jun 21 # Alma-Ata Time
+ 			6:00 RussiaAsia ALM%sT	1991
+ 			6:00	-	ALMT	1992
+-			6:00 RussiaAsia	ALM%sT
++			6:00 RussiaAsia	ALM%sT	2005 Mar 15
++			6:00	-	ALMT
+ # Qyzylorda (aka Kyzylorda, Kizilorda, Kzyl-Orda, etc.)
+ Zone	Asia/Qyzylorda	4:21:52 -	LMT	1924 May  2
+ 			4:00	-	KIZT	1930 Jun 21 # Kizilorda Time
+@@ -906,7 +953,8 @@
+ 			5:00 RussiaAsia	KIZ%sT	1991
+ 			5:00	-	KIZT	1991 Dec 16 # independence
+ 			5:00	-	QYZT	1992 Jan 19 2:00
+-			6:00 RussiaAsia	QYZ%sT
++			6:00 RussiaAsia	QYZ%sT	2005 Mar 15
++			6:00	-	QYZT
+ # Aqtobe (aka Aktobe, formerly Akt'ubinsk)
+ Zone	Asia/Aqtobe	3:48:40	-	LMT	1924 May  2
+ 			4:00	-	AKTT	1930 Jun 21 # Aktyubinsk Time
+@@ -915,7 +963,8 @@
+ 			6:00	-	AKTT	1982 Apr  1
+ 			5:00 RussiaAsia	AKT%sT	1991
+ 			5:00	-	AKTT	1991 Dec 16 # independence
+-			5:00 RussiaAsia	AQT%sT	# Aqtobe Time
++			5:00 RussiaAsia	AQT%sT	2005 Mar 15 # Aqtobe Time
++			5:00	-	AQTT
+ # Mangghystau
+ # Aqtau was not founded until 1963, but it represents an inhabited region,
+ # so include time stamps before 1963.
+@@ -926,8 +975,9 @@
  			6:00	-	SHET	1982 Apr  1
  			5:00 RussiaAsia	SHE%sT	1991
  			5:00	-	SHET	1991 Dec 16 # independence
 -			5:00 RussiaAsia	AQT%sT	1995 Sep lastSun # Aqtau Time
+-			4:00 RussiaAsia	AQT%sT
 +			5:00 RussiaAsia	AQT%sT	1995 Mar lastSun 2:00 # Aqtau Time
- 			4:00 RussiaAsia	AQT%sT
++			4:00 RussiaAsia	AQT%sT	2005 Mar 15
++			4:00	-	AQTT
  # West Kazakhstan
  Zone	Asia/Oral	3:25:24	-	LMT	1924 May  2 # or Ural'sk
-@@ -1036,22 +1042,29 @@
+ 			4:00	-	URAT	1930 Jun 21 # Ural'sk time
+@@ -937,7 +987,8 @@
+ 			5:00 RussiaAsia	URA%sT	1989 Mar 26 2:00
+ 			4:00 RussiaAsia	URA%sT	1991
+ 			4:00	-	URAT	1991 Dec 16 # independence
+-			4:00 RussiaAsia	ORA%sT	# Oral Time
++			4:00 RussiaAsia	ORA%sT	2005 Mar 15 # Oral Time
++			4:00	-	ORAT
+ 
+ # Kyrgyzstan (Kirgizstan)
+ # Transitions through 1991 are from Shanks.
+@@ -1036,22 +1087,29 @@
  Rule	NBorneo	1935	1941	-	Sep	14	0:00	0:20	TS # one-Third Summer
  Rule	NBorneo	1935	1941	-	Dec	14	0:00	0	-
  #
@@ -194,7 +452,7 @@ diff -Nuar timezone.org/asia timezone/asia
  			8:00	-	MYT
  
  # Maldives
-@@ -1103,6 +1116,15 @@
+@@ -1103,6 +1161,15 @@
  #
  # [The province of Selenge is omitted from the above lists.]
  
@@ -210,7 +468,7 @@ diff -Nuar timezone.org/asia timezone/asia
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule	Mongol	1983	1984	-	Apr	1	0:00	1:00	S
  Rule	Mongol	1983	only	-	Oct	1	0:00	0	-
-@@ -1112,8 +1134,9 @@
+@@ -1112,8 +1179,9 @@
  Rule	Mongol	1985	1998	-	Mar	lastSun	2:00s	1:00	S
  Rule	Mongol	1984	1998	-	Sep	lastSun	2:00s	0	-
  # IATA SSIM (1999-09) says Mongolia no longer observes DST.
@@ -222,7 +480,7 @@ diff -Nuar timezone.org/asia timezone/asia
  
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
  # Hovd, a.k.a. Chovd, Dund-Us, Dzhargalant, Khovd, Jirgalanta
-@@ -1320,15 +1343,18 @@
+@@ -1320,15 +1388,18 @@
  			3:00	-	AST
  
  # Singapore
@@ -248,16 +506,30 @@ diff -Nuar timezone.org/asia timezone/asia
  			8:00	-	SGT
  
  # Spratly Is
-diff -Nuar timezone.org/australasia timezone/australasia
---- timezone.org/australasia	2004-10-14 01:27:07.000000000 +0900
-+++ timezone/australasia	2003-10-27 13:21:35.000000000 +0900
+diff -Nuar glibc-2.3.2/timezone/australasia glibc-2.3.4/timezone/australasia
+--- glibc-2.3.2/timezone/australasia	2005-04-10 09:00:31.000000000 +0900
++++ glibc-2.3.4/timezone/australasia	2005-04-10 08:52:13.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)australasia	7.68
-+# @(#)australasia	7.69
++# @(#)australasia	7.71
  # This file also includes Pacific islands.
  
  # Notes are at the end of this file
-@@ -297,45 +297,37 @@
+@@ -199,9 +199,11 @@
+ 			-10:00	Cook	CK%sT
+ 
+ # Cocos
+-# From USNO (1989):
++# These islands were ruled by the Ross family from about 1830 to 1978.
++# We don't know when standard time was introduced; for now, we guess 1900.
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+-Zone	Indian/Cocos	6:30	-	CCT	# Cocos Islands Time
++Zone	Indian/Cocos	6:27:40	-	LMT	1900
++			6:30	-	CCT	# Cocos Islands Time
+ 
+ # Fiji
+ # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
+@@ -297,45 +299,37 @@
  ###############################################################################
  
  # New Zealand
@@ -322,16 +594,42 @@ diff -Nuar timezone.org/australasia timezone/australasia
  
  
  # Auckland Is
-@@ -443,6 +435,8 @@
+@@ -389,11 +383,11 @@
+ 			-11:00	-	BST	1983 Nov 30	# B=Bering
+ 			-11:00	-	SST			# S=Samoa
+ 
+-# W Samoa
++# Samoa
+ Zone Pacific/Apia	 12:33:04 -	LMT	1879 Jul  5
+ 			-11:26:56 -	LMT	1911
+ 			-11:30	-	SAMT	1950		# Samoa Time
+-			-11:00	-	WST			# W Samoa Time
++			-11:00	-	WST			# Samoa Time
+ 
+ # Solomon Is
+ # excludes Bougainville, for which see Papua New Guinea
+@@ -442,7 +436,20 @@
+ # uninhabited
  
  # Midway
++#
++# From Mark Brader (2005-01-23):
++# [Fallacies and Fantasies of Air Transport History, by R.E.G. Davies,
++# published 1994 by Paladwr Press, McLean, VA, USA; ISBN 0-9626483-5-3]
++# reproduced a Pan American Airways timeables from 1936, for their weekly
++# "Orient Express" flights between San Francisco and Manila, and connecting
++# flights to Chicago and the US East Coast.  As it uses some time zone
++# designations that I've never seen before:....
++# Fri. 6:30A Lv. HONOLOLU (Pearl Harbor), H.I.   H.L.T. Ar. 5:30P Sun.
++#  "   3:00P Ar. MIDWAY ISLAND . . . . . . . . . M.L.T. Lv. 6:00A  "
++#
  Zone Pacific/Midway	-11:49:28 -	LMT	1901
 +			-11:00	-	NST	1956 Jun  3
 +			-11:00	1:00	NDT	1956 Sep  2
  			-11:00	-	NST	1967 Apr	# N=Nome
  			-11:00	-	BST	1983 Nov 30	# B=Bering
  			-11:00	-	SST			# S=Samoa
-@@ -513,7 +507,8 @@
+@@ -513,7 +520,8 @@
  #	 10:00	EST EST	Eastern Australia
  #	 10:00	ChST	Chamorro
  #	 10:30	LHST LHST Lord Howe*
@@ -341,7 +639,7 @@ diff -Nuar timezone.org/australasia timezone/australasia
  #	 12:45	CHAST CHADT Chatham*
  #	-11:00	SST	Samoa
  #	-10:00	HST	Hawaii
-@@ -1067,11 +1062,14 @@
+@@ -1067,11 +1075,14 @@
  # time on both the first Sunday in October and the third Sunday in March.
  # As with Australia, we'll assume the tradition is 2:00s, not 2:00.
  #
@@ -361,7 +659,7 @@ diff -Nuar timezone.org/australasia timezone/australasia
  
  ###############################################################################
  
-@@ -1154,6 +1152,23 @@
+@@ -1154,6 +1165,23 @@
  # We don't know when Kosrae switched from UTC+12; assume January 1 for now.
  
  
@@ -385,7 +683,7 @@ diff -Nuar timezone.org/australasia timezone/australasia
  # Pitcairn
  
  # From Rives McDow (1999-11-08):
-@@ -1277,6 +1292,24 @@
+@@ -1277,6 +1305,24 @@
  # From Pulu 'Anau (2002-11-05):
  # The law was for 3 years, supposedly to get renewed.  It wasn't.
  
@@ -410,12 +708,24 @@ diff -Nuar timezone.org/australasia timezone/australasia
  ###############################################################################
  
  # The International Date Line
-diff -Nuar timezone.org/backward timezone/backward
---- timezone.org/backward	2004-10-14 01:27:07.000000000 +0900
-+++ timezone/backward	2004-07-30 08:40:17.000000000 +0900
-@@ -1,12 +1,17 @@
+@@ -1303,3 +1349,11 @@
+ # places as late as fourteen hours later than UTC.  And, since the IDL is not
+ # an international standard, there are some places on the high seas where the
+ # correct date is ambiguous.
++
++# From Paul Eggert, using references suggested by Oscar van Vlijmen
++# (2005-03-20):
++#
++# The American Practical Navigator (2002)
++# <http://pollux.nss.nima.mil/pubs/pubs_j_apn_sections.html?rid=187>
++# talks only about the 180-degree meridian with respect to ships in
++# international waters; it ignores the international date line.
+diff -Nuar glibc-2.3.2/timezone/backward glibc-2.3.4/timezone/backward
+--- glibc-2.3.2/timezone/backward	2002-04-06 12:40:00.000000000 +0900
++++ glibc-2.3.4/timezone/backward	2005-04-10 08:52:13.000000000 +0900
+@@ -1,14 +1,19 @@
 -# @(#)backward	7.23
-+# @(#)backward	7.26
++# @(#)backward	7.27
  
  # This file provides links between current names for time zones
  # and their old names.  Many names changed in late 1993.
@@ -430,9 +740,20 @@ diff -Nuar timezone.org/backward timezone/backward
  Link	America/Indiana/Knox	America/Knox_IN
 +Link	America/Argentina/Mendoza	America/Mendoza
  Link	America/Rio_Branco	America/Porto_Acre
- Link	America/Cordoba		America/Rosario
+-Link	America/Cordoba		America/Rosario
++Link	America/Argentina/Cordoba	America/Rosario
  Link	America/St_Thomas	America/Virgin
-@@ -36,7 +41,7 @@
+ Link	Asia/Ashgabat		Asia/Ashkhabad
+ Link	Asia/Chongqing		Asia/Chungking
+@@ -29,14 +34,14 @@
+ Link	Australia/Melbourne	Australia/Victoria
+ Link	Australia/Perth		Australia/West
+ Link	Australia/Broken_Hill	Australia/Yancowinna
+-Link	America/Porto_Acre	Brazil/Acre
++Link	America/Rio_Branco	Brazil/Acre
+ Link	America/Noronha		Brazil/DeNoronha
+ Link	America/Sao_Paulo	Brazil/East
+ Link	America/Manaus		Brazil/West
  Link	America/Halifax		Canada/Atlantic
  Link	America/Winnipeg	Canada/Central
  Link	America/Regina		Canada/East-Saskatchewan
@@ -441,21 +762,54 @@ diff -Nuar timezone.org/backward timezone/backward
  Link	America/Edmonton	Canada/Mountain
  Link	America/St_Johns	Canada/Newfoundland
  Link	America/Vancouver	Canada/Pacific
-@@ -65,7 +70,7 @@
- Link	America/Tijuana		Mexico/BajaNorte
- Link	America/Mazatlan	Mexico/BajaSur
- Link	America/Mexico_City	Mexico/General
--Link	America/Denver		Navajo
-+Link	America/Shiprock	Navajo
- Link	Pacific/Auckland	NZ
- Link	Pacific/Chatham		NZ-CHAT
- Link	Pacific/Pago_Pago	Pacific/Samoa
-diff -Nuar timezone.org/europe timezone/europe
---- timezone.org/europe	2004-10-14 01:27:07.000000000 +0900
-+++ timezone/europe	2004-07-30 08:40:17.000000000 +0900
+@@ -50,10 +55,10 @@
+ Link	Europe/Chisinau		Europe/Tiraspol
+ Link	Europe/London		GB
+ Link	Europe/London		GB-Eire
+-Link	Etc/GMT+0		GMT+0
+-Link	Etc/GMT-0		GMT-0
+-Link	Etc/GMT0		GMT0
+-Link	Etc/Greenwich		Greenwich
++Link	Etc/GMT			GMT+0
++Link	Etc/GMT			GMT-0
++Link	Etc/GMT			GMT0
++Link	Etc/GMT			Greenwich
+ Link	Asia/Hong_Kong		Hongkong
+ Link	Atlantic/Reykjavik	Iceland
+ Link	Asia/Tehran		Iran
+@@ -90,6 +95,6 @@
+ Link	America/Los_Angeles	US/Pacific
+ Link	Pacific/Pago_Pago	US/Samoa
+ Link	Etc/UTC			UTC
+-Link	Etc/Universal		Universal
++Link	Etc/UTC			Universal
+ Link	Europe/Moscow		W-SU
+-Link	Etc/Zulu		Zulu
++Link	Etc/UTC			Zulu
+diff -Nuar glibc-2.3.2/timezone/etcetera glibc-2.3.4/timezone/etcetera
+--- glibc-2.3.2/timezone/etcetera	2001-03-16 10:00:19.000000000 +0900
++++ glibc-2.3.4/timezone/etcetera	2005-04-10 08:52:13.000000000 +0900
+@@ -1,10 +1,11 @@
+-# @(#)etcetera	7.11
++# @(#)etcetera	7.12
+ 
+ # These entries are mostly present for historical reasons, so that
+ # people in areas not otherwise covered by the tz files could "zic -l"
+ # to a time zone that was right for their area.  These days, the
+-# tz files cover almost all the inhabited world, so there's little
+-# need now for the entries that are not on UTC.
++# tz files cover almost all the inhabited world, and the only practical
++# need now for the entries that are not on UTC are for ships at sea
++# that cannot use POSIX TZ settings.
+ 
+ Zone	Etc/GMT		0	-	GMT
+ Zone	Etc/UTC		0	-	UTC
+diff -Nuar glibc-2.3.2/timezone/europe glibc-2.3.4/timezone/europe
+--- glibc-2.3.2/timezone/europe	2005-04-10 09:00:31.000000000 +0900
++++ glibc-2.3.4/timezone/europe	2005-04-10 08:52:13.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)europe	7.83
-+# @(#)europe	7.88
++# @(#)europe	7.92
  
  # This data is by no means authoritative; if you think you know better,
  # go ahead and edit the file (and please send any changes to
@@ -512,17 +866,65 @@ diff -Nuar timezone.org/europe timezone/europe
  
  # From Paul Eggert (1996-09-03):
  # The OED Supplement says that the English originally said ``Daylight Saving''
-@@ -693,6 +707,9 @@
+@@ -241,6 +255,35 @@
+ #   "Timeball on the ballast office is down.  Dunsink time."
+ #   -- James Joyce, Ulysses
+ 
++# From Joseph S. Myers (2005-01-26):
++# Irish laws are available online at www.irishstatutebook.ie.  These include 
++# various relating to legal time, for example:
++# 
++# ZZA13Y1923.html ZZA12Y1924.html ZZA8Y1925.html ZZSIV20PG1267.html
++# 
++# ZZSI71Y1947.html ZZSI128Y1948.html ZZSI23Y1949.html ZZSI41Y1950.html
++# ZZSI27Y1951.html ZZSI73Y1952.html
++# 
++# ZZSI11Y1961.html ZZSI232Y1961.html ZZSI182Y1962.html
++# ZZSI167Y1963.html ZZSI257Y1964.html ZZSI198Y1967.html
++# ZZA23Y1968.html ZZA17Y1971.html
++# 
++# ZZSI67Y1981.html ZZSI212Y1982.html ZZSI45Y1986.html
++# ZZSI264Y1988.html ZZSI52Y1990.html ZZSI371Y1992.html
++# ZZSI395Y1994.html ZZSI484Y1997.html ZZSI506Y2001.html
++#
++# [These are all relative to the root, e.g., the first is
++# <http://www.irishstatutebook.ie/ZZA13Y1923.html>.]
++# 
++# (These are those I found, but there could be more.  In any case these 
++# should allow various updates to the comments in the europe file to cover 
++# the laws applicable in Ireland.)
++# 
++# (Note that the time in the Republic of Ireland since 1968 has been defined 
++# in terms of standard time being GMT+1 with a period of winter time when it 
++# is GMT, rather than standard time being GMT with a period of summer time 
++# being GMT+1.)
++
+ # From Paul Eggert (1999-03-28):
+ # Clive Feather (<news:859845706.26043.0@office.demon.net>, 1997-03-31)
+ # reports that Folkestone (Cheriton) Shuttle Terminal uses Concession Time
+@@ -693,6 +736,9 @@
  # Croatia
  # see Serbia and Montenegro
  
 +# Cyprus
-+# See the `asia' file.
++# Please see the `asia' file for Asia/Nicosia.
 +
  # Czech Republic
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule	Czech	1945	only	-	Apr	 8	2:00s	1:00	S
-@@ -904,6 +921,10 @@
+@@ -737,6 +783,11 @@
+ 			 0:00	-	WET	1981
+ 			 0:00	EU	WE%sT
+ #
++# From Paul Eggert (2004-10-31):
++# During World War II, Germany maintained secret manned weather stations in
++# East Greenland and Franz Josef Land, but we don't know their time zones.
++# My source for this is Wilhelm Dege's book mentioned under Svalbard.
++#
+ # From Paul Eggert (1996-11-22):
+ # Greenland joined the EU as part of Denmark, obtained home rule on 1979-05-01,
+ # and left the EU on 1985-02-01.  It therefore should have been using EU
+@@ -904,6 +955,10 @@
  			2:00	Finland	EE%sT	1981 Mar 29 2:00
  			2:00	EU	EE%sT
  
@@ -533,7 +935,19 @@ diff -Nuar timezone.org/europe timezone/europe
  # France
  
  # From Ciro Discepolo (2000-12-20):
-@@ -1323,7 +1344,7 @@
+@@ -1034,6 +1089,11 @@
+ 			1:00	Germany	CE%sT	1980
+ 			1:00	EU	CE%sT
+ 
++# Georgia
++# Please see the "asia" file for Asia/Tbilisi.
++# Herodotus (Histories, IV.45) says Georgia north of the Phasis (now Rioni)
++# is in Europe.  Our reference location Tbilisi is in the Asian part.
++
+ # Gibraltar
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ Zone Europe/Gibraltar	-0:21:24 -	LMT	1880 Aug  2
+@@ -1323,7 +1383,7 @@
  			2:00	1:00	EEST	1989 Sep lastSun 2:00s
  			2:00	Latvia	EE%sT	1997 Jan 21
  			2:00	EU	EE%sT	2000 Feb 29
@@ -542,7 +956,25 @@ diff -Nuar timezone.org/europe timezone/europe
  			2:00	EU	EE%sT
  
  # Liechtenstein
-@@ -1750,8 +1771,10 @@
+@@ -1590,7 +1650,7 @@
+ # From Paul Eggert (2001-05-01):
+ #
+ # Actually, Jan Mayen was never occupied by Germany during World War II,
+-# so it must have diverged from Oslo time during the war, as Olso was
++# so it must have diverged from Oslo time during the war, as Oslo was
+ # keeping Berlin time.
+ #
+ # <http://home.no.net/janmayen/history.htm> says that the meteorologists
+@@ -1607,7 +1667,7 @@
+ # <http://www.svalbard.com/SvalbardFAQ.html> says that the Germans were
+ # expelled on 1942-05-14.  However, small parties of Germans did return,
+ # and according to Wilhelm Dege's book "War North of 80" (1954)
+-# <http://www.utpress.utoronto.ca/publishing/rights/dege_warnorthof80.htm>
++# <http://www.ucalgary.ca/UofC/departments/UP/1-55238/1-55238-110-2.html>
+ # the German armed forces at the Svalbard weather station code-named
+ # Haudegen did not surrender to the Allies until September 1945.
+ #
+@@ -1750,8 +1810,10 @@
  Rule	Port	1981	1982	-	Mar	lastSun	 1:00s	1:00	S
  Rule	Port	1983	only	-	Mar	lastSun	 2:00s	1:00	S
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
@@ -554,7 +986,7 @@ diff -Nuar timezone.org/europe timezone/europe
  			 0:00	Port	WE%sT	1966 Apr  3 2:00
  			 1:00	-	CET	1976 Sep 26 1:00
  			 0:00	Port	WE%sT	1983 Sep 25 1:00s
-@@ -1815,7 +1838,7 @@
+@@ -1815,7 +1877,7 @@
  #
  # From Andrey A. Chernov <ache@nagual.ru> (1996-10-04):
  # `MSK' and `MSD' were born and used initially on Moscow computers with
@@ -563,7 +995,7 @@ diff -Nuar timezone.org/europe timezone/europe
  # The next step was the UUCP network, the Relcom predecessor
  # (used mainly for mail), and MSK/MSD was actively used there.
  #
-@@ -1936,28 +1959,26 @@
+@@ -1936,28 +1998,26 @@
  			 7:00	Russia	IRK%sT	1992 Jan 19 2:00s
  			 8:00	Russia	IRK%sT
  #
@@ -602,7 +1034,7 @@ diff -Nuar timezone.org/europe timezone/europe
  Zone Asia/Vladivostok	 8:47:44 -	LMT	1922 Nov 15
  			 9:00	-	VLAT	1930 Jun 21 # Vladivostok Time
  			10:00	Russia	VLA%sT	1991 Mar 31 2:00s
-@@ -1974,11 +1995,11 @@
+@@ -1974,11 +2034,11 @@
  			11:00	Russia	SAK%sT	1997 Mar lastSun 2:00s
  			10:00	Russia	SAK%sT
  #
@@ -618,14 +1050,14 @@ diff -Nuar timezone.org/europe timezone/europe
  Zone Asia/Magadan	10:03:12 -	LMT	1924 May  2
  			10:00	-	MAGT	1930 Jun 21 # Magadan Time
  			11:00	Russia	MAG%sT	1991 Mar 31 2:00s
-diff -Nuar timezone.org/iso3166.tab timezone/iso3166.tab
---- timezone.org/iso3166.tab	2004-10-14 01:27:07.000000000 +0900
-+++ timezone/iso3166.tab	2004-07-30 08:40:17.000000000 +0900
+diff -Nuar glibc-2.3.2/timezone/iso3166.tab glibc-2.3.4/timezone/iso3166.tab
+--- glibc-2.3.2/timezone/iso3166.tab	2005-04-10 09:00:31.000000000 +0900
++++ glibc-2.3.4/timezone/iso3166.tab	2005-04-10 08:52:13.000000000 +0900
 @@ -1,12 +1,12 @@
  # ISO 3166 alpha-2 country codes
  #
 -# @(#)iso3166.tab	1.9
-+# @(#)iso3166.tab	1.15
++# @(#)iso3166.tab	1.16
  #
 -# From Paul Eggert <eggert@twinsun.com> (2003-02-04):
 +# From Paul Eggert <eggert@twinsun.com> (2004-06-14):
@@ -653,86 +1085,97 @@ diff -Nuar timezone.org/iso3166.tab timezone/iso3166.tab
  CU	Cuba
  CV	Cape Verde
  CX	Christmas Island
-@@ -256,7 +258,6 @@
- WS	Samoa (Western)
+@@ -253,10 +255,9 @@
+ VN	Vietnam
+ VU	Vanuatu
+ WF	Wallis & Futuna
+-WS	Samoa (Western)
++WS	Samoa (western)
  YE	Yemen
  YT	Mayotte
 -YU	Serbia and Montenegro
  ZA	South Africa
  ZM	Zambia
  ZW	Zimbabwe
-diff -Nuar timezone.org/leapseconds timezone/leapseconds
---- timezone.org/leapseconds	2004-10-14 01:27:07.000000000 +0900
-+++ timezone/leapseconds	2004-07-30 08:40:17.000000000 +0900
+diff -Nuar glibc-2.3.2/timezone/leapseconds glibc-2.3.4/timezone/leapseconds
+--- glibc-2.3.2/timezone/leapseconds	2002-01-29 13:18:04.000000000 +0900
++++ glibc-2.3.4/timezone/leapseconds	2005-04-10 08:52:13.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)leapseconds	7.15
-+# @(#)leapseconds	7.17
++# @(#)leapseconds	7.19
  
  # Allowance for leapseconds added to each timezone file.
  
-@@ -44,37 +44,38 @@
+@@ -44,37 +44,37 @@
  Leap	1997	Jun	30	23:59:60	+	S
  Leap	1998	Dec	31	23:59:60	+	S
  
 -#                  INTERNATIONAL EARTH ROTATION SERVICE (IERS)
 -#   	       SERVICE INTERNATIONAL DE LA ROTATION TERRESTRE
-+# 	INTERNATIONAL EARTH ROTATION AND REFERENCE SYSTEMS SERVICE (IERS)
-+# 
+-# 
++#	INTERNATIONAL EARTH ROTATION AND REFERENCE SYSTEMS SERVICE (IERS)
 +# SERVICE INTERNATIONAL DE LA ROTATION TERRESTRE ET DES SYSTEMES DE REFERENCE
- # 
++#
  # SERVICE DE LA ROTATION TERRESTRE
  # OBSERVATOIRE DE PARIS
  # 61, Av. de l'Observatoire 75014 PARIS (France)
  # Tel.      : 33 (0) 1 40 51 22 26
  # FAX       : 33 (0) 1 40 51 22 91
 -# Internet  : iers@obspm.fr
-+# Internet  : services.iers@obspm.fr
-+# 
-+# 						Paris, 15 January 2004
- # 
+-# 
 -#                                               Paris, 14 January 2002
-+# 						Bulletin C 27
- # 
+-# 
 -#                                               Bulletin C 23
-+# 						To authorities responsible
-+# 						for the measurement and
-+# 						distribution of time
- # 
+-# 
 -#                                               To authorities responsible
 -#                                               for the measurement and
 -#                                               distribution of time
-+# 			INFORMATION ON UTC - TAI
- # 
+-# 
 -#                          INFORMATION ON UTC - TAI
-+# NO positive leap second will be introduced at the end of June 2004.
-+# The difference between UTC and the International Atomic Time TAI is:
- # 
+-# 
 -# NO positive leap second will be introduced at the end of June 2002.
 -# The difference between UTC and the International Atomic Time TAI is :		
 -# 		
 -#     from 1999 January 1, 0h UTC, until further notice : UTC-TAI = -32 s
-+# 	from 1999 January 1, 0h UTC, until further notice : UTC-TAI = -32 s
- # 
+-# 
++# Internet  : services.iers@obspm.fr
++#
++#						Paris, 21 July 2004
++#
++#
++#						Bulletin C 28
++#
++#						To authorities responsible
++#						for the measurement and
++#						distribution of time
++#
++#			INFORMATION ON UTC - TAI
++#
++# NO positive leap second will be introduced at the end of December 2004.
++# The difference between UTC and the International Atomic Time TAI is:
++#
++#	from 1999 January 1, 0h UTC, until further notice : UTC-TAI = -32 s
++#
  # Leap seconds can be introduced in UTC at the end of the months of December
 -# or June,  depending on the evolution of UT1-TAI. Bulletin C is mailed every
 +# or June, depending on the evolution of UT1-TAI. Bulletin C is mailed every
  # six months, either to announce a time step in UTC, or to confirm that there
  # will be no time step at the next possible date.
- # 
+-# 
 -#                                             Daniel GAMBIS
 -#                                             Director			
 -#                                             Earth Orientation Center of IERS
 -#                                             Observatoire de Paris, France
-+# 					Daniel GAMBIS
-+# 					Director
-+# 					Earth Orientation Center of IERS
-+# 					Observatoire de Paris, France
-diff -Nuar timezone.org/northamerica timezone/northamerica
---- timezone.org/northamerica	2004-10-14 01:27:07.000000000 +0900
-+++ timezone/northamerica	2004-07-30 08:40:18.000000000 +0900
++#
++#					Daniel GAMBIS
++#					Director
++#					Earth Orientation Center of IERS
+diff -Nuar glibc-2.3.2/timezone/northamerica glibc-2.3.4/timezone/northamerica
+--- glibc-2.3.2/timezone/northamerica	2005-04-10 09:00:31.000000000 +0900
++++ glibc-2.3.4/timezone/northamerica	2005-04-10 08:52:13.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)northamerica	7.62
-+# @(#)northamerica	7.69
++# @(#)northamerica	7.72
  # also includes Central America and the Caribbean
  
  # This data is by no means authoritative; if you think you know better,
@@ -747,7 +1190,21 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  # From Paul Eggert (2000-01-08), following a heads-up from Rives McDow:
  # Public law 106-564 (2000-12-23) introduced the abbreviation
  # "Chamorro Standard Time" for time in Guam and the Northern Marianas.
-@@ -228,7 +224,9 @@
+@@ -212,6 +208,13 @@
+ # Pennsylvania, Rhode Island, South Carolina, eastern Tennessee,
+ # Vermont, Virginia, West Virginia
+ 
++# From Dave Cantor (2004-11-02):
++# Early this summer I had the occasion to visit the Mount Washington
++# Observatory weather station atop (of course!) Mount Washington [, NH]....
++# One of the staff members said that the station was on Eastern Standard Time
++# and didn't change their clocks for Daylight Saving ... so that their
++# reports will always have times which are 5 hours behind UTC.
++
+ # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER
+ Rule	NYC	1920	only	-	Mar	lastSun	2:00	1:00	D
+ Rule	NYC	1920	only	-	Oct	lastSun	2:00	0	S
+@@ -228,7 +231,9 @@
  
  # US central time, represented by Chicago
  
@@ -758,7 +1215,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  # (Gibson, Jasper, Lake, LaPorte, Newton, Porter, Posey, Spencer,
  # Vanderburgh, and Warrick counties), Iowa, most of Kansas, western
  # Kentucky, Louisiana, Minnesota, Mississippi, Missouri, eastern
-@@ -258,7 +256,7 @@
+@@ -258,7 +263,7 @@
  
  # US mountain time, represented by Denver
  #
@@ -767,7 +1224,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  # Nebraska, Nevada border (Jackpot, Owyhee, and Mountain City),
  # New Mexico, southwestern North Dakota, far eastern Oregon,
  # western South Dakota, far western Texas (El Paso County, Hudspeth County,
-@@ -280,7 +278,9 @@
+@@ -280,7 +285,9 @@
  
  # US Pacific time, represented by Los Angeles
  #
@@ -778,7 +1235,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  #
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER
  Rule	CA	1948	only	-	Mar	14	2:00	1:00	D
-@@ -319,13 +319,14 @@
+@@ -319,13 +326,14 @@
  			 -8:00	US	P%sT	1946
  			 -8:00	-	PST	1969
  			 -8:00	US	P%sT	1983 Oct 30 2:00
@@ -794,7 +1251,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  			 -9:00	US	AK%sT
  Zone America/Anchorage	 14:00:24 -	LMT	1867 Oct 18
  			 -9:59:36 -	LMT	1900 Aug 20 12:00
-@@ -334,6 +335,7 @@
+@@ -334,6 +342,7 @@
  			-10:00	-	CAT	1967 Apr
  			-10:00	-	AHST	1969
  			-10:00	US	AH%sT	1983 Oct 30 2:00
@@ -802,7 +1259,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  			 -9:00	US	AK%sT
  Zone America/Nome	 12:58:21 -	LMT	1867 Oct 18
  			-11:01:38 -	LMT	1900 Aug 20 12:00
-@@ -342,6 +344,7 @@
+@@ -342,6 +351,7 @@
  			-11:00	-	NST	1967 Apr
  			-11:00	-	BST	1969
  			-11:00	US	B%sT	1983 Oct 30 2:00
@@ -810,15 +1267,37 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  			 -9:00	US	AK%sT
  Zone America/Adak	 12:13:21 -	LMT	1867 Oct 18
  			-11:46:38 -	LMT	1900 Aug 20 12:00
-@@ -350,6 +353,7 @@
+@@ -350,11 +360,28 @@
  			-11:00	-	NST	1967 Apr
  			-11:00	-	BST	1969
  			-11:00	US	B%sT	1983 Oct 30 2:00
 +			-10:00	US	AH%sT	1983 Nov 30
  			-10:00	US	HA%sT
++# The following switches don't quite make our 1970 cutoff.
++#
  # Shanks writes that part of southwest Alaska (e.g. Aniak)
  # switched from -11:00 to -10:00 on 1968-09-22 at 02:00,
-@@ -405,14 +409,20 @@
+ # and another part (e.g. Akiak) made the same switch five weeks later.
+-# These switches don't quite make our 1970 cutoff.
++#
++# From David Flater (2004-11-09):
++# In e-mail, 2004-11-02, Ray Hudson, historian/liaison to the Unalaska
++# Historic Preservation Commission, provided this information, which
++# suggests that Unalaska deviated from statutory time from early 1967
++# possibly until 1983:
++#
++#  Minutes of the Unalaska City Council Meeting, January 10, 1967:
++#  "Except for St. Paul and Akutan, Unalaska is the only important
++#  location not on Alaska Standard Time.  The following resolution was
++#  made by William Robinson and seconded by Henry Swanson:  Be it
++#  resolved that the City of Unalaska hereby goes to Alaska Standard
++#  Time as of midnight Friday, January 13, 1967 (1 A.M. Saturday,
++#  January 14, Alaska Standard Time.)  This resolution was passed with
++#  three votes for and one against."
+ 
+ # Hawaii
+ #
+@@ -405,14 +432,20 @@
  			-7:00	-	MST
  # From Arthur David Olson (1988-02-13):
  # A writer from the Inter Tribal Council of Arizona, Inc.,
@@ -837,11 +1316,11 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
 +# Lemhi, Lincoln, Madison, Minidoka, Oneida, Owyhee, Payette, Power,
 +# Teton, Twin Falls, Valley, Washington counties) and eastern Oregon
 +# switched four weeks late in 1974.
-+# 
++#
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
  Zone America/Boise	-7:44:49 -	LMT	1883 Nov 18 12:00
  			-8:00	US	P%sT	1923 May 13 2:00
-@@ -685,9 +695,15 @@
+@@ -685,9 +718,15 @@
  # Except where otherwise noted, Shanks is the source for entries through 1990,
  # and IATA SSIM is the source for entries after 1990.
  #
@@ -860,7 +1339,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  #
  # See the `europe' file for Greenland.
  
-@@ -743,7 +759,8 @@
+@@ -743,7 +782,8 @@
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule	Canada	1918	only	-	Apr	14	2:00	1:00	D
  Rule	Canada	1918	only	-	Oct	31	2:00	0	S
@@ -870,7 +1349,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  Rule	Canada	1945	only	-	Sep	30	2:00	0	S
  Rule	Canada	1974	1986	-	Apr	lastSun	2:00	1:00	D
  Rule	Canada	1974	max	-	Oct	lastSun	2:00	0	S
-@@ -759,27 +776,20 @@
+@@ -759,27 +799,20 @@
  # but excluding, say, Black Tickle.
  
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
@@ -905,7 +1384,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  # For 1946-9 Whitman gives May 5,4,9,1 - Oct 1,5,3,2, and for 1950 he gives
  # Apr 30 - Sep 24; go with Shanks.
  Rule	StJohns	1946	1950	-	May	Sun>=8	2:00	1:00	D
-@@ -797,18 +807,24 @@
+@@ -797,18 +830,24 @@
  # St John's has an apostrophe, but Posix file names can't have apostrophes.
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
  Zone America/St_Johns	-3:30:52 -	LMT	1884
@@ -932,7 +1411,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  			-3:30	StJohns	N%sT	1966 Mar 15 2:00
  			-4:00	StJohns	A%sT
  
-@@ -830,8 +846,6 @@
+@@ -830,8 +869,6 @@
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule Halifax	1916	only	-	Apr	 1	0:00	1:00	D
  Rule Halifax	1916	only	-	Oct	 1	0:00	0	S
@@ -941,7 +1420,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  Rule Halifax	1920	only	-	May	 9	0:00	1:00	D
  Rule Halifax	1920	only	-	Aug	29	0:00	0	S
  Rule Halifax	1921	only	-	May	 6	0:00	1:00	D
-@@ -850,6 +864,7 @@
+@@ -850,6 +887,7 @@
  Rule Halifax	1929	only	-	Sep	 3	0:00	0	S
  Rule Halifax	1930	only	-	Sep	15	0:00	0	S
  Rule Halifax	1931	1932	-	Sep	Mon>=24	0:00	0	S
@@ -949,7 +1428,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  Rule Halifax	1933	only	-	Apr	30	0:00	1:00	D
  Rule Halifax	1933	only	-	Oct	 2	0:00	0	S
  Rule Halifax	1934	only	-	May	20	0:00	1:00	D
-@@ -862,33 +877,55 @@
+@@ -862,33 +900,55 @@
  Rule Halifax	1937	1941	-	Sep	Mon>=24	0:00	0	S
  Rule Halifax	1939	only	-	May	28	0:00	1:00	D
  Rule Halifax	1940	1941	-	May	Sun>=1	0:00	1:00	D
@@ -1015,7 +1494,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  # says that Atikokan, Ontario currently does not observe DST,
  # but will vote on 11-10 whether to use EST/EDT.
  # He also writes that the
-@@ -915,43 +952,115 @@
+@@ -915,43 +975,115 @@
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule	Mont	1917	only	-	Mar	25	2:00	1:00	D
  Rule	Mont	1917	only	-	Apr	24	0:00	0	S
@@ -1147,7 +1626,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  			-6:00	Canada	C%sT
  
  
-@@ -964,7 +1073,8 @@
+@@ -964,7 +1096,8 @@
  Rule	Winn	1918	only	-	Oct	31	2:00	0	S
  Rule	Winn	1937	only	-	May	16	2:00	1:00	D
  Rule	Winn	1937	only	-	Sep	26	2:00	0	S
@@ -1157,7 +1636,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  Rule	Winn	1945	only	-	Sep	lastSun	2:00	0	S
  Rule	Winn	1946	only	-	May	12	2:00	1:00	D
  Rule	Winn	1946	only	-	Oct	13	2:00	0	S
-@@ -992,6 +1102,20 @@
+@@ -992,6 +1125,20 @@
  
  # Saskatchewan
  
@@ -1178,7 +1657,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  # From Paul Eggert (2000-10-02):
  # Shanks writes that since 1970 most of this region has been like Regina.
  # Some western towns (e.g. Swift Current) switched from MST/MDT to CST in 1972.
-@@ -1034,12 +1158,14 @@
+@@ -1034,12 +1181,14 @@
  Rule	Regina	1937	only	-	Oct	Sun>=8	0:00	0	S
  Rule	Regina	1938	only	-	Oct	Sun>=1	0:00	0	S
  Rule	Regina	1939	1941	-	Oct	Sun>=8	0:00	0	S
@@ -1196,7 +1675,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  Rule	Regina	1959	only	-	Oct	lastSun	2:00	0	S
  #
  Rule	Swift	1957	only	-	Apr	lastSun	2:00	1:00	D
-@@ -1067,7 +1193,8 @@
+@@ -1067,7 +1216,8 @@
  Rule	Edm	1920	1923	-	Apr	lastSun	2:00	1:00	D
  Rule	Edm	1920	only	-	Oct	lastSun	2:00	0	S
  Rule	Edm	1921	1923	-	Sep	lastSun	2:00	0	S
@@ -1206,7 +1685,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  Rule	Edm	1945	only	-	Sep	lastSun	2:00	0	S
  Rule	Edm	1947	only	-	Apr	lastSun	2:00	1:00	D
  Rule	Edm	1947	only	-	Sep	lastSun	2:00	0	S
-@@ -1093,7 +1220,8 @@
+@@ -1093,7 +1243,8 @@
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule	Vanc	1918	only	-	Apr	14	2:00	1:00	D
  Rule	Vanc	1918	only	-	Oct	31	2:00	0	S
@@ -1216,7 +1695,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  Rule	Vanc	1945	only	-	Sep	30	2:00	0	S
  Rule	Vanc	1946	1986	-	Apr	lastSun	2:00	1:00	D
  Rule	Vanc	1946	only	-	Oct	13	2:00	0	S
-@@ -1219,7 +1347,8 @@
+@@ -1219,7 +1370,8 @@
  Rule	NT_YK	1918	only	-	Oct	27	2:00	0	S
  Rule	NT_YK	1919	only	-	May	25	2:00	1:00	D
  Rule	NT_YK	1919	only	-	Nov	 1	0:00	0	S
@@ -1226,7 +1705,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  Rule	NT_YK	1945	only	-	Sep	30	2:00	0	S
  Rule	NT_YK	1965	only	-	Apr	lastSun	0:00	2:00	DD
  Rule	NT_YK	1965	only	-	Oct	lastSun	2:00	0	S
-@@ -1412,7 +1541,7 @@
+@@ -1412,7 +1564,7 @@
  Rule	Mexico	1939	only	-	Jun	25	0:00	0	S
  Rule	Mexico	1940	only	-	Dec	9	0:00	1:00	D
  Rule	Mexico	1941	only	-	Apr	1	0:00	0	S
@@ -1235,7 +1714,34 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  Rule	Mexico	1944	only	-	May	1	0:00	0	S
  Rule	Mexico	1950	only	-	Feb	12	0:00	1:00	D
  Rule	Mexico	1950	only	-	Jul	30	0:00	0	S
-@@ -1682,7 +1811,8 @@
+@@ -1602,6 +1754,15 @@
+ # to DST--and one more hour on 1999-04-04--when the announcers will have
+ # returned to Baltimore, which switches on that date.)
+ 
++# From Evert van der Veer via Steffen Thorsen (2004-10-28):
++# Cuba is not going back to standard time this year.
++# From Paul Eggert (2004-10-28):
++# http://www.granma.cu/ingles/2004/septiembre/juev30/41medid-i.html
++# says that it's due to a problem at the Antonio Guiteras
++# thermoelectric plant, and says "This October there will be no return
++# to normal hours (after daylight saving time)".
++# For now, let's assume that it's a one-year temporary measure.
++
+ # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
+ Rule	Cuba	1928	only	-	Jun	10	0:00	1:00	D
+ Rule	Cuba	1928	only	-	Oct	10	0:00	0	S
+@@ -1630,8 +1791,9 @@
+ Rule	Cuba	1996	only	-	Oct	 6	0:00s	0	S
+ Rule	Cuba	1997	only	-	Oct	12	0:00s	0	S
+ Rule	Cuba	1998	1999	-	Mar	lastSun	0:00s	1:00	D
+-Rule	Cuba	1998	max	-	Oct	lastSun	0:00s	0	S
++Rule	Cuba	1998	2003	-	Oct	lastSun	0:00s	0	S
+ Rule	Cuba	2000	max	-	Apr	Sun>=1	0:00s	1:00	D
++Rule	Cuba	2005	max	-	Oct	lastSun	0:00s	0	S
+ 
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ Zone	America/Havana	-5:29:28 -	LMT	1890
+@@ -1682,7 +1844,8 @@
  # Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
  Rule	Salv	1987	1988	-	May	Sun>=1	0:00	1:00	D
  Rule	Salv	1987	1988	-	Sep	lastSun	0:00	0	S
@@ -1245,7 +1751,7 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
  Zone America/El_Salvador -5:56:48 -	LMT	1921		# San Salvador
  			-6:00	Salv	C%sT
-@@ -1812,7 +1942,8 @@
+@@ -1812,7 +1975,8 @@
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
  Zone America/Miquelon	-3:44:40 -	LMT	1911 May 15	# St Pierre
  			-4:00	-	AST	1980 May
@@ -1255,19 +1761,19 @@ diff -Nuar timezone.org/northamerica timezone/northamerica
  
  # St Vincent and the Grenadines
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
-diff -Nuar timezone.org/private.h timezone/private.h
---- timezone.org/private.h	2004-10-14 01:27:07.000000000 +0900
-+++ timezone/private.h	2004-10-13 23:30:38.000000000 +0900
+diff -Nuar glibc-2.3.2/timezone/private.h glibc-2.3.4/timezone/private.h
+--- glibc-2.3.2/timezone/private.h	2001-06-10 05:29:20.000000000 +0900
++++ glibc-2.3.4/timezone/private.h	2005-04-10 08:52:13.000000000 +0900
 @@ -21,7 +21,7 @@
  
  #ifndef lint
  #ifndef NOID
 -static char	privatehid[] = "@(#)private.h	7.52";
-+static char	privatehid[] = "@(#)private.h	7.54";
++static char	privatehid[] = "@(#)private.h	7.55";
  #endif /* !defined NOID */
  #endif /* !defined lint */
  
-@@ -190,11 +190,22 @@
+@@ -190,13 +190,25 @@
  ** But some newer errno.h implementations define it as a macro.
  ** Fix the former without affecting the latter.
  */
@@ -1289,8 +1795,35 @@ diff -Nuar timezone.org/private.h timezone/private.h
 +/*
  ** Private function declarations.
  */
++
  char *	icalloc P((int nelem, int elsize));
-@@ -288,7 +299,7 @@
+ char *	icatalloc P((char * old, const char * new));
+ char *	icpyalloc P((const char * string));
+@@ -206,7 +218,6 @@
+ void	ifree P((char * pointer));
+ char *	scheck P((const char *string, const char *format));
+ 
+-
+ /*
+ ** Finally, some convenience items.
+ */
+@@ -227,6 +238,15 @@
+ #define TYPE_SIGNED(type) (((type) -1) < 0)
+ #endif /* !defined TYPE_SIGNED */
+ 
++/*
++** Since the definition of TYPE_INTEGRAL contains floating point numbers,
++** it cannot be used in preprocessor directives.
++*/
++
++#ifndef TYPE_INTEGRAL
++#define TYPE_INTEGRAL(type) (((type) 0.5) != 0.5)
++#endif /* !defined TYPE_INTEGRAL */
++
+ #ifndef INT_STRLEN_MAXIMUM
+ /*
+ ** 302 / 1000 is log10(2.0) rounded up.
+@@ -288,7 +308,7 @@
  #endif /* HAVE_INCOMPATIBLE_CTIME_R */
  
  /*
@@ -1299,12 +1832,23 @@ diff -Nuar timezone.org/private.h timezone/private.h
  */
  
  #endif /* !defined PRIVATE_H */
-diff -Nuar timezone.org/southamerica timezone/southamerica
---- timezone.org/southamerica	2004-10-14 01:27:07.000000000 +0900
-+++ timezone/southamerica	2004-10-13 23:30:38.000000000 +0900
+diff -Nuar glibc-2.3.2/timezone/scheck.c glibc-2.3.4/timezone/scheck.c
+--- glibc-2.3.2/timezone/scheck.c	1998-02-16 04:30:15.000000000 +0900
++++ glibc-2.3.4/timezone/scheck.c	2005-04-10 08:52:13.000000000 +0900
+@@ -1,6 +1,6 @@
+ #ifndef lint
+ #ifndef NOID
+-static char	elsieid[] = "@(#)scheck.c	8.15";
++static char	elsieid[] = "@(#)scheck.c	8.16";
+ #endif /* !defined lint */
+ #endif /* !defined NOID */
+ 
+diff -Nuar glibc-2.3.2/timezone/southamerica glibc-2.3.4/timezone/southamerica
+--- glibc-2.3.2/timezone/southamerica	2005-04-10 09:00:31.000000000 +0900
++++ glibc-2.3.4/timezone/southamerica	2005-04-10 08:52:13.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)southamerica	7.46
-+# @(#)southamerica	7.54
++# @(#)southamerica	7.59
  
  # This data is by no means authoritative; if you think you know better,
  # go ahead and edit the file (and please send any changes to
@@ -1388,7 +1932,7 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  			-4:16:48 -	CMT	1920 May # Cordoba Mean Time
  			-4:00	-	ART	1930 Dec
  			-4:00	Arg	AR%sT	1969 Oct  5
-@@ -167,24 +218,19 @@
+@@ -167,24 +218,30 @@
  			-3:00	-	ART
  #
  # Santa Fe (SF), Entre Rios (ER), Corrientes (CN), Misiones (MN), Chaco (CC),
@@ -1413,15 +1957,6 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  #
 -Zone America/Cordoba	-4:16:48 -	LMT	1894 Oct 31
 +Zone America/Argentina/Cordoba -4:16:48 - LMT	1894 Oct 31
- 			-4:16:48 -	CMT	1920 May
- 			-4:00	-	ART	1930 Dec
- 			-4:00	Arg	AR%sT	1969 Oct  5
-@@ -194,8 +240,47 @@
- 			-4:00	Arg	AR%sT	2000 Mar  3
- 			-3:00	-	ART
- #
-+# Tucuman (TM)
-+Zone America/Argentina/Tucuman -4:20:52 - LMT	1894 Oct 31
 +			-4:16:48 -	CMT	1920 May
 +			-4:00	-	ART	1930 Dec
 +			-4:00	Arg	AR%sT	1969 Oct  5
@@ -1429,6 +1964,17 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
 +			-4:00	-	WART	1991 Oct 20
 +			-3:00	Arg	AR%sT	1999 Oct  3
 +			-4:00	Arg	AR%sT	2000 Mar  3
++			-3:00	-	ART
++#
++# Tucuman (TM)
++Zone America/Argentina/Tucuman -4:20:52 - LMT	1894 Oct 31
+ 			-4:16:48 -	CMT	1920 May
+ 			-4:00	-	ART	1930 Dec
+ 			-4:00	Arg	AR%sT	1969 Oct  5
+@@ -192,10 +249,38 @@
+ 			-4:00	-	WART	1991 Oct 20
+ 			-3:00	Arg	AR%sT	1999 Oct  3
+ 			-4:00	Arg	AR%sT	2000 Mar  3
 +			-3:00	-	ART	2004 Jun  1
 +			-4:00	-	WART	2004 Jun 13
 +			-3:00	-	ART
@@ -1457,8 +2003,8 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
 +			-4:00	Arg	AR%sT	2000 Mar  3
 +			-3:00	-	ART	2004 May 31
 +			-4:00	-	WART	2004 Jul 25
-+			-3:00	-	ART
-+#
+ 			-3:00	-	ART
+ #
  # Jujuy (JY)
 -Zone America/Jujuy	-4:21:12 -	LMT	1894 Oct 31
 +Zone America/Argentina/Jujuy -4:21:12 -	LMT	1894 Oct 31
@@ -1646,7 +2192,7 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
 +# Mato Grosso (MT)
  Zone America/Cuiaba	-3:44:20 -	LMT	1914
 +			-4:00	Brazil	AM%sT	2003 Sep 24
-+			-4:00	-	AMT	2004 Oct  4
++			-4:00	-	AMT	2004 Oct  1
  			-4:00	Brazil	AM%sT
  #
  # west Para (PA), Rondonia (RO)
@@ -1659,14 +2205,34 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  Zone America/Manaus	-4:00:04 -	LMT	1914
  			-4:00	Brazil	AM%sT	1988 Sep 12
  			-4:00	-	AMT	1993 Sep 28
-@@ -792,13 +954,22 @@
+@@ -780,9 +942,16 @@
+ # A decree was issued in Paraguay (no. 16350) on 2002-02-26 that changed the
+ # dst method to be from the first Sunday in September to the first Sunday in
+ # April.
+-Rule	Para	2002	max	-	Apr	Sun>=1	0:00	0	-
+-Rule	Para	2002	max	-	Sep	Sun>=1	0:00	1:00	S
+-
++Rule	Para	2002	2004	-	Apr	Sun>=1	0:00	0	-
++Rule	Para	2002	2003	-	Sep	Sun>=1	0:00	1:00	S
++#
++# From Jesper Norgaard Welen (2005-01-02):
++# There are several sources that claim that Paraguay made
++# a timezone rule change in autumn 2004.
++# From Steffen Thorsen (2005-01-05):
++# Decree 1,867 (2004-03-05) <http://www.labor.com.py/noticias.asp?id=27>
++Rule	Para	2004	max	-	Oct	Sun>=15	0:00	1:00	S
++Rule	Para	2005	max	-	Mar	Sun>=8	0:00	0	-
+ 
+ # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
+ Zone America/Asuncion	-3:50:40 -	LMT	1890
+@@ -792,13 +961,22 @@
  			-4:00	Para	PY%sT
  
  # Peru
 +#
 +# <a href="news:xrGmb.39935$gA1.13896113@news4.srv.hcvlny.cv.net">
 +# From Evelyn C. Leeper via Mark Brader (2003-10-26):</a>
-+# When we were in Peru in 1985-1986, they apparently switched over 
++# When we were in Peru in 1985-1986, they apparently switched over
 +# sometime between December 29 and January 3 while we were on the Amazon.
 +#
 +# From Paul Eggert (2003-11-02):
@@ -1684,36 +2250,137 @@ diff -Nuar timezone.org/southamerica timezone/southamerica
  Rule	Peru	1990	only	-	Jan	 1	0:00	1:00	S
  Rule	Peru	1990	only	-	Apr	 1	0:00	0	-
  # IATA is ambiguous for 1993/1995; go with Shanks.
-@@ -882,6 +1053,11 @@
+@@ -882,6 +1060,15 @@
  Rule	Uruguay	1990	1991	-	Oct	Sun>=21	 0:00	1:00	S
  Rule	Uruguay	1992	only	-	Oct	18	 0:00	1:00	S
  Rule	Uruguay	1993	only	-	Feb	28	 0:00	0	-
 +# From Eduardo Cota (2004-09-20):
 +# The uruguayan government has decreed a change in the local time....
 +# http://www.presidencia.gub.uy/decretos/2004091502.htm
-+Rule	Uruguay	2004	only	-	Sep	Sun>=15	 0:00	1:00	S
-+Rule	Uruguay	2005	only	-	Mar	Sun>=8	 0:00	0	-
++Rule	Uruguay	2004	only	-	Sep	19	 0:00	1:00	S
++# From Steffen Thorsen (2005-03-11):
++# Uruguay's DST was scheduled to end on Sunday, 2005-03-13, but in order to
++# save energy ... it was postponed two weeks....
++# http://www.presidencia.gub.uy/_Web/noticias/2005/03/2005031005.htm
++Rule	Uruguay	2005	only	-	Mar	27	 2:00	0	-
  # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
  Zone America/Montevideo	-3:44:44 -	LMT	1898 Jun 28
  			-3:44:44 -	MMT	1920 May  1	# Montevideo MT
-diff -Nuar timezone.org/zdump.c timezone/zdump.c
---- timezone.org/zdump.c	2004-10-14 01:27:07.000000000 +0900
-+++ timezone/zdump.c	2004-10-13 23:30:38.000000000 +0900
+diff -Nuar glibc-2.3.2/timezone/tzfile.h glibc-2.3.4/timezone/tzfile.h
+--- glibc-2.3.2/timezone/tzfile.h	1998-02-16 04:30:15.000000000 +0900
++++ glibc-2.3.4/timezone/tzfile.h	2005-04-10 08:52:13.000000000 +0900
+@@ -21,7 +21,7 @@
+ 
+ #ifndef lint
+ #ifndef NOID
+-static char	tzfilehid[] = "@(#)tzfile.h	7.14";
++static char	tzfilehid[] = "@(#)tzfile.h	7.17";
+ #endif /* !defined NOID */
+ #endif /* !defined lint */
+ 
+@@ -48,7 +48,7 @@
+ #define	TZ_MAGIC	"TZif"
+ 
+ struct tzhead {
+- 	char	tzh_magic[4];		/* TZ_MAGIC */
++	char	tzh_magic[4];		/* TZ_MAGIC */
+ 	char	tzh_reserved[16];	/* reserved for future use */
+ 	char	tzh_ttisgmtcnt[4];	/* coded number of trans. time flags */
+ 	char	tzh_ttisstdcnt[4];	/* coded number of trans. time flags */
+@@ -156,33 +156,20 @@
+ #define EPOCH_YEAR	1970
+ #define EPOCH_WDAY	TM_THURSDAY
+ 
+-/*
+-** Accurate only for the past couple of centuries;
+-** that will probably do.
+-*/
+-
+ #define isleap(y) (((y) % 4) == 0 && (((y) % 100) != 0 || ((y) % 400) == 0))
+ 
+-#ifndef USG
+-
+ /*
+-** Use of the underscored variants may cause problems if you move your code to
+-** certain System-V-based systems; for maximum portability, use the
+-** underscore-free variants.  The underscored variants are provided for
+-** backward compatibility only; they may disappear from future versions of
+-** this file.
+-*/
+-
+-#define SECS_PER_MIN	SECSPERMIN
+-#define MINS_PER_HOUR	MINSPERHOUR
+-#define HOURS_PER_DAY	HOURSPERDAY
+-#define DAYS_PER_WEEK	DAYSPERWEEK
+-#define DAYS_PER_NYEAR	DAYSPERNYEAR
+-#define DAYS_PER_LYEAR	DAYSPERLYEAR
+-#define SECS_PER_HOUR	SECSPERHOUR
+-#define SECS_PER_DAY	SECSPERDAY
+-#define MONS_PER_YEAR	MONSPERYEAR
++** Since everything in isleap is modulo 400 (or a factor of 400), we know that
++**	isleap(y) == isleap(y % 400)
++** and so
++**	isleap(a + b) == isleap((a + b) % 400)
++** or
++**	isleap(a + b) == isleap(a % 400 + b % 400)
++** This is true even if % means modulo rather than Fortran remainder
++** (which is allowed by C89 but not C99).
++** We use this to avoid addition overflow problems.
++*/
+ 
+-#endif /* !defined USG */
++#define isleap_sum(a, b)	isleap((a) % 400 + (b) % 400)
+ 
+ #endif /* !defined TZFILE_H */
+diff -Nuar glibc-2.3.2/timezone/zdump.c glibc-2.3.4/timezone/zdump.c
+--- glibc-2.3.2/timezone/zdump.c	2001-03-16 10:07:38.000000000 +0900
++++ glibc-2.3.4/timezone/zdump.c	2005-04-10 08:52:13.000000000 +0900
 @@ -1,8 +1,4 @@
 -#ifndef lint
 -#ifndef NOID
 -static char	elsieid[] = "@(#)zdump.c	7.29";
 -#endif /* !defined NOID */
 -#endif /* !defined lint */
-+static char	elsieid[] = "@(#)zdump.c	7.40";
++static char	elsieid[] = "@(#)zdump.c	7.64";
  
  /*
  ** This code has been made independent of the rest of the time
-@@ -68,16 +64,15 @@
- #define isleap(y) ((((y) % 4) == 0 && ((y) % 100) != 0) || ((y) % 400) == 0)
+@@ -15,6 +11,15 @@
+ #include "sys/types.h"	/* for time_t */
+ #include "time.h"	/* for struct tm */
+ #include "stdlib.h"	/* for exit, malloc, atoi */
++#include "float.h"	/* for FLT_MAX and DBL_MAX */
++
++#ifndef ZDUMP_LO_YEAR
++#define ZDUMP_LO_YEAR	(-500)
++#endif /* !defined ZDUMP_LO_YEAR */
++
++#ifndef ZDUMP_HI_YEAR
++#define ZDUMP_HI_YEAR	2500
++#endif /* !defined ZDUMP_HI_YEAR */
+ 
+ #ifndef MAX_STRING_LENGTH
+ #define MAX_STRING_LENGTH	1024
+@@ -65,19 +70,29 @@
+ #endif /* !defined DAYSPERNYEAR */
+ 
+ #ifndef isleap
+-#define isleap(y) ((((y) % 4) == 0 && ((y) % 100) != 0) || ((y) % 400) == 0)
++#define isleap(y) (((y) % 4) == 0 && (((y) % 100) != 0 || ((y) % 400) == 0))
  #endif /* !defined isleap */
  
 -#if HAVE_GETTEXT - 0
++#ifndef isleap_sum
++/*
++** See tzfile.h for details on isleap_sum.
++*/
++#define isleap_sum(a, b)	isleap((a) % 400 + (b) % 400)
++#endif /* !defined isleap_sum */
++
++#define SECSPERDAY	((long) SECSPERHOUR * HOURSPERDAY)
++#define SECSPERNYEAR	(SECSPERDAY * DAYSPERNYEAR)
++#define SECSPERLYEAR	(SECSPERNYEAR + SECSPERDAY)
++
 +#if HAVE_GETTEXT
  #include "locale.h"	/* for setlocale */
  #include "libintl.h"
@@ -1729,7 +2396,7 @@ diff -Nuar timezone.org/zdump.c timezone/zdump.c
  #ifdef __GNUC__
  #define GNUC_or_lint
  #endif /* defined __GNUC__ */
-@@ -87,8 +82,7 @@
+@@ -87,8 +102,7 @@
  #ifndef INITIALIZE
  #ifdef GNUC_or_lint
  #define INITIALIZE(x)	((x) = 0)
@@ -1739,7 +2406,7 @@ diff -Nuar timezone.org/zdump.c timezone/zdump.c
  #define INITIALIZE(x)
  #endif /* !defined GNUC_or_lint */
  #endif /* !defined INITIALIZE */
-@@ -100,11 +94,11 @@
+@@ -100,11 +114,11 @@
  */
  
  #ifndef _
@@ -1754,7 +2421,7 @@ diff -Nuar timezone.org/zdump.c timezone/zdump.c
  #endif /* !defined _ */
  
  #ifndef TZ_DOMAIN
-@@ -114,8 +108,7 @@
+@@ -114,25 +128,68 @@
  #ifndef P
  #ifdef __STDC__
  #define P(x)	x
@@ -1764,20 +2431,98 @@ diff -Nuar timezone.org/zdump.c timezone/zdump.c
  #define P(x)	()
  #endif /* !defined __STDC__ */
  #endif /* !defined P */
-@@ -133,6 +126,7 @@
- static size_t	longest;
- static char *	progname;
- static void	show P((char * zone, time_t t, int v));
+ 
+ extern char **	environ;
+ extern int	getopt P((int argc, char * const argv[],
+-			  const char * options));
++			const char * options));
+ extern char *	optarg;
+ extern int	optind;
+ extern char *	tzname[2];
+ 
++static time_t	absolute_min_time;
++static time_t	absolute_max_time;
++static size_t	longest;
++static char *	progname;
++
+ static char *	abbr P((struct tm * tmp));
+ static long	delta P((struct tm * newp, struct tm * oldp));
 +static void	dumptime P((const struct tm * tmp));
+ static time_t	hunt P((char * name, time_t lot, time_t	hit));
+-static size_t	longest;
+-static char *	progname;
++static void	setabsolutes P((void));
+ static void	show P((char * zone, time_t t, int v));
++static const char *	tformat P((void));
++static time_t	yeartot P((long y));
++
++#ifndef TYPECHECK
++#define my_localtime	localtime
++#else /* !defined TYPECHECK */
++static struct tm *
++my_localtime(tp)
++time_t *	tp;
++{
++	register struct tm *	tmp;
++
++	tmp = localtime(tp);
++	if (tp != NULL && tmp != NULL) {
++		struct tm	tm;
++		register time_t	t;
++
++		tm = *tmp;
++		t = mktime(&tm);
++		if (t - *tp >= 1 || *tp - t >= 1) {
++			(void) fflush(stdout);
++			(void) fprintf(stderr, "\n%s: ", progname);
++			(void) fprintf(stderr, tformat(), *tp);
++			(void) fprintf(stderr, " ->");
++			(void) fprintf(stderr, " year=%d", tmp->tm_year);
++			(void) fprintf(stderr, " mon=%d", tmp->tm_mon);
++			(void) fprintf(stderr, " mday=%d", tmp->tm_mday);
++			(void) fprintf(stderr, " hour=%d", tmp->tm_hour);
++			(void) fprintf(stderr, " min=%d", tmp->tm_min);
++			(void) fprintf(stderr, " sec=%d", tmp->tm_sec);
++			(void) fprintf(stderr, " isdst=%d", tmp->tm_isdst);
++			(void) fprintf(stderr, " -> ");
++			(void) fprintf(stderr, tformat(), t);
++			(void) fprintf(stderr, "\n");
++		}
++	}
++	return tmp;
++}
++#endif /* !defined TYPECHECK */
  
  int
  main(argc, argv)
-@@ -154,15 +148,19 @@
+@@ -142,61 +199,80 @@
+ 	register int		i;
+ 	register int		c;
+ 	register int		vflag;
+-	register char *		cutoff;
+-	register int		cutyear;
+-	register long		cuttime;
+-	char **			fakeenv;
++	register char *		cutarg;
++	register long		cutloyear = ZDUMP_LO_YEAR;
++	register long		cuthiyear = ZDUMP_HI_YEAR;
++	register time_t		cutlotime;
++	register time_t		cuthitime;
++	register char **	fakeenv;
+ 	time_t			now;
+ 	time_t			t;
+ 	time_t			newt;
+-	time_t			hibit;
+ 	struct tm		tm;
  	struct tm		newtm;
++	register struct tm *	tmp;
++	register struct tm *	newtmp;
  
- 	INITIALIZE(cuttime);
+-	INITIALIZE(cuttime);
 -#if HAVE_GETTEXT - 0
 -	(void) setlocale(LC_CTYPE, "");
++	INITIALIZE(cutlotime);
++	INITIALIZE(cuthitime);
 +#if HAVE_GETTEXT
  	(void) setlocale(LC_MESSAGES, "");
  #ifdef TZ_DOMAINDIR
@@ -1794,46 +2539,365 @@ diff -Nuar timezone.org/zdump.c timezone/zdump.c
 +			(void) exit(EXIT_SUCCESS);
 +		}
  	vflag = 0;
- 	cutoff = NULL;
+-	cutoff = NULL;
++	cutarg = NULL;
  	while ((c = getopt(argc, argv, "c:v")) == 'c' || c == 'v')
-@@ -172,7 +170,7 @@
+ 		if (c == 'v')
+ 			vflag = 1;
+-		else	cutoff = optarg;
++		else	cutarg = optarg;
  	if ((c != EOF && c != -1) ||
  		(optind == argc - 1 && strcmp(argv[optind], "=") == 0)) {
  			(void) fprintf(stderr,
 -_("%s: usage is %s [ -v ] [ -c cutoff ] zonename ...\n"),
-+_("%s: usage is %s [ --version ] [ -v ] [ -c cutoff ] zonename ...\n"),
- 				argv[0], argv[0]);
+-				argv[0], argv[0]);
++_("%s: usage is %s [ --version ] [ -v ] [ -c [loyear,]hiyear ] zonename ...\n"),
++				progname, progname);
  			(void) exit(EXIT_FAILURE);
  	}
-@@ -323,7 +321,7 @@
+-	if (cutoff != NULL) {
+-		int	y;
+-
+-		cutyear = atoi(cutoff);
+-		cuttime = 0;
+-		for (y = EPOCH_YEAR; y < cutyear; ++y)
+-			cuttime += DAYSPERNYEAR + isleap(y);
+-		cuttime *= SECSPERHOUR * HOURSPERDAY;
++	if (vflag) {
++		if (cutarg != NULL) {
++			long	lo;
++			long	hi;
++			char	dummy;
++
++			if (sscanf(cutarg, "%ld%c", &hi, &dummy) == 1) {
++				cuthiyear = hi;
++			} else if (sscanf(cutarg, "%ld,%ld%c",
++				&lo, &hi, &dummy) == 2) {
++					cutloyear = lo;
++					cuthiyear = hi;
++			} else {
++(void) fprintf(stderr, _("%s: wild -c argument %s\n"),
++					progname, cutarg);
++				(void) exit(EXIT_FAILURE);
++			}
++		}
++		setabsolutes();
++		cutlotime = yeartot(cutloyear);
++		cuthitime = yeartot(cuthiyear);
+ 	}
+ 	(void) time(&now);
+ 	longest = 0;
+ 	for (i = optind; i < argc; ++i)
+ 		if (strlen(argv[i]) > longest)
+ 			longest = strlen(argv[i]);
+-	for (hibit = 1; (hibit << 1) != 0; hibit <<= 1)
+-		continue;
+ 	{
+ 		register int	from;
+ 		register int	to;
+ 
+-		for (i = 0;  environ[i] != NULL;  ++i)
++		for (i = 0; environ[i] != NULL; ++i)
+ 			continue;
+ 		fakeenv = (char **) malloc((size_t) ((i + 2) *
+ 			sizeof *fakeenv));
+@@ -221,58 +297,129 @@
+ 			show(argv[i], now, FALSE);
+ 			continue;
+ 		}
+-		/*
+-		** Get lowest value of t.
+-		*/
+-		t = hibit;
+-		if (t > 0)		/* time_t is unsigned */
+-			t = 0;
++		t = absolute_min_time;
+ 		show(argv[i], t, TRUE);
+ 		t += SECSPERHOUR * HOURSPERDAY;
+ 		show(argv[i], t, TRUE);
+-		tm = *localtime(&t);
+-		(void) strncpy(buf, abbr(&tm), (sizeof buf) - 1);
++		if (t < cutlotime)
++			t = cutlotime;
++		tmp = my_localtime(&t);
++		if (tmp != NULL) {
++			tm = *tmp;
++			(void) strncpy(buf, abbr(&tm), (sizeof buf) - 1);
++		}
+ 		for ( ; ; ) {
+-			if (cutoff != NULL && t >= cuttime)
++			if (t >= cuthitime)
+ 				break;
+ 			newt = t + SECSPERHOUR * 12;
+-			if (cutoff != NULL && newt >= cuttime)
++			if (newt >= cuthitime)
+ 				break;
+ 			if (newt <= t)
+ 				break;
+-			newtm = *localtime(&newt);
+-			if (delta(&newtm, &tm) != (newt - t) ||
++			newtmp = localtime(&newt);
++			if (newtmp != NULL)
++				newtm = *newtmp;
++			if ((tmp == NULL || newtmp == NULL) ? (tmp != newtmp) :
++				(delta(&newtm, &tm) != (newt - t) ||
+ 				newtm.tm_isdst != tm.tm_isdst ||
+-				strcmp(abbr(&newtm), buf) != 0) {
++				strcmp(abbr(&newtm), buf) != 0)) {
+ 					newt = hunt(argv[i], t, newt);
+-					newtm = *localtime(&newt);
+-					(void) strncpy(buf, abbr(&newtm),
+-						(sizeof buf) - 1);
++					newtmp = localtime(&newt);
++					if (newtmp != NULL) {
++						newtm = *newtmp;
++						(void) strncpy(buf,
++							abbr(&newtm),
++							(sizeof buf) - 1);
++					}
+ 			}
+ 			t = newt;
+ 			tm = newtm;
++			tmp = newtmp;
+ 		}
+-		/*
+-		** Get highest value of t.
+-		*/
+-		t = ~((time_t) 0);
+-		if (t < 0)		/* time_t is signed */
+-			t &= ~hibit;
++		t = absolute_max_time;
+ 		t -= SECSPERHOUR * HOURSPERDAY;
+ 		show(argv[i], t, TRUE);
+ 		t += SECSPERHOUR * HOURSPERDAY;
+ 		show(argv[i], t, TRUE);
+ 	}
+ 	if (fflush(stdout) || ferror(stdout)) {
+-		(void) fprintf(stderr, "%s: ", argv[0]);
++		(void) fprintf(stderr, "%s: ", progname);
+ 		(void) perror(_("Error writing standard output"));
+ 		(void) exit(EXIT_FAILURE);
+ 	}
+ 	exit(EXIT_SUCCESS);
++	/* If exit fails to exit... */
++	return EXIT_FAILURE;
++}
+ 
+-	/* gcc -Wall pacifier */
+-	for ( ; ; )
+-		continue;
++static void
++setabsolutes()
++{
++	if (0.5 == (time_t) 0.5) {
++		/*
++		** time_t is floating.
++		*/
++		if (sizeof (time_t) == sizeof (float)) {
++			absolute_min_time = (time_t) -FLT_MAX;
++			absolute_max_time = (time_t) FLT_MAX;
++		} else if (sizeof (time_t) == sizeof (double)) {
++			absolute_min_time = (time_t) -DBL_MAX;
++			absolute_max_time = (time_t) DBL_MAX;
++		} else {
++			(void) fprintf(stderr,
++_("%s: use of -v on system with floating time_t other than float or double\n"),
++				progname);
++			(void) exit(EXIT_FAILURE);
++		}
++	} else if (0 > (time_t) -1) {
++		/*
++		** time_t is signed.
++		*/
++		register time_t	hibit;
++
++		for (hibit = 1; (hibit * 2) != 0; hibit *= 2)
++			continue;
++		absolute_min_time = hibit;
++		absolute_max_time = -(hibit + 1);
++	} else {
++		/*
++		** time_t is unsigned.
++		*/
++		absolute_min_time = 0;
++		absolute_max_time = absolute_min_time - 1;
++	}
++}
++
++static time_t
++yeartot(y)
++const long	y;
++{
++	register long	myy;
++	register long	seconds;
++	register time_t	t;
++
++	myy = EPOCH_YEAR;
++	t = 0;
++	while (myy != y) {
++		if (myy < y) {
++			seconds = isleap(myy) ? SECSPERLYEAR : SECSPERNYEAR;
++			++myy;
++			if (t > absolute_max_time - seconds) {
++				t = absolute_max_time;
++				break;
++			}
++			t += seconds;
++		} else {
++			--myy;
++			seconds = isleap(myy) ? SECSPERLYEAR : SECSPERNYEAR;
++			if (t < absolute_min_time + seconds) {
++				t = absolute_min_time;
++				break;
++			}
++			t -= seconds;
++		}
++	}
++	return t;
+ }
+ 
+ static time_t
+@@ -281,25 +428,39 @@
+ time_t	lot;
+ time_t	hit;
+ {
+-	time_t		t;
+-	struct tm	lotm;
+-	struct tm	tm;
+-	static char	loab[MAX_STRING_LENGTH];
+-
+-	lotm = *localtime(&lot);
+-	(void) strncpy(loab, abbr(&lotm), (sizeof loab) - 1);
+-	while ((hit - lot) >= 2) {
+-		t = lot / 2 + hit / 2;
++	time_t			t;
++	long			diff;
++	struct tm		lotm;
++	register struct tm *	lotmp;
++	struct tm		tm;
++	register struct tm *	tmp;
++	char			loab[MAX_STRING_LENGTH];
++
++	lotmp = my_localtime(&lot);
++	if (lotmp != NULL) {
++		lotm = *lotmp;
++		(void) strncpy(loab, abbr(&lotm), (sizeof loab) - 1);
++	}
++	for ( ; ; ) {
++		diff = (long) (hit - lot);
++		if (diff < 2)
++			break;
++		t = lot;
++		t += diff / 2;
+ 		if (t <= lot)
+ 			++t;
+ 		else if (t >= hit)
+ 			--t;
+-		tm = *localtime(&t);
+-		if (delta(&tm, &lotm) == (t - lot) &&
++		tmp = my_localtime(&t);
++		if (tmp != NULL)
++			tm = *tmp;
++		if ((lotmp == NULL || tmp == NULL) ? (lotmp == tmp) :
++			(delta(&tm, &lotm) == (t - lot) &&
+ 			tm.tm_isdst == lotm.tm_isdst &&
+-			strcmp(abbr(&tm), loab) == 0) {
++			strcmp(abbr(&tm), loab) == 0)) {
+ 				lot = t;
+ 				lotm = tm;
++				lotmp = tmp;
+ 		} else	hit = t;
+ 	}
+ 	show(name, lot, TRUE);
+@@ -316,14 +477,14 @@
+ struct tm *	newp;
+ struct tm *	oldp;
+ {
+-	long	result;
+-	int	tmy;
++	register long	result;
++	register int	tmy;
+ 
+ 	if (newp->tm_year < oldp->tm_year)
  		return -delta(oldp, newp);
  	result = 0;
  	for (tmy = oldp->tm_year; tmy < newp->tm_year; ++tmy)
 -		result += DAYSPERNYEAR + isleap(tmy + TM_YEAR_BASE);
-+		result += DAYSPERNYEAR + isleap(tmy + (long) TM_YEAR_BASE);
++		result += DAYSPERNYEAR + isleap_sum(tmy, TM_YEAR_BASE);
  	result += newp->tm_yday - oldp->tm_yday;
  	result *= HOURSPERDAY;
  	result += newp->tm_hour - oldp->tm_hour;
-@@ -343,10 +341,12 @@
- 	struct tm *	tmp;
+@@ -340,20 +501,30 @@
+ time_t	t;
+ int	v;
+ {
+-	struct tm *	tmp;
++	register struct tm *	tmp;
  
  	(void) printf("%-*s  ", (int) longest, zone);
 -	if (v)
 -		(void) printf("%.24s UTC = ", asctime(gmtime(&t)));
-+	if (v) {
-+		dumptime(gmtime(&t));
-+		(void) printf(" UTC = ");
-+	}
- 	tmp = localtime(&t);
+-	tmp = localtime(&t);
 -	(void) printf("%.24s", asctime(tmp));
-+	dumptime(tmp);
- 	if (*abbr(tmp) != '\0')
- 		(void) printf(" %s", abbr(tmp));
+-	if (*abbr(tmp) != '\0')
+-		(void) printf(" %s", abbr(tmp));
  	if (v) {
-@@ -370,3 +370,37 @@
+-		(void) printf(" isdst=%d", tmp->tm_isdst);
++		tmp = gmtime(&t);
++		if (tmp == NULL) {
++			(void) printf(tformat(), t);
++		} else {
++			dumptime(tmp);
++			(void) printf(" UTC");
++		}
++		(void) printf(" = ");
++	}
++	tmp = my_localtime(&t);
++	dumptime(tmp);
++	if (tmp != NULL) {
++		if (*abbr(tmp) != '\0')
++			(void) printf(" %s", abbr(tmp));
++		if (v) {
++			(void) printf(" isdst=%d", tmp->tm_isdst);
+ #ifdef TM_GMTOFF
+-		(void) printf(" gmtoff=%ld", tmp->TM_GMTOFF);
++			(void) printf(" gmtoff=%ld", tmp->TM_GMTOFF);
+ #endif /* defined TM_GMTOFF */
++		}
+ 	}
+ 	(void) printf("\n");
+ }
+@@ -370,3 +541,84 @@
  	result = tzname[tmp->tm_isdst];
  	return (result == NULL) ? &nada : result;
  }
++
++/*
++** The code below can fail on certain theoretical systems;
++** it works on all known real-world systems as of 2004-12-30.
++*/
++
++static const char *
++tformat()
++{
++	if (0.5 == (time_t) 0.5) {	/* floating */
++		if (sizeof (time_t) > sizeof (double))
++			return "%Lg";
++		return "%g";
++	}
++	if (0 > (time_t) -1) {		/* signed */
++		if (sizeof (time_t) > sizeof (long))
++			return "%lld";
++		if (sizeof (time_t) > sizeof (int))
++			return "%ld";
++		return "%d";
++	}
++	if (sizeof (time_t) > sizeof (unsigned long))
++		return "%llu";
++	if (sizeof (time_t) > sizeof (unsigned int))
++		return "%lu";
++	return "%u";
++}
 +
 +static void
 +dumptime(timeptr)
@@ -1848,7 +2912,13 @@ diff -Nuar timezone.org/zdump.c timezone/zdump.c
 +	};
 +	register const char *	wn;
 +	register const char *	mn;
++	register int		lead;
++	register int		trail;
 +
++	if (timeptr == NULL) {
++		(void) printf("NULL");
++		return;
++	}
 +	/*
 +	** The packaged versions of localtime and gmtime never put out-of-range
 +	** values in tm_wday or tm_mon, but since this code might be compiled
@@ -1862,37 +2932,183 @@ diff -Nuar timezone.org/zdump.c timezone/zdump.c
 +		(int) (sizeof mon_name / sizeof mon_name[0]))
 +			mn = "???";
 +	else		mn = mon_name[timeptr->tm_mon];
-+	(void) printf("%.3s %.3s%3d %.2d:%.2d:%.2d %ld",
++	(void) printf("%.3s %.3s%3d %.2d:%.2d:%.2d ",
 +		wn, mn,
 +		timeptr->tm_mday, timeptr->tm_hour,
-+		timeptr->tm_min, timeptr->tm_sec,
-+		timeptr->tm_year + (long) TM_YEAR_BASE);
++		timeptr->tm_min, timeptr->tm_sec);
++#define DIVISOR	10
++	trail = timeptr->tm_year % DIVISOR + TM_YEAR_BASE % DIVISOR;
++	lead = timeptr->tm_year / DIVISOR + TM_YEAR_BASE / DIVISOR +
++		trail / DIVISOR;
++	trail %= DIVISOR;
++	if (trail < 0 && lead > 0) {
++		trail += DIVISOR;
++		--lead;
++	} else if (lead < 0 && trail > 0) {
++		trail -= DIVISOR;
++		++lead;
++	}
++	if (lead == 0)
++		(void) printf("%d", trail);
++	else	(void) printf("%d%d", lead, ((trail < 0) ? -trail : trail));
 +}
-diff -Nuar timezone.org/zic.c timezone/zic.c
---- timezone.org/zic.c	2004-10-14 01:27:07.000000000 +0900
-+++ timezone/zic.c	2004-07-30 08:40:18.000000000 +0900
-@@ -1,8 +1,4 @@
+diff -Nuar glibc-2.3.2/timezone/zic.c glibc-2.3.4/timezone/zic.c
+--- glibc-2.3.2/timezone/zic.c	2005-04-10 09:00:31.000000000 +0900
++++ glibc-2.3.4/timezone/zic.c	2005-04-10 08:52:13.000000000 +0900
+@@ -1,8 +1,10 @@
 -#ifndef lint
 -#ifndef NOID
 -static char	elsieid[] = "@(#)zic.c	7.107";
 -#endif /* !defined NOID */
 -#endif /* !defined lint */
-+static char	elsieid[] = "@(#)zic.c	7.116";
++static char	elsieid[] = "@(#)zic.c	7.122";
++
++/*
++** Regardless of the type of time_t, we do our work using this type.
++*/
++
++typedef int	zic_t;
  
  #include "private.h"
  #include "locale.h"
-@@ -446,7 +442,7 @@
+@@ -19,7 +21,7 @@
+ 
+ /*
+ ** On some ancient hosts, predicates like `isspace(C)' are defined
+-** only if isascii(C) || C == EOF.  Modern hosts obey the C Standard,
++** only if isascii(C) || C == EOF. Modern hosts obey the C Standard,
+ ** which says they are defined only if C == ((unsigned char) C) || C == EOF.
+ ** Neither the C Standard nor Posix require that `isascii' exist.
+ ** For portability, we check both ancient and modern requirements.
+@@ -54,7 +56,7 @@
+ 	const char *	r_abbrvar;	/* variable part of abbreviation */
+ 
+ 	int		r_todo;		/* a rule to do (used in outzone) */
+-	time_t		r_temp;		/* used in outzone */
++	zic_t		r_temp;		/* used in outzone */
+ };
+ 
+ /*
+@@ -80,7 +82,7 @@
+ 	int		z_nrules;
+ 
+ 	struct rule	z_untilrule;
+-	time_t		z_untiltime;
++	zic_t		z_untiltime;
+ };
+ 
+ extern int	getopt P((int argc, char * const argv[],
+@@ -89,10 +91,10 @@
+ extern char *	optarg;
+ extern int	optind;
+ 
+-static void	addtt P((time_t starttime, int type));
++static void	addtt P((zic_t starttime, int type));
+ static int	addtype P((long gmtoff, const char * abbr, int isdst,
+ 				int ttisstd, int ttisgmt));
+-static void	leapadd P((time_t t, int positive, int rolling, int count));
++static void	leapadd P((zic_t t, int positive, int rolling, int count));
+ static void	adjleap P((void));
+ static void	associate P((void));
+ static int	ciequal P((const char * ap, const char * bp));
+@@ -125,30 +127,30 @@
+ static void	outzone P((const struct zone * zp, int ntzones));
+ static void	puttzcode P((long code, FILE * fp));
+ static int	rcomp P((const void * leftp, const void * rightp));
+-static time_t	rpytime P((const struct rule * rp, int wantedy));
++static zic_t	rpytime P((const struct rule * rp, int wantedy));
+ static void	rulesub P((struct rule * rp,
+ 			const char * loyearp, const char * hiyearp,
+ 			const char * typep, const char * monthp,
+ 			const char * dayp, const char * timep));
+ static void	setboundaries P((void));
+-static time_t	tadd P((time_t t1, long t2));
++static zic_t	tadd P((zic_t t1, long t2));
+ static void	usage P((void));
+ static void	writezone P((const char * name));
+ static int	yearistype P((int year, const char * type));
+ 
+-#if !(HAVE_STRERROR - 0)
++#if !HAVE_STRERROR
+ static char *	strerror P((int));
+-#endif /* !(HAVE_STRERROR - 0) */
++#endif /* !HAVE_STRERROR */
+ 
+ static int		charcnt;
+ static int		errors;
+ static const char *	filename;
+ static int		leapcnt;
+ static int		linenum;
+-static time_t		max_time;
++static zic_t		max_time;
+ static int		max_year;
+ static int		max_year_representable;
+-static time_t		min_time;
++static zic_t		min_time;
+ static int		min_year;
+ static int		min_year_representable;
+ static int		noise;
+@@ -338,7 +340,7 @@
+ };
+ 
+ static struct attype {
+-	time_t		at;
++	zic_t		at;
+ 	unsigned char	type;
+ }			attypes[TZ_MAX_TIMES];
+ static long		gmtoffs[TZ_MAX_TYPES];
+@@ -347,7 +349,7 @@
+ static char		ttisstds[TZ_MAX_TYPES];
+ static char		ttisgmts[TZ_MAX_TYPES];
+ static char		chars[TZ_MAX_CHARS];
+-static time_t		trans[TZ_MAX_LEAPS];
++static zic_t		trans[TZ_MAX_LEAPS];
+ static long		corr[TZ_MAX_LEAPS];
+ static char		roll[TZ_MAX_LEAPS];
+ 
+@@ -378,7 +380,7 @@
+ ** Error handling.
+ */
+ 
+-#if !(HAVE_STRERROR - 0)
++#if !HAVE_STRERROR
+ static char *
+ strerror(errnum)
+ int	errnum;
+@@ -389,7 +391,7 @@
+ 	return (errnum > 0 && errnum <= sys_nerr) ?
+ 		sys_errlist[errnum] : _("Unknown system error");
+ }
+-#endif /* !(HAVE_STRERROR - 0) */
++#endif /* !HAVE_STRERROR */
+ 
+ static void
+ eats(name, num, rname, rnum)
+@@ -446,7 +448,9 @@
  static void
  usage P((void))
  {
 -	(void) fprintf(stderr, _("%s: usage is %s [ -s ] [ -v ] [ -l localtime ] [ -p posixrules ] \\\n\t[ -d directory ] [ -L leapseconds ] [ -y yearistype ] [ filename ... ]\n"),
-+	(void) fprintf(stderr, _("%s: usage is %s [ --version ] [ -s ] [ -v ] [ -l localtime ] [ -p posixrules ] \\\n\t[ -d directory ] [ -L leapseconds ] [ -y yearistype ] [ filename ... ]\n"),
++	(void) fprintf(stderr, _("%s: usage is %s \
++[ --version ] [ -s ] [ -v ] [ -l localtime ] [ -p posixrules ] \\\n\
++\t[ -d directory ] [ -L leapseconds ] [ -y yearistype ] [ filename ... ]\n"),
  		progname, progname);
  	(void) exit(EXIT_FAILURE);
  }
-@@ -479,6 +475,11 @@
+@@ -470,15 +474,20 @@
+ #ifdef unix
+ 	(void) umask(umask(S_IWGRP | S_IWOTH) | (S_IWGRP | S_IWOTH));
+ #endif /* defined unix */
+-#if HAVE_GETTEXT - 0
++#if HAVE_GETTEXT
+ 	(void) setlocale(LC_CTYPE, "");
+ 	(void) setlocale(LC_MESSAGES, "");
+ #ifdef TZ_DOMAINDIR
+ 	(void) bindtextdomain(TZ_DOMAIN, TZ_DOMAINDIR);
+ #endif /* defined TEXTDOMAINDIR */
  	(void) textdomain(TZ_DOMAIN);
- #endif /* HAVE_GETTEXT - 0 */
+-#endif /* HAVE_GETTEXT - 0 */
++#endif /* HAVE_GETTEXT */
  	progname = argv[0];
 +	for (i = 1; i < argc; ++i)
 +		if (strcmp(argv[i], "--version") == 0) {
@@ -1902,7 +3118,124 @@ diff -Nuar timezone.org/zic.c timezone/zic.c
  	while ((c = getopt(argc, argv, "d:l:p:L:vsy:")) != EOF && c != -1)
  		switch (c) {
  			default:
-@@ -941,6 +942,8 @@
+@@ -573,6 +582,11 @@
+ 	for (i = 0; i < nlinks; ++i) {
+ 		eat(links[i].l_filename, links[i].l_linenum);
+ 		dolink(links[i].l_from, links[i].l_to);
++		if (noise)
++			for (j = 0; j < nlinks; ++j)
++				if (strcmp(links[i].l_to,
++					links[j].l_from) == 0)
++						warning(_("link to link"));
+ 	}
+ 	if (lcltime != NULL) {
+ 		eat("command line", 1);
+@@ -620,32 +634,27 @@
+ 			(void) exit(EXIT_FAILURE);
+ 
+ 		result = link(fromname, toname);
+-#if (HAVE_SYMLINK - 0)
++#if HAVE_SYMLINK
+ 		if (result != 0 &&
+-		    access(fromname, F_OK) == 0 &&
+-		    !itsdir(fromname)) {
+-		        const char *s = tofile;
+-		        register char * symlinkcontents = NULL;
+-		        while ((s = strchr(s+1, '/')) != NULL)
+-			        symlinkcontents = ecatalloc(symlinkcontents, "../");
+-			symlinkcontents = ecatalloc(symlinkcontents, fromname);
+-
+-			result = unlink(toname);
+-			if (result != 0 && errno != ENOENT) {
+-				const char *e = strerror(errno);
+-
+-				(void) fprintf(stderr,
+-					       _("%s: Can't unlink  %s: %s\n"),
+-					       progname, toname, e);
+-				(void) exit(EXIT_FAILURE);
+-			}
+-
+-			result = symlink(symlinkcontents, toname);
+-			if (result == 0)
++			access(fromname, F_OK) == 0 &&
++			!itsdir(fromname)) {
++				const char *s = tofile;
++				register char * symlinkcontents = NULL;
++
++				while ((s = strchr(s+1, '/')) != NULL)
++					symlinkcontents =
++						ecatalloc(symlinkcontents,
++						"../");
++					symlinkcontents =
++						ecatalloc(symlinkcontents,
++						fromfile);
++					result = symlink(symlinkcontents,
++						toname);
++					if (result == 0)
+ warning(_("hard link failed, symbolic link used"));
+-			ifree(symlinkcontents);
++					ifree(symlinkcontents);
+ 		}
+-#endif
++#endif /* HAVE_SYMLINK */
+ 		if (result != 0) {
+ 			const char *e = strerror(errno);
+ 
+@@ -675,25 +684,36 @@
+ */
+ 
+ #define MAX_BITS_IN_FILE	32
+-#define TIME_T_BITS_IN_FILE	((TYPE_BIT(time_t) < MAX_BITS_IN_FILE) ? TYPE_BIT(time_t) : MAX_BITS_IN_FILE)
++#define TIME_T_BITS_IN_FILE	((TYPE_BIT(zic_t) < MAX_BITS_IN_FILE) ? \
++					TYPE_BIT(zic_t) : MAX_BITS_IN_FILE)
+ 
+ static void
+ setboundaries P((void))
+ {
+-	if (TYPE_SIGNED(time_t)) {
+-		min_time = ~ (time_t) 0;
+-		min_time <<= TIME_T_BITS_IN_FILE - 1;
+-		max_time = ~ (time_t) 0 - min_time;
++	register int	i;
++
++	if (TYPE_SIGNED(zic_t)) {
++		min_time = -1;
++		for (i = 0; i < TIME_T_BITS_IN_FILE - 1; ++i)
++			min_time *= 2;
++		max_time = -(min_time + 1);
+ 		if (sflag)
+ 			min_time = 0;
+ 	} else {
+ 		min_time = 0;
+ 		max_time = 2 - sflag;
+-		max_time <<= TIME_T_BITS_IN_FILE - 1;
++		for (i = 0; i < TIME_T_BITS_IN_FILE - 1; ++i)
++			max_time *= 2;
+ 		--max_time;
+ 	}
+-	min_year = TM_YEAR_BASE + gmtime(&min_time)->tm_year;
+-	max_year = TM_YEAR_BASE + gmtime(&max_time)->tm_year;
++	{
++		time_t	t;
++
++		t = (time_t) min_time;
++		min_year = TM_YEAR_BASE + gmtime(&t)->tm_year;
++		t = (time_t) max_time;
++		max_year = TM_YEAR_BASE + gmtime(&t)->tm_year;
++	}
+ 	min_year_representable = min_year;
+ 	max_year_representable = max_year;
+ }
+@@ -792,7 +812,7 @@
+ 			*/
+ 			eat(zp->z_filename, zp->z_linenum);
+ 			zp->z_stdoff = gethms(zp->z_rule, _("unruly zone"),
+-					      TRUE);
++				TRUE);
+ 			/*
+ 			** Note, though, that if there's no rule,
+ 			** a '%s' in the format is a bad thing.
+@@ -941,6 +961,8 @@
  			error(errstring);
  			return 0;
  	}
@@ -1911,7 +3244,49 @@ diff -Nuar timezone.org/zic.c timezone/zic.c
  	return eitol(sign) *
  		(eitol(hh * MINSPERHOUR + mm) *
  		eitol(SECSPERMIN) + eitol(ss));
-@@ -1165,14 +1168,15 @@
+@@ -1093,7 +1115,9 @@
+ 			zones[nzones - 1].z_untiltime > min_time &&
+ 			zones[nzones - 1].z_untiltime < max_time &&
+ 			zones[nzones - 1].z_untiltime >= z.z_untiltime) {
+-				error(_("Zone continuation line end time is not after end time of previous line"));
++				error(_(
++"Zone continuation line end time is not after end time of previous line"
++					));
+ 				return FALSE;
+ 		}
+ 	}
+@@ -1117,7 +1141,7 @@
+ 	register int			i, j;
+ 	int				year, month, day;
+ 	long				dayoff, tod;
+-	time_t				t;
++	zic_t				t;
+ 
+ 	if (nfields != LEAP_FIELDS) {
+ 		error(_("wrong number of fields on Leap line"));
+@@ -1126,11 +1150,11 @@
+ 	dayoff = 0;
+ 	cp = fields[LP_YEAR];
+ 	if (sscanf(cp, scheck(cp, "%d"), &year) != 1) {
+-			/*
+-			 * Leapin' Lizards!
+-			 */
+-			error(_("invalid leaping year"));
+-			return;
++		/*
++		** Leapin' Lizards!
++		*/
++		error(_("invalid leaping year"));
++		return;
+ 	}
+ 	j = EPOCH_YEAR;
+ 	while (j != year) {
+@@ -1161,18 +1185,19 @@
+ 			return;
+ 	}
+ 	dayoff = oadd(dayoff, eitol(day - 1));
+-	if (dayoff < 0 && !TYPE_SIGNED(time_t)) {
++	if (dayoff < 0 && !TYPE_SIGNED(zic_t)) {
  		error(_("time before zero"));
  		return;
  	}
@@ -1923,17 +3298,28 @@ diff -Nuar timezone.org/zic.c timezone/zic.c
 -		error(_("time overflow"));
 +	if (dayoff < min_time / SECSPERDAY) {
 +		error(_("time too small"));
- 		return;
- 	}
-+	if (dayoff > max_time / SECSPERDAY) {
-+		error(_("time too large"));
 +		return;
 +	}
-+	t = (time_t) dayoff * SECSPERDAY;
++	if (dayoff > max_time / SECSPERDAY) {
++		error(_("time too large"));
+ 		return;
+ 	}
++	t = (zic_t) dayoff * SECSPERDAY;
  	tod = gethms(fields[LP_TIME], _("invalid time of day"), FALSE);
  	cp = fields[LP_CORR];
  	{
-@@ -1325,9 +1329,9 @@
+@@ -1196,7 +1221,9 @@
+ 			return;
+ 		}
+ 		if ((lp = byword(fields[LP_ROLL], leap_types)) == NULL) {
+-			error(_("illegal Rolling/Stationary field on Leap line"));
++			error(_(
++				"illegal Rolling/Stationary field on Leap line"
++				));
+ 			return;
+ 		}
+ 		leapadd(tadd(t, tod), positive, lp->l_value, count);
+@@ -1325,9 +1352,9 @@
  		return;
  	} else if (noise) {
  		if (rp->r_loyear < min_year_representable)
@@ -1945,27 +3331,182 @@ diff -Nuar timezone.org/zic.c timezone/zic.c
  	}
  	if (rp->r_loyear > rp->r_hiyear) {
  		error(_("starting year greater than ending year"));
-@@ -2146,8 +2150,8 @@
+@@ -1434,7 +1461,7 @@
+ 	register int		i, j;
+ 	static char *		fullname;
+ 	static struct tzhead	tzh;
+-	time_t			ats[TZ_MAX_TIMES];
++	zic_t			ats[TZ_MAX_TIMES];
+ 	unsigned char		types[TZ_MAX_TIMES];
+ 
+ 	/*
+@@ -1458,14 +1485,13 @@
+ 			while (fromi < timecnt && attypes[fromi].type == 0)
+ 				++fromi;	/* handled by default rule */
+ 		for ( ; fromi < timecnt; ++fromi) {
+-			if (toi != 0
+-			    && ((attypes[fromi].at
+-				 + gmtoffs[attypes[toi - 1].type])
+-				<= (attypes[toi - 1].at
+-				    + gmtoffs[toi == 1 ? 0
+-					      : attypes[toi - 2].type]))) {
+-				attypes[toi - 1].type = attypes[fromi].type;
+-				continue;
++			if (toi != 0 && ((attypes[fromi].at +
++				gmtoffs[attypes[toi - 1].type]) <=
++				(attypes[toi - 1].at + gmtoffs[toi == 1 ? 0
++				: attypes[toi - 2].type]))) {
++					attypes[toi - 1].type =
++						attypes[fromi].type;
++					continue;
+ 			}
+ 			if (toi == 0 ||
+ 				attypes[toi - 1].type != attypes[fromi].type)
+@@ -1511,7 +1537,8 @@
+ 	convert(eitol(typecnt), tzh.tzh_typecnt);
+ 	convert(eitol(charcnt), tzh.tzh_charcnt);
+ 	(void) strncpy(tzh.tzh_magic, TZ_MAGIC, sizeof tzh.tzh_magic);
+-#define DO(field)	(void) fwrite((void *) tzh.field, (size_t) sizeof tzh.field, (size_t) 1, fp)
++#define DO(field)	(void) fwrite((void *) tzh.field, \
++				(size_t) sizeof tzh.field, (size_t) 1, fp)
+ 	DO(tzh_magic);
+ 	DO(tzh_reserved);
+ 	DO(tzh_ttisgmtcnt);
+@@ -1599,7 +1626,7 @@
+ 	register struct rule *		rp;
+ 	register int			i, j;
+ 	register int			usestart, useuntil;
+-	register time_t			starttime, untiltime;
++	register zic_t			starttime, untiltime;
+ 	register long			gmtoff;
+ 	register long			stdoff;
+ 	register int			year;
+@@ -1668,7 +1695,7 @@
+ 			}
+ 			for ( ; ; ) {
+ 				register int	k;
+-				register time_t	jtime, ktime;
++				register zic_t	jtime, ktime;
+ 				register long	offset;
+ 				char		buf[BUFSIZ];
+ 
+@@ -1730,12 +1757,13 @@
+ 						continue;
+ 					}
+ 					if (*startbuf == '\0' &&
+-					    startoff == oadd(zp->z_gmtoff,
+-					    stdoff)) {
+-						doabbr(startbuf, zp->z_format,
+-							rp->r_abbrvar,
+-							rp->r_stdoff != 0);
+-					}
++						startoff == oadd(zp->z_gmtoff,
++						stdoff))
++							doabbr(startbuf,
++								zp->z_format,
++								rp->r_abbrvar,
++								rp->r_stdoff !=
++								0);
+ 				}
+ 				eats(zp->z_filename, zp->z_linenum,
+ 					rp->r_filename, rp->r_linenum);
+@@ -1780,7 +1808,7 @@
+ 
+ static void
+ addtt(starttime, type)
+-const time_t	starttime;
++const zic_t	starttime;
+ int		type;
+ {
+ 	if (starttime <= min_time ||
+@@ -1864,7 +1892,7 @@
+ 
+ static void
+ leapadd(t, positive, rolling, count)
+-const time_t	t;
++const zic_t	t;
+ const int	positive;
+ const int	rolling;
+ int		count;
+@@ -2026,7 +2054,9 @@
+ 			else while ((*dp = *cp++) != '"')
+ 				if (*dp != '\0')
+ 					++dp;
+-				else	error(_("Odd number of quotation marks"));
++				else	error(_(
++						"Odd number of quotation marks"
++						));
+ 		} while (*cp != '\0' && *cp != '#' &&
+ 			(!isascii(*cp) || !isspace((unsigned char) *cp)));
+ 		if (isascii(*cp) && isspace((unsigned char) *cp))
+@@ -2052,12 +2082,12 @@
+ 	return t;
+ }
+ 
+-static time_t
++static zic_t
+ tadd(t1, t2)
+-const time_t	t1;
++const zic_t	t1;
+ const long	t2;
+ {
+-	register time_t	t;
++	register zic_t	t;
+ 
+ 	if (t1 == max_time && t2 > 0)
+ 		return max_time;
+@@ -2076,14 +2106,14 @@
+ ** 1970, 00:00 LOCAL time - in that year that the rule refers to.
+ */
+ 
+-static time_t
++static zic_t
+ rpytime(rp, wantedy)
+ register const struct rule * const	rp;
+ register const int			wantedy;
+ {
+ 	register int	y, m, i;
+ 	register long	dayoff;			/* with a nod to Margaret O. */
+-	register time_t	t;
++	register zic_t	t;
+ 
+ 	if (wantedy == INT_MIN)
+ 		return min_time;
+@@ -2146,19 +2176,18 @@
  				--i;
  			}
  		if (i < 0 || i >= len_months[isleap(y)][m]) {
 -			error(_("no day in month matches rule"));
 -			(void) exit(EXIT_FAILURE);
 +			if (noise)
-+				warning(_("rule goes past start/end of month--will not work with pre-2004 versions of zic"));
++				warning(_("rule goes past start/end of month--\
++will not work with pre-2004 versions of zic"));
  		}
  	}
- 	if (dayoff < 0 && !TYPE_SIGNED(time_t))
-@@ -2241,5 +2245,5 @@
+-	if (dayoff < 0 && !TYPE_SIGNED(time_t))
++	if (dayoff < 0 && !TYPE_SIGNED(zic_t))
+ 		return min_time;
+ 	if (dayoff < min_time / SECSPERDAY)
+ 		return min_time;
+ 	if (dayoff > max_time / SECSPERDAY)
+ 		return max_time;
+-	t = (time_t) dayoff * SECSPERDAY;
+-	if (t > 0 && max_time - t < rp->r_tod)
+-		return max_time;
++	t = (zic_t) dayoff * SECSPERDAY;
+ 	return tadd(t, rp->r_tod);
+ }
+ 
+@@ -2241,5 +2270,5 @@
  }
  
  /*
 -** UNIX was a registered trademark of UNIX System Laboratories in 1993.
 +** UNIX was a registered trademark of The Open Group in 2003.
  */
-diff -Nuar timezone.org/zone.tab timezone/zone.tab
---- timezone.org/zone.tab	2004-10-14 01:27:07.000000000 +0900
-+++ timezone/zone.tab	2004-07-30 08:40:19.000000000 +0900
+diff -Nuar glibc-2.3.2/timezone/zone.tab glibc-2.3.4/timezone/zone.tab
+--- glibc-2.3.2/timezone/zone.tab	2005-04-10 09:00:31.000000000 +0900
++++ glibc-2.3.4/timezone/zone.tab	2004-10-19 09:45:18.000000000 +0900
 @@ -1,4 +1,4 @@
 -# @(#)zone.tab	1.28
 +# @(#)zone.tab	1.30
