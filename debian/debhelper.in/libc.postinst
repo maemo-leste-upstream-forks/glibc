@@ -229,24 +229,26 @@ then
 	    echo "done."
 	    if [ -n "$services" ]; then
 		echo
-		echo "Name Service Switch has changed in the C Library: post-installation question."
-		echo "Running programs may not be able to do NSS lookups until they are"
-		echo "restarted (for services such as ssh, this can affect your ability to"
-		echo "login)."
+		echo "Name Service Switch update in the C Library: post-installation question."
+		echo
+		echo "Running services and programs that are using NSS need to be restarted,"
+		echo "otherwise they might not be able to do lookup or authentication any more"
+		echo "(for services such as ssh, this can affect your ability to login)."
 		echo "Note: restarting sshd/telnetd should not affect any existing connections."
 		echo
-		echo "The services detected are: $services"
+		echo "The services detected are: "
+		echo "        $services"
 		echo
-		echo "If other services begin to fail mysteriously after this upgrade,"
-		echo "it may be necessary to restart them too.  We strongly recommend"
-		echo "you to reboot your machine to avoid the NSS related trouble."
+		echo "If other services has begun to fail mysteriously after this upgrade, it is"
+		echo "probably necessary to restart them too.  We recommend you to reboot your"
+		echo "machine after the upgrade to avoid the NSS related trouble."
 		echo
 		frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
 		if [ "$frontend" = noninteractive ]; then
 		    echo "Non-interactive mode, restarting services"
 		    answer=yes
 		else
-		    echo -n "Do you wish to Restart Services? [Y/n] "
+		    echo -n "Do you wish to restart services? [Y/n] "
 		    read answer
 		    case $answer in
 			Y*|y*) answer=yes ;;

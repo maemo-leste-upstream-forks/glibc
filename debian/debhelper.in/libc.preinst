@@ -62,34 +62,36 @@ then
 	service=$(dpkg -s $check 2> /dev/null | awk 'BEGIN{RS="\n\n";FS="\n"}{if ( $2 ~ /Status: .* installed$/ ) { print $1 } }' | cut -f 2 -d ' ')
 
 	echo
-	echo "Name Service Switch has changed in the C Library: pre-installation question."
+	echo "Name Service Switch update in the C Library: pre-installation question."
 	echo
-	echo "Running programs may not be able to do NSS lookups until they are restarted."
-	echo "Some services can not accept all authentication after extracting glibc"
-	echo "package into your system.  This script automatically restarts some packages"
-	echo "for example ssh or telnetd, but other packages for example xdm"
-	echo "cannot restart because if it restarts automatically, then your X11 session"
-	echo "is disconnected.  So you have to logout and stop xdm; you have to"
-	echo "restart all such services after upgrading glibc with your hands."
-	echo "Known packages that are needed to stop before installing glibc 2.3:"
+	echo "Running services and programs that are using NSS need to be restarted,"
+	echo "otherwise they might not be able to do lookup or authentication any more."
+	echo "The installation process is able to restart some services (such as ssh or"
+	echo "telnetd), but other programs cannot be restarted automatically.  One such"
+	echo "program that needs manual stopping and restart after the glibc upgrade by"
+	echo "yourself is xdm - because automatic restart might disconnect your active"
+	echo "X11 sessions."
+	echo
+	echo "Known packages that need to be stopped before the glibc upgrade are:"
 	echo "        $check"
-	echo 
 
 	if [ -n "$service" ]; then 
-	    echo "This script detects services which need to stop: $service"
-	    echo "If you are invoking these services, please stop before upgrading."
+	    echo "This script detects the following services which you are required"
+	    echo "to stop before the upgrade:"
+	    echo "        $service"
 	else
-	    echo "This script does not detect services which need to stop."
+	    echo "This script does not detect any services to stop now."
 	fi
-	echo "If you want to stop upgrade for the present, please answer the below"
-	echo "question as No."
+	echo
+	echo "If you want to interrupt the upgrade now and continue later, please"
+	echo "answer No to the question below."
 	echo 
 	frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
 	if [ "$frontend" = noninteractive ]; then
-	    echo "Non-interactive mode, upgrade glibc forcely"
+	    echo "Non-interactive mode, upgrade glibc forcedly"
 	    answer=yes
 	else
-	    echo -n "Do you want to upgrade glibc? [Y/n] "
+	    echo -n "Do you want to upgrade glibc now? [Y/n] "
 	    read answer
 	    case $answer in
 		Y*|y*) answer=yes ;;
@@ -99,8 +101,8 @@ then
 	fi
 	echo
 	if [ "$answer" = no ]; then
-	    echo "Stopped glibc upgrade.  Please retry upgrade after you check"
-	    echo "or stop services with your hands."
+	    echo "Stopped glibc upgrade.  Please retry the upgrade after you have"
+	    echo "checked or stopped services by hand."
 	    exit 1
 	fi
     fi
