@@ -108,8 +108,15 @@ endif
 	dh_compress -p$(curpass)
 	dh_fixperms -p$(curpass) -Xpt_chown
 	# Use this instead of -X to dh_fixperms so that we can use
-	# an unescaped regular expression.
-	find debian/$(curpass) -type f -regex '.*lib.*/ld.*so.*' \
+	# an unescaped regular expression.  ld.so must be executable;
+	# libc.so and NPTL's libpthread.so print useful version
+	# information when executed.
+	# FIXME: LinuxThread's libpthread.so doesn't.  It would be good
+	# to either fix that, or use a more robust method than searching
+	# for /tls/ in the path to identify NPTL.
+	find debian/$(curpass) -type f \( -regex '.*lib.*/ld.*so.*' \
+		-o -regex '.*lib.*/tls/.*libpthread.*so.*' \
+		-o -regex '.*lib.*/libc[.-].*so.*' \) \
 		-exec chmod a+x '{}' ';'
 	dh_makeshlibs -p$(curpass) -V "$(call xx,shlib_dep)"
 
@@ -130,7 +137,9 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): $(stamp)debhelper
 	dh_strip -p$(curpass)
 	dh_compress -p$(curpass)
 	dh_fixperms -p$(curpass)
-	find debian/$(curpass) -type f -regex '.*lib.*/ld.*so.*' \
+	find debian/$(curpass) -type f \( -regex '.*lib.*/ld.*so.*' \
+		-o -regex '.*lib.*/tls/.*libpthread.*so.*' \
+		-o -regex '.*lib.*/libc[.-].*so.*' \) \
 		-exec chmod a+x '{}' ';'
 	# dh_makeshlibs -p$(curpass) -V "$(call xx,shlib_dep)"
 	dh_installdeb -p$(curpass)
