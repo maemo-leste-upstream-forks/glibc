@@ -1,0 +1,61 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Fix ASM_LINE_SEP on hppa
+# DP: Related bugs: 
+# DP: Dpatch author: GOTO Masanori <gotom@debian.org>
+# DP: Patch author: GOTO Masanori <gotom@debian.org>
+# DP: Upstream status: In CVS
+# DP: Status Details:
+# DP: Date: 2005-03-08
+
+PATCHLEVEL=0
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+2005-03-08  GOTO Masanori  <gotom@debian.or.jp>
+
+	* sysdeps/hppa/configure.in: Remove old Makefile leavings.
+	* sysdeps/hppa/configure: Regenerated.
+
+Index: sysdeps/hppa/configure.in
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/hppa/configure.in,v
+retrieving revision 1.1
+diff -u -p -r1.1 configure.in
+--- sysdeps/hppa/configure.in	26 Oct 2004 01:35:53 -0000	1.1
++++ sysdeps/hppa/configure.in	8 Mar 2005 04:29:14 -0000
+@@ -2,7 +2,6 @@ GLIBC_PROVIDES dnl See aclocal.m4 in the
+ 
+ dnl The standard hppa assembler uses `;' to start comments and `!'
+ dnl as a line separator.
+-hppa*linux*)
+ AC_CACHE_CHECK(for assembler line separator,
+ 	       libc_cv_asm_line_sep, [dnl
+ cat > conftest.s <<EOF
+Index: sysdeps/hppa/configure
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/hppa/configure,v
+retrieving revision 1.1
+diff -u -p -r1.1 configure
+--- sysdeps/hppa/configure	26 Oct 2004 01:35:53 -0000	1.1
++++ sysdeps/hppa/configure	8 Mar 2005 04:29:14 -0000
+@@ -1,6 +1,5 @@
+ # This file is generated from configure.in by Autoconf.  DO NOT EDIT!
+ 
+-hppa*linux*)
+ echo "$as_me:$LINENO: checking for assembler line separator" >&5
+ echo $ECHO_N "checking for assembler line separator... $ECHO_C" >&6
+ if test "${libc_cv_asm_line_sep+set}" = set; then

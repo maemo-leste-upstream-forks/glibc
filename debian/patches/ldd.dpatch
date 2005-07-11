@@ -2,6 +2,9 @@
 
 # All lines beginning with `# DP:' are a description of the patch.
 # DP: Make ldd handle non-executable shared objects
+# DP: 
+# DP: Updated by gotom, it's nice to merge to the upstream after my review.
+# Date: (Updated 2004-01-02 gotom)
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
@@ -16,9 +19,14 @@ case "$1" in
 esac
 exit 0
 
---- elf/ldd.bash.in~	Tue Apr  3 21:43:31 2001
-+++ elf/ldd.bash.in	Tue Apr  3 21:54:15 2001
-@@ -32,6 +32,7 @@
+Index: elf/ldd.bash.in
+===================================================================
+RCS file: /cvs/glibc/libc/elf/ldd.bash.in,v
+retrieving revision 1.33
+diff -u -r1.33 ldd.bash.in
+--- elf/ldd.bash.in	8 Dec 2004 22:08:47 -0000	1.33
++++ elf/ldd.bash.in	2 Jan 2005 09:03:01 -0000
+@@ -31,6 +31,7 @@
  warn=
  bind_now=
  verbose=
@@ -26,7 +34,7 @@ exit 0
  
  while test $# -gt 0; do
    case "$1" in
-@@ -123,8 +124,11 @@
+@@ -148,8 +149,11 @@
      echo "ldd: ${file}:" $"No such file or directory" >&2
      result=1
    elif test -r "$file"; then
@@ -40,17 +48,17 @@ exit 0
      RTLD=
      for rtld in ${RTLDLIST}; do
        if test -x $rtld; then
-@@ -143,7 +147,12 @@
-     fi
-     case $ret in
-     0)
--      eval $add_env '"$file"' || result=1
+@@ -171,7 +175,12 @@
+       # If the program exits with exit code 5, it means the process has been
+       # invoked with __libc_enable_secure.  Fall back to running it through
+       # the dynamic linker.
+-      try_trace "$file"
 +      if [ ! -x "$file" ] && eval file -L "$file" 2>/dev/null \
 +      | sed 10q | egrep "$file_magic_regex" > /dev/null; then
-+        eval $add_env ${RTLD} '"$file"' || result=1
++	try_trace "${RTLD}" "$file"
 +      else
-+        eval $add_env '"$file"' || result=1
++	try_trace "$file"
 +      fi
-       ;;
-     1)
-       # This can be a non-ELF binary or no binary at all.
+       rc=$?
+       if [ $rc = 5 ]; then
+ 	try_trace "$RTLD" "$file"

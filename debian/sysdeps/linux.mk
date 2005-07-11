@@ -1,4 +1,4 @@
-GLIBC_OVERLAYS ?= $(shell ls nptl* glibc-linuxthreads*)
+GLIBC_OVERLAYS ?= $(shell ls nptl* glibc-linuxthreads* glibc-ports* glibc-libidn*)
 MIN_KERNEL_SUPPORTED := 2.2.0
 libc = libc6
 

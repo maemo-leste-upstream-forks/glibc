@@ -7,7 +7,7 @@
 # DP: Patch author: Randolph Chung <tausq@debian.org>
 # DP: Upstream status: Pending
 # DP: Status Details: 
-# DP: Date: Thu, 09 Dec 2004 12:01:12 -0800
+# DP: Date: Thu, 09 Dec 2004 12:01:12 -0800, (Updated 2005-01-02 gotom)
 
 
 if [ $# -ne 2 ]; then
@@ -23,20 +23,28 @@ case "$1" in
 esac
 exit 0
 
+2005-01-02  GOTO Masanori  <gotom@debian.org>
+
+	* sysdeps/unix/sysv/linux/kernel-features.h: Regenerated.
+
 2004-12-09  Randolph Chung  <tausq@debian.org>
 
 	* sysdeps/unix/sysv/linux/kernel-features.h (__ASSUME_UTIMES): Don't
 	define for hppa, which doesn't support this syscall.
 
---- glibc-2.3.2/sysdeps/unix/sysv/linux/kernel-features.h.orig	2004-12-09 11:59:32.138873056 -0800
-+++ glibc-2.3.2/sysdeps/unix/sysv/linux/kernel-features.h	2004-12-09 11:59:49.386251056 -0800
-@@ -351,7 +351,7 @@
- 
+Index: sysdeps/unix/sysv/linux/kernel-features.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/kernel-features.h,v
+retrieving revision 1.81
+diff -u -r1.81 kernel-features.h
+--- glibc-20041227/sysdeps/unix/sysv/linux/kernel-features.h	24 Nov 2004 04:36:11 -0000	1.81
++++ glibc-20041227/sysdeps/unix/sysv/linux/kernel-features.h	2 Jan 2005 12:19:13 -0000
+@@ -361,7 +361,7 @@
  /* The utimes syscall has been available for some architectures
-    forever.  For x86 it was introduced after 2.5.75.  */
+    forever.  For x86 it was introduced after 2.5.75, for x86-64 in
+    2.6.0-test3.  */
 -#if defined __alpha__ || defined __ia64__ || defined __hppa__ \
 +#if defined __alpha__ || defined __ia64__ \
      || defined __sparc__ \
-     || (__LINUX_KERNEL_VERSION > 132427 && defined __i386__)
- # define __ASSUME_UTIMES	1
-
+     || (__LINUX_KERNEL_VERSION > 132427 && defined __i386__) \
+     || (__LINUX_KERNEL_VERSION > 132609 && defined __x86_64__) \

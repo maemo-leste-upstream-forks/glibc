@@ -1,0 +1,47 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Fix m68k compilation to remove linuxthreads o-iterator.
+# DP: Related bugs: 
+# DP: Dpatch author: GOTO Masanori <gotom@debian.org>
+# DP: Patch author: GOTO Masanori <gotom@debian.org>
+# DP: Upstream status: Not submitted
+# DP: Status Details: Will be submitted.
+# DP: Date: 2005-03-16
+
+PATCHLEVEL=0
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+2004-12-17  GOTO Masanori  <gotom@debian.or.jp>
+
+	* linuxthreads/sysdeps/m68k/Makefile: Removed to delete unneeded
+	o-iterator which adds for -fPIC.
+
+Index: linuxthreads/sysdeps/m68k/Makefile
+===================================================================
+RCS file: /cvs/glibc/libc/linuxthreads/sysdeps/m68k/Makefile,v
+retrieving revision 1.1
+diff -u -r1.1 Makefile
+--- linuxthreads/sysdeps/m68k/Makefile	5 Jan 2003 17:15:43 -0000	1.1
++++ /dev/null	16 Dec 2004 16:53:06 -0000
+@@ -1,7 +0,0 @@
+-ifeq ($(subdir), linuxthreads)
+-object-suffixes-left := $(libpthread-nonshared)
+-define o-iterator-doit
+-$(objpfx)$o.os: pic-ccflag = -fPIC
+-endef
+-include $(o-iterator)
+-endif

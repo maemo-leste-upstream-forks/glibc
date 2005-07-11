@@ -26,7 +26,7 @@ is_entry_ok() {
   fi
 }
 
-echo "Generating locales..."
+echo "Generating locales (this might take a while)..."
 while read locale charset; do \
 	case $locale in \#*) continue;; "") continue;; esac; \
 	is_entry_ok || continue
@@ -36,7 +36,7 @@ while read locale charset; do \
 	echo -n '...'; \
         if [ -f $LOCALES/$locale ]; then input=$locale; else \
         input=`echo $locale | sed 's/\([^.]*\)[^@]*\(.*\)/\1\2/'`; fi; \
-	localedef -i $input -c -f $charset -A /etc/locale.alias $locale; \
+	localedef -i $input -c -f $charset -A /usr/share/locale/locale.alias $locale; \
 	echo ' done'; \
 done < $LOCALEGEN
 echo "Generation complete."

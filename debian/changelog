@@ -1,12 +1,286 @@
-glibc (2.3.2.ds1-23) unstable; urgency=low
+glibc (2.3.5-2) experimental; urgency=low
 
   * GOTO Masanori <gotom@debian.org>
 
-    - Clytie Siddall <clytie@riverland.net.au>:
-      - debian/po/vi.po: Add the Vietnamese translation for locales.
-        (Closes: #309618)
+    * Move /etc/locale.alias to /usr/share/locale/locale.alias.
+      Don't install locale.alias.5.  (Closes: #144670, #185991, #298784)
+      - debian/local/usr_sbin/locale-gen: Use /usr/share/locale/locale.alias
+        instead of /etc/locale.alias.
+      - debian/local/manpages/locale-gen.8: Delete reference to
+        locale.alias.5.
+      - debian/local/manpages/locale.gen.5: Likewise.
+      - debian/debhelper.in/locales.links: Remove file, don't link to /etc.
+      - debian/debhelper.in/locales.install: Install locale.alias under 
+        /usr/share/locale, not /etc/.
+      - debian/debhelper.in/locales.manpages: Don't install locale.alias.5
 
- -- GOTO Masanori <gotom@debian.org>  Fri,  3 Jun 2005 11:11:42 +0900
+    * Add documents:
+      - debian/debhelper.in/libc.docs: Add CONFORMANCE and NAMESPACE.
+
+    * Fix messages to add a patience message.  (Closes: #305400)
+      - debian/local/usr_sbin/locale-gen
+
+    * Move sprof from libc-prof to libc-dev.  (Closes: #280030)
+      - debian/sysdeps/depflags.pl: Add Replaces: libc-dev (<< 2.3.5-2).
+      - debian/debhelper.in/libc-prof.install: Remove sprof install.
+      - debian/debhelper.in/libc-dev.install: Install sprof moved from -prof.
+      - debian/debhelper.in/libc-dev.install.hurd-i386: Likewise.
+      - debian/debhelper.in/libc-dev.manpages: Add sprof.1 install.
+      - debian/debhelper.in/libc-prof.manpages: Remove file, don't install
+        sprof.1.
+
+    * Remove Depends: lib64gcc1 from libc6-sparc64.  (Closes: #258647)
+      - debian/control.in/sparc64: Delete Depends: lib64gcc1.
+      - debian/control: Likewise.
+
+    * Small change for libc6 upgrade problem.
+      - debian/debhelper.in/libc.postrm: Add plain messages and clean up.
+
+    * Add conflicts to old initrd-tools for avoiding new glibc 2.3.4/5 ldd
+      blocks to generate initrd images.  Suggested by Goswin von Brederlow
+      <brederlo@informatik.uni-tuebingen.de>.
+      - debian/sysdeps/depflags.pl: Add conflicts initrd-tools (<< 0.1.79).
+
+    * debian/sysdeps/hppa.mk: Add /usr/hppa64-linux-gnu/include symlinks for
+      dpkg-architecture changes.  Reported by Matthias Klose
+      <doko@cs.tu-berlin.de>.  (Closes: #313404)
+
+    * A Costa <agcosta@gis.net>.  (Closes: #305662, #305666)
+      - debian/local/manpages/tzconfig.8: Fixed typo.
+      - debian/local/manpages/ldconfig.8: Likewise.
+
+    * Clytie Siddall <clytie@riverland.net.au>:
+      - debian/po/vi.po: Add the Vietnamese translation for locales.
+        (Closes: #309618, 311793)
+
+    * Jens Seidel <jensseidel@users.sf.net>:
+      - debian/po/de.po: Fix typo.  (Closes: #314084)
+
+ -- GOTO Masanori <gotom@debian.org>  Thu, 21 Apr 2005 16:52:36 +0900
+
+glibc (2.3.5-1) experimental; urgency=low
+
+  * GOTO Masanori <gotom@debian.org>
+
+    * New upstream release.
+      - debian/shlibver: Bump up to 2.3.5-1.
+
+    * Drop patches:
+      - debian/patches/hurd-malloc.dpatch: Removed, it's already applied in
+        the upstream source.
+
+    * Merge with 2.3.2.ds1-21, added:
+      - debian/patches/linuxthreads-sizefix.dpatch: Added.
+      - debian/po/fi.po: Added.
+      - debian/patches/glibc23-mips-lazy-eval.dpatch: Added, drop dl-machine.h
+        because the recent upstream should not need such change.
+      - debian/patches/glibc232-tls-crashfix.dpatch: Added, remove some parts
+        that are applied in the recent version.
+
+    * Merge with 2.3.2.ds1-21, changed:
+      - debian/debhelper.in/libc.preinst: Fix typo, proofreading.
+      - debian/debhelper.in/libc.preinst: Add export LC_ALL=C.
+      - debian/patches/00list: Update.
+
+    * Update linuxthreads size fix for not only ia64, but also alpha,
+      amd64, i386, powerpc, s390, sh and sparc.
+      - debian/patches/linuxthreads-sizefix.dpatch: Update.
+
+    * Fix more libc6 upgrade problem from old <= 2.3.4-1:
+      - debian/debhelper.in/libc.postinst: Don't use uname -m, use
+        dpkg --print-installation-architecture.  Hwcappkgs mechanism does not
+        work on (ex:) install architecture: i386, kernel architecture: amd64.
+      - debian/debhelper.in/libc.postrm: Likewise.
+
+    * Support libc6-dev NPTL static libraries and headers into
+      /usr/lib/nptl and /usr/include/nptl.  (Closes: #276062, #279423)
+      - debian/rules.d/build.mk: Add installation code from tmp-nptl to
+        tmp-libc.
+      - debian/debhelper.in/libc-dev.install: Add tmp-libc/usr/lib/nptl*.
+
+ -- GOTO Masanori <gotom@debian.org>  Sun, 10 Apr 2005 14:02:19 +0900
+
+glibc (2.3.4-3) experimental; urgency=low
+
+  * GOTO Masanori <gotom@debian.org>
+
+    * The complete libc6 installation breakage is fixed when hwcap packages
+      (libc6-i686 and libc6-sparcv9/sparcv9b) is installed.  It introduced
+      /etc/ld.so.hwcappkgs to track hwcap packages.
+      - debian/debhelper.in/libc.postinst: Create /etc/ld.so.hwcappkgs if
+        such file is not existed.  Check hwcap packages and decide to keep
+        /etc/ld.so.nohwcap.  Put special ld.so.nohwcap string when the
+        downgraded version does not support ld.so.hwcappkgs.
+      - debian/debhelper.in/libc-otherbuild.postinst: When it's configured,
+        check /etc/ld.so.hwcappkgs and decides to keep /etc/ld.so.nohwcap.
+      - debian/debhelper.in/libc-otherbuild.postrm: When it's removed,
+        check /etc/ld.so.hwcappkgs and search other hwcap package's version
+        consistency.  Then it decides to remove /etc/ld.so.nohwcap.
+      - debian/debhelper.in/libc.postrm: Leave /etc/ld.so.nohwcap if it's
+        downgrade to hwcappkgs incompatible version.
+      - debian/rules.d/debhelper.mk: Include "libc-" into OPT string
+        replacement.
+
+ -- GOTO Masanori <gotom@debian.org>  Tue, 29 Mar 2005 17:22:25 +0900
+
+glibc (2.3.4-2) experimental; urgency=low
+
+  * GOTO Masanori <gotom@debian.org>
+
+    * Fix libc6 installation breakage when old libc6 and libc6-i686 was
+      installed, and it's replaced with a new libc6.  This fix is limited
+      for i686 optimized package, not for sparc multiple opt packages.
+      (Closes: #300806, #300842)
+      - debian/debhelper.in/libc.postinst: Add check for the existence of
+        multiple optimized packages.
+      - debian/rules.d/debhelper.mk: Add the replace code from CURRENT_VER
+        to $(DEB_VERSION) for libc.postinst.  Install libc-otherbuild.postrm.
+      - debian/debhelper.in/libc-otherbuild.postrm: Added to remove
+        unneeded ld.so.nohwcap for single optimized package.
+
+ -- GOTO Masanori <gotom@debian.org>  Tue, 22 Mar 2005 11:17:32 +0900
+
+glibc (2.3.4-1) experimental; urgency=low
+
+  * GOTO Masanori <gotom@debian.org>
+
+    * Reflect from glibc-snapshot package 2.3.4-0.3.snapshot20041220.2.
+
+    * Add glibc-libidn package handling for the following files: 
+      - debian/sysdeps/gnu.mk
+      - debian/sysdeps/linux.mk
+      - debian/sysdeps/kfreebsd-gnu.mk
+      - debian/rules
+
+    * Add separated shlibver file:
+      - debian/rules: Include debian/shlibver.
+      - debian/shlibver: Bump up shlibver to 2.3.4-1.
+
+    * Delete removed file info/libc-dir-add.info:
+      - debian/debhelper.in/glibc-doc.install
+      - debian/rules.d/build.mk
+
+    * These dpatches are added in debian/patches/:
+      - glibc234-alpha-xstat.dpatch: Fix alpha compilation failure when
+        kernel headers < 2.6.4 is used.
+      - glibc234-hppa-linesep.dpatch: Add to fix hppa compilation failure.
+      - glibc234-hppa-remove-mallocdef.dpatch: Add to
+        fix hppa compilation breakage until ldcw lock change is introduced.
+        This patch will be removed when ldcw patch is revised to apply.
+      - glibc234-m68k-linuxthreads-fPIC.dpatch: Add to fix m68k compilation
+        warnings to remove linuxthreads o-iterator.
+      - glibc234-hppa-full-nptl-2004-12-20.dpatch: Remove in-cvs parts, 
+        apply the remained stuff for hppa, except for ldcw lock change.
+        This file is renamed from 50_glibc232-hppa-full-nptl-2003-10-22.dpatch.
+
+    * These dpatches are modified/replaced with the newer patches in
+      debian/patches/:
+      - glibc-i686-timing.dpatch: Modify makefile.  Fix i686 library breakage.
+      - glibc23-cmov.dpatch: Drop additional TLS parts.
+      - glibc23-sse-oldkernel.dpatch: Regenerated.
+      - hppa-drop-utimes.dpatch: Regenerated.
+      - ldconfig.dpatch: The previous patch seems being wrong because it
+        supresses all warnings about error.  The new patch I introduced should
+        not warn during debootstrap, and works finely during normal operation.
+      - ldd.dpatch: Regenerated.
+      - ldso-disable-hwcap.dpatch: Regenerated.
+      - locale-no_NO.dpatch: Drop locale.alias part which is already applied.
+      - makeconfig.dpatch: Regenerated.
+      - 50_glibc232-arm-dwarf2-buildfix.dpatch: Modify to fix sjlj compilation.
+      - 50_glibc232-m68k-dwarf2-buildfix.dpatch: Likewise.
+
+    * These dpatches are currently suspended to apply (those entries in
+      00list are commented out) with various reasons, they need update or
+      confirmation:
+      - 30_glibc232-base.dpatch: If this patch is needed, the another
+        binutils related problem should be occured.  It's disabled for a
+        while, then remove iff no problem is reported.
+      - alpha-pic.dpatch: #175511 said the upstream should have another 
+        different fix.  After confirmation, it should be removed.
+      - arm-output-format.dpatch: I believe the recent arm glibc should work
+        without this patch.  If arm still has problem, then enable it.
+      - glibc232-globfree-clear.dpatch: The latest upstream has gl_pathv=NULL 
+        part, bug gl_pathc=0 part.  I think the current code is harmless.
+        It needs confirmation to Jeff Licquia.
+      - translation-fr.dpatch: The upstream rejects this wishlist bug.  After 
+        confirmation, it'll be removed.
+      - mips-asm-unistd.dpatch: I need to look at the result of the current cvs
+        unistd.h.
+      - hurd-enable-ldconfig.dpatch: Disabled currently.
+
+    * These dpatches are currently applied, but it may be removed from
+      00list as until sarge stuff:
+      - libgcc-compat-all.dpatch: It'll be removed in future.
+      - libgcc-compat-other.dpatch: Likewise.
+
+    * These dpatches are currently suspended to apply from 00list because
+      we plan to be removed after sarge release:
+      - glibc23-ctype-compat.dpatch: Until sarge stuff.
+      - glibc23-errno-hack.dpatch: Until sarge stuff.
+      - glibc23-errno.dpatch: This patch should not be considered permanent;
+        it may be one of until sarge stuff.
+      - glibc23-function-compat.dpatch: Until sarge stuff.
+      - locales-supported.dpatch: Debian specific, until sarge stuff.
+
+    * This dpatch is not used currently:
+      - 10_cvs.dpatch
+
+    * These dpatches are removed from debian/patches/ because they are already
+      in upstream cvs:
+      - 11_cvs_locales.dpatch
+      - 11_shlib-lds.dpatch
+      - 51_glibc232-hppa-dist.dpatch
+      - 51_glibc232-hppa-nopltrel.dpatch
+      - 51_glibc232-hppa-profiling.dpatch
+      - 52_glibc233-hppa-feupdateenv.dpatch
+      - 90_glibc232-statvfs.dpatch
+      - 90_glibc232-timezones.dpatch
+      - alpha-crti.dpatch
+      - alpha-rtsigaction-fix.dpatch
+      - fno-unit-at-a-time.dpatch
+      - glibc23-dlclose-l_opencount.dpatch
+      - glibc23-libio-compat.dpatch
+      - glibc23-powerpc-sigcontext.dpatch
+      - glibc23-sparc-pread64.dpatch
+      - glibc232-catchsegv-insecure-temp.dpatch
+      - glibc232-hppa-unwindinfo.dpatch
+      - glibc232-ia64-unwindinfo.dpatch
+      - glibc232-iconv-ucs2-unalign.dpatch
+      - glibc232-mips-dl-machine.dpatch
+      - glibc232-misc-syslog.dpatch
+      - glibc232-nptl-posix-timer.dpatch
+      - glibc232-ppc32-nanosecond.dpatch
+      - glibc232-remove-vsyscall.dpatch
+      - glibc232-sparc64-softfp.dpatch
+      - glibcbug.dpatch
+      - hppa-syscall.dpatch
+      - hurd-cleanup.dpatch
+      - hurd-exit-attr-hidden.dpatch
+      - hurd-i386-hwcap.dpatch
+      - hurd-libc-lock.dpatch
+      - hurd-utmp-file.dpatch
+      - locale-byn_ER.dpatch
+      - locale-et_EE.dpatch
+      - locale-ro_RO.dpatch
+      - locale-strfmon.dpatch
+      - mips-sgidefs.dpatch
+      - nptl-io-locking.dpatch
+      - nptl-page-align.dpatch
+      - nptl-pthread-c++.dpatch
+      - nptl-pthread-create-attr.dpatch
+      - nptl-pthread-once.dpatch
+      - pthread-cleanup.dpatch
+      - s390-backtrace.dpatch
+      - s390-pthread-fpic.dpatch
+      - syslog-locale.dpatch
+
+    * Hurd update:
+      - debian/patches/hurd-string.dpatch: Removed, it's already in cvs.
+      - debian/patches/00list.hurd-i386: Removed.
+      - debian/patches/hurd-malloc.dpatch: Add to fix Hurd build fix, patch
+        from Michael Banck <mbanck@debian.org>.
+
+ -- GOTO Masanori <gotom@debian.org>  Fri, 18 Mar 2005 09:41:49 +0900
 
 glibc (2.3.2.ds1-22) unstable; urgency=medium
 
@@ -722,7 +996,7 @@ glibc (2.3.2.ds1-9) unstable; urgency=low
 
   * GOTO Masanori <gotom@debian.org>
 
-    - debian/po/es.po: Update.  Patched by Carlos Valdivia Yag�¼e
+    - debian/po/es.po: Update.  Patched by Carlos Valdivia Yagüe
       <valyag@dat.etsit.upm.es>.
     - debian/debhelper.in/libc.preinst: Replace s/libc6/glibc/
       in messages, actually there are not only libc6, but also
@@ -1236,7 +1510,7 @@ glibc (2.3.2-4) unstable; urgency=low
   * GOTO Masanori <gotom@debian.org>
 
     - debian/po/es.po: Updated Spanish (es) debconf template.
-      Patched by Carlos Valdivia Yag�¼e <valyag@dat.etsit.upm.es>.
+      Patched by Carlos Valdivia Yagüe <valyag@dat.etsit.upm.es>.
     - debian/patches/81_glibc232-utimes-fix.dpatch: Fix utimes wrong time
       calculation.  Patched by Paul Eggert <eggert@CS.UCLA.EDU>.
       (Closes: #204728, #202243, #205110)

@@ -7,24 +7,29 @@
 # DP: Upstream status: Debian-Specific
 # DP: Status Details: This isn't going to be acceptable upstream, we
 # DP:                 only need it because we support in-place upgrades.
-# DP: Date: 2003-10-28
+# DP: Date: 2003-10-28, (Updated 2005-01-02 gotom)
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
     exit 1
 fi
 case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
     *)
 	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
 	exit 1
 esac
 exit 0
 
---- glibc-2.3.2/sysdeps/generic/dl-sysdep.c.orig	2003-10-28 12:22:33.000000000 -0500
-+++ glibc-2.3.2/sysdeps/generic/dl-sysdep.c	2003-10-28 12:38:49.000000000 -0500
-@@ -354,7 +354,11 @@ _dl_important_hwcaps (const char *platfo
+Index: sysdeps/generic/dl-sysdep.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/generic/dl-sysdep.c,v
+retrieving revision 1.113
+diff -u -r1.113 dl-sysdep.c
+--- sysdeps/generic/dl-sysdep.c	6 Nov 2004 00:24:47 -0000	1.113
++++ sysdeps/generic/dl-sysdep.c	2 Jan 2005 10:24:13 -0000
+@@ -360,7 +360,11 @@
  #ifdef USE_TLS
    /* For TLS enabled builds always add 'tls'.  */
    ++cnt;
@@ -37,7 +42,7 @@ exit 0
    if (cnt == 0)
      {
        /* If we have platform name and no important capability we only have
-@@ -369,7 +373,6 @@ _dl_important_hwcaps (const char *platfo
+@@ -375,7 +379,6 @@
        *sz = 1;
        return result;
      }
@@ -45,39 +50,44 @@ exit 0
  
    /* Create temporary data structure to generate result table.  */
    temp = (struct r_strlenpair *) alloca (cnt * sizeof (*temp));
-@@ -411,9 +414,7 @@ _dl_important_hwcaps (const char *platfo
+@@ -417,9 +420,7 @@
    result = (struct r_strlenpair *) malloc (*sz * sizeof (*result) + total);
    if (result == NULL)
      {
 -#ifndef USE_TLS
      no_memory:
 -#endif
-       INTUSE(_dl_signal_error) (ENOMEM, NULL, NULL,
- 				N_("cannot create capability list"));
+       _dl_signal_error (ENOMEM, NULL, NULL,
+ 			N_("cannot create capability list"));
      }
---- glibc-2.3.2/sysdeps/generic/dl-cache.c.orig	2003-10-28 12:32:36.000000000 -0500
-+++ glibc-2.3.2/sysdeps/generic/dl-cache.c	2003-10-28 12:38:57.000000000 -0500
-@@ -246,6 +246,7 @@ _dl_load_cache_lookup (const char *name)
-       /* This file ends in static libraries where we don't have a hwcap.  */
-       unsigned long int *hwcap;
+Index: sysdeps/generic/dl-cache.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/generic/dl-cache.c,v
+retrieving revision 1.46
+diff -u -r1.46 dl-cache.c
+--- sysdeps/generic/dl-cache.c	19 Mar 2004 00:36:32 -0000	1.46
++++ sysdeps/generic/dl-cache.c	2 Jan 2005 10:23:42 -0000
+@@ -244,6 +244,7 @@
+   if (cache_new != (void *) -1)
+     {
        uint64_t platform;
 +      int disable_hwcap = 0;
- #ifndef SHARED
-       weak_extern (_dl_hwcap);
- #endif
-@@ -261,6 +262,9 @@ _dl_load_cache_lookup (const char *name)
+ 
+       /* This is where the strings start.  */
+       cache_data = (const char *) cache_new;
+@@ -255,6 +256,9 @@
        if (platform != (uint64_t) -1)
  	platform = 1ULL << platform;
  
 +      if (__access ("/etc/ld.so.nohwcap", F_OK) == 0)
 +	disable_hwcap = 1;
 +
+       /* Only accept hwcap if it's for the right platform.  */
  #ifdef USE_TLS
- # define TLS_BIT (1ULL << 63)
- #else
-@@ -272,6 +276,8 @@ _dl_load_cache_lookup (const char *name)
-       if (GL(dl_osversion)						      \
- 	  && cache_new->libs[middle].osversion > GL(dl_osversion))	      \
+ # define _DL_HWCAP_TLS_MASK (1LL << 63)
+@@ -264,6 +268,8 @@
+ #define HWCAP_CHECK \
+       if (GLRO(dl_osversion) && lib->osversion > GLRO(dl_osversion))	      \
  	continue;							      \
 +      if (disable_hwcap && lib->hwcap != 0)				      \
 +	continue;							      \

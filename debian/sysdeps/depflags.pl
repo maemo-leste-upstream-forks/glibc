@@ -140,7 +140,11 @@ if ($DEB_HOST_GNU_TYPE eq "hppa-linux") {
 push @{$libc_dev_c{'Replaces'}}, 'kerberos4kth-dev (<< 1.2.2-10)';
 
 # Replace libc-dev (<< 2.3.2.ds1-14) for fixing #239170.
-push @{$libc_c{'Replaces'}}, "${libc}-dev (<< 2.3.2.ds1-14)";
+# Replace libc-dev (<< 2.3.5-2) for fixing #280030.
+push @{$libc_c{'Replaces'}}, "${libc}-dev (<< 2.3.5-2)";
+
+# Conflict old initrd-tools (<< 0.1.79) that cannot work with new ldd.
+push @{$libc_c{'Conflicts'}}, 'initrd-tools (<< 0.1.79)';
 
 # Make sure we only have one version of libc-dev installed
 push @{$libc_dev_c{'Provides'}}, 'libc-dev';

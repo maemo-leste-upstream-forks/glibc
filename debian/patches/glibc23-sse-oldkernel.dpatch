@@ -7,14 +7,15 @@
 # DP: Upstream status: Not submitted
 # DP: Details: Should be submitted, must be regenerated against CVS
 # DP: Date: 2003-11-01 (Updated 2003-11-02) (Updated 2004-01-02)
+# DP: Date: (Updated 2005-01-03 gotom)
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
     exit 1
 fi
 case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
     *)
 	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
 	exit 1
@@ -22,6 +23,17 @@ esac
 exit 0
 
 # append the patch here and adjust the -p? flag in the patch calls.
+2005-01-03  GOTO Masanori  <gotom@debian.org>
+
+	* sysdeps/i386/dl-machine.h: Remove including dl-procinfo.h.
+	* sysdeps/unix/sysv/linux/i386/dl-procinfo.h: move
+	dl_adjust_procinfo() to ...
+	* sysdeps/i386/dl-machine.h: ... here.  Change GL(dl_hwcap) to
+	GLRO(dl_hwcap).
+	* sysdeps/generic/libc-start.c: Remove including dl-librecon.h,
+	dl-machine.h and dl-osinfo.h.
+	* elf/dl-support.c: Regenerated.
+
 2003-11-01  Daniel Jacobowitz  <drow@mvista.com>
 
 	* sysdeps/i386/dl-machine.h (dl_platform_init): Use
@@ -31,41 +43,39 @@ exit 0
 	(dl_adjust_procinfo): New function.  Disable SSE and SSE2
 	for pre-2.4.x kernels.
 
---- glibc-2.3.2/sysdeps/i386/dl-machine.h.orig	2003-11-01 15:52:17.000000000 -0500
-+++ glibc-2.3.2/sysdeps/i386/dl-machine.h	2003-11-01 15:52:55.000000000 -0500
-@@ -25,6 +25,7 @@
- #include <sys/param.h>
- #include <sysdep.h>
- #include <tls.h>
-+#include <dl-procinfo.h>
- 
- /* Return nonzero iff ELF header is compatible with the running host.  */
- static inline int __attribute__ ((unused))
-@@ -357,6 +358,10 @@ dl_platform_init (void)
-   if (GL(dl_platform) != NULL && *GL(dl_platform) == '\0')
+Index: sysdeps/i386/dl-machine.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/i386/dl-machine.h,v
+retrieving revision 1.128
+diff -u -r1.128 dl-machine.h
+--- sysdeps/i386/dl-machine.h	28 Sep 2004 04:54:41 -0000	1.128
++++ sysdeps/i386/dl-machine.h	3 Jan 2005 05:39:25 -0000
+@@ -357,6 +357,17 @@
+   if (GLRO(dl_platform) != NULL && *GLRO(dl_platform) == '\0')
      /* Avoid an empty string which would disturb us.  */
-     GL(dl_platform) = NULL;
+     GLRO(dl_platform) = NULL;
 +
 +#ifdef DL_ADJUST_PROCINFO
-+  DL_ADJUST_PROCINFO;
++  if (GL(dl_osversion) < 0x020400)
++    {
++      /* Unfortunately, while the capability is named OSFXSR, it's
++	 actually hardware FXSR direct from CPUID.  And we can't test
++	 CR4 ourselves, because we're in protected mode.  Disable it
++	 for kernels which might not have actually enabled OSFXSR.  */
++      GL(dl_hwcap) &= ~(HWCAP_I386_OSFXSR | HWCAP_I386_XMM | HWCAP_I386_XMM2);
++    }
 +#endif
  }
  
  static inline Elf32_Addr
---- glibc-2.3.2/sysdeps/generic/libc-start.c.orig	2003-11-02 23:11:51.000000000 -0500
-+++ glibc-2.3.2/sysdeps/generic/libc-start.c	2003-11-02 23:34:42.000000000 -0500
-@@ -23,6 +23,10 @@
- #include <bp-start.h>
- #include <bp-sym.h>
- 
-+#include <dl-osinfo.h>
-+#include <dl-librecon.h>
-+#include <dl-machine.h>
-+
- extern void __libc_init_first (int argc, char **argv, char **envp);
- 
- extern int __libc_multiple_libcs;
-@@ -123,15 +127,28 @@ LIBC_START_MAIN (int (*main) (int, char 
+Index: sysdeps/generic/libc-start.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/generic/libc-start.c,v
+retrieving revision 1.52
+diff -u -r1.52 libc-start.c
+--- sysdeps/generic/libc-start.c	31 Mar 2004 01:46:43 -0000	1.52
++++ sysdeps/generic/libc-start.c	3 Jan 2005 05:39:25 -0000
+@@ -127,15 +129,28 @@
  #  endif
    _dl_aux_init (auxvec);
  # endif
@@ -96,13 +106,17 @@ exit 0
    /* Initialize the thread library at least a bit since the libgcc
       functions are using thread functions if these are available and
       we need to setup errno.  If there is no thread library and we
---- glibc-2.3.2/elf/dl-support.c.orig	2003-11-02 22:55:47.000000000 -0500
-+++ glibc-2.3.2/elf/dl-support.c	2003-11-02 23:24:40.000000000 -0500
-@@ -252,18 +252,6 @@ _dl_non_dynamic_init (void)
-       if (__access ("/etc/suid-debug", F_OK) != 0)
- 	unsetenv ("MALLOC_CHECK_");
+Index: elf/dl-support.c
+===================================================================
+RCS file: /cvs/glibc/libc/elf/dl-support.c,v
+retrieving revision 1.87
+diff -u -r1.87 dl-support.c
+--- elf/dl-support.c	6 Nov 2004 00:24:49 -0000	1.87
++++ elf/dl-support.c	3 Jan 2005 05:39:25 -0000
+@@ -269,18 +269,6 @@
+ 	__unsetenv ("MALLOC_CHECK_");
      }
--
+ 
 -#ifdef DL_PLATFORM_INIT
 -  DL_PLATFORM_INIT;
 -#endif
@@ -114,11 +128,17 @@ exit 0
 -  /* Now determine the length of the platform string.  */
 -  if (_dl_platform != NULL)
 -    _dl_platformlen = strlen (_dl_platform);
- }
- 
- 
---- glibc-2.3.2/sysdeps/unix/sysv/linux/i386/dl-procinfo.h.old	2004-01-02 13:53:32.000000000 -0500
-+++ glibc-2.3.2/sysdeps/unix/sysv/linux/i386/dl-procinfo.h	2004-01-02 13:55:18.000000000 -0500
+-
+   /* Scan for a program header telling us the stack is nonexecutable.  */
+   if (_dl_phdr != NULL)
+     for (uint_fast16_t i = 0; i < _dl_phnum; ++i)
+Index: sysdeps/unix/sysv/linux/i386/dl-procinfo.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/i386/dl-procinfo.h,v
+retrieving revision 1.18
+diff -u -r1.18 dl-procinfo.h
+--- sysdeps/unix/sysv/linux/i386/dl-procinfo.h	7 Mar 2004 08:38:42 -0000	1.18
++++ sysdeps/unix/sysv/linux/i386/dl-procinfo.h	3 Jan 2005 05:39:25 -0000
 @@ -18,6 +18,8 @@
     Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA.  */
@@ -128,25 +148,26 @@ exit 0
  #include <sysdeps/i386/dl-procinfo.h>
  #include <ldsodefs.h>
  
-@@ -41,3 +41,21 @@
+@@ -41,3 +43,7 @@
  
    return 0;
  }
 +
-+#define DL_ADJUST_PROCINFO dl_adjust_procinfo ()
-+
-+static inline void
-+__attribute__ ((unused, always_inline))
-+dl_adjust_procinfo (void)
-+{
-+  if (GL(dl_osversion) < 0x020400)
-+    {
-+      /* Unfortunately, while the capability is named OSFXSR, it's
-+        actually hardware FXSR direct from CPUID.  And we can't test
-+        CR4 ourselves, because we're in protected mode.  Disable it
-+        for kernels which might not have actually enabled OSFXSR.  */
-+      GL(dl_hwcap) &= ~(HWCAP_I386_OSFXSR | HWCAP_I386_XMM | HWCAP_I386_XMM2);
-+    }
-+}
++#define DL_ADJUST_PROCINFO
 +
 +#endif /* _DL_PROCINFO_H */
+
+
+
+# it should not be used because dl-osinfo.h is already included.
+# --- sysdeps/generic/libc-start.c	31 Mar 2004 01:46:43 -0000	1.52
+# +++ sysdeps/generic/libc-start.c	3 Jan 2005 05:39:25 -0000
+# @@ -23,6 +23,8 @@
+#  #include <bp-start.h>
+#  #include <bp-sym.h>
+#  
+# +#include <dl-osinfo.h>
+# +
+#  extern void __libc_init_first (int argc, char **argv, char **envp);
+#  
+#  extern int __libc_multiple_libcs;

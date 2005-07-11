@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
@@ -11,49 +11,40 @@ checkpkgver () {
     fi
 }
 
-if [ "$1" = "configure" ]
-then
+if [ "$1" = "remove" ]; then
     opt=OPT
     curver=CURRENT_VER
 
     if [ -f /etc/ld.so.hwcappkgs ]; then
-	rm -f /etc/ld.so.hwcappkgs.tmp
+	# Remove this package's entry
+	grep -v "^$opt " /etc/ld.so.hwcappkgs > /etc/ld.so.hwcappkgs.tmp
+	mv /etc/ld.so.hwcappkgs.tmp /etc/ld.so.hwcappkgs
+
+	# Check other hwcap packges are consistent.
 	while read LINE; do
 	    case $LINE in
 		\#*|"") continue
 	    esac
 	    set -- $LINE
 	    pkg=$1
-	    if [ "$pkg" = "$opt" ]; then
-		# this package
-		ver=$curver
-		isrecorded=yes
+	    if [ -z "$prever" ]; then
+		prever=$(checkpkgver $pkg)
 	    else
-		# other packages
 		ver=$(checkpkgver $pkg)
 		if [ -n "$ver" ]; then
-		    dpkg --compare-versions $curver ne $ver && optunmatch=yes
+		    dpkg --compare-versions $prever ne $ver && optunmatch=yes
 		fi
 	    fi
-	    echo "$pkg $ver" >> /etc/ld.so.hwcappkgs.tmp
 	done < /etc/ld.so.hwcappkgs
-	if [ "$isrecorded" != yes ]; then
-	    echo "$opt $curver" >> /etc/ld.so.hwcappkgs.tmp
-	fi
-	mv /etc/ld.so.hwcappkgs.tmp /etc/ld.so.hwcappkgs
     else
 	# libc6 did not create ld.so.hwcappkgs correctly or ld.so.hwcappkgs
 	# was unexpectedly removed.  Don't remove ld.so.nohwcap.
 	optunmatch=yes
     fi
 
-    # nohwcap during upgrade.
-    if [ -f /etc/ld.so.nohwcap ]; then
-	grep -v "^$opt\$" /etc/ld.so.nohwcap > /etc/ld.so.nohwcap.tmp || true
-	mv -f /etc/ld.so.nohwcap.tmp /etc/ld.so.nohwcap
-	if [ "$optunmatch" != "yes" ]; then
-	    test -s /etc/ld.so.nohwcap || rm -f /etc/ld.so.nohwcap
-	fi
+    # Remove ld.so.nohwcap
+    if [ -f /etc/ld.so.nohwcap ] && [ ! -s /etc/ld.so.nohwcap ] && [ "$optunmatch" != yes ]; then
+	rm -f /etc/ld.so.nohwcap
     fi
 fi
 

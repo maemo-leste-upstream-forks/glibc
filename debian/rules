@@ -33,7 +33,7 @@ stamp := $(CURDIR)/stamp-dir/
 DUMMY := $(shell mkdir -p $(stamp))
 
 # The minimum package version with which these packages are compatible.
-shlib_dep_ver = 2.3.2.ds1-21
+include debian/shlibver
 shlib_dep = $(libc) (>= $(shlib_dep_ver))
 
 # Beyond here you shouldn't need to customise anything:
@@ -55,7 +55,7 @@ DEB_SOURCE_PACKAGE := $(strip $(shell egrep '^Source: ' debian/control | cut -f 
 
 DEB_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
 
-DEB_TARBALL ?= $(shell ls glibc-[0-9]*.[0-9]*.[0-9]*.tar.*)
+DEB_TARBALL ?= $(shell ls glibc-[0-9.]*.tar.*)
 
 DEB_SRCDIR ?= $(shell ls -d $(build-tree)/glibc-*)
 DEB_BUILDDIR ?= $(build-tree)/$(DEB_HOST_ARCH)-$(curpass)
