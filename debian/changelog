@@ -4,14 +4,33 @@ glibc (2.3.5-2) experimental; urgency=low
 
     * Merge glibc-2.3.4 branch to the main trunk for etch development.
 
-      * These dpatches are removed from debian/patches because the similar
-        patches are already applied in the latest version:
-        - debian/patches/rtld-vdso-assertion.dpatch
-        - debian/patches/glibc232-sigsetjmp.dpatch
-        - debian/patches/hurd-weak-aliases.dpatch
-        - debian/patches/sched-update.dpatch
-        - debian/patches/glibc232-pthread-cancellation.dpatch
-        - debian/patches/glibc232-clock_settime.dpatch
+    * These dpatches are removed from debian/patches because the similar
+      patches are already applied in the latest version:
+      - debian/patches/rtld-vdso-assertion.dpatch
+      - debian/patches/glibc232-sigsetjmp.dpatch
+      - debian/patches/hurd-weak-aliases.dpatch
+      - debian/patches/sched-update.dpatch
+      - debian/patches/glibc232-pthread-cancellation.dpatch
+      - debian/patches/glibc232-clock_settime.dpatch
+
+    * The New dpkg-architecture changes:
+      - debian/rules: Replace DEB_HOST_BUILD_SYSTEM, use DEB_HOST_ARCH_OS.
+        Reported by Arthur Marsh <arthur.marsh@internode.on.net>.
+        (Closes: #315347, #315793)
+      - debian/control.in/main: Bump up Build-Depends: dpkg-dev (>= 1.13.5).
+      - debian/control: Updated.
+      - debian/debhelper.in/libc.preinst: Replace "dpkg
+        --print-installation-architecture", use "dpkg --print-architecture".
+      - debian/debhlper.in/libc.postrm: Likewise.
+      - debian/debhlper.in/libc.postinst: Likewise.
+      - debian/sysdeps/depflags.pl: Change checks from i386 to i486.
+        It also replaces -linux, use -linux-gnu.
+
+    * Default compiler moves from gcc-3.3 to gcc-4.0:
+      - debian/rules: Use gcc-4.0 instead of gcc-3.3.  (Closes: #315198)
+      - debian/control.in/main: Define Build-Depends: gcc-4.0.
+      - debian/control: Updated.
+      - debian/sysdeps/i386.mk: Replace depreciated "-mcpu", use "-mtune".
 
     * Move /etc/locale.alias to /usr/share/locale/locale.alias.
       Don't install locale.alias.5.  (Closes: #144670, #185991, #298784)

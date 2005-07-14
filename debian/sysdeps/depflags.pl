@@ -26,7 +26,7 @@ if ($DEB_HOST_GNU_SYSTEM eq "gnu") {
     push @{$libc_c{'Conflicts'}}, 'glibc2';
     push @{$libc_c{'Depends'}}, 'hurd (>= 20010718-1)';
 }
-if ($DEB_HOST_GNU_SYSTEM eq "linux") {
+if ($DEB_HOST_GNU_SYSTEM eq "linux-gnu") {
     push @{$libc_c{'Suggests'}}, 'locales';
     #db1 compat libraries from libc 2.0/2.1, we need to depend on them
     #until after sarge is released
@@ -54,7 +54,7 @@ push @{$libc_dev_c{'Conflicts'}}, 'libstdc++2.10-dev (<< 1:2.95.2-15)';
 # 2.2.2+CVS requires a newer gcc. For non-i386, we just worry about the
 # weak-sym patch, since on i386 we need an even newer one because of the
 # pic-kludge that breaks libc_nonshared.a inclusion.
-if ($DEB_HOST_GNU_TYPE =~ m/^i386-linux$/) {
+if ($DEB_HOST_GNU_TYPE =~ m/^i486-linux-gnu$/) {
     push @{$libc_dev_c{'Conflicts'}}, 'gcc-2.95 (<< 1:2.95.3-9)';
 } else {
     push @{$libc_dev_c{'Conflicts'}}, 'gcc-2.95 (<< 1:2.95.3-8)';
@@ -75,12 +75,12 @@ push @{$libc_c{'Conflicts'}}, ('timezone', 'timezones', 'gconv-modules',
 	'libtricks', "${libc}-doc");
 
 # conflicts from libc5 days
-if ($DEB_HOST_GNU_TYPE =~ m/^(i386|m68k)-linux$/) {
+if ($DEB_HOST_GNU_TYPE =~ m/^(i486|m68k)-linux-gnu$/) {
     push @{$libc_c{'Conflicts'}}, ('libc5 (<< 5.4.33-7)', 'libpthread0 (<< 0.7-10)');
-} elsif ($DEB_HOST_GNU_TYPE eq 'sparc-linux') {
+} elsif ($DEB_HOST_GNU_TYPE eq 'sparc-linux-gnu') {
     push @{$libc_c{'Conflicts'}}, ('libc5 (<< 5.3.12-2)', 'libpthread0 (<< 0.7-10)');
 }
-if ($DEB_HOST_GNU_TYPE =~ m/^(alpha|i386|m68k|sparc)-linux$/) {
+if ($DEB_HOST_GNU_TYPE =~ m/^(alpha|i486|m68k|sparc)-linux-gnu$/) {
     push @{$libc_dev_c{'Conflicts'}}, ('libpthread0-dev', 'libdl1-dev',
 	'libdb1-dev', 'libgdbm1-dev');
     # Add this here too, old package
@@ -89,28 +89,28 @@ if ($DEB_HOST_GNU_TYPE =~ m/^(alpha|i386|m68k|sparc)-linux$/) {
 }
 
 # Old, Pre glibc 2.1
-if ($DEB_HOST_GNU_TYPE =~ m/^(alpha|i386|m68k|sparc|powerpc|arm)-linux$/) {
+if ($DEB_HOST_GNU_TYPE =~ m/^(alpha|i486|m68k|sparc|powerpc|arm)-linux-gnu$/) {
     push @{$libc_dev_c{'Conflicts'}}, ("${libc}-dev (<< 2.0.110-1)",
 	'locales (<< 2.1.3-5)');
 }
 
 # XXX: Not sure why this conflict is here, maybe broken c++?
-if ($DEB_HOST_GNU_TYPE =~ m/^(i386|m68k|alpha)-linux$/) {
+if ($DEB_HOST_GNU_TYPE =~ m/^(i486|m68k|alpha)-linux-gnu$/) {
     push @{$libc_c{'Conflicts'}}, ('apt (<< 0.3.0)', 'libglib1.2 (<< 1.2.1-2)');
 }
 
 # Some old c++ libs
-if ($DEB_HOST_GNU_TYPE =~ m/^(alpha|i386)-linux$/) {
+if ($DEB_HOST_GNU_TYPE =~ m/^(alpha|i486)-linux-gnu$/) {
     push @{$libc_dev_c{'Conflicts'}}, 'libstdc++2.9-dev';
-} elsif ($DEB_HOST_GNU_TYPE eq "powerpc-linux") {
+} elsif ($DEB_HOST_GNU_TYPE eq "powerpc-linux-gnu") {
     push @{$libc_dev_c{'Conflicts'}}, ('libstdc++2.9 (<< 2.91.58-2.1)',
 	'libstdc++2.8 (<< 2.90.29-1)');
-} elsif ($DEB_HOST_GNU_TYPE eq "m68k-linux") {
+} elsif ($DEB_HOST_GNU_TYPE eq "m68k-linux-gnu") {
     push @{$libc_dev_c{'Conflicts'}}, 'libstdc++2.9-dev';
 }
 
 # XXX: What is this!?
-if ($DEB_HOST_GNU_TYPE eq "alpha-linux") {
+if ($DEB_HOST_GNU_TYPE eq "alpha-linux-gnu") {
     push @{$libc_dev_c{'Conflicts'}}, ('libncurses4-dev (<< 4.2-3.1)',
 	'libreadlineg2-dev (<< 2.1-13.1)');
 }
@@ -131,7 +131,7 @@ push @{$libc_c{'Conflicts'}}, 'cyrus-imapd (<< 1.5.19-15)';
 
 # Conflict old gcc because they have /usr/hppa64-linux/include symlink
 # (Bug#239020)
-if ($DEB_HOST_GNU_TYPE eq "hppa-linux") {
+if ($DEB_HOST_GNU_TYPE eq "hppa-linux-gnu") {
     push @{$libc_dev_c{'Conflicts'}}, ('gcc-3.3-hppa64 (<= 1:3.3.3-6)',
 	'gcc-3.4-hppa64 (<= 3.4-0pre4)');
 }

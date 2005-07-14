@@ -42,7 +42,7 @@ SHELL                 ?= =/bin/sh -e
 DEB_HOST_ARCH         ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 DEB_HOST_GNU_CPU      ?= $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
 DEB_HOST_GNU_TYPE     ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_HOST_GNU_SYSTEM   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_SYSTEM)
+DEB_HOST_ARCH_OS      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_BUILD_ARCH        ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 DEB_BUILD_GNU_CPU     ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_CPU)
 DEB_BUILD_GNU_TYPE    ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
@@ -81,7 +81,7 @@ mandir=$(prefix)/share/man
 sbindir=$(prefix)/sbin
 libexecdir=$(prefix)/lib
 
-BUILD_CC = gcc-3.3
+BUILD_CC = gcc-4.0
 
 # Set CC for cross-compiling
 ifneq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
@@ -125,7 +125,7 @@ endef
 
 # Pull in all the per-arch magic!
 
--include debian/sysdeps/$(DEB_HOST_GNU_SYSTEM).mk
+-include debian/sysdeps/$(DEB_HOST_ARCH_OS).mk
 -include debian/sysdeps/$(DEB_HOST_ARCH).mk
 
 include debian/sysdeps/depflags.mk
