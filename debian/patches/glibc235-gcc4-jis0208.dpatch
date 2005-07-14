@@ -1,0 +1,64 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Make glibc-2.3.5 compile with gcc-4.0.
+# DP: Related bugs: 
+# DP: Dpatch author: GOTO Masanori <gotom@debian.org>
+# DP: Patch author: Alexandre Oliva <aoliva@redhat.com>
+# DP: Upstream status: Debian-Specific
+# DP: Status Details: 
+# DP: Date: 2005-07-12
+
+PATCHLEVEL=0
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+http://sources.redhat.com/ml/libc-hacker/2005-02/msg00000.html
+
+2005-02-02  Alexandre Oliva  <aoliva@redhat.com>
+
+        * iconvdata/jis0208.h (struct jisx0208_ucs_idx): Move declaration
+        before use.  Fix typo in comment.
+
+Index: iconvdata/jis0208.h
+--- iconvdata/jis0208.h 2003-06-11 18:40:42.000000000 -0300
++++ iconvdata/jis0208.h 2005-02-02 05:57:39.000000000 -0200
+@@ -27,13 +27,7 @@
+ /* Conversion table.  */
+ extern const uint16_t __jis0208_to_ucs[];
+
+-extern const char __jisx0208_from_ucs4_lat1[256][2];
+-extern const char __jisx0208_from_ucs4_greek[0xc1][2];
+-extern const struct jisx0208_ucs_idx __jisx0208_from_ucs_idx[];
+-extern const char __jisx0208_from_ucs_tab[][2];
+-
+-
+-/* Struct for table with indeces in UCS mapping table.  */
++/* Struct for table with indexes in UCS mapping table.  */
+ struct jisx0208_ucs_idx
+ {
+   uint16_t start;
+@@ -41,6 +35,11 @@
+   uint16_t idx;
+ };
+
++extern const char __jisx0208_from_ucs4_lat1[256][2];
++extern const char __jisx0208_from_ucs4_greek[0xc1][2];
++extern const struct jisx0208_ucs_idx __jisx0208_from_ucs_idx[];
++extern const char __jisx0208_from_ucs_tab[][2];
++
+
+ static inline uint32_t
+ __attribute ((always_inline))
