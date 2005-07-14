@@ -1,0 +1,65 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Make glibc-2.3.5 compile with gcc-4.0 on 64bit archs.
+# DP: Related bugs: 
+# DP: Dpatch author: GOTO Masanori <gotom@debian.org>
+# DP: Patch author: Jakub Jelinek <jakub@redhat.com>
+# DP: Upstream status: Debian-Specific
+# DP: Status Details: 
+# DP: Date: 2005-07-14
+
+PATCHLEVEL=1
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+https://www.redhat.com/archives/fedora-cvs-commits/2005-March/msg00408.html
+
+	* sysdeps/wordsize-64/strtol_l.c: Don't add aliases if UNSIGNED.
+	* sysdeps/wordsize-64/wcstol_l.c: Likewise.
+
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/wordsize-64/strtol_l.c,v
+retrieving revision 1.4
+retrieving revision 1.4.2.1
+diff -u -r1.4 -r1.4.2.1
+--- libc/sysdeps/wordsize-64/strtol_l.c	2003/03/03 09:45:12	1.4
++++ libc/sysdeps/wordsize-64/strtol_l.c	2005/03/25 11:59:01	1.4.2.1
+@@ -8,7 +8,9 @@
+ #undef ____strtoll_l_internal
+ #undef __strtoll_l
+ #undef strtoll_l
++#if !UNSIGNED
+ strong_alias (____strtol_l_internal, ____strtoll_l_internal)
+ libc_hidden_ver (____strtol_l_internal, ____strtoll_l_internal)
+ weak_alias (__strtol_l, __strtoll_l)
+ weak_alias (__strtol_l, strtoll_l)
++#endif
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/wordsize-64/wcstol_l.c,v
+retrieving revision 1.4
+retrieving revision 1.4.2.1
+diff -u -r1.4 -r1.4.2.1
+--- libc/sysdeps/wordsize-64/wcstol_l.c	2002/08/08 11:44:51	1.4
++++ libc/sysdeps/wordsize-64/wcstol_l.c	2005/03/25 11:59:01	1.4.2.1
+@@ -8,6 +8,8 @@
+ #undef ____wcstoll_l_internal
+ #undef __wcstoll_l
+ #undef wcstoll_l
++#if !UNSIGNED
+ strong_alias (____wcstol_l_internal, ____wcstoll_l_internal)
+ weak_alias (__wcstol_l, __wcstoll_l)
+ weak_alias (__wcstol_l, wcstoll_l)
++#endif
