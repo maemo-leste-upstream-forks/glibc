@@ -32,16 +32,19 @@ glibc (2.3.5-2) experimental; urgency=low
       - debian/control: Updated.
       - debian/sysdeps/i386.mk: Replace depreciated "-mcpu", use "-mtune".
 
-    * Make glibc-2.3.5 buidable with gcc-4.0:
-      - debian/patches/glibc235-gcc4-cvs.dpatch: Added to compile with
-        gcc-4.0 pulled from upstream for some internal defintion and so on.
-      - debian/patches/glibc235-gcc4-elf.dpatch: Added to compile with
-        gcc-4.0 pulled from Dan Kagel cross-tools, remove elf_machine_rel*
-        definitions.
-      - debian/patches/glibc235-gcc4-jis0208.dpatch: Added to compile with
-        gcc-4.0 pulled from proposed fix in libc-hacker.
-      - debian/patches/glibc235-gcc4-wcstol_l.dpatch: Added to compile with
-        gcc-4.0 for fixing 64bit architecture compilation breakage.
+    * These dpatches are added to make glibc-2.3.5 buidable with gcc-4.0:
+      - debian/patches/glibc235-gcc4-cvs.dpatch: Fix some bad defintion of
+        internal for all architectures.
+      - debian/patches/glibc235-gcc4-elf.dpatch: Remove elf_machine_rel*
+        definitions for all architectures.
+      - debian/patches/glibc235-gcc4-jis0208.dpatch: Fix compilation breakage
+        for all architectures.
+      - debian/patches/glibc235-gcc4-wcstol_l.dpatch: Fix wcstol_l.c 
+        compilation breakage for all 64bit architectures.
+      - debian/patches/glibc235-binutils216-ia64.dpatch: Fix _init/_fini was
+        not defined within procedure with binutils 2.16 for ia64.
+      - debian/patches/glibc235-gcc4-ia64-profile.dpatch: Fix compilation 
+        breakage by removing strong_alias for ia64.
 
     * Move /etc/locale.alias to /usr/share/locale/locale.alias.
       Don't install locale.alias.5.  (Closes: #144670, #185991, #298784)
