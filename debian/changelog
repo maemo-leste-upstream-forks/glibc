@@ -3,18 +3,29 @@ glibc (2.3.5-3) experimental; urgency=low
   * GOTO Masanori <gotom@debian.org>
 
     * Localedata update:
-      - debian/patches/cvs-localedata.dpatch: Added to update localedata
+      - debian/patches/cvs-localedata.dpatch: New file, to update localedata
         to the latest cvs.  Reported by Safir Secerovic <esafir@yahoo.com>,
         that is already available in Denis Barbier's belocs-locales-data.
 
+    * To make glibc-2.3.5 buidable with gcc-4.0:
+      - debian/patches/00list: Drop glibc234-hppa-full-nptl-2004-12-20.dpatch
+        line replaced by the new patches: glibc235-hppa-sysdeps.dpatch and
+        glibc235-hppa-lt.dpatch.  It'll be removed when hppa unstable works
+        nicely.
+  
     * Michael Banck <mbanck@debian.org>:
-      - debian/patches/hurd-enable-ldconfig.dpatch: Added to build ldconfig
+      - debian/patches/hurd-enable-ldconfig.dpatch: New file, to build ldconfig
         again on Hurd.  (Closes: #309489)
       - debian/sysdeps/gnu.mk: Hurd-i386 needs --without-tls option to build.
-      - debian/patches/hurd-libpthread-indirect-loading.dpatch: Added to
+      - debian/patches/hurd-libpthread-indirect-loading.dpatch: New file, to
         make libpthread load indirectly on Hurd.  (Closes: #312488)
-      - debian/patches/hurd-ioctl-pfinet.dpatch: Added to support part of
+      - debian/patches/hurd-ioctl-pfinet.dpatch: New file, to support part of
         SIOCGIFHWADDR for pfinet on Hurd.  (Closes: #295117)
+
+    * Jeff Bailey <jbailey@ubuntu.com>:
+      - debian/patches/glibc235-hppa-sysdeps.dpatch: New file, to build hppa
+        linuxthreads locking problem and sysdeps correctly again.
+      - debian/patches/glibc235-hppa-lt.dpatch: New file, likewise.
 
  -- GOTO Masanori <gotom@debian.org>  Sun, 17 Jul 2005 17:27:30 +0900
 
