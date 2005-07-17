@@ -5,5 +5,4 @@ define libc6-dev_extra_pkg_install
 mkdir -p debian/$(curpass)/usr
 mkdir -p debian/$(curpass)/usr/hppa64-linux
 ln -sf /usr/include debian/$(curpass)/usr/hppa64-linux/include
-ln -sf /usr/include debian/$(curpass)/usr/hppa64-linux-gnu/include
 endef
