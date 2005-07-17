@@ -1,5 +1,7 @@
 glibc (2.3.5-2) experimental; urgency=low
 
+  * Debconf5 release.
+
   * GOTO Masanori <gotom@debian.org>
 
     * Merge glibc-2.3.4 branch to the main trunk for etch development.
@@ -88,6 +90,14 @@ glibc (2.3.5-2) experimental; urgency=low
       blocks to generate initrd images.  Suggested by Goswin von Brederlow
       <brederlo@informatik.uni-tuebingen.de>.
       - debian/sysdeps/depflags.pl: Add conflicts initrd-tools (<< 0.1.79).
+
+    * Add support PowerPC64, based on patches and suggestions by Bastian Blank
+      <waldi@debian.org> and Jeff Bailey <jbailey@ubuntu.com>:
+      - debian/control.in/main: Add Build-Depends: gcc-3.4 [powerpc] because
+        powerpc porting does not support gcc-4.0 currently.
+      - debian/control: Updated.
+      - debian/rules.d/control.mk: Add ppc64.
+      - debian/sysdeps/powerpc.mk: Added to support ppc64 target.
 
     * debian/sysdeps/hppa.mk: Add /usr/hppa64-linux-gnu/include symlinks for
       dpkg-architecture changes.  Reported by Matthias Klose
