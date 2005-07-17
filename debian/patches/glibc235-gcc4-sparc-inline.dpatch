@@ -1,0 +1,129 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Make glibc-2.3.5 compile with gcc-4.0 on arm for inline
+#		   functions of dl-machine.h.
+# DP: Related bugs: 
+# DP: Dpatch author: GOTO Masanori <gotom@debian.org>
+# DP: Patch author: Jakub Jelinek <jakub@redhat.com>
+#		    GOTO Masanori <gotom@debian.org>
+# DP: Upstream status: In CVS / Debian-Specific
+# DP: Status Details: 
+# DP: Date: 2005-07-17
+
+PATCHLEVEL=0
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+--- sysdeps/sparc/sparc32/dl-machine.h.org	2005-07-15 06:14:11.000000000 +0900
++++ sysdeps/sparc/sparc32/dl-machine.h	2005-07-15 06:59:13.000000000 +0900
+@@ -411,7 +411,14 @@ elf_machine_plt_value (struct link_map *
+ /* Perform the relocation specified by RELOC and SYM (which is fully resolved).
+    MAP is the object containing the reloc.  */
+ 
+-static inline void
++#if __GNUC__ >= 4
++  auto inline void
++#else
++  static inline void
++#endif
++#if __GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2)
++  __attribute ((always_inline))
++#endif
+ elf_machine_rela (struct link_map *map, const Elf32_Rela *reloc,
+ 		  const Elf32_Sym *sym, const struct r_found_version *version,
+ 		  void *const reloc_addr_arg)
+@@ -593,7 +600,14 @@ elf_machine_rela (struct link_map *map, 
+     }
+ }
+ 
+-static inline void
++#if __GNUC__ >= 4 
++  auto inline void 
++#else 
++  static inline void 
++#endif 
++#if __GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2) 
++  __attribute ((always_inline)) 
++#endif 
+ elf_machine_rela_relative (Elf32_Addr l_addr, const Elf32_Rela *reloc,
+ 			   void *const reloc_addr_arg)
+ {
+@@ -601,7 +615,14 @@ elf_machine_rela_relative (Elf32_Addr l_
+   *reloc_addr += l_addr + reloc->r_addend;
+ }
+ 
+-static inline void
++#if __GNUC__ >= 4 
++  auto inline void 
++#else 
++  static inline void 
++#endif 
++#if __GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2) 
++  __attribute ((always_inline)) 
++#endif 
+ elf_machine_lazy_rel (struct link_map *map,
+ 		      Elf32_Addr l_addr, const Elf32_Rela *reloc)
+ {
+--- sysdeps/sparc/sparc64/dl-machine.h	2005-07-17 04:18:07.000000000 +0900
++++ sysdeps/sparc/sparc64/dl-machine.h.new	2005-07-17 04:22:22.000000000 +0900
+@@ -238,7 +238,14 @@
+ /* Perform the relocation specified by RELOC and SYM (which is fully resolved).
+    MAP is the object containing the reloc.  */
+ 
+-static inline void
++#if __GNUC__ >= 4               
++  auto inline void
++#else
++  static inline void
++#endif
++#if __GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2)
++  __attribute ((always_inline))
++#endif   
+ elf_machine_rela (struct link_map *map, const Elf64_Rela *reloc,
+ 		  const Elf64_Sym *sym, const struct r_found_version *version,
+ 		  void *const reloc_addr_arg)
+@@ -430,7 +437,14 @@
+     }
+ }
+ 
+-static inline void
++#if __GNUC__ >= 4               
++  auto inline void
++#else
++  static inline void
++#endif
++#if __GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2)
++  __attribute ((always_inline))
++#endif   
+ elf_machine_rela_relative (Elf64_Addr l_addr, const Elf64_Rela *reloc,
+ 			   void *const reloc_addr_arg)
+ {
+@@ -438,7 +452,14 @@
+   *reloc_addr = l_addr + reloc->r_addend;
+ }
+ 
+-static inline void
++#if __GNUC__ >= 4               
++  auto inline void
++#else
++  static inline void
++#endif
++#if __GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2)
++  __attribute ((always_inline))
++#endif   
+ elf_machine_lazy_rel (struct link_map *map,
+ 		      Elf64_Addr l_addr, const Elf64_Rela *reloc)
+ {

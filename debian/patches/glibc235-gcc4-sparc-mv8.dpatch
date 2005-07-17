@@ -1,0 +1,44 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Make glibc-2.3.5 compile with gcc-4.0 on sparc for replacing
+#		   obsolete compiler option to the standard one.
+# DP: Related bugs: 
+# DP: Dpatch author: GOTO Masanori <gotom@debian.org>
+# DP: Patch author: GOTO Masanori <gotom@debian.org>
+# DP: Upstream status: Not submitted yet
+# DP: Status Details: Will be submitted
+# DP: Date: 2005-07-17
+
+PATCHLEVEL=0
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+2005-07-17  GOTO Masanori  <gotom@debian.org>
+
+	* sysdeps/unix/sysv/linux/sparc/sparc32/Makefile: Replace obsolete gcc
+	option to the standard one.
+
+--- sysdeps/unix/sysv/linux/sparc/sparc32/Makefile.org	2005-07-15 13:50:11.000000000 +0900
++++ sysdeps/unix/sysv/linux/sparc/sparc32/Makefile	2005-07-15 13:50:41.000000000 +0900
+@@ -4,7 +4,7 @@
+ 
+ # When I get this to work, this is the right thing
+ ifeq ($(subdir),elf)
+-CFLAGS-rtld.c += -mv8
++CFLAGS-rtld.c += -mcpu=v8
+ #rtld-routines += dl-sysdepsparc
+ sysdep-others += lddlibc4
+ install-bin += lddlibc4
