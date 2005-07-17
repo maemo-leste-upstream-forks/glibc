@@ -2,6 +2,7 @@
   
 # DP: Description: Enable ldconfig and such on hurd-i386
 # DP: Author: Jeff Bailey <jbailey@nisa.net>
+# DP: Related Bugs: #309489
 # DP: Upstream status: Not submitted
 # DP: Status Details: Upstream disagrees with this patch, but I'm
 # DP: putting it in so that we have expected Debian behaviour on the
@@ -30,13 +31,12 @@ diff -urN glibc-2.3.2.old/sysdeps/mach/hurd/configure glibc-2.3.2/sysdeps/mach/h
  fi
 +
 +use_ldconfig=yes
-diff -urN glibc-2.3.2.old/sysdeps/mach/hurd/configure.in glibc-2.3.2/sysdeps/mach/hurd/configure.in
---- glibc-2.3.2.old/sysdeps/mach/hurd/configure.in	2002-10-23 02:21:18.000000000 -0400
-+++ glibc-2.3.2/sysdeps/mach/hurd/configure.in	2003-04-08 17:35:17.000000000 -0400
-@@ -62,3 +62,5 @@
- fi])
- 
- hurd_MIG_RETCODE
+--- glibc-2.3.2.old/sysdeps/mach/hurd/configure.in.orig	2005-05-30 17:31:32.000000000 +0200
++++ glibc-2.3.2/sysdeps/mach/hurd/configure.in	2005-05-30 17:44:30.000000000 +0200
+@@ -36,3 +36,5 @@
+ if test "x$libc_cv_hurd_version" != xok; then
+   AC_MSG_ERROR(Hurd headers not installed or too old)
+ fi
 +
 +use_ldconfig=yes
 diff -urN glibc-2.3.2.old/elf/ldconfig.c glibc-2.3.2/elf/ldconfig.c

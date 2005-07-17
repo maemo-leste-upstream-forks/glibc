@@ -1,0 +1,46 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Add SIOCGIFHWADDR ioctls for hurd-i386.
+# DP: Related bugs: #295117
+# DP: Dpatch author: GOTO Masanori <gotom@debian.org>
+# DP: Patch author: Marco Gerards <metgerards@student.han.nl>
+# DP: Upstream status: Pending
+# DP: Status Details: Currently not applied in cvs, but it's needed.
+# DP: Date: 2005-07-17
+
+PATCHLEVEL=0
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+2004-08-03  Marco Gerards  <metgerards@student.han.nl>
+
+	* sysdeps/mach/hurd/bits/ioctls.h (SIOCGIFHWADDR): New macro.
+
+Index: sysdeps/mach/hurd/bits/ioctls.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/bits/ioctls.h,v
+retrieving revision 1.7
+diff -u -p -u -p -r1.7 ioctls.h
+--- sysdeps/mach/hurd/bits/ioctls.h	6 Jul 2001 04:55:58 -0000	1.7
++++ sysdeps/mach/hurd/bits/ioctls.h	3 Aug 2004 13:55:34 -0000
+@@ -226,6 +226,7 @@ enum __ioctl_datum { IOC_8, IOC_16, IOC_
+ #define	SIOCSIFADDR	_IOW('i', 12, struct ifreq)	/* set ifnet address */
+ #define	OSIOCGIFADDR	_IOWR('i',13, struct ifreq)	/* get ifnet address */
+ #define	SIOCGIFADDR	_IOWR('i',33, struct ifreq)	/* get ifnet address */
++#define	SIOCGIFHWADDR	_IOWR('i',39, struct ifreq)	/* get hwaddress */
+ #define	SIOCSIFDSTADDR	_IOW('i', 14, struct ifreq)	/* set p-p address */
+ #define	OSIOCGIFDSTADDR	_IOWR('i',15, struct ifreq)	/* get p-p address */
+ #define	SIOCGIFDSTADDR	_IOWR('i',34, struct ifreq)	/* get p-p address */

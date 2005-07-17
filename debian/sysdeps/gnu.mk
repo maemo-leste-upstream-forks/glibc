@@ -19,3 +19,6 @@ define kernel_check
 true
 endef
 
+# TLS is broken currently and results in Mach panicing
+libc_extra_config_options := $(extra_config_options) --without-tls
+
