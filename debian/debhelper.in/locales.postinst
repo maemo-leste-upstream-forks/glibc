@@ -33,7 +33,10 @@ EOF
         save_IFS=$IFS
         IFS=,
         for locale in $list; do
-            if grep -q "^#$locale *\$" $LG; then
+            if grep -q "^$locale *\$" $LG; then
+                #   This locale has already been inserted, do nothing
+                :
+            elif grep -q "^#$locale *\$" $LG; then
                 #   Uncomment previous defined locales
                 sed -e "s,#$locale *\$,$locale," $LG > $LG.tmp || true
                 mv -f $LG.tmp $LG
