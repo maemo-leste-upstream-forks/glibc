@@ -28,9 +28,6 @@ if ($DEB_HOST_GNU_SYSTEM eq "gnu") {
 }
 if ($DEB_HOST_GNU_SYSTEM eq "linux-gnu") {
     push @{$libc_c{'Suggests'}}, 'locales';
-    #db1 compat libraries from libc 2.0/2.1, we need to depend on them
-    #until after sarge is released
-    push @{$libc_c{'Depends'}}, "libdb1-compat";
     push @{$libc_dev_c{'Recommends'}}, 'c-compiler';
     push @{$libc_dev_c{'Replaces'}}, ('man-db (<= 2.3.10-41)', 'gettext (<= 0.10.26-1)',
 		'ppp (<= 2.2.0f-24)', 'libgdbmg1-dev (<= 1.7.3-24)');
