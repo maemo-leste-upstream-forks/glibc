@@ -15,7 +15,7 @@ if [ "$1" = configure ]; then
     if [ -n "$SELECTED_LOCALES" ]; then
         if [ -e $LG ]; then
             #   Comment previous defined locales
-            sed -e 's/^[a-zA-Z]/#&/' $LG > $LG.tmp || true
+            LC_ALL=C sed -e 's/^[a-zA-Z]/#&/' $LG > $LG.tmp || true
             mv -f $LG.tmp $LG
 	    last=`tail -n 1 "$LG"`
 	    if test -n "$last"; then echo >> $LG; fi
@@ -45,7 +45,7 @@ EOF
         IFS=$save_IFS
     else
         if [ -e $LG ]; then
-            sed -e 's/^[a-zA-Z]/#&/' $LG > $LG.tmp || true
+            LC_ALL=C sed -e 's/^[a-zA-Z]/#&/' $LG > $LG.tmp || true
             mv -f $LG.tmp $LG
         fi
     fi
