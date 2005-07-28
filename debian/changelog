@@ -31,6 +31,14 @@ glibc (2.3.5-3) experimental; urgency=low
         cannot work correctly.
       - debian/sysdeps/alpha.mk: Likewise.
 
+    * Introduce loose locales version dependency to avoid locales version
+      mismatch for FTBFS architectures, taken from Jeff Bailey
+      <jbailey@ubuntu.com> (Closes: #204696, #308824):
+      - debian/locales-depver: New file, describes minimum locales dependency
+        version.  It's renamed from locales-shlibver because it's not "shlib".
+      - debian/rules.d/debhelper.mk: Use LOCALES_DEP_VER to generate locales
+        dependency.
+
     * debian/sysdeps/depflags.pl: Drop Depends: libdb1-compat because it's
       until sarge stuff.  Suggested by Colin Watson <cjwatson@debian.org>.
       (Closes: #318885)
