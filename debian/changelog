@@ -23,6 +23,14 @@ glibc (2.3.5-3) experimental; urgency=low
       - debian/sysdeps/m68k.mk: New file, to use gcc-3.4 as CC and BUILD_CC
         due to gcc-4.0 ICE.  See #319312.
 
+    * Introduce RUN_TESTSUITE for disabling make check, taken from Jeff
+      Bailey <jbailey@ubuntu.com>:
+      - debian/rules: Enable RUN_TESTSUITE in default.
+      - debian/rules.d/build.mk: Check RUN_TESTSUITE before invoking tests.
+      - debian/sysdeps/hppa.mk: Disable RUN_TESTSUITE because linuxthreads
+        cannot work correctly.
+      - debian/sysdeps/alpha.mk: Likewise.
+
     * debian/sysdeps/depflags.pl: Drop Depends: libdb1-compat because it's
       until sarge stuff.  Suggested by Colin Watson <cjwatson@debian.org>.
       (Closes: #318885)

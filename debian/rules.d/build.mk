@@ -67,6 +67,8 @@ $(stamp)check_%: $(stamp)build_%
 	  echo "Cross compiling, skipping tests."; \
 	elif ! $(call kernel_check,$(call xx,MIN_KERNEL_SUPPORTED)); then \
 	  echo "Kernel too old, skipping tests."; \
+	elif [ $(call xx,RUN_TESTSUITE) != "yes" ]; then \
+	  echo "Testsuite disabled for $(curpass), skipping tests."; \
 	else \
 	  echo Testing $(curpass); \
 	  $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS) -k check 2>&1 | tee -a $(log_test); \
