@@ -1,0 +1,43 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Fix tr_TR localedef breakage.
+# DP: Related bugs: #314855: tr_TR.ISO-8859-9...LC_MONETARY: `int_curr_symbol' does not correspond to valid name
+# DP: Dpatch author: GOTO Masanori <gotom@debian.org>
+# DP: Patch author: 
+# DP: Upstream status: Will be submitted.
+# DP: Status Details: 
+# DP: Date: 2005-08-03
+
+PATCHLEVEL=0
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+Index: iso-4217.def
+===================================================================
+RCS file: /cvs/glibc/libc/locale/iso-4217.def,v
+retrieving revision 1.16
+diff -u -p -r1.16 iso-4217.def
+--- locale/iso-4217.def	20 Mar 2005 04:14:36 -0000	1.16
++++ locale/iso-4217.def	3 Aug 2005 04:23:45 -0000
+@@ -151,7 +151,7 @@ DEFINE_INT_CURR("TJR")		/* Tajikistani R
+ DEFINE_INT_CURR("TMM")		/* Turkmenistan Manet  */
+ DEFINE_INT_CURR("TND")		/* Tunisian Dinar  */
+ DEFINE_INT_CURR("TOP")		/* Tonga Pa'Anga  */
+-DEFINE_INT_CURR("TRL")		/* Turkish Lira  */
++DEFINE_INT_CURR("TRY")		/* Turkish Lira  */
+ DEFINE_INT_CURR("TTD")		/* Trinidad and Tobago  */
+ DEFINE_INT_CURR("TVD")		/* Tuvalu Dollars  */
+ DEFINE_INT_CURR("TWD")		/* Taiwan, Province of China Dollar  */
