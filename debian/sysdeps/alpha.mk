@@ -5,4 +5,4 @@ libc = libc6.1
 RUN_TESTSUITE = no
 
 # disabled for static linked pthread programs.
-libc_extra_config_options = $(extra_config_options) --without-tls --without-__thread
+libc_extra_config_options = $(extra_config_options) --with-tls --without-__thread
