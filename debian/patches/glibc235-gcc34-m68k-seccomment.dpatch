@@ -1,0 +1,48 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Make glibc-2.3.5 compile with gcc-3.4/4.0 + binutils 2.16
+#		   on m68k fixed by adding #APP.
+# DP: Related bugs: 
+# DP: Dpatch author: GOTO Masanori <gotom@debian.org>
+# DP: Patch author: Andreas Schwab <schwab@suse.de>
+# DP: Upstream status: Pending
+# DP: Status Details: 
+# DP: Date: 2005-08-03
+
+PATCHLEVEL=0
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+From: Andreas Schwab <schwab@suse.de>
+
+--- include/libc-symbols.h.gotom	2005-08-03 14:23:50.211418118 +0900
++++ include/libc-symbols.h	2005-08-03 14:31:44.416870472 +0900
+@@ -234,12 +234,12 @@
+ #   define __make_section_unallocated(section_string)
+ #  endif
+ 
+-/* Tacking on "\n\t#" to the section name makes gcc put it's bogus
++/* Tacking on "\n#APP\n\t#" to the section name makes gcc put it's bogus
+    section attributes on what looks like a comment to the assembler.  */
+ #  ifdef HAVE_SECTION_QUOTES
+-#   define __sec_comment "\"\n\t#\""
++#   define __sec_comment "\"\n#APP\n\t#\""
+ #  else
+-#   define __sec_comment "\n\t#"
++#   define __sec_comment "\n#APP\n\t#"
+ #  endif
+ #  define link_warning(symbol, msg) \
+   __make_section_unallocated (".gnu.warning." #symbol) \
