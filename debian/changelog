@@ -1,5 +1,9 @@
 glibc (2.3.5-3) unstable; urgency=low
 
+  * The "Keep Debconf5 speed" and the "Welcome back the recent glibc to
+    unstable" release.
+  * Glibc bumps up from 2.3.2.ds1 to 2.3.5 on etch.
+
   * GOTO Masanori <gotom@debian.org>
 
     * Localedata update:
@@ -104,6 +108,116 @@ glibc (2.3.5-3) unstable; urgency=low
     * Serge Belyshev <belyshev@depni.sinp.msu.ru>:
       - debian/patches/glibc235-execvp-fix.dpatch: Fix execvp segv caused by
         invalid free pointer.
+
+    * This version fixes some bugs that are already marked as
+      fixed-in-experimental and explained the reason in this changelog.
+      (Closes: #144670, #185991, #258647, #276062, #279423, #280030, #298784)
+      (Closes: #300806, #300842, #304963, #305400, #305662, #305666, #309618)
+      (Closes: #311793, #313404, #314084, #315347, #315793)
+
+    * This version fixes some bugs that are already confirmed as fixed
+      (fixed-in-experimental) in the experimental glibc:
+      - Can compile rpc/xdr.h with gcc-4.0.  (Closes: #315198, #320963)
+      - Support posix_fadvise64 correctly on 2.4 kernel.
+          (Closes: #312406, #313219)
+      - Can static link with the recent toolchain changed with TLS/non-TLS
+        errno definition on amd64 and ia64.
+        (Closes: #317674, #317946, #318956, #318963, #319115)
+      - Fix mktime when setting a timezone value to AC_FUNC_MKTIME.
+        (Closes: #177940)
+      - Fix libc6-i686 to reexec init.  (Closes: #270745)
+
+    * This version fixes some bugs that are marked as fixed-upstream:
+      - Fix ucontext.h failure with g++-4.0 on ia64.
+        (Closes: #318429, #320240)
+
+      - Missing icache flushing on PPC caused sometimes segv, and now cache
+        management is reworked and fixed.  (Closes: #146489)
+      - Fix alpha atan() that gave wrong results for some operands.
+        (Closes: #210613)
+      - Fix PPC rint() that gave wrong result for negative arguments in the
+        rounding toward -inf and +inf mode.  (Closes: #216800)
+      - Fix that the pmaplist frees the freed memory in xdr_pmaplist.
+        (Closes: #230219)
+      - Don't export unneeded symbol _fp_hw on s390.  (Closes: #247681)
+      - Set locale correctly for generated threads in static linked binaries.
+        (Closes: #260221)
+      - Make g++ compilation with nptl pthread.h by changing initializers.
+        (Closes: #276309)
+      - Fix a race condition with pthread_cond_broadcast.  (Closes: #276312)
+      - Fix re_exec() segv that caused on UTF-8 locales.
+        (Closes: #175163, #237681, #290551, #299137, #310443)
+      - Implement getcontext on alpha.  (Closes: #293653)
+      - Fix an incorrect value of ceill and floorl on amd64.  (Closes: #302458)
+      - Fix memory leaks in getaddrinfo/freeaddrinfo.  (Closes: #304022)
+      - Fix mips/mipsel incomplete clobbered registers for syscalls.
+        (Closes: #304426)
+      - Support working sched_setaffinity on powerpc.  (Closes: #311053)
+      - Support _SC_HOST_NAME_MAX in sysconf.  (Closes: #314350)
+      - Fix pthread_rwlock_wrlock hangs with NPTL on amd64.  (Closes: #314408)
+
+      - Check timezone changes for localtime and friends.  (Closes: #48184)
+      - Fix a race condition of sigaction and signal handler.
+        (Closes: #136990)
+      - Fix segmentation fault when invoking nscd -d.
+        (Closes: #156923, 245208)
+      - Support POSIX style strerror_r implementation.
+        (Closes: #159298, #169370, #182542, #202209)
+      - Enable to use short IPv4 address notation again.  (Closes: #192091)
+      - Fix broken pthread_cleanup_push on Alpha.  (Closes: #197988)
+      - Support POSIX message queues.  (Closes: #202197, #280137)
+      - Don't use ?: in bits/mathinline.h.  (Closes: #206015, #304500)
+      - Update Norwegian translation that fixes confusing text.
+        (Closes: #207266)
+      - Enable executable again for libc.so.*.  (Closes: #215463, #264948)
+      - Improve putchar and io performance by changes to pthread locking code.
+        (Closes: #219205)
+      - Update sys/vm86.h.  (Closes: #219476)
+      - Fix invalid __libc_dlclose() in nsswitch.c.  (Closes: #222130)
+      - Support backtrace on ia64 and x86_64.  (Closes: #235876)
+      - Fix nl_langinfo(ERA) returns NULL, not "".  (Closes: #245836)
+      - Libintl.h is ready for some g++ compilation option.  (Closes: #252753)
+      - Fix pthread_cond_timedwait and mutex hang with cancellation.
+        (Closes: #253303)
+      - Fix too long fraction digits handling in strtold().  (Closes: #260377)
+      - Fix some regexec() segv in UTF-8 locales.  (Closes: #261135)
+      - Fix pthread_cond_timedwait with a outdated timespec destroys the
+        pthread_cond_t variable. (Closes: #261237)
+      - Declare EPOLLONESHOT in sys/epoll.h.  (Closes: #261541)
+      - Fix returning invalid pointer when freeing valloc()-ed memory.
+        (Closes: #262782)
+      - Replace gcc-3.4 option for ppc64.  (Closes: #263959)
+      - Fix zdump -v segv on ia64.  (Closes: #266438)
+      - Support pthread_create with attributes.  (Closes: #266507)
+      - Change __vector to __iovec for sys/io.h to prevent conflicts with
+        altivec.  (Closes: #267442)
+      - Fix atan2 infinit loop on amd64.  (Closes: #270823)
+      - Avoid memory leak for some gconv encoding by calling gconv_end.
+        (Closes: #274390)
+      - Fix mplayerplug-in crash closed by mozilla.  (Closes: #275240)
+      - Fix invalid memory access of printf when its specifier combines
+        parameter number specification and floating point values.
+        (Closes: #277667, #312036)
+      - Don't touch unrelated bits in __feclearexcept on i386.
+        (Closes: #279294)
+      - Don't invoke unneeded cancellation if PTHREAD_CANCEL_DISABLE is set.
+        (Closes: #281775)
+      - Fix a race condition between pthread_create and pthread_exit.
+        (Closes: #282091, #292154)
+      - Fix for setfacl to handle many files in ntfw64.  (Closes: #288710)
+      - Support large dev_t.  (Closes: #289945, #299139)
+      - Use the correct ifndef __GNUC_PREREQ.  (Closes: #315345)  
+
+      - Fix the indended first line of ldd output.  (Closes: #209145, #276223)
+      - Fix misleading error message of ldd when kernel version is old.
+        (Closes: #224665)
+      - Fix typo of the language name in te_IN.  (Closes: #276527)
+      - Replace old --help message that indicated glibcbug script.
+        (Closes: #315448)
+
+      - Support IDN.  (Closes: #181025)
+      - Support O_NOATIME.  (Closes: #284131, #297010, #298488)
+      - The first day of a week in Finnish is Monday.  (Closes: #288472)
 
  -- GOTO Masanori <gotom@debian.org>  Sun, 17 Jul 2005 17:27:30 +0900
 
