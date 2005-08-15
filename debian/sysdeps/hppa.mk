@@ -1,3 +1,9 @@
+# work around to build on hppa, due to newer gcc breaks.
+# gcc-4.0 is:  See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=23369
+# gcc-3.4 is under investigation.
+CC = gcc-3.3
+BUILD_CC = gcc-3.3
+
 # hppa64 needs symlink /usr/hppa64-linux/include to /usr/include
 # (See: Bug#239020)  In future we may drop this file with supporting hppa64.
 
