@@ -2,6 +2,9 @@
 set -e
 export LC_ALL=C
 
+type=$1
+preversion=$2
+
 package_name()
 {
     echo LIBC
@@ -168,7 +171,7 @@ for suffix in -dbg -dev -pic -prof; do
     fi
 done
 
-if [ "$1" = "configure" ]
+if [ "$type" = "configure" ]
 then
     # Handle upgrades for libdb.so.3. We do this before calling ldconfig,
     # since it will create a symlink for us. Just move everything over. We
@@ -254,11 +257,11 @@ then
 	fi
     fi
 
-    if [ ! -z $2 ]; then
+    if [ ! -z $preversion ]; then
 	if [ ! -d /var/mail ] && [ ! -L /var/mail ]; then
 	    ln -sf spool/mail /var/mail
 	fi
-	if dpkg --compare-versions $2 lt 2.3.5-1; then
+	if dpkg --compare-versions $preversion lt 2.3.5-1; then
 	    echo -n "Checking for services that may need to be restarted..."
 
 	    check="nis smail sendmail exim ssh netbase"
@@ -369,7 +372,7 @@ then
 		    echo
 		fi
 	    fi
-	fi # end upgrading and $2 lt 2.1.95-1
+	fi # end upgrading and $preversion lt 2.3.5-1
     fi # Upgrading
     if [ -f /etc/timezone.save ]; then
 	mv -fb /etc/timezone.save /etc/timezone
