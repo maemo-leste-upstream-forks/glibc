@@ -1,0 +1,37 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Add "CSD" symbol to iso-4217.def.
+# DP: Related bugs: #322655
+# DP: Dpatch author: 
+# DP: Patch author: GOTO Masanori <gotom@debian.org>
+# DP: Upstream status: In CVS
+# DP: Status Details: 
+# DP: Date: 2005-08-22
+
+PATCHLEVEL=0
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+--- locale/iso-4217.def.gotom	2005-08-19 16:14:07.000000000 +0900
++++ locale/iso-4217.def	2005-08-22 19:33:21.909785640 +0900
+@@ -40,6 +40,7 @@
+ DEFINE_INT_CURR("CNY")		/* China Yuan Renminbi  */
+ DEFINE_INT_CURR("COP")		/* Colombian Peso  */
+ DEFINE_INT_CURR("CRC")		/* Costa Rican Colon  */
++DEFINE_INT_CURR("CSD")		/* Serbian Dinar  */
+ DEFINE_INT_CURR("CUP")		/* Cuban Peso  */
+ DEFINE_INT_CURR("CVE")		/* Cape Verde Escudo  */
+ DEFINE_INT_CURR("CYP")		/* Cypriot Pound  */
