@@ -2,13 +2,13 @@
 CC = gcc-3.4
 BUILD_CC = gcc-3.4
 
-# nptl is dropped because we just don't have enough time to test currently.
-GLIBC_PASSES += ppc64  #nptl
+GLIBC_PASSES += ppc64 nptl
 DEB_ARCH_REGULAR_PACKAGES += libc6-ppc64 libc6-dev-ppc64
 
 # nptl/ppc64 extra_cfalgs needs -g2 because of gcc-3.4 bug.
 ifeq ($(BUILD_CC_VERSION),3.4)
-	libc_extra_cflags += -g2
+	nptl_extra_cflags += -g2
+	ppc64_extra_cflags += -g2
 endif
 
 ppc64_MIN_KERNEL_SUPPORTED = 2.6.0
