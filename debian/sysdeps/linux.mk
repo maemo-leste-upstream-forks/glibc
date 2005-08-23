@@ -14,6 +14,11 @@ ifeq ($(NJOBS),0)
  NJOBS=1
 endif
 
+# We can override its value by SETNJOBS environment variable.
+ifdef SETNJOBS
+ NJOBS:=$(SETNJOBS)
+endif
+
 # Linuxthreads Config
 threads = yes
 libc_add-ons = linuxthreads $(add-ons)
