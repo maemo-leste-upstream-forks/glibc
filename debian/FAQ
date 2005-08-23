@@ -97,3 +97,28 @@ Please file a bug if the workaround doesn't work.
 NOTE: Currently this error message is suppressed, for the benefit of some
 truly buggy programs which redirect stderr into something important, like a
 network socket.
+
+Q7: I get this error when I compile an static linked application that's
+compiled with glibc 2.2 or before:
+	gcc -o foo.o libbar.a
+	libbar.a(obj.o): In function `func(char *)':
+	: undefined reference to `__ctype_toupper'
+
+A7: 
+During glibc 2.3.x development, some symbols (__ctype_b, __ctype_toupper,
+__ctype_tolower) are changed to hidden attributes.  This means old static
+linked applications/libraries built with glibc 2.2.x cannot be linked on glibc
+2.3.x systems any more.
+
+But it made a lot of user applications unusable, we applied a workaround patch
+for glibc in Sarge.  Therefore your applications worked OK, and you didn't
+need to consider about this problem.  However, most other distros already
+dropped such local modification.  For that reason, we decided to drop
+supporting such old static linked applications/libraries from Etch, you need
+to recompile them.
+
+If you want to keep this workaround that was applied in Sarge for the present,
+please recompile Debian glibc package with adding "glibc23-ctype-compat" line
+at the end of debian/patches/00list, and install it on your local machine.
+Note that we don't support this patch nowadays, please use it at your own
+risk.
