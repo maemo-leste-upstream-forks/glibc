@@ -6,6 +6,7 @@ GLIBC_PASSES += ppc64 nptl
 DEB_ARCH_REGULAR_PACKAGES += libc6-ppc64 libc6-dev-ppc64
 
 # nptl/ppc64 extra_cfalgs needs -g2 because of gcc-3.4 bug.
+BUILD_CC_VERSION := $(shell $(BUILD_CC) -dumpversion | sed 's/\([0-9]*\.[0-9]*\)\(.*\)/\1/')
 ifeq ($(BUILD_CC_VERSION),3.4)
 	nptl_extra_cflags += -g2
 	ppc64_extra_cflags += -g2
