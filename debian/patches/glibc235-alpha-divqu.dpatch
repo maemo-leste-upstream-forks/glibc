@@ -1,0 +1,67 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Fix alpha divqu/remqu that does not return the correct
+#		   result when their dividend and divisor are same and 63bit
+#		   is 1.
+# DP: Related bugs: #324455
+# DP: Dpatch author: GOTO Masanori <gotom@debian.org>
+# DP: Patch author: GOTO Masanori <gotom@debian.org>
+# DP: Upstream status: Will be Submitted
+# DP: Status Details: 
+# DP: Date: 2005-08-25
+
+PATCHLEVEL=0
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+2005-08-23  GOTO Masanori  <gotom@debian.or.jp>
+
+	* sysdeps/alpha/remqu.S: Return the correct result when the same
+	dividend and divisor are provided, and they're negative numbers.
+	* sysdeps/alpha/divqu.S: Likewise.
+
+Index: sysdeps/alpha/remqu.S
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/alpha/remqu.S,v
+retrieving revision 1.11
+diff -u -p -r1.11 remqu.S
+--- sysdeps/alpha/remqu.S	28 May 2005 23:40:09 -0000	1.11
++++ sysdeps/alpha/remqu.S	23 Aug 2005 09:57:13 -0000
+@@ -246,7 +246,7 @@ $y_is_neg:
+ 	   from the divide will be completely wrong.  Fortunately, the
+ 	   quotient must be either 0 or 1, so the remainder must be X
+ 	   or X-Y, so just compute it directly.  */
+-	cmpult	Y, X, AT
++	cmpule	Y, X, AT
+ 	subq	X, Y, RV
+ 	ldt	$f0, 0(sp)
+ 	cmoveq	AT, X, RV
+Index: sysdeps/alpha/divqu.S
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/alpha/divqu.S,v
+retrieving revision 1.9
+diff -u -p -r1.9 divqu.S
+--- sysdeps/alpha/divqu.S	28 May 2005 23:40:09 -0000	1.9
++++ sysdeps/alpha/divqu.S	23 Aug 2005 09:57:13 -0000
+@@ -240,7 +240,7 @@ $y_is_neg:
+ 	/* If we get here, Y is so big that bit 63 is set.  The results
+ 	   from the divide will be completely wrong.  Fortunately, the
+ 	   quotient must be either 0 or 1, so just compute it directly.  */
+-	cmpult	Y, X, RV
++	cmpule	Y, X, RV
+ 	excb
+ 	mt_fpcr	$f3
+ 	ldt	$f0, 0(sp)
