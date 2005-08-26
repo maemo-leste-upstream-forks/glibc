@@ -44,6 +44,15 @@ glibc (2.3.5-5) unstable; urgency=low
       - debian/control.in/main: Build-Depends falls back to gcc-3.3.
       - debian/control: Update.
 
+    * Introduce bootstrap kernel version check script.
+      - debian/debhelper.in/libc.preinst: Move detection script to...
+      - debian/script.in/kernelcheck.sh: ...this, new file.
+      - debian/local/etc_init.d/glibc.sh: New file, it includes kernelcheck.sh.
+      - debian/debhelper.in/libc.postinst: Invoke /etc/init.d/glibc.sh as S01.
+      - debian/rules.d/debhelper.mk: Add replacing KERNEL_VERSION_CHECK and
+        EXIT_CHECK for libc.preinst and glibc.sh.
+      - debian/debhelper.in/libc.dirs: Create etc/init.d.
+
     * Don't use absolute path name.
       - debian/debhelper.in/libc.dirs: Suppress the first slash.
       - debian/debhelper.in/libc-pic.dirs: Likewise.

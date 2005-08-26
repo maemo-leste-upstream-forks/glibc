@@ -26,6 +26,10 @@ define $(libc)_extra_debhelper_pkg_install
 	  install --mode=0644 $(DEB_SRCDIR)/nptl/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/ChangeLog.nptl; \
 	  ;; \
 	esac
+	sed -e "/KERNEL_VERSION_CHECK/r debian/script.in/kernelcheck.sh" \
+		debian/local/etc_init.d/glibc.sh | \
+		sed -e "s/EXIT_CHECK/sleep 5/" > debian/glibc.sh.generated
+	install --mode=0755 debian/glibc.sh.generated debian/$(curpass)/etc/init.d/glibc.sh
 	# dh_installmanpages thinks that .so is a language.
 	install --mode=0644 debian/local/manpages/ld.so.8 debian/$(curpass)/usr/share/man/man8/ld.so.8
 
@@ -173,6 +177,8 @@ $(stamp)debhelper:
 	  sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$z; \
 	  sed -e "s#LIBC#$(libc)#" -i $$z; \
 	  sed -e "s#CURRENT_VER#$(DEB_VERSION)#" -i $$z; \
+	  sed -e "/KERNEL_VERSION_CHECK/r debian/script.in/kernelcheck.sh" -i $$z; \
+	  sed -e "s#EXIT_CHECK##" -i $$z; \
 	  case $$z in \
 	    *.install) sed -e "s/^#.*//" -i $$z ;; \
 	  esac; \
@@ -261,5 +267,6 @@ debhelper-clean:
 	rm -f debian/*.dirs
 	rm -f debian/*.docs
 	rm -f debian/*.doc-base
+	rm -f debian/*.generated
 
 	rm -f $(stamp)binaryinst*
