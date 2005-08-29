@@ -90,7 +90,8 @@ exit_check () {
     # Note that parisc64 kernel version scheme is "`uname -r`-64".
     if [ "$realarch" = parisc64 ]
     then
-	if [ $kernel_ver = ${kernel_ver/pa/} ]
+	kernel_ver_pa=$(echo "$kernel_ver" | sed 's/pa//')
+	if [ "$kernel_ver" = "$kernel_ver_pa" ]
 	then
 	    if dpkg --compare-versions "$kernel_ver" lt 2.4.19-64
 	    then
