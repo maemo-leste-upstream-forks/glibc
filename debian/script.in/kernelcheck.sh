@@ -26,17 +26,18 @@ exit_check () {
     # intel i386 requires a recent kernel
     if [ "$realarch" = i386 ]
     then
-	if dpkg --compare-versions "$kernel_ver" lt 2.4.24
-	then
-	    echo WARNING: This machine has i386 class processor.
-	    echo Debian sarge and later, you need to use at least a 2.4.24
-	    echo or 2.6.0 kernel on i386.  Please upgrade your kernel
-	    echo before installing glibc.
-	    echo The reason is that "bswap" instruction is not supported
-	    echo on i386 class processors, and newer kernel can emulate
-	    echo such lacking instructions.
+	# From glibc 2.3.5-7 and linux-2.6 2.6.12-1, real-i386 is dropped.
+	#if dpkg --compare-versions "$kernel_ver" lt 2.4.24
+	#then
+	    echo WARNING: This machine has real i386 class processor.
+	    echo Debian etch and later does not support such old hardware
+	    echo any longer.
+	    echo The reason is that \"bswap\" instruction is not supported
+	    echo on i386 class processors, and some core libraries have 
+	    echo such instruction.  You\'ll see illegal instruction error
+	    echo when you upgrade your Debian system.
 	    exit_check
-	fi
+	#fi
     fi
 
     # SPARC sun4m requires a recent kernel
