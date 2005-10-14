@@ -1,0 +1,517 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Generate correct <bits/syscall.h> on MIPS.
+# DP: Related bugs: 223891, 329043
+# DP: Dpatch author: Daniel Jacobowitz <dan@debian.org>
+# DP: Patch author: Richard Sandiford <richard@codesourcery.com>
+# DP: Upstream status: In CVS
+# DP: Status Details: Currently on HEAD but not glibc 2.3.x branch
+# DP: Date: 2005-10-13
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+From libc-alpha-return-16642-listarch-libc-alpha=sources dot redhat dot com at sources dot redhat dot com Thu Nov 11 09:15:58 2004
+Return-Path: <libc-alpha-return-16642-listarch-libc-alpha=sources dot redhat dot com at sources dot redhat dot com>
+Delivered-To: listarch-libc-alpha at sources dot redhat dot com
+Received: (qmail 10691 invoked by alias); 11 Nov 2004 09:15:55 -0000
+Mailing-List: contact libc-alpha-help at sources dot redhat dot com; run by ezmlm
+Precedence: bulk
+List-Subscribe: <mailto:libc-alpha-subscribe at sources dot redhat dot com>
+List-Archive: <http://sources.redhat.com/ml/libc-alpha/>
+List-Post: <mailto:libc-alpha at sources dot redhat dot com>
+List-Help: <mailto:libc-alpha-help at sources dot redhat dot com>, <http://sources dot redhat dot com/ml/#faqs>
+Sender: libc-alpha-owner at sources dot redhat dot com
+Delivered-To: mailing list libc-alpha at sources dot redhat dot com
+Received: (qmail 10627 invoked from network); 11 Nov 2004 09:15:39 -0000
+Received: from unknown (HELO mx1.redhat.com) (66.187.233.31)
+  by sourceware dot org with SMTP; 11 Nov 2004 09:15:39 -0000
+Received: from int-mx1.corp.redhat.com (int-mx1.corp.redhat.com [172.16.52.254])
+	by mx1 dot redhat dot com (8 dot 12 dot 11/8 dot 12 dot 11) with ESMTP id iAB9FdqQ030883
+	for <libc-alpha at sources dot redhat dot com>; Thu, 11 Nov 2004 04:15:39 -0500
+Received: from talisman.cambridge.redhat.com (talisman.cambridge.redhat.com [172.16.18.81])
+	by int-mx1 dot corp dot redhat dot com (8 dot 11 dot 6/8 dot 11 dot 6) with ESMTP id iAB9Fcr07582
+	for <libc-alpha at sources dot redhat dot com>; Thu, 11 Nov 2004 04:15:38 -0500
+Received: from talisman.cambridge.redhat.com (localhost.localdomain [127.0.0.1])
+	by talisman dot cambridge dot redhat dot com (8 dot 13 dot 1/8 dot 12 dot 10) with ESMTP id iAB9Fb5l028658
+	for <libc-alpha at sources dot redhat dot com>; Thu, 11 Nov 2004 09:15:37 GMT
+Received: (from rsandifo@localhost)
+	by talisman dot cambridge dot redhat dot com (8 dot 13 dot 1/8 dot 12 dot 10/Submit) id iAB9FbgK028657;
+	Thu, 11 Nov 2004 09:15:37 GMT
+X-Authentication-Warning: talisman dot cambridge dot redhat dot com: rsandifo set sender to rsandifo at redhat dot com using -f
+To: libc-alpha at sources dot redhat dot com
+Subject: [PATCH] <asm/unistd.h> and mips*-linux-gnu
+From: Richard Sandiford <rsandifo at redhat dot com>
+Date: Thu, 11 Nov 2004 09:15:37 +0000
+Message-ID: <wvnu0rwzqyu.fsf@talisman.cambridge.redhat.com>
+User-Agent: Gnus/5.1006 (Gnus v5.10.6) Emacs/21.3 (gnu/linux)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+
+As has been mentioned before on this list, the MIPS versions of
+<asm/unistd.h> in linux 2.6 use a different naming scheme from earlier
+versions.  Paraphrasing comments from the patch, there are now three
+sets of headers that glibc needs to consider:
+
+  (1) Headers from the pre-2.6 32-bit MIPS port.  They just define
+      a single list of __NR macros.
+
+  (2) Headers from the pre-2.6 64-bit MIPS port.  They unconditionally
+      define syscalls for all three ABIs, with o32 syscalls prefixed
+      by __NR_O32, n32 syscalls prefixed by __NR_N32 and n64 syscalls
+      prefixed by plain __NR.
+
+  (3) Headers from the combined 2.6 MIPS port.  They use the _MIPS_SIM
+      macro to define the right set of syscalls for the current ABI.
+      The syscalls themselves have no special ABI prefix, but the
+      headers also define:
+
+         __NR_O32_Linux{,_syscalls}
+         __NR_N32_Linux{,_syscalls}
+         __NR_64_Linux{,_syscalls}
+
+At the moment, glibc only handles (1) and (2).  Ilya Volynets-Evenbakh
+posted a patch for (3) in May:
+
+    http://sources.redhat.com/ml/libc-alpha/2004-05/msg00113.html
+
+but I don't think that's enough.  I believe the affected areas are
+as follows:
+
+   (a) sysdeps/unix/sysv/linux/mips/configure creates a private
+       (non-installed) header called asm-unistd.h.  In case (1) above,
+       this file just includes <asm/unistd.h>.  In case (2), it contains
+       a processed version that:
+
+          (i) changes the n64 __NR defines to use __NR_N64 instead.
+          (ii) defines __NR macros as appropriate for the current ABI.
+
+       This processing doesn't work for 2.6 headers.
+
+   (b) In the mips64 versions of sysdeps.h, SYS_ify() will use the
+       ABI-prefixed names (__NR_O32_*, __NR_N32_* and __NR_N64_*)
+       that are defined in asm-unistd.h.   They should just use
+       __NR with 2.6 headers.
+
+   (c) The MIPS-specific code to create syscalls.h also uses the
+       ABI-prefixed names.  This too needs to be updated for 2.6.
+
+To fix these, we need some way of detecting case (3) over case (2).
+One easy way of doing this is to check for __NR_N32_open, which only
+the pre-2.6 mips64 headers will define.  (I also used __NR_O32_open
+when dealing specifically with o32.  That seemed more readable than
+checking for __NR_N32_open in something that no relation to n32.)
+
+So, addressing each point in turn:
+
+   (a) For (3), asm-unistd.h should simply include <asm/unistd.h>,
+       just like it does for (1).  The patch therefore guards the
+       processing step with a grep for __NR_N32_open.
+
+   (b) The mips64 versions of sysdeps.h should use the normal
+       __NR macros for SYS_ify().  Thanks to the definitions
+       in asm-unistd.h, this will work for both (2) and (3).
+
+   (c) I've tried to fix this in such a way that syscalls.h can be
+       generated from either set of headers and such that it will
+       work with either set of headers.  For mips64*-linux-gnu,
+       the makefile will preprocess the syscall list once for
+       each ABI and generate output of the form:
+
+           #if _MIPS_SIM == _MIPS_SIM_NABI32
+           # ifdef __NR_N32_open
+           #  define SYS_n32syscall1 __NR_N32_n32syscall1
+           #  ...
+           # else
+           #  define SYS_n32syscall1 __NR_n32syscall1
+           #  ...
+           # endif
+           #elif _MIPS_SIM == _MIPS_SIM_ABI64
+           # define SYS_n64syscall1 __NR_n64syscall1
+           # ...
+           #else
+           # ifdef __NR_O32_open
+           #  define SYS_o32syscall1 __NR_O32_o32syscall1
+           #  ...
+           # else
+           #  define SYS_o32syscall1 __NR_o32syscall1
+           #  ...
+           # endif
+           #endif
+
+       Comments in the patch explain things in more detail.
+
+I've tested this against:
+
+   - the pre-2.6 32-bit headers (target mips-linux-gnu)
+   - the pre-2.6 64-bit headers (target mips64-linux-gnu, all three ABIs)
+   - the 2.6 headers (target mips64-linux-gnu, all three ABIs)
+
+As expected, the syscalls.h output for mips64-linux-gnu doesn't depend
+on the ABI that glibc is being built for.  Please install if OK.
+
+Richard
+
+
+2004-11-11  Richard Sandiford  <rsandifo@redhat.com>
+
+	* sysdeps/unix/sysv/linux/mips/configure.in (asm-unistd.h): Only
+	preprocess <asm/unistd.h> if it defines ABI-prefixed syscall names
+	like __NR_N32_open.  Just include <asm/unistd.h> otherwise.
+	* sysdeps/unix/sysv/linux/mips/configure: Regenerate.
+	* sysdeps/unix/sysv/linux/mips/mips32/kern64/sysdep.h: Delete
+	* sysdeps/unix/sysv/linux/mips/mips64/n32/sysdep.h (SYS_ify): Use the
+	standard __NR prefix.
+	* sysdeps/unix/sysv/linux/mips/mips64/n64/sysdep.h (SYS_ify): Likewise.
+	* sysdeps/unix/sysv/linux/mips/Makefile (syscall-%.h): Rework so that
+	the output file is compatible with both pre-2.6 and 2.6 kernel headers.
+	Extract separate syscall lists for each ABI.
+
+Index: libc/sysdeps/unix/sysv/linux/mips/Makefile
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/mips/Makefile,v
+retrieving revision 1.13
+diff -c -p -F^\([(a-zA-Z0-9_]\|#define\) -r1.13 Makefile
+*** libc/sysdeps/unix/sysv/linux/mips/Makefile	20 Jul 2004 16:37:41 -0000	1.13
+--- libc/sysdeps/unix/sysv/linux/mips/Makefile	9 Nov 2004 21:14:19 -0000
+*************** sysdep_headers += sys/cachectl.h sys/sys
+*** 9,19 ****
+  
+  no_syscall_list_h = 1
+  
+! # Generate the list of SYS_* macros for the system calls (__NR_* macros).
+! # We generate not only SYS_<syscall>, pointing at SYS_<abi>_<syscall> if
+! # it exists, but also define SYS_<abi>_<syscall> for all ABIs.
+  $(objpfx)syscall-%.h $(objpfx)syscall-%.d: ../sysdeps/unix/sysv/linux/mips/sys/syscall.h
+  	$(make-target-directory)
+  	{ \
+  	 echo '/* Generated at libc build time from kernel syscall list.  */';\
+  	 echo ''; \
+--- 9,81 ----
+  
+  no_syscall_list_h = 1
+  
+! # A callable macro that expands to a shell command.  Preprocess file $(1)
+! # using ABI option $(2) and see which macros it defines.  Print FOO for each
+! # macro of the form __NR$(3)_FOO, filtering out ABI-specific __NR macros
+! # that have a prefix other than $(3).
+! mips_list_syscalls =	$(filter-out -m%,$(CC)) -E -x c $(+includes) \
+! 			    $(sysincludes) -D_LIBC -dM -mabi=$(2) $(1) | \
+! 			sed -n 's@^\#define __NR$(3)_\([^ ]*\) .*@\1@p' | \
+! 			sed -e '/^[ON]32_/d' -e '/^N64_/d' -e '/^64_/d' | \
+! 			LC_ALL=C sort
+! 
+! # Generate a list of SYS_* macros from the linux __NR macros.
+! #
+! # Before version 2.6, linux had separate 32-bit and 64-bit MIPS ports,
+! # each with its own set of headers.  The ports were merged for 2.6 and
+! # this merged port defines the syscalls in a slightly different way.
+! # There are therefore three sets of headers that we need to consider:
+! #
+! #    (1) Headers from the separate 32-bit MIPS port.  They just define
+! #	 a single list of __NR macros.
+! #
+! #    (2) Headers from the separate 64-bit MIPS port.  They unconditionally
+! #	 define syscalls for all three ABIs, with o32 syscalls prefixed
+! #	 by __NR_O32, n32 syscalls prefixed by __NR_N32 and n64 syscalls
+! #	 prefixed by plain __NR.
+! #
+! #    (3) Headers from the combined port.  They use the _MIPS_SIM macro to
+! #	 define the right set of syscalls for the current ABI.  The syscalls
+! #	 themselves have no special ABI prefix, but the headers also define:
+! #
+! #	    __NR_O32_Linux{,_syscalls}
+! #	    __NR_N32_Linux{,_syscalls}
+! #	    __NR_64_Linux{,_syscalls}
+! #
+! # In case (1) we just want a simple list of SYS_* macros.  In cases (2)
+! # and (3) we want a file that will work for all three ABIs, regardless
+! # of which ABI we are currently using.  We also want the file to work
+! # if the user later moves from (2) to (3).  Thus the file we create
+! # for (2) and (3) has the form:
+! #
+! #    #if _MIPS_SIM == _MIPS_SIM_NABI32
+! #    # ifdef __NR_N32_open
+! #    #  define SYS_n32syscall1 __NR_N32_n32syscall1
+! #    #  ...
+! #    # else
+! #    #  define SYS_n32syscall1 __NR_n32syscall1
+! #    #  ...
+! #    # endif
+! #    #elif _MIPS_SIM == _MIPS_SIM_ABI64
+! #    # define SYS_n64syscall1 __NR_n64syscall1
+! #    # ...
+! #    #else
+! #    # ifdef __NR_O32_open
+! #    #  define SYS_o32syscall1 __NR_O32_o32syscall1
+! #    #  ...
+! #    # else
+! #    #  define SYS_o32syscall1 __NR_o32syscall1
+! #    #  ...
+! #    # endif
+! #    #endif
+! #
+! # Here, __NR_N32_open and __NR_O32_open are used to detect case (2)
+! # over case (3).  The n64 SYS_* macros can always use the normal
+! # ABI-less names.
+  $(objpfx)syscall-%.h $(objpfx)syscall-%.d: ../sysdeps/unix/sysv/linux/mips/sys/syscall.h
+  	$(make-target-directory)
++ 	$(CC) -E -x c $(+includes) $(sysincludes) -D_LIBC $< -MD -MP \
++ 	      -MF $(@:.h=.d)-t -MT '$(@:.d=.h) $(@:.h=.d)' > /dev/null
+  	{ \
+  	 echo '/* Generated at libc build time from kernel syscall list.  */';\
+  	 echo ''; \
+*************** $(objpfx)syscall-%.h $(objpfx)syscall-%.
+*** 22,49 ****
+  	 echo '#endif'; \
+  	 echo ''; \
+  	 echo '#include <sgidefs.h>'; \
+! 	 rm -f $(@:.d=.h).newt; \
+! 	 $(CC) -E -MD -MP -MF $(@:.h=.d)-t -MT '$(@:.d=.h) $(@:.h=.d)' \
+! 	       -x c $(+includes) $(sysincludes) $< -D_LIBC -dM | \
+! 	 sed -n 's@^#define __NR_\([^ ]*\) .*$$@#define SYS_\1 __NR_\1@p' \
+! 	     > $(@:.d=.h).newt; \
+! 	 if grep SYS_O32_ $(@:.d=.h).newt > /dev/null; then \
+  	   echo '#if _MIPS_SIM == _ABIN32'; \
+! 	   sed -n 's/^\(#define SYS_\)N32_/\1/p' < $(@:.d=.h).newt | \
+! 		LC_ALL=C sort; \
+  	   echo '#elif _MIPS_SIM == _ABI64'; \
+! 	   sed -n 's/^\(#define SYS_\)N64_/\1/p' < $(@:.d=.h).newt | \
+! 		LC_ALL=C sort; \
+  	   echo '#else'; \
+! 	   sed -n 's/^\(#define SYS_\)O32_/\1/p' < $(@:.d=.h).newt | \
+! 		LC_ALL=C sort; \
+  	   echo '#endif'; \
+- 	   sed -n '/^#define SYS_\([ON]32\|N64\)_/p' < $(@:.d=.h).newt | \
+- 		LC_ALL=C sort +1.8; \
+  	 else \
+! 	   cat $(@:.d=.h).newt; \
+  	 fi; \
+! 	 rm $(@:.d=.h).newt; \
+  	} > $(@:.d=.h).new
+  	mv -f $(@:.d=.h).new $(@:.d=.h)
+  ifneq (,$(objpfx))
+--- 84,121 ----
+  	 echo '#endif'; \
+  	 echo ''; \
+  	 echo '#include <sgidefs.h>'; \
+! 	 rm -f $(@:.d=.h).new32 $(@:.d=.h).newn32 $(@:.d=.h).new64; \
+! 	 $(call mips_list_syscalls,$<,n32,_N32) > $(@:.d=.h).newn32; \
+! 	 if test -s $(@:.d=.h).newn32; then \
+! 	   if grep open $(@:.d=.h).newn32 > /dev/null; then \
+! 	     $(call mips_list_syscalls,$<,32,_O32) > $(@:.d=.h).new32; \
+! 	     $(call mips_list_syscalls,$<,64,) > $(@:.d=.h).new64; \
+! 	   else \
+! 	     $(call mips_list_syscalls,$<,32,) > $(@:.d=.h).new32; \
+! 	     $(call mips_list_syscalls,$<,n32,) > $(@:.d=.h).newn32; \
+! 	     $(call mips_list_syscalls,$<,64,) > $(@:.d=.h).new64; \
+! 	   fi; \
+  	   echo '#if _MIPS_SIM == _ABIN32'; \
+! 	   echo '# ifdef __NR_N32_open'; \
+! 	   sed 's@\(.*\)@#  define SYS_\1 __NR_N32_\1@' < $(@:.d=.h).newn32; \
+! 	   echo '# else'; \
+! 	   sed 's@\(.*\)@#  define SYS_\1 __NR_\1@' < $(@:.d=.h).newn32; \
+! 	   echo '# endif'; \
+  	   echo '#elif _MIPS_SIM == _ABI64'; \
+! 	   sed 's@\(.*\)@# define SYS_\1 __NR_\1@' < $(@:.d=.h).new64; \
+  	   echo '#else'; \
+! 	   echo '# ifdef __NR_O32_open'; \
+! 	   sed 's@\(.*\)@#  define SYS_\1 __NR_O32_\1@' < $(@:.d=.h).new32; \
+! 	   echo '# else'; \
+! 	   sed 's@\(.*\)@#  define SYS_\1 __NR_\1@' < $(@:.d=.h).new32; \
+! 	   echo '# endif'; \
+  	   echo '#endif'; \
+  	 else \
+! 	   $(CC) -E -x c $(+includes) $(sysincludes) -D_LIBC -dM $< | \
+! 	   sed -n 's@^\#define __NR_\([^ ]*\) .*@\#define SYS_\1 __NR_\1@p' | \
+! 	   LC_ALL=C sort; \
+  	 fi; \
+! 	 rm -f $(@:.d=.h).new32 $(@:.d=.h).newn32 $(@:.d=.h).new64; \
+  	} > $(@:.d=.h).new
+  	mv -f $(@:.d=.h).new $(@:.d=.h)
+  ifneq (,$(objpfx))
+
+Index: libc/sysdeps/unix/sysv/linux/mips/mips64/n32/sysdep.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/mips/mips64/n32/sysdep.h,v
+retrieving revision 1.4
+diff -c -p -F^\([(a-zA-Z0-9_]\|#define\) -r1.4 sysdep.h
+*** libc/sysdeps/unix/sysv/linux/mips/mips64/n32/sysdep.h	18 Oct 2004 05:16:07 -0000	1.4
+--- libc/sysdeps/unix/sysv/linux/mips/mips64/n32/sysdep.h	9 Nov 2004 21:14:19 -0000
+*************** #define _LINUX_MIPS_SYSDEP_H 1
+*** 28,36 ****
+     so we have to redefine the `SYS_ify' macro here.  */
+  #undef SYS_ify
+  #ifdef __STDC__
+! # define SYS_ify(syscall_name)	__NR_N32_##syscall_name
+  #else
+! # define SYS_ify(syscall_name)	__NR_N32_/**/syscall_name
+  #endif
+  
+  #ifdef __ASSEMBLER__
+--- 28,36 ----
+     so we have to redefine the `SYS_ify' macro here.  */
+  #undef SYS_ify
+  #ifdef __STDC__
+! # define SYS_ify(syscall_name)	__NR_##syscall_name
+  #else
+! # define SYS_ify(syscall_name)	__NR_/**/syscall_name
+  #endif
+  
+  #ifdef __ASSEMBLER__
+Index: libc/sysdeps/unix/sysv/linux/mips/configure
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/mips/configure,v
+retrieving revision 1.7
+diff -c -p -F^\([(a-zA-Z0-9_]\|#define\) -r1.7 configure
+*** libc/sysdeps/unix/sysv/linux/mips/configure	20 Jul 2004 16:35:29 -0000	1.7
+--- libc/sysdeps/unix/sysv/linux/mips/configure	9 Nov 2004 21:14:19 -0000
+*************** mips*64*)
+*** 18,24 ****
+      { echo "$as_me:$LINENO: WARNING: *** asm/unistd.h not found, it will not be pre-processed" >&5
+  echo "$as_me: WARNING: *** asm/unistd.h not found, it will not be pre-processed" >&2;}
+      echo '#include <asm/unistd.h>' > asm-unistd.h
+!   else
+      # The point of this preprocessing is to turn __NR_<syscall> into
+      # __NR_N64_<syscall>, as well as to define __NR_<syscall> to
+      # __NR_<abi>_<syscall>, if __NR_<abi>_<syscall> is defined
+--- 18,24 ----
+      { echo "$as_me:$LINENO: WARNING: *** asm/unistd.h not found, it will not be pre-processed" >&5
+  echo "$as_me: WARNING: *** asm/unistd.h not found, it will not be pre-processed" >&2;}
+      echo '#include <asm/unistd.h>' > asm-unistd.h
+!   elif grep __NR_N32_open "$asm_unistd_h" > /dev/null; then
+      # The point of this preprocessing is to turn __NR_<syscall> into
+      # __NR_N64_<syscall>, as well as to define __NR_<syscall> to
+      # __NR_<abi>_<syscall>, if __NR_<abi>_<syscall> is defined
+*************** BEGIN { print "#include <sgidefs.h>"; }
+*** 68,73 ****
+--- 68,75 ----
+  {
+  	print;
+  }'
++   else
++     echo '#include <asm/unistd.h>' > asm-unistd.h
+    fi ;;
+  mips*)
+    rm -f asm-unistd.h
+Index: libc/sysdeps/unix/sysv/linux/mips/configure.in
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/mips/configure.in,v
+retrieving revision 1.6
+diff -c -p -F^\([(a-zA-Z0-9_]\|#define\) -r1.6 configure.in
+*** libc/sysdeps/unix/sysv/linux/mips/configure.in	20 Jul 2004 16:35:29 -0000	1.6
+--- libc/sysdeps/unix/sysv/linux/mips/configure.in	9 Nov 2004 21:14:19 -0000
+*************** mips*64*)
+*** 18,24 ****
+    if test ! -f "$asm_unistd_h"; then
+      AC_MSG_WARN([*** asm/unistd.h not found, it will not be pre-processed])
+      echo '#include <asm/unistd.h>' > asm-unistd.h
+!   else
+      # The point of this preprocessing is to turn __NR_<syscall> into
+      # __NR_N64_<syscall>, as well as to define __NR_<syscall> to
+      # __NR_<abi>_<syscall>, if __NR_<abi>_<syscall> is defined
+--- 18,24 ----
+    if test ! -f "$asm_unistd_h"; then
+      AC_MSG_WARN([*** asm/unistd.h not found, it will not be pre-processed])
+      echo '#include <asm/unistd.h>' > asm-unistd.h
+!   elif grep __NR_N32_open "$asm_unistd_h" > /dev/null; then
+      # The point of this preprocessing is to turn __NR_<syscall> into
+      # __NR_N64_<syscall>, as well as to define __NR_<syscall> to
+      # __NR_<abi>_<syscall>, if __NR_<abi>_<syscall> is defined
+*************** BEGIN { print "#include <sgidefs.h>"; }
+*** 68,73 ****
+--- 68,75 ----
+  {
+  	print;
+  }'
++   else
++     echo '#include <asm/unistd.h>' > asm-unistd.h
+    fi ;;
+  mips*)
+    rm -f asm-unistd.h
+Index: libc/sysdeps/unix/sysv/linux/mips/mips32/kern64/sysdep.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/mips/mips32/kern64/sysdep.h,v
+retrieving revision 1.1
+diff -c -p -F^\([(a-zA-Z0-9_]\|#define\) -r1.1 sysdep.h
+*** libc/sysdeps/unix/sysv/linux/mips/mips32/kern64/sysdep.h	29 Mar 2003 08:15:29 -0000	1.1
+--- libc/sysdeps/unix/sysv/linux/mips/mips32/kern64/sysdep.h	9 Nov 2004 21:14:19 -0000
+***************
+*** 1,36 ****
+- /* Copyright (C) 2000, 2002, 2003 Free Software Foundation, Inc.
+-    This file is part of the GNU C Library.
+- 
+-    The GNU C Library is free software; you can redistribute it and/or
+-    modify it under the terms of the GNU Lesser General Public
+-    License as published by the Free Software Foundation; either
+-    version 2.1 of the License, or (at your option) any later version.
+- 
+-    The GNU C Library is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-    Lesser General Public License for more details.
+- 
+-    You should have received a copy of the GNU Lesser General Public
+-    License along with the GNU C Library; if not, write to the Free
+-    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+-    02111-1307 USA.  */
+- 
+- #ifndef _LINUX_MIPS_MIPS32_KERN64_SYSDEP_H
+- #define _LINUX_MIPS_MIPS32_KERN64_SYSDEP_H 1
+- 
+- /* There is some commonality.  */
+- #include <sysdeps/unix/sysv/linux/mips/mips32/sysdep.h>
+- 
+- /* For Linux we can use the system call table in the header file
+- 	/usr/include/asm/unistd.h
+-    of the kernel.  But these symbols do not follow the SYS_* syntax
+-    so we have to redefine the `SYS_ify' macro here.  */
+- #undef SYS_ify
+- #ifdef __STDC__
+- # define SYS_ify(syscall_name)	__NR_O32_##syscall_name
+- #else
+- # define SYS_ify(syscall_name)	__NR_O32_/**/syscall_name
+- #endif
+- 
+- #endif /* linux/mips/mips32/kern64/sysdep.h */
+--- 0 ----
+Index: libc/sysdeps/unix/sysv/linux/mips/mips64/n64/sysdep.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/mips/mips64/n64/sysdep.h,v
+retrieving revision 1.4
+diff -c -p -F^\([(a-zA-Z0-9_]\|#define\) -r1.4 sysdep.h
+*** libc/sysdeps/unix/sysv/linux/mips/mips64/n64/sysdep.h	18 Oct 2004 05:16:08 -0000	1.4
+--- libc/sysdeps/unix/sysv/linux/mips/mips64/n64/sysdep.h	9 Nov 2004 21:14:19 -0000
+*************** #define _LINUX_MIPS_SYSDEP_H 1
+*** 28,36 ****
+     so we have to redefine the `SYS_ify' macro here.  */
+  #undef SYS_ify
+  #ifdef __STDC__
+! # define SYS_ify(syscall_name)	__NR_N64_##syscall_name
+  #else
+! # define SYS_ify(syscall_name)	__NR_N64_/**/syscall_name
+  #endif
+  
+  #ifdef __ASSEMBLER__
+--- 28,36 ----
+     so we have to redefine the `SYS_ify' macro here.  */
+  #undef SYS_ify
+  #ifdef __STDC__
+! # define SYS_ify(syscall_name)	__NR_##syscall_name
+  #else
+! # define SYS_ify(syscall_name)	__NR_/**/syscall_name
+  #endif
+  
+  #ifdef __ASSEMBLER__
