@@ -1,10 +1,20 @@
 glibc (2.3.5-7) unstable; urgency=low
 
-  * GOTO Masanori <gotom@debian.org>
+  [ GOTO Masanori ]
+  * debian/script.in/kernelcheck.sh: Drop real-i386 kernel support.
 
-    * debian/script.in/kernelcheck.sh: Drop real-i386 kernel support.
+  [ Daniel Jacobowitz ]
+  * Build 64-bit packages on i386 - based on patches from both Ubuntu
+    and Andreas Jochens <aj@andaco.de>.
+    - Build depend on a biarch linux-kernel-headers package.
+    - Build depend on new libc6-dev-amd64 package.
+    - Conflict with amd64-libs to avoid stale libraries.
+    - Replace files from amd64-libs-dev.
+    - Use lib64 for 64-bit libraries on i386.
+    - Search lib64 for ldconfig.
+    - Install 64-bit headers in /usr/include/x86_64-linux-gnu.
 
- -- GOTO Masanori <gotom@debian.org>  Sun, 28 Aug 2005 12:31:58 +0900
+ -- Daniel Jacobowitz <dan@debian.org>  Thu, 13 Oct 2005 22:31:28 -0400
 
 glibc (2.3.5-6) unstable; urgency=low
 
