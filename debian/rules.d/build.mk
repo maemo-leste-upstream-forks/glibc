@@ -3,6 +3,15 @@
 # This little bit of magic makes it possible:
 xx=$(if $($(curpass)_$(1)),$($(curpass)_$(1)),$($(1)))
 
+# We want to log output to a logfile but we also need to preserve the
+# return code of the command being run.
+# This little bit of magic makes it possible:
+# $(call logme, [-a] <log file>, <cmd>)
+define logme
+(exec 3>&1; exit `( ( ( $(2) ) 2>&1 3>&-; echo $$? >&4) | tee $(1) >&3) 4>&1`)
+endef
+
+
 $(patsubst %,mkbuilddir_%,$(GLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
 $(stamp)mkbuilddir_%: $(stamp)patch-stamp $(LINUX_HEADER_DIR)
 	@echo Making builddir for $(curpass)
@@ -42,21 +51,22 @@ endif
 	    echo "No.  Forcing cross-compile by setting build to $$configure_build."; \
 	  fi; \
 	fi; \
-	cd $(DEB_BUILDDIR) && \
+	$(call logme, -a $(log_build), \
+		cd $(DEB_BUILDDIR) && \
 		CC="$(call xx,CC)" \
 		AUTOCONF=false \
 		$(CURDIR)/$(DEB_SRCDIR)/configure \
 		--host=$(call xx,configure_target) \
 		--build=$$configure_build --prefix=/usr --without-cvs \
 		--enable-add-ons="$(call xx,add-ons)" --without-selinux \
-		$(call xx,with_headers) $(call xx,extra_config_options) 2>&1 | tee -a $(log_build)
+		$(call xx,with_headers) $(call xx,extra_config_options))
 
 	touch $@
 
 $(patsubst %,build_%,$(GLIBC_PASSES)) :: build_% : $(stamp)build_%
 $(stamp)build_%: $(stamp)configure_%
 	@echo Building $(curpass)
-	$(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS) 2>&1 | tee -a $(log_build)
+	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS))
 	touch $@
 
 $(patsubst %,check_%,$(GLIBC_PASSES)) :: check_% : $(stamp)check_%
