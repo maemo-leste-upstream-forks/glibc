@@ -117,7 +117,9 @@ fi
 # location (/lib, /lib64, etc.) then things may break very badly
 # as soon as ld.so is replaced by a new version.  This check is not
 # foolproof, but it's pretty accurate.  This script ignores old
-# libc4 or libc5.
+# libc4 or libc5, and libraries incompatible with the to-be-installed
+# ld.so.
+
 check_dirs () {
   for dir in $*; do
     # Handle /lib in LD_LIBRARY_PATH.
@@ -132,7 +134,23 @@ check_dirs () {
     if test -d $dir; then
       output=$(ls $dir | egrep '^lib(c|m|pthread|rt|dl)\.so\.[^/]*$' |\
 	       egrep -v '^lib[cm]\.so\.[45].*$' 2>/dev/null)
+
       if test -n "$output"; then
+	# See if the found libraries are compatible with the system ld.so;
+	# if they aren't, they'll be ignored.  Check e_ident, e_type (which
+	# will just be ET_DYN), and e_machine.  Assume that if one doesn't
+	# match, none of them will.
+	if test -f "$ld_so"; then
+	  lib=$dir/`echo "$output" | head -1`
+	  if test -f "$lib"; then
+	    ldbytes=`head -c 20 $ld_so | od -c`
+	    libbytes=`head -c 20 $lib | od -c`
+	    if test "$ldbytes" != "$libbytes"; then
+	      return 1
+	    fi
+	  fi
+	fi
+
 	echo "These libraries were found in $dir:"
 	echo "$output"
 	return 0
@@ -144,6 +162,9 @@ check_dirs () {
 
 if [ "$1" != abort-upgrade ]
 then
+  # First find the system ld.so.
+  ld_so=`ldd /bin/bash | sed 's/^\t//; s/ .*//' | grep /ld`
+
   dirs="/usr/local/lib /usr/local/lib32 /usr/local/lib64"
   if ! test -L /usr; then
     dirs="$dirs /usr/lib /usr/lib32 /usr/lib64"
