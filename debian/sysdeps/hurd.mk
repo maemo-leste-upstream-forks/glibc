@@ -1,8 +1,6 @@
 # This is for the GNU OS.  Commonly known as the Hurd.
 
-# FIXME: Have to do both nptl and linuxthreads for now, because of the
-# patch system.  Shouldn't need either of these.
-GLIBC_OVERLAYS ?= $(shell ls nptl* glibc-linuxthreads* glibc-ports* glibc-libidn*)
+GLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
 
 threads = no
 libc = libc0.3

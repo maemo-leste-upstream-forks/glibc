@@ -1,8 +1,6 @@
 # This is for a Glibc-using FreeBSD system.
 
-# FIXME: Have to do both nptl and linuxthreads for now, because of the
-# patch system.  Should be only linuxthreads.
-GLIBC_OVERLAYS ?= $(shell ls nptl* glibc-linuxthreads* glibc-ports* glibc-libidn*)
+GLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
 
 libc = libc1
 
