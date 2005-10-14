@@ -151,6 +151,10 @@ push @{$libc_dev_c{'Conflicts'}}, 'libc-dev';
 if ($libc ne "libc6") {
     push @{$libc_dev_c{'Provides'}}, 'libc6-dev';
 }
+
+# Conflict with broken libterm-readline-gnu-perl to avoid #326856.
+push @{$libc_c{'Conflicts'}}, 'libterm-readline-gnu-perl (<< 1.15-2)';
+
 if ($type eq "libc") {
     %pkg = %libc_c;
 } elsif ($type eq "libc_dev") {
