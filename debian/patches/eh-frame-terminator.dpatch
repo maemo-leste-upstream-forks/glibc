@@ -1,0 +1,382 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Add a missing terminator to libc.so's .eh_frame.
+# DP: Related bugs: 334112
+# DP: Dpatch author: Daniel Jacobowitz <dan@debian.org>
+# DP: Patch author: Richard Sandiford <richard@codesourcery.com>
+# DP: Upstream status: Pending
+# DP: Status Details: Submitted to libc-alpha and pinged, will add to bugzilla later
+# DP: Date: 2005-11-12
+
+PATCHLEVEL=1
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+2004-11-23  Richard Sandiford  <rsandifo@redhat.com>
+
+	* configure.in (libc_cv_gcc_dwarf2_unwind_info): Delete.
+	(HAVE_DWARF2_UNWIND_INFO{,_STATIC}): Remove AC_DEFINEs.
+	* configure: Regenerate.
+	* config.h.in (HAVE_DWARF2_UNWIND_INFO{,_STATIC}): Remove undefs.
+	* elf/soinit.c: Don't include gccframe.h.
+	(__EH_FRAME_BEGIN__): Define unconditionally.
+	(__register_frame_info, __deregister_frame_info)
+	(__register_frame_info_bases, __deregister_frame_info_bases)
+	(__register_frame, __deregister_frame): Remove declarations.
+	(__libc_global_ctors, __libc_fini): Don't call registry functions.
+	* elf/sofini.c (__EH_FRAME_END__): Define unconditionally.
+
+Index: libc/configure.in
+===================================================================
+RCS file: /cvs/glibc/libc/configure.in,v
+retrieving revision 1.430
+diff -c -p -F^\([(a-zA-Z0-9_]\|#define\) -r1.430 configure.in
+*** libc/configure.in	26 Oct 2004 01:35:54 -0000	1.430
+--- libc/configure.in	23 Nov 2004 18:14:58 -0000
+*************** if test "$libc_cv_c_asmcr0_bug" != 'no';
+*** 1722,1792 ****
+  fi
+  fi
+  
+- AC_CACHE_CHECK(for DWARF2 unwind info support, libc_cv_gcc_dwarf2_unwind_info,
+- [cat > conftest.c <<EOF
+- #line $LINENO "configure"
+- static char *__EH_FRAME_BEGIN__;
+- _start ()
+- {
+- #ifdef CHECK__register_frame
+-   __register_frame (__EH_FRAME_BEGIN__);
+-   __deregister_frame (__EH_FRAME_BEGIN__);
+- #endif
+- #ifdef CHECK__register_frame_info
+-   __register_frame_info (__EH_FRAME_BEGIN__);
+-   __deregister_frame_info (__EH_FRAME_BEGIN__);
+- #endif
+- }
+- int __eh_pc;
+- __throw () {}
+- /* FIXME: this is fragile.  */
+- malloc () {}
+- strcmp () {}
+- strlen () {}
+- memcpy () {}
+- memset () {}
+- free () {}
+- abort () {}
+- __bzero () {}
+- dl_iterate_phdr () {}
+- EOF
+- libc_unwind_check="${CC-cc} $CFLAGS $CPPFLAGS -DCHECK__register_frame_info \
+- 			    $LDFLAGS \
+- 			    -nostdlib -nostartfiles -o conftest conftest.c \
+- 			    -lgcc"
+- # Some platforms' specs put -lgcc first.  The second one doesn't hurt.
+- if AC_TRY_COMMAND([$libc_unwind_check >&AS_MESSAGE_LOG_FD]) ||
+-    AC_TRY_COMMAND([$libc_unwind_check -lgcc_eh -lgcc >&AS_MESSAGE_LOG_FD])
+- then
+-   if $libc_unwind_check -v 2>&1 >/dev/null \
+-      | grep -- --eh-frame-hdr 2>&1 >/dev/null; then
+-     libc_cv_gcc_dwarf2_unwind_info=no_registry_needed
+-   else
+-     libc_cv_gcc_dwarf2_unwind_info=static
+-   fi
+- else
+-   libc_cv_gcc_dwarf2_unwind_info=no
+- fi
+- if test $libc_cv_gcc_dwarf2_unwind_info = no; then
+-   if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS -DCHECK__register_frame
+- 			      $LDFLAGS -nostdlib -nostartfiles
+- 			      -o conftest conftest.c -lgcc >&AS_MESSAGE_LOG_FD]); then
+-     libc_cv_gcc_dwarf2_unwind_info=yes
+-   else
+-     libc_cv_gcc_dwarf2_unwind_info=no
+-   fi
+- fi
+- rm -f conftest*])
+- case $libc_cv_gcc_dwarf2_unwind_info in
+- yes)
+-   AC_DEFINE(HAVE_DWARF2_UNWIND_INFO)
+-   ;;
+- static)
+-   AC_DEFINE(HAVE_DWARF2_UNWIND_INFO)
+-   AC_DEFINE(HAVE_DWARF2_UNWIND_INFO_STATIC)
+-   ;;
+- esac
+- 
+  dnl Check whether compiler understands __builtin_expect.
+  AC_CACHE_CHECK(for __builtin_expect, libc_cv_gcc_builtin_expect,
+  [cat > conftest.c <<EOF
+--- 1722,1727 ----
+Index: libc/configure
+===================================================================
+RCS file: /cvs/glibc/libc/configure,v
+retrieving revision 1.423
+diff -c -p -F^\([(a-zA-Z0-9_]\|#define\) -r1.423 configure
+*** libc/configure	26 Oct 2004 01:35:53 -0000	1.423
+--- libc/configure	23 Nov 2004 18:14:58 -0000
+*************** _ACEOF
+*** 6300,6401 ****
+  fi
+  fi
+  
+- echo "$as_me:$LINENO: checking for DWARF2 unwind info support" >&5
+- echo $ECHO_N "checking for DWARF2 unwind info support... $ECHO_C" >&6
+- if test "${libc_cv_gcc_dwarf2_unwind_info+set}" = set; then
+-   echo $ECHO_N "(cached) $ECHO_C" >&6
+- else
+-   cat > conftest.c <<EOF
+- #line $LINENO "configure"
+- static char *__EH_FRAME_BEGIN__;
+- _start ()
+- {
+- #ifdef CHECK__register_frame
+-   __register_frame (__EH_FRAME_BEGIN__);
+-   __deregister_frame (__EH_FRAME_BEGIN__);
+- #endif
+- #ifdef CHECK__register_frame_info
+-   __register_frame_info (__EH_FRAME_BEGIN__);
+-   __deregister_frame_info (__EH_FRAME_BEGIN__);
+- #endif
+- }
+- int __eh_pc;
+- __throw () {}
+- /* FIXME: this is fragile.  */
+- malloc () {}
+- strcmp () {}
+- strlen () {}
+- memcpy () {}
+- memset () {}
+- free () {}
+- abort () {}
+- __bzero () {}
+- dl_iterate_phdr () {}
+- EOF
+- libc_unwind_check="${CC-cc} $CFLAGS $CPPFLAGS -DCHECK__register_frame_info \
+- 			    $LDFLAGS \
+- 			    -nostdlib -nostartfiles -o conftest conftest.c \
+- 			    -lgcc"
+- # Some platforms' specs put -lgcc first.  The second one doesn't hurt.
+- if { ac_try='$libc_unwind_check >&5'
+-   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+-   (eval $ac_try) 2>&5
+-   ac_status=$?
+-   echo "$as_me:$LINENO: \$? = $ac_status" >&5
+-   (exit $ac_status); }; } ||
+-    { ac_try='$libc_unwind_check -lgcc_eh -lgcc >&5'
+-   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+-   (eval $ac_try) 2>&5
+-   ac_status=$?
+-   echo "$as_me:$LINENO: \$? = $ac_status" >&5
+-   (exit $ac_status); }; }
+- then
+-   if $libc_unwind_check -v 2>&1 >/dev/null \
+-      | grep -- --eh-frame-hdr 2>&1 >/dev/null; then
+-     libc_cv_gcc_dwarf2_unwind_info=no_registry_needed
+-   else
+-     libc_cv_gcc_dwarf2_unwind_info=static
+-   fi
+- else
+-   libc_cv_gcc_dwarf2_unwind_info=no
+- fi
+- if test $libc_cv_gcc_dwarf2_unwind_info = no; then
+-   if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -DCHECK__register_frame
+- 			      $LDFLAGS -nostdlib -nostartfiles
+- 			      -o conftest conftest.c -lgcc >&5'
+-   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+-   (eval $ac_try) 2>&5
+-   ac_status=$?
+-   echo "$as_me:$LINENO: \$? = $ac_status" >&5
+-   (exit $ac_status); }; }; then
+-     libc_cv_gcc_dwarf2_unwind_info=yes
+-   else
+-     libc_cv_gcc_dwarf2_unwind_info=no
+-   fi
+- fi
+- rm -f conftest*
+- fi
+- echo "$as_me:$LINENO: result: $libc_cv_gcc_dwarf2_unwind_info" >&5
+- echo "${ECHO_T}$libc_cv_gcc_dwarf2_unwind_info" >&6
+- case $libc_cv_gcc_dwarf2_unwind_info in
+- yes)
+-   cat >>confdefs.h <<\_ACEOF
+- #define HAVE_DWARF2_UNWIND_INFO 1
+- _ACEOF
+- 
+-   ;;
+- static)
+-   cat >>confdefs.h <<\_ACEOF
+- #define HAVE_DWARF2_UNWIND_INFO 1
+- _ACEOF
+- 
+-   cat >>confdefs.h <<\_ACEOF
+- #define HAVE_DWARF2_UNWIND_INFO_STATIC 1
+- _ACEOF
+- 
+-   ;;
+- esac
+- 
+  echo "$as_me:$LINENO: checking for __builtin_expect" >&5
+  echo $ECHO_N "checking for __builtin_expect... $ECHO_C" >&6
+  if test "${libc_cv_gcc_builtin_expect+set}" = set; then
+--- 6300,6305 ----
+Index: libc/config.h.in
+===================================================================
+RCS file: /cvs/glibc/libc/config.h.in,v
+retrieving revision 1.70
+diff -c -p -F^\([(a-zA-Z0-9_]\|#define\) -r1.70 config.h.in
+*** libc/config.h.in	16 Sep 2004 23:55:55 -0000	1.70
+--- libc/config.h.in	23 Nov 2004 18:14:58 -0000
+***************
+*** 94,106 ****
+  /* Define if static NSS modules are wanted.  */
+  #undef	DO_STATIC_NSS
+  
+- /* Define if gcc uses DWARF2 unwind information for exception support.  */
+- #undef	HAVE_DWARF2_UNWIND_INFO
+- 
+- /* Define if gcc uses DWARF2 unwind information for exception support
+-    with static variable. */
+- #undef	HAVE_DWARF2_UNWIND_INFO_STATIC
+- 
+  /* Define if the compiler supports __builtin_expect.  */
+  #undef	HAVE_BUILTIN_EXPECT
+  
+--- 94,99 ----
+Index: libc/elf/soinit.c
+===================================================================
+RCS file: /cvs/glibc/libc/elf/soinit.c,v
+retrieving revision 1.11
+diff -c -p -F^\([(a-zA-Z0-9_]\|#define\) -r1.11 soinit.c
+*** libc/elf/soinit.c	26 Nov 2003 07:14:31 -0000	1.11
+--- libc/elf/soinit.c	23 Nov 2004 18:14:58 -0000
+***************
+*** 6,15 ****
+  #include <libc-internal.h>
+  #include <stdlib.h>
+  
+- #ifdef HAVE_DWARF2_UNWIND_INFO_STATIC
+- # include <gccframe.h>
+- #endif
+- 
+  static void (*const __CTOR_LIST__[1]) (void)
+       __attribute__ ((section (".ctors")))
+       = { (void (*) (void)) -1 };
+--- 6,11 ----
+*************** run_hooks (void (*const list[]) (void))
+*** 24,44 ****
+      (**list) ();
+  }
+  
+- #ifdef HAVE_DWARF2_UNWIND_INFO
+  static char __EH_FRAME_BEGIN__[]
+       __attribute__ ((section (".eh_frame")))
+       = { };
+- # ifdef HAVE_DWARF2_UNWIND_INFO_STATIC
+- extern void __register_frame_info (const void *, struct object *);
+- extern void __register_frame_info_bases (const void *, struct object *,
+- 					 void *, void *);
+- extern void __deregister_frame_info (const void *);
+- extern void __deregister_frame_info_bases (const void *);
+- # else
+- extern void __register_frame (const void *);
+- extern void __deregister_frame (const void *);
+- # endif
+- #endif
+  
+  /* This function will be called from _init in init-first.c.  */
+  void
+--- 20,28 ----
+*************** __libc_global_ctors (void)
+*** 46,78 ****
+  {
+    /* Call constructor functions.  */
+    run_hooks (__CTOR_LIST__);
+- 
+- #ifdef HAVE_DWARF2_UNWIND_INFO
+- # ifdef HAVE_DWARF2_UNWIND_INFO_STATIC
+-   {
+-     static struct object ob;
+- #  if defined CRT_GET_RFIB_TEXT || defined CRT_GET_RFIB_DATA
+-     void *tbase, *dbase;
+- 
+- #   ifdef CRT_GET_RFIB_TEXT
+-     CRT_GET_RFIB_TEXT (tbase);
+- #   else
+-     tbase = NULL;
+- #   endif
+- #   ifdef CRT_GET_RFIB_DATA
+-     CRT_GET_RFIB_DATA (dbase);
+- #   else
+-     dbase = NULL;
+- #   endif
+-     __register_frame_info_bases (__EH_FRAME_BEGIN__, &ob, tbase, dbase);
+- #  else
+-     __register_frame_info (__EH_FRAME_BEGIN__, &ob);
+- #  endif
+-   }
+- # else
+-   __register_frame (__EH_FRAME_BEGIN__);
+- # endif
+- #endif
+  }
+  
+  
+--- 30,35 ----
+*************** __libc_fini (void)
+*** 89,105 ****
+  {
+    /* Call destructor functions.  */
+    run_hooks (__DTOR_LIST__);
+- #ifdef HAVE_DWARF2_UNWIND_INFO
+- # ifdef HAVE_DWARF2_UNWIND_INFO_STATIC
+- #  if defined CRT_GET_RFIB_TEXT || defined CRT_GET_RFIB_DATA
+-   __deregister_frame_info_bases (__EH_FRAME_BEGIN__);
+- #  else
+-   __deregister_frame_info (__EH_FRAME_BEGIN__);
+- #  endif
+- # else
+-   __deregister_frame (__EH_FRAME_BEGIN__);
+- # endif
+- #endif
+  }
+  #ifdef HAVE_INITFINI_ARRAY
+  void (*_fini_ptr) (void) __attribute__ ((section (".fini_array")))
+--- 46,51 ----
+Index: libc/elf/sofini.c
+===================================================================
+RCS file: /cvs/glibc/libc/elf/sofini.c,v
+retrieving revision 1.4
+diff -c -p -F^\([(a-zA-Z0-9_]\|#define\) -r1.4 sofini.c
+*** libc/elf/sofini.c	22 Jul 2003 19:37:27 -0000	1.4
+--- libc/elf/sofini.c	23 Nov 2004 18:14:58 -0000
+*************** static void (*const __DTOR_END__[1]) (vo
+*** 8,14 ****
+       __attribute__ ((used, section (".dtors")))
+       = { 0 };
+  
+- #ifdef HAVE_DWARF2_UNWIND_INFO
+  /* Terminate the frame unwind info section with a 4byte 0 as a sentinel;
+     this would be the 'length' field in a real FDE.  */
+  
+--- 8,13 ----
+*************** typedef unsigned int ui32 __attribute__ 
+*** 16,19 ****
+  static ui32 __FRAME_END__[1]
+       __attribute__ ((used, section (".eh_frame")))
+       = { 0 };
+- #endif
+--- 15,17 ----
+
