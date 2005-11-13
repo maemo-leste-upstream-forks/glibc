@@ -58,7 +58,8 @@ endif
 		$(CURDIR)/$(DEB_SRCDIR)/configure \
 		--host=$(call xx,configure_target) \
 		--build=$$configure_build --prefix=/usr --without-cvs \
-		--enable-add-ons="$(call xx,add-ons)" --without-selinux \
+		--enable-add-ons=$(standard-add-ons)"$(call xx,add-ons)" \
+		--without-selinux \
 		$(call xx,with_headers) $(call xx,extra_config_options))
 
 	touch $@
