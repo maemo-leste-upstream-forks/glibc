@@ -1,3 +1,8 @@
+# HPPA doesn't work when built with gcc 4.0, as of 2005-11-12.
+# See bug #326581.
+BUILD_CC = gcc-3.4
+CC = gcc-3.4
+
 # hppa64 needs symlink /usr/hppa64-linux/include to /usr/include
 # (See: Bug#239020)  In future we may drop this file with supporting hppa64.
 
