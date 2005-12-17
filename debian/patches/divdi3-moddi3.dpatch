@@ -1,0 +1,48 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Fix __u?divdi3/__u?moddi3 failure on i386 and powerpc
+# DP: Related bugs: 
+# DP: Dpatch author: Clint Adams
+# DP: Patch author: Upstream CVS
+# DP: Upstream status: Committed
+# DP: Status Details:
+# DP: Date: 2005-12-16
+
+PATCHLEVEL=0
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+
+--- sysdeps/wordsize-32/Makefile~	2002-09-19 01:47:56.000000000 -0500
++++ sysdeps/wordsize-32/Makefile	2005-11-16 13:19:03.000000000 -0600
+@@ -2,5 +2,6 @@
+ ifeq (yes,$(build-shared))
+ sysdep_routines += divdi3
+ shared-only-routines += divdi3
++CPPFLAGS-divdi3.c = -Din_divdi3_c
+ endif
+ endif
+--- sysdeps/wordsize-32/symbol-hacks.h~	2004-03-08 14:59:34.000000000 -0600
++++ sysdeps/wordsize-32/symbol-hacks.h	2005-11-16 13:18:25.000000000 -0600
+@@ -22,7 +22,7 @@
+    therefore we get PLTs.  Unnecessarily so.  Changing gcc is a big
+    task which might not be worth it so we play tricks with the
+    assembler.  */
+-#if !defined __ASSEMBLER__ && !defined NOT_IN_libc && defined SHARED
++#if !defined __ASSEMBLER__ && !defined in_divdi3_c && !defined NOT_IN_libc && defined SHARED
+ asm ("__divdi3 = __divdi3_internal");
+ asm ("__udivdi3 = __udivdi3_internal");
+ asm ("__moddi3 = __moddi3_internal");
