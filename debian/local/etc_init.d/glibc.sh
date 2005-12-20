@@ -15,4 +15,4 @@ if [ "`uname -s`" = Linux ]; then
     # glibc kernel version check: KERNEL_VERSION_CHECK
 fi
 
-exit 0
+: exit 0
