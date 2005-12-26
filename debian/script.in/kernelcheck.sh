@@ -23,6 +23,11 @@ exit_check () {
     realarch=`uname -m`
     kernel_ver=`uname -r`
 
+    # convert "armv4l" and similar to just "arm"
+    case $realarch in
+      arm*) realarch="arm";;
+    esac
+
     # intel i386 requires a recent kernel
     if [ "$realarch" = i386 ]
     then
@@ -137,6 +142,21 @@ exit_check () {
 	    echo WARNING: POSIX threads library NPTL requires 2.6 and
 	    echo later kernel on amd64.  If you use 2.4 kernel, please
 	    echo upgrade your kernel before installing glibc.
+	    exit_check
+	fi
+    fi
+
+    # arm requires 2.4 kernel to avoid "obsolete calling standard" problem
+    # with sys_llseek
+    if [ "$realarch" = arm ] \
+	&& [ "`dpkg --print-architecture`" = arm ]
+    then
+	if dpkg --compare-versions "$kernel_ver" lt 2.4.0
+	then
+	    echo WARNING: This version of glibc requires that you be running
+	    echo kernel version 2.4.0 or later.  Earlier kernels contained
+	    echo bugs that may render the system unusable if a modern version
+	    echo of glibc is installed.
 	    exit_check
 	fi
     fi
