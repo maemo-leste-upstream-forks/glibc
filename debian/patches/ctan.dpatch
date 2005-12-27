@@ -1,0 +1,245 @@
+#! /bin/sh -e
+
+# DP: Improve accuracy of ctan functions
+# DP: Upstream status: In CVS
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
+    *)
+        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+        exit 1
+esac
+exit 0
+
+2005-07-07  Ulrich Drepper  <drepper@redhat.com>
+
+	* sysdeps/generic/s_ctanh.c (__ctanh): Handle case of zero den better.
+	* sysdeps/generic/s_ctanhf.c (__ctanhf): Likewise.
+	* sysdeps/generic/s_ctanhl.c (__ctanhl): Likewise.
+	* sysdeps/generic/s_ctan.c (__ctan): Likewise.
+	* sysdeps/generic/s_ctanf.c (__ctanf): Likewise.
+	* sysdeps/generic/s_ctanl.c (__ctanl): Likewise.
+
+Index: s_ctanh.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/generic/Attic/s_ctanh.c,v
+retrieving revision 1.2
+retrieving revision 1.3
+diff -u -r1.2 -r1.3
+--- sysdeps/generic/s_ctanh.c	6 Jul 2001 04:55:49 -0000	1.2
++++ sysdeps/generic/s_ctanh.c	7 Jul 2005 23:30:47 -0000	1.3
+@@ -1,5 +1,5 @@
+ /* Complex hyperbole tangent for double.
+-   Copyright (C) 1997 Free Software Foundation, Inc.
++   Copyright (C) 1997, 2005 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
+ 
+@@ -61,8 +61,18 @@
+ 
+       den = (__ieee754_cosh (2.0 * __real__ x) + cos2ix);
+ 
+-      __real__ res = __ieee754_sinh (2.0 * __real__ x) / den;
+-      __imag__ res = sin2ix / den;
++      if (den == 0.0)
++	{
++	  __complex__ double ez = __cexp (x);
++	  __complex__ double emz = __cexp (-x);
++
++	  res = (ez - emz) / (ez + emz);
++	}
++      else
++	{
++	  __real__ res = __ieee754_sinh (2.0 * __real__ x) / den;
++	  __imag__ res = sin2ix / den;
++	}
+     }
+ 
+   return res;
+Index: s_ctanhf.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/generic/Attic/s_ctanhf.c,v
+retrieving revision 1.3
+retrieving revision 1.4
+diff -u -r1.3 -r1.4
+--- sysdeps/generic/s_ctanhf.c	13 Jan 2004 09:08:04 -0000	1.3
++++ sysdeps/generic/s_ctanhf.c	7 Jul 2005 23:30:05 -0000	1.4
+@@ -1,5 +1,5 @@
+ /* Complex hyperbole tangent for float.
+-   Copyright (C) 1997 Free Software Foundation, Inc.
++   Copyright (C) 1997, 2005 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
+ 
+@@ -61,8 +61,18 @@
+ 
+       den = (__ieee754_coshf (2.0 * __real__ x) + cos2ix);
+ 
+-      __real__ res = __ieee754_sinhf (2.0 * __real__ x) / den;
+-      __imag__ res = sin2ix / den;
++      if (den == 0.0f)
++	{
++	  __complex__ float ez = __cexpf (x);
++	  __complex__ float emz = __cexpf (-x);
++
++	  res = (ez - emz) / (ez + emz);
++	}
++      else
++	{
++	  __real__ res = __ieee754_sinhf (2.0 * __real__ x) / den;
++	  __imag__ res = sin2ix / den;
++	}
+     }
+ 
+   return res;
+Index: s_ctanhl.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/generic/Attic/s_ctanhl.c,v
+retrieving revision 1.2
+retrieving revision 1.3
+diff -u -r1.2 -r1.3
+--- sysdeps/generic/s_ctanhl.c	6 Jul 2001 04:55:49 -0000	1.2
++++ sysdeps/generic/s_ctanhl.c	7 Jul 2005 23:29:00 -0000	1.3
+@@ -1,5 +1,5 @@
+ /* Complex hyperbole tangent for long double.
+-   Copyright (C) 1997 Free Software Foundation, Inc.
++   Copyright (C) 1997, 2005 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
+ 
+@@ -61,8 +61,18 @@
+ 
+       den = (__ieee754_coshl (2.0 * __real__ x) + cos2ix);
+ 
+-      __real__ res = __ieee754_sinhl (2.0 * __real__ x) / den;
+-      __imag__ res = sin2ix / den;
++      if (den == 0.0L)
++	{
++	  __complex__ long double ez = __cexpl (x);
++	  __complex__ long double emz = __cexpl (-x);
++
++	  res = (ez - emz) / (ez + emz);
++	}
++      else
++	{
++	  __real__ res = __ieee754_sinhl (2.0 * __real__ x) / den;
++	  __imag__ res = sin2ix / den;
++	}
+     }
+ 
+   return res;
+Index: s_ctan.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/generic/Attic/s_ctan.c,v
+retrieving revision 1.2
+retrieving revision 1.3
+diff -u -r1.2 -r1.3
+--- sysdeps/generic/s_ctan.c	6 Jul 2001 04:55:49 -0000	1.2
++++ sysdeps/generic/s_ctan.c	7 Jul 2005 23:45:45 -0000	1.3
+@@ -1,5 +1,5 @@
+ /* Complex tangent function for double.
+-   Copyright (C) 1997 Free Software Foundation, Inc.
++   Copyright (C) 1997, 2005 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
+ 
+@@ -61,8 +61,18 @@
+ 
+       den = cos2rx + __ieee754_cosh (2.0 * __imag__ x);
+ 
+-      __real__ res = sin2rx / den;
+-      __imag__ res = __ieee754_sinh (2.0 * __imag__ x) / den;
++      if (den == 0.0)
++	{
++	  __complex__ double ez = __cexp (1.0i * x);
++	  __complex__ double emz = __cexp (-1.0i * x);
++
++	  res = (ez - emz) / (ez + emz) * -1.0i;
++	}
++      else
++	{
++	  __real__ res = sin2rx / den;
++	  __imag__ res = __ieee754_sinh (2.0 * __imag__ x) / den;
++	}
+     }
+ 
+   return res;
+Index: s_ctanf.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/generic/Attic/s_ctanf.c,v
+retrieving revision 1.3
+retrieving revision 1.4
+diff -u -r1.3 -r1.4
+--- sysdeps/generic/s_ctanf.c	13 Jan 2004 09:08:04 -0000	1.3
++++ sysdeps/generic/s_ctanf.c	7 Jul 2005 23:45:15 -0000	1.4
+@@ -1,5 +1,5 @@
+ /* Complex tangent function for float.
+-   Copyright (C) 1997 Free Software Foundation, Inc.
++   Copyright (C) 1997, 2005 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
+ 
+@@ -61,8 +61,19 @@
+ 
+       den = cos2rx + __ieee754_coshf (2.0 * __imag__ x);
+ 
+-      __real__ res = sin2rx / den;
+-      __imag__ res = __ieee754_sinhf (2.0 * __imag__ x) / den;
++
++      if (den == 0.0)
++	{
++	  __complex__ float ez = __cexpf (1.0i * x);
++	  __complex__ float emz = __cexpf (-1.0i * x);
++
++	  res = (ez - emz) / (ez + emz) * -1.0i;
++	}
++      else
++	{
++	  __real__ res = sin2rx / den;
++	  __imag__ res = __ieee754_sinhf (2.0 * __imag__ x) / den;
++	}
+     }
+ 
+   return res;
+Index: s_ctanl.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/generic/Attic/s_ctanl.c,v
+retrieving revision 1.2
+retrieving revision 1.3
+diff -u -r1.2 -r1.3
+--- sysdeps/generic/s_ctanl.c	6 Jul 2001 04:55:49 -0000	1.2
++++ sysdeps/generic/s_ctanl.c	7 Jul 2005 23:44:29 -0000	1.3
+@@ -1,5 +1,5 @@
+ /* Complex tangent function for long double.
+-   Copyright (C) 1997 Free Software Foundation, Inc.
++   Copyright (C) 1997, 2005 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
+ 
+@@ -61,8 +61,19 @@
+ 
+       den = cos2rx + __ieee754_coshl (2.0 * __imag__ x);
+ 
+-      __real__ res = sin2rx / den;
+-      __imag__ res = __ieee754_sinhl (2.0 * __imag__ x) / den;
++
++      if (den == 0.0)
++	{
++	  __complex__ long double ez = __cexpl (1.0i * x);
++	  __complex__ long double emz = __cexpl (-1.0i * x);
++
++	  res = (ez - emz) / (ez + emz) * -1.0i;
++	}
++      else
++	{
++	  __real__ res = sin2rx / den;
++	  __imag__ res = __ieee754_sinhl (2.0 * __imag__ x) / den;
++	}
+     }
+ 
+   return res;
