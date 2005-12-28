@@ -1,0 +1,59 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Allow glibc to build with binutils 2.16 on ia64
+# DP: Related bugs: 
+# DP: Dpatch author: Jeff Bailey
+# DP: Patch author: HJ Lu
+# DP: Upstream status: In CVS
+# DP: Status Details: CVS HEAD
+# DP: Date: 2005-05-22
+
+PATCHLEVEL=1
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+Index: initfini.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/ia64/elf/initfini.c,v
+retrieving revision 1.7
+retrieving revision 1.8
+diff -u -p -r1.7 -r1.8
+--- libc/sysdeps/ia64/elf/initfini.c	16 Aug 2004 04:51:00 -0000	1.7
++++ libc/sysdeps/ia64/elf/initfini.c	20 Mar 2005 04:21:08 -0000	1.8
+@@ -116,13 +116,14 @@ __asm__ (".section .init\n"
+ "/*@_init_PROLOG_ENDS*/\n"
+ "\n"
+ "/*@_init_EPILOG_BEGINS*/\n"
++"	.section .init\n"
+ "	.proc _init#\n"
++"_init:\n"
+ "	.prologue\n"
+ "	.save ar.pfs, r34\n"
+ "	.vframe r32\n"
+ "	.save rp, r33\n"
+ "	.body\n"
+-"	.section .init\n"
+ "	.regstk 0,2,0,0\n"
+ "	mov r12 = r32\n"
+ "	mov ar.pfs = r34\n"
+@@ -155,6 +156,7 @@ __asm__ (".section .init\n"
+ "/*@_fini_EPILOG_BEGINS*/\n"
+ "	.section .fini\n"
+ "	.proc _fini#\n"
++"_fini:\n"
+ "	.prologue\n"
+ "	.save ar.pfs, r34\n"
+ "	.vframe r32\n"

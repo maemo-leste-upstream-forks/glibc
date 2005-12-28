@@ -1,0 +1,58 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Define __data_start on Sparc
+# DP: Related bugs: 
+# DP: Dpatch author: Jeff Bailey <jbailey@ubuntu.com>
+# DP: Patch author: David S. Miller <davem@davemloft.net>
+# DP: Upstream status: In CVS 
+# DP: Status Details: CVS HEAD
+# DP: Date: 2005-06-15
+
+PATCHLEVEL=0
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+
+2005-04-17  David S. Miller  <davem@davemloft.net>
+
+        * sysdeps/sparc/sparc32/elf/start.S: Define __data_start.
+        * sysdeps/sparc/sparc64/elf/start.S: Likewise.
+
+--- sysdeps/sparc/sparc32/elf/start.S	2005-06-15 16:46:11.000000000 +0000
++++ sysdeps/sparc/sparc32/elf/start.S	2005-06-15 16:50:11.000000000 +0000
+@@ -92,3 +92,9 @@
+ 	unimp
+ 
+ 	.size _start, .-_start
++
++  /* Define a symbol for the first piece of initialized data.  */
++	.data
++	.globl  __data_start
++__data_start:
++weak_alias (__data_start, data_start)
+--- sysdeps/sparc/sparc64/elf/start.S   16 Aug 2004 04:51:01 -0000      1.7
++++ sysdeps/sparc/sparc64/elf/start.S   17 Apr 2005 21:14:45 -0000
+@@ -93,3 +93,9 @@ _start:
+	illtrap 0
+ 
+	.size _start, .-_start
++
++/* Define a symbol for the first piece of initialized data.  */
++	.data
++	.globl  __data_start
++__data_start:
++weak_alias (__data_start, data_start)
+

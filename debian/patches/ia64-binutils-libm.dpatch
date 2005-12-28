@@ -1,0 +1,46 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Fix compilation against new binutils.
+# DP: Related bugs: 
+# DP: Dpatch author: Jeff Bailey
+# DP: Patch author: HJ Lu
+# DP: Upstream status: Pending
+# DP: Status Details:
+# DP: Date: 2005-16-11
+
+PATCHLEVEL=1
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+
+--- libc/sysdeps/ia64/fpu/libm-symbols.h.old	2005-11-23 13:05:39.995400701 +0000
++++ libc/sysdeps/ia64/fpu/libm-symbols.h	2005-11-23 13:35:31.474921420 +0000
+@@ -39,13 +39,13 @@
+ 
+ #define WEAK_LIBM_ENTRY(name)			\
+ 	.align 32;				\
+-	LOCAL_LIBM_ENTRY(name);			\
++	LOCAL_LIBM_ENTRY(__##name);		\
+ 	.global __##name;			\
+  __##name:
+ #define WEAK_LIBM_END(name)			\
+  weak_alias (__##name, name);			\
+  .hidden __##name;				\
+-	LOCAL_LIBM_END(name);			\
++	LOCAL_LIBM_END(__##name);		\
+  ASM_SIZE_DIRECTIVE(__##name);			\
+  ASM_TYPE_DIRECTIVE(__##name, @function)
+ 
