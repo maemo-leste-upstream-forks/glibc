@@ -264,7 +264,7 @@ then
 	if dpkg --compare-versions $preversion lt 2.3.5-1; then
 	    echo -n "Checking for services that may need to be restarted..."
 
-	    check="nis smail sendmail exim ssh netbase"
+	    check="nis smail sendmail exim exim4-base ssh netbase"
 	    check="$check ssh-nonfree postfix-tls wu-ftpd boa cron postfix"
 	    check="$check wu-ftpd-academ vsftpd slapd openldapd wwwoffle"
 	    check="$check cupsys lprng lpr lpr-ppd autofs snmpd ssh-krb5"
@@ -277,6 +277,9 @@ then
 	    # apache2 ships its init script in apache2-common, but the
 	    # script is apache2
 	    check=$(echo $check | sed 's/apache2-common/apache2/g')
+	    # exim4 ships its init script in exim4-base, but the script
+	    # is exim4
+	    check=$(echo $check | sed 's/exim4-base/exim4/g')
 	    # The name of proftpd-{ldap,mysql,pgsql} init script is
 	    # same as "proftpd".
 	    check=$(echo $check | sed 's/proftpd-.*/proftpd/g')

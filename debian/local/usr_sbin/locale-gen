@@ -11,9 +11,16 @@ fi
 
 [ -f $LOCALEGEN -a -s $LOCALEGEN ] || exit 0;
 
-# Remove all old locale dir and locale-archive before generating new
-# locale data.
-rm -rf /usr/lib/locale/* || true
+KEEP=
+if [ "$1" = '--keep-existing' ]; then
+	KEEP=1
+fi
+
+if [ -z "$KEEP" ]; then
+	# Remove all old locale dir and locale-archive before generating new
+	# locale data.
+	rm -rf /usr/lib/locale/* || true
+fi
 
 umask 022
 
@@ -30,6 +37,10 @@ echo "Generating locales (this might take a while)..."
 while read locale charset; do \
 	case $locale in \#*) continue;; "") continue;; esac; \
 	is_entry_ok || continue
+	if [ "$KEEP" ] && PERL_BADLANG=0 perl -MPOSIX -e \
+	    'exit 1 unless setlocale(LC_ALL, $ARGV[0])' "$locale"; then
+		continue
+	fi
 	echo -n "  `echo $locale | sed 's/\([^.\@]*\).*/\1/'`"; \
 	echo -n ".$charset"; \
 	echo -n `echo $locale | sed 's/\([^\@]*\)\(\@.*\)*/\2/'`; \
