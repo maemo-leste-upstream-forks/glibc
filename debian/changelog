@@ -1,15 +1,36 @@
 glibc (2.3.5-12) UNRELEASED; urgency=low
 
   [ Denis Barbier ]
-  * debian/patches/locale-ku_TR.dpatch: New file, to provide a Kurdish
-    locale needed by d-i.  This locale comes from upstream CVS.
   * Switch to quilt to handle Debian patches.
     - debian/control.in/main: add Build-Depends: quilt.
     - Replace debian/rules.d/dpatch.mk by debian/rules.d/quilt.mk.
     - Rename debian/patches/*.dpatch into debian/patches/*.diff.
     - Move localedata patches into debian/patches/localedata/
+  * debian/patches/localedata/cvs-localedata.diff: Update to latest CVS
+    Among other changes:
+    - locales/mn_MN: Fix date_fmt.  Closes: #328831
+    - locales/de_DE: Add transliterations for quoting characters.
+      Closes: #235759
+    - locales/ss_ZA: New file.
+      locales/tn_ZA: New file.
+      locales/ve_ZA: New file.
+      locales/nso_ZA: New file.
+      locales/ts_ZA: New file.  Closes: #254417
+    - locales/km_KH: New file.  Closes: #334762
+    - locales/mg_MG: New file.  Closes: #271549
+    - locales/sr_CS: New file.  Closes: #254993
+  * debian/patches/locale-iso4217.diff: Update to latest CVS.
+    This includes changes from glibc235-localedata-sr_CS.diff, which
+    is no more needed.
+  * debian/patches/locale-iso639.diff: New file.
+  * debian/patches/locale-ku_TR.diff: New file, to provide a Kurdish
+    locale needed by d-i.  This locale comes from upstream CVS, and has
+    been updated to the latest patch sent to BZ870.
+  * debian/patches/discard-dz_BT.diff: New file, to temporarily discard
+    the generation of dz_BT until localedef fixes are grabbed from CVS
+    (see BZ368).
 
- -- Denis Barbier <barbier@debian.org>  Fri,  6 Jan 2006 20:47:39 +0100
+ -- Denis Barbier <barbier@debian.org>  Sat,  7 Jan 2006 20:54:37 +0100
 
 glibc (2.3.5-11) unstable; urgency=low
 
