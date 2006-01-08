@@ -1,15 +1,16 @@
 # Implements the patch and unpatch targets, called when building packages.
-# $(stamp)patch-log/$(stamp)unpatch-log contain logs.
 
 # -*- Makefile -*-, you silly Emacs!
 # vim: set ft=make:
 
-patch: $(stamp)unpack quilt
+patch: $(stamp)patch-stamp
+$(stamp)patch-stamp: $(stamp)unpack quilt
 	@cd $(DEB_SRCDIR); \
 	if quilt next >/dev/null 2>&1; then \
 	  echo -n "Applying patches..."; \
 	  if quilt push -a -v > ${stamp}patch-log 2>&1; then \
 	    echo "successful."; \
+	    mv ${stamp}patch-log $@; \
 	  else \
 	    echo "failed! (check ${stamp}patch-log for details)"; \
 	    exit 1; \
@@ -42,5 +43,5 @@ unpatch: quilt
 	else \
 	  echo "nothing to do."; \
 	fi
-	rm -f $(stamp)patch-log $(stamp)unpatch-log
+	-rm -f $(stamp)patch-stamp $(stamp)patch-log $(stamp)unpatch-log
 
