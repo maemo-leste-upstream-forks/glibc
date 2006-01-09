@@ -1,0 +1,71 @@
+#! /bin/sh -e
+
+# DP: Description: Fix segfault when strings contain a mix of forward
+#     and backward rules.
+# DP: Related bugs: #310635 BZ645
+# DP: Dpatch Author: Denis Barbier <barbier@linuxfr.org>
+# DP: Patch Author: Denis Barbier
+# DP: Upstream status: fix in strxfrm_l.c has been committed upstream
+# DP:                  and strcoll_l.c has not been submitted yet.
+# DP: Test case: the following command segfaults in en_US.UTF-8 locale
+# DP:            when BZ645 is fixed:
+# DP:                echo 2d d194 0a 2d d194 0a | xxd -r -p | sort
+# DP: Date: 2005-11-01
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+--- libc/string/strxfrm_l.c	14 Mar 2004 20:52:47 -0000	1.4
++++ libc/string/strxfrm_l.c	15 Oct 2005 20:49:18 -0000	1.5
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1995,96,97,2002, 2004 Free Software Foundation, Inc.
++/* Copyright (C) 1995,96,97,2002, 2004, 2005 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Written by Ulrich Drepper <drepper@gnu.org>, 1995.
+ 
+@@ -210,8 +210,9 @@
+ 		      /* Handle the pushed elements now.  */
+ 		      size_t backw;
+ 
+-		      for (backw = idxcnt - 1; backw >= backw_stop; --backw)
++		      for (backw = idxcnt; backw > backw_stop; )
+ 			{
++			  --backw;
+ 			  len = weights[idxarr[backw]++];
+ 
+ 			  if (needed + len < n)
+@@ -293,8 +294,9 @@
+ 		     /* Handle the pushed elements now.  */
+ 		      size_t backw;
+ 
+-		      for (backw = idxcnt - 1; backw >= backw_stop; --backw)
++		      for (backw = idxcnt; backw > backw_stop; )
+ 			{
++			  --backw;
+ 			  len = weights[idxarr[backw]++];
+ 			  if (len != 0)
+ 			    {
+--- libc/string/strcoll_l.c	14 Mar 2004 20:52:47 -0000	1.4
++++ libc/string/strcoll_l.c	23 May 2005 22:35:59 -0000
+@@ -370,7 +370,10 @@
+ 			/* The last pushed character was handled.  Continue
+ 			   with forward characters.  */
+ 			if (idx1cnt < idx1max)
+-			  idx1now = idx1cnt;
++			  {
++			    idx1now = idx1cnt;
++			    backw1_stop = ~0ul;
++			  }
+ 			else
+ 			  {
+ 			    /* Nothing anymore.  The backward sequence

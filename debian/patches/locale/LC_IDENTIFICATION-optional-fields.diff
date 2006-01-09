@@ -1,0 +1,35 @@
+In LC_IDENTIFICATION, audience, application and abbreviation keywords
+are optional, thus do not report an error if they are not defined.
+
+# DP: Dpatch author: Denis Barbier
+# DP: Patch author: Denis Barbier
+# DP: Upstream status: not submitted
+# DP: Date: 2006-01-08
+
+Index: glibc-2.3.5/locale/programs/ld-identification.c
+===================================================================
+--- glibc-2.3.5.orig/locale/programs/ld-identification.c
++++ glibc-2.3.5/locale/programs/ld-identification.c
+@@ -148,6 +148,9 @@
+ 			       	"LC_IDENTIFICATION", #cat));		      \
+       identification->cat = "";						      \
+     }
++#define TEST_ELEM_OPT(cat) \
++  if (identification->cat == NULL)					      \
++    identification->cat = "";						      \
+ 
+   TEST_ELEM (title);
+   TEST_ELEM (source);
+@@ -158,9 +161,9 @@
+   TEST_ELEM (fax);
+   TEST_ELEM (language);
+   TEST_ELEM (territory);
+-  TEST_ELEM (audience);
+-  TEST_ELEM (application);
+-  TEST_ELEM (abbreviation);
++  TEST_ELEM_OPT (audience);
++  TEST_ELEM_OPT (application);
++  TEST_ELEM_OPT (abbreviation);
+   TEST_ELEM (revision);
+   TEST_ELEM (date);
+ 

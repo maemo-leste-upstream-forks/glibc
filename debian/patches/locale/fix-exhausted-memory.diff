@@ -1,0 +1,33 @@
+Localedef fails if a symbol name has exactly 55 characters in charmap file.
+
+This bug has not been submitted upstream yet.
+
+# DP: Dpatch author: Denis Barbier
+# DP: Patch author: Denis Barbier
+# DP: Upstream status: not submitted
+# DP: Date: 2006-01-08
+
+Index: glibc-2.3.5/locale/programs/linereader.c
+===================================================================
+--- glibc-2.3.5.orig/locale/programs/linereader.c
++++ glibc-2.3.5/locale/programs/linereader.c
+@@ -531,8 +531,8 @@
+     {
+       lr->token.tok = tok_bsymbol;
+ 
+-      buf[bufact] = '\0';
+       buf = xrealloc (buf, bufact + 1);
++      buf[bufact] = '\0';
+ 
+       lr->token.val.str.startmb = buf;
+       lr->token.val.str.lenmb = bufact - 1;
+@@ -584,8 +584,8 @@
+     {
+       lr->token.tok = tok_ident;
+ 
+-      buf[bufact] = '\0';
+       buf = xrealloc (buf, bufact + 1);
++      buf[bufact] = '\0';
+ 
+       lr->token.val.str.startmb = buf;
+       lr->token.val.str.lenmb = bufact;
