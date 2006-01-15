@@ -1,0 +1,1572 @@
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Add first_weekday, most come from OpenOffice through CLDR
+# DP:    This patch applies the following conventions:
+# DP:       1=Sunday...7=Saturday
+# DP:       The week keyword is removed from all locales.
+# DP:    Normally GTK apps should work with these settings, as well as
+# DP:    other apps.
+# DP: Related bugs: #343885 347323
+# DP: Dpatch author: Denis Barbier <barbier@debian.org>
+# DP: Patch author: Denis Barbier
+# DP: Upstream status: not submitted
+# DP: Date: 2006-01-10
+
+Index: glibc-2.3.5/localedata/locales/fr_CH
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/fr_CH
++++ glibc-2.3.5/localedata/locales/fr_CH
+@@ -109,6 +109,7 @@
+ <U0025><U0042><U0020><U0025><U0059><U002C><U0020>/
+ <U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0028><U0055><U0054><U0043><U0025><U007A><U0029>"
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/fr_FR
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/fr_FR
++++ glibc-2.3.5/localedata/locales/fr_FR
+@@ -131,6 +131,7 @@
+ <U0025><U0042><U0020><U0025><U0059><U002C><U0020>/
+ <U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0028><U0055><U0054><U0043><U0025><U007A><U0029>"
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/fr_BE
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/fr_BE
++++ glibc-2.3.5/localedata/locales/fr_BE
+@@ -122,6 +122,7 @@
+ <U0025><U0042><U0020><U0025><U0059><U002C><U0020>/
+ <U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0028><U0055><U0054><U0043><U0025><U007A><U0029>"
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/fr_LU
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/fr_LU
++++ glibc-2.3.5/localedata/locales/fr_LU
+@@ -122,6 +122,7 @@
+ <U0025><U0042><U0020><U0025><U0059><U002C><U0020>/
+ <U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0028><U0055><U0054><U0043><U0025><U007A><U0029>"
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/fr_CA
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/fr_CA
++++ glibc-2.3.5/localedata/locales/fr_CA
+@@ -123,6 +123,7 @@
+ <U0025><U0042><U0020><U0025><U0059><U002C><U0020>/
+ <U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0028><U0055><U0054><U0043><U0025><U007A><U0029>"
++first_weekday 1
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/hi_IN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/hi_IN
++++ glibc-2.3.5/localedata/locales/hi_IN
+@@ -152,6 +152,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/ar_IQ
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_IQ
++++ glibc-2.3.5/localedata/locales/ar_IQ
+@@ -144,6 +144,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/mn_MN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/mn_MN
++++ glibc-2.3.5/localedata/locales/mn_MN
+@@ -220,6 +220,8 @@
+ % "%Z %Y ony %B %e, %a %H:%M:%S"
+ date_fmt  "<U0025><U005A><U0020><U0025><U0059><U0020><U043E><U043D><U044B><U0020><U0025><U0042><U0020>/
+ <U0025><U0065><U002C><U0020><U0025><U0061><U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/sv_FI
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/sv_FI
++++ glibc-2.3.5/localedata/locales/sv_FI
+@@ -105,6 +105,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_PY
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_PY
++++ glibc-2.3.5/localedata/locales/es_PY
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/wa_BE
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/wa_BE
++++ glibc-2.3.5/localedata/locales/wa_BE
+@@ -163,7 +163,8 @@
+ am_pm   "<U0041><U004D>";"<U0050><U004D>"
+ t_fmt_ampm "<U0025><U0049><U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U0070>"
+ % prumî djoû del samwinne (1=londi)
+-first_weekday 1
++% FIXME  No, 2=lundi
++first_weekday 2
+ END LC_TIME
+ 
+ LC_NAME
+Index: glibc-2.3.5/localedata/locales/es_VE
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_VE
++++ glibc-2.3.5/localedata/locales/es_VE
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_EC
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_EC
++++ glibc-2.3.5/localedata/locales/es_EC
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_AR
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_AR
++++ glibc-2.3.5/localedata/locales/es_AR
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_CL
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_CL
++++ glibc-2.3.5/localedata/locales/es_CL
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_CO
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_CO
++++ glibc-2.3.5/localedata/locales/es_CO
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/ar_QA
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_QA
++++ glibc-2.3.5/localedata/locales/ar_QA
+@@ -144,6 +144,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/ar_KW
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_KW
++++ glibc-2.3.5/localedata/locales/ar_KW
+@@ -144,6 +144,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/en_SG
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/en_SG
++++ glibc-2.3.5/localedata/locales/en_SG
+@@ -131,6 +131,8 @@
+ % Appropriate 12 h time representation (%r) 
+ t_fmt_ampm  "<U0025><U0049><U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U0070><U0020><U0025><U005A>"
+ %
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/bs_BA
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/bs_BA
++++ glibc-2.3.5/localedata/locales/bs_BA
+@@ -208,6 +208,8 @@
+ t_fmt   "<U0025><U0054>"
+ am_pm   "";""
+ t_fmt_ampm ""
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/lo_LA
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/lo_LA
++++ glibc-2.3.5/localedata/locales/lo_LA
+@@ -717,6 +717,8 @@
+ <U003A><U0025><U0053><U0020><U0025><U005A>"
+ % ICT-7ICT-7
+ timezone	"<U0049><U0043><U0054><U002D><U0037><U0049><U0043><U0054><U002d><U0037>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/es_CR
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_CR
++++ glibc-2.3.5/localedata/locales/es_CR
+@@ -113,6 +113,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/ar_OM
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_OM
++++ glibc-2.3.5/localedata/locales/ar_OM
+@@ -144,6 +144,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/zh_CN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/zh_CN
++++ glibc-2.3.5/localedata/locales/zh_CN
+@@ -131,6 +131,8 @@
+ date_fmt       "<U0025><U0059><U5E74><U0020><U0025><U006D><U6708><U0020>/
+ <U0025><U0064><U65E5><U0020><U0025><U0041><U0020><U0025><U0048><U003A>/
+ <U0025><U004D><U003A><U0025><U0053><U0020><U0025><U005A>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/de_BE
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/de_BE
++++ glibc-2.3.5/localedata/locales/de_BE
+@@ -119,6 +119,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/ar_SA
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_SA
++++ glibc-2.3.5/localedata/locales/ar_SA
+@@ -347,6 +347,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/sl_SI
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/sl_SI
++++ glibc-2.3.5/localedata/locales/sl_SI
+@@ -2183,6 +2183,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/tr_TR
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/tr_TR
++++ glibc-2.3.5/localedata/locales/tr_TR
+@@ -3537,6 +3537,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/cy_GB
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/cy_GB
++++ glibc-2.3.5/localedata/locales/cy_GB
+@@ -245,11 +245,13 @@
+             "<U0048><U0079><U0064><U0072><U0065><U0066>";/
+             "<U0054><U0061><U0063><U0068><U0077><U0065><U0064><U0064>";/
+             "<U0052><U0068><U0061><U0067><U0066><U0079><U0072>"
+-d_t_fmt     "<U0044><U0079><U0064><U0064><U0020><U0025><U0041><U0020><U0025><U0064><U0020><U006d><U0069><U0073><U0020><U0025><U0042><U0020><U0025><U0059><U0020><U0025><U0054><U0020><U0025><U005A>"
++d_t_fmt     "<U0044><U0079><U0064><U0064><U0020><U0025><U0041><U0020><U0025><U0064><U0020><U006D><U0069><U0073><U0020><U0025><U0042><U0020><U0025><U0059><U0020><U0025><U0054><U0020><U0025><U005A>"
+ d_fmt       "<U0025><U0064><U002E><U0025><U006D><U002E><U0025><U0079>"
+ t_fmt       "<U0025><U0054>"
+ am_pm       "";""
+ t_fmt_ampm  ""
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/ar_SD
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_SD
++++ glibc-2.3.5/localedata/locales/ar_SD
+@@ -144,6 +144,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/zh_TW
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/zh_TW
++++ glibc-2.3.5/localedata/locales/zh_TW
+@@ -128,6 +128,9 @@
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
+ 
++%  FIXME: found in CLDR
++first_weekday 1
++
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/nb_NO
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/nb_NO
++++ glibc-2.3.5/localedata/locales/nb_NO
+@@ -2190,6 +2190,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/es_ES
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_ES
++++ glibc-2.3.5/localedata/locales/es_ES
+@@ -2183,6 +2183,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/el_GR
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/el_GR
++++ glibc-2.3.5/localedata/locales/el_GR
+@@ -135,6 +135,8 @@
+ %
+ % Appropriate date representation (date(1))   "%a %d %b %Y %r %Z"
+ date_fmt "<U0025><U0061><U0020><U0025><U0064><U0020><U0025><U0062><U0020><U0025><U0059><U0020><U0025><U0072><U0020><U0025><U005A>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/de_DE
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/de_DE
++++ glibc-2.3.5/localedata/locales/de_DE
+@@ -118,7 +118,7 @@
+ 	"<U0044><U006F><U006E><U006E><U0065><U0072><U0073><U0074><U0061><U0067>";/
+ 	"<U0046><U0072><U0065><U0069><U0074><U0061><U0067>";/
+ 	"<U0053><U0061><U006D><U0073><U0074><U0061><U0067>"
+-week    7;19971201;4
++% week    7;19971201;4
+ abmon	"<U004A><U0061><U006E>";"<U0046><U0065><U0062>";/
+ 	"<U004D><U00E4><U0072>";"<U0041><U0070><U0072>";/
+ 	"<U004D><U0061><U0069>";"<U004A><U0075><U006E>";/
+@@ -153,6 +153,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/ro_RO
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ro_RO
++++ glibc-2.3.5/localedata/locales/ro_RO
+@@ -189,6 +189,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/ca_ES
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ca_ES
++++ glibc-2.3.5/localedata/locales/ca_ES
+@@ -2181,6 +2181,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/ml_IN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ml_IN
++++ glibc-2.3.5/localedata/locales/ml_IN
+@@ -145,6 +145,8 @@
+ % Appropriate 12 h time representation (%r)
+ t_fmt_ampm     "<U0025><U0049><U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U0070><U0020><U0025><U005A>"
+ %
++%  FIXME
++first_weekday 1
+ END LC_TIME
+ %
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/en_DK
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/en_DK
++++ glibc-2.3.5/localedata/locales/en_DK
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/ar_BH
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_BH
++++ glibc-2.3.5/localedata/locales/ar_BH
+@@ -145,6 +145,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/pt_PT
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/pt_PT
++++ glibc-2.3.5/localedata/locales/pt_PT
+@@ -120,6 +120,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_GT
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_GT
++++ glibc-2.3.5/localedata/locales/es_GT
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/pl_PL
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/pl_PL
++++ glibc-2.3.5/localedata/locales/pl_PL
+@@ -2183,6 +2183,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/en_US
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/en_US
++++ glibc-2.3.5/localedata/locales/en_US
+@@ -81,7 +81,7 @@
+ 	"<U0046><U0072><U0069><U0064><U0061><U0079>";/
+ 	"<U0053><U0061><U0074><U0075><U0072><U0064><U0061><U0079>"
+ 
+-week    7;19971201;4
++% week    7;19971201;4
+ abmon	"<U004A><U0061><U006E>";"<U0046><U0065><U0062>";/
+ 	"<U004D><U0061><U0072>";"<U0041><U0070><U0072>";/
+ 	"<U004D><U0061><U0079>";"<U004A><U0075><U006E>";/
+@@ -125,6 +125,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/sk_SK
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/sk_SK
++++ glibc-2.3.5/localedata/locales/sk_SK
+@@ -179,6 +179,9 @@
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
+ 
++%  FIXME: found in CLDR
++first_weekday 2
++
+ END LC_TIME
+ 
+ %% END OF LOCALIZATION FILE for sk_SK.ISO-8859-2
+Index: glibc-2.3.5/localedata/locales/af_ZA
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/af_ZA
++++ glibc-2.3.5/localedata/locales/af_ZA
+@@ -155,6 +155,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/hr_HR
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/hr_HR
++++ glibc-2.3.5/localedata/locales/hr_HR
+@@ -2208,6 +2208,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/gl_ES
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/gl_ES
++++ glibc-2.3.5/localedata/locales/gl_ES
+@@ -121,6 +121,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/en_HK
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/en_HK
++++ glibc-2.3.5/localedata/locales/en_HK
+@@ -133,6 +133,8 @@
+ % Appropriate 12 h time representation (%r)
+ t_fmt_ampm  "<U0025><U0070><U0025><U0049><U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U005A>"
+ %
++%  FIXME
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/ar_SY
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_SY
++++ glibc-2.3.5/localedata/locales/ar_SY
+@@ -161,6 +161,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/ar_YE
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_YE
++++ glibc-2.3.5/localedata/locales/ar_YE
+@@ -144,6 +144,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/gu_IN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/gu_IN
++++ glibc-2.3.5/localedata/locales/gu_IN
+@@ -157,6 +157,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/th_TH
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/th_TH
++++ glibc-2.3.5/localedata/locales/th_TH
+@@ -909,6 +909,8 @@
+ <U003A><U0025><U0053><U0020><U0025><U005A>"
+ % ICT-7ICT-7
+ timezone	"<U0049><U0043><U0054><U002D><U0037><U0049><U0043><U0054><U002d><U0037>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/he_IL
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/he_IL
++++ glibc-2.3.5/localedata/locales/he_IL
+@@ -119,6 +119,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/ar_DZ
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_DZ
++++ glibc-2.3.5/localedata/locales/ar_DZ
+@@ -144,6 +144,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/lv_LV
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/lv_LV
++++ glibc-2.3.5/localedata/locales/lv_LV
+@@ -2180,6 +2180,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/it_CH
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/it_CH
++++ glibc-2.3.5/localedata/locales/it_CH
+@@ -100,6 +100,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_MX
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_MX
++++ glibc-2.3.5/localedata/locales/es_MX
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/ta_IN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ta_IN
++++ glibc-2.3.5/localedata/locales/ta_IN
+@@ -226,6 +226,8 @@
+ % Appropriate 12 h time representation (%r)
+ t_fmt_ampm  "<U0025><U0049><U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U0070><U0020><U0025><U005A>"
+ %
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/ms_MY
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ms_MY
++++ glibc-2.3.5/localedata/locales/ms_MY
+@@ -135,6 +135,8 @@
+ % Appropriate 12 h time representation (%r)
+ t_fmt_ampm  "<U0025><U0049><U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U0070><U0020><U0025><U005A>"
+ %
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/ar_LB
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_LB
++++ glibc-2.3.5/localedata/locales/ar_LB
+@@ -161,6 +161,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/mr_IN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/mr_IN
++++ glibc-2.3.5/localedata/locales/mr_IN
+@@ -149,6 +149,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/nl_BE
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/nl_BE
++++ glibc-2.3.5/localedata/locales/nl_BE
+@@ -104,6 +104,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/ar_JO
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_JO
++++ glibc-2.3.5/localedata/locales/ar_JO
+@@ -162,6 +162,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/ru_RU
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ru_RU
++++ glibc-2.3.5/localedata/locales/ru_RU
+@@ -145,6 +145,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/zh_SG
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/zh_SG
++++ glibc-2.3.5/localedata/locales/zh_SG
+@@ -130,6 +130,8 @@
+ % Appropriate 12 h time representation (%r) 
+ t_fmt_ampm  ""
+ %
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/en_PH
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/en_PH
++++ glibc-2.3.5/localedata/locales/en_PH
+@@ -133,6 +133,8 @@
+ % Appropriate 12 h time representation (%r) 
+ t_fmt_ampm  "<U0025><U0049><U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U0070><U0020><U0025><U005A>"
+ %
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/de_LU
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/de_LU
++++ glibc-2.3.5/localedata/locales/de_LU
+@@ -119,6 +119,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/bn_IN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/bn_IN
++++ glibc-2.3.5/localedata/locales/bn_IN
+@@ -146,6 +146,8 @@
+ % Appropriate 12 h time representation (%r)
+ t_fmt_ampm  "<U0025><U0049><U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U0070><U0020><U0025><U005A>"
+ %
++%  FIXME
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/es_BO
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_BO
++++ glibc-2.3.5/localedata/locales/es_BO
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/id_ID
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/id_ID
++++ glibc-2.3.5/localedata/locales/id_ID
+@@ -116,6 +116,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/es_SV
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_SV
++++ glibc-2.3.5/localedata/locales/es_SV
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_US
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_US
++++ glibc-2.3.5/localedata/locales/es_US
+@@ -2197,6 +2197,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME
++first_weekday 1
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_DO
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_DO
++++ glibc-2.3.5/localedata/locales/es_DO
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/en_NZ
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/en_NZ
++++ glibc-2.3.5/localedata/locales/en_NZ
+@@ -116,6 +116,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/en_CA
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/en_CA
++++ glibc-2.3.5/localedata/locales/en_CA
+@@ -2179,6 +2179,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/lt_LT
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/lt_LT
++++ glibc-2.3.5/localedata/locales/lt_LT
+@@ -2187,6 +2187,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/ar_LY
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_LY
++++ glibc-2.3.5/localedata/locales/ar_LY
+@@ -144,6 +144,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/es_UY
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_UY
++++ glibc-2.3.5/localedata/locales/es_UY
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/ja_JP
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ja_JP
++++ glibc-2.3.5/localedata/locales/ja_JP
+@@ -15005,6 +15005,8 @@
+ 		"<U4E5D><U5341><U56DB>";"<U4E5D><U5341><U4E94>";/
+ 		"<U4E5D><U5341><U516D>";"<U4E5D><U5341><U4E03>";/
+ 		"<U4E5D><U5341><U516B>";"<U4E5D><U5341><U4E5D>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/ar_AE
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_AE
++++ glibc-2.3.5/localedata/locales/ar_AE
+@@ -141,6 +141,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/ko_KR
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ko_KR
++++ glibc-2.3.5/localedata/locales/ko_KR
+@@ -6188,6 +6188,8 @@
+ <U0020><U0028><U0025><U0061><U0029>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053>/
+ <U0020><U0025><U005A>"
++%  FIXME: found in CLDR
++first_weekday 1
+ 
+ END LC_TIME
+ 
+Index: glibc-2.3.5/localedata/locales/de_CH
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/de_CH
++++ glibc-2.3.5/localedata/locales/de_CH
+@@ -121,6 +121,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/nn_NO
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/nn_NO
++++ glibc-2.3.5/localedata/locales/nn_NO
+@@ -141,6 +141,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/it_IT
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/it_IT
++++ glibc-2.3.5/localedata/locales/it_IT
+@@ -120,6 +120,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/kn_IN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/kn_IN
++++ glibc-2.3.5/localedata/locales/kn_IN
+@@ -161,6 +161,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/es_HN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_HN
++++ glibc-2.3.5/localedata/locales/es_HN
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/en_AU
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/en_AU
++++ glibc-2.3.5/localedata/locales/en_AU
+@@ -117,6 +117,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/de_AT
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/de_AT
++++ glibc-2.3.5/localedata/locales/de_AT
+@@ -121,6 +121,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/en_GB
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/en_GB
++++ glibc-2.3.5/localedata/locales/en_GB
+@@ -117,6 +117,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/zh_HK
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/zh_HK
++++ glibc-2.3.5/localedata/locales/zh_HK
+@@ -141,6 +141,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/en_ZA
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/en_ZA
++++ glibc-2.3.5/localedata/locales/en_ZA
+@@ -199,6 +199,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/da_DK
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/da_DK
++++ glibc-2.3.5/localedata/locales/da_DK
+@@ -2212,6 +2212,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/ar_TN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_TN
++++ glibc-2.3.5/localedata/locales/ar_TN
+@@ -144,6 +144,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/az_AZ
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/az_AZ
++++ glibc-2.3.5/localedata/locales/az_AZ
+@@ -276,6 +276,8 @@
+ t_fmt     "<U0025><U0054>"
+ am_pm     "";""
+ t_fmt_ampm ""
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/is_IS
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/is_IS
++++ glibc-2.3.5/localedata/locales/is_IS
+@@ -2222,6 +2222,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/ar_EG
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_EG
++++ glibc-2.3.5/localedata/locales/ar_EG
+@@ -144,6 +144,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/km_KH
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/km_KH
++++ glibc-2.3.5/localedata/locales/km_KH
+@@ -1841,6 +1841,8 @@
+ % ICT-7ICT-7
+ %timezone	"<U0049><U0043><U0054><U002D><U0037><U0049><U0043><U0054><U002d><U0037>"
+ 
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/en_IE
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/en_IE
++++ glibc-2.3.5/localedata/locales/en_IE
+@@ -115,6 +115,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/pt_BR
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/pt_BR
++++ glibc-2.3.5/localedata/locales/pt_BR
+@@ -121,6 +121,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_PA
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_PA
++++ glibc-2.3.5/localedata/locales/es_PA
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_NI
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_NI
++++ glibc-2.3.5/localedata/locales/es_NI
+@@ -113,6 +113,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_PE
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_PE
++++ glibc-2.3.5/localedata/locales/es_PE
+@@ -122,6 +122,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/nl_NL
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/nl_NL
++++ glibc-2.3.5/localedata/locales/nl_NL
+@@ -119,6 +119,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/en_IN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/en_IN
++++ glibc-2.3.5/localedata/locales/en_IN
+@@ -132,6 +132,8 @@
+ % Appropriate 12 h time representation (%r)
+ t_fmt_ampm  "<U0025><U0049><U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U0070><U0020><U0025><U005A>"
+ %
++%  FIXME
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/te_IN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/te_IN
++++ glibc-2.3.5/localedata/locales/te_IN
+@@ -135,6 +135,8 @@
+ % %p%I.%M.%S %Z
+ t_fmt_ampm  "<U0025><U0070><U0025><U0049><U002E><U0025><U004D><U002E><U0025><U0053><U0020><U0025><U005A>"
+ %
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/hu_HU
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/hu_HU
++++ glibc-2.3.5/localedata/locales/hu_HU
+@@ -553,7 +553,9 @@
+ t_fmt_ampm "<U0025><U0048><U002E><U0025><U004D><U002E><U0025><U0053>"
+ date_fmt "<U0025><U0059><U002E><U0020><U0025><U0062><U002E><U0020><U0025><U0065><U002E><U002C>/
+ <U0020><U0025><U0041><U002C><U0020><U0025><U0048><U002E><U0025><U004D><U002E><U0025><U0053><U0020><U0025><U005A>"
+-week     7;19971201;4
++% week     7;19971201;4
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/pa_IN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/pa_IN
++++ glibc-2.3.5/localedata/locales/pa_IN
+@@ -149,6 +149,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/et_EE
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/et_EE
++++ glibc-2.3.5/localedata/locales/et_EE
+@@ -2192,6 +2192,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_MESSAGES
+Index: glibc-2.3.5/localedata/locales/eu_ES
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/eu_ES
++++ glibc-2.3.5/localedata/locales/eu_ES
+@@ -131,6 +131,7 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/es_PR
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/es_PR
++++ glibc-2.3.5/localedata/locales/es_PR
+@@ -113,6 +113,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/ar_IN
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_IN
++++ glibc-2.3.5/localedata/locales/ar_IN
+@@ -127,6 +127,8 @@
+ % Appropriate 12 h time representation (%r)
+ t_fmt_ampm  "<U0025><U0049><U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U0070><U0020><U0025><U005A>"
+ %
++%  FIXME: copied from other *_IN locales
++first_weekday 1
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/ar_MA
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/ar_MA
++++ glibc-2.3.5/localedata/locales/ar_MA
+@@ -144,6 +144,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 7
+ END LC_TIME
+ 
+ 
+Index: glibc-2.3.5/localedata/locales/cs_CZ
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/cs_CZ
++++ glibc-2.3.5/localedata/locales/cs_CZ
+@@ -2449,6 +2449,8 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ 
+ END LC_TIME
+ 
+Index: glibc-2.3.5/localedata/locales/be_BY
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/be_BY
++++ glibc-2.3.5/localedata/locales/be_BY
+@@ -141,6 +141,9 @@
+ date_fmt	"<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  Copied from be_BY@alternative
++first_weekday 2
++first_workday 2
+ END LC_TIME
+ 
+ LC_PAPER
+Index: glibc-2.3.5/localedata/locales/be_BY@latin
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/be_BY@latin
++++ glibc-2.3.5/localedata/locales/be_BY@latin
+@@ -102,6 +102,9 @@
+ date_fmt        "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  Copied from be_BY@alternative
++first_weekday 2
++first_workday 2
+ END LC_TIME
+ 
+ LC_COLLATE
+Index: glibc-2.3.5/localedata/locales/sr_CS
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/sr_CS
++++ glibc-2.3.5/localedata/locales/sr_CS
+@@ -289,7 +289,7 @@
+ date_fmt  "<U0025><U0061><U002C><U0020><U0025><U0065><U002E><U0020>/
+ <U0025><U0062><U0020><U0025><U0059><U002E><U0020><U0020><U0025><U0048>/
+ <U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U005A><U000A>"
+-week    7;19971201;4
++% week    7;19971201;4
+ first_weekday 2
+ first_workday 2
+ END LC_TIME
+Index: glibc-2.3.5/localedata/locales/uk_UA
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/uk_UA
++++ glibc-2.3.5/localedata/locales/uk_UA
+@@ -154,6 +154,8 @@
+ date_fmt       "<U0025><U0061><U0020><U0025><U0062><U0020><U0025><U0065>/
+ <U0020><U0025><U0048><U003A><U0025><U004D><U003A><U0025><U0053><U0020>/
+ <U0025><U005A><U0020><U0025><U0059>"
++%  FIXME: found in CLDR
++first_weekday 2
+ END LC_TIME
+ 
+ LC_PAPER
