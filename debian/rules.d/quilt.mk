@@ -24,10 +24,19 @@ $(stamp)patch-stamp: $(stamp)unpack quilt
 #  in their $HOME/.quiltrc
 #  These symbolic links are useful when running quilt interactively
 #  from $(DEB_SRCDIR), or from the patch/unpatch targets.
+#  Patches specific to a certain architecture are applied first.
 quilt: 
 	@if test -n "$(DEB_SRCDIR)" && test -d $(DEB_SRCDIR); then \
 	  test -L $(DEB_SRCDIR)/debian || ln -s . $(DEB_SRCDIR)/debian; \
 	  test -L $(DEB_SRCDIR)/patches || ln -s $(shell pwd)/debian/patches $(DEB_SRCDIR)/patches; \
+	  if test -r debian/patches/series.$(DEB_HOST_ARCH); then \
+	    pc=".pc.$(DEB_HOST_ARCH)"; \
+	    test -d "$(DEB_SRCDIR)/$$pc" || mkdir "$(DEB_SRCDIR)/$$pc"; \
+	    cp debian/patches/series.$(DEB_HOST_ARCH) $(DEB_SRCDIR)/$$pc/series; \
+	    cd $(DEB_SRCDIR); \
+	    QUILT_PC="$$pc" quilt upgrade || true; \
+	    QUILT_PC="$$pc" quilt push -a || true; \
+	  fi; \
 	fi
 
 unpatch: quilt
