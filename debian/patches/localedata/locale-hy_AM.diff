@@ -1,0 +1,193 @@
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Various fixes for hy_AM
+# DP:   Apply patch#13 from BZ68.
+# DP:   Thanks to patches/locale/LC_COLLATE-keywords-ordering.diff,
+# DP:   the limitations explained in this bugreport do not apply and
+# DP:   collation rules can be defined the right way.
+# DP:   This locale has never been supported, it is not clear whether
+# DP:   ARMSCII-8 encoding will be accepted as the default, thus
+# DP:   define hy_AM.UTF-8 until it is accepted upstream.
+# DP: Related bugs: BZ68
+# DP: Dpatch author: Denis Barbier
+# DP: Patch author: Pablo Saratxaga, Ani <petrosyan@gmail.com>
+# DP: Upstream status: BZ68
+# DP: Date: 2006-01-15
+
+Index: glibc-2.3.5/localedata/locales/hy_AM
+===================================================================
+--- glibc-2.3.5.orig/localedata/locales/hy_AM
++++ glibc-2.3.5/localedata/locales/hy_AM
+@@ -1,16 +1,16 @@
+ escape_char /
+ comment_char %
+-% charset "ARMSCII-8"
++% Charset: UTF-8
+ % Distribution and use is free, also for commercial purposes.
+ 
+ LC_IDENTIFICATION
+ title "Armenian language locale for Armenia"
+-source "http://moon.yerphi.am/~hovik/ArmSCII/ArmCS-005.html"
++source "http://www.freenet.am/armscii"
+ %	Eugene Sevinian <sevinian@crdlx2.yerphi.am> completed
+ %	LC_MONETARY and LC_TIME
+ address ""
+ contact "Pablo Saratxaga"
+-email "srtxg@chanae.alphanet.ch"
++email "pablo@mandrakesoft.com"
+ tel ""
+ fax ""
+ language "Armenian"
+@@ -18,17 +18,17 @@
+ revision "0.4"
+ date "2001-01-26"
+ 
+-category hy_AM:2000;LC_IDENTIFICATION
+-category hy_AM:2000;LC_COLLATE
+-category hy_AM:2000;LC_CTYPE
+-category hy_AM:2000;LC_MESSAGES
+-category hy_AM:2000;LC_MONETARY
+-category hy_AM:2000;LC_NUMERIC
+-category hy_AM:2000;LC_TIME
+-category hy_AM:2000;LC_PAPER
+-category hy_AM:2000;LC_MEASUREMENT
+-category hy_AM:2000;LC_TELEPHONE
+-category hy_AM:2000;LC_ADDRESS
++category "hy_AM:2000";LC_IDENTIFICATION
++category "hy_AM:2000";LC_COLLATE
++category "hy_AM:2000";LC_CTYPE
++category "hy_AM:2000";LC_MESSAGES
++category "hy_AM:2000";LC_MONETARY
++category "hy_AM:2000";LC_NUMERIC
++category "hy_AM:2000";LC_TIME
++category "hy_AM:2000";LC_PAPER
++category "hy_AM:2000";LC_MEASUREMENT
++category "hy_AM:2000";LC_TELEPHONE
++category "hy_AM:2000";LC_ADDRESS
+ 
+ % ISO/IEC 14652: Converted comments to LC_IDENTIFICATION
+ %  added LC_PAPER, LC_MEASUREMENT, LC_TELEPHONE
+@@ -67,16 +67,15 @@
+ %%%%%%%%%%%%
+ 
+ LC_COLLATE
+-
+-% Armenian sorting is not yet on iso14651_t1
+-
+-script <ARMENIAN>
++copy "iso14651_t1"
+ 
+ collating-symbol <ARM-AYB>
+ collating-symbol <ARM-BEN>
++collating-symbol <ARM-EN>
+ collating-symbol <ARM-GIM>
+-collating-symbol <ARM-DA>
+ collating-symbol <ARM-YECH>
++collating-symbol <ARM-DA>
++collating-symbol <ARM-ECH>
+ collating-symbol <ARM-ZA>
+ collating-symbol <ARM-E>
+ collating-symbol <ARM-AT>
+@@ -111,8 +110,50 @@
+ collating-symbol <ARM-O>
+ collating-symbol <ARM-FE>
+ 
++reorder-after <CYR-YA>
++<ARM-AYB>
++<ARM-BEN>
++<ARM-EN>
++<ARM-GIM>
++<ARM-YECH>
++<ARM-DA>
++<ARM-ECH>
++<ARM-ZA>
++<ARM-E>
++<ARM-AT>
++<ARM-TO>
++<ARM-ZHE>
++<ARM-INI>
++<ARM-LYUN>
++<ARM-KHE>
++<ARM-TSA>
++<ARM-KEN>
++<ARM-HO>
++<ARM-DZA>
++<ARM-GHAT>
++<ARM-TCHE>
++<ARM-MEN>
++<ARM-HI>
++<ARM-NU>
++<ARM-SHA>
++<ARM-VO>
++<ARM-CHA>
++<ARM-PE>
++<ARM-JE>
++<ARM-RA>
++<ARM-SE>
++<ARM-VEV>
++<ARM-TYUN>
++<ARM-RE>
++<ARM-TSO>
++<ARM-VYUN>
++<ARM-PYUR>
++<ARM-KE>
++<ARM-O>
++<ARM-FE>
++reorder-end
+ 
+-copy "iso14651_t1"
++script <ARMENIAN>
+ 
+ order_start <ARMENIAN>;forward;forward;forward;forward,position
+ <U0561> <ARM-AYB>;<BAS>;<MIN>;IGNORE
+@@ -277,8 +318,8 @@
+ LC_MESSAGES
+ yesstr      "<U0561><U0575><U0578>"
+ nostr       "<U0578><U0579>"
+-yesexpr     "<U005E><U005B><U0079><U0059><U0073><U0053><U0561><U0531><U005D><U002E><U002A>"
+-noexpr      "<U005E><U005B><U006E><U004E><U0578><U0548><U005D><U002E><U002A>"
++yesexpr     "<U005E><U005B><U0079><U0059><U0073><U0053><U0561><U0531><U005D>"
++noexpr      "<U005E><U005B><U006E><U004E><U0578><U0548><U005D>"
+ END LC_MESSAGES
+ 
+ % Metric Measurement system (ISO 1000)
+@@ -303,20 +344,23 @@
+ postal_fmt "<U0025><U0064><U0025><U004E><U0025><U0066><U0025><U004E><U0025><U0064><U0025><U004E><U0025><U0062><U0025><U004E>/
+ <U0025><U0073><U0020><U0025><U0068><U0020><U0035><U0065><U0020><U0025><U0072><U0025><U004E>/
+ <U0025><U0043><U0025><U007A><U0020><U0025><U0054><U0025><U004E><U0025><U0063><U0025><U004E>"
+-% FIXME country_name "Armenia" in Armenian
++country_name "<U0540><U0561><U0575><U0561><U057D><U057F><U0561><U0576>"
+ % FIXME country_post for Armenia?
+ country_ab2 "<U0041><U004D>"
+ country_ab3 "<U0041><U0052><U004D>"
+ country_num 51
+-% FIXME country_car  for Armenia ?
++country_car "<U0041><U004D>"
+ country_isbn "<U0039><U0039><U0039><U0033><U0030>"
+-% FIXME lang_name Armenian in Armenian
++lang_name "<U0540><U0561><U0575><U0565><U0580><U0565><U0576>"
+ lang_ab "<U0068><U0079>"
+ lang_term "<U0068><U0079><U0065>"
+ lang_lib "<U0061><U0072><U006D>"
+ END LC_ADDRESS
+ 
+ LC_NAME
+-% FIXME
+-name_fmt "???"
++name_fmt    "<U0025><U0064><U0025><U0074><U0025><U0067><U0025><U0074>/
++<U0025><U006D><U0025><U0074><U0025><U0066>"
++name_miss   "<U0585><U0580><U056B><U0578><U0580><U0564>"
++name_mr     "<U057A><U0580><U0576>"
++name_mrs    "<U057F><U056F><U0576>"
+ END LC_NAME
+Index: glibc-2.3.5/localedata/SUPPORTED
+===================================================================
+--- glibc-2.3.5.orig/localedata/SUPPORTED
++++ glibc-2.3.5/localedata/SUPPORTED
+@@ -213,6 +213,7 @@
+ hsb_DE.UTF-8/UTF-8 \
+ hu_HU.UTF-8/UTF-8 \
+ hu_HU/ISO-8859-2 \
++hy_AM.UTF-8/UTF-8 \
+ id_ID.UTF-8/UTF-8 \
+ id_ID/ISO-8859-1 \
+ is_IS.UTF-8/UTF-8 \
