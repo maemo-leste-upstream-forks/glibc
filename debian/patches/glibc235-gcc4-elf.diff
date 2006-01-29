@@ -3,11 +3,11 @@
 # All lines beginning with `# DP:' are a description of the patch.
 # DP: Description: Remove definition elf_machine_rel* to compile with gcc-4.0.
 # DP: Related bugs: 
-# DP: Dpatch author: GOTO Masanori <gotom@debian.org>
+# DP: Dpatch author: Clint Adams <schizo@debian.org>
 # DP: Patch author: Dan Kegel 
 # DP: Upstream status: Debian-Specific
 # DP: Status Details: 
-# DP: Date: 2005-07-12
+# DP: Date: 2006-01-29
 
 PATCHLEVEL=1
 
@@ -27,13 +27,12 @@ exit 0
 # append the patch here and adjust the -p? flag in the patch calls.
 http://kegel.com/crosstool/crosstool-0.35/patches/glibc-2.3.4/glibc-2.3.4-allow-gcc-4.0-elf.patch
 
---- glibc-2.3-20050307/elf/dynamic-link.h.old	2005-03-12 18:12:37.000000000 -0800
-+++ glibc-2.3-20050307/elf/dynamic-link.h	2005-03-12 18:12:59.777820848 -0800
-@@ -19,43 +19,6 @@
- 
+--- elf/dynamic-link.h.old	2006-01-28 21:24:35.000000000 -0500
++++ elf/dynamic-link.h	2006-01-28 21:24:58.000000000 -0500
+@@ -20,46 +20,6 @@
  #include <elf.h>
  #include <assert.h>
--
+ 
 -#ifdef RESOLVE
 -/* We pass reloc_addr as a pointer to void, as opposed to a pointer to
 -   ElfW(Addr), because not all architectures can assume that the
@@ -45,26 +44,30 @@ http://kegel.com/crosstool/crosstool-0.35/patches/glibc-2.3.4/glibc-2.3.4-allow-
 -   optimizing away alignment tests or using word instructions for
 -   copying memory, breaking the very code written to handle the
 -   unaligned cases.  */
--auto void __attribute__((always_inline))
+-# if ! ELF_MACHINE_NO_REL
+-auto inline void __attribute__((always_inline))
 -elf_machine_rel (struct link_map *map, const ElfW(Rel) *reloc,
 -		 const ElfW(Sym) *sym, const struct r_found_version *version,
 -		 void *const reloc_addr);
--auto void __attribute__((always_inline))
+-auto inline void __attribute__((always_inline))
+-elf_machine_rel_relative (ElfW(Addr) l_addr, const ElfW(Rel) *reloc,
+-			  void *const reloc_addr);
+-# endif
+-# if ! ELF_MACHINE_NO_RELA
+-auto inline void __attribute__((always_inline))
 -elf_machine_rela (struct link_map *map, const ElfW(Rela) *reloc,
 -		  const ElfW(Sym) *sym, const struct r_found_version *version,
 -		  void *const reloc_addr);
--auto void __attribute__((always_inline))
--elf_machine_rel_relative (ElfW(Addr) l_addr, const ElfW(Rel) *reloc,
--			  void *const reloc_addr);
--auto void __attribute__((always_inline))
+-auto inline void __attribute__((always_inline))
 -elf_machine_rela_relative (ElfW(Addr) l_addr, const ElfW(Rela) *reloc,
 -			   void *const reloc_addr);
+-# endif
 -# if ELF_MACHINE_NO_RELA || defined ELF_MACHINE_PLT_REL
--auto void __attribute__((always_inline))
+-auto inline void __attribute__((always_inline))
 -elf_machine_lazy_rel (struct link_map *map,
 -		      ElfW(Addr) l_addr, const ElfW(Rel) *reloc);
 -# else
--auto void __attribute__((always_inline))
+-auto inline void __attribute__((always_inline))
 -elf_machine_lazy_rel (struct link_map *map,
 -		      ElfW(Addr) l_addr, const ElfW(Rela) *reloc);
 -# endif

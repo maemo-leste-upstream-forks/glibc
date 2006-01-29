@@ -30,25 +30,23 @@ exit 0
 	* sysdeps/unix/sysv/linux/dl-execstack.c: Check not only ENOMEM but
 	also EFAULT for pre 2.4.19 kernels.
 
---- sysdeps/unix/sysv/linux/dl-execstack.c.gotom	2005-08-18 20:55:21.000000000 +0900
-+++ sysdeps/unix/sysv/linux/dl-execstack.c	2005-08-19 15:50:59.051597872 +0900
-@@ -84,7 +84,8 @@
+--- sysdeps/unix/sysv/linux/dl-execstack.c.old	2006-01-28 22:25:42.000000000 -0500
++++ sysdeps/unix/sysv/linux/dl-execstack.c	2006-01-28 22:26:06.000000000 -0500
+@@ -89,7 +89,7 @@
  	page -= size;
        else
  	{
 -	  if (errno != ENOMEM)	/* Unexpected failure mode.  */
-+	  /* Unexpected failure mode.  */
-+	  if (errno != ENOMEM && errno != EFAULT)
- 	    return errno;
- 
- 	  if (size == GLRO(dl_pagesize))
-@@ -107,7 +108,8 @@
++	  if (errno != ENOMEM && errno != EFAULT)	/* Unexpected failure mode.  */
+ 	    {
+ 	      result = errno;
+ 	      goto out;
+@@ -115,7 +115,7 @@
  	page += size;
        else
  	{
 -	  if (errno != ENOMEM)	/* Unexpected failure mode.  */
-+	  /* Unexpected failure mode.  */
-+	  if (errno != ENOMEM && errno != EFAULT)
- 	    return errno;
- 
- 	  if (size == GLRO(dl_pagesize))
++	  if (errno != ENOMEM && errno != EFAULT)	/* Unexpected failure mode.  */
+ 	    {
+ 	      result = errno;
+ 	      goto out;
