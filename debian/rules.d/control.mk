@@ -15,7 +15,8 @@ debian/control.in/libc0.3: debian/control.in/libc debian/rules.d/control.mk
 debian/control.in/libc1: debian/control.in/libc debian/rules.d/control.mk
 	sed -e 's%@libc@%libc1%g;s%@archs@%freebsd-i386%g' < $< > $@
 
-debian/control: debian/control.in/main $(control_deps) \
+debian/control: $(stamp)control
+$(stamp)control: debian/control.in/main $(control_deps) \
 		   debian/rules.d/control.mk # debian/sysdeps/depflags.pl
 	cat debian/control.in/main		>  $@T
 	cat debian/control.in/libc6		>> $@T
@@ -30,5 +31,6 @@ debian/control: debian/control.in/main $(control_deps) \
 	cat debian/control.in/libnss-dns-udeb	>> $@T
 	cat debian/control.in/libnss-files-udeb	>> $@T
 	sed -e 's%@libc@%$(libc)%g;s%@glibc@%glibc%g' \
-	    -e 's%@threads_archs@%$(threads_archs)%g' < $@T > $@
+	    -e 's%@threads_archs@%$(threads_archs)%g' < $@T > debian/control
 	rm $@T
+	touch $@
