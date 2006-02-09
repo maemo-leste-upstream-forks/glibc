@@ -1,0 +1,94 @@
+#! /bin/sh -e
+
+# DP: Description: hppa floating point exception handling fix
+# DP: Related bugs: Debian #342545
+# DP: Dpatch author: Randolph Chung <tausq@debian.org>
+# DP: Patch author: Randolph Chung <tausq@debian.org>
+# DP: Upstream status: Pending
+# DP: Status Details: to be merged by Carlos
+# DP: Date: Sun, 15 Jan 2006
+
+PATCHLEVEL=1
+
+if [ $# -ne 2 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
+    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
+    *)
+	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+	exit 1
+esac
+exit 0
+
+# append the patch here and adjust the -p? flag in the patch calls.
+diff -uNr glibc-2.3.5/sysdeps/hppa/fpu.orig/fegetenv.c glibc-2.3.5/sysdeps/hppa/fpu/fegetenv.c
+--- glibc-2.3.5/sysdeps/hppa/fpu.orig/fegetenv.c	2006-01-14 10:17:19.000000000 -0800
++++ glibc-2.3.5/sysdeps/hppa/fpu/fegetenv.c	2006-01-14 10:19:08.000000000 -0800
+@@ -27,10 +27,7 @@
+   unsigned long long buf[4], *bufptr = buf;
+ 
+   __asm__ (
+-	   "fstd,ma %%fr0,8(%1)\n"
+-	   "fstd,ma %%fr1,8(%1)\n"
+-	   "fstd,ma %%fr2,8(%1)\n"
+-	   "fstd %%fr3,0(%1)\n"
++	   "fstd %%fr0,0(%1)\n"
+ 	   : "=m" (buf), "+r" (bufptr));
+   memcpy (envp, buf, sizeof (*envp));
+   return 0;
+diff -uNr glibc-2.3.5/sysdeps/hppa/fpu.orig/feholdexcpt.c glibc-2.3.5/sysdeps/hppa/fpu/feholdexcpt.c
+--- glibc-2.3.5/sysdeps/hppa/fpu.orig/feholdexcpt.c	2006-01-14 10:17:19.000000000 -0800
++++ glibc-2.3.5/sysdeps/hppa/fpu/feholdexcpt.c	2006-01-14 10:20:21.000000000 -0800
+@@ -30,10 +30,7 @@
+   /* Store the environment.  */
+   bufptr = clear.buf;
+   __asm__ (
+-	   "fstd,ma %%fr0,8(%1)\n"
+-	   "fstd,ma %%fr1,8(%1)\n"
+-	   "fstd,ma %%fr2,8(%1)\n"
+-	   "fstd %%fr3,0(%1)\n"
++	   "fstd %%fr0,0(%1)\n"
+ 	   : "=m" (clear), "+r" (bufptr));
+   memcpy (envp, &clear.env, sizeof (fenv_t));
+ 
+@@ -47,10 +44,7 @@
+   /* Load the new environment. */
+   bufptr = clear.buf;
+   __asm__ (
+-	   "fldd,ma 8(%0),%%fr0\n"
+-	   "fldd,ma 8(%0),%%fr1\n"
+-	   "fldd,ma 8(%0),%%fr2\n"
+-	   "fldd 0(%0),%%fr3\n"
++	   "fldd 0(%0),%%fr0\n"
+ 	   : : "r" (bufptr), "m" (clear));
+ 
+   return 0;
+diff -uNr glibc-2.3.5/sysdeps/hppa/fpu.orig/fesetenv.c glibc-2.3.5/sysdeps/hppa/fpu/fesetenv.c
+--- glibc-2.3.5/sysdeps/hppa/fpu.orig/fesetenv.c	2006-01-14 10:17:19.000000000 -0800
++++ glibc-2.3.5/sysdeps/hppa/fpu/fesetenv.c	2006-01-14 10:20:44.000000000 -0800
+@@ -34,10 +34,7 @@
+      we want to use from the environment specified by the parameter.  */
+   bufptr = temp.buf;
+   __asm__ (
+-	   "fstd,ma %%fr0,8(%1)\n"
+-	   "fstd,ma %%fr1,8(%1)\n"
+-	   "fstd,ma %%fr2,8(%1)\n"
+-	   "fstd %%fr3,0(%1)\n"
++	   "fstd %%fr0,0(%1)\n"
+ 	   : "=m" (temp), "+r" (bufptr));
+ 
+   temp.env.__status_word &= ~(FE_ALL_EXCEPT
+@@ -56,9 +53,6 @@
+   /* Load the new environment. */
+   bufptr = temp.buf;
+   __asm__ (
+-	   "fldd,ma -8(%1),%%fr3\n"
+-	   "fldd,ma -8(%1),%%fr2\n"
+-	   "fldd,ma -8(%1),%%fr1\n"
+ 	   "fldd 0(%1),%%fr0\n"
+ 	   : "=m" (temp), "+r" (bufptr));
+ 
+
