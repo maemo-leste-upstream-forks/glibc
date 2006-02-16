@@ -1,13 +1,341 @@
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: [rs]etres[gu]id have misordered arguments
+# DP:    This patch has been grabbed from BZ2329 and backported to 2.3.6
+# DP: Related bugs: #352500 BZ2329
+# DP: Dpatch author: Denis Barbier <barbier@debian.org>
+# DP: Patch author: Thomas Schwinge
+# DP: Upstream status: BZ2329
+# DP: Date: 2006-02-16
+
+2006-02-15  Thomas Schwinge  <tschwinge@gnu.org>
+
+	* include/unistd.h (__getresuid, __getresgid, __setresuid)
+	(__setresgid): Correct prototypes.
+	* posix/unistd.h (getresuid, getresgid, setresuid, setresgid):
+	Likewise.
+	* posix/getresuid.c (__getresuid): Correct definition.
+	* posix/getresgid.c (__getresgid): Likewise.
+	* posix/setresuid.c (__setresuid): Likewise.
+	* posix/setresgid.c (__setresgid): Likewise.
+	* sysdeps/mach/hurd/getresuid.c (__getresuid): Likewise.
+	* sysdeps/mach/hurd/getresgid.c (__getresgid): Likewise.
+	* sysdeps/mach/hurd/setresuid.c (__setresuid): Likewise.
+	* sysdeps/mach/hurd/setresgid.c (__setresgid): Likewise.
+
+	Reported by Samuel Thibault <samuel.thibault@ens-lyon.org>.
+
+Index: include/unistd.h
+===================================================================
+RCS file: /cvs/glibc/libc/include/unistd.h,v
+retrieving revision 1.45
+diff -u -r1.45 unistd.h
+--- include/unistd.h	30 Jun 2004 07:35:39 -0000	1.45
++++ include/unistd.h	15 Feb 2006 16:21:40 -0000
+@@ -96,10 +96,10 @@
+ extern int __setpgid (__pid_t __pid, __pid_t __pgid);
+ libc_hidden_proto (__setpgid)
+ extern int __setregid (__gid_t __rgid, __gid_t __egid);
+-extern int __getresuid (__uid_t *__euid, __uid_t *__ruid, __uid_t *__suid);
+-extern int __getresgid (__gid_t *__egid, __gid_t *__rgid, __gid_t *__sgid);
+-extern int __setresuid (__uid_t __euid, __uid_t __ruid, __uid_t __suid);
+-extern int __setresgid (__gid_t __egid, __gid_t __rgid, __gid_t __sgid);
++extern int __getresuid (__uid_t *__ruid, __uid_t *__euid, __uid_t *__suid);
++extern int __getresgid (__gid_t *__rgid, __gid_t *__egid, __gid_t *__sgid);
++extern int __setresuid (__uid_t __ruid, __uid_t __euid, __uid_t __suid);
++extern int __setresgid (__gid_t __rgid, __gid_t __egid, __gid_t __sgid);
+ libc_hidden_proto (__getresuid)
+ libc_hidden_proto (__getresgid)
+ libc_hidden_proto (__setresuid)
+Index: posix/unistd.h
+--- posix/unistd.h	6 Jan 2006 12:14:05 -0000
++++ posix/unistd.h	15 Feb 2006 16:21:41 -0000
+@@ -693,21 +693,21 @@
+ #endif /* Use BSD.  */
+ 
+ #ifdef __USE_GNU
+-/* Fetch the effective user ID, real user ID, and saved-set user ID,
++/* Fetch the real user ID, effective user ID, and saved-set user ID,
+    of the calling process.  */
+-extern int getresuid (__uid_t *__euid, __uid_t *__ruid, __uid_t *__suid);
++extern int getresuid (__uid_t *__ruid, __uid_t *__euid, __uid_t *__suid);
+ 
+-/* Fetch the effective group ID, real group ID, and saved-set group ID,
++/* Fetch the real group ID, effective group ID, and saved-set group ID,
+    of the calling process.  */
+-extern int getresgid (__gid_t *__egid, __gid_t *__rgid, __gid_t *__sgid);
++extern int getresgid (__gid_t *__rgid, __gid_t *__egid, __gid_t *__sgid);
+ 
+-/* Set the effective user ID, real user ID, and saved-set user ID,
+-   of the calling process to EUID, RUID, and SUID, respectively.  */
+-extern int setresuid (__uid_t __euid, __uid_t __ruid, __uid_t __suid);
++/* Set the real user ID, effective user ID, and saved-set user ID,
++   of the calling process to RUID, EUID, and SUID, respectively.  */
++extern int setresuid (__uid_t __ruid, __uid_t __euid, __uid_t __suid);
+ 
+-/* Set the effective group ID, real group ID, and saved-set group ID,
+-   of the calling process to EGID, RGID, and SGID, respectively.  */
+-extern int setresgid (__gid_t __egid, __gid_t __rgid, __gid_t __sgid);
++/* Set the real group ID, effective group ID, and saved-set group ID,
++   of the calling process to RGID, EGID, and SGID, respectively.  */
++extern int setresgid (__gid_t __rgid, __gid_t __egid, __gid_t __sgid);
+ #endif
+ 
+ 
+Index: sysdeps/generic/getresuid.c
+--- sysdeps/generic/getresgid.c	14 Dec 2005 09:14:13 -0000
++++ sysdeps/generic/getresgid.c	15 Feb 2006 16:21:41 -0000
+@@ -1,4 +1,5 @@
+-/* Copyright (C) 1991,1995,1996,1997,1998,2002 Free Software Foundation, Inc.
++/* Copyright (C) 1991,1995,1996,1997,1998,2002,2006
++     Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -19,10 +20,10 @@
+ #include <errno.h>
+ #include <unistd.h>
+ 
+-/* Fetch the effective group ID, real group ID, and saved-set group ID,
++/* Fetch the real group ID, effective group ID, and saved-set group ID,
+    of the calling process.  */
+ int
+-__getresgid (gid_t *egid, gid_t *rgid, gid_t *sgid)
++__getresgid (gid_t *rgid, gid_t *egid, gid_t *sgid)
+ {
+   __set_errno (ENOSYS);
+   return -1;
+Index: sysdeps/generic/getresuid.c
+--- sysdeps/generic/getresuid.c	14 Dec 2005 09:14:28 -0000
++++ sysdeps/generic/getresuid.c	15 Feb 2006 16:21:41 -0000
+@@ -1,4 +1,5 @@
+-/* Copyright (C) 1991,1995,1996,1997,1998,2002 Free Software Foundation, Inc.
++/* Copyright (C) 1991,1995,1996,1997,1998,2002,2006
++     Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -19,10 +20,10 @@
+ #include <errno.h>
+ #include <unistd.h>
+ 
+-/* Fetch the effective user ID, real user ID, and saved-set user ID,
++/* Fetch the real user ID, effective user ID, and saved-set user ID,
+    of the calling process.  */
+ int
+-__getresuid (uid_t *euid, uid_t *ruid, uid_t *suid)
++__getresuid (uid_t *ruid, uid_t *euid, uid_t *suid)
+ {
+   __set_errno (ENOSYS);
+   return -1;
+Index: sysdeps/generic/setresgid.c
+--- sysdeps/generic/setresgid.c	14 Dec 2005 10:48:25 -0000
++++ sysdeps/generic/setresgid.c	15 Feb 2006 16:21:41 -0000
+@@ -1,5 +1,5 @@
+-/* setresgid -- set effective group ID, real group ID, and saved-set group ID
+-   Copyright (C) 2002 Free Software Foundation, Inc.
++/* setresgid -- set real group ID, effective group ID, and saved-set group ID
++   Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -20,10 +20,10 @@
+ #include <errno.h>
+ #include <unistd.h>
+ 
+-/* Set the effective group ID, real group ID, and saved-set group ID,
+-   of the calling process to EGID, RGID, and SGID, respectively.  */
++/* Set the real group ID, effective group ID, and saved-set group ID,
++   of the calling process to RGID, EGID, and SGID, respectively.  */
+ int
+-__setresgid (gid_t egid, gid_t rgid, gid_t sgid)
++__setresgid (gid_t rgid, gid_t egid, gid_t sgid)
+ {
+   __set_errno (ENOSYS);
+   return -1;
+Index: sysdeps/generic/setresuid.c
+--- sysdeps/generic/setresuid.c	14 Dec 2005 10:48:41 -0000
++++ sysdeps/generic/setresuid.c	15 Feb 2006 16:21:41 -0000
+@@ -1,5 +1,5 @@
+-/* setresuid -- set effective user ID, real user ID, and saved-set user ID
+-   Copyright (C) 2002 Free Software Foundation, Inc.
++/* setresuid -- set real user ID, effective user ID, and saved-set user ID
++   Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -20,10 +20,10 @@
+ #include <errno.h>
+ #include <unistd.h>
+ 
+-/* Set the effective user ID, real user ID, and saved-set user ID,
+-   of the calling process to EUID, RUID, and SUID, respectively.  */
++/* Set the real user ID, effective user ID, and saved-set user ID,
++   of the calling process to RUID, EUID, and SUID, respectively.  */
+ int
+-__setresuid (uid_t euid, uid_t ruid, uid_t suid)
++__setresuid (uid_t ruid, uid_t euid, uid_t suid)
+ {
+   __set_errno (ENOSYS);
+   return -1;
+Index: sysdeps/mach/hurd/getresgid.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/getresgid.c,v
+retrieving revision 1.1
+diff -u -r1.1 getresgid.c
+--- sysdeps/mach/hurd/getresgid.c	14 Oct 2002 01:03:11 -0000	1.1
++++ sysdeps/mach/hurd/getresgid.c	15 Feb 2006 16:21:41 -0000
+@@ -1,5 +1,5 @@
+-/* getresgid -- fetch effective group ID, real group ID, and saved-set group ID
+-   Copyright (C) 2002 Free Software Foundation, Inc.
++/* getresgid -- fetch real group ID, effective group ID, and saved-set group ID
++   Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -22,13 +22,13 @@
+ #include <hurd.h>
+ #include <hurd/id.h>
+ 
+-/* Fetch the effective group ID, real group ID, and saved-set group ID,
++/* Fetch the real group ID, effective group ID, and saved-set group ID,
+    of the calling process.  */
+ int
+-__getresgid (gid_t *egid, gid_t *rgid, gid_t *sgid)
++__getresgid (gid_t *rgid, gid_t *egid, gid_t *sgid)
+ {
+   error_t err;
+-  gid_t eff, real, saved;
++  gid_t real, eff, saved;
+ 
+   HURD_CRITICAL_BEGIN;
+   __mutex_lock (&_hurd_id.lock);
+@@ -42,8 +42,8 @@
+       else
+ 	{
+ 	  real = _hurd_id.aux.gids[0];
+-	  saved = _hurd_id.aux.ngids < 2 ? real :_hurd_id.aux.gids[1];
+ 	  eff = _hurd_id.gen.ngids < 1 ? real : _hurd_id.gen.gids[0];
++	  saved = _hurd_id.aux.ngids < 2 ? real : _hurd_id.aux.gids[1];
+ 	}
+     }
+ 
+@@ -53,8 +53,8 @@
+   if (err)
+     return __hurd_fail (err);
+ 
+-  *egid = eff;
+   *rgid = real;
++  *egid = eff;
+   *sgid = saved;
+   return 0;
+ }
 Index: sysdeps/mach/hurd/getresuid.c
 ===================================================================
---- sysdeps/mach/hurd/getresuid.c	2002-10-13 21:03:11.000000000 -0400
-+++ sysdeps/mach/hurd/getresuid.c	2006-02-12 11:08:46.000000000 -0500
-@@ -25,7 +25,7 @@
- /* Fetch the effective user ID, real user ID, and saved-set user ID,
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/getresuid.c,v
+retrieving revision 1.1
+diff -u -r1.1 getresuid.c
+--- sysdeps/mach/hurd/getresuid.c	14 Oct 2002 01:03:11 -0000	1.1
++++ sysdeps/mach/hurd/getresuid.c	15 Feb 2006 16:21:41 -0000
+@@ -1,5 +1,5 @@
+-/* getresuid -- fetch effective user ID, real user ID, and saved-set user ID
+-   Copyright (C) 2002 Free Software Foundation, Inc.
++/* getresuid -- fetch real user ID, effective user ID, and saved-set user ID
++   Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -22,13 +22,13 @@
+ #include <hurd.h>
+ #include <hurd/id.h>
+ 
+-/* Fetch the effective user ID, real user ID, and saved-set user ID,
++/* Fetch the real user ID, effective user ID, and saved-set user ID,
     of the calling process.  */
  int
 -__getresuid (uid_t *euid, uid_t *ruid, uid_t *suid)
 +__getresuid (uid_t *ruid, uid_t *euid, uid_t *suid)
  {
    error_t err;
-   uid_t eff, real, saved;
+-  uid_t eff, real, saved;
++  uid_t real, eff, saved;
+ 
+   HURD_CRITICAL_BEGIN;
+   __mutex_lock (&_hurd_id.lock);
+@@ -42,8 +42,8 @@
+       else
+ 	{
+ 	  real = _hurd_id.aux.uids[0];
+-	  saved = _hurd_id.aux.nuids < 2 ? real :_hurd_id.aux.uids[1];
+ 	  eff = _hurd_id.gen.nuids < 1 ? real : _hurd_id.gen.uids[0];
++	  saved = _hurd_id.aux.nuids < 2 ? real : _hurd_id.aux.uids[1];
+ 	}
+     }
+ 
+@@ -53,8 +53,8 @@
+   if (err)
+     return __hurd_fail (err);
+ 
+-  *euid = eff;
+   *ruid = real;
++  *euid = eff;
+   *suid = saved;
+   return 0;
+ }
+Index: sysdeps/mach/hurd/setresgid.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/setresgid.c,v
+retrieving revision 1.2
+diff -u -r1.2 setresgid.c
+--- sysdeps/mach/hurd/setresgid.c	15 Feb 2005 03:08:38 -0000	1.2
++++ sysdeps/mach/hurd/setresgid.c	15 Feb 2006 16:21:41 -0000
+@@ -1,5 +1,5 @@
+-/* setresgid -- set effective group ID, real group ID, and saved-set group ID
+-   Copyright (C) 2002, 2005 Free Software Foundation, Inc.
++/* setresgid -- set real group ID, effective group ID, and saved-set group ID
++   Copyright (C) 2002, 2005, 2006 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -22,10 +22,10 @@
+ #include <hurd.h>
+ #include <hurd/id.h>
+ 
+-/* Set the effective group ID, real group ID, and saved-set group ID,
+-   of the calling process to EGID, RGID, and SGID, respectively.  */
++/* Set the real group ID, effective group ID, and saved-set group ID,
++   of the calling process to RGID, EGID, and SGID, respectively.  */
+ int
+-__setresgid (gid_t egid, gid_t rgid, gid_t sgid)
++__setresgid (gid_t rgid, gid_t egid, gid_t sgid)
+ {
+   auth_t newauth;
+   error_t err;
+Index: sysdeps/mach/hurd/setresuid.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/setresuid.c,v
+retrieving revision 1.2
+diff -u -r1.2 setresuid.c
+--- sysdeps/mach/hurd/setresuid.c	15 Feb 2005 03:08:38 -0000	1.2
++++ sysdeps/mach/hurd/setresuid.c	15 Feb 2006 16:21:41 -0000
+@@ -1,5 +1,5 @@
+-/* setresuid -- set effective user ID, real user ID, and saved-set user ID
+-   Copyright (C) 2002, 2005 Free Software Foundation, Inc.
++/* setresuid -- set real user ID, effective user ID, and saved-set user ID
++   Copyright (C) 2002, 2005, 2006 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -22,10 +22,10 @@
+ #include <hurd.h>
+ #include <hurd/id.h>
+ 
+-/* Set the effective user ID, real user ID, and saved-set user ID,
+-   of the calling process to EUID, RUID, and SUID, respectively.  */
++/* Set the real user ID, effective user ID, and saved-set user ID,
++   of the calling process to RUID, EUID, and SUID, respectively.  */
+ int
+-__setresuid (uid_t euid, uid_t ruid, uid_t suid)
++__setresuid (uid_t ruid, uid_t euid, uid_t suid)
+ {
+   auth_t newauth;
+   error_t err;
