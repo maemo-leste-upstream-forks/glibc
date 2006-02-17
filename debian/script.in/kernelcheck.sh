@@ -1,3 +1,10 @@
+kernel_compare_versions () {
+    verA=$(($(echo "$1" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 10000 + \2 \* 100 + \3/')))
+    verB=$(($(echo "$3" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 10000 + \2 \* 100 + \3/')))
+    
+    test $verA $2 $verB
+}
+
 exit_check () {
     EXIT_CHECK
     exit 1
@@ -32,7 +39,7 @@ exit_check () {
     if [ "$realarch" = i386 ]
     then
 	# From glibc 2.3.5-7 and linux-2.6 2.6.12-1, real-i386 is dropped.
-	#if dpkg --compare-versions "$kernel_ver" lt 2.4.24
+	#if kernel_compare_versions "$kernel_ver" lt 2.4.24
 	#then
 	    echo WARNING: This machine has real i386 class processor.
 	    echo Debian etch and later does not support such old hardware
@@ -52,7 +59,7 @@ exit_check () {
 
 	if [ "$cputype" != "" ]
 	then
-	    if dpkg --compare-versions "$kernel_ver" lt 2.4.21
+	    if kernel_compare_versions "$kernel_ver" lt 2.4.21
 	    then
 		echo WARNING: You have a cpu which requires kernel 2.4.21
 		echo or greater in order to install this version of glibc.
@@ -65,7 +72,7 @@ exit_check () {
 		exit_check
 	    fi
 	else
-	    if dpkg --compare-versions "$kernel_ver" lt 2.2.0 #should be safe
+	    if kernel_compare_versions "$kernel_ver" lt 2.2.0 #should be safe
 	    then
 		echo WARNING: This version of glibc suggests atleast a
 		echo 2.2.0 kernel in order to work properly. 2.0.x kernels
@@ -82,7 +89,7 @@ exit_check () {
     # HPPA boxes require latest fixes in the kernel to function properly.
     if [ "$realarch" = parisc ]
     then
-	if dpkg --compare-versions "$kernel_ver" lt 2.4.17
+	if kernel_compare_versions "$kernel_ver" lt 2.4.17
 	then
 		echo WARNING: This version of glibc requires that you be running
 		echo atleast a 2.4.17 kernel in order to work properly. Earlier
@@ -99,7 +106,7 @@ exit_check () {
 	kernel_ver_pa=$(echo "$kernel_ver" | sed 's/pa//')
 	if [ "$kernel_ver" = "$kernel_ver_pa" ]
 	then
-	    if dpkg --compare-versions "$kernel_ver" lt 2.4.19-64
+	    if kernel_compare_versions "$kernel_ver" lt 2.4.19-64
 	    then
 		echo WARNING: This version of glibc requires that you be
 		echo running at least a 2.4.19-64 to work properly.
@@ -108,7 +115,7 @@ exit_check () {
 		exit_check
 	    fi
 	else
-	    if dpkg --compare-versions "$kernel_ver" lt 2.4.19-pa17
+	    if kernel_compare_versions "$kernel_ver" lt 2.4.19-pa17
 	    then
 		echo WARNING: This version of glibc requires that you be
 		echo running at least a 2.4.19-pa17 in \(2.4\) or 2.5.53-pa3 
@@ -124,7 +131,7 @@ exit_check () {
 	&& [ "`dpkg --print-architecture`" = mips ]
     then
 	# MIPS (but not mipsel) require a kernel update for the msq fixes.
-	if dpkg --compare-versions "$kernel_ver" lt 2.4.22
+	if kernel_compare_versions "$kernel_ver" lt 2.4.22
 	then
 		echo WARNING: System V message queues require kernel 2.4.22 to
 		echo work correctly on this architecture.  Some programs
@@ -137,7 +144,7 @@ exit_check () {
     if [ "$realarch" = x86_64 ] \
 	&& [ "`dpkg --print-architecture`" = amd64 ]
     then
-	if dpkg --compare-versions "$kernel_ver" lt 2.6.0
+	if kernel_compare_versions "$kernel_ver" lt 2.6.0
 	then
 	    echo WARNING: POSIX threads library NPTL requires 2.6 and
 	    echo later kernel on amd64.  If you use 2.4 kernel, please
@@ -151,7 +158,7 @@ exit_check () {
     if [ "$realarch" = arm ] \
 	&& [ "`dpkg --print-architecture`" = arm ]
     then
-	if dpkg --compare-versions "$kernel_ver" lt 2.4.0
+	if kernel_compare_versions "$kernel_ver" lt 2.4.0
 	then
 	    echo WARNING: This version of glibc requires that you be running
 	    echo kernel version 2.4.0 or later.  Earlier kernels contained
