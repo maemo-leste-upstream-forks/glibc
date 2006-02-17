@@ -18,3 +18,11 @@ define libc6_extra_pkg_install
 ln -sf lib debian/$(curpass)/lib64
 ln -sf lib debian/$(curpass)/usr/lib64
 endef
+
+define libc_extra_install
+mv debian/tmp-libc/lib64 debian/tmp-libc/lib
+mv debian/tmp-libc/usr/lib64/* debian/tmp-libc/usr/lib
+for link in $$(find debian/tmp-libc/usr/lib -type l) ; do ln -sf $$(readlink $$link | sed -e "s#64##g") $$link ; done
+for so in $$(find debian/tmp-libc/usr/lib -maxdepth 1 -type f -name *.so) ; do perl -pi -e "s#/lib64/#/lib/#g" $$so ; done
+endef
+
