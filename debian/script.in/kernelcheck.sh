@@ -128,7 +128,7 @@ exit_check () {
     fi
 
     if [ "$realarch" = mips ] \
-	&& [ "`dpkg --print-architecture`" = mips ]
+	&& [ DEB_HOST_ARCH = mips ]
     then
 	# MIPS (but not mipsel) require a kernel update for the msq fixes.
 	if kernel_compare_versions "$kernel_ver" lt 2.4.22
@@ -142,7 +142,7 @@ exit_check () {
 
     # amd64 requires 2.6 kernel because we drop to support linuxthreads
     if [ "$realarch" = x86_64 ] \
-	&& [ "`dpkg --print-architecture`" = amd64 ]
+	&& [ DEB_HOST_ARCH = amd64 ]
     then
 	if kernel_compare_versions "$kernel_ver" lt 2.6.0
 	then
@@ -156,7 +156,7 @@ exit_check () {
     # arm requires 2.4 kernel to avoid "obsolete calling standard" problem
     # with sys_llseek
     if [ "$realarch" = arm ] \
-	&& [ "`dpkg --print-architecture`" = arm ]
+	&& [ DEB_HOST_ARCH = arm ]
     then
 	if kernel_compare_versions "$kernel_ver" lt 2.4.0
 	then

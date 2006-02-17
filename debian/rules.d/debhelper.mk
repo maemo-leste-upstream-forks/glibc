@@ -28,7 +28,7 @@ define $(libc)_extra_debhelper_pkg_install
 	esac
 	sed -e "/KERNEL_VERSION_CHECK/r debian/script.in/kernelcheck.sh" \
 		debian/local/etc_init.d/glibc.sh | \
-		sed -e "s/EXIT_CHECK/sleep 5/" > debian/glibc.sh.generated
+		sed -e "s/EXIT_CHECK/sleep 5/" -e "s/DEB_HOST_ARCH/$(DEB_HOST_ARCH)/" > debian/glibc.sh.generated
 	install --mode=0755 debian/glibc.sh.generated debian/$(curpass)/etc/init.d/glibc.sh
 	# dh_installmanpages thinks that .so is a language.
 	install --mode=0644 debian/local/manpages/ld.so.8 debian/$(curpass)/usr/share/man/man8/ld.so.8
