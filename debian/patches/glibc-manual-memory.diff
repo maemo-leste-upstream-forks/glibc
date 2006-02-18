@@ -1,0 +1,31 @@
+2005-08-29  Thomas Schwinge  <schwinge@nic-nac-project.de>
+
+	[BZ #1261]
+	* manual/memory.texi (Hooks for Malloc): Correct prototype of
+	my_init_hook() and definition of my_free_hook.
+
+===================================================================
+RCS file: /cvs/glibc/libc/manual/memory.texi,v
+retrieving revision 1.79
+retrieving revision 1.80
+diff -u -r1.79 -r1.80
+--- libc/manual/memory.texi	2005/01/26 02:39:11	1.79
++++ libc/manual/memory.texi	2005/09/13 17:46:01	1.80
+@@ -948,7 +948,7 @@
+ #include <malloc.h>
+ 
+ /* Prototypes for our hooks.  */
+-static void *my_init_hook (void);
++static void my_init_hook (void);
+ static void *my_malloc_hook (size_t, const void *);
+ static void my_free_hook (void*, const void *);
+ 
+@@ -984,7 +984,7 @@
+   return result;
+ @}
+ 
+-static void *
++static void
+ my_free_hook (void *ptr, const void *caller)
+ @{
+   /* Restore all old hooks */
