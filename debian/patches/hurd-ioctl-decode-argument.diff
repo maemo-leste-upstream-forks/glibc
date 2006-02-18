@@ -1,0 +1,58 @@
+2005-07-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+        * ioctl.c (__ioctl): Add handling of parameter-less ioctls.
+
+2005-07-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+        * ioctls.h (_IOIW): New macro for immediate-write ioctls.
+
+--- sysdeps/mach/hurd/ioctl.c	2005-07-26 23:26:28.000000000 +0200
++++ sysdeps/mach/hurd/ioctl.c	2005-07-26 23:24:07.000000000 +0200
+@@ -79,7 +79,7 @@ __ioctl (int fd, unsigned long int reque
+   void *p;
+ #endif
+ 
+-  void *arg;
++  void *arg = NULL;
+ 
+   error_t err;
+ 
+@@ -130,7 +130,7 @@ __ioctl (int fd, unsigned long int reque
+ 	  in (_IOT_COUNT1 (type), _IOT_TYPE1 (type));
+ 	  in (_IOT_COUNT2 (type), _IOT_TYPE2 (type));
+ 	}
+-      else if (_IOC_INOUT (request) == IOC_VOID)
++      else if ((_IOC_INOUT (request) == IOC_VOID) && _IOT_COUNT0 (type))
+ 	{
+ 	  /* The RPC takes a single integer_t argument.
+ 	     Rather than pointing to the value, ARG is the value itself.  */
+@@ -197,11 +197,15 @@ __ioctl (int fd, unsigned long int reque
+       return msg.header.RetCode;
+     }
+ 
+-  va_list ap;
++  if (_IOT_COUNT0 (type))
++    {
++      /* Data need either be sent, received, or even both.  */
++      va_list ap;
+ 
+-  va_start (ap, request);
+-  arg = va_arg (ap, void *);
+-  va_end (ap);
++      va_start (ap, request);
++      arg = va_arg (ap, void *);
++      va_end (ap);
++    }
+ 
+   {
+     /* Check for a registered handler for REQUEST.  */
+--- sysdeps/mach/hurd/bits/ioctls.h	2005-07-26 23:29:54.000000000 +0200
++++ sysdeps/mach/hurd/bits/ioctls.h	2005-07-26 23:19:56.000000000 +0200
+@@ -118,6 +118,7 @@
+    _IOT_foobar is defined either in this file,
+    or where struct foobar is defined.  */
+ #define	_IO(g, n)	_IOC (IOC_VOID, (g), (n), 0)
++#define	_IOIW(g, n, t)	_IOC (IOC_VOID, (g), (n), _IOC_ENCODE_TYPE (t))
+ #define	_IOR(g, n, t)	_IOC (IOC_OUT, (g), (n), _IOC_ENCODE_TYPE (t))
+ #define	_IOW(g, n, t)	_IOC (IOC_IN, (g), (n), _IOC_ENCODE_TYPE (t))
+ #define	_IOWR(g, n, t)	_IOC (IOC_INOUT, (g), (n), _IOC_ENCODE_TYPE (t))
