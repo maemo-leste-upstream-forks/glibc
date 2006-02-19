@@ -111,12 +111,12 @@ $(stamp)install_%: $(stamp)check_%
 	    fi; \
 	  done; \
 	  install -d debian/tmp-libc/usr/lib/nptl; \
-	  for file in libc.a libpthread.a libpthread_nonshared.a librt.a; do \
+	  for file in libc.a libc_nonshared.a libpthread.a libpthread_nonshared.a librt.a; do \
 	    install -m 644 debian/tmp-$(curpass)/usr/lib/$$file \
 			   debian/tmp-libc/usr/lib/nptl/$$file; \
 	  done; \
 	  for file in libc.so libpthread.so; do \
-	    sed 's/\/lib\//\/lib\/tls\//g' < debian/tmp-$(curpass)/usr/lib/$$file \
+	    sed 's/ \/lib\// \/lib\/tls\//g;s/\/usr\/lib\//\/usr\/lib\/nptl\//g' < debian/tmp-$(curpass)/usr/lib/$$file \
 	    > debian/tmp-libc/usr/lib/nptl/$$file; \
 	  done; \
 	  ln -sf /lib/tls/librt.so.1 debian/tmp-libc/usr/lib/nptl/; \
