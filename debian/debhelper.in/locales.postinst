@@ -13,14 +13,19 @@ if [ "$1" = configure ]; then
     db_get locales/default_environment_locale && SELECTED="$RET"
 
     if [ -n "$SELECTED_LOCALES" ]; then
-        if [ -e $LG ]; then
-            #   Comment previous defined locales
-            LC_ALL=C sed -e 's/^[a-zA-Z]/#&/' $LG > $LG.tmp || true
-            mv -f $LG.tmp $LG
-	    last=`tail -n 1 "$LG"`
-	    if test -n "$last"; then echo >> $LG; fi
+        if [ "$SELECTED_LOCALES" = "All locales" ]; then
+            [ -e $LG ] && rm -f $LG
+            ln -s /usr/share/i18n/SUPPORTED $LG
         else
-            cat > $LG << EOF
+            [ -L $LG ] && [ "$(readlink $LG)" = /usr/share/i18n/SUPPORTED ] && rm -f $LG
+            if [ -e $LG ]; then
+                #   Comment previous defined locales
+                LC_ALL=C sed -e 's/^[a-zA-Z]/#&/' $LG > $LG.tmp || true
+                mv -f $LG.tmp $LG
+                last=`tail -n 1 "$LG"`
+                if test -n "$last"; then echo >> $LG; fi
+            else
+                cat > $LG << EOF
 # This file lists locales that you wish to have built. You can find a list
 # of valid supported locales at /usr/share/i18n/SUPPORTED. Other
 # combinations are possible, but may not be well tested. If you change
@@ -28,26 +33,29 @@ if [ "$1" = configure ]; then
 #
 
 EOF
-        fi
-        list=`echo $SELECTED_LOCALES | sed -e 's/, /,/g'`
-        save_IFS=$IFS
-        IFS=,
-        for locale in $list; do
-            if grep -q "^$locale *\$" $LG; then
-                #   This locale has already been inserted, do nothing
-                :
-            elif grep -q "^#$locale *\$" $LG; then
-                #   Uncomment previous defined locales
-                sed -e "s,#$locale *\$,$locale," $LG > $LG.tmp || true
-                mv -f $LG.tmp $LG
-            else
-                #   Add a new locale
-                echo $locale >> $LG
             fi
-        done
-        IFS=$save_IFS
+            list=`echo $SELECTED_LOCALES | sed -e 's/, /,/g'`
+            save_IFS=$IFS
+            IFS=,
+            for locale in $list; do
+                if grep -q "^$locale *\$" $LG; then
+                    #   This locale has already been inserted, do nothing
+                    :
+                elif grep -q "^#$locale *\$" $LG; then
+                    #   Uncomment previous defined locales
+                    sed -e "s,#$locale *\$,$locale," $LG > $LG.tmp || true
+                    mv -f $LG.tmp $LG
+                else
+                    #   Add a new locale
+                    echo $locale >> $LG
+                fi
+            done
+            IFS=$save_IFS
+        fi
     else
-        if [ -e $LG ]; then
+        if [ -L $LG ]; then
+            rm -f $LG
+        elif [ -e $LG ]; then
             LC_ALL=C sed -e 's/^[a-zA-Z]/#&/' $LG > $LG.tmp || true
             mv -f $LG.tmp $LG
         fi
@@ -73,11 +81,6 @@ EOF
     rm -f $EE.tmp
 fi
 
-# We remove a relic of the past /usr/doc/<package> symlinks.
-# This script should keep at least until sarge release.
-if [ -L "/usr/doc/locales" ]; then
-    rm -f "/usr/doc/locales"
-fi
-
 #DEBHELPER#
 
+exit 0
