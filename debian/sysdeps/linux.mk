@@ -39,7 +39,7 @@ nptl_extra_cflags = -g1 -O3
 nptl_MIN_KERNEL_SUPPORTED = 2.6.0
 nptl_LIBDIR = /tls
 
-LINUX_HEADER_DIR = $(stamp)mkincludedir
+KERNEL_HEADER_DIR = $(stamp)mkincludedir
 $(stamp)mkincludedir:
 	rm -rf debian/include
 	mkdir debian/include

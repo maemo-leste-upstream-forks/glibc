@@ -33,6 +33,13 @@ if ($DEB_HOST_GNU_SYSTEM eq "linux-gnu") {
 		'ppp (<= 2.2.0f-24)', 'libgdbmg1-dev (<= 1.7.3-24)');
     push @{$libc_dev_c{'Depends'}}, 'linux-kernel-headers';
 }
+if ($DEB_HOST_GNU_SYSTEM eq "kfreebsd-gnu") {
+    push @{$libc_c{'Suggests'}}, 'locales';
+    push @{$libc_c{'Replaces'}}, 'libc0.1-dev (<< 2.3.2.ds1-14)';
+    push @{$libc_dev_c{'Recommends'}}, 'c-compiler';
+    push @{$libc_dev_c{'Replaces'}}, 'kfreebsd-kernel-headers (<< 0.11)';
+    push @{$libc_dev_c{'Depends'}}, 'kfreebsd-kernel-headers (>= 0.11)';
+}
 
 # ${glibc}-doc is suggested by $libc_c and $libc_dev_c.
 push @{$libc_c{'Suggests'}}, "${glibc}-doc";
