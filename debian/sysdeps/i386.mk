@@ -42,6 +42,6 @@ cp debian/tmp-amd64/usr/bin/ldd debian/tmp-libc/usr/bin
 endef
 
 define libc6-dev-amd64_extra_pkg_install
-dh_install -plibc6-dev-amd64 debian/tmp-amd64/usr/include/x86_64-linux-gnu \
-	usr/include
+cp -af debian/tmp-amd64/usr/include/x86_64-linux-gnu \
+	debian/libc6-dev-amd64/usr/include
 endef
