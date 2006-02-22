@@ -8,4 +8,4 @@ i686_configure_target=i686-kfreebsd
 i686_configure_build=i686-kfreebsd
 i686_extra_cflags = -march=i686 -mtune=i686 -g1 -O3
 i686_LIBDIR = /i686/cmov
-i686_extra_config_options = $(extra_config_options) --disable-profile --with-tls --with-__thread --disable-compatible-utmp
+i686_extra_config_options = $(extra_config_options) --disable-profile --disable-compatible-utmp

@@ -17,9 +17,9 @@ i686_configure_build=i686-linux
 i686_extra_cflags = -march=i686 -mtune=i686 -g1 -O3
 i686_LIBDIR = /tls/i686/cmov
 i686_MIN_KERNEL_SUPPORTED = 2.6.0
-i686_extra_config_options = $(extra_config_options) --disable-profile --with-tls --with-__thread
+i686_extra_config_options = $(extra_config_options) --disable-profile
 
-libc_extra_config_options = $(extra_config_options) --with-tls --without-__thread
+libc_extra_config_options = $(extra_config_options) --without-__thread
 
 # build 64-bit (amd64) alternative library
 GLIBC_PASSES += amd64

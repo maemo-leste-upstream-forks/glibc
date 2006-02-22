@@ -17,7 +17,7 @@ endif
 # Linuxthreads Config
 threads = yes
 libc_add-ons = linuxthreads $(add-ons)
-libc_extra_config_options = $(extra_config_options) --with-tls --with-__thread --disable-compatible-utmp
+libc_extra_config_options = $(extra_config_options) --disable-compatible-utmp
 
 ifndef KFREEBSD_SOURCE
   KFREEBSD_HEADERS := /usr/include

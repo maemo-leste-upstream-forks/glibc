@@ -34,7 +34,7 @@ with_headers = --with-headers=$(shell pwd)/debian/include --enable-kernel=$(call
 
 # NPTL Config
 nptl_add-ons = nptl $(add-ons)
-nptl_extra_config_options = $(extra_config_options) --with-tls --with-__thread --disable-profile
+nptl_extra_config_options = $(extra_config_options) --disable-profile
 nptl_extra_cflags = -g1 -O3
 nptl_MIN_KERNEL_SUPPORTED = 2.6.0
 nptl_LIBDIR = /tls
