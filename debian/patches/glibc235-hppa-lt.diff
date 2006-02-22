@@ -855,14 +855,14 @@ exit 0
 +	ldw -24(%sp), %r26				ASM_LINE_SEP	\
 +	CDISABLE					ASM_LINE_SEP	\
 +	stw %ret0, -24(%sp) /* delay */			ASM_LINE_SEP	\
-+	/* Restore syscall return (use arg regs) */	ASM_LINE_SEP	\
-+	ldw -24(%sp), %r26				ASM_LINE_SEP	\
++	/* Restore syscall return */			ASM_LINE_SEP	\
++	ldw -24(%sp), %ret0				ASM_LINE_SEP	\
 +	/* compare error */				ASM_LINE_SEP	\
 +	ldi NO_ERROR,%r1				ASM_LINE_SEP	\
 +	/* branch if no error */			ASM_LINE_SEP	\
-+	cmpb,>>=,n %r1,%r26,L(pre_end)			ASM_LINE_SEP	\
++	cmpb,>>=,n %r1,%ret0,L(pre_end)			ASM_LINE_SEP	\
 +	LOAD_PIC(TREG)	/* cond. nullify */		ASM_LINE_SEP	\
-+	copy %r26, TREG	/* save syscall return */	ASM_LINE_SEP	\
++	copy %ret0, TREG /* save syscall return */	ASM_LINE_SEP	\
 +	SYSCALL_ERROR_HANDLER				ASM_LINE_SEP	\
 +	/* make syscall res value positive */		ASM_LINE_SEP	\
 +	sub %r0, TREG, TREG	/* delay */		ASM_LINE_SEP	\
