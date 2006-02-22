@@ -139,6 +139,10 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): $(stamp)debhelper
 	dh_installdirs -p$(curpass)
 	dh_install -p$(curpass)
 	dh_strip -p$(curpass)
+	
+	# when you want to install extra packages, use extra_pkg_install.
+	$(call xx,extra_pkg_install)
+
 	dh_compress -p$(curpass)
 	dh_fixperms -p$(curpass)
 	find debian/$(curpass) -type f \( -regex '.*lib.*/ld.*so.*' \

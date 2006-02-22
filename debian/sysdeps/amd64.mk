@@ -9,6 +9,9 @@ define libc6_extra_pkg_install
 ln -sf /lib debian/$(curpass)/lib64
 ln -sf lib debian/$(curpass)/usr/lib64
 endef
+define libc6-udeb_extra_pkg_install
+ln -sf /lib debian/$(curpass)/lib64
+endef
 
 define libc_extra_install
 mv debian/tmp-libc/lib64 debian/tmp-libc/lib
