@@ -35,8 +35,14 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	echo "LIBGD = no"		>> $(DEB_BUILDDIR)/configparms
 	echo "sysconfdir = /etc"	>> $(DEB_BUILDDIR)/configparms
 	echo "rootsbindir = /sbin"	>> $(DEB_BUILDDIR)/configparms
+ifneq ($(call xx,libdir),)
+	echo "libdir = $(call xx,libdir)" >> $(DEB_BUILDDIR)/configparms
+endif
 ifneq ($(call xx,slibdir),)
 	echo "slibdir = $(call xx,slibdir)" >> $(DEB_BUILDDIR)/configparms
+endif
+ifneq ($(call xx,rtlddir),)
+	echo "rtlddir = $(call xx,rtlddir)" >> $(DEB_BUILDDIR)/configparms
 endif
 
 	# Prevent autoconf from running unexpectedly by setting it to false.

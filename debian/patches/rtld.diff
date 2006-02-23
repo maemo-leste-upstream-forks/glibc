@@ -1,0 +1,55 @@
+2006-01-21  Aurelien Jarno  <aurel32@debian.org> 
+
+	* Makeconfig: new configuration variable rtlddir to change the
+	  dynamic linker in the ELF binaries, which defaults to slibdir
+	  
+2005-08-30  Andreas Jochen  <Andreas Jochens>
+	* Makeconfig: use rtlddir instead of slibdir
+	* dlfcn/Makefile: likewise
+	* elf/Makefile: likewise
+
+--- glibc-2.3.6/Makeconfig	2005-08-30 17:48:26.000000000 +0000
++++ glibc-2.3.6/Makeconfig	2005-08-30 18:38:37.000000000 +0000
+@@ -187,6 +187,11 @@
+ endif
+ inst_slibdir = $(install_root)$(slibdir)
+ 
++# Directory of the dynamic linker in the ELF binaries
++ifndef rtlddir
++rtlddir := $(slibdir)
++endif
++
+ # Prefix to put on files installed in $(libdir).  For libraries `libNAME.a',
+ # the prefix is spliced between `lib' and the name, so the linker switch
+ # `-l$(libprefix)NAME' finds the library; for other files the prefix is
+@@ -438,7 +443,7 @@
+ endif
+ ifndef config-LDFLAGS
+ ifeq (yesyes,$(build-shared)$(elf))
+-config-LDFLAGS = -Wl,-dynamic-linker=$(slibdir)/$(rtld-installed-name)
++config-LDFLAGS = -Wl,-dynamic-linker=$(rtlddir)/$(rtld-installed-name)
+ endif
+ endif
+ ifndef link-libc
+--- glibc-2.3.6/dlfcn/Makefile	2004-10-18 23:08:31.000000000 +0000
++++ glibc-2.3.6/dlfcn/Makefile	2005-08-30 18:38:37.000000000 +0000
+@@ -65,7 +65,7 @@
+ 
+ include ../Rules
+ 
+-LDFLAGS-dl.so = -Wl,-dynamic-linker,$(slibdir)/$(rtld-installed-name)
++LDFLAGS-dl.so = -Wl,-dynamic-linker,$(rtlddir)/$(rtld-installed-name)
+ 
+ test-modules = $(addprefix $(objpfx),$(addsuffix .so,$(modules-names)))
+ $(test-modules): $(objpfx)%.so: $(objpfx)%.os $(common-objpfx)shlib.lds
+--- glibc-2.3.6/elf/Makefile	2005-08-30 17:48:26.000000000 +0000
++++ glibc-2.3.6/elf/Makefile	2005-08-30 18:38:37.000000000 +0000
+@@ -296,7 +296,7 @@
+ 	rm -f $@.lds
+ 
+ # interp.c exists just to get this string into the libraries.
+-CFLAGS-interp.c = -D'RUNTIME_LINKER="$(slibdir)/$(rtld-installed-name)"' \
++CFLAGS-interp.c = -D'RUNTIME_LINKER="$(rtlddir)/$(rtld-installed-name)"' \
+ 		  -DNOT_IN_libc=1
+ $(objpfx)interp.os: $(common-objpfx)config.make
+ 
