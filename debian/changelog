@@ -1,4 +1,4 @@
-glibc (2.3.6-2) UNRELEASED; urgency=low
+glibc (2.3.6-2) unstable; urgency=low
 
    [ Denis Barbier ]
    * Modify debver2localesdep.pl, locales-depver and control files to provide
@@ -18,7 +18,7 @@ glibc (2.3.6-2) UNRELEASED; urgency=low
      locales.  (Closes: #240901)
    * Fix the week definition for the C locale.
    * Check first_weekday fields against current CLDR snapshot.  Modified
-     locales are *_GB (=2), ar_SY (=5), ms_MY (=2), id_ID (=2).  Add 
+     locales are *_GB (=2), ar_SY (=5), ms_MY (=2), id_ID (=2).  Add
      this field to more locales.
    * locale-gen: Replace 'test ... -a ...' by two tests.
    * Add an "All locales" option to the locales/locales_to_be_generated
@@ -45,21 +45,21 @@ glibc (2.3.6-2) UNRELEASED; urgency=low
     (Closes: #344836).
   * debian/local/manpages/locale.1: remove double quotes from
     synopsis.  (Closes: #352597)
-    
+
   [ Aurelien Jarno ]
-  * Move dependency on lib64gcc1 from libc6-amd64 to libc6-dev-amd64 to 
+  * Move dependency on lib64gcc1 from libc6-amd64 to libc6-dev-amd64 to
     avoid a dependency loop.  (Closes: #352263)
   * Use sed and test in /etc/init.d/glibc.sh to compare kernel versions.
     Put the Debian architecture name in the script at build time instead
-    of using 'dpkg --print-architecture'. Thanks to Florent Bayle for 
+    of using 'dpkg --print-architecture'. Thanks to Florent Bayle for
     the idea.  (Closes: #325802, #328088, #339482)
-  * Fix example code showing how to use hooks for malloc.  (Closes: 
+  * Fix example code showing how to use hooks for malloc.  (Closes:
     bug#333565).
-  * Add hurd-ioctl-decode-argument.diff (fixes decoding of ioctl 
+  * Add hurd-ioctl-decode-argument.diff (fixes decoding of ioctl
     arguments) from Samuel Thibault.  (Closes: #320273)
   * Fix the prototype of sbrk() in the manual.  (Closes: #281863)
   * Fix the strcasestr() examples in the manual.  (Closes: #289853)
-  * Install libc_nonshared.a in /usr/lib/nptl, and fix the location 
+  * Install libc_nonshared.a in /usr/lib/nptl, and fix the location
     of the static libraries of the NPTL ld scripts. (Closes: #347762)
   * Update debian/ files for GNU/kFreeBSD.  (Closes: #351638)
   * Regenerate debian/control, generate debian/control.in/libc0.1.
@@ -72,12 +72,12 @@ glibc (2.3.6-2) UNRELEASED; urgency=low
   * Add myself to Uploaders.
   * Switch to gcc-4.0 on powerpc.
   * Remove old hack for gcc-3.4 on amd64.
-  * Build with the compiler defined as default for glibc (ie currently 
+  * Build with the compiler defined as default for glibc (ie currently
     gcc-4.0) instead of gcc on amd64.
-  * Decrease priorities of 64-bit main and -dev packages to standard 
-    and optional for all architectures. It better matches override, 
+  * Decrease priorities of 64-bit main and -dev packages to standard
+    and optional for all architectures. It better matches override,
     though it will still have to be changed.
-  * Fix glibc235-hppa-lt.diff (restore ret0 across calls to CDISABLE) 
+  * Fix glibc235-hppa-lt.diff (restore ret0 across calls to CDISABLE)
     from Randolph Chung.  (Closes: #326581)
   * Switch to gcc-4.0 on hppa.
   * Add support for extra_pkg_install hooks for udeb packages.
@@ -86,7 +86,7 @@ glibc (2.3.6-2) UNRELEASED; urgency=low
   * Remove --with-tls and --with-__thread in sysdeps/* as they are the
     default option since version 2.3.5.
   * Multiarch support:
-    - Add ld-multiarch.diff (Add (/usr)/lib/$(config-machine)-$(config-os)) 
+    - Add ld-multiarch.diff (add (/usr)/lib/$(config-machine)-$(config-os))
       to the search path of the dynamic linker) from Tollef Fog Heen.
       (Closes: #295855)
     - Add ldconfig-multiarch.diff (add directories pointed from /lib/ldconfig
@@ -98,19 +98,19 @@ glibc (2.3.6-2) UNRELEASED; urgency=low
       necessary to be able to install a glibc in the multiarch dir while still
       conforming to the various ABIs which specify a linker in /lib or /lib64.
   * Remove the patch to install the libc into /lib instead of /lib64 on
-    amd64. Use the new libdir, slibdir and rtlddir options in configparm to 
+    amd64. Use the new libdir, slibdir and rtlddir options in configparm to
     install the glibc in (/usr)/lib, and to use the dynamic linker path
     specified by the ABI for path for libc objects.  (Closes: #325226)
   * Add -u option to the ldd manpage.  (Closes: #354074)
   * Merged a patch from Michael Bank to use gcc-4.0 on Hurd.
-  * Add resource_h.diff (RLIMIT_NICE and RLIMIT_RTPRIO support) from MAIN.  
+  * Add resource_h.diff (RLIMIT_NICE and RLIMIT_RTPRIO support) from MAIN.
     (Closes: #352636)
   * Add hppa-inlining.diff (Increase the maximal overall growth of the
     compilation unit caused by inlining for dl-reloc.c on hppa).
   * Build a 32-bit libc on amd64, using the new multiarch directories.
     (Closes: #274367)
-    
- -- Clint Adams <schizo@debian.org>  Sun, 12 Feb 2006 11:04:38 -0500
+
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 23 Feb 2006 17:47:58 +0100
 
 glibc (2.3.6-1) unstable; urgency=low
 
