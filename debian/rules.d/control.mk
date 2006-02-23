@@ -23,6 +23,7 @@ $(stamp)control: debian/control.in/main $(control_deps) \
 	cat debian/control.in/libc6.1		>> $@T
 	cat debian/control.in/libc0.3		>> $@T
 	cat debian/control.in/libc0.1		>> $@T
+	cat debian/control.in/i386		>> $@T
 	cat debian/control.in/sparc64		>> $@T
 	cat debian/control.in/s390x		>> $@T
 	cat debian/control.in/amd64		>> $@T

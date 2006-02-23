@@ -188,16 +188,17 @@ $(stamp)debhelper:
 	  esac; \
 	done
 
-	# Hack: special-case passes whose destdir is 64 (i.e. /lib64)
-	# to use a different install template, which includes more
-	# libraries.  Also generate a -dev.  Non-64 libraries get scripts
+	# Hack: special-case passes whose destdir is 32, 64 or a multiarch
+	# directory to use a different install template, which includes more
+	# libraries.  Also generate a -dev.  Other libraries get scripts
 	# to temporarily disable hwcap.  This needs some cleaning up.
 	set -- $(OPT_DESTDIRS); \
 	for x in $(OPT_PASSES); do \
 	  destdir=$$1; \
 	  shift; \
 	  z=debian/$(libc)-$$x.install; \
-	  if test $$destdir = 64; then \
+	  case $$destdir in \
+	  32 | 64 | /*-*-gnu) \
 	    cp debian/debhelper.in/libc-alt.install $$z; \
 	    zd=debian/$(libc)-dev-$$x.install; \
 	    cp debian/debhelper.in/libc-alt-dev.install $$zd; \
@@ -206,7 +207,8 @@ $(stamp)debhelper:
 	    sed -e "s#LIBC#$(libc)#" -i $$z; \
 	    sed -e "s#DESTLIBDIR#$$destdir#" -i $$zd; \
 	    sed -e "s/^#.*//" -i $$zd; \
-	  else \
+	    ;; \
+	  *) \
 	    cp debian/debhelper.in/libc-otherbuild.install $$z; \
 	    cp debian/debhelper.in/libc-otherbuild.preinst debian/$(libc)-$$x.preinst ; \
 	    cp debian/debhelper.in/libc-otherbuild.postinst debian/$(libc)-$$x.postinst ; \
@@ -216,7 +218,8 @@ $(stamp)debhelper:
 	    sed -e "s#OPT#$(libc)-$$x#" -i debian/$(libc)-$$x.postrm; \
 	    sed -e "s#CURRENT_VER#$(DEB_VERSION)#" -i debian/$(libc)-$$x.postinst; \
 	    sed -e "s#CURRENT_VER#$(DEB_VERSION)#" -i debian/$(libc)-$$x.postrm; \
-	  fi; \
+	    ;; \
+	  esac; \
 	  sed -e "s#TMPDIR#debian/tmp-$$x#" -i $$z; \
 	  sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$z; \
 	  sed -e "s#DESTLIBDIR#$$destdir#" -i $$z; \
