@@ -8,7 +8,7 @@ Build-Depends: gettext, make (>= 3.80-1), dpkg-dev (>= 1.13.5), bzip2,
  kfreebsd-kernel-headers [kfreebsd-i386],
  gcc-4.0 [!m68k], gcc-3.4 [m68k], binutils (>= 2.16.1cvs20051109-1),
  autoconf, sed (>= 4.0.5-4), gawk, debhelper (>= 4.1.76),
- libc6-dev-amd64 [i386], libc6-dev-ppc64 [powerpc],
+ libc6-dev-amd64 [i386], libc6-dev-ppc64 [powerpc], libc6-dev-i386 [amd64] | ia32-libs-dev (<= 1.5) [amd64],
  quilt
 Build-Depends-Indep: perl, po-debconf
 Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
@@ -342,6 +342,28 @@ Description: GNU C Library: Shared libraries - udeb
  .
  This package contains a minimal set of libraries needed for the Debian
  installer.  Do not install it on a normal system.
+
+Package: libc6-i386
+Architecture: amd64
+Section: libs
+Priority: standard
+Depends: libc6 (= ${Source-Version})
+Conflicts: ia32-libs (<= 1.5)
+Description: GNU C Library: 32bit shared libraries for AMD64
+ This package includes shared versions of the standard C
+ library and the standard math library, as well as many others.
+ This is the 32bit version of the library, meant for AMD64 systems.
+
+Package: libc6-dev-i386
+Architecture: amd64
+Section: libdevel
+Priority: optional
+Provides: lib32c-dev
+Depends: libc6-i386 (= ${Source-Version}), libc6-dev (= ${Source-Version}), lib32gcc1
+Description: GNU C Library: 32bit development libraries for AMD64
+ Contains the symlinks and object files needed to compile and link programs
+ which use the standard C library. This is the 32bit version of the
+ library, meant for AMD64 systems.
 
 Package: libc6-sparc64
 Architecture: sparc
