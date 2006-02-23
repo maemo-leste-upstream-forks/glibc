@@ -49,9 +49,6 @@ glibc (2.3.6-2) UNRELEASED; urgency=low
   [ Aurelien Jarno ]
   * Move dependency on lib64gcc1 from libc6-amd64 to libc6-dev-amd64 to 
     avoid a dependency loop.  (Closes: #352263)
-  * Remove the patch to install the libc into /lib instead of /lib64 on
-    amd64 and move files after the call to 'make install'. This fixes 
-    the wrong dynamic linker path for libc objects.  (Closes: #325226)
   * Use sed and test in /etc/init.d/glibc.sh to compare kernel versions.
     Put the Debian architecture name in the script at build time instead
     of using 'dpkg --print-architecture'. Thanks to Florent Bayle for 
@@ -84,8 +81,6 @@ glibc (2.3.6-2) UNRELEASED; urgency=low
     from Randolph Chung.  (Closes: #326581)
   * Switch to gcc-4.0 on hppa.
   * Add support for extra_pkg_install hooks for udeb packages.
-  * Add symlinks /lib64 -> /lib and /usr/lib64 -> /usr/lib in libc6-udeb
-    on amd64.
   * Build back with -g1 on amd64, it was removed to permit the build with
     gcc-3.4.
   * Remove --with-tls and --with-__thread in sysdeps/* as they are the
@@ -102,7 +97,11 @@ glibc (2.3.6-2) UNRELEASED; urgency=low
       dynamic linker in the ELF binaries) partly from Andreas Jochen. This is
       necessary to be able to install a glibc in the multiarch dir while still
       conforming to the various ABIs which specify a linker in /lib or /lib64.
-
+  * Remove the patch to install the libc into /lib instead of /lib64 on
+    amd64. Use the new libdir, slibdir and rtlddir options in configparm to 
+    install the glibc in (/usr)/lib, and to use the dynamic linker path
+    specified by the ABI for path for libc objects.  (Closes: #325226)
+    
  -- Clint Adams <schizo@debian.org>  Sun, 12 Feb 2006 11:04:38 -0500
 
 glibc (2.3.6-1) unstable; urgency=low
