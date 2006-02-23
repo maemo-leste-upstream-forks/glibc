@@ -122,5 +122,13 @@ $(stamp)install_%: $(stamp)check_%
 	  ln -sf /lib/tls/librt.so.1 debian/tmp-libc/usr/lib/nptl/; \
 	fi
 
+	# Create the multidir directories, and the symlinks in /lib/ldconfig
+	mkdir -p debian/tmp-$(curpass)/lib/ldconfig; \
+	machine=`sed '/^ *config-machine *=/!d;s/.*= *//g' $(DEB_BUILDDIR)/config.make`; \
+	os=`sed '/^ *config-os *=/!d;s/.*= *//g' $(DEB_BUILDDIR)/config.make`; \
+	mkdir -p debian/tmp-$(curpass)/lib/$$machine-$$os debian/tmp-$(curpass)/usr/lib/$$machine-$$os; \
+	ln -s /lib/$$machine-$$os debian/tmp-$(curpass)/lib/ldconfig/$$machine-$$os-lib; \
+	ln -s /usr/lib/$$machine-$$os debian/tmp-$(curpass)/lib/ldconfig/$$machine-$$os-usr-lib 
+	  
 	$(call xx,extra_install)
 	touch $@
