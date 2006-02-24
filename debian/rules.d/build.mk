@@ -35,15 +35,15 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	echo "LIBGD = no"		>> $(DEB_BUILDDIR)/configparms
 	echo "sysconfdir = /etc"	>> $(DEB_BUILDDIR)/configparms
 	echo "rootsbindir = /sbin"	>> $(DEB_BUILDDIR)/configparms
-ifneq ($(call xx,libdir),)
-	echo "libdir = $(call xx,libdir)" >> $(DEB_BUILDDIR)/configparms
-endif
-ifneq ($(call xx,slibdir),)
-	echo "slibdir = $(call xx,slibdir)" >> $(DEB_BUILDDIR)/configparms
-endif
-ifneq ($(call xx,rtlddir),)
-	echo "rtlddir = $(call xx,rtlddir)" >> $(DEB_BUILDDIR)/configparms
-endif
+	libdir="$(call xx,libdir)" ; if test -n "$$libdir" ; then \
+		echo "libdir = $$libdir" >> $(DEB_BUILDDIR)/configparms ; \
+	fi
+	slibdir="$(call xx,slibdir)" ; if test -n "$$slibdir" ; then \
+		echo "slibdir = $$slibdir" >> $(DEB_BUILDDIR)/configparms ; \
+	fi
+	rtlddir="$(call xx,rtlddir)" ; if test -n "$$rtlddir" ; then \
+		echo "rtlddir = $$rtlddir" >> $(DEB_BUILDDIR)/configparms ; \
+	fi
 
 	# Prevent autoconf from running unexpectedly by setting it to false.
 	# Also explicitly pass CC down - this is needed to get -m64 on
