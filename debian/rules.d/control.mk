@@ -1,10 +1,10 @@
-control_deps := $(addprefix debian/control.in/, libc6 libc6.1 libc0.3 libc0.1 sparc64 s390x ppc64 opt amd64)
+control_deps := $(addprefix debian/control.in/, libc6 libc6.1 libc0.1 libc0.3 sparc64 s390x powerpc ppc64 opt amd64)
 
-threads_archs := alpha amd64 arm armeb i386 m68k mips mipsel powerpc sparc ia64 hppa s390 sh3 sh4 sh3eb sh4eb kfreebsd-i386
+threads_archs := alpha amd64 arm armeb i386 m68k mips mipsel powerpc ppc64 sparc ia64 hppa s390 sh3 sh4 sh3eb sh4eb kfreebsd-i386
 
 debian/control.in/libc6: debian/control.in/libc debian/rules.d/control.mk
 	sed -e 's%@libc@%libc6%g' \
-	    -e 's%@archs@%amd64 arm armeb i386 m68k mips mipsel powerpc sparc s390 hppa sh3 sh4 sh3eb sh4eb%g' < $< > $@
+	    -e 's%@archs@%amd64 arm armeb i386 m68k mips mipsel powerpc ppc64 sparc s390 hppa sh3 sh4 sh3eb sh4eb%g' < $< > $@
 
 debian/control.in/libc6.1: debian/control.in/libc debian/rules.d/control.mk
 	sed -e 's%@libc@%libc6.1%g;s%@archs@%alpha ia64%g' < $< > $@
@@ -27,6 +27,7 @@ $(stamp)control: debian/control.in/main $(control_deps) \
 	cat debian/control.in/sparc64		>> $@T
 	cat debian/control.in/s390x		>> $@T
 	cat debian/control.in/amd64		>> $@T
+	cat debian/control.in/powerpc		>> $@T
 	cat debian/control.in/ppc64		>> $@T
 	cat debian/control.in/opt		>> $@T
 	cat debian/control.in/libnss-dns-udeb	>> $@T
