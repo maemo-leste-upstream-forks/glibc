@@ -23,9 +23,8 @@ i386_add-ons = nptl $(add-ons)
 i386_extra_cflags = -march=pentium4 -g1 -O3
 i386_extra_config_options = $(extra_config_options) --includedir=/usr/include/i486-linux-gnu 
 i386_rtlddir = /lib
-i386_slibdir = /lib/i486-linux-gnu
-i386_libdir = /usr/lib/i486-linux-gnu
-i386_LIBDIR = /i486-linux-gnu
+i386_slibdir = /emul/ia32-linux/lib
+i386_libdir = /emul/ia32-linux/usr/lib
 i386_MIN_KERNEL_SUPPORTED = 2.6.0
 
 define libc6-dev-i386_extra_pkg_install
@@ -36,5 +35,5 @@ endef
 
 define libc6-i386_extra_pkg_install
 mkdir -p debian/libc6-i386/lib
-ln -sf /lib/i486-linux-gnu/ld-linux.so.2 debian/libc6-i386/lib
+ln -sf /emul/ia32-linux/lib/ld-2.3.2.so debian/libc6-i386/lib
 endef
