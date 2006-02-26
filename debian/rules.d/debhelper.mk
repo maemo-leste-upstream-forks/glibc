@@ -167,7 +167,7 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): $(stamp)debhelper
 # But after 10 hours of staring at this thing, I can't figure it out.
 
 OPT_PASSES = $(filter-out libc nptl,$(GLIBC_PASSES))
-OPT_DESTDIRS = $(foreach pass,$(OPT_PASSES),$($(pass)_LIBDIR))
+OPT_DIRS = $(foreach pass,$(OPT_PASSES),$($(pass)_slibdir) $($(pass)_libdir))
 NPTL = $(filter nptl,$(GLIBC_PASSES))
 
 debhelper: $(stamp)debhelper
@@ -188,24 +188,26 @@ $(stamp)debhelper:
 	  esac; \
 	done
 
-	# Hack: special-case passes whose destdir is 32, 64 or a multiarch
-	# directory to use a different install template, which includes more
+	# Hack: special-case passes whose destdir is a biarch directory
+	# to use a different install template, which includes more
 	# libraries.  Also generate a -dev.  Other libraries get scripts
 	# to temporarily disable hwcap.  This needs some cleaning up.
-	set -- $(OPT_DESTDIRS); \
+	set -- $(OPT_DIRS); \
 	for x in $(OPT_PASSES); do \
-	  destdir=$$1; \
+	  slibdir=$$1; \
 	  shift; \
 	  z=debian/$(libc)-$$x.install; \
-	  case $$destdir in \
-	  32 | 64 | /*-*-gnu) \
+	  case $$slibdir in \
+	  /lib32 | /lib64) \
+	    libdir=$$1; \
+	    shift; \
 	    cp debian/debhelper.in/libc-alt.install $$z; \
 	    zd=debian/$(libc)-dev-$$x.install; \
 	    cp debian/debhelper.in/libc-alt-dev.install $$zd; \
 	    sed -e "s#TMPDIR#debian/tmp-$$x#" -i $$zd; \
 	    sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$zd; \
 	    sed -e "s#LIBC#$(libc)#" -i $$z; \
-	    sed -e "s#DESTLIBDIR#$$destdir#" -i $$zd; \
+	    sed -e "s#LIBDIR#$$libdir#g" -i $$zd; \
 	    sed -e "s/^#.*//" -i $$zd; \
 	    ;; \
 	  *) \
@@ -222,7 +224,7 @@ $(stamp)debhelper:
 	  esac; \
 	  sed -e "s#TMPDIR#debian/tmp-$$x#" -i $$z; \
 	  sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$z; \
-	  sed -e "s#DESTLIBDIR#$$destdir#" -i $$z; \
+	  sed -e "s#SLIBDIR#$$slibdir#g" -i $$z; \
 	  sed -e "s/^#.*//" -i $$z; \
 	done
 
@@ -236,7 +238,7 @@ $(stamp)debhelper:
 	  cat debian/debhelper.in/libc-otherbuild.install >>$$z; \
 	  sed -e "s#TMPDIR#debian/tmp-$$x#" -i $$z; \
 	  sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$z; \
-	  sed -e "s#DESTLIBDIR#/tls#" -i $$z; \
+	  sed -e "s#SLIBDIR#/lib/tls#g" -i $$z; \
 	  case $$z in \
 	    *.install) sed -e "s/^#.*//" -i $$z ;; \
 	  esac; \

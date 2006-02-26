@@ -15,7 +15,7 @@ i686_add-ons = nptl $(add-ons)
 i686_configure_target=i686-linux
 i686_configure_build=i686-linux
 i686_extra_cflags = -march=i686 -mtune=i686 -g1 -O3
-i686_LIBDIR = /tls/i686/cmov
+i686_slibdir = /lib/tls/i686/cmov
 i686_MIN_KERNEL_SUPPORTED = 2.6.0
 i686_extra_config_options = $(extra_config_options) --disable-profile
 
@@ -34,7 +34,8 @@ amd64_add-ons = nptl $(add-ons)
 amd64_extra_cflags = -O3 -g1
 amd64_extra_config_options = $(extra_config_options) --disable-profile \
 	--includedir=/usr/include/x86_64-linux-gnu
-amd64_LIBDIR = 64
+amd64_slibdir = /lib64
+amd64_libdir = /usr/lib64
 amd64_MIN_KERNEL_SUPPORTED = 2.6.0
 
 define amd64_extra_install
