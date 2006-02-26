@@ -24,7 +24,6 @@ powerpc_extra_cflags = -O3 -g1
 powerpc_rtlddir = /lib
 powerpc_slibdir = /lib32
 powerpc_libdir = /usr/lib32
-powerpc_LIBDIR = 32
 powerpc_MIN_KERNEL_SUPPORTED = 2.6.0
 
 # create a symlink for the 32 bit dynamic linker in /lib
