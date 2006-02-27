@@ -35,5 +35,5 @@ endef
 
 define libc6-i386_extra_pkg_install
 mkdir -p debian/libc6-i386/lib
-ln -sf /emul/ia32-linux/lib/ld-2.3.2.so debian/libc6-i386/lib
+ln -sf /emul/ia32-linux/lib/ld-linux.so.2 debian/libc6-i386/lib
 endef
