@@ -198,7 +198,7 @@ $(stamp)debhelper:
 	  shift; \
 	  z=debian/$(libc)-$$x.install; \
 	  case $$slibdir in \
-	  /lib32 | /lib64 | /emul/ia32-linux) \
+	  /lib32 | /lib64 | /emul/ia32-linux/lib) \
 	    libdir=$$1; \
 	    shift; \
 	    cp debian/debhelper.in/libc-alt.install $$z; \
