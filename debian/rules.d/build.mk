@@ -131,7 +131,7 @@ $(stamp)install_%: $(stamp)check_%
 	  os=`sed '/^ *config-os *=/!d;s/.*= *//g' $(DEB_BUILDDIR)/config.make`; \
 	  mkdir -p debian/tmp-$(curpass)/lib/$$machine-$$os debian/tmp-$(curpass)/usr/lib/$$machine-$$os; \
 	  ln -s /lib/$$machine-$$os debian/tmp-$(curpass)/lib/ldconfig/$$machine-$$os-lib; \
-	  ln -s /usr/lib/$$machine-$$os debian/tmp-$(curpass)/lib/ldconfig/$$machine-$$os-usr-lib 
+	  ln -s /usr/lib/$$machine-$$os debian/tmp-$(curpass)/lib/ldconfig/$$machine-$$os-usr-lib; \
 	fi
 	 
 	$(call xx,extra_install)
