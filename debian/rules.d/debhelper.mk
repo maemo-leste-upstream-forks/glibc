@@ -225,6 +225,7 @@ $(stamp)debhelper:
 	  sed -e "s#TMPDIR#debian/tmp-$$x#" -i $$z; \
 	  sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$z; \
 	  sed -e "s#SLIBDIR#$$slibdir#g" -i $$z; \
+	  sed -e "s#LIBDIR#$$libdir#g" -i $$z; \
 	  sed -e "s/^#.*//" -i $$z; \
 	done
 
