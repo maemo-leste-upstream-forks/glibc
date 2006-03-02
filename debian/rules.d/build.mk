@@ -80,7 +80,8 @@ $(patsubst %,check_%,$(GLIBC_PASSES)) :: check_% : $(stamp)check_%
 $(stamp)check_%: $(stamp)build_%
 	if [ -n "$(findstring nocheck,$(DEB_BUILD_OPTIONS))" ]; then \
 	  echo "DEB_BUILD_OPTIONS contains nocheck, skipping tests."; \
-	elif [ $(call xx,configure_build) != $(call xx,configure_target) ]; then \
+	elif [ $(call xx,configure_build) != $(call xx,configure_target) ] && \
+	     ! $(DEB_BUILDDIR)/libc.so >/dev/null 2>&1 ; then \
 	  echo "Cross compiling, skipping tests."; \
 	elif ! $(call kernel_check,$(call xx,MIN_KERNEL_SUPPORTED)); then \
 	  echo "Kernel too old, skipping tests."; \
