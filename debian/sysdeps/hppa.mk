@@ -9,7 +9,3 @@ mkdir -p debian/$(curpass)/usr/hppa64-linux-gnu
 ln -sf /usr/include debian/$(curpass)/usr/hppa64-linux-gnu/include
 endef
 
-# some hppa linuxthreads tests: ex* do not work currently even if
-# TIMEOUTSCALE is set - SIGALRM from the program is just ignored.
-RUN_TESTSUITE = no
-
