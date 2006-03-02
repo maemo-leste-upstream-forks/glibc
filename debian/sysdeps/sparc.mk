@@ -16,6 +16,7 @@ sparcv9_configure_target=sparcv9-linux
 sparcv9_extra_cflags = -g2 -O3
 sparcv9_extra_config_options = $(extra_config_options) --disable-profile
 sparcv9_add-ons = linuxthreads $(add-ons)
+sparcv9_rtlddir = /lib
 sparcv9_slibdir = /lib/v9
 
 sparcv9b_MIN_KERNEL_SUPPORTED = 2.4.18
@@ -23,4 +24,5 @@ sparcv9b_configure_target=sparcv9b-linux
 sparcv9b_extra_cflags = -g2 -O3
 sparcv9b_extra_config_options = $(extra_config_options) --disable-profile
 sparcv9b_add-ons = linuxthreads $(add-ons)
+sparcv9b_rtlddir = /lib
 sparcv9b_slibdir = /lib/ultra3

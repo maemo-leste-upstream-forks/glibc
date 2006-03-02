@@ -7,5 +7,6 @@ i686_add-ons = linuxthreads $(add-ons)
 i686_configure_target=i686-kfreebsd
 i686_configure_build=i686-kfreebsd
 i686_extra_cflags = -march=i686 -mtune=i686 -g1 -O3
+i686_rtlddir = /lib
 i686_slibdir = /lib/i686/cmov
 i686_extra_config_options = $(extra_config_options) --disable-profile --disable-compatible-utmp
