@@ -106,6 +106,11 @@ $(stamp)install_%: $(stamp)check_%
 	  (cd $(DEB_SRCDIR)/manual && texi2html -split_chapter libc.texinfo); \
 	fi
 
+	# Remove ld.so from optimized libraries
+	if [ $(curpass) != libc ] && [ $(call xx,configure_build) = $(call xx,configure_target) ]; then \
+		rm -f debian/tmp-$(curpass)/$(call xx,slibdir)/ld*.so* ; \
+	fi
+	
 	# /usr/include/nptl and /usr/lib/nptl.  It assumes tmp-libc is already installed.
 	if [ $(curpass) = nptl ]; then \
 	  for file in `find debian/tmp-$(curpass)/usr/include -type f | sed 's/^debian\/tmp-nptl\///'`; do \
