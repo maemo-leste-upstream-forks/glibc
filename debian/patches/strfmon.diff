@@ -1,0 +1,60 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: The negative sign is not printed by strfmon when
+# DP:    current locale defines sign_posn == 4 (as in de_CH) and
+# DP:    format argument contains the ! modifier.
+# DP:    Note: upstream will fix indentation when applying this patch,
+# DP:          it has intentionnally been kept this way for readability.
+# DP: Related bugs: BZ2420
+# DP: Dpatch author: Denis Barbier
+# DP: Patch author: Denis Barbier
+# DP: Upstream status: 
+# DP: Status Details: 
+
+Index: glibc-2.3.6/stdlib/strfmon_l.c
+===================================================================
+--- glibc-2.3.6.orig/stdlib/strfmon_l.c
++++ glibc-2.3.6/stdlib/strfmon_l.c
+@@ -491,12 +491,11 @@
+ 	    }
+ 
+ 	  if (print_curr_symbol)
+-	    {
+-	      out_string (currency_symbol);
++	    out_string (currency_symbol);
+ 
+ 	      if (sign_posn == 4)
+ 		{
+-		  if (sep_by_space == 2)
++		  if (sep_by_space == 2 && print_curr_symbol)
+ 		    out_char (space_char);
+ 		  out_string (sign_string);
+ 		  if (sep_by_space == 1)
+@@ -505,9 +504,8 @@
+ 		    out_char (' ');
+ 		}
+ 	      else
+-		if (sep_by_space == 1)
++		if (sep_by_space == 1 && print_curr_symbol)
+ 		  out_char (space_char);
+-	    }
+ 	}
+       else
+ 	if (sign_posn != 0 && sign_posn != 2 && sign_posn != 3
+@@ -583,13 +581,13 @@
+ 		  || (sign_posn == 0 && sep_by_space == 1))
+ 		out_char (space_char);
+ 	      out_nstring (currency_symbol, currency_symbol_len);
++	    }
+ 	      if (sign_posn == 4)
+ 		{
+-		  if (sep_by_space == 2)
++		  if (sep_by_space == 2 && print_curr_symbol)
+ 		    out_char (' ');
+ 		  out_string (sign_string);
+ 		}
+-	    }
+ 	}
+ 
+       if (sign_posn == 2)
