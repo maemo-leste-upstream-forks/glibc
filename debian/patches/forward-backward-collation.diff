@@ -10,7 +10,7 @@
 # DP: Test case: the following command segfaults in en_US.UTF-8 locale
 # DP:            when BZ645 is fixed:
 # DP:                echo 2d d194 0a 2d d194 0a | xxd -r -p | sort
-# DP: Date: 2005-11-01
+# DP: Date: 2006-03-17
 
 if [ $# -ne 2 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
@@ -25,8 +25,10 @@ case "$1" in
 esac
 exit 0
 
---- libc/string/strxfrm_l.c	14 Mar 2004 20:52:47 -0000	1.4
-+++ libc/string/strxfrm_l.c	15 Oct 2005 20:49:18 -0000	1.5
+Index: glibc-2.3.6/string/strxfrm_l.c
+===================================================================
+--- glibc-2.3.6.orig/string/strxfrm_l.c
++++ glibc-2.3.6/string/strxfrm_l.c
 @@ -1,4 +1,4 @@
 -/* Copyright (C) 1995,96,97,2002, 2004 Free Software Foundation, Inc.
 +/* Copyright (C) 1995,96,97,2002, 2004, 2005 Free Software Foundation, Inc.
@@ -55,9 +57,35 @@ exit 0
  			  len = weights[idxarr[backw]++];
  			  if (len != 0)
  			    {
---- libc/string/strcoll_l.c	14 Mar 2004 20:52:47 -0000	1.4
-+++ libc/string/strcoll_l.c	23 May 2005 22:35:59 -0000
-@@ -370,7 +370,10 @@
+Index: glibc-2.3.6/string/strcoll_l.c
+===================================================================
+--- glibc-2.3.6.orig/string/strcoll_l.c
++++ glibc-2.3.6/string/strcoll_l.c
+@@ -186,7 +186,10 @@
+ 		    /* The last pushed character was handled.  Continue
+ 		       with forward characters.  */
+ 		    if (idx1cnt < idx1max)
+-		      idx1now = idx1cnt;
++		      {
++			idx1now = idx1cnt;
++			backw1_stop = ~0ul;
++		      }
+ 		    else
+ 		      /* Nothing anymore.  The backward sequence ended with
+ 			 the last sequence in the string.  Note that seq1len
+@@ -245,7 +248,10 @@
+ 		    /* The last pushed character was handled.  Continue
+ 		       with forward characters.  */
+ 		    if (idx2cnt < idx2max)
+-		      idx2now = idx2cnt;
++		      {
++			idx2now = idx2cnt;
++			backw2_stop = ~0ul;
++		      }
+ 		    else
+ 		      /* Nothing anymore.  The backward sequence ended with
+ 			 the last sequence in the string.  Note that seq2len
+@@ -370,7 +376,10 @@
  			/* The last pushed character was handled.  Continue
  			   with forward characters.  */
  			if (idx1cnt < idx1max)
@@ -65,6 +93,18 @@ exit 0
 +			  {
 +			    idx1now = idx1cnt;
 +			    backw1_stop = ~0ul;
++			  }
+ 			else
+ 			  {
+ 			    /* Nothing anymore.  The backward sequence
+@@ -426,7 +435,10 @@
+ 			/* The last pushed character was handled.  Continue
+ 			   with forward characters.  */
+ 			if (idx2cnt < idx2max)
+-			  idx2now = idx2cnt;
++			  {
++			    idx2now = idx2cnt;
++			    backw2_stop = ~0ul;
 +			  }
  			else
  			  {
