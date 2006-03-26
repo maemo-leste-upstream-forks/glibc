@@ -31,10 +31,11 @@ define libc6-dev-i386_extra_pkg_install
 mkdir -p debian/libc6-dev-i386/usr/include
 cp -af debian/tmp-i386/usr/include/i486-linux-gnu \
 	debian/libc6-dev-i386/usr/include
-ln -sf /emul/ia32-linux/usr/lib debian/libc6-dev-i386/usr/lib32
 endef
 
 define libc6-i386_extra_pkg_install
 mkdir -p debian/libc6-i386/lib
 ln -sf /emul/ia32-linux/lib/ld-linux.so.2 debian/libc6-i386/lib
+ln -sf /emul/ia32-linux/lib debian/libc6-i386/lib32
+ln -sf /emul/ia32-linux/usr/lib debian/libc6-i386/usr/lib32
 endef
