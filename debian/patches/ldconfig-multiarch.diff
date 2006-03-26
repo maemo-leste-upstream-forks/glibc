@@ -1,11 +1,6 @@
-2006-02-23  Aurelien Jarno  <aurel32@debian.org> 
-
-	* elf/ldconfig.c: add directories pointed from /lib/ldconfig
-	  to the search path.
-
---- glibc-2.3.6/elf/ldconfig.c	2006-02-21 16:00:32.000000000 +0100
-+++ glibc-2.3.6/elf/ldconfig.c	2006-02-23 03:08:45.000000000 +0100
-@@ -1052,6 +1027,129 @@
+--- ldconfig.c.orig	2005-02-16 11:29:34.000000000 +0100
++++ ldconfig.c	2006-03-26 23:37:33.665182082 +0200
+@@ -1027,6 +1027,125 @@
    fclose (file);
  }
  
@@ -51,7 +46,7 @@
 +    {
 +#ifdef _DIRENT_HAVE_D_TYPE
 +      /* We only look at links.  */
-+      if (direntry->d_type != DT_LNK)
++      if (direntry->d_type != DT_UNKNOWN && direntry->d_type != DT_LNK)
 +	continue;
 +#endif /* _DIRENT_HAVE_D_TYPE  */
 +    
@@ -84,11 +79,7 @@
 +      /* We only look at links.  */
 +      is_link = S_ISLNK (lstat_buf.st_mode);
 +      if (!is_link)
-+        {
-+	  if (opt_verbose)
-+	    error (0, errno, _("%s is not a symlink"), file_name);
 +          continue;
-+        }
 +
 +      /* Check the symlink refers to a directory.  */
 +      if (__builtin_expect (stat64 (real_file_name, &stat_buf), 0))
@@ -135,7 +126,7 @@
  /* Handle one word in an `include' line, a glob pattern of additional
     config files to read.  */
  static void
-@@ -1240,6 +1338,9 @@
+@@ -1215,6 +1334,9 @@
        add_system_dir (SLIBDIR);
        if (strcmp (SLIBDIR, LIBDIR))
  	add_system_dir (LIBDIR);
