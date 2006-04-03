@@ -10,6 +10,29 @@ package_name()
     echo LIBC
 }
 
+zone_banner() {
+    TZBase=$(LC_ALL=C TZ=UTC0 date)
+    UTdate=$(TZ=UTC0 date -d "$TZBase")
+    TZdate=$(TZ="$timezone" date -d "$TZBase")
+    extra_info="
+Local time is now:      $TZdate.
+Universal Time is now:  $UTdate."
+    echo "Current default timezone: '$timezone'.$extra_info"
+    echo "Run 'tzconfig' if you wish to change it."
+}
+
+set_timezone() {
+    frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
+    if [ "$frontend" = noninteractive ]; then
+        echo "Non-interactive mode, setting timezone to UTC.  Run tzconfig to change."
+        echo "UTC" >/etc/timezone
+        ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+    else
+        echo "Running 'tzconfig' to set this system's timezone."
+        /usr/sbin/tzconfig
+    fi
+}
+
 # Borrowed from sysvinit's postinst.
 #	Function like update-rc.d but simpler & faster.
 #	Usage: updatercd basename start|stop NN runlevel .
@@ -59,6 +82,25 @@ updatercd() {
 		done
 		shift
 	done
+}
+
+realpath()
+{
+    fname=${1%/} # strips trailing '/'
+    while [ -L "$fname" ]; do
+	oldfname="$fname"
+	fname="$(command ls -l $fname)"
+	fname="${fname#*\> }"
+	if [ "$fname" = . ] ; then
+	    fname="$(dirname $oldfname)"
+	elif echo $fname | grep -vq '^/' - ; then
+	    fname="$(dirname $oldfname)/$fname"
+	fi
+    done
+    pushd $(dirname $fname) > /dev/null
+    fname=$(pwd -P)/$(basename $fname)
+    popd > /dev/null
+    echo $fname
 }
 
 # element() is a helper function for file-rc:
@@ -336,7 +378,45 @@ then
 	    fi
 	fi # end upgrading and $preversion lt 2.3.5-1
     fi # Upgrading
-
+    if [ -f /etc/timezone.save ]; then
+	mv -fb /etc/timezone.save /etc/timezone
+    fi
+    if [ -f /etc/timezone ]; then
+	timezone=$(cat /etc/timezone)
+    else
+	timezone=Factory
+    fi
+    if [ "$timezone" = Factory ]; then
+	if [ -L /etc/localtime ]; then
+	    localtime_link=$(realpath /etc/localtime)
+	    if [ -f "$localtime_link" ]; then
+		link_not_dangling=true
+	    fi
+	    if [ "$link_not_dangling" = true ]; then
+		timezone=$(echo $localtime_link | sed 's%^/usr/share/zoneinfo/%%')
+	    fi
+	fi
+    fi
+    if [ -f /usr/share/zoneinfo/$timezone ] && [ "$timezone" != Factory ]
+    then
+#	zic -l $timezone
+	rm -f /etc/localtime && \
+	ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
+	zone_banner
+    # Handle problem caused by lame old tzconfig.
+    elif [ "$timezone" = "US/Pacific-New" ]
+    then
+	echo "US/Pacific" > /etc/timezone
+#	zic -l US/Pacific
+	rm -f /etc/localtime && \
+	ln -sf /usr/share/zoneinfo/US/Pacific /etc/localtime
+	zone_banner
+    else
+	set_timezone
+    fi
+    if [ "$(date +%Z)" = "/etc/localtime" ]; then
+	set_timezone
+    fi
 #    # DO NOT FOLLOW THIS EXAMPLE IN OTHER PACKAGES
      updatercd glibc.sh start 01 S .
      if [ -x /usr/sbin/invoke-rc.d ]; then

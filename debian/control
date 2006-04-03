@@ -8,7 +8,7 @@ Build-Depends: gettext, make (>= 3.80-1), dpkg-dev (>= 1.13.5), bzip2,
  kfreebsd-kernel-headers [kfreebsd-i386 kfreebsd-amd64],
  gcc-4.0 [!m68k], gcc-3.4 [m68k], binutils (>= 2.16.1cvs20051109-1),
  autoconf, sed (>= 4.0.5-4), gawk, debhelper (>= 4.1.76),
- libc6-dev-amd64 [i386], libc6-dev-ppc64 [powerpc], libc6-dev-i386 [amd64] | ia32-libs-dev (<= 1.5) [amd64], libc6-dev-powerpc [ppc64],
+ libc6-dev-amd64 [i386], libc6-dev-ppc64 [powerpc], libc6-dev-i386 [amd64], libc6-dev-powerpc [ppc64],
  quilt
 Build-Depends-Indep: perl, po-debconf
 Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
@@ -44,15 +44,6 @@ Description: GNU C Library: National Language (locale) data [support]
  savings over how this package used to be, where all locales were generated
  by default. This created a package that unpacked to an excess of 30 megs.
 
-Package: tzdata
-Architecture: all
-Section: libs
-Priority: required
-Replaces: libc0.1, libc0.3, libc6, libc6.1
-Description: GNU C Library: Timezone data
- This package contains data files with rules for various timezones around
- the world.
-
 Package: nscd
 Architecture: alpha amd64 arm armeb i386 m68k mips mipsel powerpc ppc64 sparc ia64 hppa s390 sh3 sh4 sh3eb sh4eb kfreebsd-i386 kfreebsd-amd64
 Section: admin
@@ -69,11 +60,11 @@ Architecture: amd64 arm armeb i386 m68k mips mipsel powerpc ppc64 sparc s390 hpp
 Section: libs
 Priority: required
 Provides: ${locale-compat:Depends}
-Depends: tzdata
-Description: GNU C Library: Shared libraries
+Description: GNU C Library: Shared libraries and Timezone data
  Contains the standard libraries that are used by nearly all programs on
  the system. This package includes shared versions of the standard C library
  and the standard math library, as well as many others.
+ Timezone data is also included.
 
 Package: libc6-dev
 Architecture: amd64 arm armeb i386 m68k mips mipsel powerpc ppc64 sparc s390 hppa sh3 sh4 sh3eb sh4eb
@@ -141,11 +132,11 @@ Architecture: alpha ia64
 Section: libs
 Priority: required
 Provides: ${locale-compat:Depends}
-Depends: tzdata
-Description: GNU C Library: Shared libraries
+Description: GNU C Library: Shared libraries and Timezone data
  Contains the standard libraries that are used by nearly all programs on
  the system. This package includes shared versions of the standard C library
  and the standard math library, as well as many others.
+ Timezone data is also included.
 
 Package: libc6.1-dev
 Architecture: alpha ia64
@@ -213,11 +204,11 @@ Architecture: hurd-i386
 Section: libs
 Priority: required
 Provides: ${locale-compat:Depends}
-Depends: tzdata
-Description: GNU C Library: Shared libraries
+Description: GNU C Library: Shared libraries and Timezone data
  Contains the standard libraries that are used by nearly all programs on
  the system. This package includes shared versions of the standard C library
  and the standard math library, as well as many others.
+ Timezone data is also included.
 
 Package: libc0.3-dev
 Architecture: hurd-i386
@@ -285,11 +276,11 @@ Architecture: kfreebsd-i386 kfreebsd-amd64
 Section: libs
 Priority: required
 Provides: ${locale-compat:Depends}
-Depends: tzdata
-Description: GNU C Library: Shared libraries
+Description: GNU C Library: Shared libraries and Timezone data
  Contains the standard libraries that are used by nearly all programs on
  the system. This package includes shared versions of the standard C library
  and the standard math library, as well as many others.
+ Timezone data is also included.
 
 Package: libc0.1-dev
 Architecture: kfreebsd-i386 kfreebsd-amd64
