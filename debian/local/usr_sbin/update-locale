@@ -2,7 +2,6 @@
 
 use strict;
 use Getopt::Long;
-use File::Temp;
 
 my $progname     = "update-locale";
 my $locale_file  = "/etc/default/locale";
@@ -40,8 +39,11 @@ $help && usage(0);
 #  Process command-line arguments
 my %arg = ();
 my $content = '';
+my $mode = 0644;
 if (-r $locale_file)
 {
+	#  Keep file mode
+	$mode = (stat($locale_file))[2] & 07777;
 	#  Read current values
 	open(IN, "<", $locale_file)
 		or die "$progname: Unable to read $locale_file: $!\n";
@@ -97,7 +99,7 @@ if ($no_checks == 0)
 		$language =~ s/[.:_].*//;
 		my $msg = '';
 		my $var = '';
-		for (qw(LC_MESSAGES LANG LC_ALL))
+		for (qw(LANG LC_MESSAGES LC_ALL))
 		{
 			if (defined $arg{$_})
 			{
@@ -106,20 +108,19 @@ if ($no_checks == 0)
 			}
 		}
 		die "*** $progname: Error: LANGUAGE ($arg{LANGUAGE}) is not compatible with $var ($msg)\n"
-			if ($msg !~ m/^$language/);
+			if ($msg !~ m/^$language/ && $var ne ''
+			    && $msg ne 'C' && $msg ne 'POSIX'
+			    && $language ne 'C' && $language ne 'POSIX');
 	}
 }
 
 #  Write locale file
-my ($fh, $filename) = File::Temp::tempfile();
-open(OUT, ">", $filename)
-	or die "$progname: Unable to write $filename: $!\n";
+open(OUT, ">", $locale_file)
+	or die "$progname: Unable to write $locale_file: $!\n";
 print OUT $content;
 close(OUT)
-	or die "$progname: Unable to close $filename: $!\n";
-chmod 0644, $filename
-	or die "$progname: Unable to chmod $filename: $!\n";
-rename $filename, $locale_file
-	or die "$progname: Unable to rename $filename into $locale_file: $!\n";
+	or die "$progname: Unable to close $locale_file: $!\n";
+chmod($mode, $locale_file)
+	or die "$progname: Unable to chmod $locale_file: $!\n";
 
 1;

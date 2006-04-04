@@ -16,7 +16,7 @@ then
     fi
     for i in LANG LANGUAGE LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT LC_IDENTIFICATION LC_ALL
     do
-        if [ -n "$exist" ]; then
+        if [ -z "$exist" ]; then
             if grep "^ *$i=" $OLDEE >> $EE; then
                 found=1
             fi
@@ -89,12 +89,10 @@ EOF
 
     # Set default LANG environment variable
     if [ -e $EE ]; then
-        sed -e '/^ *LANG=/d' $EE > $EE.tmp || true
-        #  $EE has to be updated if $SELECTED is empty or 'None'
-        mv -f $EE.tmp $EE
+        /usr/sbin/update-locale --remove LANG
     fi
     if [ -n "$SELECTED" ] && [ "$SELECTED" != "None" ]; then
-        update-locale "LANG=$SELECTED"
+        /usr/sbin/update-locale "LANG=$SELECTED"
     fi
 fi
 
