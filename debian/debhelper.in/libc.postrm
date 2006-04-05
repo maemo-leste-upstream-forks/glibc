@@ -1,16 +1,6 @@
 #! /bin/sh
 set -e
 
-if [ "$1" = remove ]; then
-    if command -v suidunregister >/dev/null 2>&1 && [ -e /etc/suid.conf ]; then
-	if [ -x /usr/lib/pt_chown ]; then
-	    suidunregister -s LIBC /usr/lib/pt_chown
-	elif [ -x /usr/libexec/pt_chown ]; then
-	    suidunregister -s LIBC /usr/libexec/pt_chown
-	fi
-    fi
-fi
-
 if [ "$1" = upgrade ]; then
     case $(dpkg --print-architecture) in
 	i386|sparc)
