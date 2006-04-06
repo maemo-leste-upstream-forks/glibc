@@ -1,0 +1,35 @@
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Fix GNU/Hurd build with make-3.81.
+# DP: Dpatch author: Michael Banck <mbanck@debian.org>
+# DP: Patch author: Roland McGrath
+# DP: Upstream status: Committed to HEAD, BZ #2507
+# DP: Date: 2006-04-04
+
+2006-04-03  Roland McGrath  <roland@frob.com>
+	
+	[BZ #2507]
+	* mach/Machrules (.udeps-targets): New variable.
+	($(objpfx)%.udeps static pattern rule): Use it to avoid \ inside
+	quoted string.
+
+===================================================================
+RCS file: /cvs/glibc/libc/mach/Machrules,v
+retrieving revision 1.76
+retrieving revision 1.77
+diff -u -r1.76 -r1.77
+--- libc/mach/Machrules	2006/02/01 22:44:28	1.76
++++ libc/mach/Machrules	2006/04/04 00:22:05	1.77
+@@ -138,10 +138,11 @@
+ # We must use $(CFLAGS) to get -O flags that affect #if's in header files.
+ 	$(include-%.defs) | \
+ 	$(CC) $(CFLAGS) $(CPPFLAGS) -M -x c - | \
+-	sed -e 's,- *:,$@ $(@:.udeps=.ustamp) $(@:.udeps=.uh) $(@:.udeps=.__h)\
+-			  $(@:.udeps=_server.c) $(@:.udeps=_server.h):,' \
++	sed -e 's,- *:,$(.udeps-targets):,' \
+ 	    $(sed-remove-objpfx) > $@.new
+ 	mv -f $@.new $@
++.udeps-targets = $@ $(@:.udeps=.ustamp) $(@:.udeps=.uh) $(@:.udeps=.__h) \
++		 $(@:.udeps=_server.c) $(@:.udeps=_server.h)
+ endif
+ 
+ # Look for the server stub files where they will be written.
