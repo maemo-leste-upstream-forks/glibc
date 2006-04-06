@@ -8,15 +8,16 @@ my $locale_file  = "/etc/default/locale";
 
 my $help         = 0;
 my $reset        = 0;
+#  Kept for compatibility reasons
 my $remove       = 0;
 my $no_checks    = 0;
 
 GetOptions(
-	'reset'        => \$reset,
-	'remove'       => \$remove,
-	'locale-file'  => \$locale_file,
-	'no-checks'    => \$no_checks,
-	'h|help'       => \$help,
+	'reset'          => \$reset,
+	'remove'         => \$remove,
+	'locale-file=s'  => \$locale_file,
+	'no-checks'      => \$no_checks,
+	'h|help'         => \$help,
 );
 
 sub usage
@@ -24,12 +25,11 @@ sub usage
 	my $rc = shift;
 	print STDERR "Usage: $progname [OPTIONS] [LANG=locale] [LC_NUMERIC=locale] ...
 Options:
-   --help          display this message and exit
-   --reset         ignore variables defined in the locale file
-   --remove        remove variables from locale file
-   --locale-file   file containing locale variables
-                   (Default: /etc/default/locale)
-   --no-checks     do not perform sanity checks on locale variables
+   --help              display this message and exit
+   --reset             ignore variables defined in the locale file
+   --locale-file=FILE  file containing locale variables
+                       (Default: /etc/default/locale)
+   --no-checks         do not perform sanity checks on locale variables
 ";
 	exit $rc;
 }
@@ -55,7 +55,7 @@ if (-r $locale_file)
 	}
 	close(IN)
 		or die "$progname: Unable to close $locale_file: $!\n";
-	$content =~ s/^([^#])/#$1/mg;
+	$content =~ s/^(\s*\w+=)/#$1/mg;
 	$content .= "\n" unless $content =~ m/\n$/s;
 }
 else
@@ -68,21 +68,19 @@ for (@ARGV)
 	{
 		$arg{$1} = $2;
 	}
-	elsif ($remove)
+	else
 	{
 		delete $arg{$_};
 	}
 }
 
 my $env = '';
-for (qw(LANG LANGUAGE LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT LC_IDENTIFICATION LC_ALL))
+my ($key, $value);
+while (($key, $value) = each %arg)
 {
-	if (defined $arg{$_} && $arg{$_} ne '')
-	{
-		$env .= " $_=$arg{$_}";
-		$content =~ s/^#[#\s]*$_=.*/$_=$arg{$_}/m or
-			$content .= "$_=$arg{$_}\n";
-	}
+	$env .= " $key=$value";
+	$content =~ s/^#\s*$key=.*/$key=$value/m or
+		$content .= "$key=$value\n";
 }
 
 #  Sanity checks

@@ -6,20 +6,15 @@ update-locale \- Modify global locale settings
 .LP 
 update-locale 
 .RI [ OPTIONS ]
-[\fBLANG\fP=\fIlocale\fP]
-[\fBLC_NUMERIC\fP=\fIlocale\fP]
-[...]
-.br
-update-locale 
-.B --remove
-[\fBLANG\fP]
-[\fBLC_NUMERIC\fP]
+[\fIvar\fP=\fIlocale\fP | \fIvar\fP]
 [...]
 .SH "DESCRIPTION"
 .LP 
 This program can be called by maintainer scripts when Debian packages are
 installed or removed, it updates the \fB/etc/default/locale\fP file to
 reflect changes in system configuration related to global locale settings.
+When variables have no value assigned, they are removed from the locale
+file.
 Some basic checks are performed to ensure that requested settings are valid.
 .SH "OPTIONS"
 .TP
@@ -29,15 +24,19 @@ Display an help message and exit.
 .B \-\-reset
 Variables which are not set on command-line are cleared out.
 .TP
-.B \-\-remove
-Remove variables from locale file.
-.TP
-.B \-\-locale\-file
-File containing locale variables.  (Default:
+.BI \-\-locale\-file " FILE"
+Define file containing locale variables.  (Default:
 .BR /etc/default/locale )
 .TP
 .B \-\-no\-checks
 Do not perform sanity checks on locale variables.
+.SH "EXAMPLE"
+.nf
+The command
+.ft B
+        update-locale LANG=en_CA.UTF-8 LANGUAGE
+.ft R
+sets \fBLANG\fP to \fBen_CA.UTF-8\fP and removes definitions for \fBLANGUAGE\fP.
 .SH "FILES"
 .TP 
 .B /etc/default/locale
