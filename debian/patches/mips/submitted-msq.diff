@@ -1,22 +1,7 @@
-#! /bin/sh -e
-
 # DP: Description: fix msqs on mips
 # DP: Related bugs: 215273
 # DP: Author: Thiemo Seufer <ica2_ts@csv.ica.uni-stuttgart.de>
 # DP: Upstream status: Pending
-
-if [ $# -ne 2 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
-    *)
-	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-	exit 1
-esac
-exit 0
 
 Index: sysdeps/unix/sysv/linux/mips/bits/msq.h
 ===================================================================
