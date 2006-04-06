@@ -88,7 +88,7 @@ for (qw(LANG LANGUAGE LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESS
 #  Sanity checks
 if ($no_checks == 0)
 {
-	#  Check tthat this locale does exist
+	#  Check that this locale does exist
 	my $charset = `$env locale charmap 2>&1`;
 	die "*** $progname: Error: invalid locale settings: $env\n"
 		if ($charset =~ m/Cannot set/);
@@ -96,6 +96,7 @@ if ($no_checks == 0)
 	if (defined $arg{LANGUAGE})
 	{
 		my $language = $arg{LANGUAGE};
+		$language =~ s/["']//g;
 		$language =~ s/[.:_].*//;
 		my $msg = '';
 		my $var = '';
@@ -107,6 +108,7 @@ if ($no_checks == 0)
 				$msg = $arg{$_};
 			}
 		}
+		$msg =~ s/["']//g;
 		die "*** $progname: Error: LANGUAGE ($arg{LANGUAGE}) is not compatible with $var ($msg)\n"
 			if ($msg !~ m/^$language/ && $var ne ''
 			    && $msg ne 'C' && $msg ne 'POSIX'
