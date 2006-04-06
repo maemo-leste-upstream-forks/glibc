@@ -64,7 +64,7 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	    dh_installdocs -p$(curpass) ;; \
 	  $(libc)-dev*) \
 	    dh_link -p$(curpass) usr/share/doc/libc-dev-bin usr/share/doc/$(curpass) ;; \
-	  $(libc)-*) \
+	  $(libc)-* | $(libc)) \
 	    dh_link -p$(curpass) usr/share/doc/libc-bin usr/share/doc/$(curpass) ;; \
 	  *) \
 	    dh_installchangelogs -p$(curpass) ; \
@@ -218,6 +218,7 @@ $(stamp)debhelper:
 	    sed -e "s#TMPDIR#debian/tmp-$$x#" -i $$zd; \
 	    sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$zd; \
 	    sed -e "s#LIBC#$(libc)#" -i $$z; \
+	    sed -e "s#FLAVOR#$$x#" -i $$z; \
 	    sed -e "s#LIBDIR#$$libdir#g" -i $$zd; \
 	    sed -e "s/^#.*//" -i $$zd; \
 	    ;; \
@@ -250,6 +251,7 @@ $(stamp)debhelper:
 	  cat debian/debhelper.in/libc-otherbuild.install >>$$z; \
 	  sed -e "s#TMPDIR#debian/tmp-$$x#" -i $$z; \
 	  sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$z; \
+	  sed -e "s#FLAVOR#nptl#" -i $$z; \
 	  sed -e "s#SLIBDIR#/lib/tls#g" -i $$z; \
 	  case $$z in \
 	    *.install) sed -e "s/^#.*//" -i $$z ;; \
