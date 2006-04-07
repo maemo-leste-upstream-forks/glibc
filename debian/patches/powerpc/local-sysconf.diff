@@ -1,20 +1,4 @@
-#! /bin/sh -e
-
 # DP: Add /proc/cpuinfo handling on Linux/PowerPC
-
-if [ $# -ne 2 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
-    *)
-	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-	exit 1
-esac
-exit 0
-
 
 diff -urN glibc-2.2.4/sysdeps/unix/sysv/linux/powerpc/getsysstats.c glibc-2.2.4-ds/sysdeps/unix/sysv/linux/powerpc/getsysstats.c
 --- glibc-2.2.4/sysdeps/unix/sysv/linux/powerpc/getsysstats.c	Wed Dec 31 16:00:00 1969

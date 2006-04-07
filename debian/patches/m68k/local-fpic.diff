@@ -1,19 +1,4 @@
-#! /bin/sh -e
-
 # DP: Make sure libc_nonshared.a is compiled with -fPIC on m68k
-
-if [ $# -ne 2 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
-    *)
-	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-	exit 1
-esac
-exit 0
 
 diff -urN glibc-2.2.3.orig/sysdeps/m68k/Makefile glibc-2.2.3/sysdeps/m68k/Makefi
 --- glibc-2.2.3.orig/sysdeps/m68k/Makefile	Fri Sep  5 03:40:38 1997
