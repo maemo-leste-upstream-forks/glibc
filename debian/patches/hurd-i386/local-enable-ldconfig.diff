@@ -1,5 +1,3 @@
-#! /bin/sh -e
-  
 # DP: Description: Enable ldconfig and such on hurd-i386
 # DP: Author: Jeff Bailey <jbailey@nisa.net>
 # DP: Related Bugs: #309489
@@ -9,19 +7,6 @@
 # DP: Hurd.  We should review this when the ELF standard supports runpath.
 # DP: Date: 08 Apr 2003
   
-if [ $# -ne 2 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
-    *)
-        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-        exit 1
-esac
-exit 0
-
 diff -urN glibc-2.3.2.old/sysdeps/mach/hurd/configure glibc-2.3.2/sysdeps/mach/hurd/configure
 --- glibc-2.3.2.old/sysdeps/mach/hurd/configure	2003-02-25 19:46:36.000000000 -0500
 +++ glibc-2.3.2/sysdeps/mach/hurd/configure	2003-04-08 17:35:13.000000000 -0400
