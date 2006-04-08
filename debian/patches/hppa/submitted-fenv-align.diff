@@ -1,28 +1,9 @@
-#! /bin/sh -e
-
-# All lines beginning with `# DP:' are a description of the patch.
 # DP: Description: Use temporary, 8-byte-aligned buffers for doubleword transfer.
 # DP: Dpatch author: Daniel Jacobowitz <dan@debian.org>
 # DP: Patch author: Daniel Jacobowitz <dan@debian.org>
 # DP: Upstream status: Not submitted (yet)
 # DP: Date: 2005-10-14
 
-PATCHLEVEL=1
-
-if [ $# -ne 2 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
-    *)
-	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-	exit 1
-esac
-exit 0
-
-# append the patch here and adjust the -p? flag in the patch calls.
 diff -ur glibc-2.3.5/sysdeps/hppa.bak/fpu/fclrexcpt.c glibc-2.3.5/sysdeps/hppa/fpu/fclrexcpt.c
 --- glibc-2.3.5/sysdeps/hppa.bak/fpu/fclrexcpt.c	2003-12-18 03:56:15.000000000 +0000
 +++ glibc-2.3.5/sysdeps/hppa/fpu/fclrexcpt.c	2005-10-14 17:44:33.000000000 +0000
