@@ -1,5 +1,3 @@
-#! /bin/sh -e
-
 # DP: Make it so that a missing /etc/ld.so.conf does not cause an error
 # DP: message, unless --verbose is enabled. This keeps the debian
 # DP: installer from barfing during bootstrap of the system.
@@ -9,19 +7,6 @@
 # DP: newer patches.  it should be checked using chroot and should be contacted
 # DP: to the upstream.
 # DP: Date: (Updated 2005-01-02 gotom)
-
-if [ $# -ne 2 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
-    *)
-	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-	exit 1
-esac
-exit 0
 
 2004-10-25  GOTO Masanori  <gotom@debian.or.jp>
 

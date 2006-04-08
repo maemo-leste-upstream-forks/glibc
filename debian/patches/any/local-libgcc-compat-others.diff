@@ -1,23 +1,8 @@
-#! /bin/sh -e
-
 # DP: Description: libgcc-compat symbols for arm, m68k, ia64, and s390.
 # DP:		   ia64 is derived from RedHat's.
 # DP: Author: GOTO Masanori <gotom@debian.org>
 # DP: Upstream status: Not submitted
 # DP: Date: 2002-10-13, updated 2003-03-04, updated 2003-03-23
-
-if [ $# -ne 2 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
-    *)
-	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-	exit 1
-esac
-exit 0
 
 diff -Nuar glibc-2.3.1.old/sysdeps/arm/Dist glibc-2.3.1/sysdeps/arm/Dist
 --- glibc-2.3.1.old/sysdeps/arm/Dist	2002-08-27 21:06:52.000000000 +0900

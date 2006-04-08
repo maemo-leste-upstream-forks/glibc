@@ -1,23 +1,8 @@
-#! /bin/sh -e
-
 # All lines beginning with `# DP:' are a description of the patch.
 # DP: Make ldd handle non-executable shared objects
 # DP: 
 # DP: Updated by gotom, it's nice to merge to the upstream after my review.
 # Date: (Updated 2004-01-02 gotom)
-
-if [ $# -ne 2 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
-    *)
-	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-	exit 1
-esac
-exit 0
 
 Index: elf/ldd.bash.in
 ===================================================================

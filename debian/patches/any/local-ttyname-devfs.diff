@@ -1,20 +1,5 @@
-#! /bin/sh -e
-
 # DP: Fixes ttyname and ttyname_r in the case of being used in a setuid
 # DP: application on a devfs system.
-
-if [ $# -ne 2 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
-    *)
-	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-	exit 1
-esac
-exit 0
 
 --- sysdeps/unix/sysv/linux/ttyname_r.c~	2001/07/06 04:56:13	1.14
 +++ sysdeps/unix/sysv/linux/ttyname_r.c	2002/01/06 02:27:48

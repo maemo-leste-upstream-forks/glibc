@@ -1,26 +1,9 @@
-#! /bin/sh -e
-
-# All lines beginning with `# DP:' are a description of the patch.
 # DP: Description: Force non-NPTL libraries (and warn) for binaries which access errno
 # DP: Author: (?) Someone at Red Hat
 # DP: Upstream status: Debian-Specific
 # DP: Status Details: This patch should be removed, probably after sarge.
 # DP: Date: 2003-11-02
 
-if [ $# -ne 2 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p1 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p1 < $0;;
-    *)
-	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-	exit 1
-esac
-exit 0
-
-# append the patch here and adjust the -p? flag in the patch calls.
 --- glibc-2.3.2/elf/rtld.c.orig	2003-11-02 16:12:36.000000000 -0500
 +++ glibc-2.3.2/elf/rtld.c	2003-11-02 16:24:43.000000000 -0500
 @@ -966,6 +966,55 @@ of this helper program; chances are you 

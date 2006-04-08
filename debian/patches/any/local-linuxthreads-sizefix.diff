@@ -1,6 +1,3 @@
-#! /bin/sh -e
-
-# All lines beginning with `# DP:' are a description of the patch.
 # DP: Description: Align TLS_PRE_TCB_SIZE between linuxthreads and nptl.
 #                  The patch is based on fedora-20031105.
 # DP: Related bugs: #292673
@@ -10,22 +7,6 @@
 # DP: Status Details: Currently IA-64 part is applied.
 # DP: Date: 2005-04-09, 2005-04-16 updated by gotom
 
-PATCHLEVEL=1
-
-if [ $# -ne 2 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p$PATCHLEVEL < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p$PATCHLEVEL < $0;;
-    *)
-	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-	exit 1
-esac
-exit 0
-
-# append the patch here and adjust the -p? flag in the patch calls.
 2003-09-02  Jakub Jelinek  <jakub@redhat.com>
 
 	* sysdeps/sparc/tls.h (TLS_TCB_SIZE): If in ld.so and NPTL struct

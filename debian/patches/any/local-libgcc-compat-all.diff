@@ -1,22 +1,7 @@
-#! /bin/sh -e
-
 # DP: Description: libgcc-compat symbols for mips, sparc, alpha, & i386
 # DP: Author: Guido Guenther
 # DP: Upstream status: Not submitted
 # DP: Date: 2002-10-13, updated 2003-03-01, updated 2003-03-23 by gotom
-
-if [ $# -ne 2 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -d "$2" -f --no-backup-if-mismatch -p0 < $0;;
-    -unpatch) patch -d "$2" -f --no-backup-if-mismatch -R -p0 < $0;;
-    *)
-	echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-	exit 1
-esac
-exit 0
 
 --- sysdeps/mips/Makefile.orig	Sun Oct 13 14:45:56 2002
 +++ sysdeps/mips/Makefile	Sun Oct 13 14:51:20 2002
