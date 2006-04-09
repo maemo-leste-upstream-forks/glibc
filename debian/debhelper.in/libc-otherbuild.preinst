@@ -8,6 +8,12 @@ if [ "$1" != abort-upgrade ] && [ "`uname -s`" = Linux ]; then
   echo $opt >> /etc/ld.so.nohwcap
 fi
 
+if [ "$1" = upgrade ]; then
+  if [ ! -L /usr/share/doc/OPT ]; then
+    rm -rf /usr/share/doc/OPT
+  fi
+fi
+
 #DEBHELPER#
 
 exit 0

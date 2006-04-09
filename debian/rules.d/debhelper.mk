@@ -190,7 +190,7 @@ $(stamp)debhelper:
 	  cp $$x $$z; \
 	  sed -e "s#TMPDIR#debian/tmp-libc#" -i $$z; \
 	  sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$z; \
-	  sed -e "s#LIBC#$(libc)#" -i $$z; \
+	  sed -e "s#LIBC#$(libc)#g" -i $$z; \
 	  sed -e "s#CURRENT_VER#$(DEB_VERSION)#" -i $$z; \
 	  sed -e "/KERNEL_VERSION_CHECK/r debian/script.in/kernelcheck.sh" -i $$z; \
 	  sed -e "s#EXIT_CHECK##" -i $$z; \
@@ -207,11 +207,17 @@ $(stamp)debhelper:
 	for x in $(OPT_PASSES); do \
 	  slibdir=$$1; \
 	  shift; \
+	  y=debian/$(libc)-$$x.preinst; \
 	  z=debian/$(libc)-$$x.install; \
 	  case $$slibdir in \
 	  /lib32 | /lib64 | /emul/ia32-linux/lib) \
 	    libdir=$$1; \
 	    shift; \
+	    cp debian/debhelper.in/libc-alt.preinst $$y; \
+	    sed -e "s#ALT#$(libc)-$$x#" -i $$y; \
+	    yd=debian/$(libc)-dev-$$x.preinst; \
+	    cp debian/debhelper.in/libc-alt-dev.preinst $$yd; \
+	    sed -e "s#ALT#$(libc)-dev-$$x#" -i $$yd; \
 	    cp debian/debhelper.in/libc-alt.install $$z; \
 	    zd=debian/$(libc)-dev-$$x.install; \
 	    cp debian/debhelper.in/libc-alt-dev.install $$zd; \
