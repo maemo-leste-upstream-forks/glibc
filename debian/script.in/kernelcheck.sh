@@ -52,6 +52,18 @@ exit_check () {
 	#fi
     fi
 
+    # The GNU libc is now built with --with-kernel= >= 2.4.0, except on m68k
+    if [ "$realarch" != m68k ]
+    then
+	if kernel_compare_versions "$kernel_ver" lt 2.4.0
+	then
+	    echo WARNING: This version of glibc requires that you be running
+	    echo kernel version 2.4.0 or later.  Earlier kernels contained
+	    echo bugs that may render the system unusable if a modern version
+	    echo of glibc is installed.
+	    exit_check
+	fi
+    fi
     # SPARC sun4m requires a recent kernel
     if [ "$realarch" = sparc ]
     then
@@ -69,19 +81,6 @@ exit_check () {
 		echo sparc kernel-image in order to satisfy this need. You
 		echo can also download and compile the latest kernel source
 		echo yourself from a kernel mirror \(see http://www.kernel.org/\).
-		exit_check
-	    fi
-	else
-	    if kernel_compare_versions "$kernel_ver" lt 2.2.0 #should be safe
-	    then
-		echo WARNING: This version of glibc suggests atleast a
-		echo 2.2.0 kernel in order to work properly. 2.0.x kernels
-		echo will not be able to support certain functions and
-		echo may cause problems. 2.2 kernels have proven to be much
-		echo more reliable than 2.0.x kernels on the sparc platform
-		echo anyway, so an upgrade is suggested. If you have a 2.1.x
-		echo kernel is is suggested you upgrade to the latest 2.2
-		echo release, since it is more stable and fixes many bugs.
 		exit_check
 	    fi
 	fi
@@ -153,17 +152,3 @@ exit_check () {
 	fi
     fi
 
-    # arm requires 2.4 kernel to avoid "obsolete calling standard" problem
-    # with sys_llseek
-    if [ "$realarch" = arm ] \
-	&& [ DEB_HOST_ARCH = arm ]
-    then
-	if kernel_compare_versions "$kernel_ver" lt 2.4.0
-	then
-	    echo WARNING: This version of glibc requires that you be running
-	    echo kernel version 2.4.0 or later.  Earlier kernels contained
-	    echo bugs that may render the system unusable if a modern version
-	    echo of glibc is installed.
-	    exit_check
-	fi
-    fi
