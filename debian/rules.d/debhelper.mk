@@ -225,7 +225,7 @@ $(stamp)debhelper:
 	    sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$zd; \
 	    sed -e "s#LIBC#$(libc)#" -i $$z; \
 	    sed -e "s#FLAVOR#$$x#" -i $$z; \
-	    sed -e "s#LIBDIR#$$libdir#g" -i $$zd; \
+	    sed -e "s#LIBDIR#$$libdir#" -i $$zd; \
 	    sed -e "s/^#.*//" -i $$zd; \
 	    ;; \
 	  *) \

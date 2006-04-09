@@ -41,7 +41,6 @@ then
 	if [ -f /var/log/wtmpx ]; then rm -f /var/log/wtmpx*; fi
 	if [ -e /var/run/utmpd.ro ]; then rm -f /var/run/utmpd.ro; fi
 	if [ -e /var/run/utmpd.rw ]; then rm -f /var/run/utmpd.rw; fi
-	if [ ! -L /usr/share/doc/LIBC-dev ]; then rm -rf /usr/share/doc/LIBC; fi
     fi
 
     # NSS authentication trouble guard
@@ -98,6 +97,11 @@ then
 	fi
     fi
 
+    # Remove the old directory so that it could be replaced by a symlink
+    if [ ! -L /usr/share/doc/LIBC ]; then 
+      rm -rf /usr/share/doc/LIBC; 
+    fi
+    
     # This will keep us from using hwcap libs (optimized) during an
     # upgrade.
     touch /etc/ld.so.nohwcap
