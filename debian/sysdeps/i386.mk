@@ -20,8 +20,6 @@ i686_slibdir = /lib/tls/i686/cmov
 i686_MIN_KERNEL_SUPPORTED = 2.6.0
 i686_extra_config_options = $(extra_config_options) --disable-profile
 
-libc_extra_config_options = $(extra_config_options) --without-__thread
-
 # build 64-bit (amd64) alternative library
 GLIBC_PASSES += amd64
 DEB_ARCH_REGULAR_PACKAGES += libc6-amd64 libc6-dev-amd64
