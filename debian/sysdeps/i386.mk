@@ -1,6 +1,9 @@
 GLIBC_PASSES += nptl i686
 DEB_ARCH_REGULAR_PACKAGES += libc6-i686
 
+# Starting with libc6 2.3.6-6 TLS support is enabled
+libc6_shlib_dep = libc6 (>= 2.3.6-6)
+
 # NPTL requires at least i486 assembly.  We don't need to take
 # special measures for i386 systems, since Debian kernel images now
 # emulate the missing instructions on the i386.
