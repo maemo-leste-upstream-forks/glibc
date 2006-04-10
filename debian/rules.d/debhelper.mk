@@ -223,8 +223,6 @@ $(stamp)debhelper:
 	    cp debian/debhelper.in/libc-alt-dev.install $$zd; \
 	    sed -e "s#TMPDIR#debian/tmp-$$x#" -i $$zd; \
 	    sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$zd; \
-	    sed -e "s#LIBC#$(libc)#" -i $$z; \
-	    sed -e "s#FLAVOR#$$x#" -i $$z; \
 	    sed -e "s#LIBDIR#$$libdir#" -i $$zd; \
 	    sed -e "s/^#.*//" -i $$zd; \
 	    ;; \
@@ -244,6 +242,8 @@ $(stamp)debhelper:
 	  sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$z; \
 	  sed -e "s#SLIBDIR#$$slibdir#g" -i $$z; \
 	  sed -e "s#LIBDIR#$$libdir#g" -i $$z; \
+	  sed -e "s#FLAVOR#$$x#" -i $$z; \
+	  sed -e "s#LIBC#$(libc)#" -i $$z; \
 	  sed -e "s/^#.*//" -i $$z; \
 	done
 
