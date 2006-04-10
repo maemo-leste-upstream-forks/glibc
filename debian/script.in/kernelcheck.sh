@@ -30,10 +30,13 @@ exit_check () {
     realarch=`uname -m`
     kernel_ver=`uname -r`
 
-    # convert "armv4l" and similar to just "arm"
+    # convert "armv4l" and similar to just "arm", and "mips64" and similar
+    # to just "mips"
     case $realarch in
       arm*) realarch="arm";;
+      mips*) realarch="mips";;
     esac
+    
 
     # intel i386 requires a recent kernel
     if [ "$realarch" = i386 ]
