@@ -17,7 +17,7 @@ $(stamp)binaryinst_$(libc)-pic:: $(stamp)debhelper
 	install --mode=0644 build-tree/$(DEB_HOST_ARCH)-libc/libresolv.map debian/$(libc)-pic/usr/lib/libresolv_pic.map
 
 # Some per-package extra files to install.
-define libc-bin_debhelper_pkg_install
+define libc-bin_extra_debhelper_pkg_install
 	sed -e "/KERNEL_VERSION_CHECK/r debian/script.in/kernelcheck.sh" \
 		debian/local/etc_init.d/glibc.sh | \
 		sed -e "s/EXIT_CHECK/sleep 5/" -e "s/DEB_HOST_ARCH/$(DEB_HOST_ARCH)/" > debian/glibc.sh.generated
