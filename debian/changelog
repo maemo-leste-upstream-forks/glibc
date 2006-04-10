@@ -1,28 +1,8 @@
-glibc (2.3.6-7) UNRELEASED; urgency=low
-
-  [ Aurelien Jarno ]
-  * Build a libc6-xen flavour on i386.
-  * Fix a typo in the description of the libc6-sparcv9 and libc6-sparcv9b
-    packages.
-  * local/usr_sbin/tzconfig:
-    - Put a copy of the current timezone into /etc/localtime instead of a
-      symlink.  (Closes: #346342)
-    - Handle the case where /etc/localtime does not exists.  (Closes: 
-      #360383).
-  * local/manpages/tzconfig.8: Update the manpage accordingly.
-  * script.in/kernelcheck.sh: Also take in account 64-bit mips(el) kernels.
-
- -- Aurelien Jarno <aurel32@debian.org>  Mon, 10 Apr 2006 06:40:33 +0200
-
 glibc (2.3.6-6) unstable; urgency=low
 
   [ Aurelien Jarno ]
   * Remove the timezone database from the libc6 package. It is not provided
     by a separate package called tzdata.
-  * Split out binaries from libc6 into libc-bin, and binaries from libc6-bin
-    into libc-bin-dev.  (Closes: #330735)
-  * Remove old /usr/share/doc/libc* directories in preinst, so they can be
-    replaced by symlinks by dpkg.
   * Put each test log file in the corresponding package instead of putting all
     of them in libc6.
   * Remove sparc/local-sparc64-fixups.diff as /lib64 and /usr/lib64 are now a
@@ -43,6 +23,16 @@ glibc (2.3.6-6) unstable; urgency=low
     packages.  (Closes: #361642)
   * /etc/ld.so.nohwcap is now supported on non-Linux architectures. Drop the
     "Linux" check from libc-otherbuild.preinst.
+  * Build a libc6-xen flavour on i386.
+  * Fix a typo in the description of the libc6-sparcv9 and libc6-sparcv9b
+    packages.
+  * local/usr_sbin/tzconfig:
+    - Put a copy of the current timezone into /etc/localtime instead of a
+      symlink.  (Closes: #346342)
+    - Handle the case where /etc/localtime does not exists.  (Closes: 
+      #360383).
+  * local/manpages/tzconfig.8: Update the manpage accordingly.
+  * script.in/kernelcheck.sh: Also take in account 64-bit mips(el) kernels.
 
   [ Denis Barbier ]
   * debian/debhelper.in/locales.config: /etc/locale.gen was not generated at

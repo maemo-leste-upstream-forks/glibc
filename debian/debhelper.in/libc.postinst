@@ -10,6 +10,57 @@ package_name()
     echo LIBC
 }
 
+# Borrowed from sysvinit's postinst.
+#	Function like update-rc.d but simpler & faster.
+#	Usage: updatercd basename start|stop NN runlevel .
+#
+#	Now we use the real update-rc.d, so now this function should
+#	be equivalent to /usr/sbin/update-rc.d.
+#
+updatercd() {
+
+	if [ ! -f /etc/init.d/$1 ]
+	then
+		return
+	fi
+
+	if [ -x /usr/sbin/update-rc.d ]
+	then
+		update-rc.d "$@" > /dev/null
+		return $?
+	fi
+
+	base=$1
+	shift
+	while [ "$1" != "" ]
+	do
+		if [ "$1" = stop ]
+		then
+			tlet=K
+		else
+			tlet=S
+		fi
+		lev=$2
+		shift 2
+		while [ "$1" != "." ]
+		do
+			cd /etc/rc$1.d
+			tmp="`echo $tlet??$base`"
+			case "$tmp" in
+				"$tlet??$base")
+					# Not present yet.
+					ln -s ../init.d/$base $tlet$lev$base
+					;;
+				*)
+					# Already present.
+					;;
+			esac
+			shift
+		done
+		shift
+	done
+}
+
 # element() is a helper function for file-rc:
 element() {
     local element list IFS
@@ -285,6 +336,14 @@ then
 	    fi
 	fi # end upgrading and $preversion lt 2.3.5-1
     fi # Upgrading
+
+#    # DO NOT FOLLOW THIS EXAMPLE IN OTHER PACKAGES
+     updatercd glibc.sh start 01 S .
+     if [ -x /usr/sbin/invoke-rc.d ]; then
+	invoke-rc.d glibc.sh start
+     else
+	/etc/init.d/glibc.sh 2>/dev/null || true
+     fi
 fi
 
 if [ "`uname -s`" = Linux ]; then
