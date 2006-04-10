@@ -2552,8 +2552,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bind.c sysdeps/unix/bsd/bsd4.4/
 +weak_alias (__bind, bind)
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/dirent.h sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/dirent.h
 --- null/unix/bsd/bsd4.4/kfreebsd/bits/dirent.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/dirent.h	2006-01-02 19:10:54.000000000 +0100
-@@ -0,0 +1,50 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/dirent.h	2006-04-10 23:30:44.000000000 +0200
+@@ -0,0 +1,52 @@
 +/* Directory entry structure `struct dirent'.  FreeBSD version.
 +   Copyright (C) 1996-1998,2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2579,7 +2579,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/dirent.h sysdeps/unix/bsd/
 +
 +struct dirent
 +  {
-+    unsigned int d_fileno;	/* File serial number.  */
++    unsigned int d_ino;		/* File serial number.  */
 +    unsigned short int d_reclen; /* Length of the whole `struct dirent'.  */
 +    unsigned char d_type;	/* File type, possibly unknown.  */
 +    unsigned char d_namlen;	/* Length of the file name.  */
@@ -2591,7 +2591,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/dirent.h sysdeps/unix/bsd/
 +#ifdef __USE_LARGEFILE64
 +struct dirent64
 +  {
-+    unsigned int d_fileno;	/* File serial number.  */
++    unsigned int d_ino;		/* File serial number.  */
 +    unsigned short int d_reclen; /* Length of the whole `struct dirent'.  */
 +    unsigned char d_type;	/* File type, possibly unknown.  */
 +    unsigned char d_namlen;	/* Length of the file name.  */
@@ -2600,6 +2600,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/dirent.h sysdeps/unix/bsd/
 +    char d_name[1];		/* File name (actually longer).  */
 +  };
 +#endif
++
++#define d_fileno        d_ino   /* Backwards compatibility.  */
 +
 +#define _DIRENT_HAVE_D_RECLEN 1
 +#define _DIRENT_HAVE_D_NAMLEN 1
@@ -10535,7 +10537,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/swapcontext.S sysdeps/unix
 +weak_alias(__swapcontext, swapcontext)
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/sys/io.h sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/io.h
 --- null/unix/bsd/bsd4.4/kfreebsd/i386/sys/io.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/io.h	2006-01-26 20:16:36.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/io.h	2006-04-10 23:30:44.000000000 +0200
 @@ -0,0 +1,180 @@
 +/* Copyright (C) 1996, 2000, 2002, 2004 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -10568,8 +10570,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/sys/io.h sysdeps/unix/bsd/
 +
 +   Portability note: not all kFreeBSD platforms support this call.  Most
 +   platforms based on the PC I/O architecture probably will, however. */
-+extern int ioperm (unsigned int __from, unsigned int __num, int __turn_on)
-+     __THROW;
++extern int ioperm (unsigned long int __from, unsigned long int __num,
++                   int __turn_on) __THROW;
 +
 +/* Set the I/O privilege level to LEVEL.  If LEVEL>3, permission to
 +   access any I/O port is granted.  This call requires root
@@ -10719,8 +10721,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/sys/io.h sysdeps/unix/bsd/
 +#endif /* _SYS_IO_H */
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/sys/perm.h sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/perm.h
 --- null/unix/bsd/bsd4.4/kfreebsd/i386/sys/perm.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/perm.h	2006-01-02 19:10:53.000000000 +0100
-@@ -0,0 +1,38 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/perm.h	2006-04-10 23:30:44.000000000 +0200
+@@ -0,0 +1,43 @@
 +/* Copyright (C) 1996, 1999, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -10747,8 +10749,13 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/sys/perm.h sysdeps/unix/bs
 +__BEGIN_DECLS
 +
 +/* Set port input/output permissions.  */
-+extern int ioperm (unsigned int __from, unsigned int __num, int __turn_on)
-+     __THROW;
++extern int ioperm (unsigned long int __from, unsigned long int __num,
++		   int __turn_on) __THROW;
++
++
++/* Change I/O privilege level.  */
++extern int iopl (int __level) __THROW;
++
 +extern int i386_set_ioperm (unsigned int __from, unsigned int __num,
 +			    int __turn_on) __THROW;
 +
@@ -19728,6 +19735,11 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/getcontext.S sysdeps/uni
 +PSEUDO_END(__getcontext)
 +
 +weak_alias(__getcontext, getcontext)
+diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/iopl.c sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/iopl.c
+--- null/unix/bsd/bsd4.4/kfreebsd/x86_64/iopl.c	1970-01-01 01:00:00.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/iopl.c	2006-04-10 23:30:44.000000000 +0200
+@@ -0,0 +1 @@
++#include "../i386/iopl.c"
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S
 --- null/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S	2006-03-01 20:13:16.000000000 +0100
@@ -19878,6 +19890,17 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S sysdeps/un
 +
 +weak_alias(__makecontext, makecontext)
 +
+diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/Makefile sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/Makefile
+--- null/unix/bsd/bsd4.4/kfreebsd/x86_64/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/Makefile	2006-04-10 23:30:44.000000000 +0200
+@@ -0,0 +1,7 @@
++32bit-predefine = __i386__
++64bit-predefine = __x86_64__
++
++ifeq ($(subdir),misc)
++sysdep_routines += iopl
++sysdep_headers += sys/perm.h sys/io.h
++endif
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/pipe.S sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/pipe.S
 --- null/unix/bsd/bsd4.4/kfreebsd/x86_64/pipe.S	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/pipe.S	2006-03-18 17:31:11.000000000 +0100
@@ -20227,6 +20250,237 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/swapcontext.S sysdeps/un
 +PSEUDO_END(__swapcontext)
 +
 +weak_alias(__swapcontext, swapcontext)
+diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/io.h sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/io.h
+--- null/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/io.h	1970-01-01 01:00:00.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/io.h	2006-04-10 23:30:44.000000000 +0200
+@@ -0,0 +1,180 @@
++/* Copyright (C) 1996, 2000, 2002, 2004 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#ifndef	_SYS_IO_H
++#define	_SYS_IO_H	1
++
++#include <features.h>
++
++__BEGIN_DECLS
++
++/* If TURN_ON is TRUE, request for permission to do direct i/o on the
++   port numbers in the range [FROM,FROM+NUM-1].  Otherwise, turn I/O
++   permission off for that range.  This call requires root privileges.
++
++   Portability note: not all kFreeBSD platforms support this call.  Most
++   platforms based on the PC I/O architecture probably will, however. */
++extern int ioperm (unsigned long int __from, unsigned long int __num,
++                   int __turn_on) __THROW;
++
++/* Set the I/O privilege level to LEVEL.  If LEVEL>3, permission to
++   access any I/O port is granted.  This call requires root
++   privileges. */
++extern int iopl (int __level) __THROW;
++
++#if defined __GNUC__ && __GNUC__ >= 2
++
++static __inline unsigned char
++inb (unsigned short int port)
++{
++  unsigned char _v;
++
++  __asm__ __volatile__ ("inb %w1,%0":"=a" (_v):"Nd" (port));
++  return _v;
++}
++
++static __inline unsigned char
++inb_p (unsigned short int port)
++{
++  unsigned char _v;
++
++  __asm__ __volatile__ ("inb %w1,%0\noutb %%al,$0x80":"=a" (_v):"Nd" (port));
++  return _v;
++}
++
++static __inline unsigned short int
++inw (unsigned short int port)
++{
++  unsigned short _v;
++
++  __asm__ __volatile__ ("inw %w1,%0":"=a" (_v):"Nd" (port));
++  return _v;
++}
++
++static __inline unsigned short int
++inw_p (unsigned short int port)
++{
++  unsigned short int _v;
++
++  __asm__ __volatile__ ("inw %w1,%0\noutb %%al,$0x80":"=a" (_v):"Nd" (port));
++  return _v;
++}
++
++static __inline unsigned int
++inl (unsigned short int port)
++{
++  unsigned int _v;
++
++  __asm__ __volatile__ ("inl %w1,%0":"=a" (_v):"Nd" (port));
++  return _v;
++}
++
++static __inline unsigned int
++inl_p (unsigned short int port)
++{
++  unsigned int _v;
++  __asm__ __volatile__ ("inl %w1,%0\noutb %%al,$0x80":"=a" (_v):"Nd" (port));
++  return _v;
++}
++
++static __inline void
++outb (unsigned char value, unsigned short int port)
++{
++  __asm__ __volatile__ ("outb %b0,%w1": :"a" (value), "Nd" (port));
++}
++
++static __inline void
++outb_p (unsigned char value, unsigned short int port)
++{
++  __asm__ __volatile__ ("outb %b0,%w1\noutb %%al,$0x80": :"a" (value),
++			"Nd" (port));
++}
++
++static __inline void
++outw (unsigned short int value, unsigned short int port)
++{
++  __asm__ __volatile__ ("outw %w0,%w1": :"a" (value), "Nd" (port));
++
++}
++
++static __inline void
++outw_p (unsigned short int value, unsigned short int port)
++{
++  __asm__ __volatile__ ("outw %w0,%w1\noutb %%al,$0x80": :"a" (value),
++			"Nd" (port));
++}
++
++static __inline void
++outl (unsigned int value, unsigned short int port)
++{
++  __asm__ __volatile__ ("outl %0,%w1": :"a" (value), "Nd" (port));
++}
++
++static __inline void
++outl_p (unsigned int value, unsigned short int port)
++{
++  __asm__ __volatile__ ("outl %0,%w1\noutb %%al,$0x80": :"a" (value),
++			"Nd" (port));
++}
++
++static __inline void
++insb (unsigned short int port, void *addr, unsigned long int count)
++{
++  __asm__ __volatile__ ("cld ; rep ; insb":"=D" (addr),
++			"=c" (count):"d" (port), "0" (addr), "1" (count));
++}
++
++static __inline void
++insw (unsigned short int port, void *addr, unsigned long int count)
++{
++  __asm__ __volatile__ ("cld ; rep ; insw":"=D" (addr),
++			"=c" (count):"d" (port), "0" (addr), "1" (count));
++}
++
++static __inline void
++insl (unsigned short int port, void *addr, unsigned long int count)
++{
++  __asm__ __volatile__ ("cld ; rep ; insl":"=D" (addr),
++			"=c" (count):"d" (port), "0" (addr), "1" (count));
++}
++
++static __inline void
++outsb (unsigned short int port, const void *addr, unsigned long int count)
++{
++  __asm__ __volatile__ ("cld ; rep ; outsb":"=S" (addr),
++			"=c" (count):"d" (port), "0" (addr), "1" (count));
++}
++
++static __inline void
++outsw (unsigned short int port, const void *addr, unsigned long int count)
++{
++  __asm__ __volatile__ ("cld ; rep ; outsw":"=S" (addr),
++			"=c" (count):"d" (port), "0" (addr), "1" (count));
++}
++
++static __inline void
++outsl (unsigned short int port, const void *addr, unsigned long int count)
++{
++  __asm__ __volatile__ ("cld ; rep ; outsl":"=S" (addr),
++			"=c" (count):"d" (port), "0" (addr), "1" (count));
++}
++
++#endif	/* GNU C */
++
++__END_DECLS
++#endif /* _SYS_IO_H */
+diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/perm.h sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/perm.h
+--- null/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/perm.h	1970-01-01 01:00:00.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/perm.h	2006-04-10 23:30:44.000000000 +0200
+@@ -0,0 +1,43 @@
++/* Copyright (C) 1996, 1999, 2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#ifndef _SYS_PERM_H
++#define _SYS_PERM_H	1
++
++#include <features.h>
++
++__BEGIN_DECLS
++
++/* Set port input/output permissions.  */
++extern int ioperm (unsigned long int __from, unsigned long int __num,
++		   int __turn_on) __THROW;
++
++
++/* Change I/O privilege level.  */
++extern int iopl (int __level) __THROW;
++
++extern int i386_set_ioperm (unsigned int __from, unsigned int __num,
++			    int __turn_on) __THROW;
++
++/* Retrieve a contiguous range of port input/output permissions.  */
++extern int i386_get_ioperm (unsigned int __from, unsigned int *__num,
++			    int *__turned_on) __THROW;
++
++__END_DECLS
++
++#endif	/* _SYS_PERM_H */
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/sysarch.h sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysarch.h
 --- null/unix/bsd/bsd4.4/kfreebsd/x86_64/sysarch.h	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysarch.h	2006-01-06 21:26:14.000000000 +0100
@@ -20635,6 +20889,15 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/ucontext_i.h sysdeps/uni
 +#define oLINK		816
 +#define oSS_SP		824
 +#define oSS_SIZE	832
+diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/Versions sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/Versions
+--- null/unix/bsd/bsd4.4/kfreebsd/x86_64/Versions	1970-01-01 01:00:00.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/Versions	2006-04-10 23:30:44.000000000 +0200
+@@ -0,0 +1,5 @@
++libc {
++  GLIBC_2.3.4 {
++	iopl;
++  }
++}
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/vfork.S sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/vfork.S
 --- null/unix/bsd/bsd4.4/kfreebsd/x86_64/vfork.S	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/vfork.S	2006-01-06 21:26:14.000000000 +0100
