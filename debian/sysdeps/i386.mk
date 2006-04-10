@@ -1,5 +1,5 @@
-GLIBC_PASSES += nptl i686
-DEB_ARCH_REGULAR_PACKAGES += libc6-i686
+GLIBC_PASSES += nptl i686 xen
+DEB_ARCH_REGULAR_PACKAGES += libc6-i686 libc6-xen
 
 # Starting with libc6 2.3.6-6 TLS support is enabled
 libc6_shlib_dep = libc6 (>= 2.3.6-6)
@@ -23,6 +23,17 @@ i686_rtlddir = /lib
 i686_slibdir = /lib/tls/i686/cmov
 i686_MIN_KERNEL_SUPPORTED = 2.6.0
 i686_extra_config_options = $(extra_config_options) --disable-profile
+
+# We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
+# greatly reduce the speed when running under the Xen hypervisor.
+xen_add-ons = nptl $(add-ons)
+xen_configure_target=i686-linux
+en_configure_build=i686-linux
+xen_extra_cflags = -march=i686 -mtune=i686 -g1 -O3 -mno-tls-direct-seg-refs
+xen_rtlddir = /lib
+xen_slibdir = /lib/tls/i686/cmov
+xen_MIN_KERNEL_SUPPORTED = 2.6.0
+xen_extra_config_options = $(extra_config_options) --disable-profile
 
 # build 64-bit (amd64) alternative library
 GLIBC_PASSES += amd64
