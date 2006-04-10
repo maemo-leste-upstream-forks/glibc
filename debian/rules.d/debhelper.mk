@@ -204,9 +204,9 @@ $(stamp)debhelper:
 	    cp debian/debhelper.in/libc-alt.install $$z; \
 	    zd=debian/$(libc)-dev-$$x.install; \
 	    cp debian/debhelper.in/libc-alt-dev.install $$zd; \
-	    sed -e "s#TMPDIR#debian/tmp-$$x#g" -i $$zd;
+	    sed -e "s#TMPDIR#debian/tmp-$$x#g" -i $$zd; \
 	    sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#g" -i $$zd; \
-	    sed -e "s#LIBC#$(libc)#" -i $$z; \	    
+	    sed -e "s#LIBC#$(libc)#" -i $$z; \
 	    sed -e "s#LIBDIR#$$libdir#g" -i $$zd; \
 	    sed -e "s/^#.*//g" -i $$zd; \
 	    ;; \
@@ -241,6 +241,7 @@ $(stamp)debhelper:
 	  cat debian/debhelper.in/libc-otherbuild.install >>$$z; \
 	  sed -e "s#TMPDIR#debian/tmp-$$x#g" -i $$z; \
 	  sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#g" -i $$z; \
+	  sed -e "s#LIBC-FLAVOR#$(libc)#g" -i $$z; \
 	  sed -e "s#FLAVOR#nptl#g" -i $$z; \
 	  sed -e "s#SLIBDIR#/lib/tls#g" -i $$z; \
 	  case $$z in \
