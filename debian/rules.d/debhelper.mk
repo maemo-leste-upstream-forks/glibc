@@ -183,6 +183,7 @@ $(stamp)debhelper:
 	  sed -e "s#CURRENT_VER#$(DEB_VERSION)#" -i $$z; \
 	  sed -e "/KERNEL_VERSION_CHECK/r debian/script.in/kernelcheck.sh" -i $$z; \
 	  sed -e "s#EXIT_CHECK##" -i $$z; \
+	  sed -e "s#DEB_HOST_ARCH#$(DEB_HOST_ARCH)#" -i $$z; \
 	  case $$z in \
 	    *.install) sed -e "s/^#.*//" -i $$z ;; \
 	  esac; \
