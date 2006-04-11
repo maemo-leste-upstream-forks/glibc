@@ -20,7 +20,11 @@ libc_add-ons = linuxthreads $(add-ons)
 libc_extra_config_options = $(extra_config_options) --disable-compatible-utmp
 
 ifndef KFREEBSD_SOURCE
-  KFREEBSD_HEADERS := /usr/include
+  ifeq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
+    KFREEBSD_HEADERS := /usr/include
+  else
+    KFREEBSD_HEADERS := /usr/$(DEB_HOST_GNU_TYPE)/include
+  endif
 else
   KFREEBSD_HEADERS := $(KFREEBSD_SOURCE)/sys
 endif

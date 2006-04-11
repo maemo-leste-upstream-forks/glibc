@@ -24,7 +24,11 @@ threads = yes
 libc_add-ons = linuxthreads $(add-ons)
 
 ifndef LINUX_SOURCE
-  LINUX_HEADERS := /usr/include
+  ifeq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
+    LINUX_HEADERS := /usr/include
+  else
+    LINUX_HEADERS := /usr/$(DEB_HOST_GNU_TYPE)/include
+  endif
 else
   LINUX_HEADERS := $(LINUX_SOURCE)/include
 endif
