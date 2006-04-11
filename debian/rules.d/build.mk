@@ -57,7 +57,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	    echo "No.  Forcing cross-compile by setting build to $$configure_build."; \
 	  fi; \
 	fi; \
-	$(call logme, -a $(log_build), echo -n "Build started: " ; date ; echo "---------------")
+	$(call logme, -a $(log_build), echo -n "Build started: " ; date --rfc-2822 ; echo "---------------")
 	$(call logme, -a $(log_build), \
 		cd $(DEB_BUILDDIR) && \
 		CC="$(call xx,CC)" \
@@ -74,7 +74,7 @@ $(patsubst %,build_%,$(GLIBC_PASSES)) :: build_% : $(stamp)build_%
 $(stamp)build_%: $(stamp)configure_%
 	@echo Building $(curpass)
 	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS))
-	$(call logme, -a $(log_build), echo "---------------" ; echo -n "Build ended: " ; date)
+	$(call logme, -a $(log_build), echo "---------------" ; echo -n "Build ended: " ; date --rfc-2822)
 	touch $@
 
 $(patsubst %,check_%,$(GLIBC_PASSES)) :: check_% : $(stamp)check_%
@@ -91,12 +91,12 @@ $(stamp)check_%: $(stamp)build_%
 	else \
 	  echo Testing $(curpass); \
 	  echo -n "Testsuite started: " | tee -a $(log_test); \
-	  date | tee -a $(log_test); \
+	  date --rfc-2822 | tee -a $(log_test); \
 	  echo "--------------" | tee -a $(log_test); \
 	  $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS) -k check 2>&1 | tee -a $(log_test); \
 	  echo "--------------" | tee -a $(log_test); \
 	  echo -n "Testsuite ended: " | tee -a $(log_test); \
-	  date | tee -a $(log_test); \
+	  date --rfc-2822 | tee -a $(log_test); \
 	fi
 	touch $@
 
