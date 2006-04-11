@@ -57,7 +57,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	    echo "No.  Forcing cross-compile by setting build to $$configure_build."; \
 	  fi; \
 	fi; \
-	$(call logme, -a $(log_build), echo -n "Build started: " ; date --rfc-2822 ; echo "---------------")
+	$(call logme, -a $(log_build), echo -n "Build started: " ; date --rfc-2822 ; echo "---------------") ; \
 	$(call logme, -a $(log_build), \
 		cd $(DEB_BUILDDIR) && \
 		CC="$(call xx,CC)" \
