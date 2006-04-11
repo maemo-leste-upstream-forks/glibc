@@ -186,6 +186,7 @@ $(stamp)debhelper:
 	  sed -e "s#DEB_HOST_ARCH#$(DEB_HOST_ARCH)#" -i $$z; \
 	  case $$z in \
 	    *.install) sed -e "s/^#.*//" -i $$z ;; \
+	    debian/$(libc).preinst) l=`grep ^RTLDLIST= debian/tmp-libc/usr/bin/ldd | sed -e 's/^RTLDLIST=//'`; sed -e "s#RTLDLIST#$$l#" -i $$z ;; \
 	  esac; \
 	done
 

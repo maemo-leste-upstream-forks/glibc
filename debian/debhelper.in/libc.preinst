@@ -129,22 +129,24 @@ check_dirs () {
       if test -n "$output"; then
 	# See if the found libraries are compatible with the system ld.so;
 	# if they aren't, they'll be ignored.  Check e_ident, e_type (which
-	# will just be ET_DYN), and e_machine.  Assume that if one doesn't
-	# match, none of them will.
-	if test -f "$ld_so"; then
-	  lib=$dir/`echo "$output" | head -1`
-	  if test -f "$lib"; then
-	    ldbytes=`head -c 20 $ld_so | od -c`
-	    libbytes=`head -c 20 $lib | od -c`
-	    if test "$ldbytes" != "$libbytes"; then
-	      return 1
-	    fi
+	# will just be ET_DYN), and e_machine.  If a match is found, there
+	# is a risk of breakage.
+	for lib in $output
+	do
+	  if test -f "$dir/$lib"; then
+	    libbytes=`head -c 20 $dir/$lib | od -c`
+	    for ld_so in $ld_so_list
+	    do
+	      if test -f "$ld_so"; then
+	        ldbytes=`head -c 20 $ld_so | od -c`
+	        if test "$ldbytes" = "$libbytes"; then
+	          echo "Matching libraries: $dir/$lib $ld_so"
+	          return 0
+	        fi
+	      fi
+	    done
 	  fi
-	fi
-
-	echo "These libraries were found in $dir:"
-	echo "$output"
-	return 0
+	done
       fi
     fi
   done
@@ -153,9 +155,7 @@ check_dirs () {
 
 if [ "$1" != abort-upgrade ]
 then
-  # First find the system ld.so.
-  ld_so=`ldd /bin/bash | sed 's/^\t//; s/ .*//' | grep /ld`
-
+  ld_so_list=RTLDLIST
   dirs="/usr/local/lib /usr/local/lib32 /usr/local/lib64"
   if ! test -L /usr; then
     dirs="$dirs /usr/lib /usr/lib32 /usr/lib64"
