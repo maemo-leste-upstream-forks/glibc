@@ -17,7 +17,6 @@ nptl_extra_cflags = -march=i486 -mtune=i686 -g1 -O3
 # The optimized libraries also use NPTL!
 i686_add-ons = nptl $(add-ons)
 i686_configure_target=i686-linux
-i686_configure_build=i686-linux
 i686_extra_cflags = -march=i686 -mtune=i686 -g1 -O3
 i686_rtlddir = /lib
 i686_slibdir = /lib/tls/i686/cmov
@@ -28,7 +27,6 @@ i686_extra_config_options = $(extra_config_options) --disable-profile
 # greatly reduce the speed when running under the Xen hypervisor.
 xen_add-ons = nptl $(add-ons)
 xen_configure_target=i686-linux
-en_configure_build=i686-linux
 xen_extra_cflags = -march=i686 -mtune=i686 -g1 -O3 -mno-tls-direct-seg-refs
 xen_rtlddir = /lib
 xen_slibdir = /lib/tls/i686/cmov
