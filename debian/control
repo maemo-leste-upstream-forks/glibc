@@ -34,6 +34,7 @@ Priority: standard
 Depends: ${locale:Depends}, debconf | debconf-2.0
 Conflicts: base-config
 Replaces: base-config
+Provides: generated-locales
 Description: GNU C Library: National Language (locale) data [support]
  Machine-readable data files, shared objects and programs used by the
  C library for localization (l10n) and internationalization (i18n) support.
@@ -43,6 +44,18 @@ Description: GNU C Library: National Language (locale) data [support]
  you to customize which definitions actually get generated. This is a
  savings over how this package used to be, where all locales were generated
  by default. This created a package that unpacked to an excess of 30 megs.
+
+Package: locales-all
+Architecture: any
+Section: libs
+Priority: extra
+Depends: ${locale:Depends}
+Provides: generated-locales
+Description: GNU C Library: Precompiled locale data
+ This package contains the precompiled locale data for all supported locales.
+ A better alternative is to install the locales package and only select
+ desired locales, but it can be useful on a low-memory machine because some
+ locale files take a lot of memory to be compiled.
 
 Package: nscd
 Architecture: alpha amd64 arm armeb i386 m68k mips mipsel powerpc ppc64 sparc ia64 hppa s390 sh3 sh4 sh3eb sh4eb kfreebsd-i386 kfreebsd-amd64

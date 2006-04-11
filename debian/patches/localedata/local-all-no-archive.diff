@@ -1,0 +1,13 @@
+Index: glibc-2.3.6/localedata/Makefile
+===================================================================
+--- glibc-2.3.6.orig/localedata/Makefile
++++ glibc-2.3.6/localedata/Makefile
+@@ -221,7 +221,7 @@
+ 	echo -n `echo $$locale | sed 's/\([^\@]*\)\(\@.*\)*/\2/'`; \
+ 	echo -n '...'; \
+ 	input=`echo $$locale | sed 's/\([^.]*\)[^@]*\(.*\)/\1\2/'`; \
+-	$(LOCALEDEF) --alias-file=../intl/locale.alias \
++	$(LOCALEDEF) --alias-file=../intl/locale.alias --no-archive \
+ 		     -i locales/$$input -c -f charmaps/$$charset \
+ 		     $(addprefix --prefix=,$(install_root)) $$locale; \
+ 	echo ' done'; \
