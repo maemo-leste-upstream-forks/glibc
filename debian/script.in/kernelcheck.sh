@@ -55,13 +55,13 @@ exit_check () {
 	#fi
     fi
 
-    # The GNU libc is now built with --with-kernel= >= 2.4.0, except on m68k
+    # The GNU libc is now built with --with-kernel= >= 2.4.1, except on m68k
     if [ "$realarch" != m68k ]
     then
-	if kernel_compare_versions "$kernel_ver" lt 2.4.0
+	if kernel_compare_versions "$kernel_ver" lt 2.4.1
 	then
 	    echo WARNING: This version of glibc requires that you be running
-	    echo kernel version 2.4.0 or later.  Earlier kernels contained
+	    echo kernel version 2.4.1 or later.  Earlier kernels contained
 	    echo bugs that may render the system unusable if a modern version
 	    echo of glibc is installed.
 	    exit_check

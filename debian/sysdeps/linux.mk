@@ -1,5 +1,5 @@
 GLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
-MIN_KERNEL_SUPPORTED := 2.4.0
+MIN_KERNEL_SUPPORTED := 2.4.1
 libc = libc6
 
 # Support multiple makes at once based on number of processors
