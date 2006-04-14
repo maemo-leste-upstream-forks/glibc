@@ -11,7 +11,12 @@ glibc (2.3.6-8) UNRELEASED; urgency=low
   [ Denis Barbier ]
   * Preserve hard links when compiling the locales-all package, this reduces
     package size by a factor of 3.  Thanks to Jeroen van Wolffelaar for noticing.
-    
+  * Let locales-all Provides: locales instead of a virtual generated-locales
+    package.  This is requested by Jeroen van Wolffelaar to allow this new
+    package enter unstable.  Packages which Build-Depends on locales are
+    likely to FTBFS if locales-all is installed, this dependency will be
+    fixed in a later release.
+
  -- Aurelien Jarno <aurel32@debian.org>  Fri, 14 Apr 2006 20:28:41 +0200
 
 glibc (2.3.6-7) unstable; urgency=medium
