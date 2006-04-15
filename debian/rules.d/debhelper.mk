@@ -38,6 +38,7 @@ endef
 
 define locales_extra_debhelper_pkg_install
 	install --mode=0644 $(DEB_SRCDIR)/localedata/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/changelog
+	install --mode=0644 debian/locales.NEWS.Debian debian/$(curpass)/usr/share/doc/locales/NEWS.Debian
 endef
 
 define glibc-doc_extra_debhelper_pkg_install
