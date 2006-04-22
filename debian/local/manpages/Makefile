@@ -6,7 +6,7 @@ SGML_MAN = locale-gen.8
 
 all: $(patsubst %.pod,%.1,$(wildcard *.pod)) $(SGML_MAN) po4a-man
 %.1: %.pod
-	pod2man --center="Debian GNU/Linux" --release="woody" $< > $@
+	pod2man --center="Debian GNU/Linux" --release="etch" $< > $@
 
 locale-gen.8: locale-gen.8.sgml
 	docbook-to-man $< > $@
