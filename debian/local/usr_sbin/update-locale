@@ -87,7 +87,7 @@ while (($key, $value) = each %arg)
 if ($no_checks == 0)
 {
 	#  Check that this locale does exist
-	my $charset = `$env locale charmap 2>&1`;
+	my $charset = `LANG= LC_CTYPE= LC_NUMERIC= LC_TIME= LC_COLLATE= LC_MONETARY= LC_MESSAGES= LC_PAPER= LC_NAME= LC_ADDRESS= LC_TELEPHONE= LC_MEASUREMENT= LC_IDENTIFICATION= LC_ALL= $env locale charmap 2>&1`;
 	die "*** $progname: Error: invalid locale settings: $env\n"
 		if ($charset =~ m/Cannot set/);
 	#  If LANGUAGE is set, its first value must be compatible with LC_MESSAGES
