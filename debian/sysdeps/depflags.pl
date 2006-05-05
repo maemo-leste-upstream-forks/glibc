@@ -147,10 +147,12 @@ push @{$libc_dev_c{'Replaces'}}, 'kerberos4kth-dev (<< 1.2.2-10)';
 # Replace libc-dev (<< 2.3.5-2) for fixing #280030.
 push @{$libc_dev_c{'Replaces'}}, "${libc}-prof (<< 2.3.5-2)";
 
-# Conflict old initrd-tools (<< 0.1.79) and e2fsprogs (<< 1.35-7)
-# that cannot work with new ldd.
-push @{$libc_c{'Conflicts'}}, 'initrd-tools (<< 0.1.79)';
+# Conflict e2fsprogs (<< 1.35-7) that cannot work with new ldd.
 push @{$libc_c{'Conflicts'}}, 'e2fsprogs (<< 1.35-7)';
+
+# Conflict old initrd-tools (<< 0.1.84.1) that cannot work with
+# new libc.
+push @{$libc_c{'Conflicts'}}, 'initrd-tools (<< 0.1.84.1)';
 
 # Make sure we only have one version of libc-dev installed
 push @{$libc_dev_c{'Provides'}}, 'libc-dev';
