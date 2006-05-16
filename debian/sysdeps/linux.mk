@@ -2,23 +2,6 @@ GLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
 MIN_KERNEL_SUPPORTED := 2.4.1
 libc = libc6
 
-# Support multiple makes at once based on number of processors
-# Common wisdom says parallel make can be up to 2n+1.
-# Should we do that to get faster builds?
-NJOBS:=$(shell getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)
-ifeq ($(NJOBS),-1)
- NJOBS:=1
-endif
-
-ifeq ($(NJOBS),0)
- NJOBS=1
-endif
-
-# We can override its value by SETNJOBS environment variable.
-ifdef SETNJOBS
- NJOBS:=$(SETNJOBS)
-endif
-
 # Linuxthreads Config
 threads = yes
 libc_add-ons = linuxthreads $(add-ons)
