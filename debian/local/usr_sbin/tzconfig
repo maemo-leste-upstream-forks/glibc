@@ -115,6 +115,7 @@ while [ $valid = no ]; do
 	echo -n "Name: [$zone] " ; read zone
 done
 
+umask 022
 echo $timezone > /etc/timezone 
 rm -f /etc/localtime && cp -f /usr/share/zoneinfo/$timezone /etc/localtime
 trap 'rm -f $TIMEZONES' 0 1 2 3 13 15
