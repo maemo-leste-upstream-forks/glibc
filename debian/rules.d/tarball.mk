@@ -11,6 +11,11 @@ $(stamp)$(DEB_TARBALL):
 
 $(patsubst %,$(stamp)%,$(GLIBC_OVERLAYS)):
 	cd $(DEB_SRCDIR) && tar -xjvf $(CURDIR)/$(notdir $@)
+	a=`echo $(notdir $@) | sed -e 's/^glibc-//' -e 's/-[^-]*$$//'`; \
+	d=`echo $(notdir $@) | sed -e 's/\.tar\.bz2$$//'`; \
+	if test -d $(DEB_SRCDIR)/$$d; then \
+	  cd $(DEB_SRCDIR) && mv $$d $$a; \
+	fi
 	touch $@
 
 
