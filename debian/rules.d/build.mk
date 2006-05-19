@@ -104,7 +104,7 @@ $(patsubst %,install_%,$(GLIBC_PASSES)) :: install_% : $(stamp)install_%
 $(stamp)install_%: $(stamp)check_%
 	@echo Installing $(curpass)
 	rm -rf $(CURDIR)/debian/tmp-$(curpass)
-	$(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS) \
+	$(MAKE) -C $(DEB_BUILDDIR) \
 	  install_root=$(CURDIR)/debian/tmp-$(curpass) install
 
 	if [ $(curpass) = libc ]; then \
