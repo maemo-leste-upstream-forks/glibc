@@ -114,7 +114,8 @@ fi
 check_dirs () {
   for dir in $*; do
     # Follow symlinks
-    dir=$(readlink -f $dir)
+    dirlink=$(readlink -f $dir)
+    [ -n "$dirlink" ] && dir=$dirlink 
     
     # Handle /lib in LD_LIBRARY_PATH.
     if expr $dir : "/lib.*" > /dev/null; then
