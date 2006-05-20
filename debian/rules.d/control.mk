@@ -1,6 +1,6 @@
 control_deps := $(addprefix debian/control.in/, libc6 libc6.1 libc0.1 libc0.3 sparc64 s390x powerpc ppc64 opt amd64)
 
-threads_archs := alpha amd64 arm armeb i386 m68k mips mipsel powerpc ppc64 sparc ia64 hppa s390 sh3 sh4 sh3eb sh4eb kfreebsd-i386 kfreebsd-amd64
+threads_archs := alpha amd64 arm arm-softfloat armeb i386 m68k mips mipsel powerpc ppc64 sparc ia64 hppa s390 sh3 sh4 sh3eb sh4eb kfreebsd-i386 kfreebsd-amd64 
 
 debian/control.in/libc6: debian/control.in/libc debian/rules.d/control.mk
 	sed -e 's%@libc@%libc6%g' \
