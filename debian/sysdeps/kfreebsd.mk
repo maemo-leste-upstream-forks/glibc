@@ -20,6 +20,10 @@ endif
 # Minimum Kernel supported
 with_headers = --with-headers=$(shell pwd)/debian/include --enable-kernel=$(call xx,MIN_KERNEL_SUPPORTED)
 
+# udeb Config
+#udeb_extra_cflags = -Os
+udeb_MIN_KERNEL_SUPPORTED := 5.4.0
+
 KERNEL_HEADER_DIR = $(stamp)mkincludedir
 $(stamp)mkincludedir:
 	rm -rf debian/include

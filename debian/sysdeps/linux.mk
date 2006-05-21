@@ -19,6 +19,10 @@ endif
 # Minimum Kernel supported
 with_headers = --with-headers=$(shell pwd)/debian/include --enable-kernel=$(call xx,MIN_KERNEL_SUPPORTED)
 
+# udeb Config
+#udeb_extra_cflags = -Os
+udeb_MIN_KERNEL_SUPPORTED = 2.6.1
+
 # NPTL Config
 nptl_add-ons = nptl $(add-ons)
 nptl_extra_config_options = $(extra_config_options) --disable-profile

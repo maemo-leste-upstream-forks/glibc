@@ -1,6 +1,8 @@
 GLIBC_PASSES += nptl i686 xen
 DEB_ARCH_REGULAR_PACKAGES += libc6-i686 libc6-xen
 
+udeb_MIN_KERNEL_SUPPORTED = 2.4.1
+
 # Starting with libc6 2.3.6-6 TLS support is enabled
 libc6_shlib_dep = libc6 (>= 2.3.6-6)
 
