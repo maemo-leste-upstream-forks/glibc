@@ -120,7 +120,7 @@ $(stamp)install_%: $(stamp)check_%
 	fi
 
 	# Remove ld.so from optimized libraries
-	if [ $(curpass) != libc ] && [ $(call xx,configure_build) = $(call xx,configure_target) ]; then \
+	if [ $(curpass) != libc ] && [ $(curpass) != udeb ] && [ $(call xx,configure_build) = $(call xx,configure_target) ]; then \
 		rm -f debian/tmp-$(curpass)/$(call xx,slibdir)/ld*.so* ; \
 	fi
 	
