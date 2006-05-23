@@ -2,6 +2,21 @@ glibc (2.3.6-11) UNRELEASED; urgency=low
 
   [ Aurelien Jarno ]
   * debian/rules/build.mk: don't remove ld.so from udeb packages.
+  * M32R support:  (Closes: #366962)
+    - debian/rules.d/control.mk: add m32r.
+    - Add debian/sysdeps/m32r.mk.
+    - Add debian/patches/any/cvs-futimes.diff (use fnctl64 if fnctl is no
+      available).
+    - Add debian/patch/any/local-kernel-features.diff (fix the include path
+      for kernel-features.h) so that it could be used from other files.
+    - Add debian/patches/any/local-libgcc-static.diff (link with libgcc_s).
+    - Add debian/patches/m32r/local-ports-m32r.diff (m32r support).
+    - Add debian/patches/m32r/cvs-elf-m32r_rel32.diff (Add R_M32R_REL32 to 
+      elf/elf.h).
+  * debian/local/manpages/localedef.1: fix a typo.  (Closes: #310477)
+  * debian/local/manpages/iconv.1: fix the indentation (Closes: #316148)
+  * debian/local/manpages/iconv.1, debian/local/manpages/localedef.1: change
+    sarge into etch.
 
   [ Denis Barbier ]
   * Add patches/all/submitted-new-brf-encoding.diff: Add new BRF encoding

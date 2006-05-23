@@ -1,0 +1,24 @@
+2006-01-08  Roland McGrath  <roland@redhat.com>
+
+        * sysdeps/unix/sysv/linux/futimes.c [!__NR_fcntl && __NR_fcntl64]: Use
+        fcntl64 syscall instead.
+
+Index: sysdeps/unix/sysv/linux/futimes.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/futimes.c,v
+retrieving revision 1.6.4.1
+diff -u -p -r1.6.4.1 futimes.c
+--- sysdeps/unix/sysv/linux/futimes.c	16 Feb 2005 10:47:26 -0000	1.6.4.1
++++ sysdeps/unix/sysv/linux/futimes.c	9 May 2006 05:46:42 -0000
+@@ -88,7 +88,11 @@ __futimes (int fd, const struct timeval 
+       case ENOENT:
+ 	/* Validate the file descriptor by letting fcntl set errno to
+ 	   EBADF if it's bogus.  Otherwise it's a /proc issue.  */
++#ifdef __NR_fcntl
+ 	if (INLINE_SYSCALL (fcntl, 3, fd, F_GETFD, 0) != -1)
++#elif defined __NR_fcntl64
++	if (INLINE_SYSCALL (fcntl64, 3, fd, F_GETFD, 0) != -1)
++#endif
+ 	  __set_errno (ENOSYS);
+ 	break;
+       }
