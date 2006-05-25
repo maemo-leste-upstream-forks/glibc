@@ -23,6 +23,7 @@ with_headers = --with-headers=$(shell pwd)/debian/include --enable-kernel=$(call
 # udeb Config
 udeb_extra_cflags = -Os
 udeb_MIN_KERNEL_SUPPORTED := 5.4.0
+udeb_add-ons = linuxthreads $(add-ons)
 
 KERNEL_HEADER_DIR = $(stamp)mkincludedir
 $(stamp)mkincludedir:
