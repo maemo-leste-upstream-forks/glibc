@@ -9899,8 +9899,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/Makefile sysdeps/unix/bsd/
 +endif
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/rfork.S sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/rfork.S
 --- null/unix/bsd/bsd4.4/kfreebsd/i386/rfork.S	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/rfork.S	2006-05-21 22:27:34.000000000 +0200
-@@ -0,0 +1,44 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/rfork.S	2006-05-25 21:43:10.000000000 +0200
+@@ -0,0 +1,43 @@
 +/* Copyright (C) 1991-1992, 1994-1995, 1997, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -9936,7 +9936,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/rfork.S sysdeps/unix/bsd/b
 +	andl %edx, %eax
 +
 +	popl %edx
-+	cfi_adjust_cfa_offset(-4)
 +	jmp  *%ecx
 +
 +L(pseudo_end):
@@ -9976,8 +9975,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/sigcontextinfo.h sysdeps/u
 +  (handler)((signo), SIGCONTEXT_EXTRA_ARGS (ctx))
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S
 --- null/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S	2006-05-21 22:27:34.000000000 +0200
-@@ -0,0 +1,207 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S	2006-05-25 21:43:10.000000000 +0200
+@@ -0,0 +1,202 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
@@ -10008,10 +10007,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S sysdeps/uni
 +
 +	.text
 +ENTRY (__start_thread)
-+	/* End FDE now, because in the child the unwind info will be
-+	   wrong.  */
-+	cfi_endproc
-+
 +	/* There is a window of a few instructions, right after the rfork
 +	   system call, where the handling of a signal would write garbage
 +	   into the stack shared by the parent and the child (assuming
@@ -10183,7 +10178,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S sysdeps/uni
 +	popl	%ebx
 +	popl	%ebp
 +	jmp	SYSCALL_ERROR_LABEL
-+	cfi_startproc
 +PSEUDO_END (__start_thread)
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/swapcontext.S sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/swapcontext.S
 --- null/unix/bsd/bsd4.4/kfreebsd/i386/swapcontext.S	1970-01-01 01:00:00.000000000 +0100
@@ -10596,8 +10590,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/sysarch.h sysdeps/unix/bsd
 +#endif /* _SYSARCH_H */
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S
 --- null/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S	2006-05-21 22:27:34.000000000 +0200
-@@ -0,0 +1,33 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S	2006-05-25 21:43:10.000000000 +0200
+@@ -0,0 +1,31 @@
 +/* Copyright (C) 1993, 1995-1998, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -10621,11 +10615,9 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S sysdeps/unix/bsd
 +	  .text;
 +ENTRY (syscall)
 +	popl %ecx		/* Pop return address into %ecx.  */
-+	cfi_adjust_cfa_offset (-4)
 +	movl 0(%esp), %eax	/* Load syscall number into %eax. */
 +	int $0x80		/* Do the system call.  */
 +	pushl %ecx		/* Push back return address.  */
-+	cfi_adjust_cfa_offset (4)
 +	jb SYSCALL_ERROR_LABEL;	/* Jump to error handler if error.  */
 +
 +L(pseudo_end):
@@ -10633,8 +10625,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S sysdeps/unix/bsd
 +PSEUDO_END (syscall)
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.h sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.h
 --- null/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.h	2006-05-18 19:31:40.000000000 +0200
-@@ -0,0 +1,228 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.h	2006-05-25 21:43:10.000000000 +0200
+@@ -0,0 +1,222 @@
 +/* Copyright (C) 1992,1993,1995-2000,2002,2003,2004
 +   Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -10773,20 +10765,14 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.h sysdeps/unix/bsd/
 +#  else
 +#   define SYSCALL_ERROR_HANDLER					      \
 +0:pushl %ebx;								      \
-+  cfi_adjust_cfa_offset (4);                                                  \
-+  cfi_rel_offset (ebx, 0);                                                    \
 +  SETUP_PIC_REG (bx);							      \
 +  addl $_GLOBAL_OFFSET_TABLE_, %ebx;					      \
 +  pushl %eax;								      \
-+  cfi_adjust_cfa_offset (4);                                                  \
 +  PUSH_ERRNO_LOCATION_RETURN;						      \
 +  call BP_SYM (__errno_location)@PLT;					      \
 +  POP_ERRNO_LOCATION_RETURN;						      \
 +  popl %ecx;								      \
-+  cfi_adjust_cfa_offset (-4);                                                 \
 +  popl %ebx;								      \
-+  cfi_adjust_cfa_offset (-4);                                                 \
-+  cfi_restore (ebx);                                                          \
 +  movl %ecx, (%eax);							      \
 +  orl $-1, %eax;							      \
 +  jmp L(pseudo_end);
@@ -11032,8 +11018,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/Versions sysdeps/unix/bsd/
 +}
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/vfork.S sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/vfork.S
 --- null/unix/bsd/bsd4.4/kfreebsd/i386/vfork.S	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/vfork.S	2006-05-21 22:27:34.000000000 +0200
-@@ -0,0 +1,58 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/vfork.S	2006-05-25 21:43:10.000000000 +0200
+@@ -0,0 +1,56 @@
 +/* Copyright (C) 1999, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -11063,7 +11049,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/vfork.S sysdeps/unix/bsd/b
 +
 +	/* Pop the return PC value into ECX.  */
 +	popl	%ecx
-+	cfi_adjust_cfa_offset(-4)
 +
 +	/* Perform the system call.  */
 +	DO_CALL (vfork, 0)
@@ -11082,7 +11067,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/vfork.S sysdeps/unix/bsd/b
 +L(error):
 +	/* Push back the return PC.  */
 +	pushl	%ecx
-+	cfi_adjust_cfa_offset(4)
 +
 +	/* Branch to the error handler, hidden in PSEUDO_END.  */
 +	jmp	SYSCALL_ERROR_LABEL
@@ -12148,8 +12132,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/lxstat.c sysdeps/unix/bsd/bsd4.
 +weak_alias (__lxstat, _lxstat)
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/Makefile sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile
 --- null/unix/bsd/bsd4.4/kfreebsd/Makefile	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile	2006-05-02 21:24:22.000000000 +0200
-@@ -0,0 +1,118 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile	2006-05-25 21:43:10.000000000 +0200
+@@ -0,0 +1,119 @@
 +# Use bash, not /bin/sh, for executing scripts, because the native
 +# FreeBSD /bin/sh does not interpret the  IFS="<tab>" read ...  command
 +# in localedata/tst-fmon.sh correctly.
@@ -12161,6 +12145,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/Makefile sysdeps/unix/bsd/bsd4.
 +sysdep_headers += \
 + sys/ktrace.h \
 + sys/mount.h \
++ sys/kd.h \
 + sys/rfork.h
 +endif
 +
@@ -12275,8 +12260,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/mmap64.c sysdeps/unix/bsd/bsd4.
 +/* 'mmap64' is the same as 'mmap', because __off64_t == __off_t.  */
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/mmap.c sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c
 --- null/unix/bsd/bsd4.4/kfreebsd/mmap.c	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c	2006-01-02 19:10:55.000000000 +0100
-@@ -0,0 +1,78 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c	2006-05-25 21:43:10.000000000 +0200
+@@ -0,0 +1,81 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
@@ -12334,6 +12319,9 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/mmap.c sysdeps/unix/bsd/bsd4.4/
 +    }
 +
 +  /* We pass 7 arguments in 8 words.  */
++  /* for ANON mapping we must pass -1 in place of fd */
++  if (flags & MAP_ANON)
++    return INLINE_SYSCALL (mmap, 7, addr, len, prot, flags, -1, 0, offset);
 +  result = INLINE_SYSCALL (mmap, 7, addr, len, prot, flags, fd, 0, offset);
 +
 +  if (result != (void *) (-1) && fd >= 0 && len > 0)
@@ -12921,8 +12909,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/net/if.h sysdeps/unix/bsd/bsd4.
 +#endif /* !_NET_IF_H_ */
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/netinet/if_ether.h sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/if_ether.h
 --- null/unix/bsd/bsd4.4/kfreebsd/netinet/if_ether.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/if_ether.h	2006-05-21 22:27:37.000000000 +0200
-@@ -0,0 +1,127 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/if_ether.h	2006-05-25 21:43:09.000000000 +0200
+@@ -0,0 +1,138 @@
 +/* Copyright (C) 1996, 1997, 1999, 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -12984,6 +12972,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/netinet/if_ether.h sysdeps/unix
 +
 +#include <net/ethernet.h>
 +#include <net/if_arp.h>
++#include <netinet/in.h>
 +
 +__BEGIN_DECLS
 +/*
@@ -13006,6 +12995,16 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/netinet/if_ether.h sysdeps/unix
 +#define	arp_pln	ea_hdr.ar_pln
 +#define	arp_op	ea_hdr.ar_op
 +
++struct sockaddr_inarp {
++	__SOCKADDR_COMMON (sin_);
++	in_port_t sin_port;                 /* Port number.  */
++	struct in_addr sin_addr;            /* Internet address.  */
++	struct in_addr sin_srcaddr;
++	unsigned short sin_tos;
++	unsigned short sin_other;
++#define SIN_PROXY 1
++};
++                                                                                                         
 +/*
 + * IP and ethernet specific routing flags
 + */
@@ -21342,8 +21341,8 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/pt-machine.h linux
 +#endif /* _FREEBSD_PT_MACHINE_H  */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep-cancel.h linuxthreads/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep-cancel.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep-cancel.h	1970-01-01 01:00:00.000000000 +0100
-+++ linuxthreads/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep-cancel.h	2006-05-18 19:31:39.000000000 +0200
-@@ -0,0 +1,158 @@
++++ linuxthreads/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep-cancel.h	2006-05-25 21:43:09.000000000 +0200
+@@ -0,0 +1,149 @@
 +/* Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Jakub Jelinek <jakub@redhat.com>, 2002.
@@ -21407,13 +21406,12 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep-cancel.h li
 +	fork()
 +	vfork()
 +	rfork()
-+	pipe()
 +   
 +   none of them is cancelable, therefore
 +*/
 +
-+# define PUSHRESULT	pushl %eax; cfi_adjust_cfa_offset (4);  pushfl;    cfi_adjust_cfa_offset (4)
-+# define POPRESULT	popfl;      cfi_adjust_cfa_offset (-4); popl %eax; cfi_adjust_cfa_offset (-4)
++# define PUSHRESULT	pushl %eax; pushfl
++# define POPRESULT	popfl; popl %eax
 +
 +# ifdef IS_IN_libpthread
 +#  define CENABLE	call __pthread_enable_asynccancel;
@@ -21421,23 +21419,15 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep-cancel.h li
 +# elif defined IS_IN_librt
 +#  ifdef PIC
 +#   define CENABLE	pushl %ebx; \
-+			cfi_adjust_cfa_offset (4); \
-+			cfi_rel_offset (ebx, 0); \
 +			call __i686.get_pc_thunk.bx; \
 +			addl     $_GLOBAL_OFFSET_TABLE_, %ebx; \
 +			call __librt_enable_asynccancel@PLT; \
-+			popl %ebx; \
-+			cfi_adjust_cfa_offset (-4); \
-+			cfi_restore (ebx);
++			popl %ebx;
 +#   define CDISABLE	pushl %ebx; \
-+			cfi_adjust_cfa_offset (4); \
-+			cfi_rel_offset (ebx, 0); \
 +			call __i686.get_pc_thunk.bx; \
 +			addl     $_GLOBAL_OFFSET_TABLE_, %ebx; \
 +			call __librt_disable_asynccancel@PLT; \
-+			popl %ebx; \
-+			cfi_adjust_cfa_offset (-4); \
-+			cfi_restore (ebx);
++			popl %ebx;
 +#  else
 +#   define CENABLE	call __librt_enable_asynccancel;
 +#   define CDISABLE	call __librt_disable_asynccancel
