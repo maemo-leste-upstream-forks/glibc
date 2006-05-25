@@ -1,4 +1,6 @@
+# udeb Config
 udeb_MIN_KERNEL_SUPPORTED = 2.4.1
+udeb_extra_cflags = -Os
 
 # Starting with libc6 2.3.6-6 TLS support is enabled
 libc6_shlib_dep = libc6 (>= 2.3.6-6)
