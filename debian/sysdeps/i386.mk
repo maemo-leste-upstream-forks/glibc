@@ -6,6 +6,12 @@ udeb_extra_cflags = -Os
 libc6_shlib_dep = libc6 (>= 2.3.6-6)
 libc_extra_config_options = $(extra_config_options) --without-__thread
 
+define libc6_extra_pkg_install
+mkdir -p debian/$(curpass)/usr/lib
+ln -sf /lib/i486-linux-gnu debian/$(curpass)/lib/i386-linux-gnu
+ln -sf /usr/lib/i486-linux-gnu debian/$(curpass)/usr/lib/i386-linux-gnu
+endef
+
 # NPTL requires at least i486 assembly.  We don't need to take
 # special measures for i386 systems, since Debian kernel images now
 # emulate the missing instructions on the i386.
