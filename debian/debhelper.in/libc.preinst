@@ -10,7 +10,7 @@ then
     fi
     if dpkg --compare-versions "$2" le 2.1.1-0.1; then
 	if [ -f /var/run/utmpd.pid ]; then
-	    if kill -TERM `cat /var/run/utmpd.pid` > /dev/null 2>&1
+	    if kill -s TERM `cat /var/run/utmpd.pid` > /dev/null 2>&1
 	    then
 		if [ -f /var/run/utmp ]; then
 		    cp /dev/null /var/run/utmp
