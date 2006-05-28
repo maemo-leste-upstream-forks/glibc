@@ -1,7 +1,3 @@
-# udeb Config
-udeb_MIN_KERNEL_SUPPORTED = 2.4.1
-udeb_extra_cflags = -Os
-
 # Starting with libc6 2.3.6-6 TLS support is enabled
 libc6_shlib_dep = libc6 (>= 2.3.6-6)
 libc_extra_config_options = $(extra_config_options) --without-__thread
@@ -11,6 +7,9 @@ mkdir -p debian/$(curpass)/usr/lib
 ln -sf /lib/i486-linux-gnu debian/$(curpass)/lib/i386-linux-gnu
 ln -sf /usr/lib/i486-linux-gnu debian/$(curpass)/usr/lib/i386-linux-gnu
 endef
+
+# udeb Config
+udeb_MIN_KERNEL_SUPPORTED = 2.4.1
 
 # NPTL requires at least i486 assembly.  We don't need to take
 # special measures for i386 systems, since Debian kernel images now
