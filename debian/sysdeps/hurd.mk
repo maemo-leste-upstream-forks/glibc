@@ -6,10 +6,6 @@ threads = no
 libc = libc0.3
 slibdir = /lib
 
-# udeb Config
-#udeb_extra_cflags = -Os
-udeb_extra_config_options := $(extra_config_options) --without-tls libc_cv_z_relro=no
-
 # Glibc should really do this for us.
 define libc_extra_install
 mkdir -p debian/tmp-$(curpass)/lib

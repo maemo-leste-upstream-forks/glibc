@@ -8,9 +8,6 @@ ln -sf /lib/i486-linux-gnu debian/$(curpass)/lib/i386-linux-gnu
 ln -sf /usr/lib/i486-linux-gnu debian/$(curpass)/usr/lib/i386-linux-gnu
 endef
 
-# udeb Config
-udeb_MIN_KERNEL_SUPPORTED = 2.4.1
-
 # NPTL requires at least i486 assembly.  We don't need to take
 # special measures for i386 systems, since Debian kernel images now
 # emulate the missing instructions on the i386.

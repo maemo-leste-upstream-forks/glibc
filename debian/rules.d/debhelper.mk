@@ -167,7 +167,7 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): $(stamp)debhelper
 # say "include this in the main library" by setting a variable.
 # But after 10 hours of staring at this thing, I can't figure it out.
 
-OPT_PASSES = $(filter-out libc nptl udeb,$(GLIBC_PASSES))
+OPT_PASSES = $(filter-out libc nptl, $(GLIBC_PASSES))
 OPT_DIRS = $(foreach pass,$(OPT_PASSES),$($(pass)_slibdir) $($(pass)_libdir))
 NPTL = $(filter nptl,$(GLIBC_PASSES))
 

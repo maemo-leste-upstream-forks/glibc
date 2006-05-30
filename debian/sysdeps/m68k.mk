@@ -5,6 +5,3 @@ MIN_KERNEL_SUPPORTED := 2.2.0
 CC = gcc-3.4
 BUILD_CC = gcc-3.4
 
-# udeb Config
-udeb_extra_cflags = 
-udeb_MIN_KERNEL_SUPPORTED = 2.2.0

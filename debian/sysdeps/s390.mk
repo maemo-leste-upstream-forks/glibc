@@ -1,10 +1,9 @@
-GLIBC_PASSES += nptl s390x
+# NPTL Config
+GLIBC_PASSES += nptl
+
+# build 64-bit (s390x) alternative library
+GLIBC_PASSES += s390x
 DEB_ARCH_REGULAR_PACKAGES += libc6-s390x libc6-dev-s390x
-
-# udeb Config
-udeb_extra_cflags = 
-udeb_MIN_KERNEL_SUPPORTED = 2.4.1
-
 s390x_configure_target = s390x-linux
 s390x_CC = $(CC) -m64
 s390x_add-ons = linuxthreads $(add-ons)

@@ -1,6 +1,3 @@
-# udeb Config
-udeb_CC = gcc-4.1
-
 # hppa64 needs symlink /usr/hppa64-linux/include to /usr/include
 # (See: Bug#239020)  In future we may drop this file with supporting hppa64.
 
