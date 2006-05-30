@@ -8,67 +8,110 @@
 #		slow Services like NIS or NIS+
 
 # Sanity checks.
+
+
+NAME="nscd"
+DESC="Name Service Cache Daemon"
+DAEMON="/usr/sbin/nscd"
+PIDFILE="/var/run/nscd/nscd.pid"
+
+# Sanity checks.
 [ -f /etc/nscd.conf ] || exit 0
-[ -x /usr/sbin/nscd ] || exit 0
+[ -x "$DAEMON" ] || exit 0
 
-# nscd does not run on any kernel lower than 2.2.0 because of threading
-# problems, so we require that in first place.
-case `uname -r` in
-    2.[0-1].*|1.*)
-	# This is not ok
-	exit 0
-    ;;
-esac
-
-RETVAL=0
-case "$1" in
-    start)
-	secure=""
-	for table in passwd group
+start()
+{
+	# Return
+	#   0 if daemon has been started
+	#   1 if daemon was already running
+	#   2 if daemon could not be started
+	SECURE=""
+	for TABLE in passwd group
 	do
-		if egrep '^'$table':.*nisplus' /etc/nsswitch.conf >/dev/null
+		if egrep '^'$TABLE':.*nisplus' /etc/nsswitch.conf >/dev/null
 		then
-			/usr/sbin/nscd_nischeck $table ||
-				secure="$secure -S $table,yes"
+			/usr/sbin/nscd_nischeck "$TABLE" || SECURE="$SECURE -S $TABLE,yes"
 		fi
 	done
-        echo -n "Starting Name Service Cache Daemon: nscd"
-	start-stop-daemon --start --quiet --exec /usr/sbin/nscd -- $secure
-	RETVAL=$?
-	echo "."
+	start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" --test > /dev/null || return 1
+	start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" -- \
+		$SECURE || return 2
+}
+
+stop()
+{
+	# Return
+	#   0 if daemon has been stopped
+	#   1 if daemon was already stopped
+	#   2 if daemon could not be stopped
+	start-stop-daemon --stop --quiet --retry=TERM/5/HUP/30/KILL/5 --pidfile "$PIDFILE" --name "$NAME"
+	RETVAL="$?"
+	[ "$RETVAL" = 2 ] && return 2
+	# Wait for children to finish too
+	start-stop-daemon --stop --quiet --oknodo --retry=0/30/KILL/5 --exec "$DAEMON" > /dev/null
+	[ "$?" = 2 ] && return 2
+	rm -f "$PIDFILE"
+	return "$RETVAL"
+}
+
+status()
+{
+	# Return
+	#   0 if daemon is stopped
+	#   1 if daemon is running
+	start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" --test > /dev/null || return 1
+	return 0
+}
+
+case "$1" in
+start)
+	echo -n "Starting $DESC: $NAME"
+	start
+	case "$?" in
+		0) echo "." ; exit 0 ;;
+		1) echo " (already running)." ; exit 0 ;;
+		*) echo " (failed)." ; exit 1 ;;
+	esac
 	;;
-    stop)
-	echo -n "Stopping Name Service Cache Daemon: nscd"
-	/usr/sbin/nscd -K
-	RETVAL=$?
-	echo "."
-        ;;
-    reload)
-	echo "Reloading Name Service Cache Daemon configuration... "
-	start-stop-daemon --stop --signal 1 --quiet --oknodo --exec /usr/sbin/nscd
-	RETVAL=$?
-	echo "done."
+stop)
+	echo -n "Stopping $DESC: $NAME"
+	stop
+	case "$?" in
+		0) echo "." ; exit 0 ;;
+		1) echo " (not running)." ; exit 0 ;;
+		*) echo " (failed)." ; exit 1 ;;
+	esac
 	;;
-    force-reload)
-        $0 stop
-        $0 start
-        ;;
-    restart)
-	$0 force-reload
+restart|force-reload|reload)
+	echo -n "Restarting $DESC: $NAME"
+	stop
+	$DAEMON --invalidate
+	case "$?" in
+	0|1)
+		start
+		case "$?" in
+			0) echo "." ; exit 0 ;;
+			1) echo " (failed -- old process is still running)." ; exit 1 ;;
+			*) echo " (failed to start)." ; exit 1 ;;
+		esac
+		;;
+	*)
+		echo " (failed to stop)."
+		exit 1
+		;;
+	esac
 	;;
-    status)
-	echo -n "Status of $(basename $0) service: "
-	if pidof /usr/sbin/nscd > /dev/null ; then
-	    echo "running."
-	    RETVAL=0
-	else
-	    echo "not running."
-	    RETVAL=3
-	fi
+status)
+	echo -n "Status of $DESC service: "
+	status
+	case "$?" in
+		0) echo "not running." ; exit 1 ;;
+		1) echo "running." ; exit 0 ;;
+	esac
 	;;
-    *)
-	echo "Usage: /etc/init.d/nscd {start|stop|reload|force-reload|restart|status}"
-	RETVAL=1
+*)
+	echo "Usage: /etc/init.d/$NAME {start|stop|reload|force-reload|restart|status}" >&2
+	exit 1
 	;;
 esac
-exit $RETVAL
+
