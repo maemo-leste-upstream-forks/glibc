@@ -139,16 +139,10 @@ check_dirs () {
 	do
 	  if test -f "$dir/$lib"; then
 	    libbytes=`head -c 20 $dir/$lib | od -c`
-	    for ld_so in $ld_so_list
-	    do
-	      if test -f "$ld_so"; then
-	        ldbytes=`head -c 20 $ld_so | od -c`
-	        if test "$ldbytes" = "$libbytes"; then
-	          echo "Matching libraries: $dir/$lib $ld_so"
-	          return 0
-	        fi
-	      fi
-	    done
+	    if test "$ldbytes" = "$libbytes"; then
+	      echo "Matching libraries: $dir/$lib"
+	      return 0
+	    fi
 	  fi
 	done
       fi
@@ -159,8 +153,8 @@ check_dirs () {
 
 if [ "$1" != abort-upgrade ]
 then
-  ld_so_list=RTLDLIST
-  dirs="/usr/local/lib /usr/local/lib32 /usr/local/lib64"
+  ldbytes=`head -c 20 RTLD | od -c`
+  dirs="/lib32 /lib64 /usr/local/lib /usr/local/lib32 /usr/local/lib64"
   if ! test -L /usr; then
     dirs="$dirs /usr/lib /usr/lib32 /usr/lib64"
   fi
