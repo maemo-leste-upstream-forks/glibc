@@ -188,8 +188,11 @@ $(stamp)debhelper:
 	  case $$z in \
 	    *.install) \
 	      sed -e "s/^#.*//" -i $$z ; \
+	      if [ -z "$(NPTL)" ] ; then \
+	        sed -i "/^.*nptl.*/d" $$z ; \
+	      fi ; \
 	      if [ $(DEB_HOST_ARCH) != $(DEB_BUILD_ARCH) ]; then \
-	        sed -e "/^.*librpcsvc.a.*/d" $$z ; \
+	        sed -i "/^.*librpcsvc.a.*/d" $$z ; \
 	      fi ; \
 	      ;; \
 	    debian/$(libc).preinst) \
