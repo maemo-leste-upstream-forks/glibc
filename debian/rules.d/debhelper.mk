@@ -186,8 +186,16 @@ $(stamp)debhelper:
 	  sed -e "s#EXIT_CHECK##" -i $$z; \
 	  sed -e "s#DEB_HOST_ARCH#$(DEB_HOST_ARCH)#" -i $$z; \
 	  case $$z in \
-	    *.install) sed -e "s/^#.*//" -i $$z ;; \
-	    debian/$(libc).preinst) l=`LANG=C LC_ALL=C readelf -l debian/tmp-libc/usr/bin/iconv | grep "interpreter" | sed -e 's/.*interpreter: \(.*\)]/\1/g'`; sed -e "s#RTLD#$$l#" -i $$z ;; \
+	    *.install) \
+	      sed -e "s/^#.*//" -i $$z ; \
+	      if [ $(DEB_HOST_ARCH) != $(DEB_BUILD_ARCH) ]; then \
+	        sed -e "/^.*librpcsvc.a.*/d" $$z ; \
+	      fi ; \
+	      ;; \
+	    debian/$(libc).preinst) \
+	      l=`LANG=C LC_ALL=C readelf -l debian/tmp-libc/usr/bin/iconv | grep "interpreter" | sed -e 's/.*interpreter: \(.*\)]/\1/g'`; \
+	      sed -e "s#RTLD#$$l#" -i $$z ; \
+	      ;; \
 	  esac; \
 	done
 
