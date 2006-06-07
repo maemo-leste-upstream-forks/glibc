@@ -21,3 +21,7 @@ endef
 # ld.so is broken currently if z_relro is used.
 libc_extra_config_options := $(extra_config_options) --without-tls libc_cv_z_relro=no
 
+# Build with gcc-4.1 has not been tested.
+CC = gcc-4.0
+BUILD_CC = gcc-4.0
+
