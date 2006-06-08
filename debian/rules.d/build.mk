@@ -83,7 +83,7 @@ $(stamp)check_%: $(stamp)build_%
 	  echo "DEB_BUILD_OPTIONS contains nocheck, skipping tests."; \
 	  echo "Tests have been disabled via DEB_BUILD_OPTIONS." > $(log_test) ; \
 	elif [ $(call xx,configure_build) != $(call xx,configure_target) ] && \
-	     ! $(DEB_BUILDDIR)/libc.so >/dev/null 2>&1 ; then \
+	     ! $(DEB_BUILDDIR)/elf/ld.so >/dev/null 2>&1 ; then \
 	  echo "Cross compiling, skipping tests."; \
 	  echo "Flavour cross-compiled, tests have been skipped." > $(log_test) ; \
 	elif ! $(call kernel_check,$(call xx,MIN_KERNEL_SUPPORTED)); then \
