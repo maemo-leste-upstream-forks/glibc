@@ -81,13 +81,17 @@ $(patsubst %,check_%,$(GLIBC_PASSES)) :: check_% : $(stamp)check_%
 $(stamp)check_%: $(stamp)build_%
 	if [ -n "$(findstring nocheck,$(DEB_BUILD_OPTIONS))" ]; then \
 	  echo "DEB_BUILD_OPTIONS contains nocheck, skipping tests."; \
+	  echo "Tests have been disabled via DEB_BUILD_OPTIONS." > $(log_test) ; \
 	elif [ $(call xx,configure_build) != $(call xx,configure_target) ] && \
 	     ! $(DEB_BUILDDIR)/libc.so >/dev/null 2>&1 ; then \
 	  echo "Cross compiling, skipping tests."; \
+	  echo "Flavour cross-compiled, tests have been skipped." > $(log_test) ; \
 	elif ! $(call kernel_check,$(call xx,MIN_KERNEL_SUPPORTED)); then \
 	  echo "Kernel too old, skipping tests."; \
+	  echo "Kernel too old, tests have been skipped." > $(log_test) ; \
 	elif [ $(call xx,RUN_TESTSUITE) != "yes" ]; then \
 	  echo "Testsuite disabled for $(curpass), skipping tests."; \
+	  echo "Tests have been disabled." > $(log_test) ; \
 	else \
 	  echo Testing $(curpass); \
 	  echo -n "Testsuite started: " | tee -a $(log_test); \
