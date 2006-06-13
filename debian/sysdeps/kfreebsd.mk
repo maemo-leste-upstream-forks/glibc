@@ -28,6 +28,7 @@ $(stamp)mkincludedir:
 	ln -s $(KFREEBSD_HEADERS)/net debian/include
 	ln -s $(KFREEBSD_HEADERS)/netatalk debian/include
 	ln -s $(KFREEBSD_HEADERS)/netipx debian/include
+	ln -s $(KFREEBSD_HEADERS)/nfs debian/include
 	ln -s $(KFREEBSD_HEADERS)/osreldate.h debian/include
 	ln -s $(KFREEBSD_HEADERS)/sys debian/include
 	ln -s $(KFREEBSD_HEADERS)/vm debian/include
