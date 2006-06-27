@@ -3943,7 +3943,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/resource.h sysdeps/unix/bs
 +};
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/sched.h sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sched.h
 --- null/unix/bsd/bsd4.4/kfreebsd/bits/sched.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sched.h	2006-01-02 19:10:54.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sched.h	2006-06-27 07:53:16.000000000 +0200
 @@ -0,0 +1,113 @@
 +/* Definitions of constants and data structure for POSIX 1003.1b-1993
 +   scheduling interface.
@@ -5109,8 +5109,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/socket.h sysdeps/unix/bsd/
 +#endif	/* bits/socket.h */
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/stat16.h sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat16.h
 --- null/unix/bsd/bsd4.4/kfreebsd/bits/stat16.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat16.h	2006-01-27 05:39:47.000000000 +0100
-@@ -0,0 +1,59 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat16.h	2006-06-27 07:53:16.000000000 +0200
+@@ -0,0 +1,56 @@
 +/* Copyright (C) 2002, 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -5145,12 +5145,9 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/stat16.h sysdeps/unix/bsd/
 +
 +    __dev_t st_rdev;		/* Device number, if device.  */
 +
-+    long int st_atime;		/* Time of last access.  */
-+    long int st_atimensec;	/* Nanoseconds of last access.  */
-+    long int st_mtime;		/* Time of last modification.  */
-+    long int st_mtimensec;	/* Nanoseconds of last modification.  */
-+    long int st_ctime;		/* Time of last status change.  */
-+    long int st_ctimensec;	/* Nanoseconds of last status change.  */
++    struct  timespec st_atimespec;  /* time of last access */
++    struct  timespec st_mtimespec;  /* time of last data modification */
++    struct  timespec st_ctimespec;  /* time of last file status change */
 +
 +    __off_t st_size;		/* Size of file, in bytes.  */
 +
@@ -5267,8 +5264,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/statfs.h sysdeps/unix/bsd/
 +#endif /* _BITS_STATFS_H */
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/stat.h sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h
 --- null/unix/bsd/bsd4.4/kfreebsd/bits/stat.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h	2006-02-04 17:53:29.000000000 +0100
-@@ -0,0 +1,168 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h	2006-06-27 07:53:16.000000000 +0200
+@@ -0,0 +1,198 @@
 +/* Copyright (C) 1992, 1996-1997, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -5322,12 +5319,27 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/stat.h sysdeps/unix/bsd/bs
 +
 +    __dev_t st_rdev;		/* Device number, if device.  */
 +
++#ifdef __USE_MISC
++    /* Nanosecond resolution timestamps are stored in a format
++       equivalent to 'struct timespec'.  This is the type used
++       whenever possible but the Unix namespace rules do not allow the
++       identifier 'timespec' to appear in the <sys/stat.h> header.
++       Therefore we have to handle the use of this header in strictly
++       standard-compliant sources special.  */
++    struct timespec st_atim;		/* Time of last access.  */
++    struct timespec st_mtim;		/* Time of last modification.  */
++    struct timespec st_ctim;		/* Time of last status change.  */
++# define st_atime st_atim.tv_sec	/* Backward compatibility.  */
++# define st_mtime st_mtim.tv_sec
++# define st_ctime st_ctim.tv_sec
++#else
 +    __time_t st_atime;		/* Time of last access.  */
 +    long int st_atimensec;	/* Nanoseconds of last access.  */
 +    __time_t st_mtime;		/* Time of last modification.  */
 +    long int st_mtimensec;	/* Nanoseconds of last modification.  */
 +    __time_t st_ctime;		/* Time of last status change.  */
 +    long int st_ctimensec;	/* Nanoseconds of last status change.  */
++#endif
 +
 +    __off_t st_size;		/* Size of file, in bytes.  */
 +
@@ -5357,12 +5369,27 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/stat.h sysdeps/unix/bsd/bs
 +
 +    __dev_t st_rdev;		/* Device number, if device.  */
 +
++#ifdef __USE_MISC
++    /* Nanosecond resolution timestamps are stored in a format
++       equivalent to 'struct timespec'.  This is the type used
++       whenever possible but the Unix namespace rules do not allow the
++       identifier 'timespec' to appear in the <sys/stat.h> header.
++       Therefore we have to handle the use of this header in strictly
++       standard-compliant sources special.  */
++    struct timespec st_atim;		/* Time of last access.  */
++    struct timespec st_mtim;		/* Time of last modification.  */
++    struct timespec st_ctim;		/* Time of last status change.  */
++# define st_atime st_atim.tv_sec	/* Backward compatibility.  */
++# define st_mtime st_mtim.tv_sec
++# define st_ctime st_ctim.tv_sec
++#else
 +    __time_t st_atime;		/* Time of last access.  */
 +    long int st_atimensec;	/* Nanoseconds of last access.  */
 +    __time_t st_mtime;		/* Time of last modification.  */
 +    long int st_mtimensec;	/* Nanoseconds of last modification.  */
 +    __time_t st_ctime;		/* Time of last status change.  */
 +    long int st_ctimensec;	/* Nanoseconds of last status change.  */
++#endif
 +
 +    __off_t st_size;		/* Size of file, in bytes.  */
 +
@@ -6214,7 +6241,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/clock_settime.c sysdeps/unix/bs
 +#include <sysdeps/unix/clock_settime.c>
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/clone.c sysdeps/unix/bsd/bsd4.4/kfreebsd/clone.c
 --- null/unix/bsd/bsd4.4/kfreebsd/clone.c	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/clone.c	2006-01-02 19:10:55.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/clone.c	2006-06-27 07:53:16.000000000 +0200
 @@ -0,0 +1,105 @@
 +/* Create a thread.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -13617,10 +13644,10 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/nfs/nfs.h sysdeps/unix/bsd/bsd4
 +#include <nfs/nfsproto.h>
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/not-cancel.h sysdeps/unix/bsd/bsd4.4/kfreebsd/not-cancel.h
 --- null/unix/bsd/bsd4.4/kfreebsd/not-cancel.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/not-cancel.h	2006-01-02 19:10:55.000000000 +0100
-@@ -0,0 +1,53 @@
-+/* Uncancelable versions of cancelable interfaces.  Linux version.
-+   Copyright (C) 2003 Free Software Foundation, Inc.
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/not-cancel.h	2006-06-27 07:53:16.000000000 +0200
+@@ -0,0 +1,76 @@
++/* Uncancelable versions of cancelable interfaces.  kFreeBSD version.
++   Copyright (C) 2003, 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
 +
@@ -13639,6 +13666,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/not-cancel.h sysdeps/unix/bsd/b
 +   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 +   02111-1307 USA.  */
 +
++#include <sys/types.h>
 +#include <sysdep.h>
 +
 +/* Uncancelable open.  */
@@ -13646,6 +13674,28 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/not-cancel.h sysdeps/unix/bsd/b
 +   INLINE_SYSCALL (open, 3, (const char *) (name), (flags), (mode))
 +#define open_not_cancel_2(name, flags) \
 +   INLINE_SYSCALL (open, 2, (const char *) (name), (flags))
++
++/* Uncancelable openat.  */
++#if !defined NOT_IN_libc || defined IS_IN_libpthread || defined IS_IN_librt
++extern int __openat_nocancel (int fd, const char *fname, int oflag,
++			      mode_t mode) attribute_hidden;
++extern int __openat64_nocancel (int fd, const char *fname, int oflag,
++				mode_t mode) attribute_hidden;
++#else
++# define __openat_nocancel(fd, fname, oflag, mode) \
++  openat (fd, fname, oflag, mode)
++# define __openat64_nocancel(fd, fname, oflag, mode) \
++  openat64 (fd, fname, oflag, mode)
++#endif
++
++#define openat_not_cancel(fd, fname, oflag, mode) \
++  __openat_nocancel (fd, fname, oflag, mode)
++#define openat_not_cancel_3(fd, fname, oflag) \
++  __openat_nocancel (fd, fname, oflag, 0)
++#define openat64_not_cancel(fd, fname, oflag, mode) \
++  __openat64_nocancel (fd, fname, oflag, mode)
++#define openat64_not_cancel_3(fd, fname, oflag) \
++  __openat64_nocancel (fd, fname, oflag, 0)
 +
 +/* Uncancelable close.  */
 +#define close_not_cancel(fd) \
@@ -13744,6 +13794,107 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/open64.c sysdeps/unix/bsd/bsd4.
 @@ -0,0 +1,2 @@
 +/* 'open64' is the same as 'open', because __off64_t == __off_t and
 +   O_LARGEFILE == 0.  */
+diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/openat64.c sysdeps/unix/bsd/bsd4.4/kfreebsd/openat64.c
+--- null/unix/bsd/bsd4.4/kfreebsd/openat64.c	1970-01-01 01:00:00.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/openat64.c	2006-06-27 07:53:16.000000000 +0200
+@@ -0,0 +1,2 @@
++/* 'openat64' is the same as 'open', because __off64_t == __off_t and
++   O_LARGEFILE == 0.  */
+diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/openat.c sysdeps/unix/bsd/bsd4.4/kfreebsd/openat.c
+--- null/unix/bsd/bsd4.4/kfreebsd/openat.c	1970-01-01 01:00:00.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/openat.c	2006-06-27 07:53:16.000000000 +0200
+@@ -0,0 +1,91 @@
++/* Copyright (C) 2005, 2006 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stdarg.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <string.h>
++#include <sys/stat.h>
++#include <kernel-features.h>
++#include <sysdep-cancel.h>
++#include <not-cancel.h>
++
++int
++__openat_nocancel (fd, file, oflag, mode)
++     int fd;
++     const char *file;
++     int oflag;
++     mode_t mode;
++{
++  if (fd != AT_FDCWD && file[0] != '/')
++    {
++      /* Check FD is associated with a directory.  */
++      struct stat64 st;
++      if (__fxstat64 (_STAT_VER, fd, &st) != 0)
++	/* errno is already set correctly.  */ 
++        return -1;
++
++      if (!S_ISDIR (st.st_mode))
++	__set_errno (ENOTDIR);
++      else
++	__set_errno (ENOSYS);	
++      return -1;
++    }
++  return INLINE_SYSCALL (open, 3, file, oflag, mode);
++}
++
++
++/* Open FILE with access OFLAG.  Interpret relative paths relative to
++   the directory associated with FD.  If OFLAG includes O_CREAT, a
++   third argument is the file protection.  */
++int
++__openat (fd, file, oflag)
++     int fd;
++     const char *file;
++     int oflag;
++{
++  mode_t mode = 0;
++  if (oflag & O_CREAT)
++    {
++      va_list arg;
++      va_start (arg, oflag);
++      mode = va_arg (arg, int);
++      va_end (arg);
++    }
++
++  if (SINGLE_THREAD_P)
++    return __openat_nocancel (fd, file, oflag, mode);
++
++  int oldtype = LIBC_CANCEL_ASYNC ();
++
++  int res = __openat_nocancel (fd, file, oflag, mode);
++
++  LIBC_CANCEL_RESET (oldtype);
++
++  return res;
++}
++libc_hidden_def (__openat)
++weak_alias (__openat, openat)
++
++/* openat64 is just the same as openat for us.  */
++strong_alias (__openat, __openat64)
++strong_alias (__openat_nocancel, __openat64_nocancel)
++libc_hidden_weak (__openat64)
++weak_alias (__openat64, openat64)
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/open.c sysdeps/unix/bsd/bsd4.4/kfreebsd/open.c
 --- null/unix/bsd/bsd4.4/kfreebsd/open.c	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/open.c	2006-03-18 17:31:11.000000000 +0100
@@ -14096,8 +14247,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/ptrace.c sysdeps/unix/bsd/bsd4.
 +}
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/ptsname.c sysdeps/unix/bsd/bsd4.4/kfreebsd/ptsname.c
 --- null/unix/bsd/bsd4.4/kfreebsd/ptsname.c	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/ptsname.c	2006-02-23 19:25:25.000000000 +0100
-@@ -0,0 +1,112 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/ptsname.c	2006-06-27 07:53:16.000000000 +0200
+@@ -0,0 +1,104 @@
 +/* Copyright (C) 1998, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -14152,7 +14303,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/ptsname.c sysdeps/unix/bsd/bsd4
 +{
 +  int saved_errno = errno;
 +  struct stat64 st;
-+  unsigned int ptyno;
 +  char *p;
 +
 +  if (buf == NULL)
@@ -14168,13 +14318,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/ptsname.c sysdeps/unix/bsd/bsd4
 +
 +  /* Check if FD really is a master pseudo terminal.  */
 +  if (!(S_ISCHR (st.st_mode)))
-+    {
-+      __set_errno (ENOTTY);
-+      return ENOTTY;
-+    }
-+
-+  ptyno = (unsigned int) minor (st.st_rdev);
-+  if (ptyno / 32 >= strlen (__libc_ptyname1))
 +    {
 +      __set_errno (ENOTTY);
 +      return ENOTTY;
@@ -15007,8 +15150,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/sleep.c sysdeps/unix/bsd/bsd4.4
 +weak_alias (__sleep, sleep)
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/stat16conv.c sysdeps/unix/bsd/bsd4.4/kfreebsd/stat16conv.c
 --- null/unix/bsd/bsd4.4/kfreebsd/stat16conv.c	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/stat16conv.c	2006-01-27 05:39:47.000000000 +0100
-@@ -0,0 +1,83 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/stat16conv.c	2006-06-27 07:53:16.000000000 +0200
+@@ -0,0 +1,77 @@
 +/* Convert between different 'struct stat' formats.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -15050,12 +15193,9 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/stat16conv.c sysdeps/unix/bsd/b
 +  q->st_uid = p16->st_uid;
 +  q->st_gid = p16->st_gid;
 +  q->st_rdev = p16->st_rdev;
-+  q->st_atime = p16->st_atime;
-+  q->st_atimensec = p16->st_atimensec;
-+  q->st_mtime = p16->st_mtime;
-+  q->st_mtimensec = p16->st_mtimensec;
-+  q->st_ctime = p16->st_ctime;
-+  q->st_ctimensec = p16->st_ctimensec;
++  q->st_atim = p16->st_atimespec;
++  q->st_mtim = p16->st_mtimespec;
++  q->st_ctim = p16->st_ctimespec;
 +  q->st_size = p16->st_size;
 +  q->st_blocks = p16->st_blocks;
 +  q->st_blksize = p16->st_blksize;
@@ -15077,12 +15217,9 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/stat16conv.c sysdeps/unix/bsd/b
 +  q->st_uid = p16->st_uid;
 +  q->st_gid = p16->st_gid;
 +  q->st_rdev = p16->st_rdev;
-+  q->st_atime = p16->st_atime;
-+  q->st_atimensec = p16->st_atimensec;
-+  q->st_mtime = p16->st_mtime;
-+  q->st_mtimensec = p16->st_mtimensec;
-+  q->st_ctime = p16->st_ctime;
-+  q->st_ctimensec = p16->st_ctimensec;
++  q->st_atim = p16->st_atimespec;
++  q->st_mtim = p16->st_mtimespec;
++  q->st_ctim = p16->st_ctimespec;
 +  q->st_size = p16->st_size;
 +  q->st_blocks = p16->st_blocks;
 +  q->st_blksize = p16->st_blksize;
