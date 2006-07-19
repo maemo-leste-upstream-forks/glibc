@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+export LC_ALL=C
+
+if [ "$1" = "configure" ]; then
+	[ -d /usr/lib/locale ] || mkdir /usr/lib/locale
+	tmpdir=$(mktemp -d /tmp/locales.XXXXXXXXXX)
+	tar zxf /usr/lib/locales-all/supported.tar.gz -C "$tmpdir"
+	localedef --add-to-archive "$tmpdir"/*
+	rm -rf "$tmpdir"
+fi
+
+#DEBHELPER#
+
+exit 0
+
