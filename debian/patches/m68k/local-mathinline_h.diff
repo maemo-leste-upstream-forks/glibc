@@ -1,43 +1,69 @@
-diff -urN libc.orig/sysdeps/m68k/fpu/bits/mathinline.h libc/sysdeps/m68k/fpu/bits/mathinline.h
---- libc.orig/sysdeps/m68k/fpu/bits/mathinline.h	2006-06-02 13:36:36.923649683 +0200
-+++ libc/sysdeps/m68k/fpu/bits/mathinline.h	2006-06-02 13:40:12.155695178 +0200
-@@ -20,6 +20,39 @@
+diff -urN glibc-2.3.6.original/sysdeps/m68k/fpu/bits/mathinline.h glibc-2.3.6/sysdeps/m68k/fpu/bits/mathinline.h
+--- glibc-2.3.6.original/sysdeps/m68k/fpu/bits/mathinline.h	2004-10-09 23:18:03.000000000 +0200
++++ glibc-2.3.6/sysdeps/m68k/fpu/bits/mathinline.h	2006-07-09 00:31:17.000000000 +0200
+@@ -18,6 +18,22 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
  
++/* To work around a bug in the __THROW macro in <sys/cdefs.h> */
++#ifdef __THROW
++# undef __THROW
++#endif
++
++#ifndef __THROW
++# ifndef __GNUC_PREREQ
++#  define __GNUC_PREREQ(maj, min) (0)
++# endif
++# if defined __cplusplus && __GNUC_PREREQ (2,8)
++#  define __THROW       throw ()
++# else
++#  define __THROW
++# endif
++#endif
++
  #ifdef	__GNUC__
  
-+#ifdef __GNUC__
-+
-+/* GCC can always grok prototypes.  For C++ programs we add throw()
-+ *    to help it optimize the function calls.  But this works only with
-+ *       gcc 2.8.x and egcs.  For gcc 3.2 and up we even mark C functions
-+ *          as non-throwing using a function attribute since programs can use
-+ *             the -fexceptions options for C code as well.  */
-+# if !defined __cplusplus && __GNUC_PREREQ (3, 3)
-+#  define __THROW       __attribute__ ((__nothrow__))
-+#  define __NTH(fct)    __attribute__ ((__nothrow__)) fct
-+# else
-+#  if defined __cplusplus && __GNUC_PREREQ (2,8)
-+#   define __THROW      throw ()
-+#   define __NTH(fct)   fct throw ()
-+#  else
-+#   define __THROW
-+#   define __NTH(fct)   fct
-+#  endif
-+# endif
-+
-+#else   /* Not GCC.  */
-+
-+# define __inline               /* No inline functions.  */
-+
-+# define __THROW
-+# define __NTH(fct)     fct
-+
-+# define __const        const
-+# define __signed       signed
-+# define __volatile     volatile
-+
-+#endif  /* GCC.  */
-+
  #ifdef __USE_ISOC99
- /* GCC 3.1 and up have builtins that actually can be used.  */
- # if !__GNUC_PREREQ (3,1)
+@@ -100,7 +116,7 @@
+ /* Define a const math function.  */
+ #define __m81_defun(rettype, func, args)				      \
+   __m81_inline rettype __attribute__((__const__))			      \
+-  __m81_u(func) args
++  __m81_u(func) args __THROW
+ 
+ /* Define the three variants of a math function that has a direct
+    implementation in the m68k fpu.  FUNC is the name for C (which will be
+@@ -314,7 +330,7 @@
+ 									  \
+ __m81_inline float_type							  \
+ __m81_u(__CONCAT(__fma,s))(float_type __x, float_type __y,		  \
+-			   float_type __z)				  \
++			   float_type __z) __THROW			  \
+ {									  \
+   return (__x * __y) + __z;						  \
+ }
+@@ -331,7 +347,7 @@
+ # define __inline_functions(float_type, s)				\
+ __m81_inline void							\
+ __m81_u(__CONCAT(__sincos,s))(float_type __x, float_type *__sinx,	\
+-			      float_type *__cosx)			\
++			      float_type *__cosx) __THROW		\
+ {									\
+   __asm ("fsincos%.x %2,%1:%0"						\
+ 	 : "=f" (*__sinx), "=f" (*__cosx) : "f" (__x));			\
+@@ -352,13 +368,13 @@
+    NAME, to make token pasting work correctly with -traditional.  */
+ # define __inline_forward_c(rettype, name, args1, args2)	\
+ extern __inline rettype __attribute__((__const__))		\
+-  name args1							\
++  name args1 __THROW						\
+ {								\
+   return __CONCAT(__,name) args2;				\
+ }
+ 
+ # define __inline_forward(rettype, name, args1, args2)	\
+-extern __inline rettype name args1			\
++extern __inline rettype name args1 __THROW		\
+ {							\
+   return __CONCAT(__,name) args2;			\
+ }
