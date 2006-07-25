@@ -11836,8 +11836,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/init-first.c sysdeps/unix/bsd/b
 +}
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/kernel-features.h sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-features.h
 --- null/unix/bsd/bsd4.4/kfreebsd/kernel-features.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-features.h	2006-01-03 22:12:22.000000000 +0100
-@@ -0,0 +1,40 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-features.h	2006-07-25 02:21:10.000000000 +0200
+@@ -0,0 +1,43 @@
 +/* Set flags signalling availability of kernel features based on given
 +   kernel version number.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -11877,6 +11877,9 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/kernel-features.h sysdeps/unix/
 +
 +/* No real-time signals in FreeBSD 5.x or 6.x.  */
 +#define __ASSUME_REALTIME_SIGNALS	0
++
++/* Use signals #32, #33, #34 for internal linuxthreads communication */
++#define PTHREAD_SIGBASE 32
 +
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/ldconfig.h sysdeps/unix/bsd/bsd4.4/kfreebsd/ldconfig.h
 --- null/unix/bsd/bsd4.4/kfreebsd/ldconfig.h	1970-01-01 01:00:00.000000000 +0100
@@ -15662,8 +15665,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/statvfs.c sysdeps/unix/bsd/bsd4
 +libc_hidden_weak (statvfs)
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/sys/kd.h sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/kd.h
 --- null/unix/bsd/bsd4.4/kfreebsd/sys/kd.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/kd.h	2006-01-02 19:10:54.000000000 +0100
-@@ -0,0 +1,24 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/kd.h	2006-07-25 02:21:10.000000000 +0200
+@@ -0,0 +1,25 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -15686,6 +15689,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/sys/kd.h sysdeps/unix/bsd/bsd4.
 +#define _SYS_KD_H	1
 +
 +#include <sys/consio.h>
++#include <sys/kbio.h>
 +
 +#endif	/* sys/kd.h */
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/sys/ktrace.h sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ktrace.h
@@ -15878,7 +15882,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/sys/ktrace.h sysdeps/unix/bsd/b
 +#endif /* _SYS_KTRACE_H */
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/sys/mount.h sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h
 --- null/unix/bsd/bsd4.4/kfreebsd/sys/mount.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h	2006-01-14 23:17:06.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h	2006-07-25 02:21:10.000000000 +0200
 @@ -0,0 +1,438 @@
 +/* Header file for handling mounted filesystems.  FreeBSD version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -15907,7 +15911,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/sys/mount.h sysdeps/unix/bsd/bs
 +/* Retrieving the list of mounted filesystems.  */
 +
 +#include <bits/statfs.h>
-+
++#include <rpc/types.h>
 +#include <sys/ucred.h>
 +#include <sys/queue.h>
 +
@@ -17440,8 +17444,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h sysdeps/unix/
 +#endif
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/syscalls.list sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
 --- null/unix/bsd/bsd4.4/kfreebsd/syscalls.list	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list	2006-03-20 09:32:48.000000000 +0100
-@@ -0,0 +1,151 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list	2006-07-25 02:21:10.000000000 +0200
+@@ -0,0 +1,153 @@
 +# File name	Caller	Syscall name		# args	Strong name	Weak names
 +
 +acl_aclcheck_fd	-	acl_aclcheck_fd		i:iip	__acl_aclcheck_fd
@@ -17593,6 +17597,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/syscalls.list sysdeps/unix/bsd/
 +swapoff		-	swapoff			i:s	swapoff
 +getcontext	-	getcontext		i:p	__getcontext	getcontext
 +setcontext	-	setcontext		i:p	__setcontext	setcontext
++kqueue		EXTRA	kqueue			i:	__kqueue	kqueue
++kevent		EXTRA	kevent			i:ipipip	__kevent	kevent
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/sysconf.c sysdeps/unix/bsd/bsd4.4/kfreebsd/sysconf.c
 --- null/unix/bsd/bsd4.4/kfreebsd/sysconf.c	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/sysconf.c	2006-01-16 01:49:07.000000000 +0100
@@ -18726,8 +18732,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/utmp-utmpx/utmp_file.c sysdeps/
 +#include <sysdeps/unix/sysv/linux/utmp_file.c>
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/Versions sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions
 --- null/unix/bsd/bsd4.4/kfreebsd/Versions	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions	2006-03-20 09:32:48.000000000 +0100
-@@ -0,0 +1,102 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions	2006-07-25 02:21:10.000000000 +0200
+@@ -0,0 +1,103 @@
 +libc {
 +  # The comment lines with "#errlist-compat" are magic; see errlist-compat.awk.
 +  # When you get an error from errlist-compat.awk, you need to add a new
@@ -18803,6 +18809,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/Versions sysdeps/unix/bsd/bsd4.
 +  GLIBC_2.3.4 {
 +    # f*
 +    fhstat64; fhstatfs64;
++    kqueue; kevent;
 +    
 +    #errlist-compat     93
 +    _sys_errlist; sys_errlist; _sys_nerr; sys_nerr;
@@ -21748,16 +21755,6 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile linuxthreads/s
 +ifeq ($(subdir),linuxthreads)
 +sysdep_routines += register-atfork unregister-atfork
 +endif
-diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/pthread_sig.h linuxthreads/sysdeps/unix/bsd/bsd4.4/kfreebsd/pthread_sig.h
---- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/pthread_sig.h	1970-01-01 01:00:00.000000000 +0100
-+++ linuxthreads/sysdeps/unix/bsd/bsd4.4/kfreebsd/pthread_sig.h	2006-01-17 15:02:29.000000000 +0100
-@@ -0,0 +1,6 @@
-+/* Signal numbers used for the communication. */
-+                                          
-+int __pthread_sig_restart = 32;
-+int __pthread_sig_cancel  = 33;
-+int __pthread_sig_debug   = 34;
-+
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/pt-sigsuspend.S linuxthreads/sysdeps/unix/bsd/bsd4.4/kfreebsd/pt-sigsuspend.S
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/pt-sigsuspend.S	1970-01-01 01:00:00.000000000 +0100
 +++ linuxthreads/sysdeps/unix/bsd/bsd4.4/kfreebsd/pt-sigsuspend.S	2006-01-10 15:22:18.000000000 +0100
