@@ -151,14 +151,17 @@ $(stamp)install_%: $(stamp)check_%
 	  ln -sf /lib/tls/librt.so.1 debian/tmp-libc/usr/lib/nptl/; \
 	fi
 
-	# Create the multidir directories, and the symlinks in /lib/ldconfig
+	# Create the multidir directories, and the configuration file in /etc/ld.so.conf.d
 	if [ $(curpass) = libc ]; then \
-	  mkdir -p debian/tmp-$(curpass)/lib/ldconfig; \
+	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \
 	  machine=`sed '/^ *config-machine *=/!d;s/.*= *//g' $(DEB_BUILDDIR)/config.make`; \
 	  os=`sed '/^ *config-os *=/!d;s/.*= *//g' $(DEB_BUILDDIR)/config.make`; \
-	  mkdir -p debian/tmp-$(curpass)/lib/$$machine-$$os debian/tmp-$(curpass)/usr/lib/$$machine-$$os; \
-	  ln -s /lib/$$machine-$$os debian/tmp-$(curpass)/lib/ldconfig/$$machine-$$os-lib; \
-	  ln -s /usr/lib/$$machine-$$os debian/tmp-$(curpass)/lib/ldconfig/$$machine-$$os-usr-lib; \
+	  triplet="$$machine-$$os"; \
+	  mkdir -p debian/tmp-$(curpass)/lib/$$triplet debian/tmp-$(curpass)/usr/lib/$$triplet; \
+	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/$$triplet.conf"; \
+	  echo "# Multiarch support" > $$conffile; \
+	  echo /lib/$$triplet >> $$conffile; \
+	  echo /usr/lib/$$triplet >> $$conffile; \
 	fi
 	 
 	$(call xx,extra_install)
