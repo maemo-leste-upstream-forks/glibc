@@ -25,3 +25,5 @@ libc_extra_config_options := $(extra_config_options) --without-tls libc_cv_z_rel
 CC = gcc-4.0
 BUILD_CC = gcc-4.0
 
+# disabled because the testsuite is known to provoke build abortions.
+RUN_TESTSUITE = no
