@@ -1,0 +1,26 @@
+Submitted as BZ3013
+
+The right fix is to replace
+   iov[2 + elem + offset].iov_len = 1 + (4 - ((total + 1) % 4));
+   total += 1 + (4 - ((total + 1) % 4));
+by
+   iov[2 + elem + offset].iov_len = 4 - total % 4;
+   total += iov[2 + elem + offset].iov_len;
+This will modify LC_CTYPE contents (but should be compatible),
+so enlarge nulbytes in this patch to be very conservative.
+
+This off-by-one error occurs only with fa_IR locale.
+
+Index: glibc-2.3.6/locale/programs/ld-ctype.c
+===================================================================
+--- glibc-2.3.6.orig/locale/programs/ld-ctype.c
++++ glibc-2.3.6/locale/programs/ld-ctype.c
+@@ -883,7 +883,7 @@
+ ctype_output (struct localedef_t *locale, const struct charmap_t *charmap,
+ 	      const char *output_path)
+ {
+-  static const char nulbytes[4] = { 0, 0, 0, 0 };
++  static const char nulbytes[5] = { 0, 0, 0, 0, 0 };
+   struct locale_ctype_t *ctype = locale->categories[LC_CTYPE].ctype;
+   const size_t nelems = (_NL_ITEM_INDEX (_NL_CTYPE_EXTRA_MAP_1)
+ 			 + ctype->nr_charclass + ctype->map_collection_nr);
