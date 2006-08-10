@@ -4,9 +4,12 @@ export LC_ALL=C
 
 if [ "$1" = "configure" ]; then
 	[ -d /usr/lib/locale ] || mkdir /usr/lib/locale
+	#  Remove existing locales, otherwise localedef does not
+	#  overwrite them and exits with a non-null value
+	rm -f /usr/lib/locale/locale-archive 2>/dev/null || true
 	tmpdir=$(mktemp -d /tmp/locales.XXXXXXXXXX)
 	tar zxf /usr/lib/locales-all/supported.tar.gz -C "$tmpdir"
-	localedef --add-to-archive "$tmpdir"/*
+	localedef --quiet --add-to-archive "$tmpdir"/*
 	rm -rf "$tmpdir"
 fi
 
