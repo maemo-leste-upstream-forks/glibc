@@ -1,15 +1,20 @@
 Submitted as BZ3013
 
-The right fix is to replace
-   iov[2 + elem + offset].iov_len = 1 + (4 - ((total + 1) % 4));
-   total += 1 + (4 - ((total + 1) % 4));
-by
-   iov[2 + elem + offset].iov_len = 4 - total % 4;
-   total += iov[2 + elem + offset].iov_len;
-This will modify LC_CTYPE contents (but should be compatible),
-so enlarge nulbytes in this patch to be very conservative.
+This patch by Richard Sandiford is the most conservative one of his two
+patches.  There is one difference though:
+  iov[2 + cnt].iov_len = -idx[last_idx] & 3;
+in his original patch has been replaced by
+  iov[2 + cnt].iov_len = ((idx[last_idx] + 3) & ~3) - idx[last_idx];
+which is more readable, and ld-time.c already contains several occurences
+of this expression.
 
-This off-by-one error occurs only with fa_IR locale.
+2006-08-09  Richard Sandiford  <richard@codesourcery.com>
+
+	* locale/programs/ld-ctype.c (ctype_output): Add an extra element to
+	nulbytes[].  Fix the setting of iov_len for _NL_CTYPE_DEFAULT_MISSING,
+	turning it from a wide character count into a byte count.
+	(allocate_arrays): Don't pass out-of-range values to _ISbit().
+	* locale/programs/ld-time.c (time_output): Align _NL_W_DATE_FMT.
 
 Index: glibc-2.3.6/locale/programs/ld-ctype.c
 ===================================================================
@@ -24,3 +29,61 @@ Index: glibc-2.3.6/locale/programs/ld-ctype.c
    struct locale_ctype_t *ctype = locale->categories[LC_CTYPE].ctype;
    const size_t nelems = (_NL_ITEM_INDEX (_NL_CTYPE_EXTRA_MAP_1)
  			 + ctype->nr_charclass + ctype->map_collection_nr);
+@@ -1155,7 +1155,7 @@
+ 	    iov[2 + elem + offset].iov_base =
+ 	      ctype->default_missing ?: (uint32_t *) L"";
+ 	    iov[2 + elem + offset].iov_len =
+-	      wcslen (iov[2 + elem + offset].iov_base);
++	      wcslen (iov[2 + elem + offset].iov_base) * sizeof (uint32_t);
+ 	    idx[elem + 1] = idx[elem] + iov[2 + elem + offset].iov_len;
+ 	    break;
+ 
+@@ -3846,9 +3846,10 @@
+     {
+       ctype->class_b[nr] = (uint32_t *) xcalloc (256 / 32, sizeof (uint32_t));
+ 
+-      for (idx = 0; idx < 256; ++idx)
+-	if (ctype->class256_collection[idx] & _ISbit (nr))
+-	  ctype->class_b[nr][idx >> 5] |= (uint32_t)1 << (idx & 0x1f);
++      if (nr <= 11)
++	for (idx = 0; idx < 256; ++idx)
++	  if (ctype->class256_collection[idx] & _ISbit (nr))
++	    ctype->class_b[nr][idx >> 5] |= (uint32_t)1 << (idx & 0x1f);
+     }
+ 
+   for (nr = 0; nr < ctype->nr_charclass; nr++)
+Index: glibc-2.3.6/locale/programs/ld-time.c
+===================================================================
+--- glibc-2.3.6.orig/locale/programs/ld-time.c
++++ glibc-2.3.6/locale/programs/ld-time.c
+@@ -532,7 +532,7 @@
+ 			      * (2 + _NL_ITEM_INDEX (_NL_NUM_LC_TIME)
+ 				 + time->num_era - 1
+ 				 + 2 * 99
+-				 + 2 + time->num_era * 10 - 1));
++				 + 2 + time->num_era * 10));
+   struct locale_file data;
+   uint32_t idx[_NL_ITEM_INDEX (_NL_NUM_LC_TIME)];
+   size_t cnt, last_idx, num, n;
+@@ -891,6 +891,12 @@
+   ++cnt;
+   ++last_idx;
+ 
++  /* We must align the following data.  */
++  iov[2 + cnt].iov_base = (void *) "\0\0";
++  iov[2 + cnt].iov_len = ((idx[last_idx] + 3) & ~3) - idx[last_idx];
++  idx[last_idx] = (idx[last_idx] + 3) & ~3;
++  ++cnt;
++
+   iov[2 + cnt].iov_base = (void *) time->wdate_fmt;
+   iov[2 + cnt].iov_len = ((wcslen (iov[2 + cnt].iov_base) + 1)
+                           * sizeof (uint32_t));
+@@ -906,7 +912,7 @@
+   assert (cnt == (_NL_ITEM_INDEX (_NL_NUM_LC_TIME)
+ 		  + time->num_era - 1
+ 		  + 2 * 99
+-		  + 2 + time->num_era * 10 - 1));
++		  + 2 + time->num_era * 10));
+   assert (last_idx  == _NL_ITEM_INDEX (_NL_NUM_LC_TIME));
+ 
+   write_locale_data (output_path, LC_TIME, "LC_TIME", 2 + cnt, iov);
