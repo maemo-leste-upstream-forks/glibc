@@ -1,5 +1,6 @@
 # NPTL Config
 GLIBC_PASSES += nptl
+nptl_configure_build=s390-linux
 
 # build 64-bit (s390x) alternative library
 GLIBC_PASSES += s390x

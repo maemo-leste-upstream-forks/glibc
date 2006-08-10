@@ -1,5 +1,6 @@
 # NPTL Config
 GLIBC_PASSES += nptl
+nptl_configure_build=powerpc-linux
 
 # build 64-bit (ppc64) alternative library
 GLIBC_PASSES += ppc64
