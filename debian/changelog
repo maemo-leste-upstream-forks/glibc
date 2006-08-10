@@ -1,12 +1,16 @@
 glibc (2.3.6-20) UNRELEASED; urgency=low
 
   [ Denis Barbier ]
-  * New all/submitted-uninitialized-byte-LC_CTYPE.diff patch to fix an
-    uninitialized byte in LC_CTYPE locale file.
+  * New all/submitted-uninitialized-byte-LC_CTYPE.diff patch to fix
+    uninitialized bytes or misaligned words in locale files.
   * debian/debhelper.in/locales-all.postinst: Make localedef silent, and
     fix an error, this script could not be run more than once.
   * debian/debhelper.in/locales-all.prerm: New file, to remove
-    /usr/lib/locale/locale-archive.  Closes: #382136  Thanks Lars Wirzenius
+    /usr/lib/locale/locale-archive.  Thanks Lars Wirzenius.
+    (Closes: #382136)
+  * debian/debhelper.in/locales.postinst: Pass --no-checks to update-locale
+    to not break installation of this package even if non working locales
+    are selected.  Thanks Robert Millan.  (Closes: #365628)
 
   [ Aurelien Jarno ]
   * sysdeps/{powerpc,s390,ia64}.mk: make the NPTL version buildable on 2.4
