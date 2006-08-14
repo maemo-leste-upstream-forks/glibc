@@ -1,0 +1,78 @@
+diff -Nurd glibc-2.3.6.orig/linuxthreads/sysdeps/unix/sysv/linux/smp.h glibc-2.3.6/linuxthreads/sysdeps/unix/sysv/linux/smp.h
+--- glibc-2.3.6.orig/linuxthreads/sysdeps/unix/sysv/linux/smp.h	2002-09-08 22:37:11.000000000 +0200
++++ glibc-2.3.6/linuxthreads/sysdeps/unix/sysv/linux/smp.h	2006-08-14 21:59:40.527190466 +0200
+@@ -25,24 +25,17 @@
+ static inline int
+ is_smp_system (void)
+ {
+-  static const int sysctl_args[] = { CTL_KERN, KERN_VERSION };
+   char buf[512];
+   size_t reslen = sizeof (buf);
+ 
+-  /* Try reading the number using `sysctl' first.  */
+-  if (__sysctl ((int *) sysctl_args,
+-		sizeof (sysctl_args) / sizeof (sysctl_args[0]),
+-		buf, &reslen, NULL, 0) < 0)
+-    {
+-      /* This was not successful.  Now try reading the /proc filesystem.  */
+-      int fd = __open ("/proc/sys/kernel/version", O_RDONLY);
+-      if (__builtin_expect (fd, 0) == -1
+-	  || (reslen = __read (fd, buf, sizeof (buf))) <= 0)
+-	/* This also didn't work.  We give up and say it's a UP machine.  */
+-	buf[0] = '\0';
++  /* Try reading the /proc filesystem first.  */
++  int fd = __open ("/proc/sys/kernel/version", O_RDONLY);
++  if (__builtin_expect (fd, 0) == -1
++      || (reslen = __read (fd, buf, sizeof (buf))) <= 0)
++    /* This didn't work.  We give up and say it's a UP machine.  */
++    buf[0] = '\0';
+ 
+-      __close (fd);
+-    }
++   __close (fd);
+ 
+   return strstr (buf, "SMP") != NULL;
+ }
+diff -Nurd glibc-2.3.6.orig/nptl/sysdeps/unix/sysv/linux/smp.h glibc-2.3.6/nptl/sysdeps/unix/sysv/linux/smp.h
+--- glibc-2.3.6.orig/nptl/sysdeps/unix/sysv/linux/smp.h	2004-11-03 21:31:12.000000000 +0100
++++ glibc-2.3.6/nptl/sysdeps/unix/sysv/linux/smp.h	2006-08-14 21:57:52.353875675 +0200
+@@ -29,24 +29,17 @@
+ static inline int
+ is_smp_system (void)
+ {
+-  static const int sysctl_args[] = { CTL_KERN, KERN_VERSION };
+   char buf[512];
+   size_t reslen = sizeof (buf);
+ 
+-  /* Try reading the number using `sysctl' first.  */
+-  if (__sysctl ((int *) sysctl_args,
+-		sizeof (sysctl_args) / sizeof (sysctl_args[0]),
+-		buf, &reslen, NULL, 0) < 0)
+-    {
+-      /* This was not successful.  Now try reading the /proc filesystem.  */
+-      int fd = open_not_cancel_2 ("/proc/sys/kernel/version", O_RDONLY);
+-      if (__builtin_expect (fd, 0) == -1
+-	  || (reslen = read_not_cancel (fd, buf, sizeof (buf))) <= 0)
+-	/* This also didn't work.  We give up and say it's a UP machine.  */
+-	buf[0] = '\0';
++  /* Try reading the /proc filesystem first.  */
++  int fd = open_not_cancel_2 ("/proc/sys/kernel/version", O_RDONLY);
++  if (__builtin_expect (fd, 0) == -1
++      || (reslen = read_not_cancel (fd, buf, sizeof (buf))) <= 0)
++    /* This didn't work.  We give up and say it's a UP machine.  */
++    buf[0] = '\0';
+ 
+-      close_not_cancel_no_status (fd);
+-    }
++  close_not_cancel_no_status (fd);
+ 
+   return strstr (buf, "SMP") != NULL;
+ }
+diff -Nurd glibc-2.3.6.orig/sysdeps/unix/sysv/linux/sysctl.c glibc-2.3.6/sysdeps/unix/sysv/linux/sysctl.c
+--- glibc-2.3.6.orig/sysdeps/unix/sysv/linux/sysctl.c	2005-07-18 05:37:20.000000000 +0200
++++ glibc-2.3.6/sysdeps/unix/sysv/linux/sysctl.c	2006-08-14 22:12:28.454345256 +0200
+@@ -47,3 +47,4 @@
+ }
+ libc_hidden_def (__sysctl)
+ weak_alias (__sysctl, sysctl)
++link_warning (__sysctl, "the `sysctl' syscall has been removed from 2.6.18+ kernels, direct access to `/proc/sys' should be used instead.")
