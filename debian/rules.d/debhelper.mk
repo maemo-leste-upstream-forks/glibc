@@ -62,7 +62,6 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	dh_installdirs -p$(curpass)
 	dh_install -p$(curpass)
 	dh_installman -p$(curpass)
-	dh_installinfo -p$(curpass)
 	dh_installdebconf -p$(curpass)
 	dh_installchangelogs -p$(curpass)
 	dh_installinit -p$(curpass)

@@ -62,6 +62,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		cd $(DEB_BUILDDIR) && \
 		CC="$(call xx,CC)" \
 		AUTOCONF=false \
+		MAKEINFO=: \
 		$(CURDIR)/$(DEB_SRCDIR)/configure \
 		--host=$(call xx,configure_target) \
 		--build=$$configure_build --prefix=/usr --without-cvs \
