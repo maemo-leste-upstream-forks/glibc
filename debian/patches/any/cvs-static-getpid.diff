@@ -1,0 +1,81 @@
+2005-05-20  Jakub Jelinek  <jakub@redhat.com>
+
+        * sysdeps/i386/tls.h (TLS_INIT_TCB_SIZE, TLS_INIT_TCB_ALIGN): Define to
+        size/alignment of struct pthread rather than tcbhead_t.
+        * sysdeps/x86_64/tls.h (TLS_INIT_TCB_SIZE, TLS_INIT_TCB_ALIGN):
+        Likewise.
+        * sysdeps/s390/tls.h (TLS_INIT_TCB_SIZE, TLS_INIT_TCB_ALIGN):
+        Likewise.
+
+===================================================================
+RCS file: /cvs/glibc/libc/nptl/sysdeps/s390/tls.h,v
+retrieving revision 1.11
+retrieving revision 1.12
+diff -u -r1.11 -r1.12
+--- libc/nptl/sysdeps/s390/tls.h	2005/01/06 22:40:22	1.11
++++ libc/nptl/sysdeps/s390/tls.h	2005/05/21 19:00:27	1.12
+@@ -81,11 +81,13 @@
+ /* Get the thread descriptor definition.  */
+ # include <nptl/descr.h>
+ 
+-/* This is the size of the initial TCB.  */
+-# define TLS_INIT_TCB_SIZE sizeof (tcbhead_t)
++/* This is the size of the initial TCB.  Can't be just sizeof (tcbhead_t),
++   because NPTL getpid, __libc_alloca_cutoff etc. need (almost) the whole
++   struct pthread even when not linked with -lpthread.  */
++# define TLS_INIT_TCB_SIZE sizeof (struct pthread)
+ 
+ /* Alignment requirements for the initial TCB.  */
+-# define TLS_INIT_TCB_ALIGN __alignof__ (tcbhead_t)
++# define TLS_INIT_TCB_ALIGN __alignof__ (struct pthread)
+ 
+ /* This is the size of the TCB.  */
+ # define TLS_TCB_SIZE sizeof (struct pthread)
+===================================================================
+RCS file: /cvs/glibc/libc/nptl/sysdeps/x86_64/tls.h,v
+retrieving revision 1.22
+retrieving revision 1.23
+diff -u -r1.22 -r1.23
+--- libc/nptl/sysdeps/x86_64/tls.h	2005/01/06 22:40:20	1.22
++++ libc/nptl/sysdeps/x86_64/tls.h	2005/05/21 19:00:29	1.23
+@@ -82,11 +82,13 @@
+ # endif
+ #endif
+ 
+-/* This is the size of the initial TCB.  */
+-# define TLS_INIT_TCB_SIZE sizeof (tcbhead_t)
++/* This is the size of the initial TCB.  Can't be just sizeof (tcbhead_t),
++   because NPTL getpid, __libc_alloca_cutoff etc. need (almost) the whole
++   struct pthread even when not linked with -lpthread.  */
++# define TLS_INIT_TCB_SIZE sizeof (struct pthread)
+ 
+ /* Alignment requirements for the initial TCB.  */
+-# define TLS_INIT_TCB_ALIGN __alignof__ (tcbhead_t)
++# define TLS_INIT_TCB_ALIGN __alignof__ (struct pthread)
+ 
+ /* This is the size of the TCB.  */
+ # define TLS_TCB_SIZE sizeof (struct pthread)
+===================================================================
+RCS file: /cvs/glibc/libc/nptl/sysdeps/i386/tls.h,v
+retrieving revision 1.29
+retrieving revision 1.30
+diff -u -r1.29 -r1.30
+--- libc/nptl/sysdeps/i386/tls.h	2005/04/26 16:11:10	1.29
++++ libc/nptl/sysdeps/i386/tls.h	2005/05/21 19:00:28	1.30
+@@ -102,11 +102,13 @@
+ /* Get the thread descriptor definition.  */
+ # include <nptl/descr.h>
+ 
+-/* This is the size of the initial TCB.  */
+-# define TLS_INIT_TCB_SIZE sizeof (tcbhead_t)
++/* This is the size of the initial TCB.  Can't be just sizeof (tcbhead_t),
++   because NPTL getpid, __libc_alloca_cutoff etc. need (almost) the whole
++   struct pthread even when not linked with -lpthread.  */
++# define TLS_INIT_TCB_SIZE sizeof (struct pthread)
+ 
+ /* Alignment requirements for the initial TCB.  */
+-# define TLS_INIT_TCB_ALIGN __alignof__ (tcbhead_t)
++# define TLS_INIT_TCB_ALIGN __alignof__ (struct pthread)
+ 
+ /* This is the size of the TCB.  */
+ # define TLS_TCB_SIZE sizeof (struct pthread)
