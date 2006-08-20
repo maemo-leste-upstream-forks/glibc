@@ -100,7 +100,7 @@ diff -Nurd glibc-2.3.6.orig/sysdeps/unix/sysv/linux/arm/ioperm.c glibc-2.3.6/sys
  
 -  if (! sysctl (iobase_name, 3, &io.io_base, &len, NULL, 0)
 -      && ! sysctl (ioshift_name, 3, &io.shift, &len, NULL, 0))
-+  if (fp = fopen (PATH_PORTBASE, "r"))
++  if ((fp = fopen (PATH_PORTBASE, "r")))
      {
 -      io.initdone = 1;
 -      return 0;
@@ -109,7 +109,7 @@ diff -Nurd glibc-2.3.6.orig/sysdeps/unix/sysv/linux/arm/ioperm.c glibc-2.3.6/sys
 +
 +      if (n == 1 && (fp = fopen(PATH_PORTSHIFT, "r")))
 +        {
-+          n = fscanf (fp, "%i", &io.io_shift);
++          n = fscanf (fp, "%i", &io.shift);
 +          fclose(fp);
 +          if (n == 1)
 +	    {
