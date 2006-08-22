@@ -35,6 +35,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	echo "LIBGD = no"		>> $(DEB_BUILDDIR)/configparms
 	echo "sysconfdir = /etc"	>> $(DEB_BUILDDIR)/configparms
 	echo "rootsbindir = /sbin"	>> $(DEB_BUILDDIR)/configparms
+	echo "localedir = /usr/lib/locale" >> $(DEB_BUILDDIR)/configparms
 	libdir="$(call xx,libdir)" ; if test -n "$$libdir" ; then \
 		echo "libdir = $$libdir" >> $(DEB_BUILDDIR)/configparms ; \
 	fi
