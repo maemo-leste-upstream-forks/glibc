@@ -18,6 +18,12 @@ debian/control.in/libc0.1: debian/control.in/libc debian/rules.d/control.mk
 debian/control: $(stamp)control
 $(stamp)control: debian/control.in/main $(control_deps) \
 		   debian/rules.d/control.mk # debian/sysdeps/depflags.pl
+
+	# Check that all files end with a new line
+	set -e ; for i in debian/control.in/* ; do \
+		tail -n1 $$i | grep -q "^$$" ; \
+	done
+
 	cat debian/control.in/main		>  $@T
 	cat debian/control.in/libc6		>> $@T
 	cat debian/control.in/libc6.1		>> $@T
