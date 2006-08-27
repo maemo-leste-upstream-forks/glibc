@@ -30,7 +30,7 @@ i686_MIN_KERNEL_SUPPORTED = 2.6.0
 i686_extra_config_options = $(extra_config_options) --disable-profile
 
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
-# greatly reduce the speed when running under the Xen hypervisor.
+# greatly increase the speed when running under the Xen hypervisor.
 GLIBC_PASSES += xen
 DEB_ARCH_REGULAR_PACKAGES += libc6-xen
 xen_add-ons = nptl $(add-ons)
