@@ -1,0 +1,38 @@
+Index: sysdeps/mach/hurd/futimes.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/futimes.c,v
+retrieving revision 1.1
+diff -u -p -r1.1 futimes.c
+--- sysdeps/mach/hurd/futimes.c	27 Aug 2002 02:09:20 -0000	1.1
++++ sysdeps/mach/hurd/futimes.c	23 Sep 2006 12:29:52 -0000
+@@ -28,20 +28,22 @@
+ int
+ __futimes (int fd, const struct timeval tvp[2])
+ {
+-  struct timeval timevals[2];
+   error_t err;
++  time_value_t new_atime, new_mtime;
+ 
+   if (tvp == NULL)
+-    {
+       /* Setting the number of microseconds to `-1' tells the
+          underlying filesystems to use the current time.  */
+-      timevals[1].tv_usec = timevals[0].tv_usec = (time_t)-1;
+-      tvp = timevals;
++    new_atime.microseconds = new_mtime.microseconds = -1;
++  else
++    {
++      new_atime.seconds = tvp[0].tv_sec;
++      new_atime.microseconds = tvp[0].tv_usec;
++      new_mtime.seconds = tvp[1].tv_sec;
++      new_mtime.microseconds = tvp[1].tv_usec;
+     }
+ 
+-  err = HURD_DPORT_USE (fd, __file_utimes (port,
+-					   *(time_value_t *) &tvp[0],
+-					   *(time_value_t *) &tvp[1]));
++  err = HURD_DPORT_USE (fd, __file_utimes (port, new_atime, new_mtime));
+   return err ? __hurd_dfail (fd, err) : 0;
+ }
+ weak_alias (__futimes, futimes)
+
