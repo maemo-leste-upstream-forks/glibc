@@ -1,0 +1,63 @@
+2005-10-13  Ulrich Drepper  <drepper@redhat.com>
+
+        [BZ #1466]
+        * sysdeps/generic/s_csqrt.c (__csqrt): For zero real part, return
+        principal square root.
+        * sysdeps/generic/s_csqrtf.c (__csqrtf): Likewise.
+        * sysdeps/generic/s_csqrtl.c (__csqrtl): Likewise.
+
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/generic/s_csqrt.c,v
+retrieving revision 1.2
+retrieving revision 1.3
+diff -u -r1.2 -r1.3
+--- libc/sysdeps/generic/s_csqrt.c	2001/07/06 04:55:49	1.2
++++ libc/sysdeps/generic/s_csqrt.c	2005/10/13 19:05:44	1.3
+@@ -79,8 +79,8 @@
+ 	{
+ 	  double r = __ieee754_sqrt (0.5 * fabs (__imag__ x));
+ 
+-	  __real__ res = __copysign (r, __imag__ x);
+-	  __imag__ res = r;
++	  __real__ res = r;
++	  __imag__ res = __copysign (r, __imag__ x);
+ 	}
+       else
+ 	{
+
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/generic/s_csqrtl.c,v
+retrieving revision 1.2
+retrieving revision 1.3
+diff -u -r1.2 -r1.3
+--- libc/sysdeps/generic/s_csqrtl.c	2001/07/06 04:55:49	1.2
++++ libc/sysdeps/generic/s_csqrtl.c	2005/10/13 19:04:31	1.3
+@@ -79,8 +79,8 @@
+ 	{
+ 	  long double r = __ieee754_sqrtl (0.5 * fabsl (__imag__ x));
+ 
+-	  __real__ res = __copysignl (r, __imag__ x);
+-	  __imag__ res = r;
++	  __real__ res = r;
++	  __imag__ res = __copysignl (r, __imag__ x);
+ 	}
+       else
+ 	{
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/generic/s_csqrtf.c,v
+retrieving revision 1.3
+retrieving revision 1.4
+diff -u -r1.3 -r1.4
+--- libc/sysdeps/generic/s_csqrtf.c	2004/01/13 09:08:04	1.3
++++ libc/sysdeps/generic/s_csqrtf.c	2005/10/13 19:05:12	1.4
+@@ -79,8 +79,8 @@
+ 	{
+ 	  float r = __ieee754_sqrtf (0.5 * fabsf (__imag__ x));
+ 
+-	  __real__ res = __copysignf (r, __imag__ x);
+-	  __imag__ res = r;
++	  __real__ res = r;
++	  __imag__ res = __copysignf (r, __imag__ x);
+ 	}
+       else
+ 	{
