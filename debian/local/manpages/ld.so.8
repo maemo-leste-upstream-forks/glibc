@@ -31,6 +31,26 @@ In the default path
 .BR /usr/lib ,
 and then
 .BR /lib .
+.SH COMMAND LINE OPTIONS
+.TP
+.B \-\-list
+List all dependencies and how they are resolved.
+.TP
+.B \-\-verify
+Verify that program is dynamically linked and this dynamic linker can handle
+it.
+.TP
+.B \-\-library\-path PATH
+Override
+.B LD_LIBRARY_PATH
+environment variable setting (see below).
+.TP
+.B \-\-ignore\-rpath LIST
+Ignore RPATH and RUNPATH information in object names in LIST.
+This option has been supported by glibc2 for about one hour.
+Then it was renamed into:
+.TP
+.B \-\-inhibit\-rpath LIST
 .SH ENVIRONMENT
 .TP
 .B LD_LIBRARY_PATH
@@ -54,7 +74,6 @@ as if run by ldd, instead of running normally.
 .B LD_BIND_NOW
 If present, causes the dynamic linker to resolve all symbols at program
 startup instead of when they are first referenced.
-.TP
 .B LD_AOUT_LIBRARY_PATH
 A colon-separated list of directories in which to search for
 a.out libraries at execution-time.
@@ -71,9 +90,39 @@ This can be used to selectively override functions in other shared libraries.
 Suppress warnings about a.out libraries with incompatible minor 
 version numbers.
 .TP
+.B LD_WARN
+If set to non-empty string, warn about unresolved symbols.
+.TP
 .B LD_KEEPDIR
 Don't ignore the directory in the names of a.out libraries to be loaded.
 Use of this option is strongly discouraged.
+.TP
+.B LD_DEBUG
+Output verbose debugging information about the dynamic linker.
+If set to all prints all debugging information it has, if set to
+help prints a help message about which categories can be specified
+in this environment variable.
+.TP
+.B LD_DEBUG_OUTPUT
+File where LD_DEBUG output should be fed into, default is standard
+output. LD_DEBUG_OUTPUT is ignored for setuid/setgid binaries.
+.TP
+.B LD_VERBOSE
+If set to non-empty string, output symbol versioning information
+about the program if querying information about the program (ie. either
+.B LD_TRACE_LOADED_OBJECTS 
+has been set, or --list or --verify options have been given to the dynamic linker).
+.TP
+.B LD_ASSUME_KERNEL
+Every DSO (Dynamic Shared Object, aka shared library) can tell the dynamic linker in glibc which
+minimum OS ABI version is needed. The information about the minimum OS ABI version is encoded in
+a ELF note section usually named .note.ABI-tag. This is used to determine which library to load
+when multiple version of the same library is installed on the system.
+
+The
+.B LD_ASSUME_KERNEL
+environment variable overrides the kernel version used by the dynamic linker to determine which
+library to load.
 .SH FILES
 .PD 0
 .TP 20
@@ -91,6 +140,10 @@ libraries and an ordered list of candidate libraries.
 File containing a whitespace separated list of ELF shared libraries to
 be loaded before the program.
 libraries and an ordered list of candidate libraries.
+.TP
+.B /etc/ld.so.nohwcap
+When this file is present the dynamic linker will load the non-optimized version
+of a library, even if the CPU supports the optimized version.
 .TP
 .B lib*.so*
 shared libraries
