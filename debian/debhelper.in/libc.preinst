@@ -107,9 +107,9 @@ fi
 # If there are versions of glibc outside of the normal installation
 # location (/lib, /lib64, etc.) then things may break very badly
 # as soon as ld.so is replaced by a new version.  This check is not
-# foolproof, but it's pretty accurate.  This script ignores old
-# libc4 or libc5, and libraries incompatible with the to-be-installed
-# ld.so.
+# foolproof, but it's pretty accurate.  This script ignores libraries
+# with different sonames, and libraries incompatible with the 
+# to-be-installed ld.so.
 
 check_dirs () {
   for dir in $*; do
@@ -127,8 +127,7 @@ check_dirs () {
       continue
     fi
     if test -d $dir; then
-      output=$(ls $dir | egrep '^lib(c|m|pthread|rt|dl)\.so\.[^/]*$' |\
-	       egrep -v '^lib[cm]\.so\.[45].*$' 2>/dev/null)
+      output=$(ls $dir | egrep '^(C_SO|M_SO|PTHREAD_SO|RT_SO|DL_SO)$' 2>/dev/null)
 
       if test -n "$output"; then
 	# See if the found libraries are compatible with the system ld.so;
