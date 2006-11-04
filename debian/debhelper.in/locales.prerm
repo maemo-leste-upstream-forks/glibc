@@ -3,7 +3,10 @@ set -e
 
 case "$1" in
     remove|purge)
-	rm -f /usr/lib/locale/locale-archive
+    	if ! [ -f /usr/lib/locales-all/supported.tar.gz ] ; then
+		# If locales-all is not installed, clean the locales
+		rm -f /usr/lib/locale/locale-archive
+	fi
 	;;
     *)
     	;;
