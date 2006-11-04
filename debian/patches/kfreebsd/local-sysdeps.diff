@@ -9099,8 +9099,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h sysdeps/un
 +#define mc_eflags	mc_efl
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h
 --- null/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h	2006-01-22 22:10:19.000000000 +0100
-@@ -0,0 +1,160 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h	2006-11-04 23:17:58.000000000 +0100
+@@ -0,0 +1,159 @@
 +/* Machine-dependent signal context structure for FreeBSD.  i386 version.
 +   Copyright (C) 1991-1992,1994,1997,2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -9204,7 +9204,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h sysdeps/
 +    union { int sc_eip; int eip; };		/* Instruction pointer.  */
 +    union { int sc_cs; int cs; };		/* Code segment register.  */
 +
-+    int sc_efl;					/* Processor flags.  */
++    union { int sc_efl; int eflags; }; 		/* Processor flags.  */
 +
 +    union { int sc_esp; int esp; };		/* This stack pointer is used.  */
 +    union { int sc_ss; int ss; };		/* Stack segment register.  */
@@ -9227,7 +9227,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h sysdeps/
 +#define sc_pc		sc_eip		/* Process counter.  */
 +#define sc_ps		sc_efl
 +#define sc_eflags	sc_efl
-+#define eflags		sc_efl		/* Linux-style name. */
 +
 +
 +/* Codes for SIGFPE.  */
@@ -19075,8 +19074,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/mcontext.h sysdeps/
 +
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h
 --- null/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h	2006-01-22 22:10:19.000000000 +0100
-@@ -0,0 +1,161 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h	2006-11-04 23:17:59.000000000 +0100
+@@ -0,0 +1,160 @@
 +/* Machine-dependent signal context structure for FreeBSD.  i386 version.
 +   Copyright (C) 1991-1992,1994,1997,2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -19136,7 +19135,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h sysdep
 +    union { int sc_eip; int eip; };		/* Instruction pointer.  */
 +    union { int sc_cs; int cs; };		/* Code segment register.  */
 +
-+    int sc_efl;					/* Processor flags.  */
++    union { int sc_efl; int eflags; };		/* Processor flags.  */
 +
 +    union { int sc_esp; int esp; };		/* This stack pointer is used.  */
 +    union { int sc_ss; int ss; };		/* Stack segment register.  */
@@ -19159,7 +19158,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h sysdep
 +#define sc_pc		sc_eip		/* Process counter.  */
 +#define sc_ps		sc_efl
 +#define sc_eflags	sc_efl
-+#define eflags		sc_efl		/* Linux-style name. */
 +
 +
 +/* Codes for SIGFPE.  */
