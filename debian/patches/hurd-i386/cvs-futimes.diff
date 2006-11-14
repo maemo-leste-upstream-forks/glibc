@@ -1,0 +1,130 @@
+2006-10-10  Roland McGrath  <roland@frob.com>
+	
+	* sysdeps/mach/hurd/utimes.c: Use a union to avoid an improper cast.
+	* sysdeps/mach/hurd/futimes.c: Likewise.
+	* sysdeps/mach/hurd/lutimes.c: Likewise.
+
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/futimes.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- libc/sysdeps/mach/hurd/futimes.c	2002/08/27 02:09:20	1.1
++++ libc/sysdeps/mach/hurd/futimes.c	2006/10/10 09:28:40	1.2
+@@ -28,20 +28,24 @@
+ int
+ __futimes (int fd, const struct timeval tvp[2])
+ {
+-  struct timeval timevals[2];
++  union tv
++  {
++    struct timeval tv;
++    time_value_t tvt;
++  };
++  const union tv *u = (const union tv *) tvp;
++  union tv nulltv[2];
+   error_t err;
+ 
+   if (tvp == NULL)
+     {
+       /* Setting the number of microseconds to `-1' tells the
+          underlying filesystems to use the current time.  */
+-      timevals[1].tv_usec = timevals[0].tv_usec = (time_t)-1;
+-      tvp = timevals;
++      nulltv[0].tvt.microseconds = nulltv[1].tvt.microseconds = -1;
++      u = nulltv;
+     }
+ 
+-  err = HURD_DPORT_USE (fd, __file_utimes (port,
+-					   *(time_value_t *) &tvp[0],
+-					   *(time_value_t *) &tvp[1]));
++  err = HURD_DPORT_USE (fd, __file_utimes (port, u[0].tvt, u[1].tvt));
+   return err ? __hurd_dfail (fd, err) : 0;
+ }
+ weak_alias (__futimes, futimes)
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/lutimes.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- libc/sysdeps/mach/hurd/lutimes.c	2002/08/27 02:09:20	1.1
++++ libc/sysdeps/mach/hurd/lutimes.c	2006/10/10 09:28:40	1.2
+@@ -28,7 +28,13 @@
+ int
+ __lutimes (const char *file, const struct timeval tvp[2])
+ {
+-  struct timeval timevals[2];
++  union tv
++  {
++    struct timeval tv;
++    time_value_t tvt;
++  };
++  const union tv *u = (const union tv *) tvp;
++  union tv nulltv[2];
+   error_t err;
+   file_t port;
+ 
+@@ -36,15 +42,14 @@
+     {
+       /* Setting the number of microseconds to `-1' tells the
+          underlying filesystems to use the current time.  */
+-      timevals[1].tv_usec = timevals[0].tv_usec = (time_t)-1;
+-      tvp = timevals;
++      nulltv[0].tvt.microseconds = nulltv[1].tvt.microseconds = -1;
++      u = nulltv;
+     }
+ 
+   port = __file_name_lookup (file, O_NOLINK, 0);
+   if (port == MACH_PORT_NULL)
+     return -1;
+-  err = __file_utimes (port,
+-		       *(time_value_t *) &tvp[0], *(time_value_t *) &tvp[1]);
++  err = __file_utimes (port, u[0].tvt, u[1].tvt);
+   __mach_port_deallocate (__mach_task_self (), port);
+   if (err)
+     return __hurd_fail (err);
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/utimes.c,v
+retrieving revision 1.10
+retrieving revision 1.11
+diff -u -r1.10 -r1.11
+--- libc/sysdeps/mach/hurd/utimes.c	2001/07/06 04:55:57	1.10
++++ libc/sysdeps/mach/hurd/utimes.c	2006/10/10 09:28:40	1.11
+@@ -28,7 +29,13 @@
+      const char *file;
+      const struct timeval tvp[2];
+ {
+-  struct timeval timevals[2];
++  union tv
++  {
++    struct timeval tv;
++    time_value_t tvt;
++  };
++  const union tv *u = (const union tv *) tvp;
++  union tv nulltv[2];
+   error_t err;
+   file_t port;
+ 
+@@ -36,19 +43,17 @@
+     {
+       /* Setting the number of microseconds to `-1' tells the
+          underlying filesystems to use the current time.  */
+-      timevals[1].tv_usec = timevals[0].tv_usec = (time_t)-1;
+-      tvp = timevals;
++      nulltv[0].tvt.microseconds = nulltv[1].tvt.microseconds = -1;
++      u = nulltv;
+     }
+ 
+   port = __file_name_lookup (file, 0, 0);
+   if (port == MACH_PORT_NULL)
+     return -1;
+-  err = __file_utimes (port,
+-		       *(time_value_t *) &tvp[0], *(time_value_t *) &tvp[1]);
++  err = __file_utimes (port, u[0].tvt, u[1].tvt);
+   __mach_port_deallocate (__mach_task_self (), port);
+   if (err)
+     return __hurd_fail (err);
+   return 0;
+ }
+-
+ weak_alias (__utimes, utimes)
