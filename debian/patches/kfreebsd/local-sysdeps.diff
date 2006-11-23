@@ -3513,7 +3513,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/mman.h sysdeps/unix/bsd/bs
 +#endif /* Use BSD */
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/msq.h sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/msq.h
 --- null/unix/bsd/bsd4.4/kfreebsd/bits/msq.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/msq.h	2006-01-03 21:56:56.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/msq.h	2006-11-22 14:51:39.000000000 +0100
 @@ -0,0 +1,73 @@
 +/* Copyright (C) 1995, 1997, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3572,7 +3572,7 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/msq.h sysdeps/unix/bsd/bsd
 +
 +# define msg_cbytes	__msg_cbytes
 +
-+# if 0 /* XXX No way to use this from user space?  */
++# ifdef _KERNEL
 +
 +/* buffer for msgctl calls IPC_INFO, MSG_INFO */
 +struct msginfo
@@ -4060,8 +4060,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/sched.h sysdeps/unix/bsd/b
 +#endif
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/sem.h sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sem.h
 --- null/unix/bsd/bsd4.4/kfreebsd/bits/sem.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sem.h	2006-01-03 22:37:55.000000000 +0100
-@@ -0,0 +1,70 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sem.h	2006-11-22 14:51:39.000000000 +0100
+@@ -0,0 +1,91 @@
 +/* Copyright (C) 1995-1998, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -4132,10 +4132,31 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/sem.h sysdeps/unix/bsd/bsd
 +   incorrect.  One can test the macro _SEM_SEMUN_UNDEFINED to see whether
 +   one must define the union or not.  */
 +#define _SEM_SEMUN_UNDEFINED	1
++
++#ifdef _KERNEL
++
++/*
++ * semaphore info struct
++ */
++struct seminfo {
++        int     semmap,         /* # of entries in semaphore map */
++                semmni,         /* # of semaphore identifiers */
++                semmns,         /* # of semaphores in system */
++                semmnu,         /* # of undo structures in system */
++                semmsl,         /* max # of semaphores per id */
++                semopm,         /* max # of operations per semop call */
++                semume,         /* max # of undo entries per process */
++                semusz,         /* size in bytes of undo structure */
++                semvmx,         /* semaphore maximum value */
++                semaem;         /* adjust on exit max value */
++};
++
++#endif
++
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/shm.h sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/shm.h
 --- null/unix/bsd/bsd4.4/kfreebsd/bits/shm.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/shm.h	2006-01-03 22:04:26.000000000 +0100
-@@ -0,0 +1,61 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/shm.h	2006-11-22 14:51:39.000000000 +0100
+@@ -0,0 +1,74 @@
 +/* Copyright (C) 1995-1997, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -4197,6 +4218,19 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/shm.h sysdeps/unix/bsd/bsd
 +    __time_t shm_ctime;			/* time of last change by shmctl() */
 +    void *__shm_internal;
 +  };
++
++#ifdef _KERNEL
++
++struct shminfo {
++        int     shmmax,         /* max shared memory segment size (bytes) */
++                shmmin,         /* min shared memory segment size (bytes) */
++                shmmni,         /* max number of shared memory identifiers */
++                shmseg,         /* max shared memory segments per process */
++                shmall;         /* max amount of shared memory (pages) */
++};
++
++#endif
++
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/sigaction.h sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigaction.h
 --- null/unix/bsd/bsd4.4/kfreebsd/bits/sigaction.h	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigaction.h	2006-01-02 19:10:54.000000000 +0100
@@ -5969,8 +6003,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/typesizes.h sysdeps/unix/b
 +#endif /* bits/typesizes.h */
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/uio.h sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/uio.h
 --- null/unix/bsd/bsd4.4/kfreebsd/bits/uio.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/uio.h	2006-01-02 19:10:54.000000000 +0100
-@@ -0,0 +1,37 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/uio.h	2006-11-22 14:51:39.000000000 +0100
+@@ -0,0 +1,49 @@
 +/* Copyright (C) 1996-1997, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -6008,6 +6042,18 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/uio.h sysdeps/unix/bsd/bsd
 +   writev() system call.  For larger arrays of 'struct iovec', the libc
 +   uses a single read() or write() call to guarantee atomicity.  */
 +#define UIO_MAXIOV	1024
++
++#ifdef __USE_BSD
++enum    uio_rw { UIO_READ, UIO_WRITE };
++
++/* Segment flag values. */
++enum uio_seg {
++        UIO_USERSPACE,          /* from user data space */
++        UIO_SYSSPACE,           /* from system space */
++        UIO_NOCOPY              /* don't copy, already in object */
++};
++#endif
++
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/bits/utsname.h sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/utsname.h
 --- null/unix/bsd/bsd4.4/kfreebsd/bits/utsname.h	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/utsname.h	2006-01-02 19:10:54.000000000 +0100
@@ -7019,8 +7065,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/connect.c sysdeps/unix/bsd/bsd4
 +weak_alias (__libc_connect, connect)
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/Dist sysdeps/unix/bsd/bsd4.4/kfreebsd/Dist
 --- null/unix/bsd/bsd4.4/kfreebsd/Dist	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/Dist	2006-01-16 08:16:07.000000000 +0100
-@@ -0,0 +1,31 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/Dist	2006-11-22 14:51:41.000000000 +0100
+@@ -0,0 +1,30 @@
 +bits/mcontext.h
 +bits/stat16.h
 +fpu.h
@@ -7040,7 +7086,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/Dist sysdeps/unix/bsd/bsd4.4/kf
 +sys/extattr.h
 +sys/io.h
 +sys/jail.h
-+sys/ktrace.h
 +sys/linker.h
 +sys/mount.h
 +sys/perm.h
@@ -12166,8 +12211,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/lxstat.c sysdeps/unix/bsd/bsd4.
 +weak_alias (__lxstat, _lxstat)
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/Makefile sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile
 --- null/unix/bsd/bsd4.4/kfreebsd/Makefile	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile	2006-05-25 21:43:10.000000000 +0200
-@@ -0,0 +1,119 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile	2006-11-22 14:51:41.000000000 +0100
+@@ -0,0 +1,118 @@
 +# Use bash, not /bin/sh, for executing scripts, because the native
 +# FreeBSD /bin/sh does not interpret the  IFS="<tab>" read ...  command
 +# in localedata/tst-fmon.sh correctly.
@@ -12177,7 +12222,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/Makefile sysdeps/unix/bsd/bsd4.
 +
 +ifeq ($(subdir),misc)
 +sysdep_headers += \
-+ sys/ktrace.h \
 + sys/mount.h \
 + sys/kd.h \
 + sys/rfork.h
@@ -15691,194 +15735,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/sys/kd.h sysdeps/unix/bsd/bsd4.
 +#include <sys/kbio.h>
 +
 +#endif	/* sys/kd.h */
-diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/sys/ktrace.h sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ktrace.h
---- null/unix/bsd/bsd4.4/kfreebsd/sys/ktrace.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ktrace.h	2006-01-02 19:10:54.000000000 +0100
-@@ -0,0 +1,184 @@
-+/* 'ktrace' system call debugger support interface.  FreeBSD version.
-+   Copyright (C) 2002 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
-+
-+#ifndef _SYS_KTRACE_H
-+#define _SYS_KTRACE_H	1
-+
-+#include <features.h>
-+
-+/* Define MAXCOMLEN.  */
-+#include <sys/param.h>
-+
-+/* Define register_t.  */
-+#include <sys/types.h>
-+
-+/* Define __sighandler_t, __sigset_t.  */
-+#include <signal.h>
-+
-+/* Define 'struct timeval'.  */
-+#define __need_timeval
-+#include <bits/time.h>
-+
-+
-+/* Structure of records written to the system call trace log file.
-+   A header of type ktr_header, followed by a variable length buffer.  */
-+
-+struct ktr_header
-+  {
-+    int ktr_len;			/* Length of ktr_buf.  */
-+    short ktr_type;			/* Trace record type.  */
-+    __pid_t ktr_pid;			/* Process id.  */
-+    char ktr_comm[MAXCOMLEN+1];		/* Command name.  */
-+    struct timeval ktr_time;		/* Timestamp.  */
-+    void *ktr_buf;			/* Pointer to ktr_len bytes.
-+					   (Ignore in the log file.)  */
-+  };
-+
-+/* Possible values of ktr_type.  */
-+enum
-+{
-+  KTR_SYSCALL = 1,		/* System call record.  */
-+#define KTR_SYSCALL KTR_SYSCALL
-+  KTR_SYSRET = 2,		/* Return from system call record.  */
-+#define KTR_SYSRET KTR_SYSRET
-+  KTR_NAMEI = 3,		/* Namei record.  */
-+#define KTR_NAMEI KTR_NAMEI
-+  KTR_GENIO = 4,		/* Generic process I/O record.  */
-+#define KTR_GENIO KTR_GENIO
-+  KTR_PSIG = 5,			/* Processed signal record.  */
-+#define KTR_PSIG KTR_PSIG
-+  KTR_CSW = 6,			/* Context switch record.  */
-+#define KTR_CSW KTR_CSW
-+  KTR_USER = 7			/* User defined record.  */
-+#define KTR_USER KTR_USER
-+};
-+
-+/* ktr_buf for KTR_SYSCALL: System call record.  */
-+struct ktr_syscall
-+  {
-+    short ktr_code;			/* Syscall number.  */
-+    short ktr_narg;			/* Number of arguments.  */
-+    register_t ktr_args __flexarr;
-+  };
-+
-+/* ktr_buf for KTR_SYSRET: Return from system call record.  */
-+struct ktr_sysret
-+  {
-+    short ktr_code;			/* Syscall number.  */
-+    short ktr_eosys;
-+    int ktr_error;
-+    register_t ktr_retval;
-+  };
-+
-+/* ktr_buf for KTR_NAMEI: Namei record.
-+   It contains the pathname.  */
-+
-+/* ktr_buf for KTR_GENIO: Generic process I/O record.  */
-+enum uio_rw
-+{
-+  UIO_READ,
-+  UIO_WRITE
-+};
-+struct ktr_genio
-+  {
-+    int ktr_fd;				/* File descriptor.  */
-+    enum uio_rw ktr_rw;			/* I/O direction.  */
-+    char ktr_data __flexarr;		/* Data successfully read/written.  */
-+  };
-+
-+/* ktr_buf for KTR_PSIG: Processed signal record.  */
-+struct ktr_psig
-+  {
-+    int signo;
-+    __sighandler_t action;
-+    int code;
-+    sigset_t mask;
-+  };
-+
-+/* ktr_buf for KTR_CSW: Context switch record.  */
-+struct ktr_csw
-+  {
-+    int out;				/* 1 if switch out, 0 if switch in.  */
-+    int user;				/* 1 if usermode, 0 if kernel mode.  */
-+  };
-+
-+/* Maximum size of ktr_buf for KTR_USER: User defined record.  */
-+#define KTR_USER_MAXLEN	2048
-+
-+
-+/* The OP_FLAGS argument of ktrace() consists of an operation and
-+   some flags.  This macro extracts the operation.  */
-+#define KTROP(op_flags) ((op_flags) & 3)
-+
-+/* Possible values for operation in OP_FLAGS argument of ktrace().  */
-+enum
-+{
-+  KTROP_SET = 0,			/* Set trace facilities.  */
-+#define KTROP_SET KTROP_SET
-+  KTROP_CLEAR = 1,			/* Clear trace facilities.  */
-+#define KTROP_CLEAR KTROP_CLEAR
-+  KTROP_CLEARFILE = 2			/* Stop all tracing to file.  */
-+#define KTROP_CLEARFILE KTROP_CLEARFILE
-+};
-+
-+/* Possible flags to be ORed into OP_FLAGS argument of ktrace().  */
-+enum
-+{
-+  KTRFLAG_DESCEND = 4	/* Perform operation on all children processes too.  */
-+#define KTRFLAG_DESCEND KTRFLAG_DESCEND
-+};
-+
-+
-+/* The FAC is an OR of some trace facilities.  */
-+enum
-+{
-+  KTRFAC_SYSCALL = 1 << KTR_SYSCALL,	/* Trace system calls.  */
-+#define KTRFAC_SYSCALL KTRFAC_SYSCALL
-+  KTRFAC_SYSRET = 1 << KTR_SYSRET,	/* Trace system call returns.  */
-+#define KTRFAC_SYSRET KTRFAC_SYSRET
-+  KTRFAC_NAMEI = 1 << KTR_NAMEI,	/* Trace namei operations.  */
-+#define KTRFAC_NAMEI KTRFAC_NAMEI
-+  KTRFAC_GENIO = 1 << KTR_GENIO,	/* Trace generic process I/O.  */
-+#define KTRFAC_GENIO KTRFAC_GENIO
-+  KTRFAC_PSIG = 1 << KTR_PSIG,		/* Trace signal processing.  */
-+#define KTRFAC_PSIG KTRFAC_PSIG
-+  KTRFAC_CSW = 1 << KTR_CSW,		/* Trace context switches.  */
-+#define KTRFAC_CSW KTRFAC_CSW
-+  KTRFAC_USER = 1 << KTR_USER,		/* Trace user defined records.  */
-+#define KTRFAC_USER KTRFAC_USER
-+  KTRFAC_INHERIT = 1 << 30	    /* Inherit trace flags to new children.  */
-+#define KTRFAC_INHERIT KTRFAC_INHERIT
-+};
-+
-+
-+__BEGIN_DECLS
-+
-+/* Enable system call tracing for the process PID.
-+   Trace records will be written to TRACEFILE; this file is truncated.  If
-+   OP_FLAGS contains KTROP_CLEAR, TRACEFILE may be NULL.
-+   FAC contains the facilities to switch on or off.  */
-+extern int ktrace (__const char *__tracefile, int __op_flags, int __fac,
-+		   __pid_t pid) __THROW;
-+
-+/* Write a user defined record to the current process' trace log file.  */
-+extern int utrace (__const void *__buf, size_t __len) __THROW;
-+
-+__END_DECLS
-+
-+#endif /* _SYS_KTRACE_H */
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/sys/mount.h sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h
 --- null/unix/bsd/bsd4.4/kfreebsd/sys/mount.h	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h	2006-07-25 02:21:10.000000000 +0200
