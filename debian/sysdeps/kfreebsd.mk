@@ -24,7 +24,6 @@ KERNEL_HEADER_DIR = $(stamp)mkincludedir
 $(stamp)mkincludedir:
 	rm -rf debian/include
 	mkdir debian/include
-	ln -s $(KFREEBSD_HEADERS)/machine debian/include
 	ln -s $(KFREEBSD_HEADERS)/net debian/include
 	ln -s $(KFREEBSD_HEADERS)/netatalk debian/include
 	ln -s $(KFREEBSD_HEADERS)/netipx debian/include
@@ -32,6 +31,12 @@ $(stamp)mkincludedir:
 	ln -s $(KFREEBSD_HEADERS)/osreldate.h debian/include
 	ln -s $(KFREEBSD_HEADERS)/sys debian/include
 	ln -s $(KFREEBSD_HEADERS)/vm debian/include
+
+        # Link all machine directories.  We can't just link machine
+        # because of explicit references to <machine-amd64/*> and
+	# <machine-i386/*>.
+	find $(KFREEBSD_HEADERS) -maxdepth 1 -xtype d -name machine\* \
+		-exec ln -s '{}' debian/include ';'
 
 	# To make configure happy if libc0.1-dev is not installed.
 	touch debian/include/assert.h
