@@ -35,6 +35,7 @@ $(stamp)control: debian/control.in/main $(control_deps) \
 	cat debian/control.in/amd64		>> $@T
 	cat debian/control.in/powerpc		>> $@T
 	cat debian/control.in/ppc64		>> $@T
+	cat debian/control.in/kfreebsd-i386	>> $@T
 	cat debian/control.in/opt		>> $@T
 	cat debian/control.in/libnss-dns-udeb	>> $@T
 	cat debian/control.in/libnss-files-udeb	>> $@T
