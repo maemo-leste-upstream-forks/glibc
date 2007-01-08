@@ -6396,8 +6396,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/clone.c sysdeps/unix/bsd/bsd4.4
 +weak_alias (__clone, clone)
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/configure sysdeps/unix/bsd/bsd4.4/kfreebsd/configure
 --- null/unix/bsd/bsd4.4/kfreebsd/configure	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/configure	2006-03-03 16:29:48.000000000 +0100
-@@ -0,0 +1,332 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/configure	2007-01-05 11:36:38.000000000 +0100
+@@ -0,0 +1,342 @@
 +# This file is generated from configure.in by Autoconf.  DO NOT EDIT!
 + # Local configure fragment for sysdeps/unix/bsd/bsd4.4/kfreebsd.
 +
@@ -6695,6 +6695,16 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/configure sysdeps/unix/bsd/bsd4
 +# One kFreeBSD we use ldconfig.
 +use_ldconfig=yes
 +
++# We need some extensions to the `ldd' script.
++case "$machine" in
++  x86_64*)
++    ldd_rewrite_script=../sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldd-rewrite.sed
++    ;;
++  *)
++    ;;
++esac
++
++
 +if test $host = $build; then
 +  # If $prefix/include/{net,scsi} are symlinks, make install will
 +  # clobber what they're linked to (probably a kernel tree).
@@ -6732,8 +6742,8 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/configure sysdeps/unix/bsd/bsd4
 +fi
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/configure.in sysdeps/unix/bsd/bsd4.4/kfreebsd/configure.in
 --- null/unix/bsd/bsd4.4/kfreebsd/configure.in	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/configure.in	2006-03-03 16:29:48.000000000 +0100
-@@ -0,0 +1,257 @@
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/configure.in	2007-01-05 11:36:38.000000000 +0100
+@@ -0,0 +1,268 @@
 +GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
 +# Local configure fragment for sysdeps/unix/bsd/bsd4.4/kfreebsd.
 +
@@ -6962,6 +6972,17 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/configure.in sysdeps/unix/bsd/b
 +
 +# One kFreeBSD we use ldconfig.
 +use_ldconfig=yes
++
++# We need some extensions to the `ldd' script.
++changequote(,)
++case "$machine" in
++  x86_64*)
++    ldd_rewrite_script=../sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldd-rewrite.sed
++    ;;
++  *)
++    ;;
++esac
++changequote([,])
 +
 +if test $host = $build; then
 +  # If $prefix/include/{net,scsi} are symlinks, make install will
@@ -9833,6 +9854,47 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/iopl.c sysdeps/unix/bsd/bs
 +          return -1;
 +      }
 +  }
+diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/ldconfig.h sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/ldconfig.h
+--- null/unix/bsd/bsd4.4/kfreebsd/i386/ldconfig.h	1970-01-01 01:00:00.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/ldconfig.h	2007-01-05 11:36:38.000000000 +0100
+@@ -0,0 +1,37 @@
++/* Copyright (C) 2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <sysdeps/generic/ldconfig.h>
++
++#define SYSDEP_KNOWN_INTERPRETER_NAMES \
++  { "/lib/ld.so.1", FLAG_ELF_LIBC6 },				\
++  { "/libexec/ld-elf.so.1", FLAG_ELF_LIBC5 },
++
++#define SYSDEP_KNOWN_LIBRARY_NAMES \
++  { "libc.so.0.1", FLAG_ELF_LIBC6 },				\
++  { "libm.so.1", FLAG_ELF_LIBC6 },				\
++  { "libc.so.4", FLAG_ELF_LIBC5 },				\
++  { "libm.so.4", FLAG_ELF_LIBC5 },				\
++  { "libc.so.5", FLAG_ELF_LIBC5 },				\
++  { "libm.so.5", FLAG_ELF_LIBC5 },				\
++  { "libc.so.6", FLAG_ELF_LIBC5 },				\
++  { "libm.so.6", FLAG_ELF_LIBC5 },				\
++  { "libc.so.7", FLAG_ELF_LIBC5 },				\
++  { "libm.so.7", FLAG_ELF_LIBC5 },				\
++  { "libc.so.8", FLAG_ELF_LIBC5 },				\
++  { "libm.so.8", FLAG_ELF_LIBC5 },
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/i386/makecontext.S sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/makecontext.S
 --- null/unix/bsd/bsd4.4/kfreebsd/i386/makecontext.S	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/makecontext.S	2006-01-18 22:08:16.000000000 +0100
@@ -11925,42 +11987,6 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/kernel-features.h sysdeps/unix/
 +/* Use signals #32, #33, #34 for internal linuxthreads communication */
 +#define PTHREAD_SIGBASE 32
 +
-diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/ldconfig.h sysdeps/unix/bsd/bsd4.4/kfreebsd/ldconfig.h
---- null/unix/bsd/bsd4.4/kfreebsd/ldconfig.h	1970-01-01 01:00:00.000000000 +0100
-+++ sysdeps/unix/bsd/bsd4.4/kfreebsd/ldconfig.h	2005-12-16 14:31:53.000000000 +0100
-@@ -0,0 +1,32 @@
-+/* Copyright (C) 2002 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
-+
-+#include <sysdeps/generic/ldconfig.h>
-+
-+#define SYSDEP_KNOWN_INTERPRETER_NAMES \
-+  { "/usr/lib/ld.so.1", FLAG_ELF_LIBC6 },			\
-+  { "/gnu/usr/lib/ld.so.1", FLAG_ELF_LIBC6 },	/* temporary */	\
-+  { "/usr/libexec/ld-elf.so.1", FLAG_ELF_LIBC5 },
-+
-+#define SYSDEP_KNOWN_LIBRARY_NAMES \
-+  { "libc.so.6", FLAG_ELF_LIBC6 },		/* temporary */	\
-+  { "libm.so.6", FLAG_ELF_LIBC6 },		/* temporary */	\
-+  { "libc.so.4", FLAG_ELF_LIBC5 },				\
-+  { "libm.so.4", FLAG_ELF_LIBC5 },				\
-+  { "libc.so.5", FLAG_ELF_LIBC5 },				\
-+  { "libm.so.5", FLAG_ELF_LIBC5 },
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/ldsodefs.h sysdeps/unix/bsd/bsd4.4/kfreebsd/ldsodefs.h
 --- null/unix/bsd/bsd4.4/kfreebsd/ldsodefs.h	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/ldsodefs.h	2005-12-16 14:31:53.000000000 +0100
@@ -19175,6 +19201,11 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/time.h sysdeps/unix
 +  };
 +# endif	/* struct timeval */
 +#endif	/* need timeval */
+diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-cache.h sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-cache.h
+--- null/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-cache.h	1970-01-01 01:00:00.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-cache.h	2007-01-05 11:36:38.000000000 +0100
+@@ -0,0 +1 @@
++#include <sysdeps/unix/sysv/linux/x86_64/dl-cache.h>
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-machine.h sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-machine.h
 --- null/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-machine.h	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-machine.h	2006-03-01 20:17:13.000000000 +0100
@@ -19468,6 +19499,56 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/iopl.c sysdeps/unix/bsd/
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/iopl.c	2006-04-11 11:29:50.000000000 +0200
 @@ -0,0 +1 @@
 +#include "../i386/iopl.c"
+diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/ldconfig.h sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldconfig.h
+--- null/unix/bsd/bsd4.4/kfreebsd/x86_64/ldconfig.h	1970-01-01 01:00:00.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldconfig.h	2007-01-05 11:36:38.000000000 +0100
+@@ -0,0 +1,39 @@
++/* Copyright (C) 2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <sysdeps/generic/ldconfig.h>
++
++#define SYSDEP_KNOWN_INTERPRETER_NAMES \
++  { "/lib/ld.so.1", FLAG_ELF_LIBC6 },				\
++  { "/lib/ld-kfreebsd-x86-64.so.1", FLAG_ELF_LIBC6 },		\
++  { "/lib64/ld-kfreebsd-x86-64.so.1", FLAG_ELF_LIBC6 },		\
++  { "/libexec/ld-elf.so.1", FLAG_ELF_LIBC5 },
++
++#define SYSDEP_KNOWN_LIBRARY_NAMES \
++  { "libc.so.0.1", FLAG_ELF_LIBC6 },				\
++  { "libm.so.1", FLAG_ELF_LIBC6 },				\
++  { "libc.so.4", FLAG_ELF_LIBC5 },				\
++  { "libm.so.4", FLAG_ELF_LIBC5 },				\
++  { "libc.so.5", FLAG_ELF_LIBC5 },				\
++  { "libm.so.5", FLAG_ELF_LIBC5 },				\
++  { "libc.so.6", FLAG_ELF_LIBC5 },				\
++  { "libm.so.6", FLAG_ELF_LIBC5 },				\
++  { "libc.so.7", FLAG_ELF_LIBC5 },				\
++  { "libm.so.7", FLAG_ELF_LIBC5 },				\
++  { "libc.so.8", FLAG_ELF_LIBC5 },				\
++  { "libm.so.8", FLAG_ELF_LIBC5 },
+diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/ldd-rewrite.sed sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldd-rewrite.sed
+--- null/unix/bsd/bsd4.4/kfreebsd/x86_64/ldd-rewrite.sed	1970-01-01 01:00:00.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldd-rewrite.sed	2007-01-05 11:36:38.000000000 +0100
+@@ -0,0 +1,3 @@
++/LD_TRACE_LOADED_OBJECTS=1/a\
++add_env="$add_env LD_LIBRARY_VERSION=\\$verify_out"
++s_^\(RTLDLIST=\)\(.*lib\)\(\|64\)\(/[^/]*\)\(-kfreebsd-x86-64\)\(\.so\.[0-9.]*\)[ 	]*$_\1"\2\4\6 \264\4\5\6"_
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S
 --- null/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S	2006-03-01 20:17:13.000000000 +0100
@@ -19665,6 +19746,72 @@ diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/pipe.S sysdeps/unix/bsd/
 +PSEUDO_END (__pipe)
 +libc_hidden_def (__pipe)
 +weak_alias (__pipe, pipe)
+diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/readelflib.c sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/readelflib.c
+--- null/unix/bsd/bsd4.4/kfreebsd/x86_64/readelflib.c	1970-01-01 01:00:00.000000000 +0100
++++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/readelflib.c	2007-01-05 11:36:38.000000000 +0100
+@@ -0,0 +1,62 @@
++/* Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Andreas Jaeger <aj@suse.de>, 1999 and
++		  Jakub Jelinek <jakub@redhat.com>, 1999.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++
++int process_elf32_file (const char *file_name, const char *lib, int *flag,
++			unsigned int *osversion, char **soname,
++			void *file_contents, size_t file_length);
++int process_elf64_file (const char *file_name, const char *lib, int *flag,
++			unsigned int *osversion, char **soname,
++			void *file_contents, size_t file_length);
++
++/* Returns 0 if everything is ok, != 0 in case of error.  */
++int
++process_elf_file (const char *file_name, const char *lib, int *flag,
++		  unsigned int *osversion, char **soname, void *file_contents,
++		  size_t file_length)
++{
++  ElfW(Ehdr) *elf_header = (ElfW(Ehdr) *) file_contents;
++  int ret;
++
++  if (elf_header->e_ident [EI_CLASS] == ELFCLASS32)
++    return process_elf32_file (file_name, lib, flag, osversion, soname,
++			       file_contents, file_length);
++  else
++    {
++      ret = process_elf64_file (file_name, lib, flag, osversion, soname,
++				file_contents, file_length);
++      /* x86-64 64bit libraries are always LIBC6.  */
++      if (!ret)
++	*flag = FLAG_X8664_LIB64|FLAG_ELF_LIBC6;
++      return ret;
++    }
++}
++
++#undef __ELF_NATIVE_CLASS
++#undef process_elf_file
++#define process_elf_file process_elf32_file
++#define __ELF_NATIVE_CLASS 32
++#include "sysdeps/generic/readelflib.c"
++
++#undef __ELF_NATIVE_CLASS
++#undef process_elf_file
++#define process_elf_file process_elf64_file
++#define __ELF_NATIVE_CLASS 64
++#include "sysdeps/generic/readelflib.c"
 diff -x .svn -Nurd null/unix/bsd/bsd4.4/kfreebsd/x86_64/rfork.S sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/rfork.S
 --- null/unix/bsd/bsd4.4/kfreebsd/x86_64/rfork.S	1970-01-01 01:00:00.000000000 +0100
 +++ sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/rfork.S	2006-01-07 16:21:51.000000000 +0100
