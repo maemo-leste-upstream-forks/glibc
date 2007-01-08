@@ -1,0 +1,38 @@
+--- glibc-2.3.6.orig/debian/sysdeps/unix/sysv/linux/hppa/clone.S	2006-12-29 08:49:25.000000000 +0100
++++ glibc-2.3.6/debian/sysdeps/unix/sysv/linux/hppa/clone.S	2007-01-01 19:53:00.000000000 +0100
+@@ -32,6 +32,11 @@
+ ENTRY(__clone)
+ 	/* FIXME: I have no idea how profiling works on hppa. */
+ 
++	/* Save the PIC register. */
++#ifdef PIC
++	stw	%r19,-32(%sr0, %sp)	/* parent */
++#endif
++
+ 	/* Sanity check arguments.  */
+ 	comib,=  0,%arg0,.Lerror        /* no NULL function pointers */
+ 	ldi     -EINVAL,%ret0
+@@ -41,10 +46,8 @@
+ 	/* Save the fn ptr and arg on the new stack.  */
+ 	stwm    %arg0,64(%arg1)
+ 	stw	%arg3,-60(%arg1)
+-
+-	/* Save the PIC register. */
+ #ifdef PIC
+-	stw	%r19,-32(%sr0, %sp)	/* parent */
++	stw	%r19,-32(%arg1)		/* save PIC on child's stack */
+ #endif
+ 
+ 	/* Do the system call */
+@@ -88,6 +91,11 @@
+ 	bl	$$dyncall,%r31
+ 	copy	%r31,%rp
+ 
++	/* Restore PIC register for exit() */
++#ifdef PIC
++	ldw	-32(%sr0, %sp), %r19	/* parent */
++#endif
++
+ 	bl	_exit,%rp
+ 	copy	%ret0,%arg0
+ 
