@@ -146,15 +146,13 @@ then
     fi
 
     # Add support for /etc/ld.so.conf.d
-    if dpkg --compare-versions $preversion lt 2.3.6-16; then
-	if [ -e /etc/ld.so.conf ]; then
-	    [ -z "$(tail -n 1 /etc/ld.so.conf)" ] || echo >> /etc/ld.so.conf
-	else
-	    touch /etc/ld.so.conf
-	fi
-	if ! grep -q '^include /etc/ld.so.conf.d/.*\.conf$' /etc/ld.so.conf ; then
-	    echo 'include /etc/ld.so.conf.d/*.conf' >> /etc/ld.so.conf
-	fi
+    if [ -e /etc/ld.so.conf ]; then
+	[ -z "$(tail -n 1 /etc/ld.so.conf)" ] || echo >> /etc/ld.so.conf
+    else
+	touch /etc/ld.so.conf
+    fi
+    if ! grep -q '^include /etc/ld.so.conf.d/.*\.conf$' /etc/ld.so.conf ; then
+	echo 'include /etc/ld.so.conf.d/*.conf' >> /etc/ld.so.conf
     fi
 
     # Handle upgrades when libc-opt package has been installed.
