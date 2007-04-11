@@ -6,9 +6,11 @@
 
         * ioctls.h (_IOIW): New macro for immediate-write ioctls.
 
---- sysdeps/mach/hurd/ioctl.c	2005-07-26 23:26:28.000000000 +0200
-+++ sysdeps/mach/hurd/ioctl.c	2005-07-26 23:24:07.000000000 +0200
-@@ -79,7 +79,7 @@ __ioctl (int fd, unsigned long int reque
+Index: sysdeps/mach/hurd/ioctl.c
+===================================================================
+--- sysdeps/mach/hurd/ioctl.c.orig
++++ sysdeps/mach/hurd/ioctl.c
+@@ -89,7 +89,7 @@
    void *p;
  #endif
  
@@ -17,7 +19,7 @@
  
    error_t err;
  
-@@ -130,7 +130,7 @@ __ioctl (int fd, unsigned long int reque
+@@ -140,7 +140,7 @@
  	  in (_IOT_COUNT1 (type), _IOT_TYPE1 (type));
  	  in (_IOT_COUNT2 (type), _IOT_TYPE2 (type));
  	}
@@ -26,7 +28,7 @@
  	{
  	  /* The RPC takes a single integer_t argument.
  	     Rather than pointing to the value, ARG is the value itself.  */
-@@ -197,11 +197,15 @@ __ioctl (int fd, unsigned long int reque
+@@ -209,11 +209,15 @@
        return msg.header.RetCode;
      }
  
@@ -46,8 +48,10 @@
  
    {
      /* Check for a registered handler for REQUEST.  */
---- sysdeps/mach/hurd/bits/ioctls.h	2005-07-26 23:29:54.000000000 +0200
-+++ sysdeps/mach/hurd/bits/ioctls.h	2005-07-26 23:19:56.000000000 +0200
+Index: sysdeps/mach/hurd/bits/ioctls.h
+===================================================================
+--- sysdeps/mach/hurd/bits/ioctls.h.orig
++++ sysdeps/mach/hurd/bits/ioctls.h
 @@ -118,6 +118,7 @@
     _IOT_foobar is defined either in this file,
     or where struct foobar is defined.  */

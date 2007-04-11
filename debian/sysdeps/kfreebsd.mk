@@ -4,7 +4,7 @@ libc = libc0.1
 
 # Linuxthreads Config
 threads = yes
-libc_add-ons = linuxthreads $(add-ons)
+libc_add-ons = ports linuxthreads $(add-ons)
 libc_extra_config_options = $(extra_config_options) --disable-compatible-utmp
 
 ifndef KFREEBSD_SOURCE

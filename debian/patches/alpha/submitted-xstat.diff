@@ -19,8 +19,6 @@ Regards,
 
 2005-02-18  GOTO Masanori  <gotom@debian.or.jp>
 
-	* sysdeps/unix/sysv/linux/kernel-features.h: Define
-	__ASSUME_STAT64_SYSCALL.
 	* sysdeps/unix/sysv/linux/alpha/fxstat.c: Check
 	__ASSUME_STAT64_SYSCALL.
 	* sysdeps/unix/sysv/linux/alpha/lxstat.c: Likewise.
@@ -29,25 +27,6 @@ Regards,
 	__libc_missing_axp_stat64 when it's not needed.
 	* sysdeps/unix/sysv/linux/alpha/xstatconv.h: Likewise.
 
-Index: sysdeps/unix/sysv/linux/kernel-features.h
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/kernel-features.h,v
-retrieving revision 1.83
-diff -u -p -r1.83 kernel-features.h
---- sysdeps/unix/sysv/linux/kernel-features.h	26 Jan 2005 20:01:10 -0000	1.83
-+++ sysdeps/unix/sysv/linux/kernel-features.h	18 Feb 2005 06:21:10 -0000
-@@ -413,6 +413,11 @@
- # define __ASSUME_GETDENTS32_D_TYPE	1
- #endif
- 
-+/* Starting with version 2.6.4, alpha stat64 syscalls are available.  */
-+#if __LINUX_KERNEL_VERSION >= 0x020604 && defined __alpha__
-+# define __ASSUME_STAT64_SYSCALL	1
-+#endif
-+
- /* Starting with version 2.5.3, the initial location returned by `brk'
-    after exec is always rounded up to the next page.  */
- #if __LINUX_KERNEL_VERSION >= 132355
 Index: sysdeps/unix/sysv/linux/alpha/fxstat.c
 ===================================================================
 RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/alpha/fxstat.c,v
@@ -264,17 +243,10 @@ retrieving revision 1.1
 diff -u -p -r1.1 xstatconv.h
 --- sysdeps/unix/sysv/linux/alpha/xstatconv.h	11 Mar 2004 02:58:44 -0000	1.1
 +++ sysdeps/unix/sysv/linux/alpha/xstatconv.h	26 Feb 2005 13:58:07 -0000
-@@ -1,5 +1,5 @@
- /* Convert between the kernel's `struct stat' format, and libc's.
--   Copyright (C) 2004 Free Software Foundation, Inc.
-+   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -18,7 +18,12 @@
     02111-1307 USA.  */
  
- #include "kernel-features.h"
+ #include <kernel-features.h>
 +#include <sys/syscall.h>
  
 +#ifdef __NR_stat64

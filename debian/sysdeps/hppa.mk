@@ -1,3 +1,17 @@
+# To build the NPTL version of the glibc on hppa, uncomment the following line
+# and comment the two next ones. Note that you need TLS support, which means a
+# recent binutils (> 2.17) and a gcc (>= 4.1) built against this binutils.
+#libc_add-ons = ports nptl $(add-ons)
+libc_add-ons = ports linuxthreads $(add-ons)
+libc_extra_config_options = $(extra_config_options) --disable-sanity-checks
+
+# Build with gcc-4.2 to get TLS support
+CC = gcc-4.2
+BUILD_CC = gcc-4.2
+
+# We need LWS CAS support
+libc_MIN_KERNEL_SUPPORTED = 2.6.9
+
 # hppa64 needs symlink /usr/hppa64-linux/include to /usr/include
 # (See: Bug#239020)  In future we may drop this file with supporting hppa64.
 

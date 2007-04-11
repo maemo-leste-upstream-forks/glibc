@@ -1,19 +1,22 @@
-# NPTL Config
-GLIBC_PASSES += nptl
-nptl_configure_build=s390-linux
-
 # build 64-bit (s390x) alternative library
 GLIBC_PASSES += s390x
 DEB_ARCH_REGULAR_PACKAGES += libc6-s390x libc6-dev-s390x
-s390x_MIN_KERNEL_SUPPORTED = 2.6.0
+s390x_add-ons = nptl $(add-ons)
 s390x_configure_target = s390x-linux
 s390x_CC = $(CC) -m64
-s390x_add-ons = nptl $(add-ons)
 libc6-s390x_shlib_dep = libc6-s390x (>= $(shlib_dep_ver))
-s390x_extra_cflags = -g1 -O3
+s390x_extra_cflags = -g -O3
 s390x_slibdir = /lib64
 s390x_libdir = /usr/lib64
-s390x_extra_config_options := $(extra_config_options) --disable-profile
+s390x_extra_config_options := $(extra_config_options) --disable-profile \
+	--includedir=/usr/include/s390x-linux-gnu
+
+define libc6-dev-s390x_extra_pkg_install
+mkdir -p debian/libc6-dev-s390x/usr/include/gnu
+cp -af debian/tmp-s390x/usr/include/s390x-linux-gnu/gnu/stubs-64.h \
+        debian/libc6-dev-s390x/usr/include/gnu
+ln -sf . debian/libc6-dev-s390x/usr/include/s390x-linux-gnu
+endef
 
 define libc6-s390x_extra_pkg_install
 mkdir -p debian/$(curpass)/lib

@@ -1,6 +1,7 @@
-diff -Nurd glibc-2.3.6.orig/linuxthreads/sysdeps/unix/sysv/linux/smp.h glibc-2.3.6/linuxthreads/sysdeps/unix/sysv/linux/smp.h
---- glibc-2.3.6.orig/linuxthreads/sysdeps/unix/sysv/linux/smp.h	2002-09-08 22:37:11.000000000 +0200
-+++ glibc-2.3.6/linuxthreads/sysdeps/unix/sysv/linux/smp.h	2006-08-14 21:59:40.527190466 +0200
+Index: linuxthreads/sysdeps/unix/sysv/linux/smp.h
+===================================================================
+--- linuxthreads/sysdeps/unix/sysv/linux/smp.h.orig
++++ linuxthreads/sysdeps/unix/sysv/linux/smp.h
 @@ -25,24 +25,6 @@
  static inline int
  is_smp_system (void)
@@ -28,10 +29,11 @@ diff -Nurd glibc-2.3.6.orig/linuxthreads/sysdeps/unix/sysv/linux/smp.h glibc-2.3
 +  /* Assume all machines are SMP and/or CMT and/or SMT.  */
 +  return 1;
  }
-diff -Nurd glibc-2.3.6.orig/sysdeps/unix/sysv/linux/arm/ioperm.c glibc-2.3.6/sysdeps/unix/sysv/linux/arm/ioperm.c
---- glibc-2.3.6.orig/sysdeps/unix/sysv/linux/arm/ioperm.c.orig	2006-08-15 18:23:08.715868260 +0200
-+++ glibc-2.3.6/sysdeps/unix/sysv/linux/arm/ioperm.c	2006-08-15 19:30:07.215439365 +0200
-@@ -49,6 +49,8 @@
+Index: ports/sysdeps/unix/sysv/linux/arm/ioperm.c
+===================================================================
+--- ports/sysdeps/unix/sysv/linux/arm/ioperm.c.orig
++++ ports/sysdeps/unix/sysv/linux/arm/ioperm.c
+@@ -50,6 +50,8 @@
  
  #define PATH_ARM_SYSTYPE	"/etc/arm_systype"
  #define PATH_CPUINFO		"/proc/cpuinfo"
@@ -40,7 +42,7 @@ diff -Nurd glibc-2.3.6.orig/sysdeps/unix/sysv/linux/arm/ioperm.c glibc-2.3.6/sys
  
  #define MAX_PORT	0x10000
  
-@@ -100,15 +102,25 @@
+@@ -107,15 +109,25 @@
  {
    char systype[256];
    int i, n;
@@ -72,7 +74,7 @@ diff -Nurd glibc-2.3.6.orig/sysdeps/unix/sysv/linux/arm/ioperm.c glibc-2.3.6/sys
      }
  
    n = readlink (PATH_ARM_SYSTYPE, systype, sizeof (systype) - 1);
-@@ -127,8 +139,6 @@
+@@ -134,8 +146,6 @@
      }
    else
      {

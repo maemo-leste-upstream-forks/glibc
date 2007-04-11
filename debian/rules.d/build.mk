@@ -125,33 +125,10 @@ $(stamp)install_%: $(stamp)check_%
 	fi
 
 	# Remove ld.so from optimized libraries
-	if [ $(curpass) != libc ] && [ $(call xx,configure_build) = $(call xx,configure_target) ]; then \
+	if echo $(call xx,slibdir) | grep -q "/lib/.\+" ; then \
 		rm -f debian/tmp-$(curpass)/$(call xx,slibdir)/ld*.so* ; \
 	fi
 	
-	# /usr/include/nptl and /usr/lib/nptl.  It assumes tmp-libc is already installed.
-	if [ $(curpass) = nptl ]; then \
-	  for file in `find debian/tmp-$(curpass)/usr/include -type f | sed 's/^debian\/tmp-nptl\///'`; do \
-	    if ! [ -f debian/tmp-$(curpass)/$$file ] || \
-	       ! cmp -s debian/tmp-$(curpass)/$$file debian/tmp-libc/$$file; then \
-	      target=`echo $$file | sed 's/^usr\/include\///'`; \
-	      install -d `dirname debian/tmp-libc/usr/include/nptl/$$target`; \
-	      install -m 644 debian/tmp-$(curpass)/usr/include/$$target \
-			     debian/tmp-libc/usr/include/nptl/$$target; \
-	    fi; \
-	  done; \
-	  install -d debian/tmp-libc/usr/lib/nptl; \
-	  for file in libc.a libc_nonshared.a libpthread.a libpthread_nonshared.a librt.a ; do \
-	    install -m 644 debian/tmp-$(curpass)/usr/lib/$$file \
-			   debian/tmp-libc/usr/lib/nptl/$$file; \
-	  done; \
-	  for file in libc.so libpthread.so; do \
-	    sed 's/\/usr\/lib\//\/usr\/lib\/nptl\//g' < debian/tmp-$(curpass)/usr/lib/$$file \
-	      > debian/tmp-libc/usr/lib/nptl/$$file; \
-	  done; \
-	  ln -sf /lib/tls/librt.so.1 debian/tmp-libc/usr/lib/nptl/; \
-	fi
-
 	# Create the multidir directories, and the configuration file in /etc/ld.so.conf.d
 	if [ $(curpass) = libc ]; then \
 	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \

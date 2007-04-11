@@ -1,0 +1,146 @@
+This patch is incomplete.  Reported on
+<http://savannah.gnu.org/bugs/?18216>.  The
+`sysdeps/mach/hurd/bits/stat.h' hunk alignes to what Linux uses.
+
+Index: sysdeps/mach/hurd/xstatconv.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/xstatconv.c,v
+retrieving revision 1.4
+diff -u -p -r1.4 xstatconv.c
+--- sysdeps/mach/hurd/xstatconv.c	11 Jun 2002 23:03:14 -0000	1.4
++++ sysdeps/mach/hurd/xstatconv.c	13 Jun 2006 13:57:55 -0000
+@@ -42,12 +42,21 @@ xstat64_conv (struct stat *buf, const st
+   buf->st_uid = buf64->st_uid;
+   buf->st_gid = buf64->st_gid;
+   buf->st_size = buf64->st_size;
++#ifdef __USE_MISC /* TODO.  Hm.  */
++  buf->st_atim.tv_sec = buf64->st_atim.tv_sec;
++  buf->st_atim.tv_nsec = buf64->st_atim.tv_nsec;
++  buf->st_mtim.tv_sec = buf64->st_mtim.tv_sec;
++  buf->st_mtim.tv_nsec = buf64->st_mtim.tv_nsec;
++  buf->st_ctim.tv_sec = buf64->st_ctim.tv_sec;
++  buf->st_ctim.tv_nsec = buf64->st_ctim.tv_nsec;
++#else
+   buf->st_atime = buf64->st_atime;
+   buf->st_atime_usec = buf64->st_atime_usec;
+   buf->st_mtime = buf64->st_mtime;
+   buf->st_mtime_usec = buf64->st_mtime_usec;
+   buf->st_ctime = buf64->st_ctime;
+   buf->st_ctime_usec = buf64->st_ctime_usec;
++#endif
+   buf->st_blksize = buf64->st_blksize;
+   buf->st_blocks = buf64->st_blocks;
+   buf->st_author = buf64->st_author;
+Index: sysdeps/mach/hurd/bits/stat.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/bits/stat.h,v
+retrieving revision 1.7
+diff -u -p -r1.7 stat.h
+--- sysdeps/mach/hurd/bits/stat.h	8 Nov 2005 01:22:58 -0000	1.7
++++ sysdeps/mach/hurd/bits/stat.h	13 Jun 2006 13:57:55 -0000
+@@ -55,12 +56,32 @@ struct stat
+     __off64_t st_size;		/* Size in bytes.  */
+ #endif
+ 
++#ifdef __USE_MISC
++    /* Nanosecond resolution timestamps are stored in a format
++       equivalent to 'struct timespec'.  This is the type used
++       whenever possible but the Unix namespace rules do not allow the
++       identifier 'timespec' to appear in the <sys/stat.h> header.
++       Therefore we have to handle the use of this header in strictly
++       standard-compliant sources special.  */
++    struct timespec st_atim;		/* Time of last access.  */
++    struct timespec st_mtim;		/* Time of last modification.  */
++    struct timespec st_ctim;		/* Time of last status change.  */
++# define st_atime st_atim.tv_sec	/* Backward compatibility.  */
++# define st_mtime st_mtim.tv_sec
++# define st_ctime st_ctim.tv_sec
++#else
++    /* TODO: Align to the st_atimensec, etc. which Linux uses and define
++       _STATBUF_ST_NSEC?  This requires changes in a) the Hurd code
++       (which uses st_atime_usec etc.) and b) in the glibc documentation
++       (which doesn't mention st_atimensec etc. at all, but does explain
++       the st_atime_used etc. interface).  */
+     __time_t st_atime;		/* Access time, seconds */
+     unsigned long int st_atime_usec; /* and microseconds.  */
+     __time_t st_mtime;		/* Modification time, seconds */
+     unsigned long int st_mtime_usec; /* and microseconds.  */
+     __time_t st_ctime;		/* Status change time, seconds */
+     unsigned long int st_ctime_usec; /* and microseconds.  */
++#endif
+ 
+     __blksize_t st_blksize;	/* Optimal size for I/O.  */
+ 
+@@ -104,12 +125,29 @@ struct stat64
+ 
+     __off64_t st_size;		/* Size in bytes.  */
+ 
++#ifdef __USE_MISC
++    /* Nanosecond resolution timestamps are stored in a format
++       equivalent to 'struct timespec'.  This is the type used
++       whenever possible but the Unix namespace rules do not allow the
++       identifier 'timespec' to appear in the <sys/stat.h> header.
++       Therefore we have to handle the use of this header in strictly
++       standard-compliant sources special.  */
++    struct timespec st_atim;		/* Time of last access.  */
++    struct timespec st_mtim;		/* Time of last modification.  */
++    struct timespec st_ctim;		/* Time of last status change.  */
++#else
++    /* TODO: Align to the st_atimensec, etc. which Linux uses and define
++       _STATBUF_ST_NSEC?  This requires changes in a) the Hurd code
++       (which uses st_atime_usec etc.) and b) in the glibc documentation
++       (which doesn't mention st_atimensec etc. at all, but does explain
++       the st_atime_used etc. interface).  */
+     __time_t st_atime;		/* Access time, seconds */
+     unsigned long int st_atime_usec; /* and microseconds.  */
+     __time_t st_mtime;		/* Modification time, seconds */
+     unsigned long int st_mtime_usec; /* and microseconds.  */
+     __time_t st_ctime;		/* Status change time, seconds */
+     unsigned long int st_ctime_usec; /* and microseconds.  */
++#endif
+ 
+     __blksize_t st_blksize;	/* Optimal size for I/O.  */
+ 
+@@ -127,7 +165,8 @@ struct stat64
+   };
+ #endif
+ 
+-#define	_STATBUF_ST_BLKSIZE	/* Tell code we have this member.  */
++/* Tell code we have these members.  */
++#define	_STATBUF_ST_BLKSIZE
+ 
+ /* Encoding of the file mode.  */
+ 
+@@ -138,23 +177,24 @@ struct stat64
+ #define	__S_IFCHR	0020000	/* Character device.  */
+ #define	__S_IFBLK	0060000	/* Block device.  */
+ #define	__S_IFREG	0100000	/* Regular file.  */
++#define	__S_IFIFO	0010000	/* FIFO.  */
+ #define	__S_IFLNK	0120000	/* Symbolic link.  */
+ #define	__S_IFSOCK	0140000	/* Socket.  */
+-#define	__S_IFIFO	0010000	/* FIFO.  */
+ 
+-/* POSIX.1b objects.  */
+-#define __S_TYPEISMQ(buf) (0)
+-#define __S_TYPEISSEM(buf) (0)
+-#define __S_TYPEISSHM(buf) (0)
++/* POSIX.1b objects.  Note that these macros always evaluate to zero.  But
++   they do it by enforcing the correct use of the macros.  */
++#define __S_TYPEISMQ(buf)  ((buf)->st_mode - (buf)->st_mode)
++#define __S_TYPEISSEM(buf) ((buf)->st_mode - (buf)->st_mode)
++#define __S_TYPEISSHM(buf) ((buf)->st_mode - (buf)->st_mode)
+ 
+ /* Protection bits.  */
+ 
+ #define	__S_ISUID	04000	/* Set user ID on execution.  */
+ #define	__S_ISGID	02000	/* Set group ID on execution.  */
+ #define	__S_ISVTX	01000	/* Save swapped text after use (sticky).  */
+-#define	__S_IREAD	00400	/* Read by owner.  */
+-#define	__S_IWRITE	00200	/* Write by owner.  */
+-#define	__S_IEXEC	00100	/* Execute by owner.  */
++#define	__S_IREAD	0400	/* Read by owner.  */
++#define	__S_IWRITE	0200	/* Write by owner.  */
++#define	__S_IEXEC	0100	/* Execute by owner.  */
+ 
+ 
+ #ifdef	__USE_GNU

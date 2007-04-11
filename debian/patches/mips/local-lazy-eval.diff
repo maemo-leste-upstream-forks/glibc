@@ -16,10 +16,11 @@
 
 	* first version.
 
-diff -upr build-tree.orig/glibc-2.3.2/elf/do-lookup.h build-tree/glibc-2.3.2/elf/do-lookup.h
---- build-tree.orig/glibc-2.3.2/elf/do-lookup.h	2005-02-28 23:42:31.000000000 +0100
-+++ build-tree/glibc-2.3.2/elf/do-lookup.h	2005-04-11 18:19:20.000000000 +0200
-@@ -209,6 +209,13 @@ FCT (const char *undef_name, unsigned lo
+Index: elf/do-lookup.h
+===================================================================
+--- elf/do-lookup.h.orig
++++ elf/do-lookup.h
+@@ -240,6 +240,13 @@
  		}
  	      /* FALLTHROUGH */
  	    case STB_GLOBAL:
@@ -32,4 +33,4 @@ diff -upr build-tree.orig/glibc-2.3.2/elf/do-lookup.h build-tree/glibc-2.3.2/elf
 +
  	      /* Global definition.  Just what we need.  */
  	      result->s = sym;
- 	      result->m = map;
+ 	      result->m = (struct link_map *) map;

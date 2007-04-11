@@ -1,0 +1,22 @@
+This is not a proper fix, but a workaround that is needed on HEAD.  (Have
+to check glibc-2_5-branch.)  Reported on
+<http://savannah.gnu.org/bugs/?18218>.
+
+Index: resolv/res_send.c
+===================================================================
+RCS file: /cvs/glibc/libc/resolv/res_send.c,v
+retrieving revision 1.49
+diff -u -p -r1.49 res_send.c
+--- resolv/res_send.c	6 May 2006 17:35:50 -0000	1.49
++++ resolv/res_send.c	7 Feb 2007 13:23:45 -0000
+@@ -102,6 +102,10 @@ static const char rcsid[] = "$BINDId: re
+ #define MAXPACKET       65536
+ #endif
+ 
++#ifndef MSG_NOSIGNAL
++# define MSG_NOSIGNAL	0
++#endif
++
+ 
+ /* From ev_streams.c.  */
+ 

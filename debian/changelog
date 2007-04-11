@@ -1,13 +1,345 @@
-glibc (2.3.6.ds1-14) UNRELEASED; urgency=low
+glibc (2.5-1) unstable; urgency=low
+
+  * New upstream version 2.5.
+    - Adds support of POSIX_MADV_* on mips, mipsel, arm and hppa.  Closes:
+      #381294.
+    - Fixes a pointer-to-long overflow in sunrpc code. Closes: #389084.
+    - Fixes getent wrt ipv4 hosts lookups. Closes: #347358.
+    - Fixes strtod wrt hex floats with negative exponent. Closes: #172562.
+    - Fixes nice() errno when called without appropriate privileges.  Closes:
+      #286825.
+    - Provides sys/inotify.h. Closes: #369402.
+    - Fixes strtod("INF") with some locales. Closes: #415417.
+
+  [ Aurelien Jarno ]
+  * debian/shlibver: Bump up to 2.5.
+  * debian/copyright: update.
+  * Remove locale/cvs-iso3166.diff (merged upstream).
+  * Remove localedata/locale-ro_RO.diff (merged upstream).
+  * Remove arm/cvs-portshead.patch (merged upstream).
+  * Remove arm/local-dwarf2-buildfix.diff (merged upstream).
+  * Remove hppa/cvs-clone.patch (merged upstream).
+  * Remove hppa/cvs-portshead.diff (merged upstream).
+  * Remove hppa/submitted-drop-utimes.diff (merged upstream).
+  * Remove hurd-i386/cvs-machrules-make.diff (merged upstream).
+  * Remove mips/cvs-fork.diff (merged upstream).
+  * Remove mips/cvs-resource.diff (merged upstream).
+  * Remove powerpc/cvs-procfs.diff (merged upstream).
+  * Remove any/cvs-argp_h.diff (merged upstream).
+  * Remove any/cvs-getcwd_c.diff (merged upstream).
+  * Remove any/cvs-sysctl.diff (merged upstream).
+  * Remove any/cvs-thread_signals.diff (merged upstream).
+  * Remove any/cvs-uio_h.diff (merged upstream).
+  * Remove any/cvs-sunrpc-xdrmem_setpos.diff (merged upstream).
+  * Remove any/cvs-getent-wrong-struct-size.diff (merged upstream).
+  * Remove any/submitted-strfmon.diff (merged upstream).
+  * Remove all/submitted-uninitialized-byte-LC_CTYPE.diff (merged upstream).
+  * Remove any/local-ttyname-devfs.diff (devfs is not supported anymore).
+  * Update arm/local-no-hwcap.diff.
+  * Update any/local-ldso-disable-hwcap.diff.
+  * Update all/submitted-new-brf-encoding.diff.
+  * debhelper.in/libc.docs: remove INTERFACE as it has been removed upstream.
+  * sysdeps/depflags.pl: don't make libc6 depends on tzdata, as this package
+    is of priority required. Should help to debconfize tzdata.
+  * sysdeps/i386.mk: put the static Xen libc flavour in /usr/lib/xen.  Closes:
+    #391372.
+  * sysdeps/powerpc.mk: install 64-bit headers (actually gnu/stubs-64.h)
+    directly into /usr/include and provide /usr/include/powerpc64-linux-gnu as
+    a symlink to /usr/include for compatibility reasons.  Closes: #391858.
+  * sysdeps/ppc64.mk: install 32-bit headers (actually gnu/stubs-32.h)
+    directly into /usr/include and provide /usr/include/powerpc-linux-gnu as
+    a symlink to /usr/include for compatibility reasons.
+  * kfreebsd/local-scripts.diff: update.
+  * kfreebsd/local-sys_queue_h.diff: update.
+  * kfreebsd/local-sysdeps.diff: update to revision 1689 (from glibc-bsd).
+  * kfreebsd/local-sysdeps-2.4.diff: remove.
+  * sysdeps/kfreebsd: enable the ports add-on.
+  * sysdeps/kfreebsd-i386.mk: ditto.
+  * any/local-stubs_h.diff: new patch to fix a warning in stubs.h.  Closes:
+    #394128.
+  * alpha/submitted-sigsuspend.diff: new patch (fix the build on alpha) from
+    the libc-alpha mailing list.
+  * debian/local/manpages/*: fix typos.  Closes: #395427.
+  * debian/debhelper.in/libc.dirs: don't provide /sys, now provided by
+    initscripts.
+  * debian/debhelper.in/nscd.init: add lsb header.
+  * debian/rules.d/debhelper.mk: add support for installing lintian and linda
+    overrides files.
+  * debian/debhelper.in/libc.overrides: new file.
+  * debian/debhelper.in/libc-dev.overrides: new file.
+  * debian/debhelper.in/libc-alt.overrides: new file.
+  * debian/debhelper.in/libc-otherbuild.overrides: new file.
+  * debian/debhelper.in/libc-dev-otherbuild.overrides: new file.
+  * debian/any/submitted-getcwd-sys_param_h.diff: new patch (fix the build
+    with linuxthreads) from the libc-alpha mailing list.
+  * debian/powerpc/cvs-tls-debug.diff: new patch (fix for debugging
+    thread-local variables on powerpc) from CVS.
+  * Build depends on gcc-4.2 on hppa to enable TLS on hppa.  Closes: #397813.
+  * debian/patches/hppa/cvs-hppa-update.diff: new patch (CVS update).
+  * debian/sysdeps/hppa.mk, debian/script.in/kernelcheck.sh: bump minimum
+    kernel requirement to 2.6.9 on hppa to get LWS CAS support.
+  * debian/any/patches/local-linuxthreads-semaphore_h.diff: new patch (fix
+    /usr/include/semaphore.h with linuxthreads).
+  * sysdeps/sparc.mk: install 64-bit headers (actually gnu/stubs-64.h)
+    directly into /usr/include and provide /usr/include/sparc64-linux-gnu as
+    a symlink to /usr/include for compatibility reasons.  Closes: #403980.
+  * sysdeps/*.mk: build with -g instead of -g1.  Closes: bug#403270.
+  * debhelper.in/libc.install: install gai.conf in /etc.  Closes: #404379.
+  * Add patches/any/local-ldconfig-timestamps.diff (use the timestamps to
+    update the cache only when needed) by Josselin Mouette.  Closes: #374945.
+  * Add partial support for armel, from http://armel-debs.applieddata.net/diffs/.
+  * debian/debhelper.in/: delete /usr/doc removal from postinst scripts.
+  * debian/control.in: drop the dependency on tzdata. It is a required package
+    and the glibc from Etch depends on it, ensuring tzdata is always present
+    post-Etch.
+  * debian/script.in/kernelcheck.sh, debian/sysdeps/linux.mk: set the minimum
+    kernel version to 2.6.1, except on m68k where it is set to 2.4.1.
+  * patches/any/cvs-2.5-branch-update.diff: new patch (2.5 branch update) from
+    upstream CVS.
+  * patches/any/cvs-lt-update.diff: new patch (linuxthreads update) from
+    upstream CVS.
+  * debhelper.in/locales.templates: recommends UTF-8 locales by default.
+    Closes: #312927.
+  * control.in/main, rules.d/debhelper.mk: use dh_shlibdeps to set the
+    dependencies of nscd.  Closes: #409288.
+  * sysdeps/s390.mk: install 64-bit headers (actually gnu/stubs-64.h)
+    directly into /usr/include and provide /usr/include/s390x-linux-gnu as
+    a symlink to /usr/include for compatibility reasons.
+  * patches/all/local-pthread-manpages.diff: update to fix a typo in
+    pthread_detach(3).  Closes: #98852.
+  * Change any/local-__thread.diff into any/local-notls.diff.
+  * Update any/local-notls.diff (make glibc buildable without TLS support)
+    from Petr Salinger and Aurelien Jarno.
+  * hurd-i386/submitted-trivia.diff: new patch from Thomas Schwinge (make glibc
+    partly buildable on Hurd).
+  * hurd-i386/submitted-stat.diff: new patch from Thomas Schwinge (update
+    struct stat on Hurd).
+  * hurd-i386/submitted-libc_once.diff: new patch from Thomas Schwinge (add
+    __libc_once_else to make glibc buildable on Hurd).
+  * hurd-i386/local-msg-nosignal.diff: new patch from Thomas Schwinge
+    (workaround the missing MSG_NOSIGNAL support).
+  * m68k/cvs-m68k-update.diff: new patch (bits from CVS).  Closes: #364098.
+  * any/submitted-clock-settime.diff: new patch (include <time.h> to get
+    clockid_t).
+  * hurd-i386/local-sigsuspend-nocancel.diff: new patch (workaround missing
+    sigsuspend_not_cancel() on Hurd).
+  * debhelper.in/glibc-doc.links: add symlinks from pthread_setcanceltype(3),
+    pthread_setcancelstate(3) and pthread_testcancel(3) to pthread_cancel(3).
+    Closes: #411132.
+  * debian/control.in/i386: Changed the conflicts on ia32-libs-dev to a
+    versioned conflict.  Closes: #407540.
+  * any/local-mktemp.diff: new patch (also propose mkdtemp as an alternative
+    to mktemp).  Closes: #377310.
+  * any/cvs-ftw-c.diff: new patch (fix nftw() with FTW_CHDIR in /) from CVS.
+    Closes: #367522.
+  * any/cvs-printf_fp-c.diff: new patch (fix printf %#.0g) from CVS.
+    Closes: #209136.
+  * New Norwegian bokmål debconf translation, by Bjørn Steensrud.  Closes:
+    #412559.
+  * Remove patches/arm/local-softfloat.diff and patches/series.arm-softfloat.
+    Remove arm-softfloat from debian/rules.d/control.mk. armel (ARM EABI)
+    replaces the softfloat architecture.
+  * patches/any/cvs-pow.diff: new patch (fix pow(-inf, nan)) from upstream.
+    Closes: #226291.
+  * Update Catalan debconf translation, by Jordà Polo.  Closes: #413259.
+
+  [ Denis Barbier ]
+  * Remove localedata/locale-en_NZ.diff (merged upstream).
+  * Remove localedata/locale-nr_ZA.diff (merged upstream).
+  * Remove localedata/new-catalan-locales.diff (merged upstream).
+  * Remove localedata/update-ZA.diff (merged upstream).
+  * Remove localedata/locale-te_IN.diff (merged upstream).
+  * Remove locale/iso4217-RON.diff (merged upstream).
+  * Update localedata/locales_CH.diff
+  * Update localedata/supported.diff
+  * Update localedata/locale-hy_AM.diff
+  * Update localedata/locale-csb_PL.diff
+  * Update localedata/dz_BT-collation.diff
+  * Update localedata/locale-ia.diff
+  * Update localedata/locales-sr.diff
+  * Update localedata/tailor-iso14651_t1.diff
+  * Update localedata/fix-lang.diff
+  * Update localedata/first_weekday.diff
 
   [ Pierre Habouzit ]
-  * any/cvs-sunrpc-64bits-svc_getreqset.diff: fix 64bits issue for 64bits
-    machines  (affects mount, causes CPU hog if triggered). Closes: #413450.
-  * control.in/main, rules.d/debhelper.mk: Backport fix from Aurélien in the
-    glibc-2.5 branch: use dh_shlibdeps to set the dependencies of nscd.
-    Closes: #409288, #412562.
+  * Adding myself to Uploaders.
+  * Rework patches/any/local-ldd.diff so that we don't use file(1) anymore (it
+    wasn't used anyway). Closes: #165417, #413095.
+  * Rework patch for #340871 (patches/m68k/local-mathinline_h.diff to use
+    __NTH rather than __THROW) in function implementations.
+  * Fix rpcgen(1) manpage, to match rpcgen(1) behaviour more closely.
+    Closes: #46175.
+  * patches/any/submitted-date-and-unknown-tz.diff: fix date output in case of
+    an unknown timezone in $TZ, submitted upstream as #4028.
+    Closes: #55648, #119540, #269238.
 
- -- Pierre Habouzit <madcoder@debian.org>  Mon,  5 Mar 2007 10:32:34 +0100
+  [ Michael Banck ]
+  * patches/hurd-i386/local-tls.diff: New patch (fixes building with TLS) by
+    Samuel Thibault and Barry deFreese.  Closes: #413787.
+
+  [ Clint Adams ]
+  * debian/watch: add watch file.
+  * debian/control, debian/control.in/opt, debian/control.in/main,
+    debian/control.in/libc0.1, debian/control.in/libc,
+    debian/debhelper.in/locales.templates: English corrections from
+    Christian Perrier for Debconf templates and package descriptions.
+    Closes: #418006.
+
+ -- Clint Adams <schizo@debian.org>  Mon, 09 Apr 2007 16:17:20 -0400
+
+glibc (2.4-1) UNRELEASED; urgency=low
+
+  * New upstream version 2.4:
+    - NPTL is used instead of linuxthreads on alpha.  Closes: #325600.
+    - NPTL being the default thread library when available, only one
+      version of the thread library is available (either linuxthreads or
+      NPTL).  Closes: #399035.
+    - .eh_frame has been fixed.  Closes: #349688.
+    - Fix a memory leak in getprotobyname. Closes: #365233.
+    - Support for MALLOC_PERTURB has been added.  Closes: #350579.
+    - Support for 2.4 kernels has been removed.  Closes: #258740.
+
+  [ Clint Adams ]
+  * Remove all/cvs-manual-memory.diff (merged upstream).
+  * Remove all/cvs-manual-string.diff (merged upstream).
+  * Remove any/cvs-divdi3-moddi3.diff (merged upstream).
+  * Remove any/cvs-errlist.diff (merged upstream).
+  * Remove any/cvs-siginfo_h.diff (merged upstream).
+  * Remove any/cvs-regcomp_c.diff (merged upstream).
+  * Remove any/cvs-tst-setcontext_c.diff (merged upstream).
+  * Remove any/local-dash.diff (merged upstream).
+  * Remove any/local-gcc4-elf.diff (merged upstream).
+  * Remove powerpc/cvs-executable-got.diff (merged upstream).
+  * Remove sparc/cvs-datastart.diff (merged upstream).
+  * Remove sparc/cvs-gcc4-inline.diff (merged upstream).
+  * Remove sparc/local-gcc4-mv8.diff (merged upstream).
+  * Remove sparc/submitted-socket-weakalias.diff (merged upstream).
+  * Remove everything to do with nscd_nischeck.
+  * Remove any/local-linuxthreads-sizefix.diff (not necessary anymore).
+  * Update hppa/submitted-lt.diff.
+  * debian/shlibver: Bump up to 2.4-1.
+  * Update any/local-bashisms.diff: fix invalid test operator (==)
+    in run-iconv-test.sh
+  * debian/rules.d/build.mk: don't try to build html documentation.
+  * debian/sysdeps/hppa.mk: use ports and linuxthreads add-ons
+  * debian/sysdeps/m68k.mk: use ports and linuxthreads add-ons
+  * debian/sysdeps/m32r.mk: use ports and linuxthreads add-ons
+  * debian/sysdeps/mips.mk: use ports add-on
+  * debian/sysdeps/mipsel.mk: use ports add-on
+  * debian/sysdeps/arm.mk: use ports add-on
+  * Build with gcc 4.1 on all architectures but hurd-i386.
+  * debian/debhelper.in/nscd.init: partially sync nscd initscript
+    with upstream.
+  * Remove mips/local-librt.diff.
+  * debian/rules.d/tarball.mk: no longer run tar with -v.
+  * Add hppa/cvs-portshead.patch (update hppa code to ports HEAD)
+  * Add arm/cvs-portshead.patch (update arm code to ports HEAD)
+
+  [ Denis Barbier ]
+  * Remove locale/complex-collate.diff (merged upstream).
+  * Remove locale/cvs-{iso4217,iso639}.diff, locale/cvs-localedata.diff
+  * Remove from any/local-forward-backward-collation.diff a chunk merged
+    upstream.
+  * debian/rules.d/tarball.mk: glibc-<foo>-2.4.tar.bz2 add-on unpacks
+    into either <foo> or glibc-<foo>-2.4, in which case it is renamed
+    into <foo>.
+
+  [ Michael Banck ]
+  * debian/sysdeps/hurd.mk: Only use libidn for add-ons.
+
+  [ Aurelien Jarno ]
+  * Update all/submitted-new-brf-encoding.diff.
+  * Remove alpha/cvs-gcc4-profile.diff (not needed anymore).
+  * Update alpha/submitted-xstat.diff.
+  * Update arm/cvs-gcc4-inline.diff.
+  * Remove arm/cvs-gcc4.1-raise.diff (merged upstream).
+  * Remove arm/cvs-float-byteorder.diff (merged upstream).
+  * Remove arm/cvs-socket-weakalias.diff (merged upstream).
+  * Update arm/local-ioperm.diff to reflect the new port add-on.
+  * Update arm/local-no-hwcap.diff to reflect the new port add-on.
+  * Remove any/cvs-argp_h.diff (merged upstream).
+  * Remove any/cvs-ctan.diff (merged upstream).
+  * Remove any/cvs-futimes.diff (merged upstream).
+  * Remove any/cvs-nfs_h.diff (merged upstream).
+  * Remove any/cvs-path_log.diff (merged upstream).
+  * Remove any/cvs-resource_h.diff (merged upstream).
+  * Remove any/cvs-static-getpid.diff (merged upstream).
+  * Remove any/cvs-tls-crashfix.diff (merged upstream).
+  * Add any/cvs-uio_h.diff from upstream to allow inclusion of bits/uio.h from
+    fcntl.h and prevent multiple inclusions.
+  * Remove any/local-kernel-features.diff (merged upstream).
+  * Update any/local-ldso-disable-hwcap.diff.
+  * Add any/local-linuxthreads-tst-sighandler.diff to disable
+    tst-sighandler{1,2} tests, which seems to be buggy.
+  * Update any/local-rtld.diff.
+  * Update any/local-sysctl.diff to reflect the new port add-on.
+  * Update any/local-version-sanity.diff.
+  * Remove any/submitted-eh-frame-terminator.diff (merged upstream).
+  * Update any/submitted-nis-netgrp.diff.
+  * Remove i386/local-i486_ldt_support.diff (merged upstream).
+  * Remove ia64/cvs-gcc41-atomic_h.diff (merged upstream).
+  * Remove hppa/cvs-linesep.diff (merged upstream).
+  * Remove hppa/cvs-no-ldbl-128 (merged upstream).
+  * Replace hppa/cvs-pie-relocs.diff by submitted-nptl-carlos.diff, see
+    http://lists.parisc-linux.org/pipermail/parisc-linux/2006-July/029549.html.
+  * Remove hppa/local-gcc-4-profile.diff (not necessary anymore).
+  * Update hppa/local-inlining.diff to reflect the new port add-on.
+  * Remove hppa/local-remove-mallocdef.diff (not necessary anymore as
+    spinlock ldcw fix has been applied).
+  * Update hppa/submitted-drop-utimes.diff.
+  * Remove hppa/submitted-fenv-align.diff (merged upstream).
+  * Remove hppa/submitted-fpu.diff (merged upstream).
+  * Remove hppa/submitted-iitlbp.diff (merged upstream).
+  * Remove hppa/submitted-sysdeps.diff (merged upstream).
+  * Remove hurd-i386/cvs-ioctl-pfinet.diff (merged upstream).
+  * Remove hurd-i386/cvs-getresuid-dyslexia.diff (merged upstream).
+  * Remove hurd-i386/cvs-posix-opts.diff (merged upstream).
+  * Update hurd-i386/submitted-sysvshm.diff.
+  * Remove kfreebsd/local-nscd_no_mremap.diff (not necessary anymore).
+  * Update kfreebsd/local-scripts.diff.
+  * Add kfreebsd/local-ftw.diff.
+  * Add kfreebsd/local-sysdeps-2.4.diff.
+  * Add kfreebsd/local-memusage_no_mremap.diff.
+  * Remove m32r/cvs-elf-m32r_rel32.diff (merged upstream).
+  * Update m68k/local-compat.diff.
+  * Update m68k/local-mathinline_h.diff to reflect the new port add-on.
+  * Update m68k/local-fpic.diff.
+  * Update m68k/local-reloc.diff to reflect the new port add-on.
+  * Update m68k/submitted-gcc34-seccomment.diff.
+  * Add mips/cvs-fork.diff (fix the path to i386/fork.c) from CVS.
+  * Add mips/cvs-resource.diff (fix a typo in bits/resource.h) from CVS.
+  * Remove mips/cvs-gcc4-inline.diff (merged upstream).
+  * Remove mips/cvs-gcc4-sysdeps.diff (merged upstream).
+  * Update mips/submitted-msq.diff to reflect the new port add-on.
+  * Remove powerpc/cvs-gcc41-initfini.diff (merged upstream).
+  * Update any/local-libgcc-compat-{all,others}.diff and split them into
+    any/local-libgcc-compat-{main,ports}.diff. Move mips/libgcc-compat.c to
+    mips/mips32/libgcc-compat.c as it is only needed for the o32 ABI, and not
+    needed for n32 and n64 ABIs.
+  * Add sparc/local-fork.diff (use fork.c instead of fork.S).
+  * Add any/local-__thread.diff (make glibc buildable without __thread support)
+    from Michael Banck.
+  * debian/script.in/kernelcheck.sh: set the minimum kernel version to 2.6.0,
+    except on m68k where it is set to 2.4.1.
+  * debian/sysdeps/i386.mk: install the xen flavour in /lib/i686/nosegneg and
+    create /etc/ld.so.conf.d/libc6-xen.conf which uses the new hwcap feature.
+    Closes: #363442.
+  * debian/FAQ: Remove LD_ASSUME_KERNEL workaround, as linuxthreads versions
+    of the glibc are not built anymore.
+
+  [ Jeff Bailey ]
+
+  * debian/control.in/libc: Move tzdata dependancy to ...
+  * debian/sysdeps/depflags.mk: ... here.
+
+  * debian/sysdeps/powerpc.mk: Include biarch headers in libc6-dev-ppc64
+
+  * debian/patches/any/local-dynamic-resolvconf.diff: New file to 
+    check for updated resolv.conf before a nameserver call.  (Closes:
+    #272265).
+  * debian/patches/series: Use it.
+
+ -- Clint Adams <schizo@debian.org>  Sun, 28 May 2006 03:28:14 +0200
 
 glibc (2.3.6.ds1-13) unstable; urgency=low
 
@@ -148,17 +480,12 @@ glibc (2.3.6.ds1-5) unstable; urgency=low
 
 glibc (2.3.6.ds1-4) unstable; urgency=low
 
-  [ Aurelien Jarno ]
   * debian/control.in/opt: add a new line at the end of the file.  (Closes:
-    #384375).
+    #384375). 
   * debian/rules.d/control.mk: add a check to make sur that all files in
     debian/control.in have a new line at the end.
 
-  [ Denis Barbier ]
-  * Remove from /usr/share/doc/locales/changelog.gz upstream changes which
-    have been put in localedata/reverted-for-etch.diff.
-
- -- Denis Barbier <barbier@debian.org>  Thu, 24 Aug 2006 02:44:00 +0200
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 24 Aug 2006 00:21:25 +0200
 
 glibc (2.3.6.ds1-3) unstable; urgency=low
 
@@ -214,7 +541,7 @@ glibc (2.3.6.ds1-1) unstable; urgency=low
   * debian/patches/locale/cvs-iso4217.diff: Update to CVS 2006-08-12.
   * debian/patches/localedata/cvs-localedata.diff: Update to CVS 2006-08-12
     Among other changes:
-    * New locale files: as_IN, ca_AD, ca_FR, ca_IT, csb_PL, el_CY, nr_ZA,
+    * New locale files: as_IN, ca_AD, csb_PL, el_CY, fr_AD, it_AD, nr_ZA,
       or_IN, pa_PK and tr_CY.
     * charmaps/MIK: New file.
     * Sync bg_BG bs_BA es_MX ru_RU tg_TJ tt_RU with latest iso-4217.def
@@ -242,14 +569,6 @@ glibc (2.3.6.ds1-1) unstable; urgency=low
     packages.  Thanks Petr Salinger.  (Closes: #383168).
   * New any/cvs-static-getpid.diff patch from upstream to fix getpid() in
     statically linked programs on some architectures.  (Closes: #367656).
-  * Backport from experimental (thanks Denis):
-    - Remove the GNU Libc Reference manual from glibc-doc because it is
-      not DFSG-free. (Closes: #181494)
-      The whole glibc-2.3.6/manual directory is removed from glibc-2.3.6.ds1.tar.bz2.
-    - debian/control: Drop Build-Depends: texinfo, texi2html.
-    - debian/control: Drop references to the antique libc-doc package.
-    - all/cvs-manual-memory.diff: removed.
-    - all/cvs-manual-string.diff: removed.
 
  -- Aurelien Jarno <aurel32@debian.org>  Tue, 15 Aug 2006 23:01:43 +0200
 
@@ -287,7 +606,7 @@ glibc (2.3.6-17) unstable; urgency=medium
 
  -- Aurelien Jarno <aurelien@aurel32.net>  Sun, 30 Jul 2006 21:25:32 +0200
 
-glibc (2.3.6-16) unstable; urgency=medium
+glibc (2.3.6-16) UNRELEASED; urgency=low
 
   (urgency set to medium as it fixes a FTBFS)
 
@@ -298,8 +617,10 @@ glibc (2.3.6-16) unstable; urgency=medium
     upstream.
   * Build with gcc 4.1 on all architectures but hurd-i386.
   * debian/sysdeps/s390.mk: switch s390x to nptl.
-  * debian/rules.d/build.mk: use ld.so libc.so instead of libc.so to
+  * debian/rules.d/build.mk: use ld.so libc.so instead of libc.so to 
     determine if the host CPU is able to run the testsuite.
+  * debian/sysdeps/kfreebsd.mk: also use the nfs/ directory from kernel
+    headers.
   * debian/sysdeps/kfreebsd.mk: also use the nfs/ directory from kernel
     headers.
   * patches/kfreebsd/local-sysdeps.diff: update to revision 1631 (from glibc-bsd).
@@ -307,8 +628,8 @@ glibc (2.3.6-16) unstable; urgency=medium
     option.  (Closes: #375741)
   * debian/local/manpages/iconv.1: fixed the use of the TH keyword.  (Closes:
     #372510)
-  * patches/powerpc/cvs-procfs.diff: patch from upstream (fix a build failure
-    with recent kernel headers).  (Closes: #377892)
+  * debian/locales-all.README.Debian:  File removed, it is useless now.
+    (Closes: #378191)
   * Update Russian debconf translation, by Yuri Kozlov.  (Closes: #379395)
   * debian/debhelper.in/libc.postinst: add /etc/ld.so.conf.d/ support.
   * Drop any/local-ldconfig-multiarch.diff, use /etc/ld.so.conf.d/ to
@@ -317,29 +638,20 @@ glibc (2.3.6-16) unstable; urgency=medium
     (Closes: #340871)
 
   [ Denis Barbier ]
-  * debian/main/control.in: also make locales Conflicts: belocs-locales-bin.
+  * debian/control.in/main: also make locales Conflicts: belocs-locales-bin.
   * debian/debhelper.in/locales.config: some programs keep modifying
     /etc/environment to store locale variables, so read /etc/environment
     even when upgrading new versions.  Of course, /etc/default/locale has
     still a higher precedence over /etc/environment.  (Closes: #363644)
   * Add new Lithuanian debconf translation, by Gintautas Miliauskas.
     (Closes: #374365)
-  * Add all/cvs-iso2022jp-roundtrip.diff, backported from CVS.
-    Fix roundtrip conversion for 0x5C character.  (Closes: #375074)
   * Update Brazilian Portuguese debconf translation, by Felipe Augusto
     van de Wiel.  (Closes: #375451)
   * debian/debhelper.in/libc.postinst: Call iconvconfig to generate
     /usr/lib/gconv/gconv-modules.cache.  (Closes: #376811)
   * debian/debhelper.in/libc.postrm: Remove this cache file.
-  * Let locales-all ship a /usr/lib/locales-all/supported.tar.gz
-    compressed archive to save disk space.  Compiled locales are now
-    copied into /usr/lib/locale/locale-archive by locales-all.postinst,
-    so this package is fully functional.  (Closes: #375829)
-    Thanks Javier Serrano Polo
-  * debian/locales-all.README.Debian:  File removed, it is useless now.
-    (Closes: #378191)
 
- -- Aurelien Jarno <aurel32@debian.org>  Tue, 25 Jul 2006 02:05:04 +0200
+ -- Aurelien Jarno <aurel32@debian.org>  Thu,  8 Jun 2006 08:03:49 +0200
 
 glibc (2.3.6-15) unstable; urgency=low
 
@@ -820,7 +1132,7 @@ glibc (2.3.6-2) unstable; urgency=low
     install the glibc in (/usr)/lib, and to use the dynamic linker path
     specified by the ABI for path for libc objects.  (Closes: #325226)
   * Add -u option to the ldd manpage.  (Closes: #354074)
-  * Merged a patch from Michael Bank to use gcc-4.0 on Hurd.
+  * Merged a patch from Michael Banck to use gcc-4.0 on Hurd.
   * Add resource_h.diff (RLIMIT_NICE and RLIMIT_RTPRIO support) from MAIN.
     (Closes: #352636)
   * Add hppa-inlining.diff (Increase the maximal overall growth of the

@@ -1,0 +1,12 @@
+# libpthread must be stripped specially; GDB needs the non-dynamic 
+# symbol table in order to load the thread debugging library.
+LIBC-FLAVOR: unstripped-binary-or-object .SLIBDIR/libpthread-2.5.so
+
+# Those file are actually .o files not package in a ar archive, and
+# thus should not be stripped
+LIBC-FLAVOR: unstripped-binary-or-object .LIBDIR/libieee.a
+LIBC-FLAVOR: unstripped-binary-or-object .LIBDIR/libmcheck.a
+
+# It is normal that the ELF dynamic linker does not need any other 
+# library
+LIBC-FLAVOR: shared-lib-without-dependency-information .SLIBDIR/ld-2.5.so

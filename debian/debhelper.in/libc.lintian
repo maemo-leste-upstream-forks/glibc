@@ -1,0 +1,18 @@
+# ldconfig must be executable even when the libc is not configured, and
+# thus must be linked statically
+LIBC: statically-linked-binary ./sbin/ldconfig
+
+# libpthread must be stripped specially; GDB needs the non-dynamic 
+# symbol table in order to load the thread debugging library.
+LIBC: unstripped-binary-or-object ./lib/libpthread-2.5.so
+
+# ld.so must be executable, otherwise the system will not work
+LIBC: shlib-with-executable-bit lib/ld-2.5.so 0755
+
+# pt_chown must be setuid root, otherwise non-root users won't be able
+# to login
+LIBC: setuid-binary usr/lib/pt_chown 4755 root/root
+
+# It is normal that the ELF dynamic linker does not need any other 
+# library
+LIBC: shared-lib-without-dependency-information ./lib/ld-2.5.so

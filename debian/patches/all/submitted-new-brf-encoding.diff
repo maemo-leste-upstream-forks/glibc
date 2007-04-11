@@ -6,32 +6,30 @@ Index: iconvdata/Makefile
 ===================================================================
 --- iconvdata/Makefile.orig
 +++ iconvdata/Makefile
-@@ -51,7 +51,8 @@
- 	   GB18030 ISO-2022-CN-EXT VISCII GBBIG5 CP10007 KOI8-T		 \
- 	   GEORGIAN-PS GEORGIAN-ACADEMY ISO-IR-209 MAC-SAMI ARMSCII-8	 \
- 	   TCVN5712-1 libJISX0213 EUC-JISX0213 SHIFT_JISX0213		 \
--	   ISO-2022-JP-3 TSCII IBM866NAV CP932 EUC-JP-MS PT154 RK1048
-+	   ISO-2022-JP-3 TSCII IBM866NAV CP932 EUC-JP-MS PT154 RK1048	 \
-+	   BRF
+@@ -58,7 +58,7 @@
+ 	   IBM1142 IBM1143 IBM1144 IBM1145 IBM1146 IBM1147 IBM1148 	 \
+ 	   IBM1149 IBM1166 IBM1167 IBM4517 IBM4899 IBM4909 IBM4971 	 \
+ 	   IBM5347 IBM9030 IBM9066 IBM9448 IBM12712 IBM16804             \
+-	   IBM1364 IBM1371 IBM1388 IBM1390 IBM1399 ISO_11548-1 MIK
++	   IBM1364 IBM1371 IBM1388 IBM1390 IBM1399 ISO_11548-1 MIK BRF
  
  modules.so := $(addsuffix .so, $(modules))
  
-@@ -172,7 +173,8 @@
- 	      mac-sami.c ibm1160.c ibm1160.h ibm1161.c ibm1161.h	    \
- 	      ibm1163.c ibm1163.h ibm1164.c ibm1164.h jisx0213.c jisx0213.h \
- 	      euc-jisx0213.c shift_jisx0213.c iso-2022-jp-3.c		    \
--	      tcvn5712-1.c armscii-8.c tscii.c ibm866nav.c pt154.c rk1048.c
-+	      tcvn5712-1.c armscii-8.c tscii.c ibm866nav.c pt154.c rk1048.c \
-+	      brf.c
+@@ -196,7 +196,7 @@
+ 	      ibm9030.c ibm9030.h ibm9066.c ibm9066.h ibm9448.c ibm9448.h   \
+ 	      ibm12712.c ibm12712.h ibm16804.c ibm16804.h                   \
+ 	      ibm1364.c ibm1364.h ibm1371.c ibm1371.h ibm1388.c ibm1388.h   \
+-	      ibm1390.c ibm1390.h ibm1399.c ibm1399.h iso_11548-1.c mik.c
++	      ibm1390.c ibm1390.h ibm1399.c ibm1399.h iso_11548-1.c mik.c brf.c
  
  # We build the transformation modules only when we build shared libs.
  ifeq (yes,$(build-shared))
-@@ -213,7 +215,7 @@
+@@ -237,7 +237,7 @@
  			iso8859-13 iso8859-14 iso8859-15 mac-uk sami-ws2   \
  			iso-ir-197 tis-620 koi8-u ibm874 cp10007 koi8-t	   \
  			georgian-ps georgian-academy iso-ir-209 mac-sami   \
--			iso8859-11 ibm866nav pt154 rk1048
-+			iso8859-11 ibm866nav pt154 rk1048 brf
+-			iso8859-11 ibm866nav pt154 rk1048 mik
++			iso8859-11 ibm866nav pt154 rk1048 mik brf
  
  gen-special-modules := iso8859-7jp
  
@@ -73,10 +71,10 @@ Index: iconvdata/gconv-modules
 ===================================================================
 --- iconvdata/gconv-modules.orig
 +++ iconvdata/gconv-modules
-@@ -1572,3 +1572,7 @@
- alias	STRK1048-2002//		RK1048//
- module	RK1048//		INTERNAL		RK1048		1
- module	INTERNAL		RK1048//		RK1048		1
+@@ -1907,3 +1907,7 @@
+ #	from			to			module		cost
+ module	MIK//			INTERNAL		MIK		1
+ module	INTERNAL		MIK//			MIK		1
 +
 +#	from			to			module		cost
 +module	BRF//			INTERNAL		BRF		1

@@ -1,10 +1,11 @@
 GLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
-MIN_KERNEL_SUPPORTED := 2.4.1
+MIN_KERNEL_SUPPORTED := 2.6.1
 libc = libc6
 
 # Linuxthreads Config
 threads = yes
-libc_add-ons = linuxthreads $(add-ons)
+libc_add-ons = nptl $(add-ons)
+libc_extra_config_options = $(extra_config_options)
 
 ifndef LINUX_SOURCE
   ifeq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
@@ -18,14 +19,6 @@ endif
 
 # Minimum Kernel supported
 with_headers = --with-headers=$(shell pwd)/debian/include --enable-kernel=$(call xx,MIN_KERNEL_SUPPORTED)
-
-# NPTL Config
-nptl_add-ons = nptl $(add-ons)
-nptl_extra_config_options = $(extra_config_options) --disable-profile
-nptl_extra_cflags = -g1 -O3
-nptl_rtlddir = /lib
-nptl_slibdir = /lib/tls
-nptl_MIN_KERNEL_SUPPORTED = 2.6.0
 
 KERNEL_HEADER_DIR = $(stamp)mkincludedir
 $(stamp)mkincludedir:

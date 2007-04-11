@@ -115,20 +115,6 @@ checkpkgver () {
     fi
 }
 
-# We remove a relic of the past /usr/doc/<package> symlinks.
-# This script should keep at least until sarge release.
-package=LIBC
-if [ -L "/usr/doc/$package" ]; then
-    rm -f "/usr/doc/$package"
-fi
-# I'm so lazy that libc6-{dbg,dev,pic,prof} are removed in this file - gotom.
-for suffix in -dbg -dev -pic -prof; do
-    package_name="$package""$suffix"
-    if [ -L "/usr/doc/$package_name" ]; then
-	rm -f "/usr/doc/$package_name"
-    fi
-done
-
 if [ "$type" = "configure" ]
 then
     # Handle upgrades for libdb.so.3. We do this before calling ldconfig,

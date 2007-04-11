@@ -87,14 +87,6 @@ which calls the function __errno_location; when glibc is built with
 thread-local storage enabled, there is no extern int variable named errno. 
 In addition, "extern int errno" is not thread-safe.
 
-The application should continue to run for now, but when the warning message
-is printed use of the NPTL threading library, and other new kernel-2.6
-features, it's worth trying to set environment variable LD_ASSUME_KERNEL=2.4.1
-(switch to LinuxThreads instead of NPTL). Not that this workaround does not
-work on amd64.
-
-Please file a bug if the workaround doesn't work.
-
 NOTE: Currently this error message is suppressed, for the benefit of some
 truly buggy programs which redirect stderr into something important, like a
 network socket.

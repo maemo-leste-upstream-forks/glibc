@@ -1,0 +1,25 @@
+diff -urN glibc-2.5-orig/include/errno.h glibc-2.5/include/errno.h
+--- glibc-2.5-orig/include/errno.h	2006-02-02 09:37:58.000000000 +0000
++++ glibc-2.5/include/errno.h	2007-03-04 15:53:25.000000000 +0000
+@@ -21,7 +21,7 @@
+ 
+ #  include <tls.h>		/* Defines USE_TLS.  */
+ 
+-#  if USE___THREAD
++#  if USE___THREAD && !defined(__GNU__)
+ #   undef  errno
+ #   ifndef NOT_IN_libc
+ #    define errno __libc_errno
+diff -urN glibc-2.5-orig/sysdeps/mach/i386/sysdep.h glibc-2.5/sysdeps/mach/i386/sysdep.h
+--- glibc-2.5-orig/sysdeps/mach/i386/sysdep.h	2001-07-06 04:56:00.000000000 +0000
++++ glibc-2.5/sysdeps/mach/i386/sysdep.h	2007-03-01 20:23:59.000000000 +0000
+@@ -16,6 +16,9 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
++#include <dl-sysdep.h>
++#include <tls.h>
++
+ #define LOSE asm volatile ("hlt")
+ 
+ #define SNARF_ARGS(entry_sp, argc, argv, envp)				      \

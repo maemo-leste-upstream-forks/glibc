@@ -1,11 +1,12 @@
 # DP: Make sure libc_nonshared.a is compiled with -fPIC on m68k
 
-diff -urN glibc-2.2.3.orig/sysdeps/m68k/Makefile glibc-2.2.3/sysdeps/m68k/Makefi
---- glibc-2.2.3.orig/sysdeps/m68k/Makefile	Fri Sep  5 03:40:38 1997
-+++ glibc-2.2.3/sysdeps/m68k/Makefile	Tue May 15 23:29:05 2001
-@@ -41,3 +41,7 @@
- # Avoid a bug in gcc
- CFLAGS-s_copysignl.c += -mnobitfield
+Index: ports/sysdeps/m68k/Makefile
+===================================================================
+--- ports/sysdeps/m68k/Makefile.orig
++++ ports/sysdeps/m68k/Makefile
+@@ -36,3 +36,7 @@
+ ifeq ($(subdir),elf)
+ CFLAGS-rtld.c += -Wno-uninitialized -Wno-unused
  endif
 +
 +# Build objects in libc_nonshared.a with -fPIC (instead of -fpic) to avoid

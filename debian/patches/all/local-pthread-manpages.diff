@@ -1,6 +1,6 @@
-diff -u glibc.orig/linuxthreads/man/pthread_atfork.man glibc/linuxthreads/man/pthread_atfork.man
---- glibc.orig/linuxthreads/man/pthread_atfork.man	2001-12-14 22:21:53.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_atfork.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_atfork.man glibc-2.5/linuxthreads/man/pthread_atfork.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_atfork.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_atfork.man	2007-02-18 19:29:49.000000000 +0100
 @@ -10,44 +10,44 @@
  
  .SH DESCRIPTION
@@ -64,9 +64,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_atfork.man glibc/linuxthreads/man/pt
 +\fBfork\fP(2),
 +\fBpthread_mutex_lock\fP(3),
 +\fBpthread_mutex_unlock\fP(3).
-diff -u glibc.orig/linuxthreads/man/pthread_attr_init.man glibc/linuxthreads/man/pthread_attr_init.man
---- glibc.orig/linuxthreads/man/pthread_attr_init.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_attr_init.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_attr_init.man glibc-2.5/linuxthreads/man/pthread_attr_init.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_attr_init.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_attr_init.man	2007-02-18 19:29:49.000000000 +0100
 @@ -45,27 +45,27 @@
  .SH DESCRIPTION
  
@@ -131,7 +131,7 @@ diff -u glibc.orig/linuxthreads/man/pthread_attr_init.man glibc/linuxthreads/man
  
  A thread created in the joinable state can later be put in the
 -detached thread using !pthread_detach!(3).
-+detached thread using \fBpthread_detach\fP(3).
++detached state using \fBpthread_detach\fP(3).
  
  .SS schedpolicy
  
@@ -311,11 +311,15 @@ diff -u glibc.orig/linuxthreads/man/pthread_attr_init.man glibc/linuxthreads/man
 +\fBpthread_join\fP(3),
 +\fBpthread_detach\fP(3),
 +\fBpthread_setschedparam\fP(3).
-diff -u glibc.orig/linuxthreads/man/pthread_cancel.man glibc/linuxthreads/man/pthread_cancel.man
---- glibc.orig/linuxthreads/man/pthread_cancel.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_cancel.man	2007-02-02 21:27:49.000000000 +0100
-@@ -30,116 +30,116 @@
- if !pthread_exit(PTHREAD_CANCELED)! has been called at that point:
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_cancel.man glibc-2.5/linuxthreads/man/pthread_cancel.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_cancel.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_cancel.man	2007-02-18 19:30:54.000000000 +0100
+@@ -27,119 +27,119 @@
+ immediately, or defer it till it reaches a cancellation point.
+ 
+ When a thread eventually honors a cancellation request, it performs as
+-if !pthread_exit(PTHREAD_CANCELED)! has been called at that point:
++if \fBpthread_exit(PTHREAD_CANCELED)\fP has been called at that point:
  all cleanup handlers are executed in reverse order, finalization
  functions for thread-specific data are called, and finally the thread
 -stops executing with the return value !PTHREAD_CANCELED!. See
@@ -479,9 +483,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_cancel.man glibc/linuxthreads/man/pt
  achieved as follows:
  
  .RS
-diff -u glibc.orig/linuxthreads/man/pthread_cleanup_push.man glibc/linuxthreads/man/pthread_cleanup_push.man
---- glibc.orig/linuxthreads/man/pthread_cleanup_push.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_cleanup_push.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_cleanup_push.man glibc-2.5/linuxthreads/man/pthread_cleanup_push.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_cleanup_push.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_cleanup_push.man	2007-02-18 19:31:21.000000000 +0100
 @@ -21,7 +21,7 @@
  .SH DESCRIPTION
  
@@ -525,10 +529,11 @@ diff -u glibc.orig/linuxthreads/man/pthread_cleanup_push.man glibc/linuxthreads/
  must occur in the same function, at the same level of block nesting.
 -Actually, !pthread_cleanup_push! and !pthread_cleanup_pop! are macros,
 -and the expansion of !pthread_cleanup_push! introduces an open brace !{!
-+Actually, \fBpthread_cleanup_push\fP and \fBpthread_cleanup_pop\fP are macros,
-+and the expansion of \fBpthread_cleanup_push\fP introduces an open brace !{!
- with the matching closing brace !}! being introduced by the expansion
+-with the matching closing brace !}! being introduced by the expansion
 -of the matching !pthread_cleanup_pop!.
++Actually, \fBpthread_cleanup_push\fP and \fBpthread_cleanup_pop\fP are macros,
++and the expansion of \fBpthread_cleanup_push\fP introduces an open brace \fB{\fP
++with the matching closing brace \fB}\fP being introduced by the expansion
 +of the matching \fBpthread_cleanup_pop\fP.
  
 -!pthread_cleanup_push_defer_np! is a non-portable extension that
@@ -597,9 +602,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_cleanup_push.man glibc/linuxthreads/
  
  .RS
  .ft 3
-diff -u glibc.orig/linuxthreads/man/pthread_condattr_init.man glibc/linuxthreads/man/pthread_condattr_init.man
---- glibc.orig/linuxthreads/man/pthread_condattr_init.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_condattr_init.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_condattr_init.man glibc-2.5/linuxthreads/man/pthread_condattr_init.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_condattr_init.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_condattr_init.man	2007-02-18 19:29:49.000000000 +0100
 @@ -15,25 +15,25 @@
  .SH DESCRIPTION
  
@@ -633,9 +638,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_condattr_init.man glibc/linuxthreads
  .SH "SEE ALSO"
 -!pthread_cond_init!(3).
 +\fBpthread_cond_init\fP(3).
-diff -u glibc.orig/linuxthreads/man/pthread_cond_init.man glibc/linuxthreads/man/pthread_cond_init.man
---- glibc.orig/linuxthreads/man/pthread_cond_init.man	1999-05-23 11:26:17.000000000 +0200
-+++ glibc/linuxthreads/man/pthread_cond_init.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_cond_init.man glibc-2.5/linuxthreads/man/pthread_cond_init.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_cond_init.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_cond_init.man	2007-02-18 19:29:49.000000000 +0100
 @@ -40,31 +40,31 @@
  variable and another thread signals the condition just before the
  first thread actually waits on it.
@@ -838,9 +843,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_cond_init.man glibc/linuxthreads/man
  seconds, do:
  
  .RS
-diff -u glibc.orig/linuxthreads/man/pthread_create.man glibc/linuxthreads/man/pthread_create.man
---- glibc.orig/linuxthreads/man/pthread_create.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_create.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_create.man glibc-2.5/linuxthreads/man/pthread_create.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_create.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_create.man	2007-02-18 19:29:49.000000000 +0100
 @@ -9,38 +9,38 @@
  int pthread_create(pthread_t * thread, pthread_attr_t * attr, void * (*start_routine)(void *), void * arg);
  
@@ -853,16 +858,15 @@ diff -u glibc.orig/linuxthreads/man/pthread_create.man glibc/linuxthreads/man/pt
 -or implicitly, by returning from the |start_routine| function. The
 -latter case is equivalent to calling !pthread_exit!(3) with the result
 -returned by |start_routine| as exit code.
--
--The |attr| argument specifies thread attributes to be applied to the
--new thread. See !pthread_attr_init!(3) for a complete list of thread
--attributes. The |attr| argument can also be !NULL!, in which case
 +function \fIstart_routine\fP passing it \fIarg\fP as first argument. The new
 +thread terminates either explicitly, by calling \fBpthread_exit\fP(3),
 +or implicitly, by returning from the \fIstart_routine\fP function. The
 +latter case is equivalent to calling \fBpthread_exit\fP(3) with the result
 +returned by \fIstart_routine\fP as exit code.
-+
+ 
+-The |attr| argument specifies thread attributes to be applied to the
+-new thread. See !pthread_attr_init!(3) for a complete list of thread
+-attributes. The |attr| argument can also be !NULL!, in which case
 +The \fIattr\fP argument specifies thread attributes to be applied to the
 +new thread. See \fBpthread_attr_init\fP(3) for a complete list of thread
 +attributes. The \fIattr\fP argument can also be \fBNULL\fP, in which case
@@ -898,9 +902,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_create.man glibc/linuxthreads/man/pt
 +\fBpthread_join\fP(3),
 +\fBpthread_detach\fP(3),
 +\fBpthread_attr_init\fP(3).
-diff -u glibc.orig/linuxthreads/man/pthread_detach.man glibc/linuxthreads/man/pthread_detach.man
---- glibc.orig/linuxthreads/man/pthread_detach.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_detach.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_detach.man glibc-2.5/linuxthreads/man/pthread_detach.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_detach.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_detach.man	2007-02-18 19:29:49.000000000 +0100
 @@ -9,36 +9,36 @@
  int pthread_detach(pthread_t th);
  
@@ -957,9 +961,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_detach.man glibc/linuxthreads/man/pt
 +\fBpthread_join\fP(3),
 +\fBpthread_attr_setdetachstate\fP(3).
 \ Pas de fin de ligne à la fin du fichier.
-diff -u glibc.orig/linuxthreads/man/pthread_equal.man glibc/linuxthreads/man/pthread_equal.man
---- glibc.orig/linuxthreads/man/pthread_equal.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_equal.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_equal.man glibc-2.5/linuxthreads/man/pthread_equal.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_equal.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_equal.man	2007-02-18 19:29:49.000000000 +0100
 @@ -9,15 +9,15 @@
  int pthread_equal(pthread_t thread1, pthread_t thread2);
  
@@ -979,9 +983,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_equal.man glibc/linuxthreads/man/pth
  .SH "SEE ALSO"
 -!pthread_self!(3).
 +\fBpthread_self\fP(3).
-diff -u glibc.orig/linuxthreads/man/pthread_exit.man glibc/linuxthreads/man/pthread_exit.man
---- glibc.orig/linuxthreads/man/pthread_exit.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_exit.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_exit.man glibc-2.5/linuxthreads/man/pthread_exit.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_exit.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_exit.man	2007-02-18 19:29:49.000000000 +0100
 @@ -9,24 +9,24 @@
  void pthread_exit(void *retval);
  
@@ -1016,9 +1020,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_exit.man glibc/linuxthreads/man/pthr
 -!pthread_join!(3).
 +\fBpthread_create\fP(3),
 +\fBpthread_join\fP(3).
-diff -u glibc.orig/linuxthreads/man/pthread_join.man glibc/linuxthreads/man/pthread_join.man
---- glibc.orig/linuxthreads/man/pthread_join.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_join.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_join.man glibc-2.5/linuxthreads/man/pthread_join.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_join.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_join.man	2007-02-18 19:29:49.000000000 +0100
 @@ -9,62 +9,62 @@
  int pthread_join(pthread_t th, void **thread_return);
  
@@ -1033,15 +1037,14 @@ diff -u glibc.orig/linuxthreads/man/pthread_join.man glibc/linuxthreads/man/pthr
 -in the location pointed to by |thread_return|.  The return value of
 -|th| is either the argument it gave to !pthread_exit!(3), or
 -!PTHREAD_CANCELED! if |th| was cancelled.
--
--The joined thread !th! must be in the joinable state: it must not have
--been detached using !pthread_detach!(3) or the
--!PTHREAD_CREATE_DETACHED! attribute to !pthread_create!(3).
 +If \fIthread_return\fP is not \fBNULL\fP, the return value of \fIth\fP is stored
 +in the location pointed to by \fIthread_return\fP.  The return value of
 +\fIth\fP is either the argument it gave to \fBpthread_exit\fP(3), or
 +\fBPTHREAD_CANCELED\fP if \fIth\fP was cancelled.
-+
+ 
+-The joined thread !th! must be in the joinable state: it must not have
+-been detached using !pthread_detach!(3) or the
+-!PTHREAD_CREATE_DETACHED! attribute to !pthread_create!(3).
 +The joined thread \fBth\fP must be in the joinable state: it must not have
 +been detached using \fBpthread_detach\fP(3) or the
 +\fBPTHREAD_CREATE_DETACHED\fP attribute to \fBpthread_create\fP(3).
@@ -1114,10 +1117,21 @@ diff -u glibc.orig/linuxthreads/man/pthread_join.man glibc/linuxthreads/man/pthr
 +\fBpthread_attr_setdetachstate\fP(3),
 +\fBpthread_cleanup_push\fP(3),
 +\fBpthread_key_create\fP(3).
-diff -u glibc.orig/linuxthreads/man/pthread_key_create.man glibc/linuxthreads/man/pthread_key_create.man
---- glibc.orig/linuxthreads/man/pthread_key_create.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_key_create.man	2007-02-02 21:27:49.000000000 +0100
-@@ -32,72 +32,72 @@
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_key_create.man glibc-2.5/linuxthreads/man/pthread_key_create.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_key_create.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_key_create.man	2007-02-18 19:31:39.000000000 +0100
+@@ -23,81 +23,81 @@
+ 
+ Each thread possesses a private memory block, the thread-specific data
+ area, or TSD area for short. This area is indexed by TSD keys. The TSD
+-area associates values of type !void *! to TSD keys. TSD keys are
++area associates values of type \fBvoid *\fP to TSD keys. TSD keys are
+ common to all threads, but the value associated with a given TSD key
+ can be different in each thread.
+ 
+-For concreteness, the TSD areas can be viewed as arrays of !void *!
++For concreteness, the TSD areas can be viewed as arrays of \fBvoid *\fP
+ pointers, TSD keys as integer indices into these arrays, and the value
  of a TSD key as the value of the corresponding array element in the
  calling thread.
  
@@ -1219,9 +1233,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_key_create.man glibc/linuxthreads/ma
  allocated TSD key.
  
  .SH AUTHOR
-diff -u glibc.orig/linuxthreads/man/pthread_kill_other_threads_np.man glibc/linuxthreads/man/pthread_kill_other_threads_np.man
---- glibc.orig/linuxthreads/man/pthread_kill_other_threads_np.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_kill_other_threads_np.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_kill_other_threads_np.man glibc-2.5/linuxthreads/man/pthread_kill_other_threads_np.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_kill_other_threads_np.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_kill_other_threads_np.man	2007-02-18 19:32:04.000000000 +0100
 @@ -9,14 +9,14 @@
  void pthread_kill_other_threads_np(void);
  
@@ -1256,16 +1270,18 @@ diff -u glibc.orig/linuxthreads/man/pthread_kill_other_threads_np.man glibc/linu
  
  .SH BUGS
  
- According to POSIX 1003.1c, a successful !exec*! in one of the threads
+-According to POSIX 1003.1c, a successful !exec*! in one of the threads
++According to POSIX 1003.1c, a successful \fBexec*\fP in one of the threads
  should terminate automatically all other threads in the program.
  This behavior is not yet implemented in LinuxThreads.
 -Calling !pthread_kill_other_threads_np! before !exec*! achieves much
-+Calling \fBpthread_kill_other_threads_np\fP before !exec*! achieves much
- of the same behavior, except that if !exec*! ultimately fails, then
+-of the same behavior, except that if !exec*! ultimately fails, then
++Calling \fBpthread_kill_other_threads_np\fP before \fBexec*\fP achieves much
++of the same behavior, except that if \fBexec*\fP ultimately fails, then
  all other threads are already killed.
-diff -u glibc.orig/linuxthreads/man/pthread_mutexattr_init.man glibc/linuxthreads/man/pthread_mutexattr_init.man
---- glibc.orig/linuxthreads/man/pthread_mutexattr_init.man	2002-04-06 03:05:45.000000000 +0200
-+++ glibc/linuxthreads/man/pthread_mutexattr_init.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_mutexattr_init.man glibc-2.5/linuxthreads/man/pthread_mutexattr_init.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_mutexattr_init.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_mutexattr_init.man	2007-02-18 19:29:49.000000000 +0100
 @@ -21,64 +21,64 @@
  .SH DESCRIPTION
  
@@ -1362,9 +1378,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_mutexattr_init.man glibc/linuxthread
 +\fBpthread_mutex_init\fP(3),
 +\fBpthread_mutex_lock\fP(3),
 +\fBpthread_mutex_unlock\fP(3).
-diff -u glibc.orig/linuxthreads/man/pthread_mutexattr_setkind_np.man glibc/linuxthreads/man/pthread_mutexattr_setkind_np.man
---- glibc.orig/linuxthreads/man/pthread_mutexattr_setkind_np.man	2002-04-06 03:05:27.000000000 +0200
-+++ glibc/linuxthreads/man/pthread_mutexattr_setkind_np.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_mutexattr_setkind_np.man glibc-2.5/linuxthreads/man/pthread_mutexattr_setkind_np.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_mutexattr_setkind_np.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_mutexattr_setkind_np.man	2007-02-18 19:29:49.000000000 +0100
 @@ -14,26 +14,26 @@
  
  .SH DESCRIPTION
@@ -1402,9 +1418,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_mutexattr_setkind_np.man glibc/linux
 -!pthread_mutexattr_gettype!(3).
 +\fBpthread_mutexattr_settype\fP(3),
 +\fBpthread_mutexattr_gettype\fP(3).
-diff -u glibc.orig/linuxthreads/man/pthread_mutex_init.man glibc/linuxthreads/man/pthread_mutex_init.man
---- glibc.orig/linuxthreads/man/pthread_mutex_init.man	2002-07-28 20:28:02.000000000 +0200
-+++ glibc/linuxthreads/man/pthread_mutex_init.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_mutex_init.man glibc-2.5/linuxthreads/man/pthread_mutex_init.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_mutex_init.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_mutex_init.man	2007-02-18 19:29:49.000000000 +0100
 @@ -38,75 +38,75 @@
  that is already locked by another thread is suspended until the owning
  thread unlocks the mutex first.
@@ -1609,9 +1625,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_mutex_init.man glibc/linuxthreads/ma
  
  .RS
  .ft 3
-diff -u glibc.orig/linuxthreads/man/pthread_once.man glibc/linuxthreads/man/pthread_once.man
---- glibc.orig/linuxthreads/man/pthread_once.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_once.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_once.man glibc-2.5/linuxthreads/man/pthread_once.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_once.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_once.man	2007-02-18 19:29:49.000000000 +0100
 @@ -12,19 +12,19 @@
  
  .SH DESCRIPTION
@@ -1641,9 +1657,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_once.man glibc/linuxthreads/man/pthr
  
  .SH ERRORS
  None.
-diff -u glibc.orig/linuxthreads/man/pthread_self.man glibc/linuxthreads/man/pthread_self.man
---- glibc.orig/linuxthreads/man/pthread_self.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_self.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_self.man glibc-2.5/linuxthreads/man/pthread_self.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_self.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_self.man	2007-02-18 19:29:49.000000000 +0100
 @@ -9,15 +9,15 @@
  pthread_t pthread_self(void);
  
@@ -1666,9 +1682,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_self.man glibc/linuxthreads/man/pthr
 +\fBpthread_setschedparam\fP(3),
 +\fBpthread_getschedparam\fP(3).
  
-diff -u glibc.orig/linuxthreads/man/pthread_setschedparam.man glibc/linuxthreads/man/pthread_setschedparam.man
---- glibc.orig/linuxthreads/man/pthread_setschedparam.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_setschedparam.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_setschedparam.man glibc-2.5/linuxthreads/man/pthread_setschedparam.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_setschedparam.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_setschedparam.man	2007-02-18 19:29:49.000000000 +0100
 @@ -14,66 +14,66 @@
  
  .SH DESCRIPTION
@@ -1767,9 +1783,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_setschedparam.man glibc/linuxthreads
 +\fBsched_getparam\fP(2),
 +\fBpthread_attr_setschedpolicy\fP(3),
 +\fBpthread_attr_setschedparam\fP(3).
-diff -u glibc.orig/linuxthreads/man/pthread_sigmask.man glibc/linuxthreads/man/pthread_sigmask.man
---- glibc.orig/linuxthreads/man/pthread_sigmask.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/pthread_sigmask.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/pthread_sigmask.man glibc-2.5/linuxthreads/man/pthread_sigmask.man
+--- glibc-2.5.orig/linuxthreads/man/pthread_sigmask.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/pthread_sigmask.man	2007-02-18 19:29:49.000000000 +0100
 @@ -19,36 +19,36 @@
  
  .SH DESCRIPTION
@@ -1778,17 +1794,16 @@ diff -u glibc.orig/linuxthreads/man/pthread_sigmask.man glibc/linuxthreads/man/p
 -described by the |how| and |newmask| arguments. If |oldmask| is not
 -!NULL!, the previous signal mask is stored in the location pointed to
 -by |oldmask|. 
--
++\fBpthread_sigmask\fP changes the signal mask for the calling thread as
++described by the \fIhow\fP and \fInewmask\fP arguments. If \fIoldmask\fP is not
++\fBNULL\fP, the previous signal mask is stored in the location pointed to
++by \fIoldmask\fP. 
+ 
 -The meaning of the |how| and |newmask| arguments is the same as for
 -!sigprocmask!(2). If |how| is !SIG_SETMASK!, the signal mask is set to
 -|newmask|. If |how| is !SIG_BLOCK!, the signals specified to |newmask|
 -are added to the current signal mask.  If |how| is !SIG_UNBLOCK!, the
 -signals specified to |newmask| are removed from the current signal
-+\fBpthread_sigmask\fP changes the signal mask for the calling thread as
-+described by the \fIhow\fP and \fInewmask\fP arguments. If \fIoldmask\fP is not
-+\fBNULL\fP, the previous signal mask is stored in the location pointed to
-+by \fIoldmask\fP. 
-+
 +The meaning of the \fIhow\fP and \fInewmask\fP arguments is the same as for
 +\fBsigprocmask\fP(2). If \fIhow\fP is \fBSIG_SETMASK\fP, the signal mask is set to
 +\fInewmask\fP. If \fIhow\fP is \fBSIG_BLOCK\fP, the signals specified to \fInewmask\fP
@@ -1804,17 +1819,16 @@ diff -u glibc.orig/linuxthreads/man/pthread_sigmask.man glibc/linuxthreads/man/p
 -!pthread_kill! send signal number |signo| to the thread
 -|thread|. The signal is delivered and handled as described in
 -!kill!(2).
--
++\fBpthread_kill\fP send signal number \fIsigno\fP to the thread
++\fIthread\fP. The signal is delivered and handled as described in
++\fBkill\fP(2).
+ 
 -!sigwait! suspends the calling thread until one of the signals
 -in |set| is delivered to the calling thread. It then stores the number
 -of the signal received in the location pointed to by |sig| and
 -returns. The signals in |set| must be blocked and not ignored on
 -entrance to !sigwait!. If the delivered signal has a signal handler
 -function attached, that function is |not| called.
-+\fBpthread_kill\fP send signal number \fIsigno\fP to the thread
-+\fIthread\fP. The signal is delivered and handled as described in
-+\fBkill\fP(2).
-+
 +\fBsigwait\fP suspends the calling thread until one of the signals
 +in \fIset\fP is delivered to the calling thread. It then stores the number
 +of the signal received in the location pointed to by \fIsig\fP and
@@ -1913,9 +1927,9 @@ diff -u glibc.orig/linuxthreads/man/pthread_sigmask.man glibc/linuxthreads/man/p
  signal handlers are shared between all threads, other threads must not
  attach their own signal handlers to these signals, or alternatively
  they should all block these signals (which is recommended anyway --
-diff -u glibc.orig/linuxthreads/man/sem_init.man glibc/linuxthreads/man/sem_init.man
---- glibc.orig/linuxthreads/man/sem_init.man	1998-03-11 13:42:23.000000000 +0100
-+++ glibc/linuxthreads/man/sem_init.man	2007-02-02 21:27:49.000000000 +0100
+diff -Nurd glibc-2.5.orig/linuxthreads/man/sem_init.man glibc-2.5/linuxthreads/man/sem_init.man
+--- glibc-2.5.orig/linuxthreads/man/sem_init.man	2007-02-18 19:29:35.000000000 +0100
++++ glibc-2.5/linuxthreads/man/sem_init.man	2007-02-18 19:29:49.000000000 +0100
 @@ -26,98 +26,98 @@
  
  .SH DESCRIPTION

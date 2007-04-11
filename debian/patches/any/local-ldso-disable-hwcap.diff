@@ -7,14 +7,14 @@
 # DP:                 only need it because we support in-place upgrades.
 # DP: Date: 2003-10-28, (Updated 2005-01-02 gotom)
 
-Index: sysdeps/generic/dl-sysdep.c
+Index: elf/dl-sysdep.c
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/generic/dl-sysdep.c,v
+RCS file: /cvs/glibc/libc/elf/dl-sysdep.c,v
 retrieving revision 1.113
 diff -u -r1.113 dl-sysdep.c
---- sysdeps/generic/dl-sysdep.c	6 Nov 2004 00:24:47 -0000	1.113
-+++ sysdeps/generic/dl-sysdep.c	2 Jan 2005 10:24:13 -0000
-@@ -360,7 +360,11 @@
+--- elf/dl-sysdep.c	6 Nov 2004 00:24:47 -0000	1.113
++++ elf/dl-sysdep.c	2 Jan 2005 10:24:13 -0000
+@@ -408,7 +408,11 @@
  #ifdef USE_TLS
    /* For TLS enabled builds always add 'tls'.  */
    ++cnt;
@@ -26,8 +26,8 @@ diff -u -r1.113 dl-sysdep.c
 +
    if (cnt == 0)
      {
-       /* If we have platform name and no important capability we only have
-@@ -375,7 +379,6 @@
+       /* If we no have platform name and no important capability we only
+@@ -423,7 +427,6 @@
        *sz = 1;
        return result;
      }
@@ -35,7 +35,7 @@ diff -u -r1.113 dl-sysdep.c
  
    /* Create temporary data structure to generate result table.  */
    temp = (struct r_strlenpair *) alloca (cnt * sizeof (*temp));
-@@ -417,9 +420,7 @@
+@@ -488,9 +491,7 @@
    result = (struct r_strlenpair *) malloc (*sz * sizeof (*result) + total);
    if (result == NULL)
      {
@@ -45,13 +45,13 @@ diff -u -r1.113 dl-sysdep.c
        _dl_signal_error (ENOMEM, NULL, NULL,
  			N_("cannot create capability list"));
      }
-Index: sysdeps/generic/dl-cache.c
+Index: elf/dl-cache.c
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/generic/dl-cache.c,v
+RCS file: /cvs/glibc/libc/elf/dl-cache.c,v
 retrieving revision 1.46
 diff -u -r1.46 dl-cache.c
---- sysdeps/generic/dl-cache.c	19 Mar 2004 00:36:32 -0000	1.46
-+++ sysdeps/generic/dl-cache.c	2 Jan 2005 10:23:42 -0000
+--- elf/dl-cache.c	19 Mar 2004 00:36:32 -0000	1.46
++++ elf/dl-cache.c	2 Jan 2005 10:23:42 -0000
 @@ -244,6 +244,7 @@
    if (cache_new != (void *) -1)
      {
@@ -76,6 +76,6 @@ diff -u -r1.46 dl-cache.c
  	continue;							      \
 +      if (disable_hwcap && lib->hwcap != 0)				      \
 +	continue;							      \
-       if (_DL_PLATFORMS_COUNT && platform != -1				      \
+       if (_DL_PLATFORMS_COUNT						      \
  	  && (lib->hwcap & _DL_HWCAP_PLATFORM) != 0			      \
  	  && (lib->hwcap & _DL_HWCAP_PLATFORM) != platform)		      \

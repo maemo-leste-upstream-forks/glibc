@@ -1,3 +1,6 @@
+#! /bin/sh -e
+
+# All lines beginning with `# DP:' are a description of the patch.
 # DP: Description: Make glibc-2.3.5 compile with gcc-4.0 on arm for inline
 #		   functions of dl-machine.h.
 # DP: Related bugs: 
@@ -9,13 +12,15 @@
 
 Fetched from: http://kegel.com/crosstool/crosstool-0.37/patches/glibc-2.3.5/glibc-2.3.4-allow-gcc-4.0-arm.patch
 
---- glibc-2.3.4/sysdeps/arm/dl-machine.h.old	Sun Mar 20 17:54:37 2005
-+++ glibc-2.3.4/sysdeps/arm/dl-machine.h	Sun Mar 20 17:57:32 2005
-@@ -359,7 +359,14 @@
- # endif
+Index: ports/sysdeps/arm/dl-machine.h
+===================================================================
+--- ports/sysdeps/arm/dl-machine.h.orig
++++ ports/sysdeps/arm/dl-machine.h
+@@ -288,7 +288,14 @@
+ #ifdef RESOLVE_MAP
  
  /* Deal with an out-of-range PC24 reloc.  */
--static Elf32_Addr
+-auto Elf32_Addr
 +#if __GNUC__ >= 4
 +  auto inline Elf32_Addr
 +#else

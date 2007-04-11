@@ -17,27 +17,6 @@
  #define UPAGES			1
  #define HOST_TEXT_START_ADDR	(u.start_code)
  #define HOST_DATA_START_ADDR	(u.start_data)
---- glibc-2.3.6.orig/sysdeps/unix/sysv/linux/i386/sys/user.h	2001-07-06 06:56:17.000000000 +0200
-+++ glibc-2.3.6/sysdeps/unix/sysv/linux/i386/sys/user.h	2006-10-21 22:38:40.748151944 +0200
-@@ -23,6 +23,8 @@
-    too much into it.  Don't use it for anything other than GDB unless
-    you know what you are doing.  */
- 
-+#include <unistd.h>
-+
- struct user_fpregs_struct
- {
-   long int cwd;
-@@ -92,8 +94,7 @@
-   int				u_debugreg [8];
- };
- 
--#define PAGE_SHIFT		12
--#define PAGE_SIZE		(1UL << PAGE_SHIFT)
-+#define PAGE_SIZE		sysconf(_SC_PAGESIZE)
- #define PAGE_MASK		(~(PAGE_SIZE-1))
- #define NBPG			PAGE_SIZE
- #define UPAGES			1
 --- glibc-2.3.6.orig/sysdeps/unix/sysv/linux/ia64/sys/user.h	2002-08-25 05:57:38.000000000 +0200
 +++ glibc-2.3.6/sysdeps/unix/sysv/linux/ia64/sys/user.h	2006-10-21 22:38:50.554268504 +0200
 @@ -21,6 +21,7 @@
@@ -57,8 +36,8 @@
  #define UPAGES			1
  #define HOST_TEXT_START_ADDR	(u.start_code)
  #define HOST_DATA_START_ADDR	(u.start_data)
---- glibc-2.3.6.orig/sysdeps/unix/sysv/linux/mips/sys/user.h	2004-11-24 05:37:35.000000000 +0100
-+++ glibc-2.3.6/sysdeps/unix/sysv/linux/mips/sys/user.h	2006-10-21 22:39:01.575151737 +0200
+--- glibc-2.3.6.orig/ports/sysdeps/unix/sysv/linux/mips/sys/user.h	2004-11-24 05:37:35.000000000 +0100
++++ glibc-2.3.6/ports/sysdeps/unix/sysv/linux/mips/sys/user.h	2006-10-21 22:39:01.575151737 +0200
 @@ -20,6 +20,7 @@
  #define _SYS_USER_H	1
  

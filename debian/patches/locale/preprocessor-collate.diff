@@ -10,11 +10,11 @@ This patch is harmless, it only adds new keywords.
 # DP: Upstream status: BZ686
 # DP: Date: 2006-01-08
 
-Index: glibc-2.3.5/locale/programs/ld-collate.c
+Index: locale/programs/ld-collate.c
 ===================================================================
---- glibc-2.3.5.orig/locale/programs/ld-collate.c
-+++ glibc-2.3.5/locale/programs/ld-collate.c
-@@ -161,6 +161,24 @@
+--- locale/programs/ld-collate.c.orig
++++ locale/programs/ld-collate.c
+@@ -159,6 +159,24 @@
    size_t line;
  };
  
@@ -39,7 +39,7 @@ Index: glibc-2.3.5/locale/programs/ld-collate.c
  /* Sparse table of struct element_t *.  */
  #define TABLE wchead_table
  #define ELEMENT struct element_t *
-@@ -214,6 +232,12 @@
+@@ -212,6 +230,12 @@
    /* This value is used when handling ellipsis.  */
    struct element_t ellipsis_weight;
  
@@ -52,7 +52,7 @@ Index: glibc-2.3.5/locale/programs/ld-collate.c
    /* Known collating elements.  */
    hash_table elem_table;
  
-@@ -1456,6 +1480,56 @@
+@@ -1454,6 +1478,56 @@
  }
  
  
@@ -109,7 +109,7 @@ Index: glibc-2.3.5/locale/programs/ld-collate.c
  static void
  collate_startup (struct linereader *ldfile, struct localedef_t *locale,
  		 struct localedef_t *copy_locale, int ignore_content)
-@@ -3786,6 +3860,205 @@
+@@ -3783,6 +3857,205 @@
  			  repertoire, result, nowtok);
  	  break;
  
@@ -315,7 +315,7 @@ Index: glibc-2.3.5/locale/programs/ld-collate.c
  	case tok_end:
  	  /* Next we assume `LC_COLLATE'.  */
  	  if (!ignore_content)
-@@ -3815,6 +4088,13 @@
+@@ -3812,6 +4085,13 @@
  	      else if (state == 5)
  		WITH_CUR_LOCALE (error (0, 0, _("\
  %s: missing `reorder-sections-end' keyword"), "LC_COLLATE"));

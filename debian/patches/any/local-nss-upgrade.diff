@@ -1,9 +1,11 @@
 # DP: This patch makes future upgrades easier. It resolves problems with
 # DP: running daemons having NSS modules upgraded out from under them.
 
---- glibc22/nss/nsswitch.c~	Fri Mar 31 15:38:32 2000
-+++ glibc22/nss/nsswitch.c	Thu Nov  9 17:28:45 2000
-@@ -333,9 +333,20 @@
+Index: nss/nsswitch.c
+===================================================================
+--- nss/nsswitch.c.orig
++++ nss/nsswitch.c
+@@ -345,9 +345,20 @@
  	      ni->library->lib_handle = __libc_dlopen (shlib_name);
  	      if (ni->library->lib_handle == NULL)
  		{

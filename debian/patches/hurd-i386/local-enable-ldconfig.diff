@@ -7,40 +7,30 @@
 # DP: Hurd.  We should review this when the ELF standard supports runpath.
 # DP: Date: 08 Apr 2003
   
-diff -urN glibc-2.3.2.old/sysdeps/mach/hurd/configure glibc-2.3.2/sysdeps/mach/hurd/configure
---- glibc-2.3.2.old/sysdeps/mach/hurd/configure	2003-02-25 19:46:36.000000000 -0500
-+++ glibc-2.3.2/sysdeps/mach/hurd/configure	2003-04-08 17:35:13.000000000 -0400
-@@ -115,3 +115,5 @@
- _ACEOF
- 
+Index: sysdeps/mach/hurd/configure
+===================================================================
+--- sysdeps/mach/hurd/configure.orig
++++ sysdeps/mach/hurd/configure
+@@ -90,3 +90,5 @@
+ echo "$as_me: error: Hurd headers not installed or too old" >&2;}
+    { (exit 1); exit 1; }; }
  fi
 +
 +use_ldconfig=yes
---- glibc-2.3.2.old/sysdeps/mach/hurd/configure.in.orig	2005-05-30 17:31:32.000000000 +0200
-+++ glibc-2.3.2/sysdeps/mach/hurd/configure.in	2005-05-30 17:44:30.000000000 +0200
+Index: sysdeps/mach/hurd/configure.in
+===================================================================
+--- sysdeps/mach/hurd/configure.in.orig
++++ sysdeps/mach/hurd/configure.in
 @@ -36,3 +36,5 @@
  if test "x$libc_cv_hurd_version" != xok; then
    AC_MSG_ERROR(Hurd headers not installed or too old)
  fi
 +
 +use_ldconfig=yes
-diff -urN glibc-2.3.2.old/elf/ldconfig.c glibc-2.3.2/elf/ldconfig.c
---- glibc-2.3.2.old/elf/ldconfig.c~ 2003-04-12 13:24:37.000000000 -0400
-+++ glibc-2.3.2/elf/ldconfig.c  2003-04-12 13:25:00.000000000 -0400
-@@ -49,6 +49,10 @@
- 
- #define PACKAGE _libc_intl_domainname
- 
-+#ifndef PATH_MAX
-+#define PATH_MAX 1024
-+#endif
-+
- static const struct
- {
-   const char *name;
-diff -urN glibc-2.3.2.old/sysdeps/mach/hurd/dl-cache.c glibc-2.3.2/sysdeps/mach/hurd/dl-cache.c
---- glibc-2.3.2.old/sysdeps/mach/hurd/dl-cache.c	2001-07-07 15:21:25.000000000 -0400
-+++ glibc-2.3.2/sysdeps/mach/hurd/dl-cache.c	1969-12-31 19:00:00.000000000 -0500
+Index: sysdeps/mach/hurd/dl-cache.c
+===================================================================
+--- sysdeps/mach/hurd/dl-cache.c
++++ /dev/null
 @@ -1,29 +0,0 @@
 -/* Stubby version of dl-cache; the Hurd doesn't support this "feature".
 -   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
@@ -71,3 +61,18 @@ diff -urN glibc-2.3.2.old/sysdeps/mach/hurd/dl-cache.c glibc-2.3.2/sysdeps/mach/
 -_dl_unload_cache (void)
 -{
 -}
+Index: elf/ldconfig.c
+===================================================================
+--- elf/ldconfig.c.orig
++++ elf/ldconfig.c
+@@ -57,6 +57,10 @@
+ 
+ #define PACKAGE _libc_intl_domainname
+ 
++#ifndef PATH_MAX
++#define PATH_MAX 1024
++#endif
++
+ static const struct
+ {
+   const char *name;

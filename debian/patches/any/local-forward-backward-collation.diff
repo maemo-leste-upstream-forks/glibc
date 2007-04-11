@@ -3,45 +3,12 @@
 # DP: Related bugs: #310635 BZ645
 # DP: Dpatch Author: Denis Barbier <barbier@linuxfr.org>
 # DP: Patch Author: Denis Barbier
-# DP: Upstream status: fix in strxfrm_l.c has been committed upstream
-# DP:                  and strcoll_l.c has not been submitted yet.
+# DP: Upstream status: not yet submitted.
 # DP: Test case: the following command segfaults in en_US.UTF-8 locale
 # DP:            when BZ645 is fixed:
 # DP:                echo 2d d194 0a 2d d194 0a | xxd -r -p | sort
 # DP: Date: 2006-03-17
 
-Index: glibc-2.3.6/string/strxfrm_l.c
-===================================================================
---- glibc-2.3.6.orig/string/strxfrm_l.c
-+++ glibc-2.3.6/string/strxfrm_l.c
-@@ -1,4 +1,4 @@
--/* Copyright (C) 1995,96,97,2002, 2004 Free Software Foundation, Inc.
-+/* Copyright (C) 1995,96,97,2002, 2004, 2005 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
-    Written by Ulrich Drepper <drepper@gnu.org>, 1995.
- 
-@@ -210,8 +210,9 @@
- 		      /* Handle the pushed elements now.  */
- 		      size_t backw;
- 
--		      for (backw = idxcnt - 1; backw >= backw_stop; --backw)
-+		      for (backw = idxcnt; backw > backw_stop; )
- 			{
-+			  --backw;
- 			  len = weights[idxarr[backw]++];
- 
- 			  if (needed + len < n)
-@@ -293,8 +294,9 @@
- 		     /* Handle the pushed elements now.  */
- 		      size_t backw;
- 
--		      for (backw = idxcnt - 1; backw >= backw_stop; --backw)
-+		      for (backw = idxcnt; backw > backw_stop; )
- 			{
-+			  --backw;
- 			  len = weights[idxarr[backw]++];
- 			  if (len != 0)
- 			    {
 Index: glibc-2.3.6/string/strcoll_l.c
 ===================================================================
 --- glibc-2.3.6.orig/string/strcoll_l.c

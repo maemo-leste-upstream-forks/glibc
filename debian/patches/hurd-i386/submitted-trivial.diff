@@ -1,0 +1,118 @@
+Not yet applied.  Needed on glibc-2_5-branch and HEAD.
+
+2006-06-13  Thomas Schwinge  <tschwinge@gnu.org>
+
+	* sysdeps/mach/hurd/tls.h: Change `ASSEMBLER' conditional to
+	`__ASSEMBLER__'.
+	* sysdeps/mach/hurd/i386/tls.h: Likewise.
+
+Index: sysdeps/mach/hurd/tls.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/tls.h,v
+retrieving revision 1.3
+diff -u -p -r1.3 tls.h
+--- sysdeps/mach/hurd/tls.h	2 Feb 2005 19:43:56 -0000	1.3
++++ sysdeps/mach/hurd/tls.h	13 Jun 2006 13:57:55 -0000
+@@ -20,7 +20,7 @@
+ #ifndef _TLS_H
+ #define _TLS_H
+ 
+-#if defined HAVE_TLS_SUPPORT && !defined ASSEMBLER
++#if defined HAVE_TLS_SUPPORT && !defined __ASSEMBLER__
+ 
+ # include <stddef.h>
+ # include <stdbool.h>
+Index: sysdeps/mach/hurd/i386/tls.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/i386/tls.h,v
+retrieving revision 1.11
+diff -u -p -r1.11 tls.h
+--- sysdeps/mach/hurd/i386/tls.h	5 Mar 2006 02:52:58 -0000	1.11
++++ sysdeps/mach/hurd/i386/tls.h	13 Jun 2006 13:57:55 -0000
+@@ -32,7 +32,7 @@
+    thread pointer points to is unspecified.  Allocate the TCB there.  */
+ # define TLS_TCB_AT_TP	1
+ 
+-# ifndef ASSEMBLER
++# ifndef __ASSEMBLER__
+ 
+ /* Use i386-specific RPCs to arrange that %gs segment register prefix
+    addresses the TCB in each thread.  */
+@@ -168,7 +168,7 @@ _hurd_tls_fork (thread_t child, struct i
+   return err;
+ }
+ 
+-# endif	/* !ASSEMBLER */
++# endif	/* !__ASSEMBLER__ */
+ #endif /* HAVE_TLS_SUPPORT */
+ 
+ #endif	/* i386/tls.h */
+
+
+Needed for HEAD.  Not sure about glibc-2_5-branch.
+
+2007-02-07  Thomas Schwinge  <tschwinge@gnu.org>
+
+	* argp/argp-help.c: Include <stdbool.h>.
+
+Index: argp/argp-help.c
+===================================================================
+RCS file: /cvs/glibc/libc/argp/argp-help.c,v
+retrieving revision 1.54
+diff -u -p -r1.54 argp-help.c
+--- argp/argp-help.c	10 May 2006 06:28:06 -0000	1.54
++++ argp/argp-help.c	7 Feb 2007 12:07:17 -0000
+@@ -41,6 +41,7 @@ char *alloca ();
+ # endif
+ #endif
+ 
++#include <stdbool.h>
+ #include <stddef.h>
+ #include <stdlib.h>
+ #include <string.h>
+
+
+Needed for HEAD.  Not sure about glibc-2_5-branch.
+
+2007-02-07  Thomas Schwinge  <tschwinge@gnu.org>
+
+	* posix/wordexp.c: Include <stdbool.h>.
+
+Index: posix/wordexp.c
+===================================================================
+RCS file: /cvs/glibc/libc/posix/wordexp.c,v
+retrieving revision 1.54
+diff -u -p -r1.54 wordexp.c
+--- posix/wordexp.c	25 Jan 2007 00:43:39 -0000	1.54
++++ posix/wordexp.c	7 Feb 2007 12:10:15 -0000
+@@ -28,6 +28,7 @@
+ #include <paths.h>
+ #include <pwd.h>
+ #include <signal.h>
++#include <stdbool.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+
+
+Needed for HEAD and glibc-2_5-branch.
+
+2007-02-07  Thomas Schwinge  <tschwinge@gnu.org>
+
+	* stdlib/fmtmsg.c: Include <stdint.h>.
+
+Index: stdlib/fmtmsg.c
+===================================================================
+RCS file: /cvs/glibc/libc/stdlib/fmtmsg.c,v
+retrieving revision 1.20
+diff -u -p -r1.20 fmtmsg.c
+--- stdlib/fmtmsg.c	15 May 2006 18:41:18 -0000	1.20
++++ stdlib/fmtmsg.c	7 Feb 2007 12:12:36 -0000
+@@ -19,6 +19,7 @@
+ 
+ #include <fmtmsg.h>
+ #include <bits/libc-lock.h>
++#include <stdint.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>

@@ -8,29 +8,6 @@
 # DP: to the upstream.
 # DP: Date: (Updated 2005-01-02 gotom)
 
-2004-10-25  GOTO Masanori  <gotom@debian.or.jp>
-
-        * elf/ldconfig.c: Don't print error when default ld.so.conf
-          is not existed.
-
-Index: elf/ldconfig.c
-===================================================================
-RCS file: /cvs/glibc/libc/elf/ldconfig.c,v
-retrieving revision 1.47
-diff -u -r1.47 ldconfig.c
---- elf/ldconfig.c	10 Aug 2004 04:04:32 -0000	1.47
-+++ elf/ldconfig.c	2 Jan 2005 08:46:26 -0000
-@@ -972,7 +972,8 @@
- 
-   if (file == NULL)
-     {
--      error (0, errno, _("Can't open configuration file %s"), canon);
-+      if (strcmp(canon, LD_SO_CONF) != 0 || opt_verbose)
-+	error (0, errno, _("Can't open configuration file %s"), canon);
-       if (canon != filename)
- 	free ((char *) canon);
-       return;
-
 # previous patch.
 #--- elf/ldconfig.c	2003-07-08 23:26:27.000000000 +0900
 #+++ elf/ldconfig.c.debian	2003-07-08 23:29:43.000000000 +0900
@@ -69,3 +46,23 @@ diff -u -r1.47 ldconfig.c
 #       if (canon != filename)
 # 	free ((char *) canon);
 #       return;
+
+2004-10-25  GOTO Masanori  <gotom@debian.or.jp>
+
+        * elf/ldconfig.c: Don't print error when default ld.so.conf
+          is not existed.
+
+Index: elf/ldconfig.c
+===================================================================
+--- elf/ldconfig.c.orig
++++ elf/ldconfig.c
+@@ -996,7 +996,8 @@
+ 
+   if (file == NULL)
+     {
+-      error (0, errno, _("Can't open configuration file %s"), canon);
++      if (strcmp(canon, LD_SO_CONF) != 0 || opt_verbose)
++	error (0, errno, _("Can't open configuration file %s"), canon);
+       if (canon != filename)
+ 	free ((char *) canon);
+       return;

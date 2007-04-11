@@ -1,0 +1,15 @@
+2006-10-26  Pete Eberlein  <eberlein@us.ibm.com>
+
+	* nptl_db/db_info.c [TLS_DTV_AT_TP]: Fixed size init for dtvp
+	to sizeof a pointer, instead of sizeof the union.
+
+
+--- glibc/nptl_db/db_info.c        2004-03-13 22:39:57.000000000 -0500
++++ glibc-new/nptl_db/db_info.c    2006-10-20 19:29:34.000000000 -0400
+@@ -59,7 +59,7 @@
+    i.e. at the very end of the area covered by TLS_PRE_TCB_SIZE.  */
+ DESC (_thread_db_pthread_dtvp,
+       TLS_PRE_TCB_SIZE + offsetof (tcbhead_t, dtv)
+-      - (TLS_TCB_SIZE == 0 ? sizeof (tcbhead_t) : 0), union dtv)
++      - (TLS_TCB_SIZE == 0 ? sizeof (tcbhead_t) : 0), union dtv*)
+ #endif

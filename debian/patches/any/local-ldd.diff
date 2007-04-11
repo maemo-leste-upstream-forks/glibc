@@ -6,11 +6,8 @@
 
 Index: elf/ldd.bash.in
 ===================================================================
-RCS file: /cvs/glibc/libc/elf/ldd.bash.in,v
-retrieving revision 1.33
-diff -u -r1.33 ldd.bash.in
---- elf/ldd.bash.in	8 Dec 2004 22:08:47 -0000	1.33
-+++ elf/ldd.bash.in	2 Jan 2005 09:03:01 -0000
+--- elf/ldd.bash.in.orig
++++ elf/ldd.bash.in
 @@ -31,6 +31,7 @@
  warn=
  bind_now=
@@ -19,8 +16,8 @@ diff -u -r1.33 ldd.bash.in
  
  while test $# -gt 0; do
    case "$1" in
-@@ -148,8 +149,11 @@
-     echo "ldd: ${file}:" $"No such file or directory" >&2
+@@ -151,8 +152,11 @@
+     echo "ldd: ${file}:" $"not regular file" >&2
      result=1
    elif test -r "$file"; then
 -    test -x "$file" || echo 'ldd:' $"\
@@ -31,18 +28,17 @@ diff -u -r1.33 ldd.bash.in
 +	    "\`$file'" >&2
 +    fi
      RTLD=
+     ret=1
      for rtld in ${RTLDLIST}; do
-       if test -x $rtld; then
-@@ -171,7 +175,12 @@
+@@ -169,7 +173,11 @@
        # If the program exits with exit code 5, it means the process has been
        # invoked with __libc_enable_secure.  Fall back to running it through
        # the dynamic linker.
 -      try_trace "$file"
-+      if [ ! -x "$file" ] && eval file -L "$file" 2>/dev/null \
-+      | sed 10q | egrep "$file_magic_regex" > /dev/null; then
-+	try_trace "${RTLD}" "$file"
-+      else
++      if test -x "$file"; then
 +	try_trace "$file"
++      else
++	try_trace "${RTLD}" "$file"
 +      fi
        rc=$?
        if [ $rc = 5 ]; then
