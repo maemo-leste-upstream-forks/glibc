@@ -167,6 +167,9 @@ if ($libc ne "libc6") {
 # Conflict with broken libterm-readline-gnu-perl to avoid #326856.
 push @{$libc_c{'Conflicts'}}, 'libterm-readline-gnu-perl (<< 1.15-2)';
 
+# Conflict with older versions of tzdata that need tzconfig.
+push @{$libc_c{'Conflicts'}}, 'tzdata (<< tzdata_2007e-2)';
+
 if ($type eq "libc") {
     %pkg = %libc_c;
 } elsif ($type eq "libc_dev") {
