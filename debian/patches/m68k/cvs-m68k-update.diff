@@ -1,7 +1,12 @@
 diff -Nurd ports/ChangeLog.m68k ports/ChangeLog.m68k
 --- ports/ChangeLog.m68k	2006-02-28 11:12:50.000000000 +0100
 +++ ports/ChangeLog.m68k	2007-02-10 13:35:42.000000000 +0100
-@@ -1,3 +1,25 @@
+@@ -1,3 +1,30 @@
++2006-11-28  Andreas Schwab  <schwab@suse.de>
++
++	* sysdeps/unix/sysv/linux/m68k/sysdep.h (DOARGS_6, _DOARGS_6)
++	(UNDOARGS_6): Define for 6-argument syscall stubs.
++
 +2006-10-03  Richard Sandiford  <richard@codesourcery.com>
 +
 +	* sysdeps/m68k/dl-trampoline.S (_dl_runtime_profile): Round up the
@@ -426,7 +431,18 @@ diff -Nurd ports/sysdeps/unix/sysv/linux/m68k/sysdep.h ports/sysdeps/unix/sysv/l
  #include <sysdeps/unix/sysdep.h>
  #include <sysdeps/m68k/sysdep.h>
  
-@@ -293,3 +296,4 @@
+@@ -192,6 +195,10 @@
+ #define _DOARGS_5(n)	move.l %d5, -(%sp); move.l n+4(%sp), %d5; _DOARGS_4 (n)
+ #define UNDOARGS_5	UNDOARGS_4; move.l (%sp)+, %d5
+ 
++#define DOARGS_6	_DOARGS_6 (24)
++#define _DOARGS_6(n)	_DOARGS_5 (n-4); move.l %a0, -(%sp); move.l n+12(%sp), %a0;
++#define UNDOARGS_6	move.l (%sp)+, %a0; UNDOARGS_5
++
+ 
+ #define	ret	rts
+ #if 0 /* Not used by Linux */
+@@ -293,3 +300,4 @@
  #define ASM_ARGS_6	ASM_ARGS_5, "a" (_a0)
  
  #endif /* not __ASSEMBLER__ */
