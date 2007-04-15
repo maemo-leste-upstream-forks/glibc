@@ -124,11 +124,6 @@ $(stamp)install_%: $(stamp)check_%
 	  tar zcf $(CURDIR)/debian/locales-all/usr/lib/locales-all/supported.tar.gz -C $(CURDIR)/debian/tmp-libc/usr/lib/locale .; \
 	fi
 
-	# Remove ld.so from optimized libraries
-	if echo $(call xx,slibdir) | grep -q "/lib/.\+" ; then \
-		rm -f debian/tmp-$(curpass)/$(call xx,slibdir)/ld*.so* ; \
-	fi
-	
 	# Create the multidir directories, and the configuration file in /etc/ld.so.conf.d
 	if [ $(curpass) = libc ]; then \
 	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \
