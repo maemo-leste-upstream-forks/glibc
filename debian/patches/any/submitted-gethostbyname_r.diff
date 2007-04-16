@@ -1,0 +1,32 @@
+--- resolv/nss_dns/dns-host.c.orig	2007-04-16 00:13:12.000000000 +0200
++++ resolv/nss_dns/dns-host.c	2007-04-16 00:34:41.000000000 +0200
+@@ -78,6 +78,7 @@
+ #include <stdlib.h>
+ #include <stddef.h>
+ #include <string.h>
++#include <obstack.h>
+ #include <sys/syslog.h>
+ 
+ #include "nsswitch.h"
+@@ -465,8 +466,8 @@
+     char *aliases[MAX_NR_ALIASES];
+     unsigned char host_addr[16];	/* IPv4 or IPv6 */
+     char *h_addr_ptrs[0];
+-  } *host_data = (struct host_data *) buffer;
+-  int linebuflen = buflen - sizeof (struct host_data);
++  } *host_data;
++  int linebuflen;
+   register const HEADER *hp;
+   const u_char *end_of_message, *cp;
+   int n, ancount, qdcount;
+@@ -479,6 +480,10 @@
+   int have_to_map = 0;
+   int32_t ttl = 0;
+ 
++  /* Align the buffer. */
++  host_data = (struct host_data *) __PTR_ALIGN(0, buffer, sizeof(char*) - 1);
++  linebuflen = buflen - sizeof (struct host_data) - ((char *)host_data - buffer);
++
+   if (__builtin_expect (linebuflen, 0) < 0)
+     {
+       /* The buffer is too small.  */
