@@ -121,7 +121,7 @@ $(stamp)install_%: $(stamp)check_%
 	    localedata/install-locales; \
 	  rm -rf $(CURDIR)/debian/locales-all/usr/lib; \
 	  install -d $(CURDIR)/debian/locales-all/usr/lib/locales-all; \
-	  tar --use-compress-program -cf $(CURDIR)/debian/locales-all/usr/lib/locales-all/supported.tar.lzma -C $(CURDIR)/debian/tmp-libc/usr/lib/locale .; \
+	  tar --use-compress-program /usr/bin/lzma -cf $(CURDIR)/debian/locales-all/usr/lib/locales-all/supported.tar.lzma -C $(CURDIR)/debian/tmp-libc/usr/lib/locale .; \
 	fi
 
 	# Create the multidir directories, and the configuration file in /etc/ld.so.conf.d
