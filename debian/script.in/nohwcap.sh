@@ -1,6 +1,6 @@
     # Handle upgrades when libc-opt package has been installed.
  
-    # Get the list of optimized package for a given architecture
+    # Get the list of optimized packages for a given architecture
     case $(dpkg --print-architecture) in
         i386)
             hwcappkgs="libc6-i686 libc6-xen"
@@ -19,7 +19,7 @@
     all_upgraded=yes
     if [ -n "$hwcappkgs" ]; then
         for pkg in $hwcappkgs ; do
-            ver=$(dpkg -l $pkg | awk '/^i/ { print $3 }')
+            ver=$(dpkg -l $pkg 2>/dev/null | awk '/^i/ { print $3 }')
             if [ -n "$ver" ] && [ "$ver" != "CURRENT_VER" ]; then
                 all_upgraded=no
             fi
