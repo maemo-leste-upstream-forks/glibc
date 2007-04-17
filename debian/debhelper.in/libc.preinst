@@ -184,6 +184,15 @@ then
       exit 1
     fi
   fi
+  for i in libc.so.0.1 libc.so.6 libc.so.6.1 ; do
+    if [ -e /lib/tls/$i ] && ! grep -q /lib/tls/$i /var/lib/dpkg/info/LIBC.list ; then
+      echo
+      echo "A non-dpkg owned copy of the C library was found in /lib/tls."
+      echo "It is not safe to upgrade the C library in this situation;"
+      echo "please remove that copy of the C library and try again."
+      exit 1
+    fi
+  done
 fi
 
 if [ "$1" != abort-upgrade ] && [ "`uname -s`" = Linux ]
