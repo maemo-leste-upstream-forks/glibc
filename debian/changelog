@@ -15,8 +15,19 @@ glibc (2.5-3) UNRELEASED; urgency=low
     no measurable difference on the unpacking time.
   * patches/any/submitted-gethostbyname_r.diff: new patch to fix unaligned
     memory access in gethostbyname_r.diff().  Closes: #419459.
+  * Rewrite from scratch /etc/ld.so.nohwcap handling.  Closes: #419036
+    - script.in/nohwcap.sh: new snipplet to check dpkg and handle
+      /etc/ld.so.nohwcap
+    - rules.d/debhelper.mk: replace NOHWCAP with nohwcap.sh in debhelper
+      scripts
+    - debhelper.in/libc.preinst: only touch /etc/ld.so.nohwcap
+    - debhelper.in/libc.postinst: replace the old code with NOHWCAP,
+      add code to remove /etc/ld.so.hwcappkgs file on upgrade
+    - debhelper.in/libc-otherbuild.postrm: replace the old code with NOHWCAP
+    - debhelper.in/libc-otherbuild.postinst: ditto
+    - debhelper.in/libc-otherbuild.preinst: remove 
 
- -- Aurelien Jarno <aurel32@debian.org>  Mon, 16 Apr 2007 22:35:26 +0200
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 17 Apr 2007 01:57:59 +0200
 
 glibc (2.5-2) unstable; urgency=low
 

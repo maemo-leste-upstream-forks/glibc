@@ -2,50 +2,8 @@
 
 set -e
 
-checkpkgver () {
-    local status pkg
-    pkg=$1
-    status=$(dpkg -s $pkg 2>/dev/null | grep ^Status: | sed -e 's/^Status: \(.*\) \(.*\) \(.*\)/\3/g')
-    if [ -n "$status" ] && [ "$status" != "not-installed" ] && [ "$status" != "config-files" ]; then
-	echo $(dpkg -s $pkg 2>/dev/null | grep ^Version: | sed -e 's/^Version: *//');
-    fi
-}
-
 if [ "$1" = "remove" ]; then
-    opt=LIBC-FLAVOR
-    curver=CURRENT_VER
-
-    if [ -f /etc/ld.so.hwcappkgs ]; then
-	# Remove this package's entry
-	grep -v "^$opt " /etc/ld.so.hwcappkgs > /etc/ld.so.hwcappkgs.tmp
-	mv /etc/ld.so.hwcappkgs.tmp /etc/ld.so.hwcappkgs
-
-	# Check other hwcap packges are consistent.
-	while read LINE; do
-	    case $LINE in
-		\#*|"") continue
-	    esac
-	    set -- $LINE
-	    pkg=$1
-	    if [ -z "$prever" ]; then
-		prever=$(checkpkgver $pkg)
-	    else
-		ver=$(checkpkgver $pkg)
-		if [ -n "$ver" ]; then
-		    dpkg --compare-versions $prever ne $ver && optunmatch=yes
-		fi
-	    fi
-	done < /etc/ld.so.hwcappkgs
-    else
-	# libc6 did not create ld.so.hwcappkgs correctly or ld.so.hwcappkgs
-	# was unexpectedly removed.  Don't remove ld.so.nohwcap.
-	optunmatch=yes
-    fi
-
-    # Remove ld.so.nohwcap
-    if [ -f /etc/ld.so.nohwcap ] && [ ! -s /etc/ld.so.nohwcap ] && [ "$optunmatch" != yes ]; then
-	rm -f /etc/ld.so.nohwcap
-    fi
+    # /etc/ld.so.nohwcap code: NOHWCAP
 fi
 
 #DEBHELPER#

@@ -2,59 +2,9 @@
 
 set -e
 
-checkpkgver () {
-    local status pkg
-    pkg=$1
-    status=$(dpkg -s $pkg 2>/dev/null | grep ^Status: | sed -e 's/^Status: \(.*\) \(.*\) \(.*\)/\3/g')
-    if [ -n "$status" ] && [ "$status" != "not-installed" ] && [ "$status" != "config-files" ]; then
-	echo $(dpkg -s $pkg 2>/dev/null | grep ^Version: | sed -e 's/^Version: *//');
-    fi
-}
-
 if [ "$1" = "configure" ]
 then
-    opt=LIBC-FLAVOR
-    curver=CURRENT_VER
-
-    if [ -f /etc/ld.so.hwcappkgs ]; then
-	rm -f /etc/ld.so.hwcappkgs.tmp
-	(while read LINE; do
-	    case $LINE in
-		\#*|"") continue
-	    esac
-	    set -- $LINE
-	    pkg=$1
-	    if [ "$pkg" = "$opt" ]; then
-		# this package
-		ver=$curver
-		isrecorded=yes
-	    else
-		# other packages
-		ver=$(checkpkgver $pkg)
-		if [ -n "$ver" ]; then
-		    dpkg --compare-versions $curver ne $ver && optunmatch=yes
-		fi
-	    fi
-	    echo "$pkg $ver" >> /etc/ld.so.hwcappkgs.tmp
-	done
-	if [ "$isrecorded" != yes ]; then
-	    echo "$opt $curver" >> /etc/ld.so.hwcappkgs.tmp
-	fi) < /etc/ld.so.hwcappkgs
-	mv /etc/ld.so.hwcappkgs.tmp /etc/ld.so.hwcappkgs
-    else
-	# libc6 did not create ld.so.hwcappkgs correctly or ld.so.hwcappkgs
-	# was unexpectedly removed.  Don't remove ld.so.nohwcap.
-	optunmatch=yes
-    fi
-
-    # nohwcap during upgrade.
-    if [ -f /etc/ld.so.nohwcap ]; then
-	grep -v "^$opt\$" /etc/ld.so.nohwcap > /etc/ld.so.nohwcap.tmp || true
-	mv -f /etc/ld.so.nohwcap.tmp /etc/ld.so.nohwcap
-	if [ "$optunmatch" != "yes" ]; then
-	    test -s /etc/ld.so.nohwcap || rm -f /etc/ld.so.nohwcap
-	fi
-    fi
+    # /etc/ld.so.nohwcap code: NOHWCAP
 fi
 
 #DEBHELPER#
