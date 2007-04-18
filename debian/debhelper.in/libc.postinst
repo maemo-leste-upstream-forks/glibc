@@ -304,10 +304,10 @@ case "$sysvinitver" in
         $badsysvinitver)
                 ;;
         *)
-		if [ -x /sbin/init -a -x /bin/readlink ]; then
-			if [ "$(readlink /proc/1/exe 2>/dev/null)" = "/sbin/init" ]; then
-				(init u ; sleep 1)
-			fi
+		if [ "$(stat -c %d/%i /)" = "$(stat -Lc %d/%i /proc/1/root 2>/dev/null)" ]; then
+			# the devicenumber/inode pair of / is the same as that of /sbin/init's
+			# root, so we're *not* in a chroot
+			(init u ; sleep 1)
 		fi
 		;;
 esac
