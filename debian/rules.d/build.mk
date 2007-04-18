@@ -91,6 +91,8 @@ $(stamp)check_%: $(stamp)build_%
 	elif ! $(call kernel_check,$(call xx,MIN_KERNEL_SUPPORTED)); then \
 	  echo "Kernel too old, skipping tests."; \
 	  echo "Kernel too old, tests have been skipped." > $(log_test) ; \
+	elif grep -q "cpu model.*SiByte SB1" /proc/cpuinfo ; then \
+	  echo "MIPS SB1 platform detected, skipping tests."; \
 	elif [ $(call xx,RUN_TESTSUITE) != "yes" ]; then \
 	  echo "Testsuite disabled for $(curpass), skipping tests."; \
 	  echo "Tests have been disabled." > $(log_test) ; \
