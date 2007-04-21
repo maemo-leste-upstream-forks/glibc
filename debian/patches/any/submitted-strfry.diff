@@ -1,0 +1,29 @@
+Turn strfry() into a proper Fisher-Yates shuffle. This gives us exactly
+n! paths for a string with N characters, and since there are n! possible
+permutations, we get a one-to-one mapping, and all possibilities are 
+equally likely.
+
+--- string/strfry.c	2007-04-21 23:12:47.000000000 +0200
++++ string/strfry.c	2007-04-21 23:22:46.000000000 +0200
+@@ -38,17 +38,17 @@
+     }
+ 
+   len = strlen (string);
+-  for (i = 0; i < len; ++i)
++  for (i = 0; i < len - 1; ++i)
+     {
+       int32_t j;
+       char c;
+ 
+       __random_r (&rdata, &j);
+-      j %= len;
++      j %= (len - i);
+ 
+       c = string[i];
+-      string[i] = string[j];
+-      string[j] = c;
++      string[i] = string[j + i];
++      string[j + i] = c;
+     }
+ 
+   return string;
