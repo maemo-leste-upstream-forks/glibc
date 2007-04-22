@@ -1,8 +1,8 @@
 # All lines beginning with `# DP:' are a description of the patch.
-# DP: Make ldd handle non-executable shared objects
-# DP: 
+# DP: Make ldd handle non-executable shared objects. Discard the error
+# DP: message if the kernel does not support one of the dynamic loaders.
 # DP: Updated by gotom, it's nice to merge to the upstream after my review.
-# Date: (Updated 2004-01-02 gotom)
+# Date: (Updated 2007-04-22 aurel32)
 
 Index: elf/ldd.bash.in
 ===================================================================
@@ -16,7 +16,7 @@ Index: elf/ldd.bash.in
  
  while test $# -gt 0; do
    case "$1" in
-@@ -151,8 +152,11 @@
+@@ -151,13 +152,16 @@
      echo "ldd: ${file}:" $"not regular file" >&2
      result=1
    elif test -r "$file"; then
@@ -30,6 +30,12 @@ Index: elf/ldd.bash.in
      RTLD=
      ret=1
      for rtld in ${RTLDLIST}; do
+       if test -x $rtld; then
+-	verify_out=`${rtld} --verify "$file"`
++	verify_out=`${rtld} --verify "$file" 2>/dev/null`
+         ret=$?
+ 	case $ret in
+ 	[02]) RTLD=${rtld}; break;;
 @@ -169,7 +173,11 @@
        # If the program exits with exit code 5, it means the process has been
        # invoked with __libc_enable_secure.  Fall back to running it through
