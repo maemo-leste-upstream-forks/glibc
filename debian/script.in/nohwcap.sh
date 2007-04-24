@@ -24,7 +24,7 @@
     all_upgraded=yes
     if [ -n "$hwcappkgs" ]; then
         for pkg in $hwcappkgs ; do
-            ver=$(dpkg -l $pkg 2>/dev/null | awk '/^i/ { print $3 }')
+            ver=$(dpkg -l $pkg 2>/dev/null | sed -e '/^i/!d;' -e "s/^i.\s\+$pkg\s\+//;s/\s.*//g")
             if [ -n "$ver" ] && [ "$ver" != "CURRENT_VER" ]; then
                 all_upgraded=no
             fi
