@@ -7,7 +7,7 @@ Build-Depends: gettext, make (>= 3.80-1), dpkg-dev (>= 1.13.5), bzip2, lzma, fil
  kfreebsd-kernel-headers [kfreebsd-i386 kfreebsd-amd64],
  gcc-4.0 [hurd-i386], gcc-4.1 [!hppa !hurd-i386], gcc-4.2 [hppa],
  autoconf, sed (>= 4.0.5-4), gawk, debhelper (>= 5.0),
- libc6-dev-amd64 [i386], libc6-dev-ppc64 [powerpc], libc6-dev-i386 [amd64], libc6-dev-powerpc [ppc64], libc6-dev-sparc64 [sparc], libc6-dev-s390x [s390], libc0.1-dev-i386 [kfreebsd-amd64], 
+ libc6-dev-amd64 [i386], libc6-dev-ppc64 [powerpc], libc6-dev-i386 [amd64], libc6-dev-powerpc [ppc64], libc6-dev-sparc64 [sparc], libc6-dev-s390x [s390], libc0.1-dev-i386 [kfreebsd-amd64], libc6-dev-mipsn32 [mips mipsel], libc6-dev-mips64 [mips mipsel], 
  lib32ssp0 [amd64 kfreebsd-amd64 ppc64], lib64ssp0 [i386 powerpc sparc s390],
  quilt
 Build-Depends-Indep: perl, po-debconf (>= 1.0)
@@ -482,6 +482,48 @@ Description: GNU C Library: 64bit Development Libraries for PowerPC64
  Contains the symlinks and object files needed to compile and link programs
  which use the standard C library. This is the 64bit version of the
  library, meant for PowerPC64 systems.
+
+Package: libc6-mipsn32
+Architecture: mips mipsel
+Section: base
+Priority: optional
+Depends: libc6 (= ${Source-Version})
+Description: GNU C Library: n32 Shared libraries for MIPS64
+ This package includes shared versions of the standard C library and the
+ standard math library, as well as many others. This is the n32 version
+ of the library, meant for MIPS64 systems.
+
+Package: libc6-dev-mipsn32
+Architecture: mips mipsel
+Section: libdevel
+Priority: optional
+Provides: libn32c-dev
+Depends: libc6-mipsn32 (= ${Source-Version}), libc6-dev (= ${Source-Version}), libn32gcc1
+Description: GNU C Library: n32 Development Libraries for MIPS64
+ Contains the symlinks and object files needed to compile and link programs
+ which use the standard C library. This is the n32 version of the
+ library, meant for MIPS64 systems.
+
+Package: libc6-mips64
+Architecture: mips mipsel
+Section: base
+Priority: optional
+Depends: libc6 (= ${Source-Version})
+Description: GNU C Library: 64bit Shared libraries for MIPS64
+ This package includes shared versions of the standard C library and the
+ standard math library, as well as many others. This is the 64bit version
+ of the library, meant for MIPS64 systems.
+
+Package: libc6-dev-mips64
+Architecture: mips mipsel
+Section: libdevel
+Priority: optional
+Provides: lib64c-dev
+Depends: libc6-mips64 (= ${Source-Version}), libc6-dev (= ${Source-Version}), lib64gcc1
+Description: GNU C Library: 64bit Development Libraries for MIPS64
+ Contains the symlinks and object files needed to compile and link programs
+ which use the standard C library. This is the 64bit version of the
+ library, meant for MIPS64 systems.
 
 Package: libc0.1-i386
 Architecture: kfreebsd-amd64

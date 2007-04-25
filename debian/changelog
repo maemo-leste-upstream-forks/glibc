@@ -11,6 +11,15 @@ glibc (2.5-5) UNRELEASED; urgency=low
     #420755.
   * script.in/nohwcap.sh: use sed instead of awk.  Closes: #420799.
   * Update Catalan debconf translation, by Jordà Polo.  Closes: #420835.
+  * Add support for support for n32 and 64 ABIs on mips and mipsel, but 
+    keep it disable for now:
+    - control.in/main: add libc6-dev-mipsn32, libc6-dev-mips64 to the 
+      build-dependencies.
+    - control.in/mips64: add libc6-mips64 and libc6-dev-mips64 packages.
+    - control.in/mipsn32: add libc6-mipsn32 and libc6-dev-mipsn32 packages.
+    - rules.d/control.mk: use control.in/mips64 and control.in/mipsn32.
+    - sysdeps/mips.mk: add two new passes for n32 and 64 ABIs.
+    - sysdeps/mipsel.mk: likewise.
 
   [ Michael Banck ]
   * patches/hurd-i386/local-dl-dynamic-weak.diff: new patch (turn

@@ -1,4 +1,4 @@
-control_deps := $(addprefix debian/control.in/, libc6 libc6.1 libc0.1 libc0.3 sparc64 s390x powerpc ppc64 opt amd64)
+control_deps := $(addprefix debian/control.in/, libc6 libc6.1 libc0.1 libc0.3 sparc64 s390x powerpc ppc64 opt amd64 mipsn32 mips64)
 
 threads_archs := alpha amd64 arm armeb armel i386 m32r m68k mips mipsel powerpc ppc64 sparc ia64 hppa s390 sh3 sh4 sh3eb sh4eb kfreebsd-i386 kfreebsd-amd64 
 
@@ -35,6 +35,8 @@ $(stamp)control: debian/control.in/main $(control_deps) \
 	cat debian/control.in/amd64		>> $@T
 	cat debian/control.in/powerpc		>> $@T
 	cat debian/control.in/ppc64		>> $@T
+	cat debian/control.in/mipsn32		>> $@T
+	cat debian/control.in/mips64		>> $@T
 	cat debian/control.in/kfreebsd-i386	>> $@T
 	cat debian/control.in/opt		>> $@T
 	cat debian/control.in/libnss-dns-udeb	>> $@T
