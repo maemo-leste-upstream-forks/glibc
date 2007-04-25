@@ -35,17 +35,8 @@ start()
 	#   0 if daemon has been started
 	#   1 if daemon was already running
 	#   2 if daemon could not be started
-	SECURE=""
-	#for TABLE in passwd group
-	#do
-	#	if egrep '^'$TABLE':.*nisplus' /etc/nsswitch.conf >/dev/null
-	#	then
-	#		/usr/sbin/nscd_nischeck "$TABLE" || SECURE="$SECURE -S $TABLE,yes"
-	#	fi
-	#done
 	start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" --test > /dev/null || return 1
-	start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" -- \
-		$SECURE || return 2
+	start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" || return 2
 }
 
 stop()
@@ -54,12 +45,19 @@ stop()
 	#   0 if daemon has been stopped
 	#   1 if daemon was already stopped
 	#   2 if daemon could not be stopped
-	start-stop-daemon --stop --quiet --retry=TERM/5/HUP/30/KILL/5 --pidfile "$PIDFILE" --name "$NAME"
-	RETVAL="$?"
-	[ "$RETVAL" = 2 ] && return 2
+
+	# we try to stop using nscd --shutdown, that fails also if nscd is not present.
+	# in that case, fallback to "good old methods"
+	RETVAL=0
+	if ! $DAEMON --shutdown; then
+		start-stop-daemon --stop --quiet --pidfile "$PIDFILE" --name "$NAME" --test > /dev/null
+		RETVAL="$?"
+		[ "$?" -ne 0  -a  "$?" -ne 1 ] && return 2
+	fi
+
 	# Wait for children to finish too
 	start-stop-daemon --stop --quiet --oknodo --retry=0/30/KILL/5 --exec "$DAEMON" > /dev/null
-	[ "$?" = 2 ] && return 2
+	[ "$?" -ne 0  -a  "$?" -ne 1 ] && return 2
 	rm -f "$PIDFILE"
 	return "$RETVAL"
 }
@@ -95,7 +93,7 @@ stop)
 restart|force-reload|reload)
 	echo -n "Restarting $DESC: $NAME"
 	stop
-	$DAEMON --invalidate passwd --invalidate group
+	$DAEMON --invalidate passwd --invalidate group --invalidate hosts
 	case "$?" in
 	0|1)
 		start
