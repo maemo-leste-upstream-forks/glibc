@@ -23,6 +23,9 @@ glibc (2.5-5) UNRELEASED; urgency=low
   * debian/control.in/main: drop build-depends on libssp32 and libssp64,
     build-depends on gcc-4.1 (>= 4.1.2-4) instead.  Closes: #413370.
   * debian/sysdeps/hppa.mk: switch back to gcc-4.1.
+  * debian/debhelper.in/libc.preinst: add a check for silly users having
+    LD_ASSUME_KERNEL=2.4.1 in their /etc/profile, ~/.bashrc or shell
+    init script.
 
   [ Michael Banck ]
   * patches/hurd-i386/local-dl-dynamic-weak.diff: new patch (turn
@@ -35,7 +38,7 @@ glibc (2.5-5) UNRELEASED; urgency=low
      + also invalidate hosts on reload.
      + drop oldies (nscd_nischeck things, does not exists anymore).
 
- -- Aurelien Jarno <aurel32@debian.org>  Thu, 26 Apr 2007 01:56:41 +0200
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 26 Apr 2007 14:31:21 +0200
 
 glibc (2.5-4) unstable; urgency=low
 

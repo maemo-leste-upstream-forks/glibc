@@ -193,6 +193,16 @@ then
       exit 1
     fi
   done
+  if [ -n "$LD_ASSUME_KERNEL" ] ; then
+    if dpkg --compare-versions "$LD_ASSUME_KERNEL" le "2.6.1"; then
+      echo
+      echo "POSIX threads library NPTL requires kernel version 2.6.1"
+      echo "or later.  It appears that LD_ASSUME_KERNEL is set to $LD_ASSUME_KERNEL."
+      echo "It is not safe to upgrade the C library in this situation;"
+      echo "Please unset this environment variable and try again."
+      exit 1
+    fi
+  fi
 fi
 
 if [ "$1" != abort-upgrade ] && [ "`uname -s`" = Linux ]
