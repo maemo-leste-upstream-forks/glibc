@@ -42,11 +42,15 @@ glibc (2.5-5) UNRELEASED; urgency=low
      + drop oldies (nscd_nischeck things, does not exists anymore).
   * patches/any/cvs-scanf_hexfloat.diff: fix a bug when parsing a float in
     hexadicimal form with no exponent. Closes: #166403.
+  * disable hosts caching in nscd by default as it breaks gethostby* calls
+    (does not respect DNS TTLs, see #335476):
+     + document it in nscd.NEWS.Debian.
+     + patches/any/local-disable-nscd-host-caching.diff: update nscd.conf.
 
   [ Clint Adams ]
   * Switch from linux-kernel-headers to linux-libc-dev.
 
- -- Pierre Habouzit <madcoder@debian.org>  Sat, 28 Apr 2007 00:53:01 +0200
+ -- Pierre Habouzit <madcoder@debian.org>  Sat, 28 Apr 2007 11:17:51 +0200
 
 glibc (2.5-4) unstable; urgency=low
 
