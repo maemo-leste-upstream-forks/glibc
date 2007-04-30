@@ -132,15 +132,13 @@ then
     fi
 
     # Add support for /etc/ld.so.conf.d
-    if [ -z "$preversion" ] || dpkg --compare-versions $preversion lt 2.3.6.ds1-11; then
-	if [ -e /etc/ld.so.conf ]; then
-	    [ -z "$(tail -n 1 /etc/ld.so.conf)" ] || echo >> /etc/ld.so.conf
-	else
-	    touch /etc/ld.so.conf
-	fi
-	if ! grep -q '^include /etc/ld.so.conf.d/.*\.conf$' /etc/ld.so.conf ; then
-	    echo 'include /etc/ld.so.conf.d/*.conf' >> /etc/ld.so.conf
-	fi
+    if [ -e /etc/ld.so.conf ]; then
+        [ -z "$(tail -n 1 /etc/ld.so.conf)" ] || echo >> /etc/ld.so.conf
+    else
+        touch /etc/ld.so.conf
+    fi
+    if ! grep -q '^include /etc/ld.so.conf.d/.*\.conf$' /etc/ld.so.conf ; then
+        echo 'include /etc/ld.so.conf.d/*.conf' >> /etc/ld.so.conf
     fi
 
     # We don't use a registry anymore, remove the old file
