@@ -1,14 +1,14 @@
 Source: glibc
 Section: libs
 Priority: required
-Build-Depends: gettext, make (>= 3.80-1), dpkg-dev (>= 1.13.5), bzip2, lzma, file,
+Build-Depends: gettext, make (>= 3.80-1), dpkg-dev (>= 1.13.5), bzip2, lzma, file, quilt
+ autoconf, sed (>= 4.0.5-4), gawk, debhelper (>= 5.0),
  linux-libc-dev [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64 !hppa], linux-kernel-headers [hppa],
  mig (>= 1.3-2) [hurd-i386], hurd-dev (>= 20020608-1) [hurd-i386], gnumach-dev [hurd-i386],
  kfreebsd-kernel-headers [kfreebsd-i386 kfreebsd-amd64],
- gcc-4.0 [hurd-i386], gcc-4.1 (>= 4.1.2-5) [!hurd-i386], binutils (>= 2.17cvs20070426-1),
- autoconf, sed (>= 4.0.5-4), gawk, debhelper (>= 5.0),
- libc6-dev-amd64 [i386], libc6-dev-ppc64 [powerpc], libc6-dev-i386 [amd64], libc6-dev-powerpc [ppc64], libc6-dev-sparc64 [sparc], libc6-dev-s390x [s390], libc0.1-dev-i386 [kfreebsd-amd64], libc6-dev-mipsn32 [mips mipsel], libc6-dev-mips64 [mips mipsel], 
- quilt
+ binutils (>= 2.17cvs20070426-1),
+ gcc-4.0 [hurd-i386], gcc-4.1 (>= 4.1.2-5) [!hurd-i386], gcc-4.1-multilib [amd64 i386 kfreebsd-amd64 powerpc ppc64 s390 sparc] 
+ libc6-dev-amd64 [i386], libc6-dev-ppc64 [powerpc], libc6-dev-i386 [amd64], libc6-dev-powerpc [ppc64], libc6-dev-sparc64 [sparc], libc6-dev-s390x [s390], libc0.1-dev-i386 [kfreebsd-amd64], 
 Build-Depends-Indep: perl, po-debconf (>= 1.0)
 Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
 Uploaders: Ben Collins <bcollins@debian.org>, GOTO Masanori <gotom@debian.org>, Philip Blundell <pb@nexus.co.uk>, Jeff Bailey <jbailey@raspberryginger.com>, Daniel Jacobowitz <dan@debian.org>, Clint Adams <schizo@debian.org>, Aurelien Jarno <aurel32@debian.org>, Pierre Habouzit <madcoder@debian.org>
@@ -367,7 +367,8 @@ Section: libdevel
 Priority: optional
 Conflicts: ia32-libs-dev (<< 1.18)
 Provides: lib32c-dev
-Depends: libc6-i386 (= ${Source-Version}), libc6-dev (= ${Source-Version}), lib32gcc1
+Depends: libc6-i386 (= ${Source-Version}), libc6-dev (= ${Source-Version})
+Recommends: gcc-multilib
 Description: GNU C Library: 32bit development libraries for AMD64
  Contains the symlinks and object files needed to compile and link programs
  which use the standard C library. This is the 32bit version of the
@@ -389,7 +390,8 @@ Architecture: sparc
 Section: libdevel
 Priority: optional
 Provides: lib64c-dev
-Depends: libc6-sparc64 (= ${Source-Version}), libc6-dev (= ${Source-Version}), lib64gcc1
+Depends: libc6-sparc64 (= ${Source-Version}), libc6-dev (= ${Source-Version})
+Recommends: gcc-multilib
 Description: GNU C Library: 64bit Development Libraries for UltraSPARC
  Contains the symlinks and object files needed to compile and link programs
  which use the standard C library. This is the 64bit version of the
@@ -410,7 +412,8 @@ Architecture: s390
 Section: libdevel
 Priority: optional
 Provides: lib64c-dev
-Depends: libc6-s390x (= ${Source-Version}), libc6-dev (= ${Source-Version}), lib64gcc1
+Depends: libc6-s390x (= ${Source-Version}), libc6-dev (= ${Source-Version})
+Recommends: gcc-multilib
 Description: GNU C Library: 64bit Development Libraries for IBM zSeries
  Contains the symlinks and object files needed to compile and link programs
  which use the standard C library. This is the 64bit version of the
@@ -431,7 +434,8 @@ Package: libc6-dev-amd64
 Architecture: i386
 Section: libdevel
 Priority: optional
-Depends: libc6-amd64 (= ${Source-Version}), libc6-dev (= ${Source-Version}), lib64gcc1
+Depends: libc6-amd64 (= ${Source-Version}), libc6-dev (= ${Source-Version})
+Recommends: gcc-multilib
 Replaces: amd64-libs-dev (<= 1.2)
 Provides: lib64c-dev
 Description: GNU C Library: 64bit Development Libraries for AMD64
@@ -454,7 +458,8 @@ Architecture: ppc64
 Section: libdevel
 Priority: optional
 Provides: lib32c-dev
-Depends: libc6-powerpc (= ${Source-Version}), libc6-dev (= ${Source-Version}), lib32gcc1
+Depends: libc6-powerpc (= ${Source-Version}), libc6-dev (= ${Source-Version})
+Recommends: gcc-multilib
 Description: GNU C Library: 32bit powerpc development libraries for ppc64
  Contains the symlinks and object files needed to compile and link programs
  which use the standard C library. This is the 32bit version of the
@@ -475,7 +480,8 @@ Architecture: powerpc
 Section: libdevel
 Priority: optional
 Provides: lib64c-dev
-Depends: libc6-ppc64 (= ${Source-Version}), libc6-dev (= ${Source-Version}), lib64gcc1
+Depends: libc6-ppc64 (= ${Source-Version}), libc6-dev (= ${Source-Version})
+Recommends: gcc-multilib
 Description: GNU C Library: 64bit Development Libraries for PowerPC64
  Contains the symlinks and object files needed to compile and link programs
  which use the standard C library. This is the 64bit version of the
@@ -496,7 +502,8 @@ Architecture: mips mipsel
 Section: libdevel
 Priority: optional
 Provides: libn32c-dev
-Depends: libc6-mipsn32 (= ${Source-Version}), libc6-dev (= ${Source-Version}), libn32gcc1
+Depends: libc6-mipsn32 (= ${Source-Version}), libc6-dev (= ${Source-Version})
+Recommends: gcc-multilib
 Description: GNU C Library: n32 Development Libraries for MIPS64
  Contains the symlinks and object files needed to compile and link programs
  which use the standard C library. This is the n32 version of the
@@ -517,7 +524,8 @@ Architecture: mips mipsel
 Section: libdevel
 Priority: optional
 Provides: lib64c-dev
-Depends: libc6-mips64 (= ${Source-Version}), libc6-dev (= ${Source-Version}), lib64gcc1
+Depends: libc6-mips64 (= ${Source-Version}), libc6-dev (= ${Source-Version})
+Recommends: gcc-multilib
 Description: GNU C Library: 64bit Development Libraries for MIPS64
  Contains the symlinks and object files needed to compile and link programs
  which use the standard C library. This is the 64bit version of the
@@ -538,7 +546,8 @@ Architecture: kfreebsd-amd64
 Section: libdevel
 Priority: optional
 Provides: lib32c-dev
-Depends: libc0.1-i386 (= ${Source-Version}), libc0.1-dev (= ${Source-Version}), lib32gcc1
+Depends: libc0.1-i386 (= ${Source-Version}), libc0.1-dev (= ${Source-Version})
+Recommends: gcc-multilib
 Description: GNU C Library: 32bit development libraries for AMD64
  Contains the symlinks and object files needed to compile and link programs
  which use the standard C library. This is the 32bit version of the
