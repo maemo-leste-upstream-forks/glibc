@@ -1,0 +1,127 @@
+Index: ports/sysdeps/unix/sysv/linux/hppa/sysdep.h
+===================================================================
+RCS file: /cvs/glibc/ports/sysdeps/unix/sysv/linux/hppa/sysdep.h,v
+retrieving revision 1.13
+diff -u -p -r1.13 sysdep.h
+--- ports/sysdeps/unix/sysv/linux/hppa/sysdep.h	2 Feb 2007 21:52:32 -0000	1.13
++++ ports/sysdeps/unix/sysv/linux/hppa/sysdep.h	3 May 2007 06:12:20 -0000
+@@ -1,5 +1,6 @@
+ /* Assembler macros for PA-RISC.
+-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
++   Copyright (C) 1999, 2001, 2002, 2003, 2007 
++   Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper, <drepper@cygnus.com>, August 1999.
+    Linux/PA-RISC changes by Philipp Rumpf, <prumpf@tux.org>, March 2000.
+@@ -40,7 +41,9 @@
+ # define TREG_ASM "%r4" /* Cant clobber r3, it holds framemarker */
+ # define SAVE_ASM_PIC	"       copy %%r19, %" TREG_ASM "\n"
+ # define LOAD_ASM_PIC	"       copy %" TREG_ASM ", %%r19\n"
+-# define USING_TREG	TREG_ASM,
++# define CLOB_TREG	TREG_ASM ,
++# define PIC_REG_DEF	register unsigned long __r19 asm("r19");
++# define PIC_REG_USE	, "r" (__r19)
+ #else
+ # define TREG %r3
+ # define SAVE_PIC(SREG) nop ASM_LINE_SEP
+@@ -49,7 +52,9 @@
+ # define TREG_ASM 
+ # define SAVE_ASM_PIC	"nop \n"
+ # define LOAD_ASM_PIC	"nop \n"
+-# define USING_TREG
++# define CLOB_TREG
++# define PIC_REG_DEF
++# define PIC_REG_USE
+ #endif
+ 
+ #ifdef __ASSEMBLER__
+@@ -344,7 +349,7 @@ L(pre_end):					ASM_LINE_SEP	\
+    TREG is clobbered and use that register to save/restore r19
+    across the syscall. */
+ 
+-#define CALL_CLOB_REGS	"%r1", "%r2", USING_TREG \
++#define CALL_CLOB_REGS	"%r1", "%r2", CLOB_TREG \
+ 		 	"%r20", "%r29", "%r31"
+ 
+ #undef INLINE_SYSCALL
+@@ -353,6 +358,7 @@ L(pre_end):					ASM_LINE_SEP	\
+ 	long __sys_res;							\
+ 	{								\
+ 		register unsigned long __res asm("r28");		\
++		PIC_REG_DEF						\
+ 		LOAD_ARGS_##nr(args)					\
+ 		/* FIXME: HACK save/load r19 around syscall */		\
+ 		asm volatile(						\
+@@ -361,7 +367,7 @@ L(pre_end):					ASM_LINE_SEP	\
+ 			"	ldi %1, %%r20\n"			\
+ 			LOAD_ASM_PIC					\
+ 			: "=r" (__res)					\
+-			: "i" (SYS_ify(name)) ASM_ARGS_##nr		\
++			: "i" (SYS_ify(name)) PIC_REG_USE ASM_ARGS_##nr	\
+ 			: "memory", CALL_CLOB_REGS CLOB_ARGS_##nr	\
+ 		);							\
+ 		__sys_res = (long)__res;				\
+@@ -398,6 +404,7 @@ L(pre_end):					ASM_LINE_SEP	\
+ 	long __sys_res;							\
+ 	{								\
+ 		register unsigned long __res asm("r28");		\
++		PIC_REG_DEF						\
+ 		LOAD_ARGS_##nr(args)					\
+ 		/* FIXME: HACK save/load r19 around syscall */		\
+ 		asm volatile(						\
+@@ -406,7 +413,7 @@ L(pre_end):					ASM_LINE_SEP	\
+ 			"	ldi %1, %%r20\n"			\
+ 			LOAD_ASM_PIC					\
+ 			: "=r" (__res)					\
+-			: "i" (SYS_ify(name)) ASM_ARGS_##nr		\
++			: "i" (SYS_ify(name)) PIC_REG_USE ASM_ARGS_##nr	\
+ 			: "memory", CALL_CLOB_REGS CLOB_ARGS_##nr	\
+ 		);							\
+ 		__sys_res = (long)__res;				\
+@@ -422,6 +429,7 @@ L(pre_end):					ASM_LINE_SEP	\
+ 	long __sys_res;							\
+ 	{								\
+ 		register unsigned long __res asm("r28");		\
++		PIC_REG_DEF						\
+ 		LOAD_ARGS_##nr(args)					\
+ 		/* FIXME: HACK save/load r19 around syscall */		\
+ 		asm volatile(						\
+@@ -430,7 +438,7 @@ L(pre_end):					ASM_LINE_SEP	\
+ 			"	copy %1, %%r20\n"			\
+ 			LOAD_ASM_PIC					\
+ 			: "=r" (__res)					\
+-			: "r" (name) ASM_ARGS_##nr			\
++			: "r" (name) PIC_REG_USE ASM_ARGS_##nr		\
+ 			: "memory", CALL_CLOB_REGS CLOB_ARGS_##nr	\
+ 		);							\
+ 		__sys_res = (long)__res;				\
+Index: ports/sysdeps/unix/sysv/linux/hppa/sysdep.c
+===================================================================
+RCS file: /cvs/glibc/ports/sysdeps/unix/sysv/linux/hppa/sysdep.c,v
+retrieving revision 1.6
+diff -u -p -r1.6 sysdep.c
+--- ports/sysdeps/unix/sysv/linux/hppa/sysdep.c	15 May 2006 00:44:14 -0000	1.6
++++ ports/sysdeps/unix/sysv/linux/hppa/sysdep.c	3 May 2007 06:12:20 -0000
+@@ -1,4 +1,5 @@
+-/* Copyright (C) 1997, 1998, 2001, 2003 Free Software Foundation, Inc.
++/* Copyright (C) 1997, 1998, 2001, 2003, 2007 
++   Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -58,13 +59,14 @@ syscall (long int __sysno, ...) 
+   
+   {
+     register unsigned long int __res asm("r28");
++    PIC_REG_DEF
+     LOAD_ARGS_6 (arg0, arg1, arg2, arg3, arg4, arg5)
+     asm volatile (SAVE_ASM_PIC
+ 		  "	ble  0x100(%%sr2, %%r0)	\n"
+ 		  "	copy %1, %%r20		\n"
+ 		  LOAD_ASM_PIC
+ 		  : "=r" (__res)
+-		  : "r" (__sysno) ASM_ARGS_6
++		  : "r" (__sysno) PIC_REG_USE ASM_ARGS_6
+ 		  : "memory", CALL_CLOB_REGS CLOB_ARGS_6);
+     __sys_res = __res;
+   }
