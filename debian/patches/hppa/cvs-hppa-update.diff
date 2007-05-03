@@ -1,7 +1,13 @@
 diff -Nurd ports.orig/ChangeLog.hppa ports/ChangeLog.hppa
 --- ports.orig/ChangeLog.hppa	2006-10-01 19:06:06.000000000 +0200
 +++ ports/ChangeLog.hppa	2007-02-06 10:11:40.000000000 +0100
-@@ -1,3 +1,37 @@
+@@ -1,3 +1,43 @@
++2007-05-01  Carlos O'Donell  <carlos@systemhalted.org>
++
++	* sysdeps/unix/sysv/linux/hppa/linuxthreads/bits/pthreadtypes.h
++	[__USE_XOPEN2K]: Define pthread_rwlock_t and 
++	pthread_rwlockattr_t. 
++
 +2007-02-02  Carlos O'Donell  <carlos@systemhalted.org>
 +
 +	* sysdeps/unix/sysv/linux/hppa/sysdep.h (PTR_MANGLE): Define.
@@ -1649,6 +1655,19 @@ diff -Nurd ports.orig/sysdeps/unix/sysv/linux/hppa/bits/fcntl.h ports/sysdeps/un
      __THROW;
  
  /* In-kernel implementation of tee for pipe buffers.  */
+diff -Nurd ports.orig/sysdeps/unix/sysv/linux/hppa/linuxthreads/bits/pthreadtypes.h ports/sysdeps/unix/sysv/linux/hppa/linuxthreads/bits/pthreadtypes.h
+--- ports.orig/sysdeps/unix/sysv/linux/hppa/linuxthreads/bits/pthreadtypes.h	2006/04/19 05:35:34	1.1
++++ ports/sysdeps/unix/sysv/linux/hppa/linuxthreads/bits/pthreadtypes.h	2007/05/02 02:07:38	1.2
+@@ -111,8 +111,7 @@
+ /* Once-only execution */
+ typedef int pthread_once_t;
+ 
+-
+-#ifdef __USE_UNIX98
++#if defined __USE_UNIX98 || defined __USE_XOPEN2K
+ /* Read-write locks.  */
+ typedef struct _pthread_rwlock_t
+ {
 diff -Nurd ports.orig/sysdeps/unix/sysv/linux/hppa/nptl/sysdep-cancel.h ports/sysdeps/unix/sysv/linux/hppa/nptl/sysdep-cancel.h
 --- ports.orig/sysdeps/unix/sysv/linux/hppa/nptl/sysdep-cancel.h	2006-10-01 19:06:06.000000000 +0200
 +++ ports/sysdeps/unix/sysv/linux/hppa/nptl/sysdep-cancel.h	2007-02-06 10:11:16.000000000 +0100
