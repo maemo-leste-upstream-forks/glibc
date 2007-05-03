@@ -1,3 +1,8 @@
+2007-05-02  Jakub Jelinek  <jakub@redhat.com>
+
+	* stdio-common/vfprintf.c (process_string_arg): Use a VLA rather than
+	fixed length array for ignore.
+
 2007-04-30  Ulrich Drepper  <drepper@redhat.com>
 
 	[BZ #4438]
@@ -7,11 +12,11 @@
 ===================================================================
 RCS file: /cvs/glibc/libc/stdio-common/vfprintf.c,v
 retrieving revision 1.135
-retrieving revision 1.136
-diff -u -r1.135 -r1.136
+retrieving revision 1.137
+diff -u -r1.135 -r1.137
 --- libc/stdio-common/vfprintf.c	2007/03/17 17:08:56	1.135
-+++ libc/stdio-common/vfprintf.c	2007/05/01 04:11:26	1.136
-@@ -1160,19 +1160,25 @@
++++ libc/stdio-common/vfprintf.c	2007/05/02 08:15:50	1.137
+@@ -1160,19 +1160,26 @@
  		else							      \
  		  {							      \
  		    /* In case we have a multibyte character set the	      \
@@ -19,7 +24,8 @@ diff -u -r1.135 -r1.136
 +		       situation is more complicated.  We must not copy	      \
  		       bytes at the end which form an incomplete character. */\
 -		    wchar_t ignore[prec];				      \
-+		    wchar_t ignore[1024];				      \
++		    size_t ignore_size = (unsigned) prec > 1024 ? 1024 : prec;\
++		    wchar_t ignore[ignore_size];			      \
  		    const char *str2 = string;				      \
 -		    mbstate_t ps;					      \
 +		    const char *strend = string + prec;			      \
