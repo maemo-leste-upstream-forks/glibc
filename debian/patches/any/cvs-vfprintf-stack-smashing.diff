@@ -13,10 +13,11 @@
 RCS file: /cvs/glibc/libc/stdio-common/vfprintf.c,v
 retrieving revision 1.135
 retrieving revision 1.137
-diff -u -r1.135 -r1.137
---- libc/stdio-common/vfprintf.c	2007/03/17 17:08:56	1.135
-+++ libc/stdio-common/vfprintf.c	2007/05/02 08:15:50	1.137
-@@ -1160,19 +1160,26 @@
+Index: glibc-2.5/stdio-common/vfprintf.c
+===================================================================
+--- glibc-2.5.orig/stdio-common/vfprintf.c	2006-05-02 22:25:15.000000000 +0200
++++ glibc-2.5/stdio-common/vfprintf.c	2007-05-04 11:26:16.049828248 +0200
+@@ -1159,19 +1159,26 @@
  		else							      \
  		  {							      \
  		    /* In case we have a multibyte character set the	      \
@@ -42,8 +43,8 @@ diff -u -r1.135 -r1.137
 -		      }							      \
 +									      \
 +		    while (str2 != NULL && str2 < strend)		      \
-+		      if (__mbsnrtowcs (ignore, &str2, strend - str2, 1024,   \
-+					&ps) == (size_t) -1)		      \
++		      if (__mbsnrtowcs (ignore, &str2, strend - str2,	      \
++					ignore_size, &ps) == (size_t) -1)     \
 +			{						      \
 +			  done = -1;					      \
 +			  goto all_done;				      \
