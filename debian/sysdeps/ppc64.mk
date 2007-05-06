@@ -1,4 +1,4 @@
-libc_extra_cflags = -O3 -1
+libc_extra_cflags = -O3 -g
 libc_slibdir = /lib
 libc_libdir = /usr/lib
 libc_rtlddir = /lib64
