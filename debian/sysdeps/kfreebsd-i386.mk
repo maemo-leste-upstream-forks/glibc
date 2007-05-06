@@ -1,3 +1,5 @@
+libc_extra_cflags = -march=i486 -mtune=i686 -g -O3
+
 GLIBC_PASSES += i686
 DEB_ARCH_REGULAR_PACKAGES += libc0.1-i686
 
