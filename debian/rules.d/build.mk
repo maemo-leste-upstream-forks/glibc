@@ -23,19 +23,23 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 
 	@echo Configuring $(curpass)
 	rm -f $(DEB_BUILDDIR)/configparms
-	echo "CC = $(call xx,CC)"	>> $(DEB_BUILDDIR)/configparms
-	echo "BUILD_CC = $(BUILD_CC)"	>> $(DEB_BUILDDIR)/configparms
-	echo "CFLAGS = $(HOST_CFLAGS)"	>> $(DEB_BUILDDIR)/configparms
-	echo "BUILD_CFLAGS = $(BUILD_CFLAGS)" >> $(DEB_BUILDDIR)/configparms
-	echo "BASH := /bin/bash"	>> $(DEB_BUILDDIR)/configparms
-	echo "KSH := /bin/bash"		>> $(DEB_BUILDDIR)/configparms
-	echo "mandir = $(mandir)"	>> $(DEB_BUILDDIR)/configparms
-	echo "infodir = $(infodir)"	>> $(DEB_BUILDDIR)/configparms
-	echo "libexecdir = $(libexecdir)" >> $(DEB_BUILDDIR)/configparms
-	echo "LIBGD = no"		>> $(DEB_BUILDDIR)/configparms
-	echo "sysconfdir = /etc"	>> $(DEB_BUILDDIR)/configparms
-	echo "rootsbindir = /sbin"	>> $(DEB_BUILDDIR)/configparms
-	echo "localedir = /usr/lib/locale" >> $(DEB_BUILDDIR)/configparms
+	echo "CC = $(call xx,CC)"		>> $(DEB_BUILDDIR)/configparms
+	echo "BUILD_CC = $(BUILD_CC)"		>> $(DEB_BUILDDIR)/configparms
+	echo "CFLAGS = $(HOST_CFLAGS)"		>> $(DEB_BUILDDIR)/configparms
+	echo "BUILD_CFLAGS = $(BUILD_CFLAGS)" 	>> $(DEB_BUILDDIR)/configparms
+	echo "BASH := /bin/bash"		>> $(DEB_BUILDDIR)/configparms
+	echo "KSH := /bin/bash"			>> $(DEB_BUILDDIR)/configparms
+	echo "LIBGD = no"			>> $(DEB_BUILDDIR)/configparms
+	echo "bindir = $(bindir)"		>> $(DEB_BUILDDIR)/configparms
+	echo "datadir = $(datadir)"		>> $(DEB_BUILDDIR)/configparms
+	echo "localedir = $(localedir)" 	>> $(DEB_BUILDDIR)/configparms
+	echo "sysconfdir = $(sysconfdir)" 	>> $(DEB_BUILDDIR)/configparms
+	echo "libexecdir = $(libexecdir)" 	>> $(DEB_BUILDDIR)/configparms
+	echo "rootsbindir = $(rootsbindir)" 	>> $(DEB_BUILDDIR)/configparms
+	echo "includedir = $(call xx,includedir)" >> $(DEB_BUILDDIR)/configparms
+	echo "docdir = $(docdir)"		>> $(DEB_BUILDDIR)/configparms
+	echo "mandir = $(mandir)"		>> $(DEB_BUILDDIR)/configparms
+	echo "sbindir = $(sbindir)"		>> $(DEB_BUILDDIR)/configparms
 	libdir="$(call xx,libdir)" ; if test -n "$$libdir" ; then \
 		echo "libdir = $$libdir" >> $(DEB_BUILDDIR)/configparms ; \
 	fi

@@ -17,7 +17,8 @@ i386_add-ons = nptl $(add-ons)
 i386_configure_target = i486-linux
 i386_CC = $(CC) -m32
 i386_extra_cflags = -march=pentium4 -g -O3
-i386_extra_config_options = $(extra_config_options) --includedir=/usr/include/i486-linux-gnu 
+i386_extra_config_options = $(extra_config_options)
+i386_includedir = /usr/include/i486-linux-gnu
 i386_rtlddir = /lib
 i386_slibdir = /emul/ia32-linux/lib
 i386_libdir = /emul/ia32-linux/usr/lib

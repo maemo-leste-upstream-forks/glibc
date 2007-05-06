@@ -17,7 +17,8 @@ i386_configure_target = i486-kfreebsd
 i386_CC = $(CC) -m32
 i386_add-ons = ports linuxthreads $(add-ons)
 i386_extra_cflags = -march=pentium4 -g -O3
-i386_extra_config_options = $(extra_config_options) --disable-compatible-utmp --includedir=/usr/include/i486-kfreebsd-gnu 
+i386_extra_config_options = $(extra_config_options) --disable-compatible-utmp
+i386_includedir = /usr/include/i486-kfreebsd-gnu
 i386_rtlddir = /lib
 i386_slibdir = /lib32
 i386_libdir = /usr/lib32
