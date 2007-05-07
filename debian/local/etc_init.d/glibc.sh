@@ -8,8 +8,9 @@
 # Default-Stop:
 ### END INIT INFO
 #
-# This script is existed for detecting depreciated kernel version to
-# check glibc incompatibility.
+# 
+# This script detects depreciated kernel versions incompatible with
+# the current version of the glibc
 
 if [ "`uname -s`" = Linux ]; then
     # glibc kernel version check: KERNEL_VERSION_CHECK
