@@ -154,8 +154,8 @@ push @{$libc_c{'Conflicts'}}, 'e2fsprogs (<< 1.35-7)';
 # new libc.
 push @{$libc_c{'Conflicts'}}, 'initrd-tools (<< 0.1.84.1)';
 
-## Depends on a binutils version that supports DT_GNU_HASH
-#push @{$libc_dev_c{'Depends'}}, 'binutils (>= 2.17.50)';
+## Conflict versions of binutils version that does not support DT_GNU_HASH
+push @{$libc_dev_c{'Conflicts'}}, 'binutils (<< 2.17cvs20070426-1)';
 
 # Make sure we only have one version of libc-dev installed
 push @{$libc_dev_c{'Provides'}}, 'libc-dev';
