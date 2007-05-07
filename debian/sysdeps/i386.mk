@@ -43,8 +43,8 @@ amd64_configure_target = x86_64-linux
 # /usr/include/asm wrappers need that symbol.
 amd64_CC = $(CC) -m64 -D__x86_64__
 amd64_extra_cflags = -O3 -g
-amd64_extra_config_options = $(extra_config_options) --disable-profile \
-	--includedir=/usr/include/x86_64-linux-gnu
+amd64_extra_config_options = $(extra_config_options) --disable-profile
+amd64_includedir = /usr/include/x86_64-linux-gnu
 amd64_slibdir = /lib64
 amd64_libdir = /usr/lib64
 
