@@ -9,7 +9,7 @@
 ### END INIT INFO
 #
 # 
-# This script detects depreciated kernel versions incompatible with
+# This script detects deprecated kernel versions incompatible with
 # the current version of the glibc
 
 if [ "`uname -s`" = Linux ]; then
