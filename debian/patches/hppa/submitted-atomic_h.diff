@@ -1,0 +1,16 @@
+2007-05-20  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/unix/sysv/linux/hppa/bits/atomic.h: check for
+	-EAGAIN instead of EAGAIN.
+
+--- ports/sysdeps/unix/sysv/linux/hppa/bits/atomic.h.orig	2007-05-20 03:28:39.000000000 +0200
++++ ports/sysdeps/unix/sysv/linux/hppa/bits/atomic.h	2007-05-20 03:24:41.000000000 +0200
+@@ -56,7 +56,7 @@
+ #define LWS_CAS "0"
+ /* Note r31 is the link register */
+ #define LWS_CLOBBER "r1", "r26", "r25", "r24", "r23", "r22", "r21", "r20", "r28", "r31", "memory"
+-#define ASM_EAGAIN "-11" 
++#define ASM_EAGAIN "11" 
+ 
+ #if __ASSUME_LWS_CAS
+ /* The only basic operation needed is compare and exchange.  */
