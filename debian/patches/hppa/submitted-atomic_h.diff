@@ -1,16 +1,38 @@
-2007-05-20  Aurelien Jarno  <aurelien@aurel32.net>
+2007-05-22  Aurelien Jarno  <aurelien@aurel32.net>
 
-	* sysdeps/unix/sysv/linux/hppa/bits/atomic.h: check for
-	-EAGAIN instead of EAGAIN.
+	* sysdeps/unix/sysv/linux/hppa/bits/atomic.h: check for -11 
+	(-EAGAIN) instead of 11. Loop again when the kernel returns
+	error -45 (-EDEADLOCK) to workaround a kernel bug (debugging
+	code enabled).
 
 --- ports/sysdeps/unix/sysv/linux/hppa/bits/atomic.h.orig	2007-05-20 03:28:39.000000000 +0200
 +++ ports/sysdeps/unix/sysv/linux/hppa/bits/atomic.h	2007-05-20 03:24:41.000000000 +0200
-@@ -56,7 +56,7 @@
+@@ -56,10 +56,14 @@
  #define LWS_CAS "0"
  /* Note r31 is the link register */
  #define LWS_CLOBBER "r1", "r26", "r25", "r24", "r23", "r22", "r21", "r20", "r28", "r31", "memory"
 -#define ASM_EAGAIN "11" 
-+#define ASM_EAGAIN "-11" 
  
  #if __ASSUME_LWS_CAS
- /* The only basic operation needed is compare and exchange.  */
+-/* The only basic operation needed is compare and exchange.  */
++/* The only basic operation needed is compare and exchange.
++   -11 corresponds to -EAGAIN, and -45 to -EDEADLOCK. The constants
++   must stay the same to avoid breaking backwards compatibility.
++
++   The check for -EDEADLOCK workarounds a kernel bug (debugging code
++   enabled by default). */
+ # define atomic_compare_and_exchange_val_acq(mem, newval, oldval) 	\
+   ({									\
+      volatile int lws_errno = EFAULT;					\
+@@ -71,7 +75,10 @@
+ 	"copy	%5, %%r24			\n\t"			\
+ 	"ble	" LWS "(%%sr2, %%r0)		\n\t"			\
+ 	"ldi	" LWS_CAS ", %%r20		\n\t"			\
+-	"cmpib,=,n " ASM_EAGAIN ",%%r21,0b	\n\t"			\
++	"cmpib,=,n -11,%%r21,0b			\n\t"			\
++	"nop 					\n\t"			\
++	"ldi	-45, %%r24			\n\t"			\
++	"cmpb,=,n %%r24,%%r21,0b		\n\t"			\
+ 	"nop					\n\t"			\
+ 	"stw	%%r28, %0			\n\t"			\
+         "sub	%%r0, %%r21, %%r21		\n\t"			\
