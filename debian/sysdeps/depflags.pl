@@ -1,15 +1,15 @@
 #!/usr/bin/perl
 
 # These get export by debian/sysdeps/depflags.mk
-$DEB_HOST_GNU_SYSTEM = $ENV{'DEB_HOST_GNU_SYSTEM'};
-$DEB_HOST_GNU_TYPE = $ENV{'DEB_HOST_GNU_TYPE'};
+$DEB_HOST_ARCH_OS = $ENV{'DEB_HOST_ARCH_OS'};
+$DEB_HOST_ARCH = $ENV{'DEB_HOST_ARCH'};
 $libc = $ENV{'libc'};
 $glibc = $ENV{'glibc'};
 @deptypes = ('Depends', 'Replaces', 'Conflicts', 'Provides',
 	     'Suggests');
 
 # Let's make sure we are sane
-if (!defined($DEB_HOST_GNU_SYSTEM) or !defined($DEB_HOST_GNU_TYPE) or
+if (!defined($DEB_HOST_ARCH_OS) or !defined($DEB_HOST_ARCH) or
     !defined($libc) or !defined($glibc)) {
     die "Could not get all parameters";
 }
@@ -18,7 +18,7 @@ if (!defined($DEB_HOST_GNU_SYSTEM) or !defined($DEB_HOST_GNU_TYPE) or
 $type = $ARGV[0];
 
 # OS specific stuff
-if ($DEB_HOST_GNU_SYSTEM eq "gnu") {
+if ($DEB_HOST_ARCH_OS eq "hurd") {
     push @{$libc_dev_c{'Depends'}}, ('gnumach-dev', 'hurd-dev');
     push @{$libc_dev_c{'Replaces'}}, 'glibc2-dev';
     push @{$libc_dev_c{'Conflicts'}}, 'glibc2-dev';
@@ -26,14 +26,14 @@ if ($DEB_HOST_GNU_SYSTEM eq "gnu") {
     push @{$libc_c{'Conflicts'}}, 'glibc2';
     push @{$libc_c{'Depends'}}, 'hurd (>= 20010718-1)';
 }
-if ($DEB_HOST_GNU_SYSTEM eq "linux-gnu") {
+if ($DEB_HOST_ARCH_OS eq "linux") {
     push @{$libc_c{'Suggests'}}, 'locales';
     push @{$libc_dev_c{'Recommends'}}, 'c-compiler';
     push @{$libc_dev_c{'Replaces'}}, ('man-db (<= 2.3.10-41)', 'gettext (<= 0.10.26-1)',
 		'ppp (<= 2.2.0f-24)', 'libgdbmg1-dev (<= 1.7.3-24)');
     push @{$libc_dev_c{'Depends'}}, 'linux-libc-dev | linux-kernel-headers';
 }
-if ($DEB_HOST_GNU_SYSTEM eq "kfreebsd-gnu") {
+if ($DEB_HOST_ARCH_OS eq "kfreebsd") {
     push @{$libc_c{'Suggests'}}, 'locales';
     push @{$libc_c{'Replaces'}}, 'libc0.1-dev (<< 2.3.2.ds1-14)';
     push @{$libc_dev_c{'Recommends'}}, 'c-compiler';
@@ -55,7 +55,7 @@ push @{$libc_dev_c{'Conflicts'}}, 'libstdc++2.10-dev (<< 1:2.95.2-15)';
 # 2.2.2+CVS requires a newer gcc. For non-i386, we just worry about the
 # weak-sym patch, since on i386 we need an even newer one because of the
 # pic-kludge that breaks libc_nonshared.a inclusion.
-if ($DEB_HOST_GNU_TYPE =~ m/^i486-linux-gnu$/) {
+if ($DEB_HOST_ARCH =~ m/^i386$/) {
     push @{$libc_dev_c{'Conflicts'}}, 'gcc-2.95 (<< 1:2.95.3-9)';
 } else {
     push @{$libc_dev_c{'Conflicts'}}, 'gcc-2.95 (<< 1:2.95.3-8)';
@@ -78,9 +78,9 @@ push @{$libc_c{'Conflicts'}}, 'libterm-readline-gnu-perl (<< 1.15-2)';
 push @{$libc_c{'Conflicts'}}, 'tzdata (<< 2007e-2)';
 
 # Depends on libgcc1/libgcc2/libgcc4
-if ($DEB_HOST_GNU_TYPE =~ m/^hppa-linux-gnu$/) {
+if ($DEB_HOST_ARCH =~ m/^hppa$/) {
     push @{$libc_c{'Depends'}}, 'libgcc4';
-} elsif ($DEB_HOST_GNU_TYPE =~ m/^m68k-linux-gnu$/) {
+} elsif ($DEB_HOST_ARCH =~ m/^m68k$/) {
     push @{$libc_c{'Depends'}}, 'libgcc2';
 } else {
     push @{$libc_c{'Depends'}}, 'libgcc1';

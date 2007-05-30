@@ -1,6 +1,6 @@
 depflags = libc=$(libc) glibc=glibc \
-	  DEB_HOST_GNU_SYSTEM=$(DEB_HOST_GNU_SYSTEM) \
-	  DEB_HOST_GNU_TYPE=$(DEB_HOST_GNU_TYPE) \
+	  DEB_HOST_ARCH_OS=$(DEB_HOST_ARCH_OS) \
+	  DEB_HOST_ARCH=$(DEB_HOST_ARCH) \
 	  perl debian/sysdeps/depflags.pl
 
 libc_control_flags = $(shell $(depflags) libc)
