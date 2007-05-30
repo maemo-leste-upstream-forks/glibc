@@ -77,6 +77,15 @@ push @{$libc_c{'Conflicts'}}, 'libterm-readline-gnu-perl (<< 1.15-2)';
 # Conflict with older versions of tzdata that need tzconfig.
 push @{$libc_c{'Conflicts'}}, 'tzdata (<< 2007e-2)';
 
+# Depends on libgcc1/libgcc2/libgcc4
+if ($DEB_HOST_GNU_TYPE =~ m/^hppa-linux-gnu$/) {
+    push @{$libc_c{'Depends'}}, 'libgcc4';
+} elsif ($DEB_HOST_GNU_TYPE =~ m/^m68k-linux-gnu$/) {
+    push @{$libc_c{'Depends'}}, 'libgcc2';
+} else {
+    push @{$libc_c{'Depends'}}, 'libgcc1';
+}
+
 if ($type eq "libc") {
     %pkg = %libc_c;
 } elsif ($type eq "libc_dev") {
