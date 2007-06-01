@@ -77,6 +77,19 @@ exit_check () {
 	fi	
     fi
 
+    # arm boxes require __ARM_NR_set_tls in the kernel to function properly.
+    if [ "$realarch" = arm ]
+    then
+	if kernel_compare_versions "$kernel_ver" lt 2.6.12
+	then
+	    echo WARNING: This version of glibc requires that you be running
+	    echo kernel version 2.6.12 or later.  Earlier kernels contained
+	    echo bugs that may render the system unusable if a modern version
+	    echo of glibc is installed.
+	    exit_check
+	fi	
+    fi
+
     # The GNU libc is now built with --with-kernel= >= 2.4.1 on m68k
     if [ "$realarch" = m68k ]
     then
