@@ -116,7 +116,7 @@ endif
 		-o -regex '.*lib[0-9]*/libpthread-.*so' \
 		-o -regex '.*lib[0-9]*/libc-.*so' \) \
 		-exec chmod a+x '{}' ';'
-	dh_makeshlibs -p$(curpass) -V "$(call xx,shlib_dep)"
+	dh_makeshlibs -X/usr/lib/debug -p$(curpass) -V "$(call xx,shlib_dep)"
 
 	if [ -f debian/$(curpass).lintian ] ; then \
 		install -d -m 755 -o root -g root debian/$(curpass)/usr/share/lintian/overrides/ ; \
@@ -157,7 +157,7 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): $(stamp)debhelper
 		-o -regex '.*lib[0-9]*/.*libpthread.*so.*' \
 		-o -regex '.*lib[0-9]*/libc[.-].*so.*' \) \
 		-exec chmod a+x '{}' ';'
-	# dh_makeshlibs -p$(curpass) -V "$(call xx,shlib_dep)"
+	# dh_makeshlibs -X/usr/lib/debug -p$(curpass) -V "$(call xx,shlib_dep)"
 	dh_installdeb -p$(curpass)
 	# dh_shlibdeps -p$(curpass)
 	dh_gencontrol -p$(curpass)
