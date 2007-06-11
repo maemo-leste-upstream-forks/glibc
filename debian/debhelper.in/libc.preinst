@@ -113,7 +113,7 @@ fi
 check_dirs () {
   for dir in $*; do
     # Follow symlinks
-    dirlink=$(readlink -f $dir)
+    dirlink=$(readlink -e $dir)
     [ -n "$dirlink" ] && dir=$dirlink 
     
     # Handle /lib in LD_LIBRARY_PATH.
