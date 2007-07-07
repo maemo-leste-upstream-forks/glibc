@@ -2,10 +2,12 @@ Increase the maximal overall growth of the compilation unit caused
 by inlining for dl-reloc.c on hppa. This remove some warnings and 
 strangely it reduces the size of the final binary.
 
---- ports/sysdeps/hppa/Makefile   2006-02-14 17:28:55.000000000 +0100
-+++ ports/sysdeps/hppa/Makefile   2006-02-14 17:29:29.000000000 +0100
+Index: ports/sysdeps/hppa/Makefile
+===================================================================
+--- ports/sysdeps/hppa/Makefile.orig
++++ ports/sysdeps/hppa/Makefile
 @@ -24,6 +24,7 @@
-
+ 
  ifeq ($(subdir),elf)
  CFLAGS-rtld.c += -mdisable-fpregs
 +CFLAGS-dl-reloc.c += --param inline-unit-growth=100

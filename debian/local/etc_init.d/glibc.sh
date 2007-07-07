@@ -12,8 +12,6 @@
 # This script detects deprecated kernel versions incompatible with
 # the current version of the glibc
 
-if [ "`uname -s`" = Linux ]; then
-    # glibc kernel version check: KERNEL_VERSION_CHECK
-fi
+# glibc kernel version check: KERNEL_VERSION_CHECK
 
 : exit 0

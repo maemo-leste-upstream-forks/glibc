@@ -5,9 +5,11 @@
 	* glibc/sysdeps/mach/hurd/mlock.c (mlock): Give VM_PROT_READ
 	instead of VM_PROT_ALL as parameter to __vm_wire function.
 
---- glibc/sysdeps/mach/hurd/mlock.c	2006-01-18 23:21:11.000000000 +0100
-+++ glibc/sysdeps/mach/hurd/mlock.c	2006-01-18 13:35:56.000000000 +0100
-@@ -40,7 +40,7 @@ mlock (const void *addr, size_t len)
+Index: glibc-2.6/sysdeps/mach/hurd/mlock.c
+===================================================================
+--- glibc-2.6.orig/sysdeps/mach/hurd/mlock.c
++++ glibc-2.6/sysdeps/mach/hurd/mlock.c
+@@ -40,7 +40,7 @@
    page = trunc_page ((vm_address_t) addr);
    len = round_page ((vm_address_t) addr + len) - page;
    err = __vm_wire (hostpriv, __mach_task_self (), page, len,

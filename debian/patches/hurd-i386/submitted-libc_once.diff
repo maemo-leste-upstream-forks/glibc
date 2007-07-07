@@ -18,12 +18,9 @@ http://sourceware.org/bugzilla/show_bug.cgi?id=3748
 
 Index: sysdeps/posix/getaddrinfo.c
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/posix/getaddrinfo.c,v
-retrieving revision 1.107
-diff -u -p -r1.107 getaddrinfo.c
---- sysdeps/posix/getaddrinfo.c	2 Oct 2006 16:49:47 -0000	1.107
-+++ sysdeps/posix/getaddrinfo.c	18 Dec 2006 14:12:19 -0000
-@@ -2031,11 +2031,13 @@ getaddrinfo (const char *name, const cha
+--- sysdeps/posix/getaddrinfo.c.orig
++++ sysdeps/posix/getaddrinfo.c
+@@ -1927,11 +1927,13 @@
    if (naddrs > 1)
      {
        /* Read the config file.  */
@@ -43,12 +40,9 @@ diff -u -p -r1.107 getaddrinfo.c
        struct sort_result results[nresults];
 Index: bits/libc-lock.h
 ===================================================================
-RCS file: /cvs/glibc/libc/bits/libc-lock.h,v
-retrieving revision 1.11
-diff -u -p -r1.11 libc-lock.h
---- bits/libc-lock.h	25 Aug 2003 09:07:41 -0000	1.11
-+++ bits/libc-lock.h	18 Dec 2006 14:12:19 -0000
-@@ -89,7 +90,7 @@
+--- bits/libc-lock.h.orig
++++ bits/libc-lock.h
+@@ -89,7 +89,7 @@
  /* Define once control variable.  */
  #define __libc_once_define(CLASS, NAME) CLASS int NAME = 0
  
@@ -57,7 +51,7 @@ diff -u -p -r1.11 libc-lock.h
  #define __libc_once(ONCE_CONTROL, INIT_FUNCTION) \
    do {									      \
      if ((ONCE_CONTROL) == 0) {						      \
-@@ -98,6 +99,15 @@
+@@ -98,6 +98,15 @@
      }									      \
    } while (0)
  
@@ -75,12 +69,9 @@ diff -u -p -r1.11 libc-lock.h
  #define __libc_cleanup_region_start(DOIT, FCT, ARG)			    \
 Index: sysdeps/mach/bits/libc-lock.h
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/bits/libc-lock.h,v
-retrieving revision 1.10
-diff -u -p -r1.10 libc-lock.h
---- sysdeps/mach/bits/libc-lock.h	6 Dec 2002 11:33:53 -0000	1.10
-+++ sysdeps/mach/bits/libc-lock.h	18 Dec 2006 14:12:19 -0000
-@@ -105,8 +105,7 @@ struct __libc_once
+--- sysdeps/mach/bits/libc-lock.h.orig
++++ sysdeps/mach/bits/libc-lock.h
+@@ -105,8 +105,7 @@
  #define __libc_once_define(CLASS,NAME) \
    CLASS struct __libc_once NAME = { MUTEX_INITIALIZER, 0 }
  
@@ -90,7 +81,7 @@ diff -u -p -r1.10 libc-lock.h
  #define __libc_once(ONCE_CONTROL, INIT_FUNCTION) \
    do {									      \
      __libc_lock_lock (ONCE_CONTROL.lock);				      \
-@@ -116,6 +115,16 @@ struct __libc_once
+@@ -116,6 +115,16 @@
      __libc_lock_unlock (ONCE_CONTROL.lock);				      \
    } while (0)
  
@@ -109,12 +100,9 @@ diff -u -p -r1.10 libc-lock.h
     used as argument to __libc_cleanup_region_start.  */
 Index: sysdeps/mach/hurd/bits/libc-lock.h
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/bits/libc-lock.h,v
-retrieving revision 1.4
-diff -u -p -r1.4 libc-lock.h
---- sysdeps/mach/hurd/bits/libc-lock.h	29 Sep 2003 21:55:41 -0000	1.4
-+++ sysdeps/mach/hurd/bits/libc-lock.h	18 Dec 2006 14:12:19 -0000
-@@ -175,7 +175,7 @@ struct __libc_once
+--- sysdeps/mach/hurd/bits/libc-lock.h.orig
++++ sysdeps/mach/hurd/bits/libc-lock.h
+@@ -175,7 +175,7 @@
  #define __libc_once_define(CLASS,NAME) \
    CLASS struct __libc_once NAME = { MUTEX_INITIALIZER, 0 }
  
@@ -123,7 +111,7 @@ diff -u -p -r1.4 libc-lock.h
  #define __libc_once(ONCE_CONTROL, INIT_FUNCTION) \
    do {									      \
      __libc_lock_lock (ONCE_CONTROL.lock);				      \
-@@ -185,6 +185,16 @@ struct __libc_once
+@@ -185,6 +185,16 @@
      __libc_lock_unlock (ONCE_CONTROL.lock);				      \
    } while (0)
  
@@ -142,12 +130,9 @@ diff -u -p -r1.4 libc-lock.h
     used as argument to __libc_cleanup_region_start.  */
 Index: nptl/sysdeps/pthread/bits/libc-lock.h
 ===================================================================
-RCS file: /cvs/glibc/libc/nptl/sysdeps/pthread/bits/libc-lock.h,v
-retrieving revision 1.19
-diff -u -p -r1.19 libc-lock.h
---- nptl/sysdeps/pthread/bits/libc-lock.h	5 Apr 2005 21:33:41 -0000	1.19
-+++ nptl/sysdeps/pthread/bits/libc-lock.h	18 Dec 2006 14:12:19 -0000
-@@ -350,7 +350,7 @@ typedef pthread_key_t __libc_key_t;
+--- nptl/sysdeps/pthread/bits/libc-lock.h.orig
++++ nptl/sysdeps/pthread/bits/libc-lock.h
+@@ -354,7 +354,7 @@
    CLASS pthread_once_t NAME = PTHREAD_ONCE_INIT
  #endif
  
@@ -155,8 +140,8 @@ diff -u -p -r1.19 libc-lock.h
 +/* Call INIT_FUNCTION iff the first call.  */
  #define __libc_once(ONCE_CONTROL, INIT_FUNCTION) \
    do {									      \
-     if (PTF(__pthread_once) != NULL)					      \
-@@ -361,6 +361,15 @@ typedef pthread_key_t __libc_key_t;
+     if (PTFAVAIL (__pthread_once))					      \
+@@ -366,6 +366,15 @@
      }									      \
    } while (0)
  
@@ -172,10 +157,10 @@ diff -u -p -r1.19 libc-lock.h
  
  /* Note that for I/O cleanup handling we are using the old-style
     cancel handling.  It does not have to be integrated with C++ snce
-
-
---- linuxthreads/sysdeps/pthread/bits/libc-lock.h	2007-02-08 14:39:15.000000000 +0100
-+++ linuxthreads/sysdeps/pthread/bits/libc-lock.h	2007-02-08 20:27:53.000000000 +0100
+Index: linuxthreads/sysdeps/pthread/bits/libc-lock.h
+===================================================================
+--- linuxthreads/sysdeps/pthread/bits/libc-lock.h.orig
++++ linuxthreads/sysdeps/pthread/bits/libc-lock.h
 @@ -231,7 +231,7 @@
    CLASS pthread_once_t NAME = PTHREAD_ONCE_INIT
  #endif

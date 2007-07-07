@@ -29,7 +29,7 @@ umask 022
 [ -x "$DAEMON" ] || exit 0
 [ -d /var/run/nscd ] || mkdir -p /var/run/nscd
 
-start()
+start_nscd()
 {
 	# Return
 	#   0 if daemon has been started
@@ -39,7 +39,7 @@ start()
 	start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" || return 2
 }
 
-stop()
+stop_nscd()
 {
 	# Return
 	#   0 if daemon has been stopped
@@ -74,7 +74,7 @@ status()
 case "$1" in
 start)
 	echo -n "Starting $DESC: $NAME"
-	start
+	start_nscd
 	case "$?" in
 		0) echo "." ; exit 0 ;;
 		1) echo " (already running)." ; exit 0 ;;
@@ -83,7 +83,7 @@ start)
 	;;
 stop)
 	echo -n "Stopping $DESC: $NAME"
-	stop
+	stop_nscd
 	case "$?" in
 		0) echo "." ; exit 0 ;;
 		1) echo " (not running)." ; exit 0 ;;
@@ -92,11 +92,11 @@ stop)
 	;;
 restart|force-reload|reload)
 	echo -n "Restarting $DESC: $NAME"
-	stop
+	stop_nscd
 	$DAEMON --invalidate passwd --invalidate group --invalidate hosts
 	case "$?" in
 	0|1)
-		start
+		start_nscd
 		case "$?" in
 			0) echo "." ; exit 0 ;;
 			1) echo " (failed -- old process is still running)." ; exit 1 ;;

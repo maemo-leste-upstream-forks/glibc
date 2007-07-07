@@ -4,6 +4,7 @@ DEB_ARCH_REGULAR_PACKAGES += libc6-ppc64 libc6-dev-ppc64
 ppc64_add-ons = nptl $(add-ons)
 ppc64_configure_target = powerpc64-linux
 ppc64_CC = $(CC) -m64
+ppc64_CXX = $(CXX) -m64
 libc6-ppc64_shlib_dep = libc6-ppc64 (>= $(shlib_dep_ver))
 ppc64_extra_cflags = -O3 -g
 ppc64_extra_config_options := $(extra_config_options) --disable-profile

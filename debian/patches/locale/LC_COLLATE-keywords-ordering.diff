@@ -12,7 +12,7 @@ Index: locale/programs/ld-collate.c
 ===================================================================
 --- locale/programs/ld-collate.c.orig
 +++ locale/programs/ld-collate.c
-@@ -2719,7 +2719,6 @@
+@@ -2795,7 +2795,6 @@
  
    if (nowtok == tok_copy)
      {
@@ -20,7 +20,7 @@ Index: locale/programs/ld-collate.c
        now = lr_token (ldfile, charmap, result, NULL, verbose);
        if (now->tok != tok_string)
  	{
-@@ -2793,14 +2792,23 @@
+@@ -2869,14 +2868,23 @@
        switch (nowtok)
  	{
  	case tok_copy:
@@ -48,7 +48,7 @@ Index: locale/programs/ld-collate.c
  
  	  lr_ignore_rest (ldfile, 1);
  	  break;
-@@ -2814,9 +2822,6 @@
+@@ -2890,9 +2898,6 @@
  	      break;
  	    }
  
@@ -58,7 +58,7 @@ Index: locale/programs/ld-collate.c
  	  arg = lr_token (ldfile, charmap, result, NULL, verbose);
  	  if (arg->tok != tok_number)
  	    goto err_label;
-@@ -2837,7 +2842,7 @@
+@@ -2913,7 +2918,7 @@
  	      break;
  	    }
  
@@ -67,7 +67,7 @@ Index: locale/programs/ld-collate.c
  	    goto err_label;
  
  	  arg = lr_token (ldfile, charmap, result, repertoire, verbose);
-@@ -2884,7 +2889,7 @@
+@@ -2960,7 +2965,7 @@
  	      break;
  	    }
  
@@ -76,7 +76,7 @@ Index: locale/programs/ld-collate.c
  	    goto err_label;
  
  	  arg = lr_token (ldfile, charmap, result, repertoire, verbose);
-@@ -2953,7 +2958,7 @@
+@@ -3029,7 +3034,7 @@
  	      break;
  	    }
  
@@ -85,7 +85,7 @@ Index: locale/programs/ld-collate.c
  	    goto err_label;
  
  	  arg = lr_token (ldfile, charmap, result, repertoire, verbose);
-@@ -3101,7 +3106,7 @@
+@@ -3177,7 +3182,7 @@
  	      break;
  	    }
  
@@ -94,16 +94,16 @@ Index: locale/programs/ld-collate.c
  	    goto err_label;
  
  	  arg = lr_token (ldfile, charmap, result, repertoire, verbose);
-@@ -3217,7 +3222,7 @@
+@@ -3293,7 +3298,7 @@
  	      break;
  	    }
  
--	  if (state != 0 && state != 1)
+-	  if (state != 0 && state != 1 && state != 2)
 +	  if (state == 3 || state == 5)
  	    goto err_label;
  	  state = 1;
  
-@@ -3388,8 +3393,12 @@
+@@ -3465,8 +3470,12 @@
  		  was_ellipsis = tok_none;
  		}
  	    }
@@ -118,7 +118,7 @@ Index: locale/programs/ld-collate.c
  	  state = 3;
  
  	  arg = lr_token (ldfile, charmap, result, repertoire, verbose);
-@@ -3524,8 +3533,6 @@
+@@ -3601,8 +3610,6 @@
  %s: missing `reorder-end' keyword"), "LC_COLLATE"));
  	      state = 4;
  	    }
@@ -127,7 +127,7 @@ Index: locale/programs/ld-collate.c
  	  state = 5;
  
  	  /* Get the name of the sections we are adding after.  */
-@@ -4060,7 +4067,7 @@
+@@ -4068,7 +4075,7 @@
  	  /* Next we assume `LC_COLLATE'.  */
  	  if (!ignore_content)
  	    {

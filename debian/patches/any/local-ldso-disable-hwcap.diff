@@ -5,53 +5,51 @@
 # DP: Upstream status: Debian-Specific
 # DP: Status Details: This isn't going to be acceptable upstream, we
 # DP:                 only need it because we support in-place upgrades.
-# DP: Date: 2003-10-28, (Updated 2005-01-02 gotom)
+# DP: Date: 2003-10-28, (Updated 2005-01-02 gotom, 2007-05-20 aurel32)
 
 Index: elf/dl-sysdep.c
 ===================================================================
-RCS file: /cvs/glibc/libc/elf/dl-sysdep.c,v
-retrieving revision 1.113
-diff -u -r1.113 dl-sysdep.c
---- elf/dl-sysdep.c	6 Nov 2004 00:24:47 -0000	1.113
-+++ elf/dl-sysdep.c	2 Jan 2005 10:24:13 -0000
-@@ -408,7 +408,11 @@
- #ifdef USE_TLS
+--- elf/dl-sysdep.c.orig
++++ elf/dl-sysdep.c
+@@ -408,6 +408,20 @@
    /* For TLS enabled builds always add 'tls'.  */
    ++cnt;
--#else
-+#endif
-+
-+  if (__access ("/etc/ld.so.nohwcap", F_OK) == 0)
-+    cnt = 0;
-+
-   if (cnt == 0)
-     {
-       /* If we no have platform name and no important capability we only
-@@ -423,7 +427,6 @@
-       *sz = 1;
-       return result;
-     }
--#endif
  
++  if (__access ("/etc/ld.so.nohwcap", F_OK) == 0)
++    {
++      /* If hwcap is disabled, we only have the base directory to search.  */
++      result = (struct r_strlenpair *) malloc (sizeof (*result));
++      if (result == NULL)
++	goto no_memory;
++
++      result[0].str = (char *) result;  /* Does not really matter.  */
++      result[0].len = 0;
++
++      *sz = 1;
++      return result;
++    }
++
    /* Create temporary data structure to generate result table.  */
    temp = (struct r_strlenpair *) alloca (cnt * sizeof (*temp));
-@@ -488,9 +491,7 @@
+   m = 0;
+@@ -470,8 +484,11 @@
+   *sz = 1 << cnt;
    result = (struct r_strlenpair *) malloc (*sz * sizeof (*result) + total);
    if (result == NULL)
+-    _dl_signal_error (ENOMEM, NULL, NULL,
+-		      N_("cannot create capability list"));
++    {
++    no_memory:
++      _dl_signal_error (ENOMEM, NULL, NULL,
++		     	N_("cannot create capability list"));
++    }
+ 
+   if (cnt == 1)
      {
--#ifndef USE_TLS
-     no_memory:
--#endif
-       _dl_signal_error (ENOMEM, NULL, NULL,
- 			N_("cannot create capability list"));
-     }
 Index: elf/dl-cache.c
 ===================================================================
-RCS file: /cvs/glibc/libc/elf/dl-cache.c,v
-retrieving revision 1.46
-diff -u -r1.46 dl-cache.c
---- elf/dl-cache.c	19 Mar 2004 00:36:32 -0000	1.46
-+++ elf/dl-cache.c	2 Jan 2005 10:23:42 -0000
+--- elf/dl-cache.c.orig
++++ elf/dl-cache.c
 @@ -244,6 +244,7 @@
    if (cache_new != (void *) -1)
      {
@@ -60,7 +58,7 @@ diff -u -r1.46 dl-cache.c
  
        /* This is where the strings start.  */
        cache_data = (const char *) cache_new;
-@@ -255,6 +256,9 @@
+@@ -255,11 +256,16 @@
        if (platform != (uint64_t) -1)
  	platform = 1ULL << platform;
  
@@ -68,9 +66,7 @@ diff -u -r1.46 dl-cache.c
 +	disable_hwcap = 1;
 +
        /* Only accept hwcap if it's for the right platform.  */
- #ifdef USE_TLS
- # define _DL_HWCAP_TLS_MASK (1LL << 63)
-@@ -264,6 +268,8 @@
+ #define _DL_HWCAP_TLS_MASK (1LL << 63)
  #define HWCAP_CHECK \
        if (GLRO(dl_osversion) && lib->osversion > GLRO(dl_osversion))	      \
  	continue;							      \

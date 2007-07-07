@@ -31,7 +31,7 @@ if ($DEB_HOST_ARCH_OS eq "linux") {
     push @{$libc_dev_c{'Recommends'}}, 'c-compiler';
     push @{$libc_dev_c{'Replaces'}}, ('man-db (<= 2.3.10-41)', 'gettext (<= 0.10.26-1)',
 		'ppp (<= 2.2.0f-24)', 'libgdbmg1-dev (<= 1.7.3-24)');
-    push @{$libc_dev_c{'Depends'}}, 'linux-libc-dev | linux-kernel-headers';
+    push @{$libc_dev_c{'Depends'}}, 'linux-libc-dev';
 }
 if ($DEB_HOST_ARCH_OS eq "kfreebsd") {
     push @{$libc_c{'Suggests'}}, 'locales';

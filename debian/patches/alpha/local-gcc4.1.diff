@@ -13,9 +13,11 @@ make[3]: *** [/tmp/buildd/glibc-2.3.6/build-tree/alpha-libc/misc/ioperm.o] Error
 Hrm. gcc puts .arch ev4 into the .s, and this overrides -mev6 for as.
 I cannot really think of anything better than
 
---- sysdeps/unix/sysv/linux/alpha/ioperm.c	2001-07-06 06:56:13.000000000 +0200
-+++ sysdeps/unix/sysv/linux/alpha/ioperm.c	2006-05-30 21:22:54.000000000 +0200
-@@ -173,13 +173,13 @@
+Index: sysdeps/unix/sysv/linux/alpha/ioperm.c
+===================================================================
+--- sysdeps/unix/sysv/linux/alpha/ioperm.c.orig
++++ sysdeps/unix/sysv/linux/alpha/ioperm.c
+@@ -178,13 +178,13 @@
  static inline void
  stb_mb(unsigned char val, unsigned long addr)
  {
@@ -31,7 +33,7 @@ I cannot really think of anything better than
  }
  
  static inline void
-@@ -351,7 +351,7 @@
+@@ -356,7 +356,7 @@
    unsigned long int addr = dense_port_to_cpu_addr (port);
    unsigned char r;
  
@@ -40,7 +42,7 @@ I cannot really think of anything better than
    return r;
  }
  
-@@ -361,7 +361,7 @@
+@@ -366,7 +366,7 @@
    unsigned long int addr = dense_port_to_cpu_addr (port);
    unsigned short r;
  

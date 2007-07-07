@@ -3,7 +3,8 @@ GLIBC_PASSES += sparc64
 DEB_ARCH_REGULAR_PACKAGES += libc6-sparc64 libc6-dev-sparc64
 sparc64_add-ons = nptl $(add-ons)
 sparc64_configure_target=sparc64-linux
-sparc64_CC = $(BUILD_CC) -m64
+sparc64_CC = $(CC) -m64
+sparc64_CXX = $(CXX) -m64
 libc6-sparc64_shlib_dep = libc6-sparc64 (>= $(shlib_dep_ver))
 sparc64_extra_cflags = -g -O3
 sparc64_extra_config_options = $(extra_config_options) --disable-profile

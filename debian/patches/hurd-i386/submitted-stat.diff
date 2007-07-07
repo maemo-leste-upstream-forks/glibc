@@ -4,12 +4,9 @@ This patch is incomplete.  Reported on
 
 Index: sysdeps/mach/hurd/xstatconv.c
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/xstatconv.c,v
-retrieving revision 1.4
-diff -u -p -r1.4 xstatconv.c
---- sysdeps/mach/hurd/xstatconv.c	11 Jun 2002 23:03:14 -0000	1.4
-+++ sysdeps/mach/hurd/xstatconv.c	13 Jun 2006 13:57:55 -0000
-@@ -42,12 +42,21 @@ xstat64_conv (struct stat *buf, const st
+--- sysdeps/mach/hurd/xstatconv.c.orig
++++ sysdeps/mach/hurd/xstatconv.c
+@@ -42,12 +42,21 @@
    buf->st_uid = buf64->st_uid;
    buf->st_gid = buf64->st_gid;
    buf->st_size = buf64->st_size;
@@ -33,12 +30,9 @@ diff -u -p -r1.4 xstatconv.c
    buf->st_author = buf64->st_author;
 Index: sysdeps/mach/hurd/bits/stat.h
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/bits/stat.h,v
-retrieving revision 1.7
-diff -u -p -r1.7 stat.h
---- sysdeps/mach/hurd/bits/stat.h	8 Nov 2005 01:22:58 -0000	1.7
-+++ sysdeps/mach/hurd/bits/stat.h	13 Jun 2006 13:57:55 -0000
-@@ -55,12 +56,32 @@ struct stat
+--- sysdeps/mach/hurd/bits/stat.h.orig
++++ sysdeps/mach/hurd/bits/stat.h
+@@ -55,12 +55,32 @@
      __off64_t st_size;		/* Size in bytes.  */
  #endif
  
@@ -71,7 +65,7 @@ diff -u -p -r1.7 stat.h
  
      __blksize_t st_blksize;	/* Optimal size for I/O.  */
  
-@@ -104,12 +125,29 @@ struct stat64
+@@ -104,12 +124,29 @@
  
      __off64_t st_size;		/* Size in bytes.  */
  
@@ -101,7 +95,7 @@ diff -u -p -r1.7 stat.h
  
      __blksize_t st_blksize;	/* Optimal size for I/O.  */
  
-@@ -127,7 +165,8 @@ struct stat64
+@@ -127,7 +164,8 @@
    };
  #endif
  
@@ -111,7 +105,7 @@ diff -u -p -r1.7 stat.h
  
  /* Encoding of the file mode.  */
  
-@@ -138,23 +177,24 @@ struct stat64
+@@ -138,23 +176,24 @@
  #define	__S_IFCHR	0020000	/* Character device.  */
  #define	__S_IFBLK	0060000	/* Block device.  */
  #define	__S_IFREG	0100000	/* Regular file.  */

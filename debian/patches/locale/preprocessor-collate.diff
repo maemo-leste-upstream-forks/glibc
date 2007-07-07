@@ -39,20 +39,17 @@ Index: locale/programs/ld-collate.c
  /* Sparse table of struct element_t *.  */
  #define TABLE wchead_table
  #define ELEMENT struct element_t *
-@@ -212,6 +230,12 @@
+@@ -212,6 +230,9 @@
    /* This value is used when handling ellipsis.  */
    struct element_t ellipsis_weight;
  
-+  /* Known keywords.  */
-+  struct toggle_list_t *defined_keywords;
-+
 +  /* This is a stack of .  */
 +  struct toggle_list_t *flow_control;
 +
    /* Known collating elements.  */
    hash_table elem_table;
  
-@@ -1454,6 +1478,56 @@
+@@ -1455,6 +1476,56 @@
  }
  
  
@@ -109,90 +106,102 @@ Index: locale/programs/ld-collate.c
  static void
  collate_startup (struct linereader *ldfile, struct localedef_t *locale,
  		 struct localedef_t *copy_locale, int ignore_content)
-@@ -3783,6 +3857,205 @@
+@@ -2630,6 +2701,8 @@
+   */
+   int state = 0;
+ 
++  static struct toggle_list_t *defined_keywords = NULL;
++
+   /* Get the repertoire we have to use.  */
+   if (repertoire_name != NULL)
+     repertoire = repertoire_read (repertoire_name);
+@@ -2644,6 +2717,82 @@
+     }
+   while (nowtok == tok_eol);
+ 
++  while (nowtok == tok_define || nowtok == tok_undef)
++    {
++      /* Ignore the rest of the line if we don't need the input of
++         this line.  */
++      if (ignore_content)
++        {
++          lr_ignore_rest (ldfile, 0);
++          now = lr_token (ldfile, charmap, result, NULL, verbose);
++          nowtok = now->tok;
++          continue;
++        }
++
++      arg = lr_token (ldfile, charmap, result, NULL, verbose);
++      if (arg->tok != tok_ident)
++        goto err_label;
++
++      if (nowtok == tok_define)
++        {
++	  struct toggle_list_t *runp = defined_keywords;
++	  char *name;
++
++	  while (runp != NULL)
++	    if (strncmp (runp->name, arg->val.str.startmb,
++	    	     arg->val.str.lenmb) == 0
++	        && runp->name[arg->val.str.lenmb] == '\0')
++              SYNTAX_ERROR (_("%s: syntax error"), "LC_COLLATE");
++	    else
++	      runp = runp->last;
++
++	  if (runp != NULL && runp->is_undefined == 0)
++	    {
++	      lr_ignore_rest (ldfile, 0);
++              SYNTAX_ERROR (_("%s: syntax error"), "LC_COLLATE");
++	    }
++
++	  if (runp == NULL)
++	    {
++	      runp = (struct toggle_list_t *) xcalloc (1, sizeof (*runp));
++	      runp->last = defined_keywords;
++	      defined_keywords = runp;
++	    }
++	  else
++	    {
++	      free ((char *) runp->name);
++	      runp->is_undefined = 0;
++	    }
++
++	  name = (char *) xmalloc (arg->val.str.lenmb + 1);
++	  memcpy (name, arg->val.str.startmb, arg->val.str.lenmb);
++	  name[arg->val.str.lenmb] = '\0';
++	  runp->name = name;
++        }
++      else
++        {
++	  struct toggle_list_t *runp = defined_keywords;
++	  while (runp != NULL)
++	    if (strncmp (runp->name, arg->val.str.startmb,
++	    	     arg->val.str.lenmb) == 0
++	        && runp->name[arg->val.str.lenmb] == '\0')
++	    {
++	      runp->is_undefined = 1;
++              SYNTAX_ERROR (_("%s: syntax error"), "LC_COLLATE");
++	    }
++	    else
++	      runp = runp->last;
++        }
++
++      lr_ignore_rest (ldfile, 1);
++      do
++        {
++          now = lr_token (ldfile, charmap, result, NULL, verbose);
++          nowtok = now->tok;
++        }
++      while (nowtok == tok_eol);
++    }
++
+   if (nowtok == tok_copy)
+     {
+       state = 2;
+@@ -3796,6 +3945,125 @@
  			  repertoire, result, nowtok);
  	  break;
  
-+	case tok_define:
-+	  /* Ignore the rest of the line if we don't need the input of
-+	     this line.  */
-+	  if (ignore_content)
-+	    {
-+	      lr_ignore_rest (ldfile, 0);
-+	      break;
-+	    }
-+
-+	  arg = lr_token (ldfile, charmap, result, NULL, verbose);
-+	  if (arg->tok != tok_ident)
-+	    goto err_label;
-+	  else
-+	    {
-+	      struct toggle_list_t *runp = collate->defined_keywords;
-+	      char *name;
-+
-+	      while (runp != NULL)
-+		if (strncmp (runp->name, arg->val.str.startmb,
-+			     arg->val.str.lenmb) == 0
-+		    && runp->name[arg->val.str.lenmb] == '\0')
-+		  break;
-+		else
-+		  runp = runp->last;
-+
-+	      if (runp != NULL && runp->is_undefined == 0)
-+		{
-+		  lr_ignore_rest (ldfile, 0);
-+		  break;
-+		}
-+
-+	      if (runp == NULL)
-+		{
-+		  runp = (struct toggle_list_t *) xcalloc (1, sizeof (*runp));
-+		  runp->last = collate->defined_keywords;
-+		  collate->defined_keywords = runp;
-+		}
-+	      else
-+		{
-+		  free ((char *) runp->name);
-+		  runp->is_undefined = 0;
-+		}
-+
-+	      name = (char *) xmalloc (arg->val.str.lenmb + 1);
-+	      memcpy (name, arg->val.str.startmb, arg->val.str.lenmb);
-+	      name[arg->val.str.lenmb] = '\0';
-+	      runp->name = name;
-+	    }
-+	  lr_ignore_rest (ldfile, 1);
-+	  break;
-+
-+	case tok_undef:
-+	  /* Ignore the rest of the line if we don't need the input of
-+	     this line.  */
-+	  if (ignore_content)
-+	    {
-+	      lr_ignore_rest (ldfile, 0);
-+	      break;
-+	    }
-+
-+	  arg = lr_token (ldfile, charmap, result, NULL, verbose);
-+	  if (arg->tok != tok_ident)
-+	    goto err_label;
-+	  else
-+	    {
-+	      struct toggle_list_t *runp = collate->defined_keywords;
-+	      while (runp != NULL)
-+		if (strncmp (runp->name, arg->val.str.startmb,
-+			     arg->val.str.lenmb) == 0
-+		    && runp->name[arg->val.str.lenmb] == '\0')
-+		{
-+		  runp->is_undefined = 1;
-+		  break;
-+		}
-+		else
-+		  runp = runp->last;
-+	    }
-+	  lr_ignore_rest (ldfile, 1);
-+	  break;
-+
 +	case tok_ifdef:
 +	  /* Ignore the rest of the line if we don't need the input of
 +	     this line.  */
@@ -207,7 +216,7 @@ Index: locale/programs/ld-collate.c
 +	    goto err_label;
 +	  else
 +	    {
-+	      struct toggle_list_t *runp = collate->defined_keywords;
++	      struct toggle_list_t *runp = defined_keywords;
 +	      struct toggle_list_t *flow = (struct toggle_list_t *) xcalloc (1, sizeof (*runp));
 +	      flow->name = "ifdef";
 +	      flow->file = ldfile->fname;
@@ -248,7 +257,7 @@ Index: locale/programs/ld-collate.c
 +	    goto err_label;
 +	  else
 +	    {
-+	      struct toggle_list_t *runp = collate->defined_keywords;
++	      struct toggle_list_t *runp = defined_keywords;
 +	      struct toggle_list_t *flow = (struct toggle_list_t *) xcalloc (1, sizeof (*runp));
 +	      flow->name = "ifndef";
 +	      flow->file = ldfile->fname;
@@ -315,7 +324,7 @@ Index: locale/programs/ld-collate.c
  	case tok_end:
  	  /* Next we assume `LC_COLLATE'.  */
  	  if (!ignore_content)
-@@ -3812,6 +4085,13 @@
+@@ -3825,6 +4093,13 @@
  	      else if (state == 5)
  		WITH_CUR_LOCALE (error (0, 0, _("\
  %s: missing `reorder-sections-end' keyword"), "LC_COLLATE"));

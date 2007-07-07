@@ -4,6 +4,7 @@ DEB_ARCH_REGULAR_PACKAGES += libc6-s390x libc6-dev-s390x
 s390x_add-ons = nptl $(add-ons)
 s390x_configure_target = s390x-linux
 s390x_CC = $(CC) -m64
+s390x_CXX = $(CXX) -m64
 libc6-s390x_shlib_dep = libc6-s390x (>= $(shlib_dep_ver))
 s390x_extra_cflags = -g -O3
 s390x_extra_config_options := $(extra_config_options) --disable-profile

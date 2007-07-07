@@ -18,9 +18,10 @@
 	* sysdeps/mach/hurd/shmctl.c: New file.
 	* sysdeps/mach/hurd/shmdt.c: New file.
 
-diff -rupN libc/hurd/Makefile libc-shm/hurd/Makefile
---- libc/hurd/Makefile	2002-10-14 03:03:09.000000000 +0200
-+++ libc-shm/hurd/Makefile	2005-07-12 12:27:06.000000000 +0200
+Index: glibc-2.6/hurd/Makefile
+===================================================================
+--- glibc-2.6.orig/hurd/Makefile
++++ glibc-2.6/hurd/Makefile
 @@ -60,6 +60,7 @@
  	   vpprintf \
  	   ports-get ports-set hurdports hurdmsg \
@@ -38,9 +39,10 @@ diff -rupN libc/hurd/Makefile libc-shm/hurd/Makefile
  	     faultexc.defs intr-rpc.defs intr-rpc.h intr-msg.h Notes
  
  # XXX this is a temporary hack; see hurdmalloc.h
-diff -rupN libc/hurd/sysvshm.c libc-shm/hurd/sysvshm.c
---- libc/hurd/sysvshm.c	1970-01-01 01:00:00.000000000 +0100
-+++ libc-shm/hurd/sysvshm.c	2005-07-11 22:57:25.000000000 +0200
+Index: glibc-2.6/hurd/sysvshm.c
+===================================================================
+--- /dev/null
++++ glibc-2.6/hurd/sysvshm.c
 @@ -0,0 +1,96 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -138,9 +140,10 @@ diff -rupN libc/hurd/sysvshm.c libc-shm/hurd/sysvshm.c
 +  __mutex_unlock (&sysvshm_lock);
 +  return EINVAL;
 +}
-diff -rupN libc/hurd/sysvshm.h libc-shm/hurd/sysvshm.h
---- libc/hurd/sysvshm.h	1970-01-01 01:00:00.000000000 +0100
-+++ libc-shm/hurd/sysvshm.h	2005-07-11 22:57:25.000000000 +0200
+Index: glibc-2.6/hurd/sysvshm.h
+===================================================================
+--- /dev/null
++++ glibc-2.6/hurd/sysvshm.h
 @@ -0,0 +1,47 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -189,9 +192,10 @@ diff -rupN libc/hurd/sysvshm.h libc-shm/hurd/sysvshm.h
 +/* Removes a segment attachment.  Returns its size if found, or EINVAL
 +   otherwise.  */
 +error_t __sysvshm_remove (void *addr, size_t *size);
-diff -rupN libc/sysdeps/mach/hurd/ftok.c libc-shm/sysdeps/mach/hurd/ftok.c
---- libc/sysdeps/mach/hurd/ftok.c	1970-01-01 01:00:00.000000000 +0100
-+++ libc-shm/sysdeps/mach/hurd/ftok.c	2005-07-11 22:57:25.000000000 +0200
+Index: glibc-2.6/sysdeps/mach/hurd/ftok.c
+===================================================================
+--- /dev/null
++++ glibc-2.6/sysdeps/mach/hurd/ftok.c
 @@ -0,0 +1,43 @@
 +/* Copyright (C) 1995, 1996, 2000, 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -236,9 +240,10 @@ diff -rupN libc/sysdeps/mach/hurd/ftok.c libc-shm/sysdeps/mach/hurd/ftok.c
 +
 +  return key;
 +}
-diff -rupN libc/sysdeps/mach/hurd/shmat.c libc-shm/sysdeps/mach/hurd/shmat.c
---- libc/sysdeps/mach/hurd/shmat.c	1970-01-01 01:00:00.000000000 +0100
-+++ libc-shm/sysdeps/mach/hurd/shmat.c	2005-07-12 12:28:20.000000000 +0200
+Index: glibc-2.6/sysdeps/mach/hurd/shmat.c
+===================================================================
+--- /dev/null
++++ glibc-2.6/sysdeps/mach/hurd/shmat.c
 @@ -0,0 +1,78 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -318,9 +323,10 @@ diff -rupN libc/sysdeps/mach/hurd/shmat.c libc-shm/sysdeps/mach/hurd/shmat.c
 +}
 +
 +weak_alias(__shmat, shmat)
-diff -rupN libc/sysdeps/mach/hurd/shmctl.c libc-shm/sysdeps/mach/hurd/shmctl.c
---- libc/sysdeps/mach/hurd/shmctl.c	1970-01-01 01:00:00.000000000 +0100
-+++ libc-shm/sysdeps/mach/hurd/shmctl.c	2005-07-12 12:28:25.000000000 +0200
+Index: glibc-2.6/sysdeps/mach/hurd/shmctl.c
+===================================================================
+--- /dev/null
++++ glibc-2.6/sysdeps/mach/hurd/shmctl.c
 @@ -0,0 +1,132 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -454,9 +460,10 @@ diff -rupN libc/sysdeps/mach/hurd/shmctl.c libc-shm/sysdeps/mach/hurd/shmctl.c
 +}
 +
 +weak_alias(__shmctl, shmctl)
-diff -rupN libc/sysdeps/mach/hurd/shmdt.c libc-shm/sysdeps/mach/hurd/shmdt.c
---- libc/sysdeps/mach/hurd/shmdt.c	1970-01-01 01:00:00.000000000 +0100
-+++ libc-shm/sysdeps/mach/hurd/shmdt.c	2005-07-11 22:57:25.000000000 +0200
+Index: glibc-2.6/sysdeps/mach/hurd/shmdt.c
+===================================================================
+--- /dev/null
++++ glibc-2.6/sysdeps/mach/hurd/shmdt.c
 @@ -0,0 +1,51 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -509,9 +516,10 @@ diff -rupN libc/sysdeps/mach/hurd/shmdt.c libc-shm/sysdeps/mach/hurd/shmdt.c
 +}
 +
 +weak_alias(__shmdt, shmdt)
-diff -rupN libc/sysdeps/mach/hurd/shmget.c libc-shm/sysdeps/mach/hurd/shmget.c
---- libc/sysdeps/mach/hurd/shmget.c	1970-01-01 01:00:00.000000000 +0100
-+++ libc-shm/sysdeps/mach/hurd/shmget.c	2005-07-11 22:57:25.000000000 +0200
+Index: glibc-2.6/sysdeps/mach/hurd/shmget.c
+===================================================================
+--- /dev/null
++++ glibc-2.6/sysdeps/mach/hurd/shmget.c
 @@ -0,0 +1,245 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.

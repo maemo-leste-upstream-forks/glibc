@@ -24,6 +24,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	@echo Configuring $(curpass)
 	rm -f $(DEB_BUILDDIR)/configparms
 	echo "CC = $(call xx,CC)"		>> $(DEB_BUILDDIR)/configparms
+	echo "CXX = $(call xx,CXX)"		>> $(DEB_BUILDDIR)/configparms
 	echo "BUILD_CC = $(BUILD_CC)"		>> $(DEB_BUILDDIR)/configparms
 	echo "CFLAGS = $(HOST_CFLAGS)"		>> $(DEB_BUILDDIR)/configparms
 	echo "BUILD_CFLAGS = $(BUILD_CFLAGS)" 	>> $(DEB_BUILDDIR)/configparms
@@ -72,6 +73,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		--host=$(call xx,configure_target) \
 		--build=$$configure_build --prefix=/usr --without-cvs \
 		--enable-add-ons=$(standard-add-ons)"$(call xx,add-ons)" \
+		--enable-profile \
 		--without-selinux \
 		$(call xx,with_headers) $(call xx,extra_config_options))
 	touch $@

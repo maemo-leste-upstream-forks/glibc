@@ -3,23 +3,25 @@ n! paths for a string with N characters, and since there are n! possible
 permutations, we get a one-to-one mapping, and all possibilities are 
 equally likely.
 
---- string/strfry.c	2007-04-21 23:12:47.000000000 +0200
-+++ string/strfry.c	2007-04-21 23:22:46.000000000 +0200
-@@ -38,17 +38,17 @@
+Index: string/strfry.c
+===================================================================
+--- string/strfry.c.orig
++++ string/strfry.c
+@@ -37,16 +37,16 @@
+       init = 1;
      }
  
-   len = strlen (string);
+-  len = strlen (string) - 1;
 -  for (i = 0; i < len; ++i)
++  len = strlen (string);
 +  for (i = 0; i < len - 1; ++i)
      {
        int32_t j;
-       char c;
- 
        __random_r (&rdata, &j);
--      j %= len;
+-      j = j % len + 1;
 +      j %= (len - i);
  
-       c = string[i];
+       char c = string[i];
 -      string[i] = string[j];
 -      string[j] = c;
 +      string[i] = string[j + i];

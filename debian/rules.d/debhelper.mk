@@ -19,8 +19,8 @@ $(stamp)binaryinst_$(libc)-pic:: $(stamp)debhelper
 # Some per-package extra files to install.
 define $(libc)_extra_debhelper_pkg_install
 	install --mode=0644 $(DEB_SRCDIR)/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/changelog
-	install --mode=0644 $(DEB_SRCDIR)/linuxthreads/README debian/$(curpass)/usr/share/doc/$(curpass)/README.linuxthreads
-	install --mode=0644 $(DEB_SRCDIR)/linuxthreads/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/ChangeLog.linuxthreads
+#	install --mode=0644 $(DEB_SRCDIR)/linuxthreads/README debian/$(curpass)/usr/share/doc/$(curpass)/README.linuxthreads
+#	install --mode=0644 $(DEB_SRCDIR)/linuxthreads/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/ChangeLog.linuxthreads
 	install --mode=0644 $(DEB_SRCDIR)/nptl/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/ChangeLog.nptl
 	sed -e "/KERNEL_VERSION_CHECK/r debian/script.in/kernelcheck.sh" \
 		debian/local/etc_init.d/glibc.sh | \
@@ -39,7 +39,7 @@ endef
 
 define glibc-doc_extra_debhelper_pkg_install
 	install --mode=0644 $(DEB_SRCDIR)/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/changelog
-	install --mode=0644 $(DEB_SRCDIR)/linuxthreads/FAQ.html debian/$(curpass)/usr/share/doc/$(curpass)/FAQ.linuxthreads.html
+#	install --mode=0644 $(DEB_SRCDIR)/linuxthreads/FAQ.html debian/$(curpass)/usr/share/doc/$(curpass)/FAQ.linuxthreads.html
 endef
 
 # Should each of these have per-package options?
