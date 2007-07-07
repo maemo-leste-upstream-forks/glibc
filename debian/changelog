@@ -1,3 +1,116 @@
+glibc (2.6-1) unstable; urgency=low
+
+  [ Pierre Habouzit ]
+  [ Clint Adams]
+  * New upstream version.
+   - Remove locale/iso3166-RS.diff (obsolete).
+   - Remove locale/fix-exhausted-memory.diff (merged upstream).
+   - Update locale/LC_COLLATE-keywords-ordering.diff.
+   - Remove localedata/locale-hy_AM.diff (obsolete).
+   - Remove localedata/locale-pl_PL.diff (merged upstream).
+   - Remove localedata/locales-sr.diff (obsolete).
+   - Update localedata/tailor-iso14651_t1.diff.
+   - Update localedata/first_weekday.diff.
+   - Remove alpha/cvs-cfi.diff (merged upstream).
+   - Remove arm/cvs-check_pf.c (merged upstream).
+   - Remove hppa/cvs-hppa-update.diff (obsolete).
+   - Update hppa/submitted-nptl-carlos.diff from "upstream".
+   - Remove hppa/submitted-nptl-carlos2.diff (merged upstream).
+   - Remove hppa/local-r19use.diff (merged upstream).
+   - Remove hurd-i386/cvs-futimes.diff (merged upstream).
+   - Remove m68k/cvs-m68k-update.diff (obsolete).
+   - Update m68k/local-mathinline_h.diff.
+   - Remove mips/cvs-ldsodefs_h.diff (merged upstream).
+   - Remove mips/submitted-msq.diff (merged upstream).
+   - Remove all/cvs-iconv-E13B.diff (obsolete).
+   - Remove all/submitted-new-brf-encoding.diff (merged upstream).
+   - Remove any/cvs-2.5-branch-update.diff (obsolete).
+   - Remove any/cvs-pow.diff (obsolete).
+   - Remove any/cvs-printf_fp-c.diff (obsolete).
+   - Remove any/cvs-ftw-c.diff (obsolete).
+   - Remove any/cvs-bits_in_h-ipv6.diff (obsolete).
+   - Remove any/cvs-itoa-c.diff (obsolete).
+   - Remove any/cvs-lt-update.diff (obsolete).
+   - Remove any/cvs-realpath.diff (obsolete).
+   - Remove any/cvs-vfprintf-stack-smashing.diff (obsolete).
+   - Remove any/cvs-zdump-64-bit.diff (obsolete).
+   - Update any/local-ldso-disable-hwcap.diff.
+   - Remove any/submitted-gethostbyname_r.diff (obsolete).
+   - Remove any/submitted-iconv-colon.diff (merged upstream).
+   - Update any/submitted-strfry.diff.
+   - Remove any/submitted-unistd_XOPEN_VERSION.diff (obsolete).
+   - Remove any/cvs-glob-c.diff (obsolete).
+   - Remove any/cvs-scanf_hexfloat.diff (obsolete).
+   - Remove alpha/submitted-sigsuspend.diff (merged upstream).
+  * debian/sysdeps/depflags.pl: Clean out relationships for packages
+    that do not exist in sarge or later.
+  * debian/debhelper.in/libc.install: do not hardcode the glibc
+    version number in the path to gai.conf.
+  * debian/control.in/main, debian/sysdeps/depflags.pl:
+    use linux-libc-dev on all linux architectures, and
+    remove all references to linux-kernel-headers.
+  * Bump shlibdeps version to 2.6-1 due to sync_file_range, futimens,
+    utimensat, __sched_cpucount, sched_getcpu, strerror_l, and
+    epoll_pwait symbols.
+  * debian/rules.d/build.mk: pass --enable-profile to configure.
+
+  [ Aurelien Jarno ]
+  * patches/sparc/local-undefined-registers.diff: new file to ignore
+    global registers while looking for undefined symbols.
+  * debian/script.in/kernelcheck.sh: add a warning for FreeBSD kernels
+    5.X.
+  * local/etc_init.d/glibc.sh, debhelper.in/libc.preinst: don't check for
+    linux kernel, it is now done in script.in/kernelcheck.sh.
+  * patches/any/cvs-malloc.diff: new patch from upstream to fix malloc ABI.
+  * patches/any/local-linuxthreads-lowlevellock.diff: new patch to support
+    low level locking on linuxthreads.
+  * patches/any/local-linuxthreads-fatalprepare.diff: new patch to support
+    FATAL_PREPARE on linuxthreads, by not using __libc_pthread_functions_init
+    and PTHFCT_CALL.
+  * patches/hppa/local-linuxthreads.diff: new patch to get glibc buildable on
+    hppa with linuxthreads.
+  * patches/arm/submitted-RTLD_SINGLE_THREAD_P.diff: fix a missing #defined
+    on arm.
+  * patches/localedata/submitted-as_IN.diff: new patch to fix a not anymore
+    unassigned unicode code.
+  * locales-depver: tighten locales dependencies.
+  * debian/sysdeps/linux.mk, debian/script.in/kernelcheck.sh: bump minimum
+    kernel requirement to 2.6.8.
+  * debian/rules, debian/rules.d/build.mk, debian/sysdeps/*.mk: also defines
+    CXX as g++ is used in the testsuite.
+
+  [ Petr Salinger]
+  * kfreebsd/local-sysdeps.diff: update to revision 1949 (from glibc-bsd).
+  * any/local-linuxthreads-defines.diff: new patch to restore a few defines
+    in config.make.in still needed by linuxthreads.
+  * patches/local-tst-mktime2.diff: fix time/tst-mktime2.c.
+
+  [ Pierre Habouzit ]
+  * kernelchecks.sh: Make the warning about kernel 2.6 more explicit so that
+    people can deal with it without adding yet-another critical bug on the
+    glibc.
+  * kernelchecks.sh: add some quotes to unconfuse syntax hilighting a bit.
+  * nscd.init: ksh is confused if you call functions start or stop.
+    Closes: 428884.
+  * patches/locale/preprocessor-collate.diff: update it to work (with
+    restrictions) with depth >= 2 copies. The patch is scurvy and make locale
+    parsing completely non reentrant.
+  * debian/control: ${Source-Version} -> ${binary:Version}.
+  * debian/debhelper.in/nscd.lintian: yes, /var/db for lintian is ok.
+  * patches/any/submitted-fileops-and-signals.diff: fixes libio file
+    operations in presence of recoverable errors.
+    Closes: 429021.
+  * patches/localedata/fix-am_ET.diff: fix am_ET using our preprocessor
+    extensions.
+
+  [ Samuel Thibault ]
+  * Remove patches/hurd-i386/cvs-getsid.diff (merged upstream).
+  * patches/hurd-i386/submitted-ioctl-unsigned-size_t.diff: new patch to fix
+    some packages that use unsigned or size_t in ioctls.
+    Closes: 431365.
+
+ -- Clint Adams <schizo@debian.org>  Sat, 07 Jul 2007 09:43:02 -0400
+
 glibc (2.5-11) unstable; urgency=low
 
   [ Aurelien Jarno ]
