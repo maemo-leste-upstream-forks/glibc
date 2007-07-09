@@ -1,0 +1,31 @@
+===================================================================
+RCS file: /cvs/glibc/libc/nis/nss-default.c,v
+retrieving revision 1.1.2.2
+retrieving revision 1.1.2.3
+diff -u -r1.1.2.2 -r1.1.2.3
+--- libc/nis/nss-default.c	2006/05/01 07:53:44	1.1.2.2
++++ libc/nis/nss-default.c	2007/07/07 17:36:20	1.1.2.3
+@@ -17,6 +17,7 @@
+    02111-1307 USA.  */
+ 
+ #include <ctype.h>
++#include <errno.h>
+ #include <stdio.h>
+ #include <stdio_ext.h>
+ #include <stdlib.h>
+@@ -54,6 +55,7 @@
+ static void
+ init (void)
+ {
++  int saved_errno = errno;
+   FILE *fp = fopen (default_nss, "rc");
+   if (fp != NULL)
+     {
+@@ -111,6 +113,7 @@
+ 
+       fclose (fp);
+     }
++  __set_errno (saved_errno);
+ }
+ 
+ 
