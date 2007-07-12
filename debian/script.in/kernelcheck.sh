@@ -73,7 +73,7 @@ exit_check () {
         # arm boxes require __ARM_NR_set_tls in the kernel to function properly.
         if [ "$realarch" = arm ]
         then
-            if kernel_compare_versions "$kernel_ver" lt 2.6.12
+            if linux_compare_versions "$kernel_ver" lt 2.6.12
             then
                 echo WARNING: This version of glibc requires that you be running
                 echo kernel version 2.6.12 or later.  Earlier kernels contained
