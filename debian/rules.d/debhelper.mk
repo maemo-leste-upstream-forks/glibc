@@ -64,6 +64,10 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	dh_installinit -p$(curpass)
 	dh_installdocs -p$(curpass) 
 	dh_link -p$(curpass)
+	set -e; if test -d debian/bug/$(curpass); then                   \
+	    dh_installdirs -p$(curpass) usr/share/bug;                   \
+	    dh_install -p$(curpass) debian/bug/$(curpass) usr/share/bug; \
+	fi
 
 	# extra_debhelper_pkg_install is used for debhelper.mk only.
 	# when you want to install extra packages, use extra_pkg_install.
