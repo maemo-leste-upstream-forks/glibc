@@ -125,6 +125,29 @@ exit_check () {
                 exit_check
             fi
         fi
+
+        # From glibc 2.6-3 SPARC V8 support is dropped.
+        if [ "$realarch" = sparc ]
+        then
+            # The process could be run using linux32, check for /proc.
+            if [ -f /proc/cpuinfo ]
+            then
+               case "$(sed '/^type/!d;s/^type.*: //g' /proc/cpuinfo)" in
+                   sun4u)
+                      # UltraSPARC CPU
+                      ;;
+                   sun4v)
+                      # Niagara CPU
+                      ;;
+                   *)
+                      echo "WARNING: This machine has a SPARC V8 or earlier class processor."
+                      echo "Debian lenny and later does not support such old hardware"
+                      echo "any longer."
+                      exit_check
+                      ;;
+               esac
+            fi
+        fi
     elif [ $system = "GNU/kFreeBSD" ] ; then
         kernel_ver=`uname -r`
         if kfreebsd_compare_versions "$kernel_ver" lt 6.0

@@ -1,3 +1,6 @@
+libc_configure_target=sparcv9-linux
+libc_configure_build=sparcv9-linux
+
 # build 64-bit (sparc64) alternative library
 GLIBC_PASSES += sparc64
 DEB_ARCH_REGULAR_PACKAGES += libc6-sparc64 libc6-dev-sparc64
@@ -18,17 +21,6 @@ cp -af debian/tmp-sparc64/usr/include/sparc64-linux-gnu/gnu/stubs-64.h \
         debian/libc6-dev-sparc64/usr/include/gnu
 ln -sf . debian/libc6-dev-sparc64/usr/include/sparc64-linux-gnu
 endef
-
-# build a sparcv9 optimized library
-GLIBC_PASSES += sparcv9
-DEB_ARCH_REGULAR_PACKAGES += libc6-sparcv9
-sparcv9_add-ons = nptl $(add-ons)
-sparcv9_configure_target=sparcv9-linux
-sparcv9_configure_build=sparcv9-linux
-sparcv9_extra_cflags = -g -O3
-sparcv9_extra_config_options = $(extra_config_options) --disable-profile
-sparcv9_rtlddir = /lib
-sparcv9_slibdir = /lib/v9
 
 # build a sparcv9b optimized library
 GLIBC_PASSES += sparcv9b
