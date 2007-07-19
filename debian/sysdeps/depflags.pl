@@ -89,6 +89,7 @@ if ($DEB_HOST_ARCH =~ m/^hppa$/) {
 # Provides libc6-sparcv9 on sparc
 if ($DEB_HOST_ARCH =~ m/^sparc$/) {
     push @{$libc_c{'Provides'}}, 'libc6-sparcv9';
+}
 
 if ($type eq "libc") {
     %pkg = %libc_c;
