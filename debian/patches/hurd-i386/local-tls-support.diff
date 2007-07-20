@@ -59,7 +59,6 @@ diff -u -p -r1.19 setup-thread.c
 +			     (natural_t *) &ts, tssize))
 +    return error;
 +
-+#if USE_TLS
 +  /* now we have a clean state, setup TLS */
 +  if (error = __thread_get_state (thread, MACHINE_THREAD_STATE_FLAVOR,
 +			     (natural_t *) &ts, &tssize))
@@ -72,7 +71,6 @@ diff -u -p -r1.19 setup-thread.c
 +  _hurd_tls_new(thread, &ts, tcb);
 +  error = __thread_set_state (thread, MACHINE_THREAD_STATE_FLAVOR,
  			     (natural_t *) &ts, tssize);
-+#endif
 +  return error;
  }
  
