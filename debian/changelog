@@ -13,7 +13,7 @@ glibc (2.6-3) UNRELEASED; urgency=low
     - sysdeps/depflags.pl: make libc6 provide libc6-sparcv9 on sparc.
     - script.in/kernelcheck.sh: add check for SPARC V8 or earlier CPU.
     - patches/series: disable sparc/submitted-timing.diff.
-    - patches/sparc/local-sparcv8-target.diff: rename to 
+    - patches/sparc/local-sparcv8-target.diff: rename to
       local-sparcv9-target.diff and default to v9.
 
   [ Pierre Habouzit ]
@@ -23,13 +23,16 @@ glibc (2.6-3) UNRELEASED; urgency=low
     libc6-i386 problem.
   * add locales/presubj about locales depends that are correct, and tell bug
     reporters how to look for their package being built or not.
+  * add patches/any/local-missing-linux_types.h.diff to add missing
+    #include <linux/types.h> due to migration to linux-libc-dev.
+    Closes: #433962.
 
   [ Samuel Thibault ]
   * hurd-i386/local-tls-support.diff: new patch to support TLS.
   * debian/sysdeps/hurd.mk (libc_extra_config_options): Removed
     --without-__thread, --without-tls and libc_cv_z_relro=no.
 
- -- Aurelien Jarno <aurel32@debian.org>  Thu, 19 Jul 2007 07:15:40 +0200
+ -- Pierre Habouzit <madcoder@debian.org>  Fri, 20 Jul 2007 19:19:54 +0200
 
 glibc (2.6-2) unstable; urgency=low
 
