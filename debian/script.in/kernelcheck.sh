@@ -127,7 +127,7 @@ exit_check () {
         fi
 
         # From glibc 2.6-3 SPARC V8 support is dropped.
-        if [ "$realarch" = sparc ]
+        if [ "$realarch" = sparc ]
         then
             # The process could be run using linux32, check for /proc.
             if [ -f /proc/cpuinfo ]
