@@ -1,0 +1,32 @@
+Needs porting. Since this is new with 2.6, just disable for now, and please
+someone take the time to port it.
+
+diff -ur glibc-2.6-orig/string/strerror_l.c glibc-2.6/build-tree/glibc-2.6/string/strerror_l.c
+--- glibc-2.6-orig/string/strerror_l.c	2007-03-17 18:09:07.000000000 +0100
++++ glibc-2.6/string/strerror_l.c	2007-07-20 05:05:40.000000000 +0200
+@@ -23,6 +23,8 @@
+ #include <string.h>
+ #include <sys/param.h>
+ 
++#if 0
++Needs porting
+ 
+ static __thread char *last_value;
+ 
+@@ -70,3 +72,4 @@
+ text_set_element (__libc_subfreeres, strerror_thread_freeres);
+ # endif
+ #endif
++#endif
+--- glibc-2.6-orig/string/string.h	2007-02-01 16:08:52.000000000 +0000
++++ glibc-2.6/string/string.h	2007-07-20 23:50:59.000000000 +0000
+@@ -285,7 +285,8 @@
+ 
+ #ifdef __USE_GNU
+ /* Translate error number to string according to the locale L.  */
+-extern char *strerror_l (int __errnum, __locale_t __l) __THROW;
++/* Not yet ported on the Hurd.  */
++/* extern char *strerror_l (int __errnum, __locale_t __l) __THROW; */
+ #endif
+ 
+ 

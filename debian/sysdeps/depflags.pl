@@ -24,7 +24,7 @@ if ($DEB_HOST_ARCH_OS eq "hurd") {
     push @{$libc_dev_c{'Conflicts'}}, 'glibc2-dev';
     push @{$libc_c{'Replaces'}}, 'glibc2';
     push @{$libc_c{'Conflicts'}}, 'glibc2';
-    push @{$libc_c{'Depends'}}, 'hurd (>= 20010718-1)';
+    push @{$libc_c{'Depends'}}, 'hurd (>= 20070606-1+SVN)';
 }
 if ($DEB_HOST_ARCH_OS eq "linux") {
     push @{$libc_c{'Suggests'}}, 'locales';
