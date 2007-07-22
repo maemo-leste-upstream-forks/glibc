@@ -19,11 +19,6 @@ endef
 
 libc_extra_config_options := $(extra_config_options)
 
-# Build with gcc-4.1 is not yet supported.
-CC = gcc-4.0
-CXX = g++-4.0
-BUILD_CC = gcc-4.0
-
 # Only use libidn as add-on.
 standard-add-ons = libidn
 
