@@ -1,8 +1,3 @@
-# Build with gcc-4.2 causes regression
-CC = gcc-4.1
-CXX = g++-4.1
-BUILD_CC = gcc-4.1
-
 libc_extra_cflags = -march=i486 -mtune=i686 -g -O3
 
 GLIBC_PASSES += i686
