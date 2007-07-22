@@ -69,20 +69,10 @@ DEB_BUILDDIR ?= $(build-tree)/$(DEB_HOST_ARCH)-$(curpass)
 KERNEL_HOST_CPU := $(subst powerpc,ppc,$(DEB_HOST_GNU_CPU))
 
 # Support multiple makes at once based on number of processors
-# Common wisdom says parallel make can be up to 2n+1.
-# Should we do that to get faster builds?
-NJOBS:=$(shell getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)
-ifeq ($(NJOBS),-1)
- NJOBS:=1
-endif
-
-ifeq ($(NJOBS),0)
- NJOBS=1
-endif
-
-# We can override its value by SETNJOBS environment variable.
-ifdef SETNJOBS
- NJOBS:=$(SETNJOBS)
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+NJOBS := $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+else
+NJOBS := 1
 endif
 
 # Default setup
