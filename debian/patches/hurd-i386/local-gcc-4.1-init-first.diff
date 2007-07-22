@@ -1,8 +1,11 @@
-Index: sysdeps/mach/hurd/i386/init-first.c
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/i386/init-first.c,v
-retrieving revision 1.43.4.1
-diff -u -p -r1.43.4.1 init-first.c
+2007-07-22  Thomas Schwinge  <tschwinge@gnu.org>
+
+        * sysdeps/mach/hurd/i386/init-first.c: Undo parts of Roland's `r 1.43'
+        to `r 1.44' changes.
+        (_hurd_stack_setup): Take a ``void *'' argument.  Save the caller into
+        CALLER and pass that one on.
+        (init): Avoid an ugly typecast.
+
 --- sysdeps/mach/hurd/i386/init-first.c	23 Oct 2005 01:00:09 -0000	1.43.4.1
 +++ sysdeps/mach/hurd/i386/init-first.c	20 Nov 2006 11:05:47 -0000
 @@ -320,11 +320,11 @@ first_init (void)
@@ -56,29 +59,35 @@ diff -u -p -r1.43.4.1 init-first.c
  }
  #endif
 
-Index: sysdeps/mach/hurd/i386/init-first.c
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/i386/init-first.c,v
-retrieving revision 1.43.4.1
-diff -u -p -r1.43.4.1 init-first.c
---- sysdeps/mach/hurd/i386/init-first.c	23 Oct 2005 01:00:09 -0000	1.43.4.1
-+++ sysdeps/mach/hurd/i386/init-first.c	20 Nov 2006 11:05:47 -0000
-@@ -353,6 +355,8 @@
+--- sysdeps/mach/hurd/i386/init-first.c	2007-07-22 16:50:03.000000000 +0200
++++ sysdeps/mach/hurd/i386/init-first.c	2007-07-22 18:33:45.540000000 +0200
+@@ -350,8 +351,10 @@
+    This poorly-named function is called by static-start.S,
+    which should not exist at all.  */
  void
- _hurd_stack_setup (volatile int argc, ...)
+-_hurd_stack_setup (volatile int argc, ...)
++_hurd_stack_setup (void *arg, ...)
  {
-+  intptr_t caller = (&argc)[-1];
++  void *caller = (&arg)[-1];
 +
    void doinit (intptr_t *data)
      {
        /* This function gets called with the argument data at TOS.  */
-@@ -365,7 +369,7 @@
+@@ -364,7 +367,7 @@
           jump to `doinit1' (above), so it is as if __libc_init_first's
           caller had called `doinit1' with the argument data already on the
           stack.  */
 -      *--data = (&argc)[-1];
-+      *--data = caller;
++      *--data = (intptr_t) caller;
        asm volatile ("movl %0, %%esp\n" /* Switch to new outermost stack.  */
  		    "movl $0, %%ebp\n" /* Clear outermost frame pointer.  */
  		    "jmp *%1" : : "r" (data), "r" (&doinit1) : "sp");
-
+@@ -373,7 +376,7 @@
+ 
+   first_init ();
+ 
+-  _hurd_startup ((void **) &argc, &doinit);
++  _hurd_startup (&arg, &doinit);
+ }
+ #endif
+ 
