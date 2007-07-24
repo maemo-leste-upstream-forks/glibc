@@ -16,8 +16,6 @@ http://sourceware.org/bugzilla/show_bug.cgi?id=3748
 	* sysdeps/posix/getaddrinfo.c (getaddrinfo): Use __libc_once_else and a
 	new local function instead of using implementational details.
 
-Index: sysdeps/posix/getaddrinfo.c
-===================================================================
 --- sysdeps/posix/getaddrinfo.c.orig
 +++ sysdeps/posix/getaddrinfo.c
 @@ -1927,11 +1927,13 @@
@@ -38,8 +36,6 @@ Index: sysdeps/posix/getaddrinfo.c
  
        /* Sort results according to RFC 3484.  */
        struct sort_result results[nresults];
-Index: bits/libc-lock.h
-===================================================================
 --- bits/libc-lock.h.orig
 +++ bits/libc-lock.h
 @@ -89,7 +89,7 @@
@@ -67,8 +63,6 @@ Index: bits/libc-lock.h
  
  /* Start a critical region with a cleanup function */
  #define __libc_cleanup_region_start(DOIT, FCT, ARG)			    \
-Index: sysdeps/mach/bits/libc-lock.h
-===================================================================
 --- sysdeps/mach/bits/libc-lock.h.orig
 +++ sysdeps/mach/bits/libc-lock.h
 @@ -105,8 +105,7 @@
@@ -98,8 +92,6 @@ Index: sysdeps/mach/bits/libc-lock.h
  #ifdef _LIBC
  /* We need portable names for some functions.  E.g., when they are
     used as argument to __libc_cleanup_region_start.  */
-Index: sysdeps/mach/hurd/bits/libc-lock.h
-===================================================================
 --- sysdeps/mach/hurd/bits/libc-lock.h.orig
 +++ sysdeps/mach/hurd/bits/libc-lock.h
 @@ -175,7 +175,7 @@
@@ -128,8 +120,6 @@ Index: sysdeps/mach/hurd/bits/libc-lock.h
  #ifdef _LIBC
  /* We need portable names for some functions.  E.g., when they are
     used as argument to __libc_cleanup_region_start.  */
-Index: nptl/sysdeps/pthread/bits/libc-lock.h
-===================================================================
 --- nptl/sysdeps/pthread/bits/libc-lock.h.orig
 +++ nptl/sysdeps/pthread/bits/libc-lock.h
 @@ -354,7 +354,7 @@
@@ -157,8 +147,6 @@ Index: nptl/sysdeps/pthread/bits/libc-lock.h
  
  /* Note that for I/O cleanup handling we are using the old-style
     cancel handling.  It does not have to be integrated with C++ snce
-Index: linuxthreads/sysdeps/pthread/bits/libc-lock.h
-===================================================================
 --- linuxthreads/sysdeps/pthread/bits/libc-lock.h.orig
 +++ linuxthreads/sysdeps/pthread/bits/libc-lock.h
 @@ -231,7 +231,7 @@

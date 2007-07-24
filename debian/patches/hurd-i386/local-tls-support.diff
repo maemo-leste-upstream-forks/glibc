@@ -1,11 +1,6 @@
-Index: csu/libc-start.c
-===================================================================
-RCS file: /cvs/glibc/libc/csu/libc-start.c,v
-retrieving revision 1.3
-diff -u -p -r1.3 libc-start.c
---- csu/libc-start.c	17 Jan 2007 08:36:51 -0000	1.3
-+++ csu/libc-start.c	19 Jul 2007 22:37:08 -0000
-@@ -134,11 +134,13 @@ LIBC_START_MAIN (int (*main) (int, char 
+--- csu/libc-start.c.orig
++++ csu/libc-start.c
+@@ -134,11 +134,13 @@
      }
  # endif
  
@@ -19,14 +14,9 @@ diff -u -p -r1.3 libc-start.c
  
  # ifndef SHARED
    /* Set up the stack checker's canary.  */
-Index: hurd/hurdfault.c
-===================================================================
-RCS file: /cvs/glibc/libc/hurd/hurdfault.c,v
-retrieving revision 1.21
-diff -u -p -r1.21 hurdfault.c
---- hurd/hurdfault.c	21 Dec 2005 22:16:20 -0000	1.21
-+++ hurd/hurdfault.c	19 Jul 2007 22:37:08 -0000
-@@ -206,6 +206,8 @@ _hurdsig_fault_init (void)
+--- hurd/hurdfault.c.orig
++++ hurd/hurdfault.c
+@@ -206,6 +206,8 @@
    /* This state will be restored when we fault.
       It runs the function above.  */
    memset (&state, 0, sizeof state);
@@ -35,13 +25,8 @@ diff -u -p -r1.21 hurdfault.c
    MACHINE_THREAD_STATE_SET_PC (&state, faulted);
    MACHINE_THREAD_STATE_SET_SP (&state, faultstack, sizeof faultstack);
  
-Index: mach/setup-thread.c
-===================================================================
-RCS file: /cvs/glibc/libc/mach/setup-thread.c,v
-retrieving revision 1.19
-diff -u -p -r1.19 setup-thread.c
---- mach/setup-thread.c	22 Dec 2005 11:31:24 -0000	1.19
-+++ mach/setup-thread.c	19 Jul 2007 22:37:08 -0000
+--- mach/setup-thread.c.orig
++++ mach/setup-thread.c
 @@ -20,6 +20,7 @@
  #include <thread_state.h>
  #include <string.h>
@@ -50,7 +35,7 @@ diff -u -p -r1.19 setup-thread.c
  #include "sysdep.h"		/* Defines stack direction.  */
  
  #define	STACK_SIZE	(16 * 1024 * 1024) /* 16MB, arbitrary.  */
-@@ -73,8 +74,23 @@ __mach_setup_thread (task_t task, thread
+@@ -73,8 +74,23 @@
    if (error = __vm_protect (task, stack, __vm_page_size, 0, VM_PROT_NONE))
      return error;
  
@@ -75,13 +60,8 @@ diff -u -p -r1.19 setup-thread.c
  }
  
  weak_alias (__mach_setup_thread, mach_setup_thread)
-Index: sysdeps/generic/thread_state.h
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/generic/thread_state.h,v
-retrieving revision 1.2
-diff -u -p -r1.2 thread_state.h
---- sysdeps/generic/thread_state.h	6 Jul 2001 04:55:50 -0000	1.2
-+++ sysdeps/generic/thread_state.h	19 Jul 2007 22:37:09 -0000
+--- sysdeps/generic/thread_state.h.orig
++++ sysdeps/generic/thread_state.h
 @@ -23,6 +23,7 @@
  
  /* Replace <machine> with "i386" or "mips" or whatever.  */
@@ -90,13 +70,8 @@ diff -u -p -r1.2 thread_state.h
  #define MACHINE_THREAD_STATE_FLAVOR	<machine>_THREAD_STATE
  #define MACHINE_THREAD_STATE_COUNT	<machine>_THREAD_STATE_COUNT
  
-Index: sysdeps/mach/thread_state.h
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/thread_state.h,v
-retrieving revision 1.13
-diff -u -p -r1.13 thread_state.h
---- sysdeps/mach/thread_state.h	6 Jul 2001 04:55:56 -0000	1.13
-+++ sysdeps/mach/thread_state.h	19 Jul 2007 22:37:09 -0000
+--- sysdeps/mach/thread_state.h.orig
++++ sysdeps/mach/thread_state.h
 @@ -38,6 +38,9 @@
    ((ts)->SP = (unsigned long int) (stack) + (size))
  #endif
@@ -107,13 +82,8 @@ diff -u -p -r1.13 thread_state.h
  
  /* These functions are of use in machine-dependent signal trampoline
     implementations.  */
-Index: sysdeps/mach/alpha/thread_state.h
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/alpha/thread_state.h,v
-retrieving revision 1.5
-diff -u -p -r1.5 thread_state.h
---- sysdeps/mach/alpha/thread_state.h	6 Jul 2001 04:55:56 -0000	1.5
-+++ sysdeps/mach/alpha/thread_state.h	19 Jul 2007 22:37:09 -0000
+--- sysdeps/mach/alpha/thread_state.h.orig
++++ sysdeps/mach/alpha/thread_state.h
 @@ -19,6 +19,7 @@
  
  #include <mach/machine/thread_status.h>
@@ -122,14 +92,9 @@ diff -u -p -r1.5 thread_state.h
  #define MACHINE_THREAD_STATE_FLAVOR	ALPHA_THREAD_STATE
  #define MACHINE_THREAD_STATE_COUNT	ALPHA_THREAD_STATE_COUNT
  
-Index: sysdeps/mach/hurd/fork.c
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/fork.c,v
-retrieving revision 1.58
-diff -u -p -r1.58 fork.c
---- sysdeps/mach/hurd/fork.c	27 Oct 2006 23:11:46 -0000	1.58
-+++ sysdeps/mach/hurd/fork.c	19 Jul 2007 22:37:09 -0000
-@@ -523,6 +523,11 @@ __fork (void)
+--- sysdeps/mach/hurd/fork.c.orig
++++ sysdeps/mach/hurd/fork.c
+@@ -523,6 +523,11 @@
  #endif
        MACHINE_THREAD_STATE_SET_PC (&state,
  				   (unsigned long int) _hurd_msgport_receive);
@@ -141,7 +106,7 @@ diff -u -p -r1.58 fork.c
        if (err = __thread_set_state (sigthread, MACHINE_THREAD_STATE_FLAVOR,
  				    (natural_t *) &state, statecount))
  	LOSE;
-@@ -533,7 +538,7 @@ __fork (void)
+@@ -533,7 +538,7 @@
        _hurd_longjmp_thread_state (&state, env, 1);
  
        /* Do special thread setup for TLS if needed.  */
@@ -150,14 +115,9 @@ diff -u -p -r1.58 fork.c
  	LOSE;
  
        if (err = __thread_set_state (thread, MACHINE_THREAD_STATE_FLAVOR,
-Index: sysdeps/mach/hurd/i386/init-first.c
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/i386/init-first.c,v
-retrieving revision 1.44
-diff -u -p -r1.44 init-first.c
---- sysdeps/mach/hurd/i386/init-first.c	16 Oct 2005 09:52:58 -0000	1.44
-+++ sysdeps/mach/hurd/i386/init-first.c	19 Jul 2007 22:37:09 -0000
-@@ -104,10 +104,6 @@ init1 (int argc, char *arg0, ...)
+--- sysdeps/mach/hurd/i386/init-first.c.orig
++++ sysdeps/mach/hurd/i386/init-first.c
+@@ -104,10 +104,6 @@
    char **argv = &arg0;
    char **envp = &argv[argc + 1];
    struct hurd_startup_data *d;
@@ -168,7 +128,7 @@ diff -u -p -r1.44 init-first.c
  
    while (*envp)
      ++envp;
-@@ -118,27 +114,9 @@ init1 (int argc, char *arg0, ...)
+@@ -118,27 +114,9 @@
       data block; the argument strings start there.  */
    if ((void *) d == argv[0])
      {
@@ -196,7 +156,7 @@ diff -u -p -r1.44 init-first.c
    _hurd_init_dtable = d->dtable;
    _hurd_init_dtablesize = d->dtablesize;
  
-@@ -172,6 +150,10 @@ init (int *data)
+@@ -172,6 +150,10 @@
    char **envp = &argv[argc + 1];
    struct hurd_startup_data *d;
    unsigned long int threadvars[_HURD_THREADVAR_MAX];
@@ -207,7 +167,7 @@ diff -u -p -r1.44 init-first.c
  
    /* Provide temporary storage for thread-specific variables on the
       startup stack so the cthreads initialization code can use them
-@@ -192,6 +174,39 @@ init (int *data)
+@@ -192,6 +174,39 @@
      ++envp;
    d = (void *) ++envp;
  
@@ -247,14 +207,9 @@ diff -u -p -r1.44 init-first.c
    /* The user might have defined a value for this, to get more variables.
       Otherwise it will be zero on startup.  We must make sure it is set
       properly before before cthreads initialization, so cthreads can know
-Index: sysdeps/mach/hurd/i386/tls.h
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/i386/tls.h,v
-retrieving revision 1.12
-diff -u -p -r1.12 tls.h
---- sysdeps/mach/hurd/i386/tls.h	27 Oct 2006 23:11:46 -0000	1.12
-+++ sysdeps/mach/hurd/i386/tls.h	19 Jul 2007 22:37:09 -0000
-@@ -96,7 +96,7 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
+--- sysdeps/mach/hurd/i386/tls.h.orig
++++ sysdeps/mach/hurd/i386/tls.h
+@@ -96,7 +96,7 @@
        /* Fetch the selector set by the first call.  */
        int sel;
        asm ("mov %%gs, %w0" : "=q" (sel) : "0" (0));
@@ -263,7 +218,7 @@ diff -u -p -r1.12 tls.h
  	{
  	  error_t err = __i386_set_ldt (tcb->self, sel, &desc, 1);
  	  assert_perror (err);
-@@ -142,9 +142,40 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
+@@ -142,9 +142,40 @@
  
  #include <mach/machine/thread_status.h>
  
@@ -306,7 +261,7 @@ diff -u -p -r1.12 tls.h
  {
    /* Fetch the selector set by _hurd_tls_init.  */
    int sel;
-@@ -152,11 +183,13 @@ _hurd_tls_fork (thread_t child, struct i
+@@ -152,11 +183,13 @@
    if (sel == state->ds)		/* _hurd_tls_init was never called.  */
      return 0;
  
@@ -322,14 +277,9 @@ diff -u -p -r1.12 tls.h
      err = __i386_set_ldt (child, sel, &desc, 1);
    else
      err = __i386_set_gdt (child, &sel, desc);
-Index: sysdeps/mach/hurd/i386/trampoline.c
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/i386/trampoline.c,v
-retrieving revision 1.30
-diff -u -p -r1.30 trampoline.c
---- sysdeps/mach/hurd/i386/trampoline.c	21 Dec 2005 22:16:20 -0000	1.30
-+++ sysdeps/mach/hurd/i386/trampoline.c	19 Jul 2007 22:37:09 -0000
-@@ -64,7 +64,7 @@ _hurd_setup_sighandler (struct hurd_sigs
+--- sysdeps/mach/hurd/i386/trampoline.c.orig
++++ sysdeps/mach/hurd/i386/trampoline.c
+@@ -64,7 +64,7 @@
  		  sizeof (state->basic));
  	  memcpy (&state->fpu, &ss->context->sc_i386_float_state,
  		  sizeof (state->fpu));
@@ -338,13 +288,8 @@ diff -u -p -r1.30 trampoline.c
  	}
      }
  
-Index: sysdeps/mach/i386/thread_state.h
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/i386/thread_state.h,v
-retrieving revision 1.14
-diff -u -p -r1.14 thread_state.h
---- sysdeps/mach/i386/thread_state.h	6 Jul 2001 04:56:00 -0000	1.14
-+++ sysdeps/mach/i386/thread_state.h	19 Jul 2007 22:37:09 -0000
+--- sysdeps/mach/i386/thread_state.h.orig
++++ sysdeps/mach/i386/thread_state.h
 @@ -19,7 +19,8 @@
  
  #include <mach/machine/thread_status.h>
@@ -370,13 +315,8 @@ diff -u -p -r1.14 thread_state.h
  struct machine_thread_all_state
    {
      int set;			/* Mask of bits (1 << FLAVOR).  */
-Index: sysdeps/mach/powerpc/thread_state.h
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/powerpc/thread_state.h,v
-retrieving revision 1.2
-diff -u -p -r1.2 thread_state.h
---- sysdeps/mach/powerpc/thread_state.h	26 Aug 2002 22:39:44 -0000	1.2
-+++ sysdeps/mach/powerpc/thread_state.h	19 Jul 2007 22:37:09 -0000
+--- sysdeps/mach/powerpc/thread_state.h.orig
++++ sysdeps/mach/powerpc/thread_state.h
 @@ -19,6 +19,7 @@
  
  #include <mach/machine/thread_status.h>
@@ -385,8 +325,8 @@ diff -u -p -r1.2 thread_state.h
  #define MACHINE_THREAD_STATE_FLAVOR	PPC_THREAD_STATE
  #define MACHINE_THREAD_STATE_COUNT	PPC_THREAD_STATE_COUNT
  
---- sysdeps/mach/hurd/bits/libc-tsd.h	2002-09-02 07:08:51.000000000 +0000
-+++ /dev/null	2005-07-17 23:39:37.000000000 +0000
+--- sysdeps/mach/hurd/bits/libc-tsd.h
++++ /dev/null
 @@ -1,34 +0,0 @@
 -/* libc-internal interface for thread-specific data.  Hurd version.
 -   Copyright (C) 1998,2002 Free Software Foundation, Inc.

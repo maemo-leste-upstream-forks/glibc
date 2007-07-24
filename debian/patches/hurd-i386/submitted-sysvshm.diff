@@ -18,8 +18,6 @@
 	* sysdeps/mach/hurd/shmctl.c: New file.
 	* sysdeps/mach/hurd/shmdt.c: New file.
 
-Index: glibc-2.6/hurd/Makefile
-===================================================================
 --- glibc-2.6.orig/hurd/Makefile
 +++ glibc-2.6/hurd/Makefile
 @@ -60,6 +60,7 @@
@@ -39,8 +37,6 @@ Index: glibc-2.6/hurd/Makefile
  	     faultexc.defs intr-rpc.defs intr-rpc.h intr-msg.h Notes
  
  # XXX this is a temporary hack; see hurdmalloc.h
-Index: glibc-2.6/hurd/sysvshm.c
-===================================================================
 --- /dev/null
 +++ glibc-2.6/hurd/sysvshm.c
 @@ -0,0 +1,96 @@
@@ -140,8 +136,6 @@ Index: glibc-2.6/hurd/sysvshm.c
 +  __mutex_unlock (&sysvshm_lock);
 +  return EINVAL;
 +}
-Index: glibc-2.6/hurd/sysvshm.h
-===================================================================
 --- /dev/null
 +++ glibc-2.6/hurd/sysvshm.h
 @@ -0,0 +1,47 @@
@@ -192,8 +186,6 @@ Index: glibc-2.6/hurd/sysvshm.h
 +/* Removes a segment attachment.  Returns its size if found, or EINVAL
 +   otherwise.  */
 +error_t __sysvshm_remove (void *addr, size_t *size);
-Index: glibc-2.6/sysdeps/mach/hurd/ftok.c
-===================================================================
 --- /dev/null
 +++ glibc-2.6/sysdeps/mach/hurd/ftok.c
 @@ -0,0 +1,43 @@
@@ -240,8 +232,6 @@ Index: glibc-2.6/sysdeps/mach/hurd/ftok.c
 +
 +  return key;
 +}
-Index: glibc-2.6/sysdeps/mach/hurd/shmat.c
-===================================================================
 --- /dev/null
 +++ glibc-2.6/sysdeps/mach/hurd/shmat.c
 @@ -0,0 +1,78 @@
@@ -323,8 +313,6 @@ Index: glibc-2.6/sysdeps/mach/hurd/shmat.c
 +}
 +
 +weak_alias(__shmat, shmat)
-Index: glibc-2.6/sysdeps/mach/hurd/shmctl.c
-===================================================================
 --- /dev/null
 +++ glibc-2.6/sysdeps/mach/hurd/shmctl.c
 @@ -0,0 +1,132 @@
@@ -460,8 +448,6 @@ Index: glibc-2.6/sysdeps/mach/hurd/shmctl.c
 +}
 +
 +weak_alias(__shmctl, shmctl)
-Index: glibc-2.6/sysdeps/mach/hurd/shmdt.c
-===================================================================
 --- /dev/null
 +++ glibc-2.6/sysdeps/mach/hurd/shmdt.c
 @@ -0,0 +1,51 @@
@@ -516,8 +502,6 @@ Index: glibc-2.6/sysdeps/mach/hurd/shmdt.c
 +}
 +
 +weak_alias(__shmdt, shmdt)
-Index: glibc-2.6/sysdeps/mach/hurd/shmget.c
-===================================================================
 --- /dev/null
 +++ glibc-2.6/sysdeps/mach/hurd/shmget.c
 @@ -0,0 +1,245 @@

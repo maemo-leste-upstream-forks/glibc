@@ -24,11 +24,9 @@
 	* elf/Makefile: Add dl-altinit to routines, shared-only-routines.
 	* elf/dl-altinit.c: New file.
 
-Index: sysdeps/generic/ldsodefs.h
-===================================================================
 --- sysdeps/generic/ldsodefs.h.orig
 +++ sysdeps/generic/ldsodefs.h
-@@ -407,7 +407,7 @@
+@@ -406,7 +406,7 @@
    /* The object to be initialized first.  */
    EXTERN struct link_map *_dl_initfirst;
  
@@ -37,7 +35,7 @@ Index: sysdeps/generic/ldsodefs.h
    /* Start time on CPU clock.  */
    EXTERN hp_timing_t _dl_cpuclock_offset;
  #endif
-@@ -608,7 +608,7 @@
+@@ -612,7 +612,7 @@
    /* All search directories defined at startup.  */
    EXTERN struct r_search_path_elem *_dl_init_all_dirs;
  
@@ -46,8 +44,6 @@ Index: sysdeps/generic/ldsodefs.h
    /* Overhead of a high-precision timing measurement.  */
    EXTERN hp_timing_t _dl_hp_timing_overhead;
  #endif
-Index: sysdeps/i386/hp-timing.h
-===================================================================
 --- /dev/null
 +++ sysdeps/i386/hp-timing.h
 @@ -0,0 +1,34 @@
@@ -85,8 +81,6 @@ Index: sysdeps/i386/hp-timing.h
 +typedef unsigned long long int hp_timing_t;
 +
 +#endif	/* hp-timing.h */
-Index: elf/dl-altinit.c
-===================================================================
 --- /dev/null
 +++ elf/dl-altinit.c
 @@ -0,0 +1,43 @@
@@ -133,8 +127,6 @@ Index: elf/dl-altinit.c
 +{
 +  dlinit_hptiming ();
 +}
-Index: elf/Makefile
-===================================================================
 --- elf/Makefile.orig
 +++ elf/Makefile
 @@ -23,7 +23,7 @@

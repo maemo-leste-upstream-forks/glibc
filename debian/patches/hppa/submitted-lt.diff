@@ -7,8 +7,6 @@
 # DP: Status Details: 
 # DP: Date: 2005-07-17
 
-Index: linuxthreads/descr.h
-===================================================================
 --- linuxthreads/descr.h.orig
 +++ linuxthreads/descr.h
 @@ -71,7 +71,7 @@
@@ -20,8 +18,6 @@ Index: linuxthreads/descr.h
  };
  
  
-Index: linuxthreads/oldsemaphore.c
-===================================================================
 --- linuxthreads/oldsemaphore.c.orig
 +++ linuxthreads/oldsemaphore.c
 @@ -31,7 +31,7 @@
@@ -33,8 +29,6 @@ Index: linuxthreads/oldsemaphore.c
  } old_sem_t;
  
  extern int __old_sem_init (old_sem_t *__sem, int __pshared, unsigned int __value);
-Index: linuxthreads/pt-machine.c
-===================================================================
 --- linuxthreads/pt-machine.c.orig
 +++ linuxthreads/pt-machine.c
 @@ -19,7 +19,9 @@
@@ -48,8 +42,6 @@ Index: linuxthreads/pt-machine.c
  extern int __compare_and_swap (long int *p, long int oldval, long int newval);
  
  #include <pt-machine.h>
-Index: linuxthreads/pthread.c
-===================================================================
 --- linuxthreads/pthread.c.orig
 +++ linuxthreads/pthread.c
 @@ -309,7 +309,7 @@
@@ -90,8 +82,6 @@ Index: linuxthreads/pthread.c
  # endif
    mgr->p_alloca_cutoff = PTHREAD_STACK_MIN / 4;
  #else
-Index: linuxthreads/spinlock.c
-===================================================================
 --- linuxthreads/spinlock.c.orig
 +++ linuxthreads/spinlock.c
 @@ -24,9 +24,9 @@
@@ -183,8 +173,6 @@ Index: linuxthreads/spinlock.c
  {
    int cnt = 0;
    struct timespec tm;
-Index: linuxthreads/spinlock.h
-===================================================================
 --- linuxthreads/spinlock.h.orig
 +++ linuxthreads/spinlock.h
 @@ -33,14 +33,28 @@
@@ -249,8 +237,6 @@ Index: linuxthreads/spinlock.h
  {
    return __pthread_compare_and_swap(ptr, oldval, newval, spinlock);
  }
-Index: linuxthreads/sysdeps/pthread/bits/initspin.h
-===================================================================
 --- linuxthreads/sysdeps/pthread/bits/initspin.h.orig
 +++ linuxthreads/sysdeps/pthread/bits/initspin.h
 @@ -23,6 +23,7 @@
@@ -262,8 +248,6 @@ Index: linuxthreads/sysdeps/pthread/bits/initspin.h
 +#define __LOCK_ALT_INITIALIZER { 0, __LT_SPINLOCK_INIT }
  #define __ALT_LOCK_INITIALIZER { 0, __LT_SPINLOCK_INIT }
  #define __ATOMIC_INITIALIZER { 0, __LT_SPINLOCK_INIT }
-Index: linuxthreads/sysdeps/pthread/bits/libc-lock.h
-===================================================================
 --- linuxthreads/sysdeps/pthread/bits/libc-lock.h.orig
 +++ linuxthreads/sysdeps/pthread/bits/libc-lock.h
 @@ -71,12 +71,12 @@
@@ -282,8 +266,6 @@ Index: linuxthreads/sysdeps/pthread/bits/libc-lock.h
  #endif
  
  #define __libc_rwlock_define_initialized(CLASS,NAME) \
-Index: linuxthreads/sysdeps/pthread/bits/pthreadtypes.h
-===================================================================
 --- linuxthreads/sysdeps/pthread/bits/pthreadtypes.h.orig
 +++ linuxthreads/sysdeps/pthread/bits/pthreadtypes.h
 @@ -22,12 +22,14 @@
@@ -304,8 +286,6 @@ Index: linuxthreads/sysdeps/pthread/bits/pthreadtypes.h
  };
  
  #ifndef _PTHREAD_DESCR_DEFINED
-Index: linuxthreads/sysdeps/pthread/pthread.h
-===================================================================
 --- linuxthreads/sysdeps/pthread/pthread.h.orig
 +++ linuxthreads/sysdeps/pthread/pthread.h
 @@ -31,26 +31,26 @@
