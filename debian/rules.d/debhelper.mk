@@ -269,5 +269,6 @@ debhelper-clean:
 	rm -f debian/*.generated
 	rm -f debian/*.lintian
 	rm -f debian/*.linda
+	rm -f debian/*.NEWS.Debian
 
 	rm -f $(stamp)binaryinst*
