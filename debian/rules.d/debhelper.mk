@@ -32,16 +32,6 @@ define $(libc)_extra_debhelper_pkg_install
 	install --mode=0644 debian/FAQ debian/$(curpass)/usr/share/doc/$(curpass)/README.Debian
 endef
 
-define locales_extra_debhelper_pkg_install
-	install --mode=0644 $(DEB_SRCDIR)/localedata/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/changelog
-	install --mode=0644 debian/locales.NEWS.Debian debian/$(curpass)/usr/share/doc/locales/NEWS.Debian
-endef
-
-define glibc-doc_extra_debhelper_pkg_install
-	install --mode=0644 $(DEB_SRCDIR)/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/changelog
-#	install --mode=0644 $(DEB_SRCDIR)/linuxthreads/FAQ.html debian/$(curpass)/usr/share/doc/$(curpass)/FAQ.linuxthreads.html
-endef
-
 # Should each of these have per-package options?
 
 $(patsubst %,binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES)) :: binaryinst_% : $(stamp)binaryinst_%
@@ -269,6 +259,6 @@ debhelper-clean:
 	rm -f debian/*.generated
 	rm -f debian/*.lintian
 	rm -f debian/*.linda
-	rm -f debian/*.NEWS.Debian
+	rm -f debian/*.NEWS
 
 	rm -f $(stamp)binaryinst*
