@@ -1,0 +1,40 @@
+2007-06-06  Daniel Jacobowitz  <dan@codesourcery.com>
+
+	* sysdeps/mips/nptl/tls.h (THREAD_GSCOPE_FLAG_UNUSED,
+	THREAD_GSCOPE_FLAG_USED, THREAD_GSCOPE_FLAG_WAIT): Define.
+	(THREAD_GSCOPE_RESET_FLAG, THREAD_GSCOPE_SET_FLAG,
+	THREAD_GSCOPE_WAIT): Define.
+
+--- ports/sysdeps/mips/nptl/tls.h.orig	2005-03-28 11:19:38.000000000 +0200
++++ ports/sysdeps/mips/nptl/tls.h	2007-06-06 19:27:04.000000000 +0200
+@@ -156,6 +156,29 @@
+    different value to mean unset l_tls_offset.  */
+ # define NO_TLS_OFFSET		-1
+ 
++/* Get and set the global scope generation counter in struct pthread.  */
++#define THREAD_GSCOPE_FLAG_UNUSED 0
++#define THREAD_GSCOPE_FLAG_USED   1
++#define THREAD_GSCOPE_FLAG_WAIT   2
++#define THREAD_GSCOPE_RESET_FLAG() \
++  do									     \
++    { int __res								     \
++	= atomic_exchange_rel (&THREAD_SELF->header.gscope_flag,	     \
++			       THREAD_GSCOPE_FLAG_UNUSED);		     \
++      if (__res == THREAD_GSCOPE_FLAG_WAIT)				     \
++	lll_futex_wake (&THREAD_SELF->header.gscope_flag, 1);		     \
++    }									     \
++  while (0)
++#define THREAD_GSCOPE_SET_FLAG() \
++  do									     \
++    {									     \
++      THREAD_SELF->header.gscope_flag = THREAD_GSCOPE_FLAG_USED;	     \
++      atomic_write_barrier ();						     \
++    }									     \
++  while (0)
++#define THREAD_GSCOPE_WAIT() \
++  GL(dl_wait_lookup_done) ()
++
+ #endif /* __ASSEMBLER__ */
+ 
+ #endif	/* tls.h */
+
