@@ -1,0 +1,37 @@
+--- linuxthreads/sysdeps/x86_64/tls.h.orig	2007-07-29 15:55:45 +0200
++++ linuxthreads/sysdeps/x86_64/tls.h	2007-07-29 15:56:31 +0200
+@@ -49,6 +49,7 @@
+   uintptr_t sysinfo;
+   uintptr_t stack_guard;
+   uintptr_t pointer_guard;
++  int gscope_flag;
+ } tcbhead_t;
+ 
+ #else /* __ASSEMBLER__ */
+@@ -147,6 +148,26 @@
+   ((descr)->p_header.data.pointer_guard				      \
+    = THREAD_GETMEM (THREAD_SELF, p_header.data.pointer_guard))
+ 
++/* Get and set the global scope generation counter in the TCB head.  */
++#define THREAD_GSCOPE_FLAG_UNUSED 0
++#define THREAD_GSCOPE_FLAG_USED   1
++#define THREAD_GSCOPE_FLAG_WAIT   2
++#define THREAD_GSCOPE_RESET_FLAG() \
++  do										    \
++    { int __res;								    \
++      asm volatile ("xchgl %0, %%fs:%P1"					    \
++		    : "=r" (__res)						    \
++		    : "i" (offsetof (struct _pthread_descr_struct, p_gscope_flag)), \
++		      "0" (THREAD_GSCOPE_FLAG_UNUSED));				    \
++      if (__res == THREAD_GSCOPE_FLAG_WAIT)					    \
++	lll_futex_wake (&THREAD_SELF->p_gscope_flag, 1);			    \
++    }										    \
++  while (0)
++#define THREAD_GSCOPE_SET_FLAG() \
++  THREAD_SETMEM (THREAD_SELF, p_gscope_flag, THREAD_GSCOPE_FLAG_USED)
++#define THREAD_GSCOPE_WAIT() \
++  GL(dl_wait_lookup_done) ()
++
+ # endif	/* HAVE_TLS_SUPPORT */
+ #endif /* __ASSEMBLER__ */
+ 
