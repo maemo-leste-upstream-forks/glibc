@@ -1,14 +1,9 @@
-Index: math/Makefile
-===================================================================
-RCS file: /cvs/glibc/libc/math/Makefile,v
-retrieving revision 1.130
-diff -u -p -r1.130 Makefile
---- math/Makefile	12 Jul 2007 18:10:35 -0000	1.130
-+++ math/Makefile	28 Jul 2007 21:19:13 -0000
-@@ -91,13 +91,17 @@ distribute += $(filter-out $(generated),
+--- math/Makefile.orig	2006-02-28 08:05:45.000000000 +0100
++++ math/Makefile	2007-07-29 17:17:37.000000000 +0200
+@@ -91,13 +91,17 @@
  tests = test-matherr test-fenv atest-exp atest-sincos atest-exp2 basic-test \
  	test-misc test-fpucw tst-definitions test-tgmath test-tgmath-ret \
- 	bug-nextafter bug-nexttoward bug-tgmath1 test-tgmath-int test-tgmath2
+ 	bug-nextafter bug-nexttoward bug-tgmath1 test-tgmath-int
 -# We do the `long double' tests only if this data type is available and
 -# distinct from `double'.
 +# We do the `long double' tests only if this data type is available.
@@ -26,7 +21,7 @@ diff -u -p -r1.130 Makefile
  	test-ifloat test-idouble
  libm-tests.o = $(addsuffix .o,$(libm-tests))
  
-@@ -171,11 +175,15 @@ math-CPPFLAGS += -D__NO_MATH_INLINES -D_
+@@ -170,11 +174,15 @@
  ifneq ($(long-double-fcts),yes)
  # The `double' and `long double' types are the same on this machine.
  # We won't compile the `long double' code at all.  Tell the `double' code
