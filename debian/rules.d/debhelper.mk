@@ -165,7 +165,7 @@ OPT_DIRS = $(foreach pass,$(OPT_PASSES),$($(pass)_slibdir) $($(pass)_libdir))
 debhelper: $(stamp)debhelper
 $(stamp)debhelper:
 
-	for x in `find debian/debhelper.in -type f -maxdepth 1`; do \
+	for x in `find debian/debhelper.in -maxdepth 1 -type f`; do \
 	  y=debian/`basename $$x`; \
 	  z=`echo $$y | sed -e 's#/libc#/$(libc)#'`; \
 	  cp $$x $$z; \
