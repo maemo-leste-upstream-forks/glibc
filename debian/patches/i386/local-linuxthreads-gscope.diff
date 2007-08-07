@@ -1,10 +1,14 @@
 --- linuxthreads/sysdeps/i386/tls.h	2006-04-26 17:04:12 +0200
 +++ linuxthreads/sysdeps/i386/tls.h	2007-07-29 11:09:35 +0200
-@@ -50,6 +50,7 @@
+@@ -50,6 +50,11 @@
    uintptr_t sysinfo;
    uintptr_t stack_guard;
    uintptr_t pointer_guard;
++#ifdef __FreeBSD_kernel__
++  long gscope_flag;
++# else
 +  int gscope_flag;
++# endif
  } tcbhead_t;
  
  #else /* __ASSEMBLER__ */

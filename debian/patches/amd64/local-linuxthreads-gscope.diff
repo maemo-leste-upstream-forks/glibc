@@ -1,14 +1,18 @@
 --- linuxthreads/sysdeps/x86_64/tls.h.orig	2007-07-29 15:55:45 +0200
 +++ linuxthreads/sysdeps/x86_64/tls.h	2007-07-29 15:56:31 +0200
-@@ -49,6 +49,7 @@
+@@ -49,6 +49,11 @@
    uintptr_t sysinfo;
    uintptr_t stack_guard;
    uintptr_t pointer_guard;
++# ifdef __FreeBSD_kernel__
++  long gscope_flag;
++# else
 +  int gscope_flag;
++# endif
  } tcbhead_t;
  
  #else /* __ASSEMBLER__ */
-@@ -147,6 +148,26 @@
+@@ -147,6 +148,43 @@
    ((descr)->p_header.data.pointer_guard				      \
     = THREAD_GETMEM (THREAD_SELF, p_header.data.pointer_guard))
  
@@ -16,7 +20,8 @@
 +#define THREAD_GSCOPE_FLAG_UNUSED 0
 +#define THREAD_GSCOPE_FLAG_USED   1
 +#define THREAD_GSCOPE_FLAG_WAIT   2
-+#define THREAD_GSCOPE_RESET_FLAG() \
++#ifdef __FreeBSD_kernel__
++# define THREAD_GSCOPE_RESET_FLAG() \
 +  do										    \
 +    { int __res;								    \
 +      asm volatile ("xchgl %0, %%fs:%P1"					    \
@@ -27,6 +32,22 @@
 +	lll_futex_wake (&THREAD_SELF->p_gscope_flag, 1);			    \
 +    }										    \
 +  while (0)
++#else
++/* As the FreeBSD kernel defines futex as long (compared to int with
++   a Linux kernel), we need to use xchgq instead of xchgl to handle
++   the gscope_flag variable. */
++# define THREAD_GSCOPE_RESET_FLAG() \
++  do										    \
++    { long __res;								    \
++      asm volatile ("xchgq %0, %%fs:%P1"					    \
++		    : "=r" (__res)						    \
++		    : "i" (offsetof (struct _pthread_descr_struct, p_gscope_flag)), \
++		      "0" (THREAD_GSCOPE_FLAG_UNUSED));				    \
++      if (__res == THREAD_GSCOPE_FLAG_WAIT)					    \
++	lll_futex_wake (&THREAD_SELF->p_gscope_flag, 1);			    \
++    }										    \
++  while (0)
++#endif		/* __FreeBSD_kernel__ */
 +#define THREAD_GSCOPE_SET_FLAG() \
 +  THREAD_SETMEM (THREAD_SELF, p_gscope_flag, THREAD_GSCOPE_FLAG_USED)
 +#define THREAD_GSCOPE_WAIT() \
