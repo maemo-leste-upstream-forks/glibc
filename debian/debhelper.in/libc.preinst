@@ -45,7 +45,7 @@ then
 
     # NSS authentication trouble guard
     if dpkg --compare-versions $2 lt 2.6-1; then
-	check="xdm kdm gdm postgresql xscreensaver"
+	check="xdm kdm gdm postgresql xscreensaver proftpd"
 	# Only get the ones that are installed, and configured
 	service=$(dpkg -s $check 2> /dev/null | awk 'BEGIN{RS="\n\n";FS="\n"}{if ( $2 ~ /Status: .* installed$/ ) { print $1 } }' | cut -f 2 -d ' ')
 
