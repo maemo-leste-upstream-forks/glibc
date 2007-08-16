@@ -4315,8 +4315,8 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigaction.h ports/
 +#define	SIG_SETMASK	3	/* Set the set of blocked signals.  */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h	2006-10-18 09:59:57.000000000 +0200
-@@ -0,0 +1,222 @@
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h	2007-08-16 21:40:32.000000000 +0200
+@@ -0,0 +1,225 @@
 +/* siginfo_t, sigevent and constants.  FreeBSD version.
 +   Copyright (C) 1997-1998, 2000-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -4415,13 +4415,15 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h ports/sy
 +# define ILL_BADSTK	ILL_BADSTK
 +};
 +
++#endif
++
 +/* `si_code' values for SIGFPE signal.  */
 +enum
 +{
-+  FPE_INTDIV = 1,		/* Integer divide by zero.  */
-+# define FPE_INTDIV	FPE_INTDIV
-+  FPE_INTOVF,			/* Integer overflow.  */
++  FPE_INTOVF = 1,		/* Integer overflow.  */
 +# define FPE_INTOVF	FPE_INTOVF
++  FPE_INTDIV,			/* Integer divide by zero.  */
++# define FPE_INTDIV	FPE_INTDIV
 +  FPE_FLTDIV,			/* Floating point divide by zero.  */
 +# define FPE_FLTDIV	FPE_FLTDIV
 +  FPE_FLTOVF,			/* Floating point overflow.  */
@@ -4436,6 +4438,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h ports/sy
 +# define FPE_FLTSUB	FPE_FLTSUB
 +};
 +
++#if 0 /* XXX These need verification.  See <bits/sigcontext.h>.  */
 +/* `si_code' values for SIGSEGV signal.  */
 +enum
 +{
@@ -9205,8 +9208,8 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h po
 +#define mc_eflags	mc_efl
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h	2006-11-07 19:20:05.000000000 +0100
-@@ -0,0 +1,159 @@
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h	2007-08-16 21:45:25.000000000 +0200
+@@ -0,0 +1,145 @@
 +/* Machine-dependent signal context structure for FreeBSD.  i386 version.
 +   Copyright (C) 1991-1992,1994,1997,2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -9334,21 +9337,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h 
 +#define sc_ps		sc_efl
 +#define sc_eflags	sc_efl
 +
-+
-+/* Codes for SIGFPE.  */
-+#define FPE_INTDIV	1 /* integer divide by zero */
-+#define FPE_INTOVF	2 /* integer overflow */
-+
 +#if 1 /* FIXME: These need verification.  */
-+
-+#define FPE_FLTDIV	3 /* floating divide by zero */
-+#define FPE_FLTOVF	4 /* floating overflow */
-+#define FPE_FLTUND	5 /* floating underflow */
-+#define FPE_FLTINX	6 /* floating loss of precision */
-+#define FPE_SUBRNG_FAULT	0x7 /* BOUNDS instruction failed */
-+#define FPE_FLTDNR_FAULT	0x8 /* denormalized operand */
-+#define FPE_EMERR_FAULT		0xa /* mysterious emulation error 33 */
-+#define FPE_EMBND_FAULT		0xb /* emulation BOUNDS instruction failed */
 +
 +/* Codes for SIGILL.  */
 +#define ILL_PRIVIN_FAULT	1
@@ -20203,8 +20192,8 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/mcontext.h 
 +
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h	2006-11-07 19:20:05.000000000 +0100
-@@ -0,0 +1,160 @@
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h	2007-08-16 21:45:02.000000000 +0200
+@@ -0,0 +1,146 @@
 +/* Machine-dependent signal context structure for FreeBSD.  i386 version.
 +   Copyright (C) 1991-1992,1994,1997,2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -20288,21 +20277,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.
 +#define sc_ps		sc_efl
 +#define sc_eflags	sc_efl
 +
-+
-+/* Codes for SIGFPE.  */
-+#define FPE_INTDIV	1 /* integer divide by zero */
-+#define FPE_INTOVF	2 /* integer overflow */
-+
 +#if 1 /* FIXME: These need verification.  */
-+
-+#define FPE_FLTDIV	3 /* floating divide by zero */
-+#define FPE_FLTOVF	4 /* floating overflow */
-+#define FPE_FLTUND	5 /* floating underflow */
-+#define FPE_FLTINX	6 /* floating loss of precision */
-+#define FPE_SUBRNG_FAULT	0x7 /* BOUNDS instruction failed */
-+#define FPE_FLTDNR_FAULT	0x8 /* denormalized operand */
-+#define FPE_EMERR_FAULT		0xa /* mysterious emulation error 33 */
-+#define FPE_EMBND_FAULT		0xb /* emulation BOUNDS instruction failed */
 +
 +/* Codes for SIGILL.  */
 +#define ILL_PRIVIN_FAULT	1
