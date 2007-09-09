@@ -150,6 +150,28 @@ and
 cache respectively)
 and invalidates the cache if the file has changed since the
 last check.
+.TP
+.BI persistent \ service\ bool
+.I bool
+must be one of
+.B yes
+(default) or
+.BR no .
+Keep the content of the cache for service over 
+.BR nscd (8)
+restarts. Useful when paranoia mode is set.
+.TP
+.BI shared \ service\ bool
+.I bool
+must be one of
+.B yes
+(default) or
+.BR no .
+The memory mapping of the
+.BR nscd (8)
+databases for service is shared with the clients so that they can directly search
+in them instead of having to ask the daemon over the socket each time a lookup is
+performed.
 .SH EXAMPLE
 .nf
 
