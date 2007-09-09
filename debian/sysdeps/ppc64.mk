@@ -28,7 +28,7 @@ define libc6-dev-powerpc_extra_pkg_install
 mkdir -p debian/libc6-dev-powerpc/usr/include/gnu
 cp -af debian/tmp-powerpc/usr/include/powerpc-linux-gnu/gnu/stubs-32.h \
         debian/libc6-dev-powerpc/usr/include/gnu
-ln -sf . debian/libc6-dev-powerpc/usr/include/powerpc-linux-gnu
+mkdir -p debian/libc6-dev-powerpc/usr/include/powerpc-linux-gnu
 endef
 
 # create a symlink for the 32 bit dynamic linker in /lib

@@ -16,7 +16,7 @@ define libc6-dev-s390x_extra_pkg_install
 mkdir -p debian/libc6-dev-s390x/usr/include/gnu
 cp -af debian/tmp-s390x/usr/include/s390x-linux-gnu/gnu/stubs-64.h \
         debian/libc6-dev-s390x/usr/include/gnu
-ln -sf . debian/libc6-dev-s390x/usr/include/s390x-linux-gnu
+mkdir -p debian/libc6-dev-s390x/usr/include/s390x-linux-gnu
 endef
 
 define libc6-s390x_extra_pkg_install

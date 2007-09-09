@@ -32,7 +32,7 @@ cp -af debian/tmp-i386/usr/include/i486-linux-gnu/sys/elf.h \
 	debian/libc6-dev-i386/usr/include/sys
 cp -af debian/tmp-i386/usr/include/i486-linux-gnu/sys/vm86.h \
 	debian/libc6-dev-i386/usr/include/sys
-ln -sf . debian/libc6-dev-i386/usr/include/i486-linux-gnu
+mkdir -p debian/libc6-dev-i386/usr/include/i486-linux-gnu
 endef
 
 define libc6-i386_extra_pkg_install
