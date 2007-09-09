@@ -4619,7 +4619,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/signum.h ports/sys
 +#define	_NSIG		129	/* Biggest signal number + 1.  */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h	2006-10-18 09:59:57.000000000 +0200
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h	2007-09-09 18:52:52.000000000 +0200
 @@ -0,0 +1,140 @@
 +/* __sig_atomic_t, __sigset_t, and related definitions.  FreeBSD version.
 +   Copyright (C) 1994-1996, 2002 Free Software Foundation, Inc.
@@ -4640,13 +4640,12 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h ports/sys
 +   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 +   02111-1307 USA.  */
 +
-+#ifndef _SIGSET_H_types
-+#define _SIGSET_H_types	1
++#ifndef	_SIGSET_H_types
++# define _SIGSET_H_types	1
 +
 +typedef int __sig_atomic_t;
 +
 +/* A `sigset_t' has a bit for each signal.  */
-+__extension__
 +typedef struct
 +  {
 +    union
@@ -4656,7 +4655,8 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h ports/sys
 +      };
 +  } __sigset_t;
 +
-+#endif	/* ! _SIGSET_H_types */
++#endif
++
 +
 +/* We only want to define these functions if <signal.h> was actually
 +   included; otherwise we were included just to define the types.  Since we
@@ -4664,14 +4664,14 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h ports/sys
 +   trouble can be caused by functions being defined (e.g., any global
 +   register vars declared later will cause compilation errors).  */
 +
-+#if !defined (_SIGSET_H_fns) && defined (_SIGNAL_H)
-+#define _SIGSET_H_fns 1
++#if !defined _SIGSET_H_fns && defined _SIGNAL_H
++# define _SIGSET_H_fns 1
 +
 +# ifndef _EXTERN_INLINE
-+#  define _EXTERN_INLINE extern __inline
++#  define _EXTERN_INLINE __extern_inline
 +# endif
 +
-+/* Return a mask that includes SIG only.  */
++/* Return a mask that includes the bit for SIG only.  */
 +# define __sigmask(sig)	((unsigned int) 1 << ((sig) - 1) % 32)
 +
 +/* Return the word index for SIG.  */
@@ -4760,7 +4760,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h ports/sys
 +# endif
 +
 +
-+#endif /* ! _SIGSET_H_fns */
++#endif /* ! _SIGSET_H_fns.  */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/socket.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/socket.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/socket.h	1970-01-01 01:00:00.000000000 +0100
 +++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/socket.h	2006-10-18 09:59:57.000000000 +0200
@@ -9093,11 +9093,11 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/glob.c ports/sysdeps/un
 +#include <posix/glob.c>
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h	2006-10-18 09:59:56.000000000 +0200
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h	2007-09-09 19:25:26.000000000 +0200
 @@ -0,0 +1,111 @@
-+/* Machine-dependent processor state structure for FreeBSD.  i386 version.
++/* Machine-dependent processor state structure for FreeBSD.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
++   This file is part of the GNU C Library.  i386 version.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
 +   modify it under the terms of the GNU Lesser General Public
@@ -9148,15 +9148,15 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h po
 + * based on $FreeBSD: src/sys/i386/include/ucontext.h,v 1.10 2002/12/02 19:58:55 deischen Exp $
 + */
 +
-+	/*
-+	 * The first 20 fields must match the definition of
-+	 * sigcontext. So that we can support sigcontext
-+	 * and ucontext_t at the same time.
-+	 */
-+
 +/* Whole processor state.  */
 +typedef struct
 +  {
++    /*
++     * The first 20 fields must match the definition of
++     * sigcontext. So that we can support sigcontext
++     * and ucontext_t at the same time.
++     */
++
 +    int mc_onstack;		/* Nonzero if running on sigstack.  */
 +
 +    /* Segment registers.  */
@@ -9208,8 +9208,8 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h po
 +#define mc_eflags	mc_efl
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h	2007-08-16 21:45:25.000000000 +0200
-@@ -0,0 +1,145 @@
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h	2007-09-09 19:18:17.000000000 +0200
+@@ -0,0 +1,97 @@
 +/* Machine-dependent signal context structure for FreeBSD.  i386 version.
 +   Copyright (C) 1991-1992,1994,1997,2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -9236,59 +9236,13 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h 
 +#ifndef _BITS_SIGCONTEXT_H
 +#define _BITS_SIGCONTEXT_H  1
 +
-+#ifdef __x86_64__
-+struct sigcontext {
-+	__sigset_t sc_mask;	/* signal mask to restore */
-+	long	sc_onstack;	/* sigstack state to restore */
-+	union { long	sc_rdi;       long  rdi;};
-+	union { long	sc_rsi;	      long  rsi;};
-+	union { long	sc_rdx;	      long  rdx;};
-+	union { long	sc_rcx;	      long  rcx;};
-+	union { long	sc_r8;	      long  r8;};
-+	union { long	sc_r9;	      long  r9;};
-+	union { long	sc_rax;	      long  rax;};
-+	union { long	sc_rbx;	      long  rbx;};
-+	union { long	sc_rbp;	      long  rbp;};
-+	union { long	sc_r10;	      long  r10;};
-+	union { long	sc_r11;	      long  r11;};
-+	union { long	sc_r12;	      long  r12;};
-+	union { long	sc_r13;	      long  r13;};
-+	union { long	sc_r14;	      long  r14;};
-+	union { long	sc_r15;	      long  r15;};
-+	union { long	sc_trapno;    long  trapno;};
-+	union { long	sc_addr;      long  addr;};
-+	union { long	sc_flags;     long  flags;};
-+	union { long	sc_err;	      long  err;};
-+	union { long	sc_rip;	      long  rip;};
-+	union { long	sc_cs;	      long  cs;};
-+	union { long	sc_rflags;    long  rflags;};
-+	union { long	sc_rsp;	      long  rsp;};
-+	union { long	sc_ss;	      long  ss;};
-+	long	sc_len;		/* sizeof(mcontext_t) */
-+	/*
-+	 * XXX - See <machine/ucontext.h> and <machine/fpu.h> for
-+	 *       the following fields.
-+	 */
-+	long	sc_fpformat;
-+	long	sc_ownedfp;
-+	long	sc_fpstate[64] __attribute__((aligned(16)));
-+	long	sc_spare[8];
-+};
-+
-+/* Traditional BSD names for some members.  */
-+#define sc_sp           sc_rsp          /* Stack pointer.  */
-+#define sc_fp           sc_rbp          /* Frame pointer.  */
-+#define sc_pc           sc_rip          /* Process counter.  */
-+
-+#else
-+
 +/* State of this thread when the signal was taken.
 +   The unions below are for compatibility with Linux (whose sigcontext
 +   components don't have sc_ prefix) */
 +struct sigcontext
 +  {
-+    __sigset_t sc_mask;		/* Blocked signals to restore.  */
-+    int sc_onstack;		/* Nonzero if running on sigstack.  */
++    __sigset_t 	sc_mask;		/* Blocked signals to restore.  */
++    int 	sc_onstack;		/* Nonzero if running on sigstack.  */
 +
 +    /* Segment registers.  */
 +    union { int sc_gs; int gs; };
@@ -9349,8 +9303,6 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h 
 +#define BUS_SEGNP_FAULT		26
 +#define BUS_STK_FAULT		27
 +#define BUS_SEGM_FAULT		29
-+
-+#endif
 +
 +#endif
 +
@@ -20087,11 +20039,11 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/writev.c ports/sysdeps/
 +
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/mcontext.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/mcontext.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/mcontext.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/mcontext.h	2006-10-18 09:59:58.000000000 +0200
-@@ -0,0 +1,101 @@
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/mcontext.h	2007-09-09 19:27:04.000000000 +0200
+@@ -0,0 +1,167 @@
 +/* Machine-dependent processor state structure for FreeBSD.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
++   This file is part of the GNU C Library.  x86_64 version.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
 +   modify it under the terms of the GNU Lesser General Public
@@ -20143,57 +20095,123 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/mcontext.h 
 + * based on $FreeBSD: src/sys/amd64/include/ucontext.h,v 1.18 2003/11/08 04:39:22 peter Exp $
 + */
 +
-+typedef struct {
-+	/*
-+	 * The first 20 fields must match the definition of
-+	 * sigcontext. So that we can support sigcontext
-+	 * and ucontext_t at the same time.
-+	 */
-+	long	mc_onstack;		/* XXX - sigcontext compat. */
-+	long	mc_rdi;			/* machine state (struct trapframe) */
-+	long	mc_rsi;
-+	long	mc_rdx;
-+	long	mc_rcx;
-+	long	mc_r8;
-+	long	mc_r9;
-+	long	mc_rax;
-+	long	mc_rbx;
-+	long	mc_rbp;
-+	long	mc_r10;
-+	long	mc_r11;
-+	long	mc_r12;
-+	long	mc_r13;
-+	long	mc_r14;
-+	long	mc_r15;
-+	long	mc_trapno;
-+	long	mc_addr;
-+	long	mc_flags;
-+	long	mc_err;
-+	long	mc_rip;
-+	long	mc_cs;
-+	long	mc_rflags;
-+	long	mc_rsp;
-+	long	mc_ss;
++#ifdef __i386__
 +
-+	long	mc_len;			/* sizeof(mcontext_t) */
++/* Whole processor state.  */
++typedef struct
++  {
++    /*
++     * The first 20 fields must match the definition of
++     * sigcontext. So that we can support sigcontext
++     * and ucontext_t at the same time.
++     */
++
++    int mc_onstack;		/* Nonzero if running on sigstack.  */
++
++    /* Segment registers.  */
++    int mc_gs;
++    int mc_fs;
++    int mc_es;
++    int mc_ds;
++
++    /* "General" registers.  These members are in the order that the i386
++       `pusha' and `popa' instructions use (`popa' ignores %esp).  */
++    int mc_edi;
++    int mc_esi;
++    int mc_ebp;
++    int mc_isp;			/* Not used; sc_esp is used instead.  */
++    int mc_ebx;
++    int mc_edx;
++    int mc_ecx;
++    int mc_eax;
++
++    int mc_trapno;
++    int mc_err;
++
++    int mc_eip;			/* Instruction pointer.  */
++    int mc_cs;			/* Code segment register.  */
++
++    int mc_efl;			/* Processor flags.  */
++
++    int mc_esp;			/* This stack pointer is used.  */
++    int mc_ss;			/* Stack segment register.  */
++
++    int mc_len;			/* sizeof(mcontext_t) */
 +#define	_MC_FPFMT_NODEV		0x10000	/* device not present or configured */
++#define	_MC_FPFMT_387		0x10001
 +#define	_MC_FPFMT_XMM		0x10002
-+	long	mc_fpformat;
++    int mc_fpformat;
 +#define	_MC_FPOWNED_NONE	0x20000	/* FP state not used */
 +#define	_MC_FPOWNED_FPU		0x20001	/* FP state came from FPU */
 +#define	_MC_FPOWNED_PCB		0x20002	/* FP state came from PCB */
-+	long	mc_ownedfp;
-+	/*
-+	 * See <machine/fpu.h> for the internals of mc_fpstate[].
-+	 */
-+	long	mc_fpstate[64] __attribute__((aligned(16)));
-+	long	mc_spare[8];
++    int mc_ownedfp;
++    int mc_spare1[1];		/* align next field to 16 bytes */
++    /*
++     * See <machine/npx.h> for the internals of mc_fpstate[].
++     */
++    int mc_fpstate[128] __attribute__((aligned(16)));
++    int mc_spare2[8];
++  } mcontext_t;
++
++#else
++
++/* Whole processor state.  */
++typedef struct
++  {
++    /*
++     * The first 20 fields must match the definition of
++     * sigcontext. So that we can support sigcontext
++     * and ucontext_t at the same time.
++     */
++    long mc_onstack;		/* XXX - sigcontext compat. */
++    long mc_rdi;			/* machine state (struct trapframe) */
++    long mc_rsi;
++    long mc_rdx;
++    long mc_rcx;
++    long mc_r8;
++    long mc_r9;
++    long mc_rax;
++    long mc_rbx;
++    long mc_rbp;
++    long mc_r10;
++    long mc_r11;
++    long mc_r12;
++    long mc_r13;
++    long mc_r14;
++    long mc_r15;
++    long mc_trapno;
++    long mc_addr;
++    long mc_flags;
++    long mc_err;
++    long mc_rip;
++    long mc_cs;
++    long mc_rflags;
++    long mc_rsp;
++    long mc_ss;
++
++    long mc_len;			/* sizeof(mcontext_t) */
++#define	_MC_FPFMT_NODEV		0x10000	/* device not present or configured */
++#define	_MC_FPFMT_XMM		0x10002
++    long mc_fpformat;
++#define	_MC_FPOWNED_NONE	0x20000	/* FP state not used */
++#define	_MC_FPOWNED_FPU		0x20001	/* FP state came from FPU */
++#define	_MC_FPOWNED_PCB		0x20002	/* FP state came from PCB */
++    long mc_ownedfp;
++     /*
++      * See <machine/fpu.h> for the internals of mc_fpstate[].
++      */
++    long mc_fpstate[64] __attribute__((aligned(16)));
++    long mc_spare[8];
 +} mcontext_t;
 +
++#endif
++
++/* Traditional BSD names for some members.  */
++#define mc_eflags	mc_efl
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h	2007-08-16 21:45:02.000000000 +0200
-@@ -0,0 +1,146 @@
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h	2007-09-09 19:18:08.000000000 +0200
+@@ -0,0 +1,147 @@
 +/* Machine-dependent signal context structure for FreeBSD.  i386 version.
 +   Copyright (C) 1991-1992,1994,1997,2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -20227,8 +20245,8 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.
 +   components don't have sc_ prefix) */
 +struct sigcontext
 +  {
-+    __sigset_t sc_mask;		/* Blocked signals to restore.  */
-+    int sc_onstack;		/* Nonzero if running on sigstack.  */
++    __sigset_t 	sc_mask;		/* Blocked signals to restore.  */
++    int 	sc_onstack;		/* Nonzero if running on sigstack.  */
 +
 +    /* Segment registers.  */
 +    union { int sc_gs; int gs; };
@@ -20253,7 +20271,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.
 +    union { int sc_eip; int eip; };		/* Instruction pointer.  */
 +    union { int sc_cs; int cs; };		/* Code segment register.  */
 +
-+    union { int sc_efl; int eflags; };		/* Processor flags.  */
++    union { int sc_efl; int eflags; }; 		/* Processor flags.  */
 +
 +    union { int sc_esp; int esp; };		/* This stack pointer is used.  */
 +    union { int sc_ss; int ss; };		/* Stack segment register.  */
@@ -20294,43 +20312,44 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.
 +
 +#else
 +
-+struct sigcontext {
-+	__sigset_t sc_mask;	/* signal mask to restore */
-+	long	sc_onstack;	/* sigstack state to restore */
-+	union { long	sc_rdi;       long  rdi;};
-+	union { long	sc_rsi;	      long  rsi;};
-+	union { long	sc_rdx;	      long  rdx;};
-+	union { long	sc_rcx;	      long  rcx;};
-+	union { long	sc_r8;	      long  r8;};
-+	union { long	sc_r9;	      long  r9;};
-+	union { long	sc_rax;	      long  rax;};
-+	union { long	sc_rbx;	      long  rbx;};
-+	union { long	sc_rbp;	      long  rbp;};
-+	union { long	sc_r10;	      long  r10;};
-+	union { long	sc_r11;	      long  r11;};
-+	union { long	sc_r12;	      long  r12;};
-+	union { long	sc_r13;	      long  r13;};
-+	union { long	sc_r14;	      long  r14;};
-+	union { long	sc_r15;	      long  r15;};
-+	union { long	sc_trapno;    long  trapno;};
-+	union { long	sc_addr;      long  addr;};
-+	union { long	sc_flags;     long  flags;};
-+	union { long	sc_err;	      long  err;};
-+	union { long	sc_rip;	      long  rip;};
-+	union { long	sc_cs;	      long  cs;};
-+	union { long	sc_rflags;    long  rflags;};
-+	union { long	sc_rsp;	      long  rsp;};
-+	union { long	sc_ss;	      long  ss;};
-+	long	sc_len;		/* sizeof(mcontext_t) */
-+	/*
-+	 * XXX - See <machine/ucontext.h> and <machine/fpu.h> for
-+	 *       the following fields.
-+	 */
-+	long	sc_fpformat;
-+	long	sc_ownedfp;
-+	long	sc_fpstate[64] __attribute__((aligned(16)));
-+	long	sc_spare[8];
-+};
++struct sigcontext
++  {
++    __sigset_t 	sc_mask;		/* Blocked signals to restore.  */
++    long 	sc_onstack;		/* Nonzero if running on sigstack.  */
++    union { long sc_rdi; long rdi;};
++    union { long sc_rsi; long rsi;};
++    union { long sc_rdx; long rdx;};
++    union { long sc_rcx; long rcx;};
++    union { long sc_r8; long r8;};
++    union { long sc_r9; long r9;};
++    union { long sc_rax; long rax;};
++    union { long sc_rbx; long rbx;};
++    union { long sc_rbp; long rbp;};
++    union { long sc_r10; long r10;};
++    union { long sc_r11; long r11;};
++    union { long sc_r12; long r12;};
++    union { long sc_r13; long r13;};
++    union { long sc_r14; long r14;};
++    union { long sc_r15; long r15;};
++    union { long sc_trapno; long trapno;};
++    union { long sc_addr; long addr;};
++    union { long sc_flags; long flags;};
++    union { long sc_err; long err;};
++    union { long sc_rip; long rip;};
++    union { long sc_cs; long cs;};
++    union { long sc_rflags; long rflags;};
++    union { long sc_rsp; long rsp;};
++    union { long sc_ss; long ss;};
++    long	sc_len;        /* sizeof(mcontext_t) */
++    /*
++     * XXX - See <machine/ucontext.h> and <machine/fpu.h> for
++     *       the following fields.
++     */
++    long	sc_fpformat;
++    long	sc_ownedfp;
++    long	sc_fpstate[64] __attribute__((aligned(16)));
++    long	sc_spare[8];
++  };
 +
 +/* Traditional BSD names for some members.  */
 +#define sc_sp           sc_rsp          /* Stack pointer.  */
@@ -20342,8 +20361,8 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.
 +#endif /* _BITS_SIGCONTEXT_H */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/time.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/time.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/time.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/time.h	2006-10-18 09:59:58.000000000 +0200
-@@ -0,0 +1,83 @@
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/time.h	2007-09-09 18:57:02.000000000 +0200
+@@ -0,0 +1,89 @@
 +/* System-dependent timing definitions.  FreeBSD version.
 +   Copyright (C) 1996-1997, 1999, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -20378,6 +20397,12 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/time.h port
 +   The value of CLOCKS_PER_SEC is required to be 1 million on all
 +   XSI-conformant systems. */
 +#  define CLOCKS_PER_SEC  1000000l
++
++#  if !defined __STRICT_ANSI__ && !defined __USE_XOPEN2K
++/* Even though CLOCKS_PER_SEC has such a strange value CLK_TCK
++   presents the real value for clock ticks per second for the system.  */
++#   define CLK_TCK 128
++#  endif
 +
 +#  ifdef __USE_POSIX199309
 +/* Identifier for system-wide realtime clock.  */

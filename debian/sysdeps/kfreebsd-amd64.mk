@@ -26,9 +26,13 @@ i386_libdir = /usr/lib32
 i386_MIN_KERNEL_SUPPORTED = 5.4.0
 
 define libc0.1-dev-i386_extra_pkg_install
-mkdir -p debian/libc0.1-dev-i386/usr/include
-cp -af debian/tmp-i386/usr/include/i486-kfreebsd-gnu \
-	debian/libc0.1-dev-i386/usr/include
+mkdir -p debian/libc0.1-dev-i386/usr/include/gnu
+cp -af debian/tmp-i386/usr/include/i486-kfreebsd-gnu/gnu/stubs-32.h \
+	debian/libc0.1-dev-i386/usr/include/gnu
+mkdir -p debian/libc0.1-dev-i386/usr/include/sys
+cp -af debian/tmp-i386/usr/include/i486-kfreebsd-gnu/sys/vm86.h \
+	debian/libc0.1-dev-i386/usr/include/sys
+mkdir -p debian/libc0.1-dev-i386/usr/include/i486-kfreebsd-gnu
 endef
 
 define libc0.1-i386_extra_pkg_install
@@ -36,3 +40,4 @@ mkdir -p debian/libc0.1-i386/lib
 ln -sf /lib32/ld.so.1 debian/libc0.1-i386/lib
 ln -sf /lib32 debian/libc0.1-i386/lib32
 endef
+
