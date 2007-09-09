@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glibc_2.3.6-15_templates\n"
 "Report-Msgid-Bugs-To: debian-glibc@lists.debian.org\n"
-"POT-Creation-Date: 2007-02-05 05:41+0100\n"
+"POT-Creation-Date: 2007-09-09 23:53+0200\n"
 "PO-Revision-Date: 2006-06-19 01:26+0300\n"
 "Last-Translator: Gintautas Miliauskas <gintas@akl.lt>\n"
 "Language-Team: Lithuanian <komp_lt@konferencijos.lt>\n"
@@ -33,9 +33,14 @@ msgstr "Lokalės, kurios bus sugeneruotos:"
 #. Type: multiselect
 #. Description
 #: ../debhelper.in/locales.templates:1002
+#, fuzzy
+#| msgid ""
+#| "Locale is a framework to switch between multiple languages for users who "
+#| "can select to use their language, country, characters, collation order, "
+#| "etc."
 msgid ""
-"Locale is a framework to switch between multiple languages for users who can "
-"select to use their language, country, characters, collation order, etc."
+"Locales are a framework to switch between multiple languages and allow users "
+"to use their language, country, characters, collation order, etc."
 msgstr ""
 "Lokalė yra karkasas, kuriuo naudotojai gali nustatyti savo kalbą, "
 "informaciją apie savo šalį, simbolius, valiutą, rikiavimo tvarką, etc."
@@ -44,32 +49,9 @@ msgstr ""
 #. Description
 #: ../debhelper.in/locales.templates:1002
 msgid ""
-"Choose which locales to generate.  The selection will be saved to `/etc/"
-"locale.gen', which you can also edit manually (you need to run `locale-gen' "
-"afterwards)."
-msgstr ""
-"Pasirinkite, kurias lokales norite generuoti. Pasirinkimas bus išsaugotas "
-"faile „/etc/locale.gen“, kurį taip pat galite redaguoti rankiniu būdu (po to "
-"reikės paleisti „locale-gen“)."
-
-#. Type: multiselect
-#. Description
-#: ../debhelper.in/locales.templates:1002
-msgid ""
-"When `All locales' is selected, /etc/locale.gen will be set as a symlink to /"
-"usr/share/i18n/SUPPORTED."
-msgstr ""
-"Jei pasirinktas variantas „Visos lokalės“, /etc/locale.gen bus simbolinė "
-"nuoroda į /usr/share/i18n/SUPPORTED."
-
-#. Type: multiselect
-#. Description
-#: ../debhelper.in/locales.templates:1002
-msgid ""
-"UTF-8 locales should be chosen by default.  If you are a performing a new "
-"installation, or are unsure which character set to use, UTF-8 is usually the "
-"best choice.  Other character sets are useful for backwards compatibility "
-"with older systems and software."
+"Please choose which locales to generate. UTF-8 locales should be chosen by "
+"default, particularly for new installations. Other character sets may be "
+"useful for backwards compatibility with older systems and software."
 msgstr ""
 
 #. Type: select
@@ -87,11 +69,16 @@ msgstr "Sistemos lokalė pagal nutylėjimą"
 #. Type: select
 #. Description
 #: ../debhelper.in/locales.templates:2002
+#, fuzzy
+#| msgid ""
+#| "Many packages in Debian use locales to display text in the correct "
+#| "language for users. You can change the default locale if you're not a "
+#| "native English speaker. These choices are based on which locales you have "
+#| "chosen to generate."
 msgid ""
 "Many packages in Debian use locales to display text in the correct language "
-"for users. You can change the default locale if you're not a native English "
-"speaker. These choices are based on which locales you have chosen to "
-"generate."
+"for the user. You can choose a default locale for the system from the "
+"generated locales."
 msgstr ""
 "Daug Debian paketų naudoja lokales tekstui reikiama kalba rodyti. Galite "
 "pakeisti standartinę lokalę, jei anglų kalba jums nėra gimtoji. Galite "
@@ -100,12 +87,85 @@ msgstr ""
 #. Type: select
 #. Description
 #: ../debhelper.in/locales.templates:2002
+#, fuzzy
+#| msgid ""
+#| "Note: This will select the language for your whole system. If you're "
+#| "running a multi-user system where not all of your users speak the "
+#| "language of your choice, then they will run into difficulties and you "
+#| "might want not to set a default locale."
 msgid ""
-"Note: This will select the language for your whole system. If you're running "
-"a multi-user system where not all of your users speak the language of your "
-"choice, then they will run into difficulties and you might want not to set a "
-"default locale."
+"This will select the default language for the entire system. If this system "
+"is a multi-user system where not all users are able to speak the default "
+"language, they will experience difficulties."
 msgstr ""
 "Pastaba: bus nustatyta kalba visai sistemai. Jei sistemą naudoja keletas "
 "naudotojų ir ne visi kalba pasirinkta kalba, gali kilti nepatogumų, todėl "
 "tokiu atveju geriau nenustatinėti sistemos lokalės."
+
+#. Type: string
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid "Services to restart for GNU libc library upgrade:"
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid ""
+"Running services and programs that are using NSS need to be restarted, "
+"otherwise they might not be able to do lookup or authentication any more "
+"(for services such as ssh, this can affect your ability to login). Please "
+"review the following space-separated list of init.d scripts for services to "
+"be restarted now, and correct it if needed."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid ""
+"Note: restarting sshd/telnetd should not affect any existing connections."
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid "Failure restarting some services for GNU libc upgrade"
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid ""
+"The following services could not be restarted for the GNU libc library "
+"upgrade:"
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid "${services}"
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid ""
+"You will need to start these manually by running '/etc/init.d/<service> "
+"start'."
+msgstr ""
+
+#~ msgid ""
+#~ "Choose which locales to generate.  The selection will be saved to `/etc/"
+#~ "locale.gen', which you can also edit manually (you need to run `locale-"
+#~ "gen' afterwards)."
+#~ msgstr ""
+#~ "Pasirinkite, kurias lokales norite generuoti. Pasirinkimas bus išsaugotas "
+#~ "faile „/etc/locale.gen“, kurį taip pat galite redaguoti rankiniu būdu (po "
+#~ "to reikės paleisti „locale-gen“)."
+
+#~ msgid ""
+#~ "When `All locales' is selected, /etc/locale.gen will be set as a symlink "
+#~ "to /usr/share/i18n/SUPPORTED."
+#~ msgstr ""
+#~ "Jei pasirinktas variantas „Visos lokalės“, /etc/locale.gen bus simbolinė "
+#~ "nuoroda į /usr/share/i18n/SUPPORTED."

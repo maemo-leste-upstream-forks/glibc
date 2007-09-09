@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glibc 2.3.2.ds1\n"
 "Report-Msgid-Bugs-To: debian-glibc@lists.debian.org\n"
-"POT-Creation-Date: 2007-02-05 05:41+0100\n"
+"POT-Creation-Date: 2007-09-09 23:53+0200\n"
 "PO-Revision-Date: 2004-02-10 04:25+1300\n"
 "Last-Translator: Hiei Xu <nicky@mail.edu.cn>\n"
 "Language-Team: Chinese/Simplified <i18n-translation@lists.linux.net.cn>\n"
@@ -42,9 +42,14 @@ msgstr "请选择需要生成的区域设置(locale)。"
 #. Type: multiselect
 #. Description
 #: ../debhelper.in/locales.templates:1002
+#, fuzzy
+#| msgid ""
+#| "Locale is a framework to switch between multiple languages for users who "
+#| "can select to use their language, country, characters, collation order, "
+#| "etc."
 msgid ""
-"Locale is a framework to switch between multiple languages for users who can "
-"select to use their language, country, characters, collation order, etc."
+"Locales are a framework to switch between multiple languages and allow users "
+"to use their language, country, characters, collation order, etc."
 msgstr ""
 "区域设置(locale)是一种在多种语言之间切换的框架，用户可以通过它来设定自己的语"
 "言、国家、字符集、字符串排序方式等。"
@@ -53,29 +58,9 @@ msgstr ""
 #. Description
 #: ../debhelper.in/locales.templates:1002
 msgid ""
-"Choose which locales to generate.  The selection will be saved to `/etc/"
-"locale.gen', which you can also edit manually (you need to run `locale-gen' "
-"afterwards)."
-msgstr ""
-"请选择需要生成的区域设置(locale)。选择结果将被保存在“/etc/locale.gen”，您可以"
-"对其进行手工编辑(您需要在编辑结束后运行“locale-gen”)。"
-
-#. Type: multiselect
-#. Description
-#: ../debhelper.in/locales.templates:1002
-msgid ""
-"When `All locales' is selected, /etc/locale.gen will be set as a symlink to /"
-"usr/share/i18n/SUPPORTED."
-msgstr ""
-
-#. Type: multiselect
-#. Description
-#: ../debhelper.in/locales.templates:1002
-msgid ""
-"UTF-8 locales should be chosen by default.  If you are a performing a new "
-"installation, or are unsure which character set to use, UTF-8 is usually the "
-"best choice.  Other character sets are useful for backwards compatibility "
-"with older systems and software."
+"Please choose which locales to generate. UTF-8 locales should be chosen by "
+"default, particularly for new installations. Other character sets may be "
+"useful for backwards compatibility with older systems and software."
 msgstr ""
 
 #. Type: select
@@ -94,11 +79,16 @@ msgstr "哪个将作为系统环境默认的区域设置(locale)？"
 #. Type: select
 #. Description
 #: ../debhelper.in/locales.templates:2002
+#, fuzzy
+#| msgid ""
+#| "Many packages in Debian use locales to display text in the correct "
+#| "language for users. You can change the default locale if you're not a "
+#| "native English speaker. These choices are based on which locales you have "
+#| "chosen to generate."
 msgid ""
 "Many packages in Debian use locales to display text in the correct language "
-"for users. You can change the default locale if you're not a native English "
-"speaker. These choices are based on which locales you have chosen to "
-"generate."
+"for the user. You can choose a default locale for the system from the "
+"generated locales."
 msgstr ""
 "Debian 里的很多软件包都使用区域设置(locale)来以正确的语言向用户显示文本。如果"
 "您不是以英语为母语，也可以改变默认的区域设置(locale)。但您只能在要生成的区域"
@@ -107,12 +97,77 @@ msgstr ""
 #. Type: select
 #. Description
 #: ../debhelper.in/locales.templates:2002
+#, fuzzy
+#| msgid ""
+#| "Note: This will select the language for your whole system. If you're "
+#| "running a multi-user system where not all of your users speak the "
+#| "language of your choice, then they will run into difficulties and you "
+#| "might want not to set a default locale."
 msgid ""
-"Note: This will select the language for your whole system. If you're running "
-"a multi-user system where not all of your users speak the language of your "
-"choice, then they will run into difficulties and you might want not to set a "
-"default locale."
+"This will select the default language for the entire system. If this system "
+"is a multi-user system where not all users are able to speak the default "
+"language, they will experience difficulties."
 msgstr ""
 "注意：这将会把整个系统都设置为这种语言。如果您运行的是一个多用户系统，而且并"
 "不是系统内的所有用户都使用您选择的语言，那么他们将会遇到一些麻烦。或许您不想"
 "设置一个默认的区域设置(locale)。"
+
+#. Type: string
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid "Services to restart for GNU libc library upgrade:"
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid ""
+"Running services and programs that are using NSS need to be restarted, "
+"otherwise they might not be able to do lookup or authentication any more "
+"(for services such as ssh, this can affect your ability to login). Please "
+"review the following space-separated list of init.d scripts for services to "
+"be restarted now, and correct it if needed."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid ""
+"Note: restarting sshd/telnetd should not affect any existing connections."
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid "Failure restarting some services for GNU libc upgrade"
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid ""
+"The following services could not be restarted for the GNU libc library "
+"upgrade:"
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid "${services}"
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid ""
+"You will need to start these manually by running '/etc/init.d/<service> "
+"start'."
+msgstr ""
+
+#~ msgid ""
+#~ "Choose which locales to generate.  The selection will be saved to `/etc/"
+#~ "locale.gen', which you can also edit manually (you need to run `locale-"
+#~ "gen' afterwards)."
+#~ msgstr ""
+#~ "请选择需要生成的区域设置(locale)。选择结果将被保存在“/etc/locale.gen”，您"
+#~ "可以对其进行手工编辑(您需要在编辑结束后运行“locale-gen”)。"

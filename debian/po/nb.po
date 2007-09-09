@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glibc_nb\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-02-22 04:31+0100\n"
+"Report-Msgid-Bugs-To: debian-glibc@lists.debian.org\n"
+"POT-Creation-Date: 2007-09-09 23:53+0200\n"
 "PO-Revision-Date: 2007-02-26 20:05+0100\n"
 "Last-Translator: Bjørn Steensrud <bjornst@powertech.no>\n"
 "Language-Team: Norwegian Bokmål <i18n-nb@lister.ping.uio.no>\n"
@@ -31,9 +31,14 @@ msgstr "Lokaler (stedstilpasninger) som skal opprettes:"
 #. Type: multiselect
 #. Description
 #: ../debhelper.in/locales.templates:1002
+#, fuzzy
+#| msgid ""
+#| "Locale is a framework to switch between multiple languages for users who "
+#| "can select to use their language, country, characters, collation order, "
+#| "etc."
 msgid ""
-"Locale is a framework to switch between multiple languages for users who can "
-"select to use their language, country, characters, collation order, etc."
+"Locales are a framework to switch between multiple languages and allow users "
+"to use their language, country, characters, collation order, etc."
 msgstr ""
 "«Lokale» er et rammeverk som kan veksle mellom flere språk, slik at brukere "
 "kan velge sitt språk, land, tegnsett, sorteringsrekkefølge osv."
@@ -42,23 +47,10 @@ msgstr ""
 #. Description
 #: ../debhelper.in/locales.templates:1002
 msgid ""
-"Choose which locales to generate.  The selection will be saved to `/etc/"
-"locale.gen', which you can also edit manually (you need to run `locale-gen' "
-"afterwards)."
+"Please choose which locales to generate. UTF-8 locales should be chosen by "
+"default, particularly for new installations. Other character sets may be "
+"useful for backwards compatibility with older systems and software."
 msgstr ""
-"Velg hvilke lokaler som skal opprettes. Valget blir lagret til fila "
-"«/etc/locale.gen», som også kan redigeres manuelt («locale-gen» må kjøres "
-"etterpå)."
-
-#. Type: multiselect
-#. Description
-#: ../debhelper.in/locales.templates:1002
-msgid ""
-"When `All locales' is selected, /etc/locale.gen will be set as a symlink to /"
-"usr/share/i18n/SUPPORTED."
-msgstr ""
-"Hvis «Alle lokaler» blir valgt, så blir /etc/locale.gen satt som symbolsk "
-"lenke til /usr/share/i18n/SUPPORTED."
 
 #. Type: select
 #. Choices
@@ -75,26 +67,104 @@ msgstr "Standardlokale for systemmiljøet:"
 #. Type: select
 #. Description
 #: ../debhelper.in/locales.templates:2002
+#, fuzzy
+#| msgid ""
+#| "Many packages in Debian use locales to display text in the correct "
+#| "language for users. You can change the default locale if you're not a "
+#| "native English speaker. These choices are based on which locales you have "
+#| "chosen to generate."
 msgid ""
 "Many packages in Debian use locales to display text in the correct language "
-"for users. You can change the default locale if you're not a native English "
-"speaker. These choices are based on which locales you have chosen to "
-"generate."
+"for the user. You can choose a default locale for the system from the "
+"generated locales."
 msgstr ""
 "Mange pakker i Debian bruker lokaler for å vise tekst i det riktige språket "
 "for brukerne. Du kan endre standardlokalet om det ikke er ditt førstespråk. "
-"Disse valgene er basert på hvilke lokaler som er valgt ut til å bli opprettet."
+"Disse valgene er basert på hvilke lokaler som er valgt ut til å bli "
+"opprettet."
 
 #. Type: select
 #. Description
 #: ../debhelper.in/locales.templates:2002
+#, fuzzy
+#| msgid ""
+#| "Note: This will select the language for your whole system. If you're "
+#| "running a multi-user system where not all of your users speak the "
+#| "language of your choice, then they will run into difficulties and you "
+#| "might want not to set a default locale."
 msgid ""
-"Note: This will select the language for your whole system. If you're running "
-"a multi-user system where not all of your users speak the language of your "
-"choice, then they will run into difficulties and you might want not to set a "
-"default locale."
+"This will select the default language for the entire system. If this system "
+"is a multi-user system where not all users are able to speak the default "
+"language, they will experience difficulties."
 msgstr ""
-"Merk: Dette velger språk for hele systemet. Hvis dette er et flerbrukersystem "
-"der ikke alle brukerne forstår det valgte språket, så kan de komme opp i "
-"vansker, så kanskje det ikke bør velges et standardlokale."
+"Merk: Dette velger språk for hele systemet. Hvis dette er et "
+"flerbrukersystem der ikke alle brukerne forstår det valgte språket, så kan "
+"de komme opp i vansker, så kanskje det ikke bør velges et standardlokale."
 
+#. Type: string
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid "Services to restart for GNU libc library upgrade:"
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid ""
+"Running services and programs that are using NSS need to be restarted, "
+"otherwise they might not be able to do lookup or authentication any more "
+"(for services such as ssh, this can affect your ability to login). Please "
+"review the following space-separated list of init.d scripts for services to "
+"be restarted now, and correct it if needed."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid ""
+"Note: restarting sshd/telnetd should not affect any existing connections."
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid "Failure restarting some services for GNU libc upgrade"
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid ""
+"The following services could not be restarted for the GNU libc library "
+"upgrade:"
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid "${services}"
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid ""
+"You will need to start these manually by running '/etc/init.d/<service> "
+"start'."
+msgstr ""
+
+#~ msgid ""
+#~ "Choose which locales to generate.  The selection will be saved to `/etc/"
+#~ "locale.gen', which you can also edit manually (you need to run `locale-"
+#~ "gen' afterwards)."
+#~ msgstr ""
+#~ "Velg hvilke lokaler som skal opprettes. Valget blir lagret til fila «/etc/"
+#~ "locale.gen», som også kan redigeres manuelt («locale-gen» må kjøres "
+#~ "etterpå)."
+
+#~ msgid ""
+#~ "When `All locales' is selected, /etc/locale.gen will be set as a symlink "
+#~ "to /usr/share/i18n/SUPPORTED."
+#~ msgstr ""
+#~ "Hvis «Alle lokaler» blir valgt, så blir /etc/locale.gen satt som symbolsk "
+#~ "lenke til /usr/share/i18n/SUPPORTED."
