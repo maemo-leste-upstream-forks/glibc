@@ -117,6 +117,12 @@ checkpkgver () {
 
 if [ "$type" = "configure" ]
 then
+
+    # Load debconf module if available
+    if [ -f /usr/share/debconf/confmodule ] ; then
+	. /usr/share/debconf/confmodule
+    fi
+
     # Handle upgrades for libdb.so.3. We do this before calling ldconfig,
     # since it will create a symlink for us. Just move everything over. We
     # use `cat' because I feel it is simpler and safer. Make sure that
@@ -152,85 +158,100 @@ then
 	fi
 	if dpkg --compare-versions $preversion lt 2.3.5-1; then
 	    echo -n "Checking for services that may need to be restarted..."
-
-	    check="nis smail sendmail exim exim4-base ssh netbase"
-	    check="$check ssh-nonfree postfix-tls wu-ftpd boa cron postfix"
-	    check="$check wu-ftpd-academ vsftpd slapd openldapd wwwoffle"
-	    check="$check cupsys lprng lpr lpr-ppd autofs snmpd ssh-krb5"
-	    check="$check courier-authdaemon mysql-server spamassassin"
-	    check="$check apache apache-ssl apache-perl apache2-common"
-	    check="$check proftpd proftpd-ldap proftpd-mysql proftpd-pgsql"
-	    check="$check dovecot-common cucipop rsync samba saslauthd"
+	    check="apache2-common apache apache-ssl apache-perl autofs at"
+	    check="$check boa cucipop courier-authdaemon cron cupsys exim"
+	    check="$check exim4-base dovecot-common cucipop lprng lpr"
+	    check="$check lpr-ppd mysql-server nis openbsd-inetd"
+	    check="$check openldapd postfix postfix-tls proftpd rsync samba"
+	    check="$check sasl2-bin slapd smail sendmail snmpd ssh"
+	    check="$check spamassassin vsftpd wu-ftpd wu-ftpd-academ wwwoffle"
 	    check="$check webmin dropbear"
 	    # Only get the ones that are installed, and configured
 	    check=$(dpkg -s $check 2> /dev/null | egrep '^Package:|^Status:' | awk '{if ($1 ~ /^Package:/) { package=$2 } else if ($0 ~ /^Status: .* installed$/) { print package }}')
-	    # apache2 ships its init script in apache2-common, but the
-	    # script is apache2
-	    check=$(echo $check | sed 's/apache2-common/apache2/g')
-	    # exim4 ships its init script in exim4-base, but the script
-	    # is exim4
-	    check=$(echo $check | sed 's/exim4-base/exim4/g')
-	    # The name of proftpd-{ldap,mysql,pgsql} init script is
-	    # same as "proftpd".
-	    check=$(echo $check | sed 's/proftpd-.*/proftpd/g')
-	    # dovecot-common ships its init script, but the
-	    # script name is dovecot for dovecot-{imapd,pop3d}.
-	    check=$(echo $check | sed 's/dovecot-common/dovecot/g')
-	    # lpr and lpr-ppd ship its init script, but the 
-	    # script name is lpd and lpd-ppd.  The inserted space is
-	    # intentional to not replace lprng.
-	    check=$(echo $check | sed 's/lpr /lpd /g')
-	    check=$(echo $check | sed 's/lpr-ppd /lpd-ppd /g')
-	    # We have to list inetd and atd explicitly, because the packages
-	    # have different names to their init scripts
-	    check="$check inetd atd"
-	    rl=$(runlevel | awk '{print $2}')
+	    # some init scripts don't match the package names
+	    check=$(echo $check | \
+		sed -e's/\bapache2-common\b/apache2/g' \
+		    -e's/\bat\b/atd/g' \
+		    -e's/\bdovecot-common\b/dovecot/g' \
+		    -e's/\bexim4-base\b/exim4/g' \
+		    -e's/\blpr\b/lpd/g' \
+		    -e's/\blpr-ppd\b/lpd-ppd/g' \
+		    -e's/\bsasl2-bin\b/saslauthd/g' \
+	    )
+	    echo
+	    echo "Checking init scripts..."
+	    rl=$(runlevel | sed 's/.*\ //')
 	    for service in $check; do
-		if [ -f /usr/share/file-rc/rc ] || [ -f /usr/lib/file-rc/rc ] && [ -f /etc/runlevel.conf ]; then
-		    idl=$(filerc $rl $service)
+	        if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
+	    	    idl=$(ls /etc/init.d/${service} 2> /dev/null | head -n 1)
+		    if [ -n "$idl" ] && [ -x $idl ]; then
+		        services="$service $services"
+		    else
+			echo "WARNING: init script for $service not found."
+		    fi
 		else
-		    idl=$(ls /etc/rc${rl}.d/S??${service} 2> /dev/null | head -1)
-		fi
-		if [ -n "$idl" ] && [ -x $idl ]; then
-		    services="$service $services"
-		fi
+		    if [ -f /usr/share/file-rc/rc ] || [ -f /usr/lib/file-rc/rc ] && [ -f /etc/runlevel.conf ]; then
+			idl=$(filerc $rl $service)
+		    else
+			idl=$(ls /etc/rc${rl}.d/S??${service} 2> /dev/null | head -1)
+		    fi
+		    if [ -n "$idl" ] && [ -x $idl ]; then
+			services="$service $services"
+		    fi
+	        fi
 	    done
-	    echo "done."
 	    if [ -n "$services" ]; then
-		echo
-		echo "Name Service Switch update in the C Library: post-installation question."
-		echo
-		echo "Running services and programs that are using NSS need to be restarted,"
-		echo "otherwise they might not be able to do lookup or authentication any more"
-		echo "(for services such as ssh, this can affect your ability to login)."
-		echo "Note: restarting sshd/telnetd should not affect any existing connections."
-		echo
-		echo "The services detected are: "
-		echo "        $services"
-		echo
-		echo "If other services have begun to fail mysteriously after this upgrade, it is"
-		echo "probably necessary to restart them too.  We recommend that you reboot your"
-		echo "machine after the upgrade to avoid NSS-related troubles."
-		echo
-		frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
-		if [ "$frontend" = noninteractive ]; then
-		    echo "Non-interactive mode, restarting services"
-		    answer=yes
+
+	        if [ -f /usr/share/debconf/confmodule ] ; then
+		    db_version 2.0
+		    db_reset glibc/restart-services
+		    db_set glibc/restart-services "$services"
+		    db_input critical glibc/restart-services || true
+		    db_go || true
+		    db_get glibc/restart-services
+		    if [ "x$RET" != "x" ]
+		    then
+		        services="$RET"
+		    else
+		    	services=""
+		    fi
 		else
-		    echo -n "Do you wish to restart services? [Y/n] "
-		    read answer
-		    case $answer in
-			Y*|y*) answer=yes ;;
-			N*|n*) answer=no ;;
-			*) answer=yes ;;
-		    esac
+		    echo
+		    echo "Name Service Switch update in the C Library: post-installation question."
+		    echo
+		    echo "Running services and programs that are using NSS need to be restarted,"
+		    echo "otherwise they might not be able to do lookup or authentication any more"
+		    echo "(for services such as ssh, this can affect your ability to login)."
+		    echo "Note: restarting sshd/telnetd should not affect any existing connections."
+		    echo
+		    echo "The services detected are: "
+		    echo "        $services"
+		    echo
+		    echo "If other services have begun to fail mysteriously after this upgrade, it is"
+		    echo "probably necessary to restart them too.  We recommend that you reboot your"
+		    echo "machine after the upgrade to avoid NSS-related troubles."
+		    echo
+		    frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
+		    if [ "$frontend" = noninteractive ]; then
+		    	echo "Non-interactive mode, restarting services"
+		    	answer=yes
+		    else
+		    	echo -n "Do you wish to restart services? [Y/n] "
+		    	read answer
+		    	case $answer in
+			    N*|n*) services="" ;;
+			    *) ;;
+		        esac
+		    fi
 		fi
 		echo
-		if [ "$answer" = yes ] && [ "$services" != "" ]; then
+		if [ "$services" != "" ]; then
 		    echo "Restarting services possibly affected by the upgrade:"
 		    failed=""
 		    for service in $services; do
-			if [ -f /usr/share/file-rc/rc ] || [ -f /usr/lib/file-rc/rc ] && [ -f /etc/runlevel.conf ]; then
+		    	if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
+			    idl="invoke-rc.d ${service}"
+			elif [ -f /usr/share/file-rc/rc ] || [ -f /usr/lib/file-rc/rc ] && [ -f /etc/runlevel.conf ]; then
 			    idl=$(filerc $rl $service)
 			else
 			    idl=$(ls /etc/rc${rl}.d/S??${service} 2> /dev/null | head -1)
@@ -248,22 +269,35 @@ then
 		    done
 		    echo
 		    if [ -n "$failed" ]; then
-			# Ruh roh, George
-			echo "The following services failed to start: $failed"
-			echo
-			echo "You will need to start these manually by running \`/etc/init.d/<service> start'"
-			echo "If the service still fails to start, you may need to file a bug on"
-			echo "$(package_name) or the service involved."
-			if [ "$DEBIAN_FRONTEND" != noninteractive ]; then
+	        	if [ -f /usr/share/debconf/confmodule ] ; then
+		    	    db_fset glibc/restart-failed seen false
+			    db_subst glibc/restart-failed services "$failed"
+			    db_input critical glibc/restart-failed || true
+			    db_go || true
+			else
+			    echo "The following services failed to start: $failed"
 			    echo
-			    echo -n "Press ENTER to continue: "
-			    read foo
+			    echo "You will need to start these manually by running \`/etc/init.d/<service> start'"
+			    echo "If the service still fails to start, you may need to file a bug on"
+			    echo "$(package_name) or the service involved."
+			    frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
+			    if [ "$frontend" != noninteractive ]; then
+			    	echo
+			    	echo -n "Press ENTER to continue: "
+			    	read foo
+			    fi
 			fi
 		    else
 			echo "Services restarted successfully."
-		    fi
-		    echo
+                    fi
 		fi
+                # Shut down the frontend, to make sure none of the
+		# restarted services keep a connection open to it
+	        if [ -f /usr/share/debconf/confmodule ] ; then
+		    db_stop
+		fi
+	    else
+		echo "Nothing to restart."
 	    fi
 	fi # end upgrading and $preversion lt 2.3.5-1
     fi # Upgrading

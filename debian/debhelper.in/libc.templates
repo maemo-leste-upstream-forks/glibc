@@ -1,0 +1,20 @@
+Template: glibc/restart-services
+Type: string
+_Description: Services to restart for GNU libc library upgrade:
+ Running services and programs that are using NSS need to be restarted,
+ otherwise they might not be able to do lookup or authentication any more
+ (for services such as ssh, this can affect your ability to login).
+ Please review the following space-separated list of init.d scripts for
+ services to be restarted now, and correct it if needed.
+ .
+ Note: restarting sshd/telnetd should not affect any existing connections.
+
+Template: glibc/restart-failed
+Type: error
+_Description: Failure restarting some services for GNU libc upgrade
+ The following services could not be restarted for the GNU libc library upgrade:
+ .
+ ${services}
+ .
+ You will need to start these manually by running
+ '/etc/init.d/<service> start'.
