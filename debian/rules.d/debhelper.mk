@@ -127,9 +127,11 @@ endif
 	dh_installdeb -p$(curpass)
 	if [ $(curpass) = nscd ] ; then \
 		dh_shlibdeps -p$(curpass) ; \
-		sed -e "s/\(Depends:.*libc[0-9.]\+\)-[a-z0-9]\+/\1/" debian/nscd/DEBIAN/control ; \
 	fi
 	dh_gencontrol -p$(curpass) -- $($(curpass)_control_flags)
+	if [ $(curpass) = nscd ] ; then \
+		sed -i -e "s/\(Depends:.*libc[0-9.]\+\)-[a-z0-9]\+/\1/" debian/nscd/DEBIAN/control ; \
+	fi
 	dh_md5sums -p$(curpass)
 	dh_builddeb -p$(curpass)
 
