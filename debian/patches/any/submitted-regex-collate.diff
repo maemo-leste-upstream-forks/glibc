@@ -1,0 +1,17 @@
+2007-09-13  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* posix/regcomp.c (lookup_collation_sequence_value): check that
+	nrules != 0 for multibyte chars.
+
+--- libc/posix/regcomp.c
++++ libc/posix/regcomp.c
+@@ -2771,7 +2771,8 @@
+ 	}
+       else if (br_elem->type == MB_CHAR)
+ 	{
+-	  return __collseq_table_lookup (collseqwc, br_elem->opr.wch);
++	  if (nrules != 0)
++	    return __collseq_table_lookup (collseqwc, br_elem->opr.wch);
+ 	}
+       else if (br_elem->type == COLL_SYM)
+ 	{
