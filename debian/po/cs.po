@@ -15,8 +15,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glibc\n"
 "Report-Msgid-Bugs-To: debian-glibc@lists.debian.org\n"
-"POT-Creation-Date: 2007-09-10 10:19+0200\n"
-"PO-Revision-Date: 2007-04-11 19:22+0200\n"
+"POT-Creation-Date: 2007-09-09 23:53+0200\n"
+"PO-Revision-Date: 2007-09-17 18:27+0200\n"
 "Last-Translator: Miroslav Kure <kurem@debian.cz>\n"
 "Language-Team: Czech <debian-l10n-czech@lists.debian.org>\n"
 "MIME-Version: 1.0\n"
@@ -96,7 +96,7 @@ msgstr ""
 #. Description
 #: ../debhelper.in/libc.templates:1001
 msgid "Services to restart for GNU libc library upgrade:"
-msgstr ""
+msgstr "Služby, které se mají restartovat po aktualizaci knihovny GNU libc:"
 
 #. Type: string
 #. Description
@@ -108,19 +108,25 @@ msgid ""
 "review the following space-separated list of init.d scripts for services to "
 "be restarted now, and correct it if needed."
 msgstr ""
+"Běžící služby a programy využívající NSS se musí restartovat, protože jinak "
+"se může stát, že nebudou moci vyhledávat v systémových databázích nebo "
+"ověřovat uživatele. (U služeb typu ssh to může ovlivnit možnost přihlášení "
+"se.) Zkontrolujte prosím následující mezerami oddělený seznam služeb, které "
+"se mají restartovat a v případě potřeby jej opravte. Služby jsou v seznamu "
+"zastoupeny svými init.d skripty."
 
 #. Type: string
 #. Description
 #: ../debhelper.in/libc.templates:1001
 msgid ""
 "Note: restarting sshd/telnetd should not affect any existing connections."
-msgstr ""
+msgstr "Poznámka: restart sshd/telnetd by neměl ovlivnit probíhající spojení."
 
 #. Type: error
 #. Description
 #: ../debhelper.in/libc.templates:2001
 msgid "Failure restarting some services for GNU libc upgrade"
-msgstr ""
+msgstr "Chyba při restartu některých služeb během aktualizace GNU libc"
 
 #. Type: error
 #. Description
@@ -129,6 +135,14 @@ msgid ""
 "The following services could not be restarted for the GNU libc library "
 "upgrade:"
 msgstr ""
+"Následující služby nemohly být během aktualizace knihovny GNU libc "
+"restartovány:"
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:2001
+msgid "${services}"
+msgstr "${services}"
 
 #. Type: error
 #. Description
@@ -136,20 +150,4 @@ msgstr ""
 msgid ""
 "You will need to start these manually by running '/etc/init.d/<service> "
 "start'."
-msgstr ""
-
-#~ msgid ""
-#~ "Choose which locales to generate.  The selection will be saved to `/etc/"
-#~ "locale.gen', which you can also edit manually (you need to run `locale-"
-#~ "gen' afterwards)."
-#~ msgstr ""
-#~ "Vyberte, které locales se mají vygenerovat. Vaše volba se zaznamená do "
-#~ "souboru '/etc/locale.gen', který můžete upravovat i ručně (pak ale musíte "
-#~ "spustit 'locale-gen')."
-
-#~ msgid ""
-#~ "When `All locales' is selected, /etc/locale.gen will be set as a symlink "
-#~ "to /usr/share/i18n/SUPPORTED."
-#~ msgstr ""
-#~ "Vyberete-li 'Všechny locales', ze souboru /etc/locale.gen se stane "
-#~ "symbolický odkaz na /usr/share/i18n/SUPPORTED."
+msgstr "Budete je muset spustit ručně příkazem „/etc/init.d/<služba> start“."
