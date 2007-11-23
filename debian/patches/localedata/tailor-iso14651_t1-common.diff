@@ -1,0 +1,41 @@
+Index: glibc-2.7/localedata/locales/iso14651_t1_common
+===================================================================
+--- glibc-2.7.orig/localedata/locales/iso14651_t1_common	2007-10-23 08:51:23.000000000 -0400
++++ glibc-2.7/localedata/locales/iso14651_t1_common	2007-10-23 09:25:31.000000000 -0400
+@@ -466,7 +466,11 @@
+ # SYMB. N°
+ #
+ <RES-1>
++ifdef UPPERCASE_FIRST
++<CAP>
++else
+ <MIN>
++endif
+ # forme de base (bas de casse, arabe intrinsèque,
+ # hébreu intrinsèque, etc.
+ # basic form (lower case, intrinsic Arabic
+@@ -485,14 +489,21 @@
+ <AME> # medial/m<e'>dian
+ # 6
+ #
++ifdef UPPERCASE_FIRST
++<ICA> # 7
++<ECA> # 8
++<AMI> # 9
++<MIN> # 10
++<IMI> # 11
++<EMI> # 12
++else
+ <IMI> # 7
+ <EMI> # 8
+ <CAP> # 9
+ <ICA> # 10
+ <ECA> # 11
+-<AMI>
+-#alternate lower case/
+-# 12
++<AMI> # 12 alternate lower case
++endif
+ #
+ #minuscules spéciales après majuscules
+ # <ARABINT>/<ARABFOR>

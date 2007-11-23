@@ -101,7 +101,7 @@
 .nr % 0
 .rr F
 .\}
-.TH ICONV 1 "etch" "20/Jun/2004" "Debian GNU/Linux"
+.TH ICONV 1 "lenny" "18/Nov/2007" "Debian GNU/Linux"
 .UC
 .if n .hy 0
 .if n .na
@@ -236,6 +236,22 @@ Give a short usage message.
 .TP
 \fB\-\-version\fR, \fB\-V\fR
 Print program version.
+.SH ENCODINGS
+The values permitted for \fI\-\-from\-code\fP and \fI\-\-to\-code\fP can be listed
+by the \fBiconv \-\-list\fP command, and all combinations of the listed values are
+supported. Furthermore the following two suffixes are supported:
+.TP
+//TRANSLIT
+When the string "//TRANSLIT" is appended to \fI\-\-to\-code\fP, transliteration
+is activated.
+This means that when a character cannot be represented in the
+target character set, it can be approximated through one or several
+similarly looking characters.
+.TP
+//IGNORE
+When the string "//IGNORE" is appended to \fI\-\-to\-code\fP, characters that
+cannot be represented in the target character set will be silently discarded.
+
 .SH "AUTHOR"
 \fIiconv\fR was written by Ulrich Drepper as part of the GNU C Library.
 .PP
@@ -251,6 +267,8 @@ for the Debian GNU/Linux system.
 .IX Header "SYNOPSIS"
 
 .IX Header "DESCRIPTION"
+
+.IX Header "ENCODINGS"
 
 .IX Header "AUTHOR"
 

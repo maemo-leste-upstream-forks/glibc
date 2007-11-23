@@ -84,8 +84,8 @@ exit_check () {
             fi	
         fi
 
-        # HPPA boxes require latest fixes in the kernel to function properly.
-        if [ "$realarch" = parisc ]
+        # Alpha and HPPA boxes require latest fixes in the kernel to function properly.
+        if [ "$realarch" = parisc -o "$realarch" = alpha ]
         then
             if linux_compare_versions "$kernel_ver" lt 2.6.9
             then
@@ -96,6 +96,20 @@ exit_check () {
                 kernel26_help
                 exit_check
             fi
+        fi
+
+        # sh4 boxes require kernel version 2.6.11 minimum
+        if [ "$realarch" = sh4 ]
+        then
+            if linux_compare_versions "$kernel_ver" lt 2.6.11
+            then
+                echo WARNING: This version of glibc requires that you be running
+                echo kernel version 2.6.11 or later.  Earlier kernels contained
+                echo bugs that may render the system unusable if a modern version
+                echo of glibc is installed.
+                kernel26_help
+                exit_check
+            fi	
         fi
 
         # The GNU libc requires 2.6 kernel (except on m68k) because we drop to

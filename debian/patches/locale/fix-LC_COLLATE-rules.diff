@@ -1,19 +1,8 @@
-Fix rules definitions in LC_COLLATE. Backward/forward rules were
-sometimes affected to a wrong section, some rules could wrongly be
-declared as identical, and localedef segfaults are also fixed.
-Special French collation now works as described in ISO-14651.
-
-Submitted upstream: BZ645
-
-# DP: Dpatch author: Denis Barbier
-# DP: Patch author: Denis Barbier
-# DP: Upstream status: BZ645
-# DP: Status Details: depends on #310635
-# DP: Date: 2006-01-08
-
---- locale/programs/ld-collate.c.orig
-+++ locale/programs/ld-collate.c
-@@ -1523,6 +1523,7 @@
+Index: locale/programs/ld-collate.c
+===================================================================
+--- locale/programs/ld-collate.c.orig	2007-10-24 20:13:39.000000000 -0400
++++ locale/programs/ld-collate.c	2007-10-24 20:28:06.000000000 -0400
+@@ -1546,6 +1546,7 @@
    int i;
    int need_undefined = 0;
    struct section_list *sect;
@@ -21,7 +10,7 @@ Submitted upstream: BZ645
    int ruleidx;
    int nr_wide_elems = 0;
  
-@@ -1534,17 +1535,28 @@
+@@ -1557,18 +1558,28 @@
  				"LC_COLLATE"));
        return;
      }
@@ -31,7 +20,6 @@ Submitted upstream: BZ645
 +          empty category description not allowed.  */
 +      return;
 +    }
-+
  
    /* If this assertion is hit change the type in `element_t'.  */
    assert (nrules <= sizeof (runp->used_in_level) * 8);
@@ -44,46 +32,21 @@ Submitted upstream: BZ645
 +  orules = sect->rules;
    for (i = 0; i < nrules; ++i)
      for (sect = collate->sections; sect != NULL; sect = sect->next)
-       if (sect->rules != NULL
+       if (sect != collate->current_section
+ 	  && sect->rules != NULL
  	  && ((sect->rules[i] & sort_position)
--	      != (collate->sections->rules[i] & sort_position)))
+-	      != (collate->current_section->rules[i] & sort_position)))
 +	      != (orules[i] & sort_position)))
  	{
  	  WITH_CUR_LOCALE (error (0, 0, _("\
  %s: `position' must be used for a specific level in all sections or none"),
-@@ -1839,7 +1851,7 @@
- 
-       while (osect != sect)
- 	if (osect->rules != NULL
--	    && memcmp (osect->rules, sect->rules, nrules) == 0)
-+	    && memcmp (osect->rules, sect->rules, nrules * sizeof (*osect->rules)) == 0)
- 	  break;
- 	else
- 	  osect = osect->next;
-@@ -3189,12 +3201,15 @@
- 		    {
- 		      /* Insert sp in the collate->sections list,
- 			 right after collate->current_section.  */
--		      if (collate->current_section == NULL)
-+		      if (collate->sections == NULL)
-+			collate->sections = collate->current_section = sp;
-+		      else if (collate->current_section == NULL)
- 			collate->current_section = sp;
- 		      else
- 			{
- 			  sp->next = collate->current_section->next;
- 			  collate->current_section->next = sp;
-+			  collate->current_section = sp;
- 			}
- 		    }
- 
-@@ -3385,6 +3400,9 @@
+@@ -3503,6 +3514,9 @@
  		      no_error = 0;
  		    }
  		}
 +	      /* Update current section.  */
 +	      if (collate->cursor != NULL)
-+		collate->current_section = collate->cursor->section;
++	        collate->current_section = collate->cursor->section;
  
  	      lr_ignore_rest (ldfile, no_error);
  	    }

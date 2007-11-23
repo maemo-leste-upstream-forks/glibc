@@ -1,44 +1,3 @@
---- elf/elf.h.orig
-+++ elf/elf.h
-@@ -1710,6 +1710,8 @@
- #define R_PARISC_LTOFF_FPTR14R	62	/* LT-rel. fct ptr, right 14 bits. */
- #define R_PARISC_FPTR64		64	/* 64 bits function address.  */
- #define R_PARISC_PLABEL32	65	/* 32 bits function address.  */
-+#define R_PARISC_PLABEL21L	66	/* Left 21 bits of fdesc address */
-+#define R_PARISC_PLABEL14R	70	/* Right 14 bits of fdesc address */
- #define R_PARISC_PCREL64	72	/* 64 bits PC-rel. address.  */
- #define R_PARISC_PCREL22F	74	/* 22 bits PC-rel. address.  */
- #define R_PARISC_PCREL14WR	75	/* PC-rel. address, right 14 bits.  */
-@@ -1770,6 +1772,29 @@
- #define R_PARISC_LTOFF_TP16F	229	/* 16 bits LT-TP-rel. address.  */
- #define R_PARISC_LTOFF_TP16WF	230	/* 16 bits LT-TP-rel. address.  */
- #define R_PARISC_LTOFF_TP16DF	231	/* 16 bits LT-TP-rel. address.  */
-+
-+#define R_PARISC_GNU_VTENTRY    232
-+#define R_PARISC_GNU_VTINHERIT  233
-+#define R_PARISC_TLS_GD21L      234	/* GD 21-bit left */
-+#define R_PARISC_TLS_GD14R      235	/* GD 14-bit right */
-+#define R_PARISC_TLS_GDCALL     236	/* GD call to __t_g_a */
-+#define R_PARISC_TLS_LDM21L     237	/* LD module 21-bit left */
-+#define R_PARISC_TLS_LDM14R     238	/* LD module 14-bit right */
-+#define R_PARISC_TLS_LDMCALL    239	/* LD module call to __t_g_a */
-+#define R_PARISC_TLS_LDO21L     240	/* LD offset 21-bit left */
-+#define R_PARISC_TLS_LDO14R     241	/* LD offset 14-bit right */
-+#define R_PARISC_TLS_DTPMOD32   242	/* DTP module 32-bit */
-+#define R_PARISC_TLS_DTPMOD64   243	/* DTP module 64-bit */
-+#define R_PARISC_TLS_DTPOFF32   244	/* DTP offset 32-bit */
-+#define R_PARISC_TLS_DTPOFF64   245	/* DTP offset 32-bit */
-+
-+#define R_PARISC_TLS_LE21L      R_PARISC_TPREL21L
-+#define R_PARISC_TLS_LE14R      R_PARISC_TPREL14R
-+#define R_PARISC_TLS_IE21L      R_PARISC_LTOFF_TP21L
-+#define R_PARISC_TLS_IE14R      R_PARISC_LTOFF_TP14R
-+#define R_PARISC_TLS_TPREL32    R_PARISC_TPREL32
-+#define R_PARISC_TLS_TPREL64    R_PARISC_TPREL64
-+
- #define R_PARISC_HIRESERVE	255
- 
- /* Legal values for p_type field of Elf32_Phdr/Elf64_Phdr.  */
 --- elf/rtld.c.orig
 +++ elf/rtld.c
 @@ -379,14 +379,14 @@
@@ -61,80 +20,6 @@
  # endif
  # if USE___THREAD
    bootstrap_map.l_tls_modid = 0;
---- nptl/Makefile.orig
-+++ nptl/Makefile
-@@ -263,9 +263,9 @@
- # Files which must not be linked with libpthread.
- tests-nolibpthread = tst-unload
- 
--# This sets the stack resource limit to 1023kb, which is not a multiple
--# of the page size since every architecture's page size is > 1k.
--tst-oddstacklimit-ENV = ; ulimit -s 1023;
-+# This sets the stack resource limit to 8193kb, which is not a multiple
-+# of the page size since every architecture's page size is 4096 bytes.
-+tst-oddstacklimit-ENV = ; ulimit -s 8193;
- 
- distribute = eintr.c tst-cleanup4aux.c
- 
-@@ -424,6 +424,35 @@
- CFLAGS-tst-cleanupx4.c += -fexceptions
- CFLAGS-tst-oncex3.c += -fexceptions
- CFLAGS-tst-oncex4.c += -fexceptions
-+
-+ldflags-libgcc_s = --as-needed -lgcc_s --no-as-needed
-+LDFLAGS-tst-cancelx2 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx3 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx4 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx5 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx6 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx7 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx8 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx9 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx10 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx11 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx12 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx13 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx14 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx15 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx16 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx17 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx18 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx20 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cancelx21 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cleanupx0 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cleanupx1 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cleanupx2 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cleanupx3 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-cleanupx4 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-oncex3 += $(ldflags-libgcc_s)
-+LDFLAGS-tst-oncex4 += $(ldflags-libgcc_s)
-+
- CFLAGS-tst-align.c += $(stack-align-test-flags)
- CFLAGS-tst-align3.c += $(stack-align-test-flags)
- CFLAGS-tst-initializers1.c = -W -Wall -Werror
---- nptl/pthread_barrier_wait.c.orig
-+++ nptl/pthread_barrier_wait.c
-@@ -62,7 +62,7 @@
-       /* Wait for the event counter of the barrier to change.  */
-       do
- 	lll_futex_wait (&ibarrier->curr_event, event);
--      while (event == ibarrier->curr_event);
-+      while (event == *(volatile unsigned int *)&ibarrier->curr_event);
-     }
- 
-   /* Make sure the init_count is stored locally or in a register.  */
---- nptl/sysdeps/pthread/Makefile.orig
-+++ nptl/sysdeps/pthread/Makefile
-@@ -41,7 +41,9 @@
- 
- ifeq ($(have-forced-unwind),yes)
- tests += tst-mqueue8x
-+ldflags-libgcc_s = --as-needed -lgcc_s --no-as-needed
- CFLAGS-tst-mqueue8x.c += -fexceptions
-+LDFLAGS-tst-mqueue8x += $(ldflags-libgcc_s) 
- endif
- endif
- 
 --- include/atomic.h.orig
 +++ include/atomic.h
 @@ -174,7 +174,7 @@
@@ -254,17 +139,91 @@
       while (__builtin_expect						      \
  	    (atomic_compare_and_exchange_bool_acq (__atg19_memp,	      \
  						   __atg19_old | __atg19_mask,\
+--- nptl/Makefile.orig
++++ nptl/Makefile
+@@ -263,9 +263,9 @@
+ # Files which must not be linked with libpthread.
+ tests-nolibpthread = tst-unload
+ 
+-# This sets the stack resource limit to 1023kb, which is not a multiple
+-# of the page size since every architecture's page size is > 1k.
+-tst-oddstacklimit-ENV = ; ulimit -s 1023;
++# This sets the stack resource limit to 8193kb, which is not a multiple
++# of the page size since every architecture's page size is 4096 bytes.
++tst-oddstacklimit-ENV = ; ulimit -s 8193;
+ 
+ distribute = eintr.c tst-cleanup4aux.c
+ 
+@@ -424,6 +424,35 @@
+ CFLAGS-tst-cleanupx4.c += -fexceptions
+ CFLAGS-tst-oncex3.c += -fexceptions
+ CFLAGS-tst-oncex4.c += -fexceptions
++
++ldflags-libgcc_s = --as-needed -lgcc_s --no-as-needed
++LDFLAGS-tst-cancelx2 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx3 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx4 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx5 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx6 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx7 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx8 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx9 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx10 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx11 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx12 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx13 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx14 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx15 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx16 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx17 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx18 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx20 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cancelx21 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cleanupx0 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cleanupx1 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cleanupx2 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cleanupx3 += $(ldflags-libgcc_s)
++LDFLAGS-tst-cleanupx4 += $(ldflags-libgcc_s)
++LDFLAGS-tst-oncex3 += $(ldflags-libgcc_s)
++LDFLAGS-tst-oncex4 += $(ldflags-libgcc_s)
++
+ CFLAGS-tst-align.c += $(stack-align-test-flags)
+ CFLAGS-tst-align3.c += $(stack-align-test-flags)
+ CFLAGS-tst-initializers1.c = -W -Wall -Werror
+--- nptl.orig/pthread_barrier_wait.c
++++ nptl/pthread_barrier_wait.c	
+@@ -64,7 +64,7 @@
+       do
+ 	lll_futex_wait (&ibarrier->curr_event, event,
+ 			ibarrier->private ^ FUTEX_PRIVATE_FLAG);
+-      while (event == ibarrier->curr_event);
++      while (event == *(volatile unsigned int *)&ibarrier->curr_event);
+     }
+ 
+   /* Make sure the init_count is stored locally or in a register.  */
+--- nptl/sysdeps/pthread/Makefile.orig
++++ nptl/sysdeps/pthread/Makefile
+@@ -41,7 +41,9 @@
+ 
+ ifeq ($(have-forced-unwind),yes)
+ tests += tst-mqueue8x
++ldflags-libgcc_s = --as-needed -lgcc_s --no-as-needed
+ CFLAGS-tst-mqueue8x.c += -fexceptions
++LDFLAGS-tst-mqueue8x += $(ldflags-libgcc_s) 
+ endif
+ endif
+ 
 --- stdio-common/Makefile.orig
 +++ stdio-common/Makefile
-@@ -77,7 +77,7 @@
+@@ -79,7 +79,7 @@
  	$(SHELL) -e tst-printf.sh $(common-objpfx) '$(run-program-prefix)'
  endif
  
 -CFLAGS-vfprintf.c = -Wno-uninitialized
 +CFLAGS-vfprintf.c = -Wno-uninitialized -fno-delayed-branch
+ CFLAGS-vfwprintf.c = -Wno-uninitialized
  CFLAGS-tst-printf.c = -Wno-format
  CFLAGS-tstdiomisc.c = -Wno-format
- CFLAGS-scanf4.c = -Wno-format
 --- sunrpc/clnt_udp.c.orig
 +++ sunrpc/clnt_udp.c
 @@ -419,7 +419,7 @@

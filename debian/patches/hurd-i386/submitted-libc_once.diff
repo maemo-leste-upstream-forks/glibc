@@ -1,176 +1,70 @@
-http://savannah.gnu.org/bugs/?18217
-http://sourceware.org/bugzilla/show_bug.cgi?id=3748
+2007-10-28  Aurelien Jarno  <aurelien@aurel32.net>
 
-
-2007-02-08  Aurelien Jarno  <aurelien@aurel32.net>
-
-	* linuxthreads/sysdeps/pthread/bits/libc-lock.h (__libc_once_else): New
-	definition.
-
-2006-12-18  Thomas Schwinge  <tschwinge@gnu.org>
-
-	* bits/libc-lock.h (__libc_once_else): New definiton.
+	* bits/libc-lock.h (__libc_once_get): New definiton.
+	* linuxthreads/sysdeps/pthread/bits/libc-lock.h: Likewise
+	* nptl/sysdeps/pthread/bits/libc-lock.h: Likewise.
 	* sysdeps/mach/bits/libc-lock.h: Likewise.
 	* sysdeps/mach/hurd/bits/libc-lock.h: Likewise.
-	* nptl/sysdeps/pthread/bits/libc-lock.h: Likewise.
-	* sysdeps/posix/getaddrinfo.c (getaddrinfo): Use __libc_once_else and a
-	new local function instead of using implementational details.
+	* sysdeps/posix/getaddrinfo.c (getaddrinfo): Use __libc_once_get
+	  instead of using implementational details.
 
---- sysdeps/posix/getaddrinfo.c.orig
-+++ sysdeps/posix/getaddrinfo.c
-@@ -1927,11 +1927,13 @@
-   if (naddrs > 1)
-     {
-       /* Read the config file.  */
-+      void _gaiconf_reload (void)
-+	{
-+	  if (gaiconf_reload_flag)
-+	    gaiconf_reload ();
-+	}
-       __libc_once_define (static, once);
--      __typeof (once) old_once = once;
--      __libc_once (once, gaiconf_init);
--      if (old_once && gaiconf_reload_flag)
--	gaiconf_reload ();
-+      __libc_once_else (once, gaiconf_init, _gaiconf_reload);
- 
-       /* Sort results according to RFC 3484.  */
-       struct sort_result results[nresults];
 --- bits/libc-lock.h.orig
 +++ bits/libc-lock.h
-@@ -89,7 +89,7 @@
- /* Define once control variable.  */
- #define __libc_once_define(CLASS, NAME) CLASS int NAME = 0
- 
--/* Call handler iff the first call.  */
-+/* Call INIT_FUNCTION iff the first call.  */
- #define __libc_once(ONCE_CONTROL, INIT_FUNCTION) \
-   do {									      \
-     if ((ONCE_CONTROL) == 0) {						      \
-@@ -98,6 +98,15 @@
+@@ -98,6 +98,9 @@
      }									      \
    } while (0)
  
-+/* Call INIT_FUNCTION iff the first call.  Otherwise call ELSE_FUNCTION.  */
-+#define __libc_once_else(ONCE_CONTROL, INIT_FUNCTION, ELSE_FUNCTION) \
-+  do {									      \
-+    if ((ONCE_CONTROL) == 1)						      \
-+      (ELSE_FUNCTION) ();						      \
-+    else								      \
-+      __libc_once (ONCE_CONTROL, INIT_FUNCTION);			      \
-+  } while (0)
-+
++/* Get once control variable.  */
++#define __libc_once_get(ONCE_CONTROL) \
++  ((ONCE_CONTROL) == 1)
  
  /* Start a critical region with a cleanup function */
  #define __libc_cleanup_region_start(DOIT, FCT, ARG)			    \
---- sysdeps/mach/bits/libc-lock.h.orig
-+++ sysdeps/mach/bits/libc-lock.h
-@@ -105,8 +105,7 @@
- #define __libc_once_define(CLASS,NAME) \
-   CLASS struct __libc_once NAME = { MUTEX_INITIALIZER, 0 }
- 
--
--/* Call handler iff the first call.  */
-+/* Call INIT_FUNCTION iff the first call.  */
- #define __libc_once(ONCE_CONTROL, INIT_FUNCTION) \
-   do {									      \
-     __libc_lock_lock (ONCE_CONTROL.lock);				      \
-@@ -116,6 +115,16 @@
-     __libc_lock_unlock (ONCE_CONTROL.lock);				      \
-   } while (0)
- 
-+/* Call INIT_FUNCTION iff the first call.  Otherwise call ELSE_FUNCTION.  */
-+#define __libc_once_else(ONCE_CONTROL, INIT_FUNCTION, ELSE_FUNCTION) \
-+  do {									      \
-+    if (ONCE_CONTROL.done == 1)						      \
-+      (ELSE_FUNCTION) ();						      \
-+    else								      \
-+      __libc_once (ONCE_CONTROL, INIT_FUNCTION);			      \
-+  } while (0)
-+
-+
- #ifdef _LIBC
- /* We need portable names for some functions.  E.g., when they are
-    used as argument to __libc_cleanup_region_start.  */
---- sysdeps/mach/hurd/bits/libc-lock.h.orig
-+++ sysdeps/mach/hurd/bits/libc-lock.h
-@@ -175,7 +175,7 @@
- #define __libc_once_define(CLASS,NAME) \
-   CLASS struct __libc_once NAME = { MUTEX_INITIALIZER, 0 }
- 
--/* Call handler iff the first call.  */
-+/* Call INIT_FUNCTION iff the first call.  */
- #define __libc_once(ONCE_CONTROL, INIT_FUNCTION) \
-   do {									      \
-     __libc_lock_lock (ONCE_CONTROL.lock);				      \
-@@ -185,6 +185,16 @@
-     __libc_lock_unlock (ONCE_CONTROL.lock);				      \
-   } while (0)
- 
-+/* Call INIT_FUNCTION iff the first call.  Otherwise call ELSE_FUNCTION.  */
-+#define __libc_once_else(ONCE_CONTROL, INIT_FUNCTION, ELSE_FUNCTION) \
-+  do {									      \
-+    if (ONCE_CONTROL.done == 1)						      \
-+      ELSE_FUNCTION ();							      \
-+    else								      \
-+      __libc_once (ONCE_CONTROL, INIT_FUNCTION);			      \
-+  } while (0)
-+
-+
- #ifdef _LIBC
- /* We need portable names for some functions.  E.g., when they are
-    used as argument to __libc_cleanup_region_start.  */
---- nptl/sysdeps/pthread/bits/libc-lock.h.orig
-+++ nptl/sysdeps/pthread/bits/libc-lock.h
-@@ -354,7 +354,7 @@
-   CLASS pthread_once_t NAME = PTHREAD_ONCE_INIT
- #endif
- 
--/* Call handler iff the first call.  */
-+/* Call INIT_FUNCTION iff the first call.  */
- #define __libc_once(ONCE_CONTROL, INIT_FUNCTION) \
-   do {									      \
-     if (PTFAVAIL (__pthread_once))					      \
-@@ -366,6 +366,15 @@
-     }									      \
-   } while (0)
- 
-+/* Call INIT_FUNCTION iff the first call.  Otherwise call ELSE_FUNCTION.  */
-+#define __libc_once_else(ONCE_CONTROL, INIT_FUNCTION, ELSE_FUNCTION) \
-+  do {									      \
-+    if ((ONCE_CONTROL) != PTHREAD_ONCE_INIT)				      \
-+      (ELSE_FUNCTION) ();						      \
-+    else								      \
-+      __libc_once (ONCE_CONTROL, INIT_FUNCTION);			      \
-+  } while (0)
-+
- 
- /* Note that for I/O cleanup handling we are using the old-style
-    cancel handling.  It does not have to be integrated with C++ snce
 --- linuxthreads/sysdeps/pthread/bits/libc-lock.h.orig
 +++ linuxthreads/sysdeps/pthread/bits/libc-lock.h
-@@ -231,7 +231,7 @@
-   CLASS pthread_once_t NAME = PTHREAD_ONCE_INIT
- #endif
- 
--/* Call handler iff the first call.  */
-+/* Call INIT_FUNCTION iff the first call.  */
- #define __libc_once(ONCE_CONTROL, INIT_FUNCTION) \
-   do {									      \
-     if (__pthread_once != NULL)						      \
-@@ -242,6 +242,15 @@
+@@ -242,6 +242,9 @@
      }									      \
    } while (0)
  
-+/* Call INIT_FUNCTION iff the first call.  Otherwise call ELSE_FUNCTION.  */
-+#define __libc_once_else(ONCE_CONTROL, INIT_FUNCTION, ELSE_FUNCTION) \
-+  do {									      \
-+    if ((ONCE_CONTROL) != PTHREAD_ONCE_INIT)				      \
-+      (ELSE_FUNCTION) ();						      \
-+    else								      \
-+      __libc_once (ONCE_CONTROL, INIT_FUNCTION);			      \
-+  } while (0)
-+
++/* Get once control variable.  */
++#define __libc_once_get(ONCE_CONTROL) \
++  ((ONCE_CONTROL) != PTHREAD_ONCE_INIT)
  
  /* Start critical region with cleanup.  */
  #define __libc_cleanup_region_start(DOIT, FCT, ARG) \
+--- nptl/sysdeps/pthread/bits/libc-lock.h.orig
++++ nptl/sysdeps/pthread/bits/libc-lock.h
+@@ -377,6 +377,9 @@
+     }									      \
+   } while (0)
+ 
++/* Get once control variable.  */
++#define __libc_once_get(ONCE_CONTROL) \
++  ((ONCE_CONTROL) != PTHREAD_ONCE_INIT)
+ 
+ /* Note that for I/O cleanup handling we are using the old-style
+    cancel handling.  It does not have to be integrated with C++ snce
+--- sysdeps/mach/hurd/bits/libc-lock.h.orig
++++ sysdeps/mach/hurd/bits/libc-lock.h
+@@ -185,6 +185,10 @@
+     __libc_lock_unlock (ONCE_CONTROL.lock);				      \
+   } while (0)
+ 
++/* Get once control variable.  */
++#define __libc_once_get(ONCE_CONTROL) \
++  (!ONCE_CONTROL.done)
++
+ #ifdef _LIBC
+ /* We need portable names for some functions.  E.g., when they are
+    used as argument to __libc_cleanup_region_start.  */
+--- sysdeps/posix/getaddrinfo.c.orig
++++ sysdeps/posix/getaddrinfo.c
+@@ -2076,7 +2076,7 @@
+ 	  __libc_lock_define_initialized (static, lock);
+ 
+ 	  __libc_lock_lock (lock);
+-	  if (old_once && gaiconf_reload_flag)
++	  if (__libc_once_get(old_once) && gaiconf_reload_flag)
+ 	    gaiconf_reload ();
+ 	  qsort (results, nresults, sizeof (results[0]), rfc3484_sort);
+ 	  __libc_lock_unlock (lock);

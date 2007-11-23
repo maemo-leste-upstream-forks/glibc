@@ -1,10 +1,158 @@
-glibc (1:2.6.1-7) unstable; urgency=high
+glibc (2.7-0exp9) UNRELEASED; urgency=low
 
-  * glibc 2.7-0exp5 wasn't meant for unstable, set urgency to high so that the
-    migration of the very same package than -6 doesn't prevent migration too
-    long, and gain a stupid epoch.
+  [ Clint Adams ]
+  * New upstream release with linuxthreads snapshot.
+    - Fixes an ABBA deadlock in ld.so.  Closes: #443460.
+    - Render dgettext" thread safe.  Closes: #443660.
+    - Fixes CVE-2007-4840 (multiple errors in iconv
+      function).  Closes: #442250.
+    - Fixes strtod("-0", 0).  Closes: #448723.
+    - Remove localedata/locale-de_CH.diff (merged).
+    - Update locale/fix-LC_COLLATE-rules.diff.
+    - Update locale/LC_COLLATE-keywords-ordering.diff.
+    - Update locale/fix-C-first_weekday.diff.
+    - Update locale/preprocessor-collate.diff.
+    - Update localedata/locales-fr.diff.
+    - Remove localedata/locale-sa_IN.diff (merged).
+    - Remove localedata/locale-wo_SN.diff (merged).
+    - Update localedata/tailor-iso14651_t1.diff.
+    - Add localedata/tailor-iso14651_t1-common.diff.
+    - Remove localedata/fix-unknown-symbols.diff (merged).
+    - Update localedata/first_weekday.diff.
+    - Add localedata/cs_CZ-first_weekday.diff.
+    - Add localedata/da_DK-first_weekday.diff.
+    - Add localedata/pl_PL-first_weekday.diff.
+    - Add localedata/de_DE-first_weekday.diff.
+    - Add localedata/en_GB-first_weekday.diff.
+    - Add localedata/en_US-first_weekday.diff.
+    - Add localedata/et_EE-first_weekday.diff.
+    - Add localedata/fr_BE-first_weekday.diff.
+    - Add localedata/fr_CA-first_weekday.diff.
+    - Add localedata/fr_CH-first_weekday.diff.
+    - Add localedata/fr_FR-first_weekday.diff.
+    - Add localedata/fr_LU-first_weekday.diff.
+    - Add localedata/hu_HU-first_weekday.diff.
+    - Add localedata/nb_NO-first_weekday.diff.
+    - Add localedata/nn_NO-first_weekday.diff.
+    - Add localedata/sk_SK-first_weekday.diff.
+    - Add localedata/cy_GB-first_weekday.diff.
+    - Update localedata/sort-UTF8-first.diff.
+    - Remove localedata/submitted-as_IN.diff (merged).
+    - Remove hppa/submitted-multiple-threads.diff (merged).
+    - Remove hppa/submitted-ustat.diff (merged).
+    - Remove hurd-i386/cvs-sigsuspend-nocancel.diff (merged).
+    - Remove hurd-i386/cvs-lock-intern.diff (merged).
+    - Remove sparc/local-undefined-registers.diff (obsolete).
+    - Remove all/local-pt_BR.diff (merged).
+    - Remove any/cvs-ld_library_path.diff (merged).
+    - Remove any/cvs-initfini.diff (merged).
+    - Remove any/cvs-posix-glob.diff (merged).
+    - Update any/local-bashisms.diff.
+    - Remove any/local-forward-backward-collation.diff (merged).
+    - Remove any/local-version-sanity.diff (merged).
+    - Remove any/submitted-strtok.diff (merged).
+    - Remove any/submitted-regex-collate.diff (merged).
+    - Remove localedata/locale-no_NO.diff (obsolete).
+    - Update localedata/supported.diff.
+  * Bump shlib version to 2.7-1.
+  * Add localedata/cvs-locale-ig_NG.diff BZ#5224, missing collation symbols
+    for ig_NG.
+  * Add localedata/cvs-locale-lo_LA.diff BZ#5237, missing collation symbols
+    for lo_LA.
+  * Add localedata/cvs-locale-ug_CN.diff BZ#5238, missing collation symbols
+    for ug_CN.
 
- -- Pierre Habouzit <madcoder@debian.org>  Thu, 01 Nov 2007 11:08:06 +0100
+  [ Aurelien Jarno ]
+  * any/submitted-longdouble.diff: update.
+  * Improve any/submitted-rfc3484-sortv4.diff.
+  * Update hurd-i386/submitted-trivial.diff.
+  * any/local-strfry.diff: new patch to fix strfry(), as Ulrich Drepper
+    has still not managed to commit a correct version.
+  * Remove hppa/submitted-threaddb.diff (merged).
+  * Update hppa/submitted-nptl-carlos.diff.
+  * Update hurd-i386/submitted-libc_once.diff.
+  * Remove hurd-i386/cvs-ioctl-delay.diff (merged).
+  * Update hurd-i386/local-tls-support.diff.
+  * Add hurd-i386/cvs-kernel-features.diff: provide almost empty
+    kernel-features.h for files that include it.
+  * Add arm/local-args6.diff: provide DOCARGS_6 and UNDOCARGS_5 for
+    arm old-abi.
+  * Add arm/local-lowlevellock.diff: new patch to fix build on arm.
+  * debian/rules, debian/rules.d/build.mk: allow per architecture
+    TIMEOUTFACTOR.
+  * sysdeps/arm.mk, sysdeps/armel.mk, sysdeps/hppa.mk, sysdeps/s390.mk,
+    sysdeps/sh4.mk: define TIMEOUTFACTOR.
+  * locales-depver: tighten locales dependencies.
+  * any/local-disable-test-tgmath2.diff: new patch to disable test-tgmath2,
+    which take too much resources during compilation.
+  * Add hurd-i386/submitted-strtoul.diff: new patch to use
+    __strtoul_internal() instead of strtoul() in internal functions.
+  * Add hurd-i386/submitted-ptr-mangle.diff: new patch to define PTR_MANGLE
+    and PTR_DEMANGLE.
+  * Update Galician debconf translation, by Jacobo Tarrio.  Closes: #447928.
+  * Update Dutch debconf translation, by Bart Cornelis.  Closes: #448928.
+  * Add sh4/local-fpscr_values.diff and any/local-allocalim-header.diff
+    from Arthur Loiret.  Closes: #448248.
+  * Fix encoding of Japanese translation.  Closes: #447221.
+  * Add any/submitted-sched_h.diff: new patch to define `__CPU_ALLOC_SIZE.
+  * Add mips/local-setjmp.diff: new patch to fix g++ tests on mips/mipsel.
+  * Add any/local-fhs-nscd.diff: move nscd directory to /var/cache/nscd from
+    /var/db/nscd.  Closes: #449198.
+  * debhelper.in/nscd.postrm: remove /var/cache/nscd on purge.  Closes:
+    #449193.
+  * script.in/kernelcheck.sh, sysdeps/alpha.mk: bump minimum kernel version to
+    2.6.9 for alpha.
+  * script.in/kernelcheck.sh, sysdeps/sh4.mk: bump minimum kernel version to
+    2.6.11 for sh4.
+  * debian/patches/arm/local-eabi-wchar.diff: new patch from Riku Voipio to
+    fiw WCHAR_MIN and WCHAR_MAX definitions on armel.  Closes: #444580.
+  * debian/po/zh_CN.po: update from LI Daobing. Closes: #447866.
+  * debhelper.in/locales-all.postinst: trap exit signal and remove temporary
+    directory.  Closes: #447328.
+  * debhelper.in/libc.NEWS: mention that the tzconfig script has been replaced
+    by the maintainer scripts of tzdata.  Closes: bug#448796.
+  * patches/all/local-alias-et_EE.diff: switch estonian locales alias to
+    ISO-8859-15.
+  * patches/alpha/submitted-fpu-round.diff: restore the old version of
+    ceil/floor/rint functions.  Closes: #442568.
+  * patches/alpha/local-dl-procinfo.diff: new patch to add platform
+    capabilities support on alpha.
+  * Add an ev67 flavour on alpha:  Closes: #229251
+    - control.in/opt: add libc6-alphaev67 packages.
+    - sysdeps/alpha.mk: add a new pass for ev67 flavour.
+  * debian/local/manpages/iconv.1: document //translit and //ignore
+    options.  Closes: #451304.
+  * debian/local/manpages/getent.1: document exit codes.  Closes:
+    #445631.
+  * debian/local/manpages/ld.so.8: document $ORIGIN, $PLATFORM and $LIB
+    features.  Closes: #444145.
+  * local/manpages/ldconfig.8: remove --force option from the manpage
+    to be consistent with the binary.  Closes: #451958.
+  * kfreebsd/local-sysdeps.diff: update to revision 2046 (from glibc-bsd).
+
+  [ Petr Salinger]
+  * any/local-stdio-lock.diff: make _IO_*_lock linuxthreads compliant.
+  * any/local-o_cloexec.diff: don't assume O_CLOEXEC is always defined.
+  * any/local-linuxthreads-signals.diff: always use non-RT signal handler
+    on GNU/kFreeBSD.
+
+  [ Pierre Habouzit ]
+  * Remove any/local-iconv-fix-trampoline.diff (obsolete).
+  * Remove any/submitted-strfry.diff (merged).
+  * Update any/submitted-rfc3484-sortv4.diff.
+  * Update localedata/*first_weekday.diff.
+  * Remove localedata/fix-am_ET.diff (obsolete).
+  * Add locale/preprocessor-collate-uli-sucks.diff to revert Ulrich's
+    preprocessor that isn't enough for Debian.
+  * Update patches/locale/preprocessor-collate.diff.
+  * Add alpha/submitted-PTR_MANGLE.diff (Closes: #448508).
+
+  [ Samuel Thibault ]
+  * hurd-i386/submitted-ptr-mangle.diff: Define PTR_MANGLE for assembly.
+  * hurd-i386/cvs-O_CLOEXEC_fix.diff: New patch to fix conflicting O_CLOEXEC
+  value.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Fri, 23 Nov 2007 07:01:33 +0100
 
 glibc (2.6.1-6) unstable; urgency=low
 

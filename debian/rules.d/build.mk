@@ -111,7 +111,7 @@ $(stamp)check_%: $(stamp)build_%
 	  echo -n "Testsuite started: " | tee -a $(log_test); \
 	  date --rfc-2822 | tee -a $(log_test); \
 	  echo "--------------" | tee -a $(log_test); \
-	  $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS) -k check 2>&1 | tee -a $(log_test); \
+	  TIMEOUTFACTOR="$(TIMEOUTFACTOR)" $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS) -k check 2>&1 | tee -a $(log_test); \
 	  echo "--------------" | tee -a $(log_test); \
 	  echo -n "Testsuite ended: " | tee -a $(log_test); \
 	  date --rfc-2822 | tee -a $(log_test); \

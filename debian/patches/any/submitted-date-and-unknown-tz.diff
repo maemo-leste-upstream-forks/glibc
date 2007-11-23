@@ -17,9 +17,11 @@ Patch from Andrew Suffield:
 > The old behaviour is still available by using TZ="MOO+0", if it is
 > really desirable to change the name of the timezone in this manner.
 
---- time/tzset.c.orig
-+++ time/tzset.c
-@@ -216,7 +216,7 @@
+Index: time/tzset.c
+===================================================================
+--- time/tzset.c.orig	2007-10-23 08:46:13.000000000 -0400
++++ time/tzset.c	2007-10-23 08:50:45.000000000 -0400
+@@ -169,7 +169,7 @@
  
    /* Clear out old state and reset to unnamed UTC.  */
    memset (tz_rules, 0, sizeof tz_rules);
@@ -28,7 +30,7 @@ Patch from Andrew Suffield:
  
    /* Get the standard timezone name.  */
    tzbuf = strdupa (tz);
-@@ -225,14 +225,14 @@
+@@ -178,14 +178,14 @@
        (l = strlen (tzbuf)) < 3)
      goto out;
  

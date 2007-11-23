@@ -11,22 +11,22 @@
 	* posix/gai.conf: Add the new sortv4 option.
 
 
---- posix/gai.conf	2007-08-16 22:59:03.000000000 +0200
-+++ posix/gai.conf	2007-08-16 22:58:48.000000000 +0200
+--- posix/gai.conf.orig
++++ posix/gai.conf
 @@ -15,6 +15,11 @@
  #    changed and if necessary reload.  This option should not really be
  #    used.  There are possible runtime problems.  The default is no.
  #
 +# sortv4  <yes|no>
 +#    If set to no, getaddrinfo(3) will ignore IPv4 adresses in rule 9.  See
-+#    section 6 in RFC 3484.  The default is yes.  Setting this option to 
++#    section 6 in RFC 3484.  The default is yes.  Setting this option to
 +#    no breaks conformance to RFC 3484.
 +#
  # label   <mask>   <value>
  #    Add another rule to the RFC 3484 label table.  See section 2.1 in
  #    RFC 3484.  The default is:
---- sysdeps/posix/getaddrinfo.c 2007-08-16 23:02:34.000000000 +0200
-+++ sysdeps/posix/getaddrinfo.c	2007-08-16 22:31:53.000000000 +0200
+--- sysdeps/posix/getaddrinfo.c.orig
++++ sysdeps/posix/getaddrinfo.c
 @@ -79,6 +79,16 @@
  # define UNIX_PATH_MAX  108
  #endif
@@ -44,34 +44,19 @@
  struct gaih_service
    {
      const char *name;
-@@ -1344,7 +1354,7 @@
+@@ -1345,7 +1355,7 @@
        int bit1 = 0;
        int bit2 = 0;
  
 -      if (a1->dest_addr->ai_family == PF_INET)
-+      if (a1->dest_addr->ai_family == PF_INET && gaiconf_sortv4_flag)
++      if (gaiconf_sortv4_flag && a1->dest_addr->ai_family == PF_INET)
  	{
  	  assert (a1->source_addr.ss_family == PF_INET);
  	  assert (a2->source_addr.ss_family == PF_INET);
-@@ -1422,14 +1432,6 @@
- #define GAICONF_FNAME "/etc/gai.conf"
- 
- 
--/* Nozero if we are supposed to reload the config file automatically
--   whenever it changed.  */
--static int gaiconf_reload_flag;
--
--/* Last modification time.  */
--static struct timespec gaiconf_mtime;
--
--
- libc_freeres_fn(fini)
- {
-   if (labels != default_labels)
-@@ -1608,6 +1610,8 @@
- 	    case 6:
- 	      if (strcmp (cmd, "reload") == 0)
- 		gaiconf_reload_flag = strcmp (val1, "yes") == 0;
+@@ -1619,6 +1629,8 @@
+ 		  if (gaiconf_reload_flag)
+ 		    gaiconf_reload_flag_ever_set = 1;
+ 		}
 +	      else if (strcmp (cmd, "sortv4") == 0)
 +		gaiconf_sortv4_flag = strcmp (val1, "no") != 0;
  	      break;

@@ -119,11 +119,32 @@ Every DSO (Dynamic Shared Object, aka shared library) can tell the dynamic linke
 minimum OS ABI version is needed. The information about the minimum OS ABI version is encoded in
 a ELF note section usually named .note.ABI-tag. This is used to determine which library to load
 when multiple version of the same library is installed on the system.
-
 The
 .B LD_ASSUME_KERNEL
 environment variable overrides the kernel version used by the dynamic linker to determine which
 library to load.
+.SH RPATH TOKEN EXPANSION
+The runtime linker provides a number of tokens that can be used in an rpath 
+specification (\fBDT_RPATH\fR or \fBDT_RUNPATH\fR).
+.TP
+.B $ORIGIN
+ld.so understands the string \fB$ORIGIN\fR (or equivalently \fB${ORIGIN}\fR) 
+in an rpath specification to mean the directory containing the application
+executable. Thus, an application located in somedir/app could be compiled
+with gcc -Wl,-rpath,'$ORIGIN/../lib' so that it finds an associated shared
+library in somedir/lib no matter where somedir is located in the directory 
+hierarchy.
+.TP
+.B $PLATFORM
+The string \fB$PLATFORM\fR (or equivalently \fB${PLATFORM}\fR) in an rpath
+specifcation expands to the processor type of the current machine. Please note
+that on some architectures the Linux kernel doesn't provide a platform
+string to the dynamic linker.
+.TP
+.B $LIB
+The string \fB$LIB\fR (or equivalently \fB${LIB}\fR) in an rpath corresponds
+to the system libraries directory, which is /lib for the native architecture
+on FHS compliant GNU/Linux systems.
 .SH FILES
 .PD 0
 .TP 20

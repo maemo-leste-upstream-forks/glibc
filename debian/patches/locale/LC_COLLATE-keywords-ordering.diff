@@ -10,15 +10,7 @@ Submitted upstream: BZ690
 
 --- locale/programs/ld-collate.c.orig
 +++ locale/programs/ld-collate.c
-@@ -2795,7 +2795,6 @@
- 
-   if (nowtok == tok_copy)
-     {
--      state = 2;
-       now = lr_token (ldfile, charmap, result, NULL, verbose);
-       if (now->tok != tok_string)
- 	{
-@@ -2869,14 +2868,23 @@
+@@ -2832,14 +2832,23 @@
        switch (nowtok)
  	{
  	case tok_copy:
@@ -46,7 +38,7 @@ Submitted upstream: BZ690
  
  	  lr_ignore_rest (ldfile, 1);
  	  break;
-@@ -2890,9 +2898,6 @@
+@@ -2853,9 +2862,6 @@
  	      break;
  	    }
  
@@ -56,7 +48,7 @@ Submitted upstream: BZ690
  	  arg = lr_token (ldfile, charmap, result, NULL, verbose);
  	  if (arg->tok != tok_number)
  	    goto err_label;
-@@ -2913,7 +2918,7 @@
+@@ -2876,7 +2882,7 @@
  	      break;
  	    }
  
@@ -65,7 +57,7 @@ Submitted upstream: BZ690
  	    goto err_label;
  
  	  arg = lr_token (ldfile, charmap, result, repertoire, verbose);
-@@ -2960,7 +2965,7 @@
+@@ -2923,7 +2929,7 @@
  	      break;
  	    }
  
@@ -74,7 +66,7 @@ Submitted upstream: BZ690
  	    goto err_label;
  
  	  arg = lr_token (ldfile, charmap, result, repertoire, verbose);
-@@ -3029,7 +3034,7 @@
+@@ -2992,7 +2998,7 @@
  	      break;
  	    }
  
@@ -83,7 +75,7 @@ Submitted upstream: BZ690
  	    goto err_label;
  
  	  arg = lr_token (ldfile, charmap, result, repertoire, verbose);
-@@ -3177,7 +3182,7 @@
+@@ -3140,7 +3146,7 @@
  	      break;
  	    }
  
@@ -92,7 +84,7 @@ Submitted upstream: BZ690
  	    goto err_label;
  
  	  arg = lr_token (ldfile, charmap, result, repertoire, verbose);
-@@ -3293,7 +3298,7 @@
+@@ -3256,7 +3262,7 @@
  	      break;
  	    }
  
@@ -101,22 +93,7 @@ Submitted upstream: BZ690
  	    goto err_label;
  	  state = 1;
  
-@@ -3465,8 +3470,12 @@
- 		  was_ellipsis = tok_none;
- 		}
- 	    }
--	  else if (state != 2 && state != 3)
--	    goto err_label;
-+	  else if (state == 5)
-+	    {
-+	      WITH_CUR_LOCALE (error (0, 0, _("\
-+%s: missing `reorder-sections-end' keyword"), "LC_COLLATE"));
-+	      state = 6;
-+	    }
- 	  state = 3;
- 
- 	  arg = lr_token (ldfile, charmap, result, repertoire, verbose);
-@@ -3601,8 +3610,6 @@
+@@ -3566,8 +3572,6 @@
  %s: missing `reorder-end' keyword"), "LC_COLLATE"));
  	      state = 4;
  	    }
@@ -125,12 +102,3 @@ Submitted upstream: BZ690
  	  state = 5;
  
  	  /* Get the name of the sections we are adding after.  */
-@@ -4068,7 +4075,7 @@
- 	  /* Next we assume `LC_COLLATE'.  */
- 	  if (!ignore_content)
- 	    {
--	      if (state == 0)
-+	      if (state == 0 && nrules == 0)
- 		/* We must either see a copy statement or have
- 		   ordering values.  */
- 		lr_error (ldfile,

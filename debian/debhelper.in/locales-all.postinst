@@ -8,9 +8,9 @@ if [ "$1" = "configure" ]; then
 	#  overwrite them and exits with a non-null value
 	rm -f /usr/lib/locale/locale-archive 2>/dev/null || true
 	tmpdir=$(mktemp -d /tmp/locales.XXXXXXXXXX)
+	trap 'rm -rf "$tmpdir" > /dev/null 2>&1' exit
 	tar --use-compress-program /usr/bin/lzma -xf /usr/lib/locales-all/supported.tar.lzma -C "$tmpdir"
 	localedef --quiet --add-to-archive "$tmpdir"/*
-	rm -rf "$tmpdir"
 fi
 
 #DEBHELPER#

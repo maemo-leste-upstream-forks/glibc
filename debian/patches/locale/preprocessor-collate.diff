@@ -12,7 +12,7 @@ This patch is harmless, it only adds new keywords.
 
 --- locale/programs/ld-collate.c.orig
 +++ locale/programs/ld-collate.c
-@@ -159,6 +159,24 @@
+@@ -160,6 +160,24 @@
    size_t line;
  };
  
@@ -37,7 +37,7 @@ This patch is harmless, it only adds new keywords.
  /* Sparse table of struct element_t *.  */
  #define TABLE wchead_table
  #define ELEMENT struct element_t *
-@@ -212,6 +230,9 @@
+@@ -213,6 +231,9 @@
    /* This value is used when handling ellipsis.  */
    struct element_t ellipsis_weight;
  
@@ -47,7 +47,7 @@ This patch is harmless, it only adds new keywords.
    /* Known collating elements.  */
    hash_table elem_table;
  
-@@ -1455,6 +1476,56 @@
+@@ -1458,6 +1479,56 @@
  }
  
  
@@ -104,7 +104,7 @@ This patch is harmless, it only adds new keywords.
  static void
  collate_startup (struct linereader *ldfile, struct localedef_t *locale,
  		 struct localedef_t *copy_locale, int ignore_content)
-@@ -2630,6 +2701,8 @@
+@@ -2656,6 +2727,8 @@
    */
    int state = 0;
  
@@ -113,9 +113,9 @@ This patch is harmless, it only adds new keywords.
    /* Get the repertoire we have to use.  */
    if (repertoire_name != NULL)
      repertoire = repertoire_read (repertoire_name);
-@@ -2644,6 +2717,82 @@
-     }
-   while (nowtok == tok_eol);
+@@ -2670,6 +2743,82 @@
+ 	}
+       while (nowtok == tok_eol);
  
 +  while (nowtok == tok_define || nowtok == tok_undef)
 +    {
@@ -195,8 +195,8 @@ This patch is harmless, it only adds new keywords.
 +
    if (nowtok == tok_copy)
      {
-       state = 2;
-@@ -3796,6 +3945,125 @@
+       now = lr_token (ldfile, charmap, result, NULL, verbose);
+@@ -3823,6 +3972,125 @@
  			  repertoire, result, nowtok);
  	  break;
  
@@ -322,7 +322,7 @@ This patch is harmless, it only adds new keywords.
  	case tok_end:
  	  /* Next we assume `LC_COLLATE'.  */
  	  if (!ignore_content)
-@@ -3825,6 +4093,13 @@
+@@ -3852,6 +4120,13 @@
  	      else if (state == 5)
  		WITH_CUR_LOCALE (error (0, 0, _("\
  %s: missing `reorder-sections-end' keyword"), "LC_COLLATE"));

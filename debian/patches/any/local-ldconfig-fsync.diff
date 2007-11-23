@@ -1,10 +1,10 @@
---- glibc-2.6.orig/elf/cache.c
-+++ glibc-2.6/elf/cache.c
-@@ -441,6 +441,7 @@
-   if (write (fd, strings, total_strlen) != (ssize_t) total_strlen)
+--- glibc-2.7.orig/elf/cache.c
++++ glibc-2.7/elf/cache.c
+@@ -426,6 +426,7 @@
+     }
+ 
+   if (write (fd, strings, total_strlen) != (ssize_t) total_strlen
++      || fsync (fd)
+       || close (fd))
      error (EXIT_FAILURE, errno, _("Writing of cache data failed"));
  
-+  fsync(fd);
-   close (fd);
- 
-   /* Make sure user can always read cache file */

@@ -1,6 +1,6 @@
---- csu/libc-start.c.orig
-+++ csu/libc-start.c
-@@ -134,11 +134,13 @@
+--- csu/libc-start.c.orig	
++++ csu/libc-start.c	2007-10-27 15:42:32.000000000 +0200
+@@ -134,10 +134,12 @@
      }
  # endif
  
@@ -9,11 +9,10 @@
       functions are using thread functions if these are available and
       we need to setup errno.  */
    __pthread_initialize_minimal ();
- #endif
 +#endif
  
- # ifndef SHARED
    /* Set up the stack checker's canary.  */
+   uintptr_t stack_chk_guard = _dl_setup_stack_chk_guard ();
 --- hurd/hurdfault.c.orig
 +++ hurd/hurdfault.c
 @@ -206,6 +206,8 @@
@@ -25,10 +24,9 @@
    MACHINE_THREAD_STATE_SET_PC (&state, faulted);
    MACHINE_THREAD_STATE_SET_SP (&state, faultstack, sizeof faultstack);
  
-diff -u -p -r1.159 hurdsig.c
---- hurd/hurdsig.c	21 Dec 2005 22:16:20 -0000	1.159
-+++ hurd/hurdsig.c	9 Aug 2007 19:17:33 -0000
-@@ -1260,6 +1260,8 @@ _hurdsig_init (const int *intarray, size
+--- hurd/hurdsig.c.orig
++++ hurd/hurdsig.c
+@@ -1260,6 +1260,8 @@
  				 (vm_address_t *) &__hurd_sigthread_stack_base,
  				 &stacksize);
        assert_perror (err);
@@ -37,7 +35,7 @@ diff -u -p -r1.159 hurdsig.c
  
        __hurd_sigthread_stack_end = __hurd_sigthread_stack_base + stacksize;
        __hurd_sigthread_variables =
-@@ -1268,8 +1270,6 @@ _hurdsig_init (const int *intarray, size
+@@ -1268,8 +1270,6 @@
  	__libc_fatal ("hurd: Can't allocate threadvars for signal thread\n");
        memset (__hurd_sigthread_variables, 0,
  	      __hurd_threadvar_max * sizeof (unsigned long int));
@@ -46,10 +44,9 @@ diff -u -p -r1.159 hurdsig.c
  
        /* Reinitialize the MiG support routines so they will use a per-thread
  	 variable for the cached reply port.  */
-diff -u -p -r1.13 mach.h
---- mach/mach.h	30 Aug 2002 01:30:53 -0000	1.13
-+++ mach/mach.h	9 Aug 2007 19:17:33 -0000
-@@ -101,5 +101,8 @@ kern_return_t mach_setup_thread (task_t 
+--- mach/mach.h.orig
++++ mach/mach.h
+@@ -101,5 +101,8 @@
  				 vm_address_t *stack_base,
  				 vm_size_t *stack_size);
  
@@ -57,7 +54,7 @@ diff -u -p -r1.13 mach.h
 +kern_return_t __mach_setup_tls (thread_t thread);
 +kern_return_t mach_setup_tls (thread_t thread);
  
- #endif /* mach.h */
+ #endif	/* mach.h */
 --- mach/setup-thread.c.orig
 +++ mach/setup-thread.c
 @@ -20,6 +20,7 @@
@@ -68,7 +65,7 @@ diff -u -p -r1.13 mach.h
  #include "sysdep.h"		/* Defines stack direction.  */
  
  #define	STACK_SIZE	(16 * 1024 * 1024) /* 16MB, arbitrary.  */
-@@ -73,8 +74,35 @@ __mach_setup_thread (task_t task, thread
+@@ -73,8 +74,35 @@
    if (error = __vm_protect (task, stack, __vm_page_size, 0, VM_PROT_NONE))
      return error;
  
@@ -115,18 +112,6 @@ diff -u -p -r1.13 mach.h
  #define MACHINE_THREAD_STATE_FLAVOR	<machine>_THREAD_STATE
  #define MACHINE_THREAD_STATE_COUNT	<machine>_THREAD_STATE_COUNT
  
---- sysdeps/mach/thread_state.h.orig
-+++ sysdeps/mach/thread_state.h
-@@ -38,6 +38,9 @@
-   ((ts)->SP = (unsigned long int) (stack) + (size))
- #endif
- #endif
-+#ifndef MACHINE_THREAD_STATE_FIX_NEW
-+#define MACHINE_THREAD_STATE_FIX_NEW(ts)
-+#endif
- 
- /* These functions are of use in machine-dependent signal trampoline
-    implementations.  */
 --- sysdeps/mach/alpha/thread_state.h.orig
 +++ sysdeps/mach/alpha/thread_state.h
 @@ -19,6 +19,7 @@
@@ -137,58 +122,8 @@ diff -u -p -r1.13 mach.h
  #define MACHINE_THREAD_STATE_FLAVOR	ALPHA_THREAD_STATE
  #define MACHINE_THREAD_STATE_COUNT	ALPHA_THREAD_STATE_COUNT
  
---- sysdeps/mach/hurd/fork.c.orig
-+++ sysdeps/mach/hurd/fork.c
-@@ -523,6 +523,11 @@
- #endif
-       MACHINE_THREAD_STATE_SET_PC (&state,
- 				   (unsigned long int) _hurd_msgport_receive);
-+
-+      /* Do special thread setup for TLS if needed.  */
-+      if (err = _hurd_tls_fork (sigthread, _hurd_msgport_thread, &state))
-+	LOSE;
-+
-       if (err = __thread_set_state (sigthread, MACHINE_THREAD_STATE_FLAVOR,
- 				    (natural_t *) &state, statecount))
- 	LOSE;
-@@ -533,7 +538,7 @@
-       _hurd_longjmp_thread_state (&state, env, 1);
- 
-       /* Do special thread setup for TLS if needed.  */
--      if (err = _hurd_tls_fork (thread, &state))
-+      if (err = _hurd_tls_fork (thread, __mach_thread_self (), &state))
- 	LOSE;
- 
-       if (err = __thread_set_state (thread, MACHINE_THREAD_STATE_FLAVOR,
---- sysdeps/mach/hurd/profil.c	16 Oct 2005 10:32:15 -0000	1.11
-+++ sysdeps/mach/hurd/profil.c	9 Aug 2007 19:17:34 -0000
-@@ -69,6 +69,8 @@ update_waiter (u_short *sample_buffer, s
-       if (! err)
- 	err = __mach_setup_thread (__mach_task_self (), profile_thread,
- 				   &profile_waiter, NULL, NULL);
-+      if (! err)
-+	err = __mach_setup_tls(profile_thread);
-     }
-   else
-     err = 0;
---- sysdeps/mach/hurd/setitimer.c	16 Oct 2005 10:32:15 -0000	1.23
-+++ sysdeps/mach/hurd/setitimer.c	9 Aug 2007 21:03:24 -0000
-@@ -223,11 +223,12 @@ setitimer_locked (const struct itimerval
- 	    return __hurd_fail (err);
- 	  _hurd_itimer_thread_stack_base = 0; /* Anywhere.  */
- 	  _hurd_itimer_thread_stack_size = __vm_page_size; /* Small stack.  */
--	  if (err = __mach_setup_thread (__mach_task_self (),
-+	  if ((err = __mach_setup_thread (__mach_task_self (),
- 					 _hurd_itimer_thread,
- 					 &timer_thread,
- 					 &_hurd_itimer_thread_stack_base,
- 					 &_hurd_itimer_thread_stack_size))
-+	      || (err = __mach_setup_tls(_hurd_itimer_thread)))
- 	    {
- 	      __thread_terminate (_hurd_itimer_thread);
- 	      _hurd_itimer_thread = MACH_PORT_NULL;
---- sysdeps/mach/hurd/bits/libc-tsd.h
-+++ /dev/null
+--- sysdeps/mach/hurd/bits/libc-tsd.h.orig
++++ sysdeps/mach/hurd/bits/libc-tsd.h
 @@ -1,34 +0,0 @@
 -/* libc-internal interface for thread-specific data.  Hurd version.
 -   Copyright (C) 1998,2002 Free Software Foundation, Inc.
@@ -224,6 +159,29 @@ diff -u -p -r1.13 mach.h
 -
 -
 -#endif	/* bits/libc-tsd.h */
+--- sysdeps/mach/hurd/fork.c.orig
++++ sysdeps/mach/hurd/fork.c
+@@ -523,6 +523,11 @@
+ #endif
+       MACHINE_THREAD_STATE_SET_PC (&state,
+ 				   (unsigned long int) _hurd_msgport_receive);
++
++      /* Do special thread setup for TLS if needed.  */
++      if (err = _hurd_tls_fork (sigthread, _hurd_msgport_thread, &state))
++	LOSE;
++
+       if (err = __thread_set_state (sigthread, MACHINE_THREAD_STATE_FLAVOR,
+ 				    (natural_t *) &state, statecount))
+ 	LOSE;
+@@ -533,7 +538,7 @@
+       _hurd_longjmp_thread_state (&state, env, 1);
+ 
+       /* Do special thread setup for TLS if needed.  */
+-      if (err = _hurd_tls_fork (thread, &state))
++      if (err = _hurd_tls_fork (thread, __mach_thread_self (), &state))
+ 	LOSE;
+ 
+       if (err = __thread_set_state (thread, MACHINE_THREAD_STATE_FLAVOR,
 --- sysdeps/mach/hurd/i386/init-first.c.orig
 +++ sysdeps/mach/hurd/i386/init-first.c
 @@ -104,10 +104,6 @@
@@ -265,7 +223,7 @@ diff -u -p -r1.13 mach.h
    _hurd_init_dtable = d->dtable;
    _hurd_init_dtablesize = d->dtablesize;
  
-@@ -172,13 +150,16 @@ init (int *data)
+@@ -172,13 +150,16 @@
    char **envp = &argv[argc + 1];
    struct hurd_startup_data *d;
    unsigned long int threadvars[_HURD_THREADVAR_MAX];
@@ -283,7 +241,7 @@ diff -u -p -r1.13 mach.h
    __hurd_threadvar_stack_offset = (unsigned long int) threadvars;
  
    /* Since the cthreads initialization code uses malloc, and the
-@@ -192,6 +173,39 @@ init (int *data)
+@@ -192,6 +173,39 @@
      ++envp;
    d = (void *) ++envp;
  
@@ -404,6 +362,33 @@ diff -u -p -r1.13 mach.h
  	}
      }
  
+--- sysdeps/mach/hurd/profil.c.orig
++++ sysdeps/mach/hurd/profil.c
+@@ -69,6 +69,8 @@
+       if (! err)
+ 	err = __mach_setup_thread (__mach_task_self (), profile_thread,
+ 				   &profile_waiter, NULL, NULL);
++      if (! err)
++	err = __mach_setup_tls(profile_thread);
+     }
+   else
+     err = 0;
+--- sysdeps/mach/hurd/setitimer.c.orig
++++ sysdeps/mach/hurd/setitimer.c
+@@ -223,11 +223,12 @@
+ 	    return __hurd_fail (err);
+ 	  _hurd_itimer_thread_stack_base = 0; /* Anywhere.  */
+ 	  _hurd_itimer_thread_stack_size = __vm_page_size; /* Small stack.  */
+-	  if (err = __mach_setup_thread (__mach_task_self (),
++	  if ((err = __mach_setup_thread (__mach_task_self (),
+ 					 _hurd_itimer_thread,
+ 					 &timer_thread,
+ 					 &_hurd_itimer_thread_stack_base,
+ 					 &_hurd_itimer_thread_stack_size))
++	      || (err = __mach_setup_tls(_hurd_itimer_thread)))
+ 	    {
+ 	      __thread_terminate (_hurd_itimer_thread);
+ 	      _hurd_itimer_thread = MACH_PORT_NULL;
 --- sysdeps/mach/i386/thread_state.h.orig
 +++ sysdeps/mach/i386/thread_state.h
 @@ -19,7 +19,8 @@
@@ -441,3 +426,15 @@ diff -u -p -r1.13 mach.h
  #define MACHINE_THREAD_STATE_FLAVOR	PPC_THREAD_STATE
  #define MACHINE_THREAD_STATE_COUNT	PPC_THREAD_STATE_COUNT
  
+--- sysdeps/mach/thread_state.h.orig
++++ sysdeps/mach/thread_state.h
+@@ -38,6 +38,9 @@
+   ((ts)->SP = (unsigned long int) (stack) + (size))
+ #endif
+ #endif
++#ifndef MACHINE_THREAD_STATE_FIX_NEW
++#define MACHINE_THREAD_STATE_FIX_NEW(ts)
++#endif
+ 
+ /* These functions are of use in machine-dependent signal trampoline
+    implementations.  */

@@ -95,6 +95,8 @@ CXX = g++-4.2
 
 RUN_TESTSUITE = yes
 
+TIMEOUTFACTOR = 1
+
 # Set CC for cross-compiling
 ifneq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
 CC     = $(DEB_HOST_GNU_TYPE)-gcc
@@ -156,6 +158,8 @@ endif
 include debian/rules.d/*.mk
 
 clean:: debhelper-clean
+	#  Do not accidentally upload into unstable
+	dpkg-parsechangelog  | grep "^Distribution:" | grep -q -v unstable
 	rm -rf $(patsubst %,debian/tmp-%,$(GLIBC_PASSES))
 	rm -rf $(build-tree)
 	rm -rf $(stamp)
