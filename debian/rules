@@ -158,8 +158,6 @@ endif
 include debian/rules.d/*.mk
 
 clean:: debhelper-clean
-	#  Do not accidentally upload into unstable
-	dpkg-parsechangelog  | grep "^Distribution:" | grep -q -v unstable
 	rm -rf $(patsubst %,debian/tmp-%,$(GLIBC_PASSES))
 	rm -rf $(build-tree)
 	rm -rf $(stamp)
