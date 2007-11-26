@@ -1,8 +1,11 @@
 #! /bin/sh
-set -e
+set -e 
 
 LG="/etc/locale.gen"
 EE="/etc/default/locale"
+
+# List of locales supported by the current version
+SUPPORTED_LOCALES="__SUPPORTED_LOCALES__"
 
 if [ "$1" = configure ]; then
 
@@ -10,22 +13,13 @@ if [ "$1" = configure ]; then
     db_version 2.0
 
     db_get locales/locales_to_be_generated && SELECTED_LOCALES=$RET
-    db_get locales/default_environment_locale && SELECTED="$RET"
+    db_get locales/default_environment_locale && DEFAULT_ENVIRONMENT="$RET"
 
-    if [ -n "$SELECTED_LOCALES" ]; then
-        if [ "$SELECTED_LOCALES" = "All locales" ]; then
-            [ -e $LG ] && rm -f $LG
-            ln -s /usr/share/i18n/SUPPORTED $LG
-        else
-            [ -L $LG ] && [ "$(readlink $LG)" = /usr/share/i18n/SUPPORTED ] && rm -f $LG
-            if [ -e $LG ]; then
-                #   Comment previous defined locales
-                LC_ALL=C sed -e 's/^[a-zA-Z]/#&/' $LG > $LG.tmp || true
-                mv -f $LG.tmp $LG
-                last=`tail -n 1 "$LG"`
-                if test -n "$last"; then echo >> $LG; fi
-            else
-                cat > $LG << EOF
+    if [ "$SELECTED_LOCALES" = "All locales" ]; then
+        [ -e $LG ] && rm -f $LG
+        ln -s /usr/share/i18n/SUPPORTED $LG
+    else
+        cat > $LG << EOF
 # This file lists locales that you wish to have built. You can find a list
 # of valid supported locales at /usr/share/i18n/SUPPORTED. Other
 # combinations are possible, but may not be well tested. If you change
@@ -33,32 +27,16 @@ if [ "$1" = configure ]; then
 #
 
 EOF
+        IFS=","
+        for LOCALE in $SUPPORTED_LOCALES ; do
+	    LOCALE=${LOCALE## }
+            if echo "$SELECTED_LOCALES" | grep -q "\b$LOCALE\b" ; then
+                echo "$LOCALE" >> $LG
+            else
+                echo "# $LOCALE" >> $LG
             fi
-            list=`echo $SELECTED_LOCALES | sed -e 's/, /,/g'`
-            save_IFS=$IFS
-            IFS=,
-            for locale in $list; do
-                if grep -q "^$locale *\$" $LG; then
-                    #   This locale has already been inserted, do nothing
-                    :
-                elif grep -q "^#$locale *\$" $LG; then
-                    #   Uncomment previous defined locales
-                    sed -e "s,#$locale *\$,$locale," $LG > $LG.tmp || true
-                    mv -f $LG.tmp $LG
-                else
-                    #   Add a new locale
-                    echo $locale >> $LG
-                fi
-            done
-            IFS=$save_IFS
-        fi
-    else
-        if [ -L $LG ]; then
-            rm -f $LG
-        elif [ -e $LG ]; then
-            LC_ALL=C sed -e 's/^[a-zA-Z]/#&/' $LG > $LG.tmp || true
-            mv -f $LG.tmp $LG
-        fi
+        done
+        IFS=" "
     fi
     # Update requested locales if locales-all is not installed
     if [ -f /usr/lib/locales-all/supported.tar.lzma ] ; then
@@ -72,8 +50,8 @@ EOF
         # Remove previous definitions
         /usr/sbin/update-locale --no-checks LANG
     fi
-    if [ -n "$SELECTED" ] && [ "$SELECTED" != "None" ]; then
-        /usr/sbin/update-locale "LANG=$SELECTED"
+    if [ -n "$DEFAULT_ENVIRONMENT" ] && [ "$DEFAULT_ENVIRONMENT" != "None" ]; then
+        /usr/sbin/update-locale "LANG=$DEFAULT_ENVIRONMENT"
     fi
 fi
 

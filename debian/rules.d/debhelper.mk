@@ -225,7 +225,8 @@ $(stamp)debhelper:
 	done
 
 	# Substitute __SUPPORTED_LOCALES__.
-	perl -i -pe 'BEGIN {undef $$/; open(IN, "debian/tmp-libc/usr/share/i18n/SUPPORTED"); $$j=<IN>;} s/__SUPPORTED_LOCALES__/$$j/g;' debian/locales.config
+	SUPPORTED_LOCALES=$$(cat debian/tmp-libc/usr/share/i18n/SUPPORTED | tr '\n' ',' | sed -e 's/,/, /g' -e 's/, *$$//') ; \
+	sed -i -e "s/__SUPPORTED_LOCALES__/$$SUPPORTED_LOCALES/" debian/locales.config debian/locales.postinst
 
 	# Generate common substvars files.
 	echo "locale:Depends=$(shell perl debian/debver2localesdep.pl $(LOCALES_DEP_VER))" > tmp.substvars
