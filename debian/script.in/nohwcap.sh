@@ -7,6 +7,9 @@
     # Before removing a package from this list, make sure it appears
     # in the Conflicts: line of libc.
     case $(dpkg --print-architecture) in
+        alpha)
+            hwcappkgs="libc6-alphaev67"
+            ;;
         i386)
             hwcappkgs="libc6-i686 libc6-xen"
             ;;
