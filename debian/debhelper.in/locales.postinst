@@ -4,8 +4,17 @@ set -e
 LG="/etc/locale.gen"
 EE="/etc/default/locale"
 
-# List of locales supported by the current version
-SUPPORTED_LOCALES="__SUPPORTED_LOCALES__"
+# List of locales provided by the current version
+PROVIDED_LOCALES="__PROVIDED_LOCALES__"
+
+# List of locales provided by the user
+if [ -f /usr/local/share/i18n/SUPPORTED ] ; then
+    USER_LOCALES="$(sed -e 's/#.*//g' /usr/local/share/i18n/SUPPORTED)"
+fi
+
+# List of supported locales
+SUPPORTED_LOCALES=$(echo "$PROVIDED_LOCALES$USER_LOCALES" | sed -e 's/^ *//g' -e 's/ *$//g' | sort -u | tr '\n' ',' | sed -e 's/, */, /g' -e 's/, *$//g')
+
 
 if [ "$1" = configure ]; then
 
@@ -21,8 +30,8 @@ if [ "$1" = configure ]; then
     else
         cat > $LG << EOF
 # This file lists locales that you wish to have built. You can find a list
-# of valid supported locales at /usr/share/i18n/SUPPORTED. Other
-# combinations are possible, but may not be well tested. If you change
+# of valid supported locales at /usr/share/i18n/SUPPORTED, and you can add
+# user defined locales to /usr/locale/share/i18n/SUPPORTED. If you change
 # this file, you need to rerun locale-gen.
 #
 

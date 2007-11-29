@@ -224,9 +224,8 @@ $(stamp)debhelper:
 	  done ; \
 	done
 
-	# Substitute __SUPPORTED_LOCALES__.
-	SUPPORTED_LOCALES=$$(cat debian/tmp-libc/usr/share/i18n/SUPPORTED | tr '\n' ',' | sed -e 's/,/, /g' -e 's/, *$$//') ; \
-	sed -i -e "s/__SUPPORTED_LOCALES__/$$SUPPORTED_LOCALES/" debian/locales.config debian/locales.postinst
+	# Substitute __PROVIDED_LOCALES__.
+	perl -i -pe 'BEGIN {undef $$/; open(IN, "debian/tmp-libc/usr/share/i18n/SUPPORTED"); $$j=<IN>;} s/__PROVIDED_LOCALES__/$$j/g;' debian/locales.config debian/locales.postinst
 
 	# Generate common substvars files.
 	echo "locale:Depends=$(shell perl debian/debver2localesdep.pl $(LOCALES_DEP_VER))" > tmp.substvars
@@ -262,5 +261,6 @@ debhelper-clean:
 	rm -f debian/*.lintian
 	rm -f debian/*.linda
 	rm -f debian/*.NEWS
+	rm -f debian/*.README
 
 	rm -f $(stamp)binaryinst*
