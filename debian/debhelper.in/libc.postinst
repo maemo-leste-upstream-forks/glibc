@@ -117,12 +117,6 @@ checkpkgver () {
 
 if [ "$type" = "configure" ]
 then
-
-    # Load debconf module if available
-    if [ -f /usr/share/debconf/confmodule ] ; then
-	. /usr/share/debconf/confmodule
-    fi
-
     # Handle upgrades for libdb.so.3. We do this before calling ldconfig,
     # since it will create a symlink for us. Just move everything over. We
     # use `cat' because I feel it is simpler and safer. Make sure that
@@ -151,6 +145,11 @@ then
     rm -f /etc/ld.so.hwcappkgs
  
     # /etc/ld.so.nohwcap code: NOHWCAP
+
+    # Load debconf module if available
+    if [ -f /usr/share/debconf/confmodule ] ; then
+	. /usr/share/debconf/confmodule
+    fi
 
     if [ ! -z $preversion ]; then
 	if [ ! -d /var/mail ] && [ ! -L /var/mail ]; then
