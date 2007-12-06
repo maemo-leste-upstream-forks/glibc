@@ -1,3 +1,8 @@
+2007-12-06  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/unix/sysv/linux/bits/sched.h: Use __extension__
+	  keyword for gcc's braced-groups.
+
 2007-11-02  Aurelien Jarno  <aurelien@aurel32.net>
 
 	* bits/sched.h (__CPU_ALLOC_SIZE): Define.
@@ -14,3 +19,44 @@
  __BEGIN_DECLS
  
  extern int __sched_cpucount (size_t __setsize, const cpu_set_t *__setp)
+Index: sysdeps/unix/sysv/linux/bits/sched.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/bits/sched.h,v
+retrieving revision 1.28
+diff -u -d -p -r1.28 sched.h
+--- sysdeps/unix/sysv/linux/bits/sched.h	29 Jul 2007 22:42:51 -0000	1.28
++++ sysdeps/unix/sysv/linux/bits/sched.h	6 Dec 2007 22:05:05 -0000
+@@ -132,14 +132,17 @@ typedef struct
+   } while (0)
+ # endif
+ # define __CPU_SET_S(cpu, setsize, cpusetp) \
++  __extension__ 							      \
+   ({ size_t __cpu = (cpu);						      \
+      __cpu < 8 * (setsize)						      \
+      ? ((cpusetp)->__bits[__CPUELT (__cpu)] |= __CPUMASK (__cpu)) : 0; })
+ # define __CPU_CLR_S(cpu, setsize, cpusetp) \
++  __extension__ 							      \
+   ({ size_t __cpu = (cpu);						      \
+      __cpu < 8 * (setsize)						      \
+      ? ((cpusetp)->__bits[__CPUELT (__cpu)] &= ~__CPUMASK (__cpu)) : 0; })
+ # define __CPU_ISSET_S(cpu, setsize, cpusetp) \
++  __extension__ 							      \
+   ({ size_t __cpu = (cpu);						      \
+      __cpu < 8 * (setsize)						      \
+      ? (((cpusetp)->__bits[__CPUELT (__cpu)] & __CPUMASK (__cpu))) != 0 : 0; })
+@@ -152,6 +155,7 @@ typedef struct
+   (__builtin_memcmp (cpusetp1, cpusetp2, setsize) == 0)
+ # else
+ #  define __CPU_EQUAL_S(setsize, cpusetp1, cpusetp2) \
++  __extension__ 							      \
+   ({ cpu_set_t *__arr1 = (cpusetp1);					      \
+      cpu_set_t *__arr2 = (cpusetp2);					      \
+      size_t __imax = (setsize) / sizeof (__cpu_mask);			      \
+@@ -163,6 +167,7 @@ typedef struct
+ # endif
+ 
+ # define __CPU_OP_S(setsize, destset, srcset1, srcset2, op) \
++  __extension__ 							      \
+   ({ cpu_set_t *__dest = (destset);					      \
+      cpu_set_t *__arr1 = (srcset1);					      \
+      cpu_set_t *__arr2 = (srcset2);					      \
