@@ -19,8 +19,8 @@
  #
 +# sortv4  <yes|no>
 +#    If set to no, getaddrinfo(3) will ignore IPv4 adresses in rule 9.  See
-+#    section 6 in RFC 3484.  The default is yes.  Setting this option to
-+#    no breaks conformance to RFC 3484.
++#    section 6 in RFC 3484.  The default is no, which breaks conformance
++#    to RFC 3484.
 +#
  # label   <mask>   <value>
  #    Add another rule to the RFC 3484 label table.  See section 2.1 in
@@ -36,7 +36,7 @@
 +static int gaiconf_reload_flag;
 +
 +/* Zero if we are supposed to ignore rule 9 for IPv4 addresses */
-+static int gaiconf_sortv4_flag = 1;
++static int gaiconf_sortv4_flag = 0;
 +
 +/* Last modification time.  */
 +static struct timespec gaiconf_mtime;
