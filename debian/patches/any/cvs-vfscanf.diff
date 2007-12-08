@@ -1,0 +1,22 @@
+2007-12-07  Ulrich Drepper  <drepper@redhat.com>
+
+	[BZ #5441]
+	* stdio-common/vfscanf.c (_IO_vfwscanf): Don't free ptrs_to_free
+	structure, it's allocated with alloca.
+
+Index: stdio-common/vfscanf.c
+===================================================================
+RCS file: /cvs/glibc/libc/stdio-common/vfscanf.c,v
+retrieving revision 1.127
+retrieving revision 1.128
+diff -u -d -p -r1.127 -r1.128
+--- stdio-common/vfscanf.c	28 Oct 2007 08:40:36 -0000	1.127
++++ stdio-common/vfscanf.c	7 Dec 2007 16:40:58 -0000	1.128
+@@ -2845,7 +2845,6 @@ _IO_vfscanf_internal (_IO_FILE *s, const
+ 		  *p->ptrs[cnt] = NULL;
+ 		}
+ 	      p = p->next;
+-	      free (ptrs_to_free);
+ 	      ptrs_to_free = p;
+ 	    }
+ 	}
