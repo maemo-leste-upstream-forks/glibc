@@ -177,7 +177,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile ports/sysdeps/
 +endif
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,101 @@
 +libc {
 +  # The comment lines with "#errlist-compat" are magic; see errlist-compat.awk.
@@ -2877,7 +2877,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/vfork.S ports/sys
 +weak_alias (__vfork, vfork)
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bind.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bind.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bind.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bind.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bind.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,60 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -4334,7 +4334,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/resource.h ports/s
 +};
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sched.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sched.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sched.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sched.h	2007-10-31 18:15:37.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sched.h	2007-10-31 17:52:56.000000000 +0100
 @@ -0,0 +1,120 @@
 +/* Definitions of constants and data structure for POSIX 1003.1b-1993
 +   scheduling interface.
@@ -5015,7 +5015,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/signum.h ports/sys
 +#define	_NSIG		129	/* Biggest signal number + 1.  */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h	2007-11-22 01:40:52.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,140 @@
 +/* __sig_atomic_t, __sigset_t, and related definitions.  FreeBSD version.
 +   Copyright (C) 1994-1996, 2002 Free Software Foundation, Inc.
@@ -5544,8 +5544,8 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/socket.h ports/sys
 +#endif	/* bits/socket.h */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h	2006-10-18 09:59:57.000000000 +0200
-@@ -0,0 +1,198 @@
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h	2007-12-08 23:59:53.000000000 +0100
+@@ -0,0 +1,199 @@
 +/* Copyright (C) 1992, 1996-1997, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -5732,6 +5732,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h ports/sysde
 +# define SF_IMMUTABLE	0x00020000	/* file may not be changed */
 +# define SF_APPEND	0x00040000	/* writes to file may only append */
 +# define SF_NOUNLINK	0x00100000	/* file may not be removed or renamed */
++# define SF_SNAPSHOT	0x00200000	/* snapshot inode */
 +
 +__BEGIN_DECLS
 +
@@ -6528,7 +6529,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/waitflags.h ports/
 +#endif
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/brk.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/brk.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/brk.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/brk.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/brk.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,53 @@
 +/* Copyright (C) 2004 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -6595,7 +6596,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/check_pf.c ports/sysdep
 +#include <inet/check_pf.c>
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_getres.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_getres.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_getres.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_getres.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_getres.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,33 @@
 +/* Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -6632,7 +6633,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_getres.c ports/sy
 +#include <sysdeps/posix/clock_getres.c>
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_gettime.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_gettime.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_gettime.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_gettime.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_gettime.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,33 @@
 +/* Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -6669,7 +6670,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_gettime.c ports/s
 +#include <sysdeps/unix/clock_gettime.c>
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_settime.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_settime.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_settime.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_settime.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_settime.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,32 @@
 +/* Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -7432,7 +7433,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/configure.in ports/sysd
 +fi
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/connect.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/connect.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/connect.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/connect.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/connect.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,69 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -8071,7 +8072,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatvfs64.c ports/sysd
 +weak_alias (__fstatvfs64, fstatvfs64)
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,41 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -8221,7 +8222,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/fxstat64.c ports/sysdep
 +hidden_def (__fxstat64)
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,91 @@
 +/* Determine current working directory.  FreeBSD version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -8316,7 +8317,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c ports/sysdeps/
 +#include <sysdeps/posix/getcwd.c>
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,90 @@
 +/* Read directory entries, 3 argument function.  FreeBSD version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -8788,7 +8789,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/getloadavg.c ports/sysd
 +}
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,50 @@
 +/* Non-reentrant function to return the current login name.  FreeBSD version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -8842,7 +8843,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin.c ports/sysdep
 +}
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin_r.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin_r.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin_r.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin_r.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin_r.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,70 @@
 +/* Reentrant function to return the current login name.  FreeBSD version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -9355,7 +9356,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/glob64.c ports/sysdeps/
 +#include <sysdeps/gnu/glob64.c>
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/gtty.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gtty.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/gtty.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gtty.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gtty.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,3 @@
 +/* just use internal functions */
 +#define ioctl __ioctl
@@ -10729,7 +10730,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/rfork.S ports/sysd
 +
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sigcontextinfo.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sigcontextinfo.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sigcontextinfo.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sigcontextinfo.h	2007-11-15 15:46:16.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sigcontextinfo.h	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,35 @@
 +/* Copyright (C) 1998, 1999, 2001, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -10768,7 +10769,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sigcontextinfo.h p
 +  (handler)((signo), SIGCONTEXT_EXTRA_ARGS (ctx))
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,207 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -11303,7 +11304,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/vm86.h ports/s
 +#endif	/* _SYS_VM86_H */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_fork.S ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_fork.S
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_fork.S	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_fork.S	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_fork.S	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,34 @@
 +/* Copyright (C) 1991-1992, 1994-1995, 1997, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -11341,7 +11342,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_fork.S ports/s
 +libc_hidden_def (__syscall_fork)
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_lseek.S ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_lseek.S
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_lseek.S	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_lseek.S	2007-11-21 16:53:12.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_lseek.S	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,32 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -11462,7 +11463,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysarch.h ports/sy
 +#endif /* _SYSARCH_H */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,34 @@
 +/* Copyright (C) 1993, 1995-1998, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13082,7 +13083,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/types
 +#endif /* bits/typesizes.h */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/execve.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/execve.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/execve.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/execve.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/execve.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,2 @@
 +#include <linuxthreads/sysdeps/unix/sysv/linux/execve.c>
 +libc_hidden_proto (__syscall_execve )
@@ -13295,7 +13296,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/llseek.c ports/sysdeps/
 +the `llseek' function may be dangerous; use `lseek64' instead.")
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/lseek.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lseek.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/lseek.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lseek.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lseek.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,86 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13491,7 +13492,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/lxstat64.c ports/sysdep
 +hidden_def (__lxstat64)
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,84 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13584,7 +13585,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap64.c ports/sysdeps/
 +/* 'mmap64' is the same as 'mmap', because __off64_t == __off_t.  */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/munmap.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/munmap.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/munmap.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/munmap.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/munmap.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,41 @@
 +/* Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -15018,7 +15019,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/ntp_gettime.c ports/sys
 +}
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/open.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/open.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,89 @@
 +/* Copyright (C) 1999, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -15296,7 +15297,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/paths.h ports/sysdeps/u
 +#endif /* !_PATHS_H_ */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,50 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -15586,7 +15587,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptsname.c ports/sysdeps
 +weak_alias (__ptsname_r, ptsname_r)
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,50 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -15687,7 +15688,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir_r.c ports/sysde
 +weak_alias (__readdir64_r, readdir64_r)
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/readv.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readv.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/readv.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readv.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readv.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,57 @@
 +/* readv for FreeBSD.
 +   Copyright (C) 1997-1998, 2000, 2002 Free Software Foundation, Inc.
@@ -15748,7 +15749,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/readv.c ports/sysdeps/u
 +#include <sysdeps/posix/readv.c>
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/recv.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/recv.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/recv.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/recv.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/recv.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,41 @@
 +/* Copyright (C) 2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -16036,7 +16037,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/seekdir.c ports/sysdeps
 +#include <sysdeps/unix/seekdir.c>
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/semctl.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/semctl.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/semctl.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/semctl.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/semctl.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,87 @@
 +/* Copyright (C) 2004 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -16127,7 +16128,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/semctl.c ports/sysdeps/
 +}
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/send.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/send.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/send.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/send.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/send.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,47 @@
 +/* Copyright (C) 2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -16178,7 +16179,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/send.c ports/sysdeps/un
 +weak_alias (__send, send)
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sendto.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sendto.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sendto.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sendto.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sendto.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,70 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -16377,7 +16378,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/setrlimit64.c ports/sys
 +/* 'setrlimit64' is the same as 'setrlimit', because __rlim64_t == __rlim_t.  */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigaction.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigaction.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigaction.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigaction.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigaction.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,47 @@
 +/* Copyright (C) 1991,1995,1996,1997,2002,2004 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -16530,7 +16531,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sleep.c ports/sysdeps/u
 +weak_alias (__sleep, sleep)
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/stat16conv.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stat16conv.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/stat16conv.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stat16conv.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stat16conv.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,80 @@
 +/* Convert between different 'struct stat' formats.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -17045,7 +17046,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/statvfs64.c ports/sysde
 +weak_alias (__statvfs64, statvfs64)
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/stty.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stty.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/stty.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stty.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stty.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,3 @@
 +/* just use internal functions */
 +#define ioctl __ioctl
@@ -17081,8 +17082,8 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/kd.h ports/sysdeps/
 +#endif	/* sys/kd.h */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h	2007-07-29 16:06:15.000000000 +0200
-@@ -0,0 +1,438 @@
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h	2007-12-08 23:59:53.000000000 +0100
+@@ -0,0 +1,447 @@
 +/* Header file for handling mounted filesystems.  FreeBSD version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -17147,6 +17148,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h ports/sysde
 +#define	MNT_SUIDDIR	0x00100000	/* special handling of SUID on dirs */
 +#define	MNT_SOFTDEP	0x00200000	/* soft updates being done */
 +#define	MNT_NOSYMFOLLOW	0x00400000	/* do not follow symlinks */
++#define	MNT_GJOURNAL	0x02000000	/* GEOM journal support enabled */
 +#define	MNT_JAILDEVFS	0x02000000	/* jail-friendly DEVFS behaviour */
 +#define	MNT_MULTILABEL	0x04000000	/* MAC support for individual objects */
 +#define	MNT_ACLS	0x08000000	/* ACL support enabled */
@@ -17224,11 +17226,18 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h ports/sysde
 + * with the unmount attempt (used by NFS).
 + */
 +#define MNTK_UNMOUNTF	0x00000001	/* forced unmount in progress */
++#define MNTK_ASYNC      0x00000002      /* filtered async flag */
++#define MNTK_SOFTDEP    0x00000004      /* async disabled by softdep */
++#define MNTK_NOINSMNTQ  0x00000008      /* insmntque is not allowed */
 +#define MNTK_UNMOUNT	0x01000000	/* unmount in progress */
 +#define	MNTK_MWAIT	0x02000000	/* waiting for unmount to finish */
 +#define MNTK_WANTRDWR	0x04000000	/* upgrade to read/write requested */
++#define MNTK_SUSPEND2   0x04000000      /* block secondary writes */
 +#define	MNTK_SUSPEND	0x08000000	/* request write suspension */
 +#define	MNTK_SUSPENDED	0x10000000	/* write operations are suspended */
++#define MNTK_MPSAFE     0x20000000      /* Filesystem is MPSAFE. */
++#define MNTK_NOKNOTE    0x80000000      /* Don't send KNOTEs from VOP hooks */
++#define MNTK_LOOKUP_SHARED      0x40000000 /* FS supports shared lock lookups */
 +
 +/*
 + * Sysctl CTL_VFS definitions.
@@ -17339,8 +17348,9 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h ports/sysde
 +#define VFCF_SYNTHETIC	0x00080000	/* data does not represent real files */
 +#define	VFCF_LOOPBACK	0x00100000	/* aliases some other mounted FS */
 +#define	VFCF_UNICODE	0x00200000	/* stores file names as Unicode*/
++#define VFCF_JAIL       0x00400000      /* can be mounted from within a jail */
 +
-+typedef u_int32_t fsctlop_t;
++typedef uint32_t fsctlop_t;
 +
 +struct vfsidctl {
 +	int		vc_vers;	/* should be VFSIDCTL_VERS1 (below) */
@@ -18033,7 +18043,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/swap.h ports/sysdep
 +#endif /* sys/swap.h */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h	2007-11-21 16:53:12.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,412 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -18641,7 +18651,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ucontext.h ports/sy
 +#endif /* sys/ucontext.h */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,54 @@
 +/* prototypes of generally used "inline syscalls"
 +   Copyright (C) 2006 Free Software Foundation, Inc.
@@ -18699,7 +18709,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h ports
 +#endif
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,157 @@
 +# File name	Caller	Syscall name		# args	Strong name	Weak names
 +
@@ -19007,7 +19017,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/tcdrain.c ports/sysdeps
 +
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/tcflow.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/tcflow.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/tcflow.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/tcflow.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/tcflow.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,4 @@
 +/* just use internal functions */
 +#define tcgetattr __tcgetattr
@@ -19021,7 +19031,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/telldir.c ports/sysdeps
 +#include <sysdeps/unix/telldir.c>
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,41 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -19071,7 +19081,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate64.c ports/sysd
 +/* 'truncate64' is the same as 'truncate', because __off64_t == __off_t.  */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/ulimit.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ulimit.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/ulimit.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ulimit.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ulimit.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,5 @@
 +/* just use internal functions */
 +#define getrlimit __getrlimit
@@ -19194,7 +19204,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/uname.c ports/sysdeps/u
 +libc_hidden_def (uname)
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlockpt.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlockpt.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlockpt.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlockpt.c	2007-11-21 16:53:13.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlockpt.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,45 @@
 +/* Copyright (C) 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -19243,7 +19253,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlockpt.c ports/sysdep
 +weak_alias (__unlockpt, unlockpt)
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/usleep.c ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/usleep.c
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/usleep.c	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/usleep.c	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/usleep.c	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,50 @@
 +/* Implementation of the BSD usleep function using nanosleep.
 +   Copyright (C) 1996-1997, 1999, 2001-2002 Free Software Foundation, Inc.
@@ -21548,7 +21558,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/rfork.S ports/sy
 +
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sigcontextinfo.h ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sigcontextinfo.h
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sigcontextinfo.h	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sigcontextinfo.h	2007-11-15 15:46:16.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sigcontextinfo.h	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,35 @@
 +/* Copyright (C) 1998, 1999, 2001, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -22054,7 +22064,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/perm.h ports
 +#endif	/* _SYS_PERM_H */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys_fork.S ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys_fork.S
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys_fork.S	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys_fork.S	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys_fork.S	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,36 @@
 +/* Copyright (C) 1991-1992, 1994-1995, 1997, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -22146,7 +22156,7 @@ diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysarch.h ports/
 +#endif /* _SYSARCH_H */
 diff -x .svn -Nurd null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/syscall.S ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/syscall.S
 --- null/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/syscall.S	1970-01-01 01:00:00.000000000 +0100
-+++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/syscall.S	2007-11-16 13:47:48.000000000 +0100
++++ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/syscall.S	2007-11-28 13:32:59.000000000 +0100
 @@ -0,0 +1,31 @@
 +/* Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
