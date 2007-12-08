@@ -97,11 +97,13 @@ RUN_TESTSUITE = yes
 
 TIMEOUTFACTOR = 1
 
-# Set CC for cross-compiling
+# Set CC and CXX for cross-compiling
 ifneq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
 CC     = $(DEB_HOST_GNU_TYPE)-gcc
+CXX    = $(DEB_HOST_GNU_TYPE)-g++
 else
 CC     = $(BUILD_CC)
+CXX    = $(BUILD_CXX)
 endif
 
 BUILD_CFLAGS = -O2 -g
