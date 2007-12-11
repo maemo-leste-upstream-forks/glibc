@@ -57,6 +57,7 @@ push @{$libc_dev_c{'Conflicts'}}, 'libstdc++2.10-dev (<< 1:2.95.2-15)';
 # pic-kludge that breaks libc_nonshared.a inclusion.
 if ($DEB_HOST_ARCH =~ m/^i386$/) {
     push @{$libc_dev_c{'Conflicts'}}, 'gcc-2.95 (<< 1:2.95.3-9)';
+    push @{$libc_c{'Suggests'}}, 'libc6-i686';
 } else {
     push @{$libc_dev_c{'Conflicts'}}, 'gcc-2.95 (<< 1:2.95.3-8)';
 }
