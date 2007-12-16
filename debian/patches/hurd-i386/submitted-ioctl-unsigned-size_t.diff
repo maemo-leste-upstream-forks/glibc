@@ -1,11 +1,37 @@
---- sysdeps/mach/hurd/bits/ioctls.h.orig
-+++ sysdeps/mach/hurd/bits/ioctls.h
-@@ -112,6 +112,8 @@
- #define	_IOT__IOTBASE_int	_IOT_SIMPLE (int)
+Index: sysdeps/mach/hurd/bits/ioctls.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/bits/ioctls.h,v
+retrieving revision 1.10
+diff -u -p -r1.10 ioctls.h
+--- sysdeps/mach/hurd/bits/ioctls.h	7 Sep 2007 20:38:57 -0000	1.10
++++ sysdeps/mach/hurd/bits/ioctls.h	16 Dec 2007 02:49:36 -0000
+@@ -109,9 +109,17 @@
+ #define	_IOT_SIMPLE(type)	_IOT (_IOTS (type), 1, 0, 0, 0, 0)
+ 
+ /* Basic C types.  */
+-#define	_IOT__IOTBASE_int	_IOT_SIMPLE (int)
  #define	_IOT__IOTBASE_char	_IOT_SIMPLE (char)
++#define	_IOT__IOTBASE_int	_IOT_SIMPLE (int)
  #define	_IOT__IOTBASE_short	_IOT_SIMPLE (short)
-+#define	_IOT__IOTBASE_unsigned	_IOT_SIMPLE (unsigned)
++#define	_IOT__IOTBASE_long	_IOT_SIMPLE (long)
++#define	_IOT_char		_IOT_SIMPLE (char)
++#define	_IOT_int		_IOT_SIMPLE (int)
++#define	_IOT_short		_IOT_SIMPLE (short)
++#define	_IOT_long		_IOT_SIMPLE (long)
++
 +#define	_IOT__IOTBASE_size_t	_IOT_SIMPLE (size_t)
++#define	_IOT__IOTBASE_ssize_t	_IOT_SIMPLE (ssize_t)
  
  
  /* Standard flavors of ioctls.
+@@ -133,6 +141,10 @@
+ #define _IOC_ENCODE_TYPE_1(typespec)	_IOC_ENCODE_TYPE_2(typespec)
+ #define _IOC_ENCODE_TYPE_2(typespec)	_IOT_##typespec
+ 
++/* Also, ignore signedness.  */
++#define	_IOTBASE_unsigned
++#define	_IOTBASE_signed
++
+ 
+ /* ioctls verbatim from 4.4 <sys/ioctl.h>.  */
+ 
