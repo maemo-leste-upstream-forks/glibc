@@ -131,3 +131,24 @@
 +
 +#undef PROCINFO_DECL
 +#undef PROCINFO_CLASS
+--- sysdeps/alpha/dl-machine.h.orig	2007-12-14 12:28:22.000000000 +0100
++++ sysdeps/alpha/dl-machine.h	2007-12-14 12:30:16.000000000 +0100
+@@ -249,6 +249,18 @@
+ /* The alpha never uses Elf64_Rel relocations.  */
+ #define ELF_MACHINE_NO_REL 1
+ 
++/* We define an initialization functions.  This is called very early in
++ *    _dl_sysdep_start.  */
++#define DL_PLATFORM_INIT dl_platform_init ()
++
++static inline void __attribute__ ((unused))
++dl_platform_init (void)
++{
++	if (GLRO(dl_platform) != NULL && *GLRO(dl_platform) == '\0')
++	/* Avoid an empty string which would disturb us.  */
++		GLRO(dl_platform) = NULL;
++}
++	
+ /* Fix up the instructions of a PLT entry to invoke the function
+    rather than the dynamic linker.  */
+ static inline Elf64_Addr
