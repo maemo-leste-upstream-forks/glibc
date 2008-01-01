@@ -82,7 +82,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 $(patsubst %,build_%,$(GLIBC_PASSES)) :: build_% : $(stamp)build_%
 $(stamp)build_%: $(stamp)configure_%
 	@echo Building $(curpass)
-	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS))
+	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR))
 	$(call logme, -a $(log_build), echo "---------------" ; echo -n "Build ended: " ; date --rfc-2822)
 	touch $@
 
@@ -112,7 +112,7 @@ $(stamp)check_%: $(stamp)build_%
 	  echo -n "Testsuite started: " | tee -a $(log_test); \
 	  date --rfc-2822 | tee -a $(log_test); \
 	  echo "--------------" | tee -a $(log_test); \
-	  TIMEOUTFACTOR="$(TIMEOUTFACTOR)" $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS) -k check 2>&1 | tee -a $(log_test); \
+	  TIMEOUTFACTOR="$(TIMEOUTFACTOR)" $(MAKE) -C $(DEB_BUILDDIR) -k check 2>&1 | tee -a $(log_test); \
 	  echo "--------------" | tee -a $(log_test); \
 	  echo -n "Testsuite ended: " | tee -a $(log_test); \
 	  date --rfc-2822 | tee -a $(log_test); \
@@ -129,7 +129,7 @@ $(stamp)install_%: $(stamp)check_%
 	if [ $(curpass) = libc ]; then \
 	  $(MAKE) -f debian/generate-supported.mk IN=$(DEB_SRCDIR)/localedata/SUPPORTED \
 	    OUT=debian/tmp-$(curpass)/usr/share/i18n/SUPPORTED; \
-	  $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS) \
+	  $(MAKE) -C $(DEB_BUILDDIR) \
 	    objdir=$(DEB_BUILDDIR) install_root=$(CURDIR)/debian/tmp-$(curpass) \
 	    localedata/install-locales; \
 	  rm -rf $(CURDIR)/debian/locales-all/usr/lib; \
