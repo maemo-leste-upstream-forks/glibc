@@ -29,7 +29,7 @@ $(stamp)patch-stamp: $(stamp)unpack quilt
 #  These symbolic links are useful when running quilt interactively
 #  from $(DEB_SRCDIR), or from the patch/unpatch targets.
 #  Patches specific to a certain architecture are applied first.
-quilt: 
+quilt: $(stamp)unpack
 	@if test -n "$(DEB_SRCDIR)" && test -d $(DEB_SRCDIR); then \
 	  test -L $(DEB_SRCDIR)/debian || ln -s . $(DEB_SRCDIR)/debian; \
 	  test -L $(DEB_SRCDIR)/patches || ln -s $(shell pwd)/debian/patches $(DEB_SRCDIR)/patches; \

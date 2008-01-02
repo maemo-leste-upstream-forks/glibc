@@ -159,3 +159,5 @@ $(stamp)install_%: $(stamp)check_%
 
 	$(call xx,extra_install)
 	touch $@
+
+.NOTPARALLEL: $(patsubst %,install_%,$(GLIBC_PASSES))
