@@ -194,8 +194,10 @@ then
     fi
   done
   if [ -e /lib/tls/i686/cmov/libc.so.6 ] || [ -e /lib/i686/cmov/libc.so.6 ] ; then
-    status=$(dpkg -s libc6-i686 2>/dev/null | grep ^Status: | sed -e 's/^Status: \(.*\) \(.*\) \(.*\)/\3/g')
-    if [ -z "$status" ] || [ "$status" = "not-installed" ] || [ "$status" = "config-files" ]; then
+    status_i686=$(dpkg -s libc6-i686 2>/dev/null | grep ^Status: | sed -e 's/^Status: \(.*\) \(.*\) \(.*\)/\3/g')
+    status_xen=$(dpkg -s libc6-xen 2>/dev/null | grep ^Status: | sed -e 's/^Status: \(.*\) \(.*\) \(.*\)/\3/g')
+    if ([ -z "$status_i686" ] || [ "$status_i686" = "not-installed" ] || [ "$status_i686" = "config-files" ]) && \
+       ([ -z "$status_xen" ] || [ "$status_xen" = "not-installed" ] || [ "$status_xen" = "config-files" ]); then
       echo
       echo "A non-dpkg owned copy of the libc6-i686 package was found."
       echo "It is not safe to upgrade the C library in this situation;"
