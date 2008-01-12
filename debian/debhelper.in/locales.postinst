@@ -54,13 +54,15 @@ EOF
         /usr/sbin/locale-gen
     fi
 
-    # Set default LANG environment variable
-    if [ -e $EE ]; then
-        # Remove previous definitions
-        /usr/sbin/update-locale --no-checks LANG
-    fi
-    if [ -n "$DEFAULT_ENVIRONMENT" ] && [ "$DEFAULT_ENVIRONMENT" != "None" ]; then
-        /usr/sbin/update-locale "LANG=$DEFAULT_ENVIRONMENT"
+    if ! [ -e $EE] || [ -n "$DEBCONF_RECONFIGURE" ] ; then
+        # Set default LANG environment variable
+        if [ -e $EE ]; then
+            # Remove previous definitions
+            /usr/sbin/update-locale --no-checks LANG
+        fi
+        if [ -n "$DEFAULT_ENVIRONMENT" ] && [ "$DEFAULT_ENVIRONMENT" != "None" ]; then
+            /usr/sbin/update-locale "LANG=$DEFAULT_ENVIRONMENT"
+        fi
     fi
 fi
 
