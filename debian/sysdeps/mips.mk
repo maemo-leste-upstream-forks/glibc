@@ -30,7 +30,3 @@ mips64_extra_config_options := $(extra_config_options) --disable-profile
 define mipsn32_extra_install
 cp debian/tmp-mipsn32/usr/bin/ldd debian/tmp-libc/usr/bin
 endef
-
-# This is needed to keep binutils (ar & ranlib) from getting confused about
-# the file format being used.
-#export GNUTARGET=elf64-tradbigmips
