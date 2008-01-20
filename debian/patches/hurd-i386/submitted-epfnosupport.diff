@@ -1,0 +1,38 @@
+2008-01-20  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	* hurd/hurdsock.c (_hurd_socket_server): Return the standard
+	error EAFNOSUPPORT rather than non-standard EPFNOSUPPORT.
+	* sunrpc/bindrsvprt.c (bindresvport): Likewise.
+
+Index: ./hurd/hurdsock.c
+===================================================================
+RCS file: /cvs/glibc/libc/hurd/hurdsock.c,v
+retrieving revision 1.28
+diff -u -p -r1.28 hurdsock.c
+--- ./hurd/hurdsock.c	6 Jul 2001 04:54:47 -0000	1.28
++++ ./hurd/hurdsock.c	20 Jan 2008 16:09:38 -0000
+@@ -92,7 +92,7 @@ _hurd_socket_server (int domain, int dea
+ 
+   if (server == MACH_PORT_NULL && errno == ENOENT)
+     /* If the server node is absent, we don't support that protocol.  */
+-    errno = EPFNOSUPPORT;
++    errno = EAFNOSUPPORT;
+ 
+   __mutex_unlock (&lock);
+   HURD_CRITICAL_END;
+Index: ./sunrpc/bindrsvprt.c
+===================================================================
+RCS file: /cvs/glibc/libc/sunrpc/bindrsvprt.c,v
+retrieving revision 1.12
+diff -u -p -r1.12 bindrsvprt.c
+--- ./sunrpc/bindrsvprt.c	22 Nov 2005 04:39:05 -0000	1.12
++++ ./sunrpc/bindrsvprt.c	20 Jan 2008 16:09:38 -0000
+@@ -61,7 +61,7 @@ bindresvport (int sd, struct sockaddr_in
+     }
+   else if (sin->sin_family != AF_INET)
+     {
+-      __set_errno (EPFNOSUPPORT);
++      __set_errno (EAFNOSUPPORT);
+       return -1;
+     }
+ 
