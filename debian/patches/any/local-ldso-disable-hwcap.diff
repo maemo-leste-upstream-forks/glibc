@@ -5,32 +5,38 @@
 # DP: Upstream status: Debian-Specific
 # DP: Status Details: This isn't going to be acceptable upstream, we
 # DP:                 only need it because we support in-place upgrades.
-# DP: Date: 2003-10-28, (Updated 2005-01-02 gotom, 2007-05-20 aurel32)
+# DP: Date: 2003-10-28, (Updated 2005-01-02 gotom, 2007-05-20 aurel32, 
+# DP: 2008-01-21 aurel32)
 
 --- elf/dl-sysdep.c.orig
 +++ elf/dl-sysdep.c
-@@ -408,6 +408,20 @@
+@@ -408,6 +408,25 @@
    /* For TLS enabled builds always add 'tls'.  */
    ++cnt;
  
 +  if (__access ("/etc/ld.so.nohwcap", F_OK) == 0)
 +    {
-+      /* If hwcap is disabled, we only have the base directory to search.  */
-+      result = (struct r_strlenpair *) malloc (sizeof (*result));
++      /* If hwcap is disabled, we only have the base directory and tls to search.  */
++      *sz = 2;
++      result = (struct r_strlenpair *) malloc (*sz * sizeof (*result) + 3 + 1);
 +      if (result == NULL)
-+	goto no_memory;
++        goto no_memory;
 +
-+      result[0].str = (char *) result;  /* Does not really matter.  */
-+      result[0].len = 0;
++      result[0].str = (char *) (result + *sz);
++      result[0].len = 3 + 1;
++      result[1].str = (char *) (result + *sz);
++      result[1].len = 0;
++      cp = __mempcpy ((char *) (result + *sz), "tls", 3);
++      *cp = '/';
 +
-+      *sz = 1;
++      *max_capstrlen = result[0].len;
 +      return result;
 +    }
 +
    /* Create temporary data structure to generate result table.  */
    temp = (struct r_strlenpair *) alloca (cnt * sizeof (*temp));
    m = 0;
-@@ -482,8 +496,11 @@
+@@ -482,8 +501,11 @@
    *sz = 1 << cnt;
    result = (struct r_strlenpair *) malloc (*sz * sizeof (*result) + total);
    if (result == NULL)
@@ -44,6 +50,7 @@
  
    if (cnt == 1)
      {
+
 --- elf/dl-cache.c.orig
 +++ elf/dl-cache.c
 @@ -244,6 +244,7 @@
@@ -66,7 +73,7 @@
  #define HWCAP_CHECK \
        if (GLRO(dl_osversion) && lib->osversion > GLRO(dl_osversion))	      \
  	continue;							      \
-+      if (disable_hwcap && lib->hwcap != 0)				      \
++      if (disable_hwcap && (lib->hwcap & ~_DL_HWCAP_TLS_MASK) != 0)	      \
 +	continue;							      \
        if (_DL_PLATFORMS_COUNT						      \
  	  && (lib->hwcap & _DL_HWCAP_PLATFORM) != 0			      \
