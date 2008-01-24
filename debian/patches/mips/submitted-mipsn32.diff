@@ -1,0 +1,26 @@
+2008-01-24  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/unix/sysv/linux/mips/mips64/n32/truncate64.c: Drop truncate
+	declaration.
+	(truncate64): Fix arguments and call to truncate.
+
+Index: sysdeps/unix/sysv/linux/mips/mips64/n32/truncate64.c
+===================================================================
+RCS file: /cvs/glibc/ports/sysdeps/unix/sysv/linux/mips/mips64/n32/truncate64.c,v
+retrieving revision 1.1
+diff -u -d -p -r1.1 truncate64.c
+--- ports/sysdeps/unix/sysv/linux/mips/mips64/n32/truncate64.c	5 Apr 2003 19:57:35 -0000	1.1
++++ ports/sysdeps/unix/sysv/linux/mips/mips64/n32/truncate64.c	24 Jan 2008 01:21:34 -0000
+@@ -21,10 +21,6 @@
+ #include <sysdep.h>
+ #include <bp-checks.h>
+ 
+-extern int truncate (const char *__unbounded path, int dummy,
+-		     off64_t length);
+-
+-int truncate64 (const char *__unbounded path, int dummy,
+-		off64_t length) {
+-  return truncate (path, dummy, length);
++int truncate64 (const char *file, off64_t length) {
++  return truncate (file, length);
+ }
