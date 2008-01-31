@@ -1,4 +1,3 @@
-libc_extra_cflags = -O3 -g
 libc_slibdir = /lib
 libc_libdir = /usr/lib
 libc_rtlddir = /lib64
@@ -17,7 +16,7 @@ powerpc_add-ons = nptl $(add-ons)
 powerpc_configure_target = powerpc-linux
 powerpc_CC = $(CC) -m32
 powerpc_CXX = $(CXX) -m32
-powerpc_extra_cflags = -O3 -g
+powerpc_extra_cflags = -O3 
 powerpc_includedir = /usr/include/powerpc-linux-gnu
 powerpc_extra_config_options := $(extra_config_options) --disable-profile
 powerpc_rtlddir = /lib
