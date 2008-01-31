@@ -1,0 +1,57 @@
+2008-01-12  Andreas Jaeger  <aj@suse.de>
+
+	[BZ #5040]
+	* sysdeps/unix/sysv/linux/x86_64/sys/epoll.h (enum EPOLL_EVENTS):
+	Add EPOLLRDHUP.
+
+2007-10-27  Andreas Jaeger  <aj@suse.de>
+
+	[BZ #5040]
+	* sysdeps/unix/sysv/linux/sys/epoll.h (EPOLLRDHUP): Add value.
+
+Index: sysdeps/unix/sysv/linux/x86_64/sys/epoll.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/x86_64/sys/epoll.h,v
+retrieving revision 1.4
+retrieving revision 1.5
+diff -u -d -p -r1.4 -r1.5
+--- sysdeps/unix/sysv/linux/x86_64/sys/epoll.h	21 May 2007 18:23:01 -0000	1.4
++++ sysdeps/unix/sysv/linux/x86_64/sys/epoll.h	21 Jan 2008 21:19:51 -0000	1.5
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2002,2003,2004,2005,2006,2007 Free Software Foundation, Inc.
++/* Copyright (C) 2002,2003,2004,2005,2006,2007,2008 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -53,6 +53,8 @@ enum EPOLL_EVENTS
+ #define EPOLLERR EPOLLERR
+     EPOLLHUP = 0x010,
+ #define EPOLLHUP EPOLLHUP
++    EPOLLRDHUP = 0x2000,
++#define EPOLLRDHUP EPOLLRDHUP
+     EPOLLONESHOT = (1 << 30),
+ #define EPOLLONESHOT EPOLLONESHOT
+     EPOLLET = (1 << 31)
+Index: sysdeps/unix/sysv/linux/sys/epoll.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/sysv/linux/sys/epoll.h,v
+retrieving revision 1.6
+retrieving revision 1.7
+diff -u -d -p -r1.6 -r1.7
+--- sysdeps/unix/sysv/linux/sys/epoll.h	11 Oct 2006 20:19:15 -0000	1.6
++++ sysdeps/unix/sysv/linux/sys/epoll.h	28 Oct 2007 01:33:44 -0000	1.7
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
++/* Copyright (C) 2002-2006, 2007 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -53,6 +53,8 @@ enum EPOLL_EVENTS
+ #define EPOLLERR EPOLLERR
+     EPOLLHUP = 0x010,
+ #define EPOLLHUP EPOLLHUP
++    EPOLLRDHUP = 0x2000,
++#define EPOLLRDHUP EPOLLRDHUP
+     EPOLLONESHOT = (1 << 30),
+ #define EPOLLONESHOT EPOLLONESHOT
+     EPOLLET = (1 << 31)
