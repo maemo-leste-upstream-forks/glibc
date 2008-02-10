@@ -1,6 +1,6 @@
 --- /dev/null
 +++ sysdeps/alpha/dl-procinfo.h
-@@ -0,0 +1,63 @@
+@@ -0,0 +1,68 @@
 +/* Alpha version of processor capability information handling macros.
 +   Copyright (C) 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -43,9 +43,14 @@
 +__attribute__ ((unused, always_inline))
 +_dl_string_platform (const char *str)
 +{
-+  for (int i = 0; i < _DL_PLATFORMS_COUNT; ++i)
-+    if (strcmp (str, _dl_platform_string (i)) == 0)
-+      return i;
++  int i;
++
++  if (str != NULL)
++    for (i = 0; i < _DL_PLATFORMS_COUNT; ++i)
++      {
++        if (strcmp (str, _dl_platform_string (i)) == 0)
++          return i;
++      }
 +  return -1;
 +};
 +
