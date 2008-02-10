@@ -75,6 +75,9 @@ as if run by ldd, instead of running normally.
 If present, causes the dynamic linker to resolve all symbols at program
 startup instead of when they are first referenced.
 .TP
+.B LD_BIND_NOT 
+Do not update the GOT (global offset table) and PLT (procedure linkage table) after resolving a symbol.
+.TP
 .B LD_AOUT_LIBRARY_PATH
 A colon-separated list of directories in which to search for
 a.out libraries at execution-time.
@@ -113,6 +116,15 @@ If set to non-empty string, output symbol versioning information
 about the program if querying information about the program (ie. either
 .B LD_TRACE_LOADED_OBJECTS 
 has been set, or --list or --verify options have been given to the dynamic linker).
+.TP
+.B LD_PROFILE 
+Shared object to be profiled. 
+.TP
+.B
+LD_PROFILE_OUTPUT 
+File where 
+.B LD_PROFILE
+output should be stored, default is standard output. LD_DEBUG_OUTPUT is ignored for setuid/setgid binaries.
 .TP
 .B LD_ASSUME_KERNEL
 Every DSO (Dynamic Shared Object, aka shared library) can tell the dynamic linker in glibc which
