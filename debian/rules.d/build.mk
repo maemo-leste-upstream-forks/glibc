@@ -84,6 +84,12 @@ $(stamp)build_%: $(stamp)configure_%
 	@echo Building $(curpass)
 	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS))
 	$(call logme, -a $(log_build), echo "---------------" ; echo -n "Build ended: " ; date --rfc-2822)
+	if [ $(curpass) = libc ]; then \
+	  $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS) \
+	    objdir=$(DEB_BUILDDIR) install_root=$(CURDIR)/build-tree/locales-all \
+	    localedata/install-locales; \
+	  tar --use-compress-program /usr/bin/lzma --owner root --group root -cf $(CURDIR)/build-tree/locales-all/supported.tar.lzma -C $(CURDIR)/build-tree/locales-all/usr/lib/locale .; \
+	fi
 	touch $@
 
 $(patsubst %,check_%,$(GLIBC_PASSES)) :: check_% : $(stamp)check_%
@@ -126,15 +132,10 @@ $(stamp)install_%: $(stamp)check_%
 	$(MAKE) -C $(DEB_BUILDDIR) \
 	  install_root=$(CURDIR)/debian/tmp-$(curpass) install
 
+	# Generate the list of SUPPORTED locales
 	if [ $(curpass) = libc ]; then \
 	  $(MAKE) -f debian/generate-supported.mk IN=$(DEB_SRCDIR)/localedata/SUPPORTED \
 	    OUT=debian/tmp-$(curpass)/usr/share/i18n/SUPPORTED; \
-	  $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS) \
-	    objdir=$(DEB_BUILDDIR) install_root=$(CURDIR)/debian/tmp-$(curpass) \
-	    localedata/install-locales; \
-	  rm -rf $(CURDIR)/debian/locales-all/usr/lib; \
-	  install -d $(CURDIR)/debian/locales-all/usr/lib/locales-all; \
-	  tar --use-compress-program /usr/bin/lzma -cf $(CURDIR)/debian/locales-all/usr/lib/locales-all/supported.tar.lzma -C $(CURDIR)/debian/tmp-libc/usr/lib/locale .; \
 	fi
 
 	# Create the multidir directories, and the configuration file in /etc/ld.so.conf.d
