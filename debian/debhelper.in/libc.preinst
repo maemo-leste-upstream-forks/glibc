@@ -45,10 +45,7 @@ then
 
     # NSS authentication trouble guard
     if dpkg --compare-versions $2 lt 2.6-1; then
-	check="xdm kdm gdm postgresql xscreensaver proftpd"
-	# Only get the ones that are installed, and configured
-	service=$(dpkg -s $check 2> /dev/null | awk 'BEGIN{RS="\n\n";FS="\n"}{if ( $2 ~ /Status: .* installed$/ ) { print $1 } }' | cut -f 2 -d ' ')
-
+    	# NSS services check: NSS_CHECK
 	echo
 	echo "Name Service Switch update in the C Library: pre-installation question."
 	echo
@@ -64,10 +61,10 @@ then
 	echo "        $check"
 	echo
 
-	if [ -n "$service" ]; then 
+	if [ -n "$services" ]; then 
 	    echo "This script detected the following installed services which must be"
 	    echo "stopped before the upgrade:"
-	    echo "        $service"
+	    echo "        $services"
 	else
 	    echo "This script did not detect any installed services which need to be"
 	    echo "stopped."

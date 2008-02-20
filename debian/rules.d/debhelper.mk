@@ -172,6 +172,7 @@ $(stamp)debhelper:
 	  cp $$x $$z; \
 	  sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$z; \
 	  sed -e "/KERNEL_VERSION_CHECK/r debian/script.in/kernelcheck.sh" -i $$z; \
+	  sed -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" -i $$z; \
 	  sed -e "/NOHWCAP/r debian/script.in/nohwcap.sh" -i $$z; \
 	  sed -e "s#LIBC#$(libc)#" -i $$z; \
 	  sed -e "s#CURRENT_VER#$(DEB_VERSION)#" -i $$z; \
