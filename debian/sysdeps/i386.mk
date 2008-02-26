@@ -1,3 +1,8 @@
+ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
+CC     = gcc-4.3
+CXX    = g++-4.3
+endif
+
 libc_extra_cflags = -march=i486 -mtune=i686
 
 # We use -march=i686 and glibc's i686 routines use cmov, so require it.
