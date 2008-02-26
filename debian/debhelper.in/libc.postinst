@@ -156,8 +156,15 @@ then
 	    ln -sf spool/mail /var/mail
 	fi
 	if dpkg --compare-versions $preversion lt 2.6-1; then
-
-    	    # NSS services check: NSS_CHECK
+	    check="apache2-common apache apache-ssl apache-perl autofs at"
+	    check="$check boa cucipop courier-authdaemon cron cupsys exim"
+	    check="$check exim4-base dovecot-common cucipop lprng lpr"
+	    check="$check lpr-ppd mysql-server nis openbsd-inetd"
+	    check="$check openldapd postfix postfix-tls rsync samba"
+	    check="$check sasl2-bin slapd smail sendmail snmpd ssh"
+	    check="$check spamassassin vsftpd wu-ftpd wu-ftpd-academ wwwoffle"
+	    check="$check webmin dropbear"
+	    # NSS services check: NSS_CHECK
 	    if [ -n "$services" ]; then
 
 	        if [ -f /usr/share/debconf/confmodule ] ; then

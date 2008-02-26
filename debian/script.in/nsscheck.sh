@@ -1,12 +1,4 @@
 	    echo -n "Checking for services that may need to be restarted..."
-	    check="apache2-common apache apache-ssl apache-perl autofs at"
-	    check="$check boa cucipop courier-authdaemon cron cupsys exim"
-	    check="$check exim4-base dovecot-common cucipop lprng lpr"
-	    check="$check lpr-ppd mysql-server nis openbsd-inetd"
-	    check="$check openldapd postfix postfix-tls proftpd rsync samba"
-	    check="$check sasl2-bin slapd smail sendmail snmpd ssh"
-	    check="$check spamassassin vsftpd wu-ftpd wu-ftpd-academ wwwoffle"
-	    check="$check webmin dropbear"
 	    # Only get the ones that are installed, and configured
 	    check=$(dpkg -s $check 2> /dev/null | egrep '^Package:|^Status:' | awk '{if ($1 ~ /^Package:/) { package=$2 } else if ($0 ~ /^Status: .* installed$/) { print package }}')
 	    # some init scripts don't match the package names
