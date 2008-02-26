@@ -3,8 +3,6 @@ CC     = gcc-4.3
 CXX    = g++-4.3
 endif
 
-libc_extra_cflags = -march=i486 -mtune=i686
-
 # We use -march=i686 and glibc's i686 routines use cmov, so require it.
 # A Debian-local glibc patch adds cmov to the search path.
 # The optimized libraries also use NPTL!
