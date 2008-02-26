@@ -43,55 +43,62 @@ then
 	if [ -e /var/run/utmpd.rw ]; then rm -f /var/run/utmpd.rw; fi
     fi
 
+    # Load debconf module if available
+    if [ -f /usr/share/debconf/confmodule ] ; then
+        . /usr/share/debconf/confmodule
+    fi
     # NSS authentication trouble guard
     if dpkg --compare-versions $2 lt 2.6-1; then
-	check="xdm kdm gdm postgresql xscreensaver proftpd"
-	# NSS services check: NSS_CHECK
-	echo
-	echo "Name Service Switch update in the C Library: pre-installation question."
-	echo
-	echo "Running services and programs that are using NSS need to be restarted,"
-	echo "otherwise they might not be able to do lookup or authentication any more."
-	echo "The installation process is able to restart some services (such as ssh or"
-	echo "telnetd), but other programs cannot be restarted automatically.  One such"
-	echo "program that needs manual stopping and restart after the glibc upgrade by"
-	echo "yourself is xdm - because automatic restart might disconnect your active"
-	echo "X11 sessions."
-	echo
-	echo "Known packages that need to be stopped before the glibc upgrade are:"
-	echo "        $check"
-	echo
 
+	check="gdm kdm proftpd postgresql xscreensaver xdm"
+	# NSS services check: NSS_CHECK
 	if [ -n "$services" ]; then 
-	    echo "This script detected the following installed services which must be"
-	    echo "stopped before the upgrade:"
-	    echo "        $services"
-	else
-	    echo "This script did not detect any installed services which need to be"
-	    echo "stopped."
-	fi
-	echo
-	echo "If you want to interrupt the upgrade now and continue later, please"
-	echo "answer No to the question below."
-	echo 
-	frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
-	if [ "$frontend" = noninteractive ]; then
-	    echo "Non-interactive mode, upgrade glibc forcibly"
-	    answer=yes
-	else
-	    echo -n "Do you want to upgrade glibc now? [Y/n] "
-	    read answer
-	    case $answer in
-		Y*|y*) answer=yes ;;
-		N*|n*) answer=no ;;
-		*) answer=yes ;;
-	    esac
-	fi
-	echo
-	if [ "$answer" = no ]; then
-	    echo "Stopped glibc upgrade.  Please retry the upgrade after you have"
-	    echo "checked or stopped services by hand."
-	    exit 1
+	    if [ -f /usr/share/debconf/confmodule ] ; then
+	        db_version 2.0
+		db_reset glibc/upgrade
+		db_subst glibc/upgrade services $services
+		db_input critical glibc/upgrade || true
+		db_go || true
+		db_get glibc/upgrade
+		answer=$RET
+	    else
+		echo "Name Service Switch update in the GNU C Library"
+		echo
+		echo "Running services and programs that are using NSS need to be restarted,"
+		echo "otherwise they might not be able to do lookup or authentication any more."
+		echo "The installation process is able to restart some services (such as ssh or"
+		echo "telnetd), but other programs cannot be restarted automatically.  One such"
+		echo "program that needs manual stopping and restart after the glibc upgrade by"
+		echo "yourself is xdm - because automatic restart might disconnect your active"
+		echo "X11 sessions."
+		echo
+		echo "This script detected the following installed services which must be"
+		echo "stopped before the upgrade: $services"
+		echo
+		echo "If you want to interrupt the upgrade now and continue later, please"
+		echo "answer No to the question below."
+		echo 
+		frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
+		if [ "$frontend" = noninteractive ]; then
+		    echo "Non-interactive mode, upgrade glibc forcibly"
+		    answer=true
+		else
+		    echo -n "Do you want to upgrade glibc now? [Y/n] "
+		    read answer
+		    case $answer in
+			Y*|y*) answer=true ;;
+			N*|n*) answer=false ;;
+			*) answer=true ;;
+		    esac
+		fi
+		echo
+	    fi
+
+	    if [ "x$answer" != "xtrue" ]; then
+	        echo "Stopped glibc upgrade.  Please retry the upgrade after you have"
+	        echo "checked or stopped services by hand."
+	        exit 1
+	    fi
 	fi
     fi
 

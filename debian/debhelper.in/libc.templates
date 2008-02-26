@@ -1,3 +1,21 @@
+Template: glibc/upgrade
+Type: boolean
+Default: true
+_Description: Do you want to upgrade glibc now?
+ Running services and programs that are using NSS need to be restarted,
+ otherwise they might not be able to do lookup or authentication any more.
+ The installation process is able to restart some services (such as ssh or
+ telnetd), but other programs cannot be restarted automatically. One such
+ program that needs manual stopping and restart after the glibc upgrade by
+ yourself is xdm - because automatic restart might disconnect your active
+ X11 sessions.
+ .
+ This script detected the following installed services which must be
+ stopped before the upgrade: ${services}
+ .
+ If you want to interrupt the upgrade now and continue later, please
+ answer No to the question below.
+
 Template: glibc/restart-services
 Type: string
 _Description: Services to restart for GNU libc library upgrade:
