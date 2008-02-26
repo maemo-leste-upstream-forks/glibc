@@ -14,8 +14,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glibc\n"
-"Report-Msgid-Bugs-To: debian-glibc@lists.debian.org\n"
-"POT-Creation-Date: 2007-09-09 23:53+0200\n"
+"Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
+"POT-Creation-Date: 2008-02-26 21:34+0100\n"
 "PO-Revision-Date: 2007-09-17 18:27+0200\n"
 "Last-Translator: Miroslav Kure <kurem@debian.cz>\n"
 "Language-Team: Czech <debian-l10n-czech@lists.debian.org>\n"
@@ -92,15 +92,63 @@ msgstr ""
 "Tímto vyberete výchozí jazyk pro celý systém. Pokud se na počítač přihlašují "
 "i uživatelé nemluvící vybraným jazykem, zaznamenají jisté problémy."
 
-#. Type: string
+#. Type: boolean
 #. Description
 #: ../debhelper.in/libc.templates:1001
+msgid "Do you want to upgrade glibc now?"
+msgstr ""
+
+#. Type: boolean
+#. Description
+#: ../debhelper.in/libc.templates:1001
+#, fuzzy
+#| msgid ""
+#| "Running services and programs that are using NSS need to be restarted, "
+#| "otherwise they might not be able to do lookup or authentication any more "
+#| "(for services such as ssh, this can affect your ability to login). Please "
+#| "review the following space-separated list of init.d scripts for services "
+#| "to be restarted now, and correct it if needed."
+msgid ""
+"Running services and programs that are using NSS need to be restarted, "
+"otherwise they might not be able to do lookup or authentication any more. "
+"The installation process is able to restart some services (such as ssh or "
+"telnetd), but other programs cannot be restarted automatically. One such "
+"program that needs manual stopping and restart after the glibc upgrade by "
+"yourself is xdm - because automatic restart might disconnect your active X11 "
+"sessions."
+msgstr ""
+"Běžící služby a programy využívající NSS se musí restartovat, protože jinak "
+"se může stát, že nebudou moci vyhledávat v systémových databázích nebo "
+"ověřovat uživatele. (U služeb typu ssh to může ovlivnit možnost přihlášení "
+"se.) Zkontrolujte prosím následující mezerami oddělený seznam služeb, které "
+"se mají restartovat a v případě potřeby jej opravte. Služby jsou v seznamu "
+"zastoupeny svými init.d skripty."
+
+#. Type: boolean
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid ""
+"This script detected the following installed services which must be stopped "
+"before the upgrade: ${services}"
+msgstr ""
+
+#. Type: boolean
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid ""
+"If you want to interrupt the upgrade now and continue later, please answer "
+"No to the question below."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../debhelper.in/libc.templates:2001
 msgid "Services to restart for GNU libc library upgrade:"
 msgstr "Služby, které se mají restartovat po aktualizaci knihovny GNU libc:"
 
 #. Type: string
 #. Description
-#: ../debhelper.in/libc.templates:1001
+#: ../debhelper.in/libc.templates:2001
 msgid ""
 "Running services and programs that are using NSS need to be restarted, "
 "otherwise they might not be able to do lookup or authentication any more "
@@ -117,20 +165,20 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../debhelper.in/libc.templates:1001
+#: ../debhelper.in/libc.templates:2001
 msgid ""
 "Note: restarting sshd/telnetd should not affect any existing connections."
 msgstr "Poznámka: restart sshd/telnetd by neměl ovlivnit probíhající spojení."
 
 #. Type: error
 #. Description
-#: ../debhelper.in/libc.templates:2001
+#: ../debhelper.in/libc.templates:3001
 msgid "Failure restarting some services for GNU libc upgrade"
 msgstr "Chyba při restartu některých služeb během aktualizace GNU libc"
 
 #. Type: error
 #. Description
-#: ../debhelper.in/libc.templates:2001
+#: ../debhelper.in/libc.templates:3001
 msgid ""
 "The following services could not be restarted for the GNU libc library "
 "upgrade:"
@@ -140,14 +188,11 @@ msgstr ""
 
 #. Type: error
 #. Description
-#: ../debhelper.in/libc.templates:2001
-msgid "${services}"
-msgstr "${services}"
-
-#. Type: error
-#. Description
-#: ../debhelper.in/libc.templates:2001
+#: ../debhelper.in/libc.templates:3001
 msgid ""
 "You will need to start these manually by running '/etc/init.d/<service> "
 "start'."
 msgstr "Budete je muset spustit ručně příkazem „/etc/init.d/<služba> start“."
+
+#~ msgid "${services}"
+#~ msgstr "${services}"
