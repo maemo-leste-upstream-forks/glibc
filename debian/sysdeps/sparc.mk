@@ -1,3 +1,8 @@
+ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
+CC     = gcc-4.3
+CXX    = g++-4.3
+endif
+
 # build 64-bit (sparc64) alternative library
 GLIBC_PASSES += sparc64
 DEB_ARCH_REGULAR_PACKAGES += libc6-sparc64 libc6-dev-sparc64
