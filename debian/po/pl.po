@@ -4,12 +4,13 @@ msgstr ""
 "Project-Id-Version: debconf-glibc-locales-pl\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
 "POT-Creation-Date: 2008-02-26 21:34+0100\n"
-"PO-Revision-Date: 2006-02-21 00:39+0100\n"
+"PO-Revision-Date: 2008-02-28 21:45+0100\n"
 "Last-Translator: Emilian Nowak <emil5@go2.pl>\n"
 "Language-Team:  <pl@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Gettext Translator 0.9\n"
 
 #. Type: multiselect
 #. Choices
@@ -26,7 +27,6 @@ msgstr "Wybierz ustawienia lokalne, które chcesz wygenerować:"
 #. Type: multiselect
 #. Description
 #: ../debhelper.in/locales.templates:1002
-#, fuzzy
 msgid ""
 "Locales are a framework to switch between multiple languages and allow users "
 "to use their language, country, characters, collation order, etc."
@@ -43,6 +43,10 @@ msgid ""
 "default, particularly for new installations. Other character sets may be "
 "useful for backwards compatibility with older systems and software."
 msgstr ""
+"Wybierz jakie ustawienia lokalne chcesz wygenerować. Najkorzystniej jest "
+"wybrać UTF-8, zwłaszcza na nowo instalowanych systemach. Pozostałe kodowania "
+"mogą być przydatne, aby utrzymać wsteczną kompatybilność ze starymi "
+"systemami lub programami."
 
 #. Type: select
 #. Choices
@@ -59,37 +63,34 @@ msgstr "Wybierz domyślne ustawienia lokalne, dla swojego systemu:"
 #. Type: select
 #. Description
 #: ../debhelper.in/locales.templates:2002
-#, fuzzy
 msgid ""
 "Many packages in Debian use locales to display text in the correct language "
 "for the user. You can choose a default locale for the system from the "
 "generated locales."
 msgstr ""
 "Wiele programów dostarczanych w pakietach Debiana wykorzystuje ustawienia "
-"lokalne, aby wyświetlać tekst we właściwym dla użytkownika języku. Możesz "
-"zmienić domyślne ustawienia lokalne jeżeli nie chcesz posługiwać się "
-"językiem angielskim. Można wybrać tylko te ustawienia lokalne, które "
-"wcześniej zostały wygenerowane."
+"lokalne, aby wyświetlać komunikaty we właściwym dla użytkownika języku. "
+"Możesz zmienić domyślne ustawienia lokalne dla całego systemu. Można wybrać "
+"tylko te ustawienia lokalne, które wcześniej zostały wygenerowane."
 
 #. Type: select
 #. Description
 #: ../debhelper.in/locales.templates:2002
-#, fuzzy
 msgid ""
 "This will select the default language for the entire system. If this system "
 "is a multi-user system where not all users are able to speak the default "
 "language, they will experience difficulties."
 msgstr ""
 "Zwróć uwagę na to, że wybrany tutaj język ma wpływ na na cały system i "
-"większość działających w nim programów. Jeżeli z tego systemu korzysta "
-"więcej użytkowników posłujących się różnymi językami najlepiej będzie "
-"pozostawić domyślne (angielskie) ustawiania lokalne."
+"większość działających w nim programów. Jeżeli z tego systemu korzysta wielu "
+"użytkowników posłujących się różnymi językami, to mogą oni mieć problemy ze "
+"zrozumieniem komunikatów systemu."
 
 #. Type: boolean
 #. Description
 #: ../debhelper.in/libc.templates:1001
 msgid "Do you want to upgrade glibc now?"
-msgstr ""
+msgstr "Czy teraz chcesz zaktualizować glibc ?"
 
 #. Type: boolean
 #. Description
@@ -103,6 +104,11 @@ msgid ""
 "yourself is xdm - because automatic restart might disconnect your active X11 "
 "sessions."
 msgstr ""
+"Serwisy i programy wykorzystujące NSS wymagają ponownego uruchomienia aby "
+"operacje związane z autoryzacją działały prawidłowo. Proces instalacji może "
+"zrestartować część serwisów (jak np. ssh lub telnetd), jednak niektóre "
+"usługi będą wymagały ingerencji użytkownika. Przykładem takiego programu "
+"jest xdm, którego restart mógłby spowodować wyłączenie aktywnej sesji X11."
 
 #. Type: boolean
 #. Description
@@ -111,6 +117,8 @@ msgid ""
 "This script detected the following installed services which must be stopped "
 "before the upgrade: ${services}"
 msgstr ""
+"Skrypt wykrył następujące serwisy, które należy ręcznie zrestartować "
+"${services}"
 
 #. Type: boolean
 #. Description
@@ -119,12 +127,13 @@ msgid ""
 "If you want to interrupt the upgrade now and continue later, please answer "
 "No to the question below."
 msgstr ""
+"Jeżeli chcesz przerwać aktualizację i dokończyć ją później wybierz nie."
 
 #. Type: string
 #. Description
 #: ../debhelper.in/libc.templates:2001
 msgid "Services to restart for GNU libc library upgrade:"
-msgstr ""
+msgstr "Serwisy wymagające restartu po aktualizacji GNU libc."
 
 #. Type: string
 #. Description
@@ -136,6 +145,11 @@ msgid ""
 "review the following space-separated list of init.d scripts for services to "
 "be restarted now, and correct it if needed."
 msgstr ""
+"Uruchomione serwisy i programy wykorzystujące NSS wymagają restartu. W "
+"przeciwnym wypadku nie będą operacje związane z autoryzacją nie będą "
+"działały prawidłowo. Przy usługach takich jak ssh będzie to oznaczało brak "
+"możliwości zalogowania. \n"
+"Zalecamy przejrzenie listy skryptów startowych i ewentualne jej poprawnie."
 
 #. Type: string
 #. Description
@@ -143,12 +157,16 @@ msgstr ""
 msgid ""
 "Note: restarting sshd/telnetd should not affect any existing connections."
 msgstr ""
+"Uwaga: restart sshd/telnetd nie powinien mieć wpływy na nawiązane już "
+"połączenia."
 
 #. Type: error
 #. Description
 #: ../debhelper.in/libc.templates:3001
 msgid "Failure restarting some services for GNU libc upgrade"
 msgstr ""
+"Nastąpił błąd podczas restartowania niektórych usług po aktualizacji GNU "
+"libc."
 
 #. Type: error
 #. Description
@@ -156,7 +174,7 @@ msgstr ""
 msgid ""
 "The following services could not be restarted for the GNU libc library "
 "upgrade:"
-msgstr ""
+msgstr "Następujące usługi nie zostały zrestartowane po aktualizacji GNU libc:"
 
 #. Type: error
 #. Description
@@ -165,6 +183,8 @@ msgid ""
 "You will need to start these manually by running '/etc/init.d/<service> "
 "start'."
 msgstr ""
+"Aby zrestartować ręcznie te usługi należy wywołać '/etc/init.d/<service> "
+"start'."
 
 #~ msgid ""
 #~ "Choose which locales to generate.  The selection will be saved to `/etc/"
