@@ -1,0 +1,33 @@
+Index: glibc/sysdeps/mach/hurd/i386/trampoline.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/i386/trampoline.c,v
+retrieving revision 1.30
+retrieving revision 1.31
+diff -u -p -r1.30 -r1.31
+--- glibc/sysdeps/mach/hurd/i386/trampoline.c	21 Dec 2005 22:16:20 -0000	1.30
++++ glibc/sysdeps/mach/hurd/i386/trampoline.c	8 Mar 2008 21:39:00 -0000	1.31
+@@ -1,5 +1,5 @@
+ /* Set thread_state for sighandler, and sigcontext to recover.  i386 version.
+-   Copyright (C) 1994,1995,1996,1997,1998,1999,2005
++   Copyright (C) 1994,1995,1996,1997,1998,1999,2005,2008
+ 	Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+@@ -21,6 +21,7 @@
+ #include <hurd/signal.h>
+ #include <hurd/userlink.h>
+ #include <thread_state.h>
++#include <mach/machine/eflags.h>
+ #include <assert.h>
+ #include <errno.h>
+ #include "hurdfault.h"
+@@ -218,6 +219,9 @@ _hurd_setup_sighandler (struct hurd_sigs
+   /* We pass the handler function to the trampoline code in %edx.  */
+   state->basic.edx = (int) handler;
+ 
++  /* The x86 ABI says the DF bit is clear on entry to any function.  */
++  state->basic.efl &= ~EFL_DF;
++
+   return scp;
+ }
+ 
