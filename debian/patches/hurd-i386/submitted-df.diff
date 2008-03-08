@@ -1,0 +1,22 @@
+2008-03-08  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	* sysdeps/mach/hurd/i386/trampoline.c (_hurd_setup_sighandler):
+	Clear direction flag.
+
+Index: glibc/sysdeps/mach/hurd/i386/trampoline.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/i386/trampoline.c,v
+retrieving revision 1.30
+diff -u -p -r1.30 trampoline.c
+--- glibc/sysdeps/mach/hurd/i386/trampoline.c	21 Dec 2005 22:16:20 -0000	1.30
++++ glibc/sysdeps/mach/hurd/i386/trampoline.c	8 Mar 2008 00:07:38 -0000
+@@ -218,6 +218,9 @@ _hurd_setup_sighandler (struct hurd_sigs
+   /* We pass the handler function to the trampoline code in %edx.  */
+   state->basic.edx = (int) handler;
+ 
++  /* x86 ABI requires direction flag to be cleared */
++  state->basic.efl &= ~0x400;
++
+   return scp;
+ }
+ 
