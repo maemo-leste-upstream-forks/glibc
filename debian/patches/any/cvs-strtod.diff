@@ -1,0 +1,20 @@
+commit e76c47eeb75382c25d232e97a2eba88b5ae2c046
+Author: Ulrich Drepper <drepper@redhat.com>
+Date:   Sat Mar 8 21:31:55 2008 +0000
+
+    (____STRTOF_INTERNAL): Consume closing brace on NAN(...) sequence.
+
+diff --git a/stdlib/strtod_l.c b/stdlib/strtod_l.c
+index d1c2b62..9c2f86a 100644
+--- a/stdlib/strtod_l.c
++++ b/stdlib/strtod_l.c
+@@ -594,6 +594,9 @@ ____STRTOF_INTERNAL (nptr, endptr, group, loc)
+ 		  mant = STRTOULL (startp + 1, &endp, 0);
+ 		  if (endp == cp)
+ 		    SET_MANTISSA (retval, mant);
++
++		  /* Consume the closing brace.  */
++		  ++cp;
+ 		}
+ 	    }
+ 
