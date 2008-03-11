@@ -1,8 +1,3 @@
-ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
-CC     = gcc-4.3
-CXX    = g++-4.3
-endif
-
 GLIBC_PASSES += i686
 DEB_ARCH_REGULAR_PACKAGES += libc0.1-i686
 
