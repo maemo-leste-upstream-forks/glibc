@@ -70,9 +70,7 @@ KERNEL_HOST_CPU := $(subst powerpc,ppc,$(DEB_HOST_GNU_CPU))
 
 # Support multiple makes at once based on number of processors
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-NJOBS := $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-else
-NJOBS := 1
+NJOBS := -j $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 endif
 
 # Default setup

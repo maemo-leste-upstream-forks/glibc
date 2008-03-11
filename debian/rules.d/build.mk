@@ -82,10 +82,10 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 $(patsubst %,build_%,$(GLIBC_PASSES)) :: build_% : $(stamp)build_%
 $(stamp)build_%: $(stamp)configure_%
 	@echo Building $(curpass)
-	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS))
+	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS))
 	$(call logme, -a $(log_build), echo "---------------" ; echo -n "Build ended: " ; date --rfc-2822)
 	if [ $(curpass) = libc ]; then \
-	  $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS) \
+	  $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) \
 	    objdir=$(DEB_BUILDDIR) install_root=$(CURDIR)/build-tree/locales-all \
 	    localedata/install-locales; \
 	  tar --use-compress-program /usr/bin/lzma --owner root --group root -cf $(CURDIR)/build-tree/locales-all/supported.tar.lzma -C $(CURDIR)/build-tree/locales-all/usr/lib/locale .; \
@@ -118,7 +118,7 @@ $(stamp)check_%: $(stamp)build_%
 	  echo -n "Testsuite started: " | tee -a $(log_test); \
 	  date --rfc-2822 | tee -a $(log_test); \
 	  echo "--------------" | tee -a $(log_test); \
-	  TIMEOUTFACTOR="$(TIMEOUTFACTOR)" $(MAKE) -C $(DEB_BUILDDIR) -j $(NJOBS) -k check 2>&1 | tee -a $(log_test); \
+	  TIMEOUTFACTOR="$(TIMEOUTFACTOR)" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) -k check 2>&1 | tee -a $(log_test); \
 	  echo "--------------" | tee -a $(log_test); \
 	  echo -n "Testsuite ended: " | tee -a $(log_test); \
 	  date --rfc-2822 | tee -a $(log_test); \
