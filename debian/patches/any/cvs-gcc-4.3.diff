@@ -1,0 +1,49 @@
+commit 4400b128c82ef88061f9ab54fdb30737debce7cb
+Author: Roland McGrath <roland@gnu.org>
+Date:   Fri Feb 1 00:20:07 2008 +0000
+
+    2008-01-31  Roland McGrath  <roland@redhat.com>
+    
+    	[BZ #5442]
+    	* configure.in: Use -print-file-name if it yields a directory,
+    	for each of include and include-fixed.
+    	* configure: Regenerated.
+
+diff --git a/configure b/configure
+index 1f2cd4f..4b96978 100755
+--- a/configure
++++ b/configure
+@@ -5065,8 +5065,12 @@ echo "$as_me: WARNING:
+ # header directory and add that to the list.  NOTE: Only does the right
+ # thing on a system that doesn't need fixincludes.  (Not presently a problem.)
+ if test -n "$sysheaders"; then
+-  ccheaders=`$CC -print-file-name=include`
+-  SYSINCLUDES="-nostdinc -isystem $ccheaders \
++  SYSINCLUDES=-nostdinc
++  for d in include include-fixed; do
++    i=`$CC -print-file-name="$d"` && test "x$i" != "x$d" &&
++    SYSINCLUDES="$SYSINCLUDES -isystem $i"
++  done
++  SYSINCLUDES="$SYSINCLUDES \
+ -isystem `echo $sysheaders | sed 's/:/ -isystem /g'`"
+   if test -n "$CXX"; then
+     cxxversion=`$CXX -dumpversion 2>&5` &&
+diff --git a/configure.in b/configure.in
+index 6ea1b26..3098ebf 100644
+--- a/configure.in
++++ b/configure.in
+@@ -914,8 +914,12 @@ test -n "$aux_missing" && AC_MSG_WARN([
+ # header directory and add that to the list.  NOTE: Only does the right
+ # thing on a system that doesn't need fixincludes.  (Not presently a problem.)
+ if test -n "$sysheaders"; then
+-  ccheaders=`$CC -print-file-name=include`
+-  SYSINCLUDES="-nostdinc -isystem $ccheaders \
++  SYSINCLUDES=-nostdinc
++  for d in include include-fixed; do
++    i=`$CC -print-file-name="$d"` && test "x$i" != x && test "x$i" != "x$d" &&
++    SYSINCLUDES="$SYSINCLUDES -isystem $i"
++  done
++  SYSINCLUDES="$SYSINCLUDES \
+ -isystem `echo $sysheaders | sed 's/:/ -isystem /g'`"
+   if test -n "$CXX"; then
+     cxxversion=`$CXX -dumpversion 2>&AS_MESSAGE_LOG_FD` &&
