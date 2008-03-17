@@ -1,0 +1,100 @@
+2008-03-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Mig supposes these to be initialized.
+	* sysdeps/mach/hurd/recv.c (__recv): Initialize nports.
+	* sysdeps/mach/hurd/recvfrom.c (__recvfrom): Likewise.
+	* sysdeps/mach/hurd/recvmsg.c (__recvmsg): Likewise.
+	* hurd/fd-read.c (_hurd_fd_read): Initialize nread.
+	* hurd/get-host.c (_hurd_get_host_config): Likewise.
+	* sysdeps/mach/hurd/dl-sysdep.c (__libc_read): Likewise.
+
+Index: glibc/sysdeps/mach/hurd/recv.c
+===================================================================
+RCS file: /cvs/glibc/libc/glibc/sysdeps/mach/hurd/recv.c,v
+retrieving revision 1.9
+diff -u -p -r1.9 recv.c
+--- glibc/sysdeps/mach/hurd/recv.c	22 Feb 2005 22:51:00 -0000	1.9
++++ glibc/sysdeps/mach/hurd/recv.c	4 Mar 2008 01:44:12 -0000
+@@ -38,7 +38,7 @@
+   char *bufp = buf;
+   mach_msg_type_number_t nread = n;
+   mach_port_t *ports;
+-  mach_msg_type_number_t nports;
++  mach_msg_type_number_t nports = 0;
+   char *cdata = NULL;
+   mach_msg_type_number_t clen = 0;
+ 
+Index: glibc/sysdeps/mach/hurd/recvfrom.c
+===================================================================
+RCS file: /cvs/glibc/libc/glibc/sysdeps/mach/hurd/recvfrom.c,v
+retrieving revision 1.12
+--- glibc/sysdeps/mach/hurd/recvfrom.c	15 May 2002 00:08:24 -0000	1.12
++++ glibc/sysdeps/mach/hurd/recvfrom.c	4 Mar 2008 01:44:12 -0000
+@@ -41,7 +41,7 @@
+   char *bufp = buf;
+   mach_msg_type_number_t nread = n;
+   mach_port_t *ports;
+-  mach_msg_type_number_t nports;
++  mach_msg_type_number_t nports = 0;
+   char *cdata = NULL;
+   mach_msg_type_number_t clen = 0;
+   struct sockaddr *addr = addrarg.__sockaddr__;
+Index: glibc/sysdeps/mach/hurd/recvmsg.c
+===================================================================
+RCS file: /cvs/glibc/libc/glibc/sysdeps/mach/hurd/recvmsg.c,v
+retrieving revision 1.3
+--- glibc/sysdeps/mach/hurd/recvmsg.c	26 Aug 2002 22:39:46 -0000	1.3
++++ glibc/sysdeps/mach/hurd/recvmsg.c	4 Mar 2008 01:44:12 -0000
+@@ -34,7 +34,7 @@
+   char *data = NULL;
+   mach_msg_type_number_t len = 0;
+   mach_port_t *ports;
+-  mach_msg_type_number_t nports;
++  mach_msg_type_number_t nports = 0;
+   char *cdata = NULL;
+   mach_msg_type_number_t clen = 0;
+   size_t amount;
+Index: glibc/hurd/fd-read.c
+===================================================================
+RCS file: /cvs/glibc/libc/hurd/fd-read.c,v
+retrieving revision 1.15
+diff -u -p -r1.15 fd-read.c
+--- glibc/hurd/fd-read.c	11 Jun 2002 23:03:16 -0000	1.15
++++ glibc/hurd/fd-read.c	4 Mar 2008 02:43:50 -0000
+@@ -35,6 +35,7 @@ _hurd_fd_read (struct hurd_fd *fd, void 
+     }
+ 
+   data = buf;
++  nread = *nbytes;
+   if (err = HURD_FD_PORT_USE (fd, _hurd_ctty_input (port, ctty, readfd)))
+     return err;
+ 
+Index: glibc/hurd/get-host.c
+===================================================================
+RCS file: /cvs/glibc/libc/hurd/get-host.c,v
+retrieving revision 1.10
+diff -u -p -r1.10 get-host.c
+--- glibc/hurd/get-host.c	6 Jul 2001 04:54:47 -0000	1.10
++++ glibc/hurd/get-host.c	4 Mar 2008 02:44:46 -0000
+@@ -51,6 +51,7 @@ _hurd_get_host_config (const char *item,
+     }
+ 
+   data = buf;
++  nread = buflen;
+   err = __io_read (config, &data, &nread, -1, buflen);
+   if (! err)
+     /* Check if there is more in the file we didn't read.  */
+Index: glibc/sysdeps/mach/hurd/dl-sysdep.c
+===================================================================
+RCS file: /cvs/glibc/libc/glibc/sysdeps/mach/hurd/dl-sysdep.c,v
+retrieving revision 1.78
+--- glibc/sysdeps/mach/hurd/dl-sysdep.c	6 Sep 2004 21:31:38 -0000	1.78
++++ glibc/sysdeps/mach/hurd/dl-sysdep.c	4 Mar 2008 02:01:53 -0000
+@@ -367,6 +367,7 @@
+   mach_msg_type_number_t nread;
+ 
+   data = buf;
++  nread = nbytes;
+   err = __io_read ((mach_port_t) fd, &data, &nread, -1, nbytes);
+   if (err)
+     return __hurd_fail (err);
