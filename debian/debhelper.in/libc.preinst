@@ -2,105 +2,72 @@
 set -e
 export LC_ALL=C
 
-if [ "$1" = upgrade ]
-then
-    if dpkg --compare-versions "$2" le 2.2.2-4 && test -e /lib/libdb.so.3; then
-	# Make upgrades to newer libdb.so.3 easier
-	cat /lib/libdb.so.3 > /lib/libdb.so.3.old
-    fi
-    if dpkg --compare-versions "$2" le 2.1.1-0.1; then
-	if [ -f /var/run/utmpd.pid ]; then
-	    if kill -s TERM `cat /var/run/utmpd.pid` > /dev/null 2>&1
-	    then
-		if [ -f /var/run/utmp ]; then
-		    cp /dev/null /var/run/utmp
-		    if grep '^utmp:' /etc/group; then
-			chown root:utmp /var/run/utmp
-			chmod 664 /var/run/utmp
-		    else
-			chown root:root /var/run/utmp
-			chmod 644 /var/run/utmp
-		    fi
-		fi
-		if [ -f /var/log/wtmp ]; then
-		    savelog /var/log/wtmp
-		    touch /var/log/wtmp
-		    if grep '^utmp:' /etc/group; then
-			chown root:utmp /var/log/wtmp
-			chmod 664 /var/log/wtmp
-		    else
-			chown root:root /var/log/wtmp
-			chmod 644 /var/log/wtmp
-		    fi
-		fi
-		rm -f /etc/init.d/utmpd
-		update-rc.d utmpd remove > /dev/null
-	    fi
-	fi
-	if [ -f /var/run/utmpx ]; then rm -f /var/run/utmpx; fi
-	if [ -f /var/log/wtmpx ]; then rm -f /var/log/wtmpx*; fi
-	if [ -e /var/run/utmpd.ro ]; then rm -f /var/run/utmpd.ro; fi
-	if [ -e /var/run/utmpd.rw ]; then rm -f /var/run/utmpd.rw; fi
-    fi
+type=$1
+preversion=$2
 
+if [ "$type" = upgrade ]
+then
     # Load debconf module if available
     if [ -f /usr/share/debconf/confmodule ] ; then
         . /usr/share/debconf/confmodule
     fi
-    # NSS authentication trouble guard
-    if dpkg --compare-versions $2 lt 2.6-1; then
 
-	check="gdm kdm proftpd postgresql xscreensaver xdm"
-	# NSS services check: NSS_CHECK
-	if [ -n "$services" ]; then 
-	    if [ -f /usr/share/debconf/confmodule ] ; then
-	        db_version 2.0
-		db_reset glibc/upgrade
-		db_subst glibc/upgrade services $services
-		db_input critical glibc/upgrade || true
-		db_go || true
-		db_get glibc/upgrade
-		answer=$RET
-	    else
-		echo "Name Service Switch update in the GNU C Library"
-		echo
-		echo "Running services and programs that are using NSS need to be restarted,"
-		echo "otherwise they might not be able to do lookup or authentication any more."
-		echo "The installation process is able to restart some services (such as ssh or"
-		echo "telnetd), but other programs cannot be restarted automatically.  One such"
-		echo "program that needs manual stopping and restart after the glibc upgrade by"
-		echo "yourself is xdm - because automatic restart might disconnect your active"
-		echo "X11 sessions."
-		echo
-		echo "This script detected the following installed services which must be"
-		echo "stopped before the upgrade: $services"
-		echo
-		echo "If you want to interrupt the upgrade now and continue later, please"
-		echo "answer No to the question below."
-		echo 
-		frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
-		if [ "$frontend" = noninteractive ]; then
-		    echo "Non-interactive mode, upgrade glibc forcibly"
-		    answer=true
+    if [ -n "$preversion" ]; then
+	# NSS authentication trouble guard
+	if dpkg --compare-versions "$preversion" lt 2.6-1; then
+
+	    check="gdm kdm proftpd postgresql xscreensaver xdm"
+	    # NSS services check: NSS_CHECK
+	    if [ -n "$services" ]; then 
+		if [ -f /usr/share/debconf/confmodule ] ; then
+	            db_version 2.0
+		    db_reset glibc/upgrade
+		    db_subst glibc/upgrade services $services
+		    db_input critical glibc/upgrade || true
+		    db_go || true
+		    db_get glibc/upgrade
+		    answer=$RET
 		else
-		    echo -n "Do you want to upgrade glibc now? [Y/n] "
-		    read answer
-		    case $answer in
-			Y*|y*) answer=true ;;
-			N*|n*) answer=false ;;
-			*) answer=true ;;
-		    esac
+		    echo "Name Service Switch update in the GNU C Library"
+		    echo
+		    echo "Running services and programs that are using NSS need to be restarted,"
+		    echo "otherwise they might not be able to do lookup or authentication any more."
+		    echo "The installation process is able to restart some services (such as ssh or"
+		    echo "telnetd), but other programs cannot be restarted automatically.  One such"
+		    echo "program that needs manual stopping and restart after the glibc upgrade by"
+		    echo "yourself is xdm - because automatic restart might disconnect your active"
+		    echo "X11 sessions."
+		    echo
+		    echo "This script detected the following installed services which must be"
+		    echo "stopped before the upgrade: $services"
+		    echo
+		    echo "If you want to interrupt the upgrade now and continue later, please"
+		    echo "answer No to the question below."
+		    echo 
+		    frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
+		    if [ "$frontend" = noninteractive ]; then
+			echo "Non-interactive mode, upgrade glibc forcibly"
+			answer=true
+		    else
+		        echo -n "Do you want to upgrade glibc now? [Y/n] "
+		        read answer
+		        case $answer in
+			    Y*|y*) answer=true ;;
+			    N*|n*) answer=false ;;
+			    *) answer=true ;;
+			esac
+		    fi
+		    echo
 		fi
-		echo
-	    fi
 
-	    if [ "x$answer" != "xtrue" ]; then
-	        echo "Stopped glibc upgrade.  Please retry the upgrade after you have"
-	        echo "checked or stopped services by hand."
-	        exit 1
+		if [ "x$answer" != "xtrue" ]; then
+	            echo "Stopped glibc upgrade.  Please retry the upgrade after you have"
+	            echo "checked or stopped services by hand."
+	            exit 1
+		fi
 	    fi
-	fi
-    fi
+	fi # end upgrading and $preversion lt 2.6-1
+    fi # Upgrading
 
     # This will keep us from using hwcap libs (optimized) during an
     # upgrade.
@@ -154,7 +121,7 @@ check_dirs () {
   return 1
 }
 
-if [ "$1" != abort-upgrade ]
+if [ "$type" != abort-upgrade ]
 then
   ldbytes=`head -c 20 RTLD | od -c`
   dirs="/lib32 /lib64 /usr/local/lib /usr/local/lib32 /usr/local/lib64"
@@ -222,7 +189,7 @@ then
   fi
 fi
 
-if [ "$1" != abort-upgrade ]
+if [ "$type" != abort-upgrade ]
 then
     # glibc kernel version check: KERNEL_VERSION_CHECK
 fi
