@@ -29,6 +29,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	echo "BUILD_CXX = $(BUILD_CXX)"		>> $(DEB_BUILDDIR)/configparms
 	echo "CFLAGS = $(HOST_CFLAGS)"		>> $(DEB_BUILDDIR)/configparms
 	echo "BUILD_CFLAGS = $(BUILD_CFLAGS)" 	>> $(DEB_BUILDDIR)/configparms
+	echo "LDFLAGS = "		 	>> $(DEB_BUILDDIR)/configparms
 	echo "BASH := /bin/bash"		>> $(DEB_BUILDDIR)/configparms
 	echo "KSH := /bin/bash"			>> $(DEB_BUILDDIR)/configparms
 	echo "LIBGD = no"			>> $(DEB_BUILDDIR)/configparms
@@ -68,6 +69,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	$(call logme, -a $(log_build), \
 		cd $(DEB_BUILDDIR) && \
 		CC="$(call xx,CC)" \
+		CXX="$(call xx,CXX)" \
 		AUTOCONF=false \
 		MAKEINFO=: \
 		$(CURDIR)/$(DEB_SRCDIR)/configure \
