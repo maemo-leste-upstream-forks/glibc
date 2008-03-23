@@ -1,3 +1,8 @@
+ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
+CC     = gcc-4.2
+CXX    = g++-4.2
+endif
+
 libc_slibdir = /lib
 libc_libdir = /usr/lib
 libc_rtlddir = /lib64
