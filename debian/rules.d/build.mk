@@ -106,9 +106,6 @@ $(stamp)check_%: $(stamp)build_%
 	elif ! $(call kernel_check,$(call xx,MIN_KERNEL_SUPPORTED)); then \
 	  echo "Kernel too old, skipping tests."; \
 	  echo "Kernel too old, tests have been skipped." > $(log_test) ; \
-	elif grep -q "cpu model.*SiByte SB1" /proc/cpuinfo ; then \
-	  echo "MIPS SB1 platform detected, skipping tests."; \
-	  echo "MIPS SB1 platform detected, skipping tests." > $(log_test) ; \
 	elif uname -m | grep -q "^arm" && uname -r | grep -q "2\.6\.2[1-4]" ; then \
 	  echo "ARM machine running a 2.6.21-24 kernel detected, tests have been skipped."; \
 	  echo "ARM machine running a 2.6.21-24 kernel detected, tests have been skipped." > $(log_test) ; \
