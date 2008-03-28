@@ -1,0 +1,56 @@
+2008-03-26  David Stephenson  <david.stephenson@sicortex.com>
+	    Daniel Jacobowitz  <dan@codesourcery.com>
+
+	* sysdeps/mips/fpu/fesetround.c (fesetround): Use fpu_control_t.
+	* sysdeps/mips/fpu/fgetexcptflg.c (fegetexceptflag): Likewise.
+	* sysdeps/mips/fpu/fsetexcptflg.c (fesetexceptflag): Likewise.
+
+Index: ports/sysdeps/mips/fpu/fesetround.c
+===================================================================
+RCS file: /cvs/glibc/ports/sysdeps/mips/fpu/fesetround.c,v
+retrieving revision 1.4
+diff -u -p -r1.4 fesetround.c
+--- ports/sysdeps/mips/fpu/fesetround.c	2 Jun 2006 15:06:07 -0000	1.4
++++ ports/sysdeps/mips/fpu/fesetround.c	26 Mar 2008 13:17:09 -0000
+@@ -24,7 +24,7 @@
+ int
+ fesetround (int round)
+ {
+-  unsigned short int cw;
++  fpu_control_t cw;
+ 
+   if ((round & ~0x3) != 0)
+     /* ROUND is no valid rounding mode.  */
+Index: ports/sysdeps/mips/fpu/fgetexcptflg.c
+===================================================================
+RCS file: /cvs/glibc/ports/sysdeps/mips/fpu/fgetexcptflg.c,v
+retrieving revision 1.7
+diff -u -p -r1.7 fgetexcptflg.c
+--- ports/sysdeps/mips/fpu/fgetexcptflg.c	10 Sep 2002 11:24:50 -0000	1.7
++++ ports/sysdeps/mips/fpu/fgetexcptflg.c	26 Mar 2008 13:17:09 -0000
+@@ -24,7 +24,7 @@
+ int
+ fegetexceptflag (fexcept_t *flagp, int excepts)
+ {
+-  fexcept_t temp;
++  fpu_control_t temp;
+ 
+   /* Get the current exceptions.  */
+   _FPU_GETCW (temp);
+Index: ports/sysdeps/mips/fpu/fsetexcptflg.c
+===================================================================
+RCS file: /cvs/glibc/ports/sysdeps/mips/fpu/fsetexcptflg.c,v
+retrieving revision 1.1
+diff -u -p -r1.1 fsetexcptflg.c
+--- ports/sysdeps/mips/fpu/fsetexcptflg.c	10 Sep 2002 11:23:00 -0000	1.1
++++ ports/sysdeps/mips/fpu/fsetexcptflg.c	26 Mar 2008 13:17:09 -0000
+@@ -24,7 +24,7 @@
+ int
+ fesetexceptflag (const fexcept_t *flagp, int excepts)
+ {
+-  fexcept_t temp;
++  fpu_control_t temp;
+ 
+   /* Get the current exceptions.  */
+   _FPU_GETCW (temp);
+
