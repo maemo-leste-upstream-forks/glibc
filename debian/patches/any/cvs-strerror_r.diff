@@ -1,0 +1,444 @@
+2008-03-30  Ulrich Drepper  <drepper@redhat.com>
+
+	[BZ #5443]
+	* intl/dcigettext.c (__dcigettext): Get reader lock for locale data
+	before looking for translation.
+	* locale/duplocale.c: Transform __libc_setlocale_lock into rwlock.
+	* locale/freelocale.c: Likewise.
+	* locale/newlocale.c: Likewise.
+	* locale/setlocale.c: Likewise.
+	Based partially on a patch by ryo@np.css.fujitsu.com.
+
+2008-03-30  Jakub Jelinek  <jakub@redhat.com>
+
+	* intl/dcigettext.c (_nl_find_msg): Reread nconversions after
+	acquiring wrlock.  Do conv_tab allocation while holding lock.
+	* intl/Makefile: Add rules to build and run tst-gettext6.
+	* intl/tst-gettext6.c: New test.
+	* intl/tst-gettext6.sh: New file.
+
+--- glibc-2.7.orig/intl/Makefile
++++ glibc-2.7/intl/Makefile
+@@ -1,4 +1,4 @@
+-# Copyright (C) 1995-2003, 2005 Free Software Foundation, Inc.
++# Copyright (C) 1995-2003, 2005, 2008 Free Software Foundation, Inc.
+ # This file is part of the GNU C Library.
+ 
+ # The GNU C Library is free software; you can redistribute it and/or
+@@ -32,11 +32,11 @@
+ 	     tst-codeset.sh tstcodeset.po \
+ 	     tst-gettext3.sh \
+ 	     tst-gettext4.sh tst-gettext4-de.po tst-gettext4-fr.po \
+-	     tst-gettext5.sh
++	     tst-gettext5.sh tst-gettext6.sh
+ 
+ include ../Makeconfig
+ 
+-multithread-test-srcs := tst-gettext4 tst-gettext5
++multithread-test-srcs := tst-gettext4 tst-gettext5 tst-gettext6
+ test-srcs := tst-gettext tst-translit tst-gettext2 tst-codeset tst-gettext3
+ ifeq ($(have-thread-library),yes)
+ test-srcs += $(multithread-test-srcs)
+@@ -67,7 +67,8 @@
+ tests: $(objpfx)tst-translit.out $(objpfx)tst-gettext2.out \
+        $(objpfx)tst-codeset.out $(objpfx)tst-gettext3.out
+ ifeq ($(have-thread-library),yes)
+-tests: $(objpfx)tst-gettext4.out $(objpfx)tst-gettext5.out
++tests: $(objpfx)tst-gettext4.out $(objpfx)tst-gettext5.out \
++       $(objpfx)tst-gettext6.out
+ endif
+ ifneq (no,$(PERL))
+ tests: $(objpfx)mtrace-tst-gettext
+@@ -90,6 +91,8 @@
+ 	$(SHELL) -e $< $(common-objpfx) '$(run-program-prefix)' $(common-objpfx)intl/
+ $(objpfx)tst-gettext5.out: tst-gettext5.sh $(objpfx)tst-gettext5
+ 	$(SHELL) -e $< $(common-objpfx) '$(run-program-prefix)' $(common-objpfx)intl/
++$(objpfx)tst-gettext6.out: tst-gettext6.sh $(objpfx)tst-gettext6
++	$(SHELL) -e $< $(common-objpfx) '$(run-program-prefix)' $(common-objpfx)intl/
+ endif
+ endif
+ 
+@@ -104,6 +107,7 @@
+ CFLAGS-tst-gettext3.c = -DOBJPFX=\"$(objpfx)\"
+ CFLAGS-tst-gettext4.c = -DOBJPFX=\"$(objpfx)\"
+ CFLAGS-tst-gettext5.c = -DOBJPFX=\"$(objpfx)\"
++CFLAGS-tst-gettext6.c = -DOBJPFX=\"$(objpfx)\"
+ 
+ ifeq ($(have-thread-library),yes)
+ ifeq (yes,$(build-shared))
+@@ -122,6 +126,7 @@
+ $(objpfx)tst-gettext3.out: $(objpfx)tst-gettext.out
+ $(objpfx)tst-gettext4.out: $(objpfx)tst-gettext.out
+ $(objpfx)tst-gettext5.out: $(objpfx)tst-gettext.out
++$(objpfx)tst-gettext6.out: $(objpfx)tst-gettext.out
+ 
+ CPPFLAGS += -D'LOCALEDIR="$(msgcatdir)"' \
+ 	    -D'LOCALE_ALIAS_PATH="$(msgcatdir)"'
+--- glibc-2.7.orig/intl/dcigettext.c
++++ glibc-2.7/intl/dcigettext.c
+@@ -1,5 +1,6 @@
+ /* Implementation of the internal dcigettext function.
+-   Copyright (C) 1995-2005, 2006, 2007 Free Software Foundation, Inc.
++   Copyright (C) 1995-2005, 2006, 2007, 2008
++   Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -444,6 +445,11 @@
+ 	    : n == 1 ? (char *) msgid1 : (char *) msgid2);
+ #endif
+ 
++#ifdef _LIBC
++  __libc_rwlock_define (extern, __libc_setlocale_lock attribute_hidden)
++  __libc_rwlock_rdlock (__libc_setlocale_lock);
++#endif
++
+   __libc_rwlock_rdlock (_nl_state_lock);
+ 
+   /* If DOMAINNAME is NULL, we are interested in the default domain.  If
+@@ -464,7 +470,7 @@
+   search->category = category;
+ # ifdef HAVE_PER_THREAD_LOCALE
+ #  ifdef _LIBC
+-  localename = __current_locale_name (category);
++  localename = strdupa (__current_locale_name (category));
+ #  endif
+   search->localename = localename;
+ # endif
+@@ -488,6 +494,9 @@
+       else
+ 	retval = (char *) (*foundp)->translation;
+ 
++# ifdef _LIBC
++      __libc_rwlock_unlock (__libc_setlocale_lock);
++# endif
+       __libc_rwlock_unlock (_nl_state_lock);
+       return retval;
+     }
+@@ -547,6 +556,7 @@
+ 	  /* We cannot get the current working directory.  Don't signal an
+ 	     error but simply return the default string.  */
+ 	  FREE_BLOCKS (block_list);
++	  __libc_rwlock_unlock (__libc_setlocale_lock);
+ 	  __libc_rwlock_unlock (_nl_state_lock);
+ 	  __set_errno (saved_errno);
+ 	  return (plural == 0
+@@ -613,6 +623,7 @@
+ 	{
+ 	no_translation:
+ 	  FREE_BLOCKS (block_list);
++	  __libc_rwlock_unlock (__libc_setlocale_lock);
+ 	  __libc_rwlock_unlock (_nl_state_lock);
+ 	  __set_errno (saved_errno);
+ 	  return (plural == 0
+@@ -723,6 +734,7 @@
+ 	      if (plural)
+ 		retval = plural_lookup (domain, n, retval, retlen);
+ 
++	      __libc_rwlock_unlock (__libc_setlocale_lock);
+ 	      __libc_rwlock_unlock (_nl_state_lock);
+ 	      return retval;
+ 	    }
+--- /dev/null
++++ glibc-2.7/intl/tst-gettext6.c
+@@ -0,0 +1,86 @@
++/* Test that gettext() in multithreaded applications works correctly.
++   Copyright (C) 2008 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Jakub Jelinek <jakub@redhat.com>, 2008.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <libintl.h>
++#include <locale.h>
++#include <pthread.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <sys/wait.h>
++#include <unistd.h>
++
++pthread_barrier_t b;
++
++static void *
++tf (void *arg)
++{
++  pthread_barrier_wait (&b);
++  return gettext ("Operation not permitted");
++}
++
++int
++test (void)
++{
++  pthread_t th[4];
++  unsetenv ("LANGUAGE");
++  unsetenv ("OUTPUT_CHARSET");
++  textdomain ("tstgettext6");
++  bindtextdomain ("tstgettext6", OBJPFX "domaindir");
++  setlocale (LC_ALL, "ja_JP.UTF-8");
++  pthread_barrier_init (&b, NULL, 4);
++  for (int i = 0; i < 4; i++)
++    if (pthread_create (&th[i], NULL, tf, NULL))
++      {
++	puts ("pthread_create failed");
++	return 1;
++      }
++  for (int i = 0; i < 4; i++)
++    pthread_join (th[i], NULL);
++  return 0;
++}
++
++int
++main (void)
++{
++  for (int i = 0; i < 300; i++)
++    {
++      pid_t p = fork ();
++      if (p == -1)
++	{
++	  printf ("fork failed: %m\n");
++	  return 1;
++	}
++      if (p == 0)
++	_exit (test ());
++      int status;
++      wait (&status);
++      if (WIFEXITED (status) && WEXITSTATUS (status) != 0)
++	{
++	  printf ("child exited with %d\n", WEXITSTATUS (status));
++	  return 1;
++	}
++      else if (WIFSIGNALED (status))
++	{
++	  printf ("child killed by signal %d\n", WTERMSIG (status));
++	  return 1;
++	}
++    }
++  return 0;
++}
+--- /dev/null
++++ glibc-2.7/intl/tst-gettext6.sh
+@@ -0,0 +1,41 @@
++#! /bin/sh
++# Test that gettext() in multithreaded applications works correctly.
++# Copyright (C) 2008 Free Software Foundation, Inc.
++# This file is part of the GNU C Library.
++#
++
++# The GNU C Library is free software; you can redistribute it and/or
++# modify it under the terms of the GNU Lesser General Public
++# License as published by the Free Software Foundation; either
++# version 2.1 of the License, or (at your option) any later version.
++
++# The GNU C Library is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# Lesser General Public License for more details.
++
++# You should have received a copy of the GNU Lesser General Public
++# License along with the GNU C Library; if not, write to the Free
++# Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++# 02111-1307 USA.
++
++common_objpfx=$1
++run_program_prefix=$2
++objpfx=$3
++
++LC_ALL=C
++export LC_ALL
++
++# Create the domain directory.
++mkdir -p ${objpfx}domaindir/ja_JP/LC_MESSAGES
++# Populate it.
++msgfmt -o ${objpfx}domaindir/ja_JP/LC_MESSAGES/tstgettext6.mo ../po/ja.po
++
++GCONV_PATH=${common_objpfx}iconvdata
++export GCONV_PATH
++LOCPATH=${common_objpfx}localedata
++export LOCPATH
++
++${run_program_prefix} ${objpfx}tst-gettext6 > ${objpfx}tst-gettext6.out
++
++exit $?
+--- glibc-2.7.orig/locale/duplocale.c
++++ glibc-2.7/locale/duplocale.c
+@@ -1,5 +1,5 @@
+ /* Duplicate handle for selection of locales.
+-   Copyright (C) 1997, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
++   Copyright (C) 1997,2000,2001,2002,2005,2008 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
+ 
+@@ -27,7 +27,7 @@
+ 
+ 
+ /* Lock for protecting global data.  */
+-__libc_lock_define (extern , __libc_setlocale_lock attribute_hidden)
++__libc_rwlock_define (extern , __libc_setlocale_lock attribute_hidden)
+ 
+ 
+ __locale_t
+@@ -54,7 +54,7 @@
+       char *namep = (char *) (result + 1);
+ 
+       /* We modify global data (the usage counts).  */
+-      __libc_lock_lock (__libc_setlocale_lock);
++      __libc_rwlock_wrlock (__libc_setlocale_lock);
+ 
+       for (cnt = 0; cnt < __LC_LAST; ++cnt)
+ 	if (cnt != LC_ALL)
+@@ -78,7 +78,7 @@
+       result->__ctype_toupper = dataset->__ctype_toupper;
+ 
+       /* It's done.  */
+-      __libc_lock_unlock (__libc_setlocale_lock);
++      __libc_rwlock_unlock (__libc_setlocale_lock);
+     }
+ 
+   return result;
+--- glibc-2.7.orig/locale/freelocale.c
++++ glibc-2.7/locale/freelocale.c
+@@ -1,5 +1,5 @@
+ /* Free data allocated by a call to setlocale_r
+-   Copyright (C) 1996, 1997, 2000, 2002, 2005 Free Software Foundation, Inc.
++   Copyright (C) 1996,1997,2000,2002,2005,2008 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
+ 
+@@ -26,7 +26,7 @@
+ 
+ 
+ /* Lock for protecting global data.  */
+-__libc_lock_define (extern , __libc_setlocale_lock attribute_hidden)
++__libc_rwlock_define (extern , __libc_setlocale_lock attribute_hidden)
+ 
+ 
+ void
+@@ -39,7 +39,7 @@
+     return;
+ 
+   /* We modify global data (the usage counts).  */
+-  __libc_lock_lock (__libc_setlocale_lock);
++  __libc_rwlock_wrlock (__libc_setlocale_lock);
+ 
+   for (cnt = 0; cnt < __LC_LAST; ++cnt)
+     if (cnt != LC_ALL && dataset->__locales[cnt]->usage_count != UNDELETABLE)
+@@ -47,7 +47,7 @@
+       _nl_remove_locale (cnt, dataset->__locales[cnt]);
+ 
+   /* It's done.  */
+-  __libc_lock_unlock (__libc_setlocale_lock);
++  __libc_rwlock_unlock (__libc_setlocale_lock);
+ 
+   /* Free the locale_t handle itself.  */
+   free (dataset);
+--- glibc-2.7.orig/locale/newlocale.c
++++ glibc-2.7/locale/newlocale.c
+@@ -1,5 +1,5 @@
+ /* Return a reference to locale information record.
+-   Copyright (C) 1996, 1997, 1999, 2000-2002, 2004, 2005, 2006
++   Copyright (C) 1996, 1997, 1999, 2000-2002, 2004, 2005, 2006, 2008
+    Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
+@@ -30,7 +30,7 @@
+ 
+ 
+ /* Lock for protecting global data.  */
+-__libc_lock_define (extern , __libc_setlocale_lock attribute_hidden)
++__libc_rwlock_define (extern , __libc_setlocale_lock attribute_hidden)
+ 
+ 
+ /* Use this when we come along an error.  */
+@@ -162,7 +162,7 @@
+     }
+ 
+   /* Protect global data.  */
+-  __libc_lock_lock (__libc_setlocale_lock);
++  __libc_rwlock_wrlock (__libc_setlocale_lock);
+ 
+   /* Now process all categories we are interested in.  */
+   names_len = 0;
+@@ -183,7 +183,7 @@
+ 		  _nl_remove_locale (cnt, result.__locales[cnt]);
+ 
+               /* Critical section left.  */
+-              __libc_lock_unlock (__libc_setlocale_lock);
++              __libc_rwlock_unlock (__libc_setlocale_lock);
+ 	      return NULL;
+ 	    }
+ 
+@@ -263,7 +263,7 @@
+     }
+ 
+   /* Critical section left.  */
+-  __libc_lock_unlock (__libc_setlocale_lock);
++  __libc_rwlock_unlock (__libc_setlocale_lock);
+ 
+   /* Update the special members.  */
+  update:
+--- glibc-2.7.orig/locale/setlocale.c
++++ glibc-2.7/locale/setlocale.c
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1991, 1992, 1995-2000, 2002, 2003, 2004, 2006
++/* Copyright (C) 1991, 1992, 1995-2000, 2002, 2003, 2004, 2006, 2008
+    Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+@@ -123,7 +123,7 @@
+ 
+ 
+ /* Lock for protecting global data.  */
+-__libc_lock_define_initialized (, __libc_setlocale_lock attribute_hidden)
++__libc_rwlock_define_initialized (, __libc_setlocale_lock attribute_hidden)
+ 
+ /* Defined in loadmsgcat.c.  */
+ extern int _nl_msg_cat_cntr;
+@@ -314,7 +314,7 @@
+ 	}
+ 
+       /* Protect global data.  */
+-      __libc_lock_lock (__libc_setlocale_lock);
++      __libc_rwlock_wrlock (__libc_setlocale_lock);
+ 
+       /* Load the new data for each category.  */
+       while (category-- > 0)
+@@ -381,7 +381,7 @@
+ 	    free ((char *) newnames[category]);
+ 
+       /* Critical section left.  */
+-      __libc_lock_unlock (__libc_setlocale_lock);
++      __libc_rwlock_unlock (__libc_setlocale_lock);
+ 
+       /* Free the resources (the locale path variable).  */
+       free (locale_path);
+@@ -394,7 +394,7 @@
+       const char *newname[1] = { locale };
+ 
+       /* Protect global data.  */
+-      __libc_lock_lock (__libc_setlocale_lock);
++      __libc_rwlock_wrlock (__libc_setlocale_lock);
+ 
+       if (CATEGORY_USED (category))
+ 	{
+@@ -446,7 +446,7 @@
+ 	}
+ 
+       /* Critical section left.  */
+-      __libc_lock_unlock (__libc_setlocale_lock);
++      __libc_rwlock_unlock (__libc_setlocale_lock);
+ 
+       /* Free the resources (the locale path variable.  */
+       free (locale_path);
