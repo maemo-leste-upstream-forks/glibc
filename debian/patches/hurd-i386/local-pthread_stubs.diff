@@ -1,3 +1,15 @@
+This provides so-called "pthread stubs", which permit thread-safe libraries to
+not have to explicitely link with libpthread, and just rely on libc providing
+e.g. void pthread_mutex_lock/unlock.  However, because of weak ELF symbols
+rules, this will only work as long as we set _dl_dynamic_weak to 1 (see
+local-dl-dynamic-weak.diff), so the plan is
+
+- once glibc has integrated Hurd's libpthread and thus is able to provide the
+pthread stubs itself, this patch can be dropped.
+- once we see that all packages got recompiled with that new glibc (i.e.
+apt-cache rdepends libpthread-stubs0 is empty), the local-dl-dynamic-weak.diff
+patch can be dropped.
+
 Index: Makerules
 ===================================================================
 RCS file: /cvs/glibc/libc/Makerules,v
