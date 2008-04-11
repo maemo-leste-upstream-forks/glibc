@@ -11,6 +11,13 @@
 	(free_scopelist): New function.
 	(scopecmp): New function.
 	(gaiconf_init): Also handle scopev4 entries.
+	* posix/tst-rfc3484.c (do_test): Initialize scopes.
+	* posix/tst-rfc3484-2.c (do_test): Likewise.
+
+2007-11-13  Ulrich Drepper  <drepper@redhat.com>
+
+	* posix/tst-rfc3484.c: Adjust for addition of prefixlen field.
+	* posix/tst-rfc3484-2.c: Likewise.
 
 2007-11-12  Ulrich Drepper  <drepper@redhat.com>
 
@@ -754,3 +761,67 @@ diff -u -r1.120 -r1.121
  
        /* If we previously read the file but it is gone now, free the
  	 old data and use the builtin one.  Leave the reload flag
+--- libc/posix/tst-rfc3484-2.c
++++ libc/posix/tst-rfc3484-2.c
+@@ -66,6 +66,7 @@ do_test (void)
+ {
+   labels = default_labels;
+   precedence = default_precedence;
++  scopes = default_scopes;
+ 
+   struct sockaddr_in so1;
+   so1.sin_family = AF_INET;
+--- libc/posix/tst-rfc3484.c
++++ libc/posix/tst-rfc3484.c
+@@ -85,6 +85,7 @@ do_test (void)
+ {
+   labels = default_labels;
+   precedence = default_precedence;
++  scopes= default_scopes;
+ 
+   struct sockaddr_in so;
+   so.sin_family = AF_INET;
+--- a/posix/tst-rfc3484-2.c
++++ b/posix/tst-rfc3484-2.c
+@@ -99,6 +99,7 @@ do_test (void)
+   results[0].source_addr_len = sizeof (so1);
+   results[0].source_addr_flags = 0;
+   results[0].service_order = 0;
++  results[0].prefixlen = 16;
+   memcpy (&results[0].source_addr, &so1, sizeof (so1));
+ 
+   results[1].dest_addr = &ai2;
+@@ -106,6 +107,7 @@ do_test (void)
+   results[1].source_addr_len = sizeof (so2);
+   results[1].source_addr_flags = 0;
+   results[1].service_order = 1;
++  results[1].prefixlen = 16;
+   memcpy (&results[1].source_addr, &so2, sizeof (so2));
+ 
+ 
+@@ -125,6 +127,7 @@ do_test (void)
+   results[1].source_addr_len = sizeof (so1);
+   results[1].source_addr_flags = 0;
+   results[1].service_order = 1;
++  results[1].prefixlen = 16;
+   memcpy (&results[1].source_addr, &so1, sizeof (so1));
+ 
+   results[0].dest_addr = &ai2;
+@@ -132,6 +135,7 @@ do_test (void)
+   results[0].source_addr_len = sizeof (so2);
+   results[0].source_addr_flags = 0;
+   results[0].service_order = 0;
++  results[0].prefixlen = 16;
+   memcpy (&results[0].source_addr, &so2, sizeof (so2));
+ 
+ 
+--- a/posix/tst-rfc3484.c
++++ b/posix/tst-rfc3484.c
+@@ -94,6 +94,7 @@ do_test (void)
+       results[i].source_addr_len = sizeof (so);
+       results[i].source_addr_flags = 0;
+       results[i].service_order = i;
++      results[i].prefixlen = 8;
+     }
+ 
+   qsort (results, naddrs, sizeof (results[0]), rfc3484_sort);
