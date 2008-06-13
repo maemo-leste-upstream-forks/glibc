@@ -76,15 +76,7 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	if test "$(NOSTRIP_$(curpass))" != 1; then			\
 	  chmod a+x debian/wrapper/objcopy;				\
 	  export PATH=$(shell pwd)/debian/wrapper:$$PATH;		\
-	  dh_strip -p$(curpass) -Xlibpthread --keep-debug;		\
-	  mkdir -p debian/$(libc)-dbg/usr/lib/debug;			\
-	  if test -d debian/$(curpass)/usr/lib/debug; then		\
-	    cd debian/$(curpass)/usr/lib/debug;				\
-	    find . -type f -name \*.so\*				\
-	      | cpio -pd $(shell pwd)/debian/$(libc)-dbg/usr/lib/debug;	\
-	    cd ../../../../..;						\
-	    rm -rf debian/$(curpass)/usr/lib/debug;			\
-	  fi;								\
+	  dh_strip -p$(curpass) -Xlibpthread --dbg-package=$(libc)-dbg; \
 	  (cd debian/$(curpass);					\
 	   find . -name libpthread-\*.so -exec				\
 	     ../../debian/wrapper/objcopy --only-keep-debug '{}'	\
@@ -109,17 +101,14 @@ endif
 		-o -regex '.*/libc-.*so' \) \
 		-exec chmod a+x '{}' ';'
 	dh_makeshlibs -X/usr/lib/debug -p$(curpass) -V "$(call xx,shlib_dep)"
+	# Add relevant udeb: lines in shlibs files
+	chmod a+x debian/shlibs-add-udebs
+	./debian/shlibs-add-udebs $(curpass)
 
 	if [ -f debian/$(curpass).lintian ] ; then \
 		install -d -m 755 -o root -g root debian/$(curpass)/usr/share/lintian/overrides/ ; \
 		install -m 644 -o root -g root debian/$(curpass).lintian \
 			debian/$(curpass)/usr/share/lintian/overrides/$(curpass) ; \
-	fi
-
-	if [ -f debian/$(curpass).linda ] ; then \
-		install -d -m 755 -o root -g root debian/$(curpass)/usr/share/linda/overrides/ ; \
-		install -m 644 -o root -g root debian/$(curpass).linda \
-			debian/$(curpass)/usr/share/linda/overrides/$(curpass) ; \
 	fi
 
 	dh_installdeb -p$(curpass)
@@ -152,7 +141,6 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): $(stamp)debhelper
 		-o -regex '.*lib[0-9]*/.*libpthread.*so.*' \
 		-o -regex '.*lib[0-9]*/libc[.-].*so.*' \) \
 		-exec chmod a+x '{}' ';'
-	# dh_makeshlibs -X/usr/lib/debug -p$(curpass) -V "$(call xx,shlib_dep)"
 	dh_installdeb -p$(curpass)
 	# dh_shlibdeps -p$(curpass)
 	dh_gencontrol -p$(curpass)

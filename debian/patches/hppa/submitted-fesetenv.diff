@@ -1,0 +1,30 @@
+2008-05-10  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/hppa/fpu/fesetenv.c: bufptr is always read, temp is
+	read while writing back status word.
+
+Index: ports/sysdeps/hppa/fpu/fesetenv.c
+===================================================================
+RCS file: /cvs/glibc/ports/sysdeps/hppa/fpu/fesetenv.c,v
+retrieving revision 1.5
+diff -u -d -p -r1.5 fesetenv.c
+--- ports/sysdeps/hppa/fpu/fesetenv.c	21 Apr 2006 00:27:20 -0000	1.5
++++ ports/sysdeps/hppa/fpu/fesetenv.c	10 May 2008 18:02:41 -0000
+@@ -35,7 +35,7 @@ fesetenv (const fenv_t *envp)
+   bufptr = temp.buf;
+   __asm__ (
+ 	   "fstd,ma %%fr0,8(%1)\n"
+-	   : "=m" (temp), "+r" (bufptr) : : "%r0");
++	   : "=m" (temp) : "r" (bufptr) : "%r0");
+ 
+   temp.env.__status_word &= ~(FE_ALL_EXCEPT
+ 			    | (FE_ALL_EXCEPT << 27)
+@@ -56,7 +56,7 @@ fesetenv (const fenv_t *envp)
+      is loaded last and T-Bit is enabled. */
+   __asm__ (
+ 	   "fldd,mb -8(%1),%%fr0\n"
+-	   : "=m" (temp), "+r" (bufptr) : : "%r0" );
++	   : : "m" (temp), "r" (bufptr) : "%r0" );
+ 
+   /* Success.  */
+   return 0;

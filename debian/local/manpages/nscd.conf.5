@@ -72,6 +72,9 @@ simultaneous connections that
 .BR nscd (8)
 can handle.
 .TP
+.BI max-threads \ #threads
+Specifies the maximum number of threads to be started.
+.TP
 .BI server-user \ user
 By default,
 .BR nscd (8)
@@ -85,6 +88,23 @@ or
 .I --secure
 argument. Also note that some services require that nscd run as root, so
 using this may break those lookup services.
+.TP
+.BI stat-user \ user
+Specifies the user who is allowed to request statistics.
+.TP
+.BI paranoia \ bool
+.I bool
+must be one of
+.B yes
+or
+.BR no .
+Enabling paranoia mode causes 
+.BR nscd (8)
+to restart itself periodically.
+.TP
+.BI restart-interval \ time
+Sets the restart interval to time seconds if periodic restart is enabled by enabling
+paranoia mode. The default value is 3600.
 .SH CACHE OPTIONS
 All cache options take two arguments. The first one denotes
 the service or cache the option should affect. Currently
@@ -172,6 +192,13 @@ The memory mapping of the
 databases for service is shared with the clients so that they can directly search
 in them instead of having to ask the daemon over the socket each time a lookup is
 performed.
+.TP
+.BI reload-count \ #number
+Sets the number of times a cached record is reloaded before it is pruned from 
+the cache. Each cache record has a timeout, when that timeout expires, 
+.BR nscd (8)
+will either reload it (query the NSS service again if the data hasn't changed), or
+drop it.
 .SH EXAMPLE
 .nf
 

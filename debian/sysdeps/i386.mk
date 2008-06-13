@@ -1,8 +1,3 @@
-ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
-CC     = gcc-4.2
-CXX    = g++-4.2
-endif
-
 # We use -march=i686 and glibc's i686 routines use cmov, so require it.
 # A Debian-local glibc patch adds cmov to the search path.
 # The optimized libraries also use NPTL!

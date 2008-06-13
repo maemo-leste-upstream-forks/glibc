@@ -4,7 +4,46 @@ glibc (2.8-0exp1) UNRELEASED; urgency=low
 
  -- Aurelien Jarno <aurel32@debian.org>  Fri, 11 Apr 2008 06:08:30 +0200
 
-glibc (2.7-11) UNRELEASED; urgency=low
+glibc (2.7-13) unstable; urgency=low
+
+  * kfreebsd/local-sysdeps.diff: update to revision 2174 (from glibc-bsd).
+  * Update Brazilian Portuguese debconf translation, by Felipe Augusto van de
+    Wiel.  Closes: #485381.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Wed, 11 Jun 2008 11:36:17 +0200
+
+glibc (2.7-12) unstable; urgency=low
+
+  [ Aurelien Jarno ]
+  * patches/alpha/submitted-procfs_h.diff: don't include elf/asm.h on alpha,
+    as it has been removed from linux-libc-dev.
+  * patch/arm/cvs-ioperm.diff: don't include asm/page.h as it has been removed
+    from linux-libc-dev.  Closes: #480892.
+  * patches/hppa/cvs-atomic.diff: don't remove "memory" asm constraint. Fixes
+    FTBFS on hppa.
+  * Update Swedish debconf translation, by Martin Bagge.  Closes: #482467.
+  * sysdeps/amd64.mk, sysdeps/i386.mk, control.in/main: bump g++-4.3 build-depends
+    to (>= 4.3.0-2) to make sure the cld fix is applied. Use gcc-4.3 on amd64
+    and i386.
+  * patches/any/cvs-iconv-braces.diff: new patch from upstream to fix various
+    iconv bugs.
+  * local/manpages/nscd.conf.5: update nscd.conf manpage.  Closes: #482505.
+
+  [ Clint Adams ]
+  * Add any/cvs-regex_anchor.diff to fix performance anomaly with ^$.
+    closes: #475474.
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/cvs-termios.diff: update patch, fixes compilation of jove.
+  * patches/hurd-i386/local-pthread-unsupported-stubs.diff: new patch to
+    declare the unsupported function stubs, fixes compilation of pike.  Also
+    bump the dependency on hurd-dev to get <gnu/stubs-pthread.h>.
+  * patches/hurd-i386/local-unlockpt-chroot.diff: new patch to fix ptys in
+    chroots.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 02 Jun 2008 19:14:35 +0200
+
+glibc (2.7-11) unstable; urgency=low
 
   [ Aurelien Jarno ]
   * Reenable testsuite on MIPS SB1 platforms.
@@ -23,13 +62,37 @@ glibc (2.7-11) UNRELEASED; urgency=low
     libc-prof.  Closes: #442858.
   * patches/any/cvs-ethertype.diff: new patch to add new ETHERTYPE_*
     definitions.  Closes: #474171.
-  * sysdeps/arm.mk, control.in/main: use gcc-4.3 on arm.
+  * sysdeps/depflags.pl: conflicts with tzdata-etch.
+  * kfreebsd/local-sysdeps.diff: update to revision 2163 (from glibc-bsd).
+  * patches/s390/submitted-nexttowardf.diff: fix IEEE exceptions raising in
+    nexttowardf() on s390 with gcc-4.3.
+  * patches/i386/cvs-short-for-fnstsw.diff: patch for upstream to fix build
+    with latest binutils.
+  * patches/any/local-no-pagesize.diff: don't include asm/page.h from 
+    sys/user.h on alpha.  Closes: #480295.
+  * patches/any/submitted-user_h.diff: don't include linux/user.h from 
+    sys/user.h.  Closes: #480093.
+  * patches/hppa/submitted-fesetenv.diff: fix fesetenv() on hppa with 
+    gcc-4.3.
+  * sysdeps/arm.mk, sysdeps/hppa.mk, sysdeps/s390.mk, control.in/main: use
+    gcc-4.3 on arm, hppa and s390.
+  * debian/shlibs-add-udebs: new script from Frans Pop to correctly compute
+    the udev dependencies.  Closes: #474293.
+  * rules.d/debhelper.mk: remove linda overrides installation.
+  * debhelper.in/*lintian: update.
+  * control.in/main: relax a few dependencies.
+  * rules.d/debhelper.mk: avoid creating empty directories when building
+    libc6-dbg.
 
   [ Pierre Habouzit ]
   * Add any/cvs-strerror_r.diff to make strerror_r actually thread safe.
     Closes: #456531.
 
- -- Aurelien Jarno <aurel32@debian.org>  Tue, 08 Apr 2008 14:30:01 +0200
+  [ Samuel Thibault ]
+  * patches/hurd-i386/cvs-termios.diff: new patch to revamp ioctls/termios
+  bits.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 11 May 2008 12:13:59 +0200
 
 glibc (2.7-10) unstable; urgency=low
 

@@ -19,7 +19,7 @@ $type = $ARGV[0];
 
 # OS specific stuff
 if ($DEB_HOST_ARCH_OS eq "hurd") {
-    push @{$libc_dev_c{'Depends'}}, ('gnumach-dev', 'hurd-dev', 'libpthread-stubs0-dev');
+    push @{$libc_dev_c{'Depends'}}, ('gnumach-dev', 'hurd-dev (>= 20071119-2)', 'libpthread-stubs0-dev');
     push @{$libc_dev_c{'Replaces'}}, 'glibc2-dev';
     push @{$libc_dev_c{'Conflicts'}}, 'glibc2-dev';
     push @{$libc_c{'Replaces'}}, 'glibc2';
@@ -76,7 +76,7 @@ if ($libc ne "libc6") {
 push @{$libc_c{'Conflicts'}}, 'libterm-readline-gnu-perl (<< 1.15-2)';
 
 # Conflict with older versions of tzdata that need tzconfig.
-push @{$libc_c{'Conflicts'}}, 'tzdata (<< 2007k-1)';
+push @{$libc_c{'Conflicts'}}, 'tzdata (<< 2007k-1), tzdata-etch';
 
 # Depends on libgcc1/libgcc2/libgcc4
 if ($DEB_HOST_ARCH =~ m/^hppa$/) {

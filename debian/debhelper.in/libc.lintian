@@ -4,10 +4,10 @@ LIBC: statically-linked-binary ./sbin/ldconfig
 
 # libpthread must be stripped specially; GDB needs the non-dynamic 
 # symbol table in order to load the thread debugging library.
-LIBC: unstripped-binary-or-object ./lib/libpthread-2.5.so
+LIBC: unstripped-binary-or-object ./lib/libpthread-2.7.so
 
 # ld.so must be executable, otherwise the system will not work
-LIBC: shlib-with-executable-bit lib/ld-2.5.so 0755
+LIBC: shlib-with-executable-bit lib/ld-2.7.so 0755
 
 # pt_chown must be setuid root, otherwise non-root users won't be able
 # to login
@@ -15,4 +15,13 @@ LIBC: setuid-binary usr/lib/pt_chown 4755 root/root
 
 # It is normal that the ELF dynamic linker does not need any other 
 # library
-LIBC: shared-lib-without-dependency-information ./lib/ld-2.5.so
+LIBC: shared-lib-without-dependency-information ./lib/ld-2.7.so
+
+# It is correct for the glibc to install files in such locations
+LIBC: file-in-unusual-dir lib32
+LIBC: file-in-unusual-dir usr/lib32
+LIBC: file-in-unusual-dir lib64
+LIBC: file-in-unusual-dir usr/lib64
+
+# dependency on debconf is not needed, as glibc has a fallback to tty 
+LIBC: missing-debconf-dependency-for-preinst

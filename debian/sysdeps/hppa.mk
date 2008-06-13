@@ -1,8 +1,3 @@
-ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
-CC     = gcc-4.2
-CXX    = g++-4.2
-endif
-
 # To build the NPTL version of the glibc on hppa, uncomment the following line
 # and comment the two next ones. Note that it is currently not binary 
 # compatible with the linuxthreads version.
