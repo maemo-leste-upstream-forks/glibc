@@ -406,16 +406,85 @@
  
  /* Defined in loadmsgcat.c.  */
  extern int _nl_msg_cat_cntr;
-@@ -314,7 +314,7 @@
+@@ -193,7 +193,7 @@
+ 
+ 
+ /* Put NAME in _nl_global_locale.__names.  */
+-static inline void
++static void
+ setname (int category, const char *name)
+ {
+   if (_nl_global_locale.__names[category] == name)
+@@ -234,9 +234,16 @@
+   if (locale == NULL)
+     return (char *) _nl_global_locale.__names[category];
+ 
++  /* Protect global data.  */
++  __libc_rwlock_wrlock (__libc_setlocale_lock);
++
+   if (strcmp (locale, _nl_global_locale.__names[category]) == 0)
+-    /* Changing to the same thing.  */
+-    return (char *) _nl_global_locale.__names[category];
++    {
++      /* Changing to the same thing.  */
++      __libc_rwlock_unlock (__libc_setlocale_lock);
++
++      return (char *) _nl_global_locale.__names[category];
++    }
+ 
+   /* We perhaps really have to load some data.  So we determine the
+      path in which to look for the data now.  The environment variable
+@@ -250,12 +257,13 @@
+   if (locpath_var != NULL && locpath_var[0] != '\0')
+     {
+       if (__argz_create_sep (locpath_var, ':',
+-			     &locale_path, &locale_path_len) != 0)
+-	return NULL;
+-
+-      if (__argz_add_sep (&locale_path, &locale_path_len,
+-			  _nl_default_locale_path, ':') != 0)
+-	return NULL;
++			     &locale_path, &locale_path_len) != 0
++	  || __argz_add_sep (&locale_path, &locale_path_len,
++			     _nl_default_locale_path, ':') != 0)
++	{
++	  __libc_rwlock_unlock (__libc_setlocale_lock);
++	  return NULL;
++	}
+     }
+ 
+   if (category == LC_ALL)
+@@ -290,8 +298,13 @@
+ 		  break;
+ 
+ 	      if (cnt == __LC_LAST)
+-		/* Bogus category name.  */
+-		ERROR_RETURN;
++		{
++		error_return:
++		  __libc_rwlock_unlock (__libc_setlocale_lock);
++
++		  /* Bogus category name.  */
++		  ERROR_RETURN;
++		}
+ 
+ 	      /* Found the category this clause sets.  */
+ 	      newnames[cnt] = ++cp;
+@@ -310,12 +323,9 @@
+ 	  for (cnt = 0; cnt < __LC_LAST; ++cnt)
+ 	    if (cnt != LC_ALL && newnames[cnt] == locale)
+ 	      /* The composite name did not specify all categories.  */
+-	      ERROR_RETURN;
++	      goto error_return;
  	}
  
-       /* Protect global data.  */
+-      /* Protect global data.  */
 -      __libc_lock_lock (__libc_setlocale_lock);
-+      __libc_rwlock_wrlock (__libc_setlocale_lock);
- 
+-
        /* Load the new data for each category.  */
        while (category-- > 0)
-@@ -381,7 +381,7 @@
+ 	if (category != LC_ALL)
+@@ -381,7 +391,7 @@
  	    free ((char *) newnames[category]);
  
        /* Critical section left.  */
@@ -424,16 +493,17 @@
  
        /* Free the resources (the locale path variable).  */
        free (locale_path);
-@@ -394,7 +394,7 @@
+@@ -393,9 +403,6 @@
+       struct locale_data *newdata = NULL;
        const char *newname[1] = { locale };
  
-       /* Protect global data.  */
+-      /* Protect global data.  */
 -      __libc_lock_lock (__libc_setlocale_lock);
-+      __libc_rwlock_wrlock (__libc_setlocale_lock);
- 
+-
        if (CATEGORY_USED (category))
  	{
-@@ -446,7 +446,7 @@
+ 	  /* Only actually load the data if anything will use it.  */
+@@ -446,7 +453,7 @@
  	}
  
        /* Critical section left.  */
@@ -442,3 +512,146 @@
  
        /* Free the resources (the locale path variable.  */
        free (locale_path);
+--- glibc-2.7.orig/time/alt_digit.c
++++ glibc-2.7/time/alt_digit.c
+@@ -1,5 +1,5 @@
+ /* Helper functions used by strftime/strptime to handle alternate digits.
+-   Copyright (C) 1995-2001,02 Free Software Foundation, Inc.
++   Copyright (C) 1995-2002, 2008 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -24,7 +24,7 @@
+ #include <string.h>
+ 
+ /* Some of the functions here must not be used while setlocale is called.  */
+-__libc_lock_define (extern, __libc_setlocale_lock attribute_hidden)
++__libc_rwlock_define (extern, __libc_setlocale_lock attribute_hidden)
+ 
+ #define CURRENT(item) (current->values[_NL_ITEM_INDEX (item)].string)
+ #define CURRENT_WSTR(item) \
+@@ -77,7 +77,7 @@
+   if (number >= 100 || CURRENT (ALT_DIGITS)[0] == '\0')
+     return NULL;
+ 
+-  __libc_lock_lock (__libc_setlocale_lock);
++  __libc_rwlock_wrlock (__libc_setlocale_lock);
+ 
+   if (current->private.time == NULL
+       || ! current->private.time->alt_digits_initialized)
+@@ -88,7 +88,7 @@
+ 	    ? current->private.time->alt_digits[number]
+ 	    : NULL);
+ 
+-  __libc_lock_unlock (__libc_setlocale_lock);
++  __libc_rwlock_unlock (__libc_setlocale_lock);
+ 
+   return result;
+ }
+@@ -104,7 +104,7 @@
+   if (number >= 100 || CURRENT_WSTR (_NL_WALT_DIGITS)[0] == L'\0')
+     return NULL;
+ 
+-  __libc_lock_lock (__libc_setlocale_lock);
++  __libc_rwlock_wrlock (__libc_setlocale_lock);
+ 
+   if (current->private.time == NULL)
+     {
+@@ -141,7 +141,7 @@
+     result = data->walt_digits[number];
+ 
+  out:
+-  __libc_lock_unlock (__libc_setlocale_lock);
++  __libc_rwlock_unlock (__libc_setlocale_lock);
+ 
+   return (wchar_t *) result;
+ }
+@@ -159,7 +159,7 @@
+   if (CURRENT_WSTR (_NL_WALT_DIGITS)[0] == L'\0')
+     return result;
+ 
+-  __libc_lock_lock (__libc_setlocale_lock);
++  __libc_rwlock_wrlock (__libc_setlocale_lock);
+ 
+   if (current->private.time == NULL
+       || ! current->private.time->alt_digits_initialized)
+@@ -184,7 +184,7 @@
+ 	  }
+       }
+ 
+-  __libc_lock_unlock (__libc_setlocale_lock);
++  __libc_rwlock_unlock (__libc_setlocale_lock);
+ 
+   if (result != -1)
+     *strp += maxlen;
+--- glibc-2.7.orig/time/era.c
++++ glibc-2.7/time/era.c
+@@ -1,5 +1,5 @@
+ /* Helper functions used by strftime/strptime to handle locale-specific "eras".
+-   Copyright (C) 1995-2001,02 Free Software Foundation, Inc.
++   Copyright (C) 1995-2002, 2008 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -24,7 +24,7 @@
+ #include <string.h>
+ 
+ /* Some of the functions here must not be used while setlocale is called.  */
+-__libc_lock_define (extern, __libc_setlocale_lock attribute_hidden)
++__libc_rwlock_define (extern, __libc_setlocale_lock attribute_hidden)
+ 
+ #define CURRENT(item)		(current->values[_NL_ITEM_INDEX (item)].string)
+ #define CURRENT_WORD(item)	(current->values[_NL_ITEM_INDEX (item)].word)
+@@ -45,7 +45,7 @@
+   if (CURRENT_WORD (_NL_TIME_ERA_NUM_ENTRIES) == 0)
+     return;
+ 
+-  __libc_lock_lock (__libc_setlocale_lock);
++  __libc_rwlock_wrlock (__libc_setlocale_lock);
+ 
+   if (current->private.time == NULL)
+     {
+@@ -135,7 +135,7 @@
+     }
+ 
+  out:
+-  __libc_lock_unlock (__libc_setlocale_lock);
++  __libc_rwlock_unlock (__libc_setlocale_lock);
+ }
+ 
+ struct era_entry *
+--- glibc-2.7.orig/wcsmbs/wcsmbsload.c
++++ glibc-2.7/wcsmbs/wcsmbsload.c
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1998-2002,2004,2005 Free Software Foundation, Inc.
++/* Copyright (C) 1998-2002,2004,2005,2008 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
+ 
+@@ -145,7 +145,7 @@
+ 
+ 
+ /* Some of the functions here must not be used while setlocale is called.  */
+-__libc_lock_define (extern, __libc_setlocale_lock attribute_hidden)
++__libc_rwlock_define (extern, __libc_setlocale_lock attribute_hidden)
+ 
+ /* Load conversion functions for the currently selected locale.  */
+ void
+@@ -153,7 +153,7 @@
+ __wcsmbs_load_conv (struct locale_data *new_category)
+ {
+   /* Acquire the lock.  */
+-  __libc_lock_lock (__libc_setlocale_lock);
++  __libc_rwlock_wrlock (__libc_setlocale_lock);
+ 
+   /* We should repeat the test since while we waited some other thread
+      might have run this function.  */
+@@ -211,7 +211,7 @@
+ 	}
+     }
+ 
+-  __libc_lock_unlock (__libc_setlocale_lock);
++  __libc_rwlock_unlock (__libc_setlocale_lock);
+ }
+ 
+ 

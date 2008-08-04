@@ -1,11 +1,5 @@
-Index: bits/termios.h
-===================================================================
-RCS file: /cvs/glibc/libc/bits/termios.h,v
-retrieving revision 1.7
-retrieving revision 1.8
-diff -u -p -r1.7 -r1.8
---- glibc/bits/termios.h	26 Jul 2001 21:23:31 -0000	1.7
-+++ glibc/bits/termios.h	5 May 2008 23:06:01 -0000	1.8
+--- glibc-2.7.orig/bits/termios.h
++++ glibc-2.7/bits/termios.h
 @@ -24,6 +24,50 @@
  /* These macros are also defined in some <bits/ioctls.h> files (with
     numerically identical values), but this serves to shut up cpp's
@@ -57,7 +51,7 @@ diff -u -p -r1.7 -r1.8
  #ifdef __USE_BSD
  
  # ifdef MDMBUF
-@@ -91,13 +135,47 @@ struct termios
+@@ -91,13 +135,47 @@
    /* Output modes.  */
    tcflag_t c_oflag;
  #define	OPOST	(1 << 0)	/* Perform output processing.  */
@@ -108,7 +102,7 @@ diff -u -p -r1.7 -r1.8
  #endif
  
    /* Control modes.  */
-@@ -117,10 +195,12 @@ struct termios
+@@ -117,10 +195,12 @@
  #define	HUPCL	(1 << 14)	/* Hang up on last close.  */
  #define	CLOCAL	(1 << 15)	/* Ignore modem status lines.  */
  #ifdef	__USE_BSD
@@ -125,7 +119,7 @@ diff -u -p -r1.7 -r1.8
  #endif
  
    /* Local modes.  */
-@@ -210,13 +290,17 @@ struct termios
+@@ -210,13 +290,17 @@
  #define	B2400	2400		/* 2400 baud.  */
  #define	B4800	4800		/* 4800 baud.  */
  #define	B9600	9600		/* 9600 baud.  */
@@ -143,12 +137,8 @@ diff -u -p -r1.7 -r1.8
  #define	B115200	115200
  #define	B230400	230400
  #define	B460800	460800
-Index: sysdeps/mach/hurd/bits/ioctls.h
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/bits/ioctls.h,v
-retrieving revision 1.10
---- glibc/sysdeps/mach/hurd/bits/ioctls.h	7 Sep 2007 20:38:57 -0000	1.10
-+++ glibc/sysdeps/mach/hurd/bits/ioctls.h	5 May 2008 23:56:29 -0000
+--- glibc-2.7.orig/sysdeps/mach/hurd/bits/ioctls.h
++++ glibc-2.7/sysdeps/mach/hurd/bits/ioctls.h
 @@ -25,6 +25,46 @@
  
  /* These macros are also defined in <bits/termios.h> (with numerically
@@ -196,7 +186,7 @@ retrieving revision 1.10
  #ifdef MDMBUF
  # undef MDMBUF
  #endif
-@@ -284,31 +324,25 @@
+@@ -297,31 +337,25 @@
  #define		ODDP		0x00000040	/* get/send odd parity */
  #define		EVENP		0x00000080	/* get/send even parity */
  #define		ANYP		0x000000c0	/* get any parity/send none */

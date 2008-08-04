@@ -1,16 +1,60 @@
 glibc (2.8-0exp1) UNRELEASED; urgency=low
 
-  * 
+  [ Aurelien Jarno ]
+  * New upstream release.
 
  -- Aurelien Jarno <aurel32@debian.org>  Fri, 11 Apr 2008 06:08:30 +0200
 
 glibc (2.7-13) unstable; urgency=low
 
-  * kfreebsd/local-sysdeps.diff: update to revision 2174 (from glibc-bsd).
+  [ Aurelien Jarno ]
   * Update Brazilian Portuguese debconf translation, by Felipe Augusto van de
     Wiel.  Closes: #485381.
+  * patches/any/cvs-getaddrinfo.diff: new patch from CVS to correctly 
+    initialize internal resolver structures in getaddrinfo().  Closes:
+    #489586.
+  * Update Romanian debconf translation, by Eddy Petrişor.  Closes: #488734.
+  * any/cvs-tst-regex.diff: new patch from CVS to add a timeout to tst-regex.
+    Closes: #489856.
+  * control.in/main: build depends on gcc-4.3 (>= 4.3.0-7), remove
+    mips/local-gcc-ice.diff.
+  * Update Swedish debconf translation, by Martin Bagge.  Closes: #492191.
+  * Revert the changes to patches/hppa/cvs-atomic.diff, it was not the cause
+    of the "tst-regex problem".
+  * hppa/cvs-lowlevellock.diff: new patch from upstream to fix build of NPTL
+    glibc on hppa.  Closes: #486589.
 
- -- Aurelien Jarno <aurel32@debian.org>  Wed, 11 Jun 2008 11:36:17 +0200
+  [ Petr Salinger]
+  * debian/sysdeps/kfreebsd.mk: also use the bsm/ directory from kernel
+    headers.
+  * kfreebsd/local-sysdeps.diff: update to revision 2265 (from glibc-bsd).
+  * Disable call to "GL(dl_wait_lookup_done)" in linuxthreads builds. Proper 
+    solution still have to be created. Stop crashes in mean time. See #489066.
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/cvs-MSG_NOSIGNAL.diff: New patch to implement
+    MSG_NOSIGNAL.
+  * patches/hurd-i386/local-msg-nosignal.diff: Forcibly set MSG_NOSIGNAL to 0
+    until pfinet gets recompiled.  Only apply on hurd-i386.
+  * Use gcc-4.3 on hurd-i386.
+  * patches/hurd-i386/cvs-open_2.diff: New patch to implement __open_2
+    and __openat_2. Together with kfreebsd update closes: #489357.
+  * patches/hurd-i386/local-pthread_types.diff: New patch to drag pthread
+    types from hurd headers.  Bump the hurd-dev dependency version
+    accordingly.
+  * patches/hurd-i386/cvs-fcntl-types.diff: New patch to include
+    <sys/type.h> from <bits/fcntl.h> like on Linux.  Fixes a lot of FTBFS on
+    hurd.
+  * patches/hurd-i386/local-tls.diff: Resync with upstream.
+  * patches/hurd-i386/local-tls-support.diff: Make tls.h also include
+    <stdint.h> and <bits/libc-lock.h> include <tls.h>, like on Linux.
+  * patches/hurd-i386/submitted-trivial.diff: Remove, thanks to updated tls.h.
+
+  [ Pierre Habouzit ]
+  * Cherry-pick upstream fixes with respect to locale rwlocks, merge them into
+    patches/any/cvs-strerror_r.diff. Closes: #489906.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 29 Jul 2008 03:09:20 +0200
 
 glibc (2.7-12) unstable; urgency=low
 

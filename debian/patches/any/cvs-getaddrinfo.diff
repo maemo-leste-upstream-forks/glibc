@@ -1,0 +1,60 @@
+2008-06-13  Ulrich Drepper  <drepper@redhat.com>
+
+        * sysdeps/posix/getaddrinfo.c: Move _res_hconf_init call to a
+        better place so it is not called when nscd is used.
+
+2008-05-14  Ulrich Drepper  <drepper@redhat.com>
+
+        * sysdeps/posix/getaddrinfo.c (getaddrinfo): Call _res_hconf_init
+        if necessary.
+        * posix/tst-rfc3484.c: Add dummy definition of _res_hconf_init.
+        * posix/tst-rfc3484-2.c: Likewise.
+
+--- a/posix/tst-rfc3484-2.c	2008-07-07 06:20:38.000000000 +0200
++++ b/posix/tst-rfc3484-2.c	2008-07-07 06:22:43.000000000 +0200
+@@ -29,6 +29,11 @@
+   *output = NULL;
+   return 0;
+ }
++void
++attribute_hidden
++_res_hconf_init (void)
++{
++}
+ 
+ #include "../sysdeps/posix/getaddrinfo.c"
+ 
+--- a/posix/tst-rfc3484.c	2008-07-07 06:20:38.000000000 +0200
++++ b/posix/tst-rfc3484.c	2008-07-07 06:23:58.000000000 +0200
+@@ -29,6 +29,11 @@
+   *output = NULL;
+   return 0;
+ }
++void
++attribute_hidden
++_res_hconf_init (void)
++{
++}
+ 
+ #include "../sysdeps/posix/getaddrinfo.c"
+ 
+--- a/sysdeps/posix/getaddrinfo.c	2008-07-07 06:20:38.000000000 +0200
++++ b/sysdeps/posix/getaddrinfo.c	2008-07-07 06:23:27.000000000 +0200
+@@ -60,6 +60,7 @@
+ #include <not-cancel.h>
+ #include <nscd/nscd-client.h>
+ #include <nscd/nscd_proto.h>
++#include <resolv/res_hconf.h>
+ 
+ #ifdef HAVE_NETLINK_ROUTE
+ # include <kernel-features.h>
+@@ -674,6 +675,9 @@
+ 					     "dns [!UNAVAIL=return] files",
+ 					     &nip);
+ 
++	  /* Initialize configurations.  */
++	  if (__builtin_expect (!_res_hconf.initialized, 0))
++	    _res_hconf_init ();
+ 	  if (__res_maybe_init (&_res, 0) == -1)
+ 	    no_more = 1;
+ 

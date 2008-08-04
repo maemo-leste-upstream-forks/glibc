@@ -1,0 +1,72 @@
+Index: sysdeps/mach/hurd/open.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/open.c,v
+retrieving revision 1.16
+diff -u -p -r1.16 open.c
+--- sysdeps/mach/hurd/open.c	6 Mar 2006 07:59:03 -0000	1.16
++++ sysdeps/mach/hurd/open.c	6 Jul 2008 20:49:04 -0000
+@@ -19,6 +19,7 @@
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <stdarg.h>
++#include <stdio.h>
+ #include <hurd.h>
+ #include <hurd/fd.h>
+ 
+@@ -52,8 +53,20 @@ weak_alias (__libc_open, __open)
+ libc_hidden_weak (__open)
+ weak_alias (__libc_open, open)
+ 
++int
++__open_2 (file, oflag)
++     const char *file;
++     int oflag;
++{
++  if (oflag & O_CREAT)
++    __fortify_fail ("invalid open call: O_CREAT without mode");
++
++  return __open (file, oflag);
++}
++
+ /* open64 is just the same as open for us.  */
+ weak_alias (__libc_open, __libc_open64)
+ weak_alias (__libc_open, __open64)
+ libc_hidden_weak (_open64)
+ weak_alias (__libc_open, open64)
++strong_alias (__open_2, __open64_2)
+Index: sysdeps/mach/hurd/openat.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/openat.c,v
+retrieving revision 1.1
+diff -u -p -r1.1 openat.c
+--- sysdeps/mach/hurd/openat.c	6 Mar 2006 07:58:59 -0000	1.1
++++ sysdeps/mach/hurd/openat.c	6 Jul 2008 20:49:04 -0000
+@@ -21,6 +21,7 @@
+ #include <fcntl.h>
+ #include <stdarg.h>
+ #include <stddef.h>
++#include <stdio.h>
+ #include <sys/stat.h>
+ #include <hurd.h>
+ #include <hurd/fd.h>
+@@ -56,7 +57,20 @@ __openat (fd, file, oflag)
+ libc_hidden_def (__openat)
+ weak_alias (__openat, openat)
+ 
++int
++__openat_2 (fd, file, oflag)
++     int fd;
++     const char *file;
++     int oflag;
++{
++  if (oflag & O_CREAT)
++    __fortify_fail ("invalid openat call: O_CREAT without mode");
++
++  return __openat (fd, file, oflag);
++}
++
+ /* openat64 is just the same as openat for us.  */
+ weak_alias (__openat, __openat64)
+ libc_hidden_weak (__openat64)
+ weak_alias (__openat, openat64)
++strong_alias (__openat_2, __openat64_2)

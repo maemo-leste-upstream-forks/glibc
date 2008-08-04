@@ -4,14 +4,12 @@ to check glibc-2_5-branch.)  Reported on
 
 --- resolv/res_send.c.orig
 +++ resolv/res_send.c
-@@ -102,6 +102,10 @@
+@@ -102,6 +102,8 @@
  #define MAXPACKET       65536
  #endif
  
-+#ifndef MSG_NOSIGNAL
-+# define MSG_NOSIGNAL	0
-+#endif
-+
++#undef MSG_NOSIGNAL
++#define MSG_NOSIGNAL	0
  
  /* From ev_streams.c.  */
  

@@ -1,0 +1,167 @@
+Index: sysdeps/unix/bsd/bsd4.4/bits/socket.h
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/unix/bsd/bsd4.4/bits/socket.h,v
+retrieving revision 1.8
+diff -u -p -r1.8 socket.h
+--- sysdeps/unix/bsd/bsd4.4/bits/socket.h	11 Oct 2007 16:32:14 -0000	1.8
++++ sysdeps/unix/bsd/bsd4.4/bits/socket.h	1 Jul 2008 21:37:10 -0000
+@@ -171,8 +171,10 @@ enum
+ #define MSG_CTRUNC MSG_CTRUNC
+     MSG_WAITALL		= 0x40,	/* Wait for full request or error.  */
+ #define MSG_WAITALL MSG_WAITALL
+-    MSG_DONTWAIT	= 0x80	/* This message should be nonblocking.  */
++    MSG_DONTWAIT	= 0x80,	/* This message should be nonblocking.  */
+ #define MSG_DONTWAIT MSG_DONTWAIT
++    MSG_NOSIGNAL	= 0x0400	/* Do not generate SIGPIPE on EPIPE.  */
++#define MSG_NOSIGNAL MSG_NOSIGNAL
+   };
+ 
+ 
+Index: hurd/hurd/fd.h
+===================================================================
+RCS file: /cvs/glibc/libc/hurd/hurd/fd.h,v
+retrieving revision 1.36
+diff -u -p -r1.36 fd.h
+--- hurd/hurd/fd.h	17 Mar 2007 17:04:09 -0000	1.36
++++ hurd/hurd/fd.h	1 Jul 2008 21:37:11 -0000
+@@ -27,6 +27,7 @@
+ 
+ #include <hurd/hurd_types.h>
+ #include <hurd/port.h>
++#include <sys/socket.h>
+ 
+ 
+ /* Structure representing a file descriptor.  */
+@@ -179,6 +180,18 @@
+   errno = _hurd_fd_error (fd, err);
+   return -1;
+ }
++
++/* Likewise, but do not raise SIGPIPE on EPIPE if flags contain
++   MSG_NOSIGNAL.  */
++
++_HURD_FD_H_EXTERN_INLINE int
++__hurd_sockfail (int fd, int flags, error_t err)
++{
++  if (!(flags & MSG_NOSIGNAL) || err != EPIPE)
++    err = _hurd_fd_error (fd, err);
++  errno = err;
++  return -1;
++}
+ 
+ /* Set up *FD to have PORT its server port, doing appropriate ctty magic.
+    Does no locking or unlocking.  */
+Index: sysdeps/mach/hurd/send.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/send.c,v
+retrieving revision 1.12
+diff -u -p -r1.12 send.c
+--- sysdeps/mach/hurd/send.c	3 Aug 2002 06:53:36 -0000	1.12
++++ sysdeps/mach/hurd/send.c	1 Jul 2008 21:37:11 -0000
+@@ -38,7 +38,7 @@ __send (fd, buf, n, flags)
+ 					   NULL, MACH_MSG_TYPE_COPY_SEND, 0,
+ 					   NULL, 0, &wrote));
+ 
+-  return err ? __hurd_dfail (fd, err) : wrote;
++  return err ? __hurd_sockfail (fd, flags, err) : wrote;
+ }
+ libc_hidden_def (__send)
+ weak_alias (__send, send)
+Index: sysdeps/mach/hurd/sendmsg.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/sendmsg.c,v
+retrieving revision 1.4
+diff -u -p -r1.4 sendmsg.c
+--- sysdeps/mach/hurd/sendmsg.c	11 Feb 2004 02:01:03 -0000	1.4
++++ sysdeps/mach/hurd/sendmsg.c	1 Jul 2008 21:37:11 -0000
+@@ -149,7 +149,7 @@ __libc_sendmsg (int fd, const struct msg
+   if (dealloc)
+     __vm_deallocate (__mach_task_self (), data.addr, len);
+ 
+-  return err ? __hurd_dfail (fd, err) : amount;
++  return err ? __hurd_sockfail (fd, flags, err) : amount;
+ }
+ 
+ weak_alias (__libc_sendmsg, sendmsg)
+Index: sysdeps/mach/hurd/sendto.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/sendto.c,v
+retrieving revision 1.15
+diff -u -p -r1.15 sendto.c
+--- sysdeps/mach/hurd/sendto.c	15 May 2002 00:05:38 -0000	1.15
++++ sysdeps/mach/hurd/sendto.c	1 Jul 2008 21:37:11 -0000
+@@ -79,7 +79,7 @@ __sendto (int fd,
+ 			  err;
+ 			}));
+ 
+-  return err ? __hurd_dfail (fd, err) : wrote;
++  return err ? __hurd_sockfail (fd, flags, err) : wrote;
+ }
+ 
+ weak_alias (__sendto, sendto)
+Index: sysdeps/mach/hurd/recv.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/recv.c,v
+retrieving revision 1.9
+diff -u -p -r1.9 recv.c
+--- sysdeps/mach/hurd/recv.c	22 Feb 2005 22:51:00 -0000	1.9
++++ sysdeps/mach/hurd/recv.c	1 Jul 2008 21:37:11 -0000
+@@ -48,7 +48,7 @@ __recv (fd, buf, n, flags)
+ 					       &cdata, &clen,
+ 					       &flags,
+ 					       n)))
+-    return __hurd_dfail (fd, err);
++    return __hurd_sockfail (fd, flags, err);
+ 
+   __mach_port_deallocate (__mach_task_self (), addrport);
+   __vm_deallocate (__mach_task_self (), (vm_address_t) cdata, clen);
+Index: sysdeps/mach/hurd/recvfrom.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/recvfrom.c,v
+retrieving revision 1.12
+diff -u -p -r1.12 recvfrom.c
+--- sysdeps/mach/hurd/recvfrom.c	15 May 2002 00:08:24 -0000	1.12
++++ sysdeps/mach/hurd/recvfrom.c	1 Jul 2008 21:37:11 -0000
+@@ -52,7 +52,7 @@ __recvfrom (fd, buf, n, flags, addrarg, 
+ 					       &cdata, &clen,
+ 					       &flags,
+ 					       n)))
+-    return __hurd_dfail (fd, err);
++    return __hurd_sockfail (fd, flags, err);
+ 
+   /* Get address data for the returned address port if requested.  */
+   if (addr != NULL)
+@@ -74,7 +74,7 @@ __recvfrom (fd, buf, n, flags, addrarg, 
+       if (err)
+ 	{
+ 	  __mach_port_deallocate (__mach_task_self (), addrport);
+-	  return __hurd_dfail (fd, err);
++	  return __hurd_sockfail (fd, flags, err);
+ 	}
+       
+       if (*addr_len > buflen)
+Index: sysdeps/mach/hurd/recvmsg.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/recvmsg.c,v
+retrieving revision 1.3
+diff -u -p -r1.3 recvmsg.c
+--- sysdeps/mach/hurd/recvmsg.c	26 Aug 2002 22:39:46 -0000	1.3
++++ sysdeps/mach/hurd/recvmsg.c	1 Jul 2008 21:37:11 -0000
+@@ -63,7 +63,7 @@ __libc_recvmsg (int fd, struct msghdr *m
+ 					       &ports, &nports,
+ 					       &cdata, &clen,
+ 					       &message->msg_flags, amount)))
+-    return __hurd_dfail (fd, err);
++    return __hurd_sockfail (fd, flags, err);
+ 
+   if (message->msg_name != NULL)
+     {
+@@ -84,7 +84,7 @@ __libc_recvmsg (int fd, struct msghdr *m
+       if (err)
+ 	{
+ 	  __mach_port_deallocate (__mach_task_self (), aport);
+-	  return __hurd_dfail (fd, err);
++	  return __hurd_sockfail (fd, flags, err);
+ 	}
+ 
+       if (message->msg_namelen > buflen)

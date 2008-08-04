@@ -19,7 +19,7 @@ $type = $ARGV[0];
 
 # OS specific stuff
 if ($DEB_HOST_ARCH_OS eq "hurd") {
-    push @{$libc_dev_c{'Depends'}}, ('gnumach-dev', 'hurd-dev (>= 20071119-2)', 'libpthread-stubs0-dev');
+    push @{$libc_dev_c{'Depends'}}, ('gnumach-dev', 'hurd-dev (>= 20080607-3)', 'libpthread-stubs0-dev');
     push @{$libc_dev_c{'Replaces'}}, 'glibc2-dev';
     push @{$libc_dev_c{'Conflicts'}}, 'glibc2-dev';
     push @{$libc_c{'Replaces'}}, 'glibc2';

@@ -73,7 +73,7 @@ retrieving revision 1.36
  _HURD_FD_H_EXTERN_INLINE error_t
  _hurd_fd_error (int fd, error_t err)
  {
-@@ -169,16 +180,21 @@
+@@ -169,28 +180,37 @@
      }
    return err;
  }
@@ -89,6 +89,22 @@ retrieving revision 1.36
  __hurd_dfail (int fd, error_t err)
  {
    errno = _hurd_fd_error (fd, err);
+   return -1;
+ }
++#endif
+ 
+ /* Likewise, but do not raise SIGPIPE on EPIPE if flags contain
+    MSG_NOSIGNAL.  */
+ 
++int __hurd_sockfail (int fd, int flags, error_t err);
++
++#ifdef __USE_EXTERN_INLINES
+ _HURD_FD_H_EXTERN_INLINE int
+ __hurd_sockfail (int fd, int flags, error_t err)
+ {
+   if (!(flags & MSG_NOSIGNAL) || err != EPIPE)
+     err = _hurd_fd_error (fd, err);
+   errno = err;
    return -1;
  }
 +#endif

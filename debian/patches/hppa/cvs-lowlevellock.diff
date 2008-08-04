@@ -1,0 +1,48 @@
+2007-12-05  Jeff Bailey  <jeffbailey@google.com>
+
+	* sysdeps/unix/sysv/linux/hppa/nptl/lowlevellock.h
+	(__lll_unlock): Use define instead of inline function.
+	(__lll_robust_unlock): Likewise.
+
+===================================================================
+RCS file: /cvs/glibc/ports/sysdeps/unix/sysv/linux/hppa/nptl/lowlevellock.h,v
+retrieving revision 1.5
+retrieving revision 1.6
+diff -u -r1.5 -r1.6
+--- ports/sysdeps/unix/sysv/linux/hppa/nptl/lowlevellock.h	2007/10/19 01:47:47	1.5
++++ ports/sysdeps/unix/sysv/linux/hppa/nptl/lowlevellock.h	2007/12/09 02:20:34	1.6
+@@ -289,22 +289,20 @@
+ #define lll_robust_timedlock(futex, abstime, id, private) \
+   __lll_robust_timedlock (&(futex), abstime, id, private)
+ 
+-static inline void __attribute__ ((always_inline))
+-__lll_unlock (lll_lock_t *futex, int private)
+-{
+-  int val = atomic_exchange_rel (futex, 0);
+-  if (__builtin_expect (val > 1, 0))
+-    lll_futex_wake (futex, 1, private);
+-}
++#define __lll_unlock(futex, private) \
++  (void)					\
++  ({ int val = atomic_exchange_rel (futex, 0);  \
++     if (__builtin_expect (val > 1, 0))         \
++       lll_futex_wake (futex, 1, private);      \
++  })
+ #define lll_unlock(futex, private) __lll_unlock(&(futex), private)
+ 
+-static inline void __attribute__ ((always_inline))
+-__lll_robust_unlock (int *futex, int private)
+-{
+-  int val = atomic_exchange_rel (futex, 0);
+-  if (__builtin_expect (val & FUTEX_WAITERS, 0))
+-    lll_futex_wake (futex, 1, private);
+-}
++#define  __lll_robust_unlock(futex,private) \
++  (void)                                               \
++    ({ int val = atomic_exchange_rel (futex, 0);       \
++       if (__builtin_expect (val & FUTEX_WAITERS, 0))  \
++         lll_futex_wake (futex, 1, private);           \
++    })
+ #define lll_robust_unlock(futex, private) \
+   __lll_robust_unlock(&(futex), private)
+ 
