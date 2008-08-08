@@ -18,8 +18,8 @@ $(stamp)binaryinst_$(libc)-pic:: $(stamp)debhelper
 
 # Some per-package extra files to install.
 define $(libc)_extra_debhelper_pkg_install
-	install --mode=0644 $(DEB_SRCDIR)/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/changelog
-	install --mode=0644 $(DEB_SRCDIR)/nptl/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/ChangeLog.nptl
+	install --mode=0644 ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/changelog
+	install --mode=0644 nptl/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/ChangeLog.nptl
 	sed -e "/KERNEL_VERSION_CHECK/r debian/script.in/kernelcheck.sh" \
 		debian/local/etc_init.d/glibc.sh | \
 		sed -e "s/EXIT_CHECK/sleep 5/" -e "s/DEB_HOST_ARCH/$(DEB_HOST_ARCH)/" > debian/glibc.sh.generated
@@ -153,12 +153,11 @@ OPT_DIRS = $(foreach pass,$(OPT_PASSES),$($(pass)_slibdir) $($(pass)_libdir))
 
 debhelper: $(stamp)debhelper
 $(stamp)debhelper:
-
 	for x in `find debian/debhelper.in -maxdepth 1 -type f`; do \
 	  y=debian/`basename $$x`; \
 	  z=`echo $$y | sed -e 's#/libc#/$(libc)#'`; \
 	  cp $$x $$z; \
-	  sed -e "s#DEB_SRCDIR#$(DEB_SRCDIR)#" -i $$z; \
+	  sed -e "s#BUILD-TREE#$(build-tree)#" -i $$z; \
 	  sed -e "/KERNEL_VERSION_CHECK/r debian/script.in/kernelcheck.sh" -i $$z; \
 	  sed -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" -i $$z; \
 	  sed -e "/NOHWCAP/r debian/script.in/nohwcap.sh" -i $$z; \

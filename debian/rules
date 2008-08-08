@@ -58,12 +58,13 @@ DEB_HOST_GNU_TYPE_ALT ?=
 DEB_SOURCE_PACKAGE := $(strip $(shell egrep '^Source: ' debian/control | cut -f 2 -d ':'))
 
 DEB_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
+GLIBC_VERSION = $(shell echo $(DEB_VERSION) | sed -e 's/~.*//')
 
-DEB_TARBALL ?= $(shell ls glibc-[0-9.]*.tar.*)
-
-DEB_SRCDIR ?= $(shell ls -d $(build-tree)/glibc-*)
 DEB_BUILDDIR ?= $(build-tree)/$(DEB_HOST_ARCH)-$(curpass)
 
+GLIBC_SOURCES = $(addprefix $(shell basename $(CURDIR))/, \
+		$(filter-out $(stamp) CVS $(build-tree), $(wildcard *)))
+		 
 # The kernel uses different CPU appreviations (uname output) than the GNU
 # tools do (config.sub).  Map them.
 KERNEL_HOST_CPU := $(subst powerpc,ppc,$(DEB_HOST_GNU_CPU))
@@ -116,8 +117,8 @@ configure_target := $(DEB_HOST_GNU_TYPE)
 configure_build := $(DEB_BUILD_GNU_TYPE)
 
 ifneq ($(NO_LOG),yes)
-log_build   = $(CURDIR)/log-build-$(call xx,configure_target)-$(curpass)
-log_test    = $(CURDIR)/log-test-$(call xx,configure_target)-$(curpass)
+log_build   = $(build-tree)/log-build-$(call xx,configure_target)-$(curpass)
+log_test    = $(build-tree)/log-test-$(call xx,configure_target)-$(curpass)
 else
 log_build   := /dev/tty
 log_test    := /dev/tty
@@ -157,13 +158,12 @@ endif
 # And now the rules...
 include debian/rules.d/*.mk
 
-clean:: debhelper-clean
+clean:: unpatch debhelper-clean
 	#  Do not accidentally upload into unstable
 	dpkg-parsechangelog  | grep "^Distribution:" | grep -q -v unstable
 	rm -rf $(patsubst %,debian/tmp-%,$(GLIBC_PASSES))
 	rm -rf $(build-tree)
 	rm -rf $(stamp)
-	rm -f log-*
 	rm -rf debian/include
 
 # Required Debian targets
@@ -180,7 +180,8 @@ binary-arch: build testroot debian/control $(build-tree) \
 binary: binary-indep binary-arch
 
 build:	$(patsubst %,$(stamp)build_%,$(GLIBC_PASSES)) \
-	$(patsubst %,$(stamp)check_%,$(GLIBC_PASSES))
+	$(patsubst %,$(stamp)check_%,$(GLIBC_PASSES)) \
+	$(stamp)source
 
 testroot:
 	dh_testroot

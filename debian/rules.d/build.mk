@@ -13,14 +13,13 @@ endef
 
 
 $(patsubst %,mkbuilddir_%,$(GLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
-$(stamp)mkbuilddir_%: $(stamp)patch-stamp $(KERNEL_HEADER_DIR)
+$(stamp)mkbuilddir_%: $(stamp)patch $(KERNEL_HEADER_DIR)
 	@echo Making builddir for $(curpass)
-	test -d $(DEB_BUILDDIR) || mkdir $(DEB_BUILDDIR)
+	test -d $(DEB_BUILDDIR) || mkdir -p $(DEB_BUILDDIR)
 	touch $@
 
 $(patsubst %,configure_%,$(GLIBC_PASSES)) :: configure_% : $(stamp)configure_%
 $(stamp)configure_%: $(stamp)mkbuilddir_%
-
 	@echo Configuring $(curpass)
 	rm -f $(DEB_BUILDDIR)/configparms
 	echo "CC = $(call xx,CC)"		>> $(DEB_BUILDDIR)/configparms
@@ -72,7 +71,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		CXX="$(call xx,CXX)" \
 		AUTOCONF=false \
 		MAKEINFO=: \
-		$(CURDIR)/$(DEB_SRCDIR)/configure \
+		$(CURDIR)/configure \
 		--host=$(call xx,configure_target) \
 		--build=$$configure_build --prefix=/usr --without-cvs \
 		--enable-add-ons=$(standard-add-ons)"$(call xx,add-ons)" \
@@ -133,7 +132,7 @@ $(stamp)install_%: $(stamp)check_%
 
 	# Generate the list of SUPPORTED locales
 	if [ $(curpass) = libc ]; then \
-	  $(MAKE) -f debian/generate-supported.mk IN=$(DEB_SRCDIR)/localedata/SUPPORTED \
+	  $(MAKE) -f debian/generate-supported.mk IN=localedata/SUPPORTED \
 	    OUT=debian/tmp-$(curpass)/usr/share/i18n/SUPPORTED; \
 	fi
 
@@ -158,6 +157,12 @@ $(stamp)install_%: $(stamp)check_%
  	fi
 
 	$(call xx,extra_install)
+	touch $@
+
+$(stamp)source: $(stamp)patch
+	tar -c --bzip2 -C .. \
+		-f $(build-tree)/glibc-$(GLIBC_VERSION).tar.bz2 \
+		$(GLIBC_SOURCES)
 	touch $@
 
 .NOTPARALLEL: $(patsubst %,install_%,$(GLIBC_PASSES))
