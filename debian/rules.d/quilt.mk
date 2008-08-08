@@ -41,3 +41,11 @@ unpatch:
 	  rm -rf $$pc ; \
 	fi
 	rm -f $(stamp)patch
+
+refresh: unpatch
+	@while quilt next ; do \
+	  $(QUILT) push ; \
+	  $(QUILT) refresh -pab --no-timestamps --no-index --diffstat ; \
+	done ; \
+	$(QUILT) pop -a
+
