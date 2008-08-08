@@ -3,8 +3,10 @@ But some files have a dependency on manual/errno.texi; the easiest
 solution is to drop those dependencies and make sure that MAKEINFO=:
 so that no target depends on manual/*.texi files.
 
---- /dev/null
-+++ glibc-2.6/manual/Makefile
+Index: b/manual/Makefile
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ b/manual/Makefile	2008-08-08 18:38:04.000000000 +0200
 @@ -0,0 +1,254 @@
 +# Copyright (C) 1992-1999,2000,2001,2002,2003,2004,2006
 +#	Free Software Foundation, Inc.
@@ -260,8 +262,10 @@ so that no target depends on manual/*.texi files.
 +sources =
 +objects =
 +headers =
---- glibc-2.6.orig/sysdeps/gnu/Makefile
-+++ glibc-2.6/sysdeps/gnu/Makefile
+Index: b/sysdeps/gnu/Makefile
+===================================================================
+--- a/sysdeps/gnu/Makefile	2006-02-28 08:05:45.000000000 +0100
++++ b/sysdeps/gnu/Makefile	2008-08-08 18:38:04.000000000 +0200
 @@ -20,7 +20,7 @@
  # Generate the list of strings for errno codes from the section of the
  # manual which documents the codes.
@@ -271,8 +275,10 @@ so that no target depends on manual/*.texi files.
  			    $(..)manual/errno.texi
  	$(AWK) -f $^ > $@-tmp
  # Make it unwritable so noone will edit it by mistake.
---- glibc-2.6.orig/sysdeps/mach/hurd/Makefile
-+++ glibc-2.6/sysdeps/mach/hurd/Makefile
+Index: b/sysdeps/mach/hurd/Makefile
+===================================================================
+--- a/sysdeps/mach/hurd/Makefile	2004-10-17 22:00:25.000000000 +0200
++++ b/sysdeps/mach/hurd/Makefile	2008-08-08 18:38:04.000000000 +0200
 @@ -87,7 +87,7 @@
  	    -e 's, \.\./, $(..),g' > $@t
  	mv -f $@t $@

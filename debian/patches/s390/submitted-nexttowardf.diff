@@ -5,9 +5,11 @@
 	math_force_eval macros.  If FLT_EVAL_METHOD is not 0, force
 	x to float using asm.
 
---- a/sysdeps/ieee754/ldbl-128/s_nexttowardf.c
-+++ b/sysdeps/ieee754/ldbl-128/s_nexttowardf.c
-@@ -19,7 +19,8 @@ static char rcsid[] = "$NetBSD: $";
+Index: b/sysdeps/ieee754/ldbl-128/s_nexttowardf.c
+===================================================================
+--- a/sysdeps/ieee754/ldbl-128/s_nexttowardf.c	1999-07-14 02:09:42.000000000 +0200
++++ b/sysdeps/ieee754/ldbl-128/s_nexttowardf.c	2008-08-08 18:38:02.000000000 +0200
+@@ -19,7 +19,8 @@
  #endif
  
  #include "math.h"
@@ -17,7 +19,7 @@
  
  #ifdef __STDC__
  	float __nexttowardf(float x, long double y)
-@@ -44,10 +45,12 @@ static char rcsid[] = "$NetBSD: $";
+@@ -44,10 +45,12 @@
  	   return x+y;
  	if((long double) x==y) return y;	/* x=y, return y */
  	if(ix==0) {				/* x == 0 */
@@ -33,7 +35,7 @@
  	}
  	if(hx>=0) {				/* x > 0 */
  	    if(hy<0||(ix>>23)>(iy>>48)-0x3f80
-@@ -67,13 +70,16 @@ static char rcsid[] = "$NetBSD: $";
+@@ -67,13 +70,16 @@
  	    }
  	}
  	hy = hx&0x7f800000;

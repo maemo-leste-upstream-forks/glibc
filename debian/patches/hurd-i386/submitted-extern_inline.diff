@@ -1,10 +1,7 @@
-Index: hurd/hurd.h
+Index: b/hurd/hurd.h
 ===================================================================
-RCS file: /cvs/glibc/libc/hurd/hurd.h,v
-retrieving revision 1.81
-diff -u -p -r1.81 hurd.h
---- hurd/hurd.h	17 Mar 2007 17:04:09 -0000	1.81
-+++ hurd/hurd.h	7 Jan 2008 22:29:53 -0000
+--- a/hurd/hurd.h	2007-03-17 18:04:09.000000000 +0100
++++ b/hurd/hurd.h	2008-08-08 18:37:58.000000000 +0200
 @@ -48,6 +48,9 @@
  #define _HURD_H_EXTERN_INLINE __extern_inline
  #endif
@@ -23,13 +20,11 @@ diff -u -p -r1.81 hurd.h
  
  /* Basic ports and info, initialized by startup.  */
  
-Index: hurd/hurd/fd.h
+Index: b/hurd/hurd/fd.h
 ===================================================================
-RCS file: /cvs/glibc/libc/hurd/hurd/fd.h,v
-retrieving revision 1.36
---- hurd/hurd/fd.h	17 Mar 2007 17:04:09 -0000	1.36
-+++ hurd/hurd/fd.h	7 Jan 2008 22:29:56 -0000
-@@ -59,6 +59,9 @@
+--- a/hurd/hurd/fd.h	2008-08-08 18:37:57.000000000 +0200
++++ b/hurd/hurd/fd.h	2008-08-08 18:37:58.000000000 +0200
+@@ -60,6 +60,9 @@
     NULL.  The cell is unlocked; when ready to use it, lock it and check for
     it being unused.  */
  
@@ -39,7 +34,7 @@ retrieving revision 1.36
  _HURD_FD_H_EXTERN_INLINE struct hurd_fd *
  _hurd_fd_get (int fd)
  {
-@@ -89,6 +92,7 @@
+@@ -90,6 +93,7 @@
  
    return descriptor;
  }
@@ -47,7 +42,7 @@ retrieving revision 1.36
  
  
  /* Evaluate EXPR with the variable `descriptor' bound to a pointer to the
-@@ -136,6 +140,9 @@
+@@ -137,6 +141,9 @@
  /* Check if ERR should generate a signal.
     Returns the signal to take, or zero if none.  */
  
@@ -57,7 +52,7 @@ retrieving revision 1.36
  _HURD_FD_H_EXTERN_INLINE int
  _hurd_fd_error_signal (error_t err)
  {
-@@ -152,11 +159,15 @@
+@@ -153,11 +160,15 @@
        return 0;
      }
  }
@@ -73,7 +68,7 @@ retrieving revision 1.36
  _HURD_FD_H_EXTERN_INLINE error_t
  _hurd_fd_error (int fd, error_t err)
  {
-@@ -169,28 +180,37 @@
+@@ -170,20 +181,28 @@
      }
    return err;
  }
@@ -102,8 +97,7 @@ retrieving revision 1.36
  _HURD_FD_H_EXTERN_INLINE int
  __hurd_sockfail (int fd, int flags, error_t err)
  {
-   if (!(flags & MSG_NOSIGNAL) || err != EPIPE)
-     err = _hurd_fd_error (fd, err);
+@@ -192,6 +211,7 @@
    errno = err;
    return -1;
  }
@@ -111,12 +105,10 @@ retrieving revision 1.36
  
  /* Set up *FD to have PORT its server port, doing appropriate ctty magic.
     Does no locking or unlocking.  */
-Index: hurd/hurd/port.h
+Index: b/hurd/hurd/port.h
 ===================================================================
-RCS file: /cvs/glibc/libc/hurd/hurd/port.h,v
-retrieving revision 1.13
---- hurd/hurd/port.h	17 Mar 2007 17:04:09 -0000	1.13
-+++ hurd/hurd/port.h	7 Jan 2008 22:29:56 -0000
+--- a/hurd/hurd/port.h	2007-03-17 18:04:09.000000000 +0100
++++ b/hurd/hurd/port.h	2008-08-08 18:37:58.000000000 +0200
 @@ -62,6 +62,9 @@
  
  /* Initialize *PORT to INIT.  */
@@ -219,12 +211,10 @@ retrieving revision 1.13
  
  
  #endif	/* hurd/port.h */
-Index: hurd/hurd/signal.h
+Index: b/hurd/hurd/signal.h
 ===================================================================
-RCS file: /cvs/glibc/libc/hurd/hurd/signal.h,v
-retrieving revision 1.49
---- hurd/hurd/signal.h	19 Jul 2007 17:20:39 -0000	1.49
-+++ hurd/hurd/signal.h	7 Jan 2008 22:29:56 -0000
+--- a/hurd/hurd/signal.h	2007-07-19 19:20:39.000000000 +0200
++++ b/hurd/hurd/signal.h	2008-08-08 18:37:58.000000000 +0200
 @@ -130,15 +130,17 @@
  #define _HURD_SIGNAL_H_EXTERN_INLINE __extern_inline
  #endif
@@ -264,9 +254,9 @@ retrieving revision 1.49
    return ss;
  }
 +#endif
-+
-+void _hurd_critical_section_unlock (void *our_lock);
  
++void _hurd_critical_section_unlock (void *our_lock);
++
 +#ifdef __USE_EXTERN_INLINES
  _HURD_SIGNAL_H_EXTERN_INLINE void
  _hurd_critical_section_unlock (void *our_lock)
@@ -288,12 +278,10 @@ retrieving revision 1.49
  
  /* Convenient macros for simple uses of critical sections.
     These two must be used as a pair at the same C scoping level.  */
-Index: hurd/hurd/threadvar.h
+Index: b/hurd/hurd/threadvar.h
 ===================================================================
-RCS file: /cvs/glibc/libc/hurd/hurd/threadvar.h,v
-retrieving revision 1.19
---- hurd/hurd/threadvar.h	17 Mar 2007 17:04:09 -0000	1.19
-+++ hurd/hurd/threadvar.h	7 Jan 2008 22:29:56 -0000
+--- a/hurd/hurd/threadvar.h	2007-03-17 18:04:09.000000000 +0100
++++ b/hurd/hurd/threadvar.h	2008-08-08 18:37:58.000000000 +0200
 @@ -82,6 +82,8 @@
  
  extern unsigned long int *__hurd_threadvar_location_from_sp
@@ -326,12 +314,10 @@ retrieving revision 1.19
  
  
  #endif	/* hurd/threadvar.h */
-Index: hurd/hurd/userlink.h
+Index: b/hurd/hurd/userlink.h
 ===================================================================
-RCS file: /cvs/glibc/libc/hurd/hurd/userlink.h,v
-retrieving revision 1.10
---- hurd/hurd/userlink.h	17 Mar 2007 17:04:09 -0000	1.10
-+++ hurd/hurd/userlink.h	7 Jan 2008 22:29:56 -0000
+--- a/hurd/hurd/userlink.h	2007-03-17 18:04:09.000000000 +0100
++++ b/hurd/hurd/userlink.h	2008-08-08 18:37:58.000000000 +0200
 @@ -77,6 +77,11 @@
  
  /* Attach LINK to the chain of users at *CHAINP.  */
@@ -385,12 +371,10 @@ retrieving revision 1.10
 +#endif
  
  #endif	/* hurd/userlink.h */
-Index: mach/lock-intern.h
+Index: b/mach/lock-intern.h
 ===================================================================
-RCS file: /cvs/glibc/libc/mach/lock-intern.h,v
-retrieving revision 1.8
---- mach/lock-intern.h	22 Jul 2007 06:50:53 -0000	1.8
-+++ mach/lock-intern.h	7 Jan 2008 22:30:03 -0000
+--- a/mach/lock-intern.h	2007-07-22 08:50:53.000000000 +0200
++++ b/mach/lock-intern.h	2008-08-08 18:37:58.000000000 +0200
 @@ -29,11 +29,15 @@
  
  /* Initialize LOCK.  */
@@ -464,12 +448,10 @@ retrieving revision 1.8
 +#endif
  
  #endif /* lock-intern.h */
-Index: mach/mach/mig_support.h
+Index: b/mach/mach/mig_support.h
 ===================================================================
-RCS file: /cvs/glibc/libc/mach/mach/mig_support.h,v
-retrieving revision 1.9
---- mach/mach/mig_support.h	17 Mar 2007 17:04:06 -0000	1.9
-+++ mach/mach/mig_support.h	7 Jan 2008 22:30:03 -0000
+--- a/mach/mach/mig_support.h	2007-03-17 18:04:06.000000000 +0100
++++ b/mach/mach/mig_support.h	2008-08-08 18:37:58.000000000 +0200
 @@ -67,6 +67,8 @@
  /* Idiocy support function.  */
  extern vm_size_t mig_strncpy (char *__dst, const char *__src, vm_size_t __len);
@@ -487,12 +469,10 @@ retrieving revision 1.9
  
  
  
-Index: sysdeps/generic/machine-lock.h
+Index: b/sysdeps/generic/machine-lock.h
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/generic/machine-lock.h,v
-retrieving revision 1.3
---- sysdeps/generic/machine-lock.h	17 Mar 2007 17:04:10 -0000	1.3
-+++ sysdeps/generic/machine-lock.h	7 Jan 2008 22:30:08 -0000
+--- a/sysdeps/generic/machine-lock.h	2007-03-17 18:04:10.000000000 +0100
++++ b/sysdeps/generic/machine-lock.h	2008-08-08 18:37:58.000000000 +0200
 @@ -35,14 +35,21 @@
  
  /* Unlock LOCK.  */
@@ -535,12 +515,10 @@ retrieving revision 1.3
  
  
  #endif /* machine-lock.h */
-Index: sysdeps/generic/machine-sp.h
+Index: b/sysdeps/generic/machine-sp.h
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/generic/machine-sp.h,v
-retrieving revision 1.3
---- sysdeps/generic/machine-sp.h	17 Mar 2007 17:04:10 -0000	1.3
-+++ sysdeps/generic/machine-sp.h	7 Jan 2008 22:30:08 -0000
+--- a/sysdeps/generic/machine-sp.h	2007-03-17 18:04:10.000000000 +0100
++++ b/sysdeps/generic/machine-sp.h	2008-08-08 18:37:58.000000000 +0200
 @@ -26,11 +26,15 @@
  #define _EXTERN_INLINE __extern_inline
  #endif
@@ -557,12 +535,10 @@ retrieving revision 1.3
 +#endif
  
  #endif	/* machine-sp.h */
-Index: sysdeps/mach/alpha/machine-lock.h
+Index: b/sysdeps/mach/alpha/machine-lock.h
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/alpha/machine-lock.h,v
-retrieving revision 1.7
---- sysdeps/mach/alpha/machine-lock.h	17 Mar 2007 17:04:09 -0000	1.7
-+++ sysdeps/mach/alpha/machine-lock.h	7 Jan 2008 22:30:08 -0000
+--- a/sysdeps/mach/alpha/machine-lock.h	2007-03-17 18:04:09.000000000 +0100
++++ b/sysdeps/mach/alpha/machine-lock.h	2008-08-08 18:37:58.000000000 +0200
 @@ -35,15 +35,22 @@
  
  /* Unlock LOCK.  */
@@ -606,12 +582,10 @@ retrieving revision 1.7
  
  
  #endif /* machine-lock.h */
-Index: sysdeps/mach/alpha/machine-sp.h
+Index: b/sysdeps/mach/alpha/machine-sp.h
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/alpha/machine-sp.h,v
-retrieving revision 1.4
---- sysdeps/mach/alpha/machine-sp.h	17 Mar 2007 17:04:09 -0000	1.4
-+++ sysdeps/mach/alpha/machine-sp.h	7 Jan 2008 22:30:08 -0000
+--- a/sysdeps/mach/alpha/machine-sp.h	2007-03-17 18:04:09.000000000 +0100
++++ b/sysdeps/mach/alpha/machine-sp.h	2008-08-08 18:37:58.000000000 +0200
 @@ -26,11 +26,15 @@
  #define _EXTERN_INLINE __extern_inline
  #endif
@@ -628,12 +602,10 @@ retrieving revision 1.4
 +#endif
  
  #endif	/* machine-sp.h */
-Index: sysdeps/mach/i386/machine-lock.h
+Index: b/sysdeps/mach/i386/machine-lock.h
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/i386/machine-lock.h,v
-retrieving revision 1.8
---- sysdeps/mach/i386/machine-lock.h	17 Mar 2007 17:04:09 -0000	1.8
-+++ sysdeps/mach/i386/machine-lock.h	7 Jan 2008 22:30:21 -0000
+--- a/sysdeps/mach/i386/machine-lock.h	2007-03-17 18:04:09.000000000 +0100
++++ b/sysdeps/mach/i386/machine-lock.h	2008-08-08 18:37:58.000000000 +0200
 @@ -35,6 +35,9 @@
  
  /* Unlock LOCK.  */
@@ -678,12 +650,10 @@ retrieving revision 1.8
  
  
  #endif /* machine-lock.h */
-Index: sysdeps/mach/powerpc/machine-lock.h
+Index: b/sysdeps/mach/powerpc/machine-lock.h
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/powerpc/machine-lock.h,v
-retrieving revision 1.5
---- sysdeps/mach/powerpc/machine-lock.h	17 Mar 2007 17:04:09 -0000	1.5
-+++ sysdeps/mach/powerpc/machine-lock.h	7 Jan 2008 22:30:21 -0000
+--- a/sysdeps/mach/powerpc/machine-lock.h	2007-03-17 18:04:09.000000000 +0100
++++ b/sysdeps/mach/powerpc/machine-lock.h	2008-08-08 18:37:58.000000000 +0200
 @@ -35,6 +35,9 @@
  
  /* Unlock LOCK.  */
@@ -730,12 +700,10 @@ retrieving revision 1.5
  
  
  #endif /* machine-lock.h */
-Index: sysdeps/mach/powerpc/machine-sp.h
+Index: b/sysdeps/mach/powerpc/machine-sp.h
 ===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/powerpc/machine-sp.h,v
-retrieving revision 1.3
---- sysdeps/mach/powerpc/machine-sp.h	17 Mar 2007 17:04:09 -0000	1.3
-+++ sysdeps/mach/powerpc/machine-sp.h	7 Jan 2008 22:30:21 -0000
+--- a/sysdeps/mach/powerpc/machine-sp.h	2007-03-17 18:04:09.000000000 +0100
++++ b/sysdeps/mach/powerpc/machine-sp.h	2008-08-08 18:37:58.000000000 +0200
 @@ -31,6 +31,9 @@
  # endif
  #endif
@@ -753,12 +721,10 @@ retrieving revision 1.3
 +#endif
  
  #endif	/* machine-sp.h */
-Index: mach/spin-lock.c
+Index: b/mach/spin-lock.c
 ===================================================================
-RCS file: /cvs/glibc/libc/mach/spin-lock.c,v
-retrieving revision 1.3
---- mach/spin-lock.c	26 Jan 1995 04:15:58 -0000	1.3
-+++ mach/spin-lock.c	7 Jan 2008 22:52:38 -0000
+--- a/mach/spin-lock.c	1995-01-26 05:15:58.000000000 +0100
++++ b/mach/spin-lock.c	2008-08-08 18:37:58.000000000 +0200
 @@ -1,3 +1,4 @@
 +#define __USE_EXTERN_INLINES 1
  #define _EXTERN_INLINE /* Empty to define the real functions.  */

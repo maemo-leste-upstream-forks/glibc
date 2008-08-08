@@ -1,9 +1,11 @@
 # DP: This patch makes future upgrades easier. It resolves problems with
 # DP: running daemons having NSS modules upgraded out from under them.
 
---- nss/nsswitch.c.orig
-+++ nss/nsswitch.c
-@@ -344,9 +344,20 @@
+Index: b/nss/nsswitch.c
+===================================================================
+--- a/nss/nsswitch.c	2007-12-27 00:54:31.000000000 +0100
++++ b/nss/nsswitch.c	2008-08-08 18:38:11.000000000 +0200
+@@ -361,9 +361,20 @@
  	      ni->library->lib_handle = __libc_dlopen (shlib_name);
  	      if (ni->library->lib_handle == NULL)
  		{

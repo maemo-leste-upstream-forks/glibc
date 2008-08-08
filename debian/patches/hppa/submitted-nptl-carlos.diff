@@ -1,6 +1,8 @@
---- elf/rtld.c.orig
-+++ elf/rtld.c
-@@ -379,14 +379,14 @@
+Index: b/elf/rtld.c
+===================================================================
+--- a/elf/rtld.c	2008-03-08 08:29:40.000000000 +0100
++++ b/elf/rtld.c	2008-08-08 18:37:52.000000000 +0200
+@@ -383,14 +383,14 @@
       know it is available.  We do not have to clear the memory if we
       do not have to use the temporary bootstrap_map.  Global variables
       are initialized to zero by default.  */
@@ -20,8 +22,10 @@
  # endif
  # if USE___THREAD
    bootstrap_map.l_tls_modid = 0;
---- include/atomic.h.orig
-+++ include/atomic.h
+Index: b/include/atomic.h
+===================================================================
+--- a/include/atomic.h	2006-12-21 22:44:00.000000000 +0100
++++ b/include/atomic.h	2008-08-08 18:37:52.000000000 +0200
 @@ -174,7 +174,7 @@
       __typeof (*(mem)) __atg5_value = (newvalue);			      \
  									      \
@@ -139,9 +143,11 @@
       while (__builtin_expect						      \
  	    (atomic_compare_and_exchange_bool_acq (__atg19_memp,	      \
  						   __atg19_old | __atg19_mask,\
---- nptl/Makefile.orig
-+++ nptl/Makefile
-@@ -263,9 +263,9 @@
+Index: b/nptl/Makefile
+===================================================================
+--- a/nptl/Makefile	2008-02-01 01:01:18.000000000 +0100
++++ b/nptl/Makefile	2008-08-08 18:37:52.000000000 +0200
+@@ -262,9 +262,9 @@
  # Files which must not be linked with libpthread.
  tests-nolibpthread = tst-unload
  
@@ -154,7 +160,7 @@
  
  distribute = eintr.c tst-cleanup4aux.c
  
-@@ -424,6 +424,35 @@
+@@ -423,6 +423,35 @@
  CFLAGS-tst-cleanupx4.c += -fexceptions
  CFLAGS-tst-oncex3.c += -fexceptions
  CFLAGS-tst-oncex4.c += -fexceptions
@@ -190,8 +196,10 @@
  CFLAGS-tst-align.c += $(stack-align-test-flags)
  CFLAGS-tst-align3.c += $(stack-align-test-flags)
  CFLAGS-tst-initializers1.c = -W -Wall -Werror
---- nptl.orig/pthread_barrier_wait.c
-+++ nptl/pthread_barrier_wait.c	
+Index: b/nptl/pthread_barrier_wait.c
+===================================================================
+--- a/nptl/pthread_barrier_wait.c	2007-08-01 06:18:50.000000000 +0200
++++ b/nptl/pthread_barrier_wait.c	2008-08-08 18:37:52.000000000 +0200
 @@ -64,7 +64,7 @@
        do
  	lll_futex_wait (&ibarrier->curr_event, event,
@@ -201,8 +209,10 @@
      }
  
    /* Make sure the init_count is stored locally or in a register.  */
---- nptl/sysdeps/pthread/Makefile.orig
-+++ nptl/sysdeps/pthread/Makefile
+Index: b/nptl/sysdeps/pthread/Makefile
+===================================================================
+--- a/nptl/sysdeps/pthread/Makefile	2006-02-28 08:09:41.000000000 +0100
++++ b/nptl/sysdeps/pthread/Makefile	2008-08-08 18:37:52.000000000 +0200
 @@ -41,7 +41,9 @@
  
  ifeq ($(have-forced-unwind),yes)
@@ -213,8 +223,10 @@
  endif
  endif
  
---- stdio-common/Makefile.orig
-+++ stdio-common/Makefile
+Index: b/stdio-common/Makefile
+===================================================================
+--- a/stdio-common/Makefile	2007-12-10 02:43:13.000000000 +0100
++++ b/stdio-common/Makefile	2008-08-08 18:37:52.000000000 +0200
 @@ -79,7 +79,7 @@
  	$(SHELL) -e tst-printf.sh $(common-objpfx) '$(run-program-prefix)'
  endif
@@ -224,9 +236,11 @@
  CFLAGS-vfwprintf.c = -Wno-uninitialized
  CFLAGS-tst-printf.c = -Wno-format
  CFLAGS-tstdiomisc.c = -Wno-format
---- sunrpc/clnt_udp.c.orig
-+++ sunrpc/clnt_udp.c
-@@ -419,7 +419,7 @@
+Index: b/sunrpc/clnt_udp.c
+===================================================================
+--- a/sunrpc/clnt_udp.c	2008-03-29 19:02:31.000000000 +0100
++++ b/sunrpc/clnt_udp.c	2008-08-08 18:37:52.000000000 +0200
+@@ -420,7 +420,7 @@
        while (inlen < 0 && errno == EINTR);
        if (inlen < 0)
  	{
