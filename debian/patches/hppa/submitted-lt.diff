@@ -9,8 +9,8 @@
 
 Index: b/linuxthreads/descr.h
 ===================================================================
---- a/linuxthreads/descr.h	2006-04-26 17:04:12.000000000 +0200
-+++ b/linuxthreads/descr.h	2008-08-08 18:37:52.000000000 +0200
+--- a/linuxthreads/descr.h	2008-08-08 19:08:25.000000000 +0200
++++ b/linuxthreads/descr.h	2008-08-08 19:08:49.000000000 +0200
 @@ -71,7 +71,7 @@
  /* Atomic counter made possible by compare_and_swap */
  struct pthread_atomic {
@@ -22,8 +22,8 @@ Index: b/linuxthreads/descr.h
  
 Index: b/linuxthreads/oldsemaphore.c
 ===================================================================
---- a/linuxthreads/oldsemaphore.c	2004-04-20 20:53:44.000000000 +0200
-+++ b/linuxthreads/oldsemaphore.c	2008-08-08 18:37:52.000000000 +0200
+--- a/linuxthreads/oldsemaphore.c	2008-08-08 19:08:25.000000000 +0200
++++ b/linuxthreads/oldsemaphore.c	2008-08-08 19:08:49.000000000 +0200
 @@ -31,7 +31,7 @@
  
  typedef struct {
@@ -35,8 +35,8 @@ Index: b/linuxthreads/oldsemaphore.c
  extern int __old_sem_init (old_sem_t *__sem, int __pshared, unsigned int __value);
 Index: b/linuxthreads/pt-machine.c
 ===================================================================
---- a/linuxthreads/pt-machine.c	2002-08-27 00:39:45.000000000 +0200
-+++ b/linuxthreads/pt-machine.c	2008-08-08 18:37:52.000000000 +0200
+--- a/linuxthreads/pt-machine.c	2008-08-08 19:08:25.000000000 +0200
++++ b/linuxthreads/pt-machine.c	2008-08-08 19:08:49.000000000 +0200
 @@ -19,7 +19,9 @@
  
  #define PT_EI
@@ -50,8 +50,8 @@ Index: b/linuxthreads/pt-machine.c
  #include <pt-machine.h>
 Index: b/linuxthreads/pthread.c
 ===================================================================
---- a/linuxthreads/pthread.c	2006-07-24 21:20:26.000000000 +0200
-+++ b/linuxthreads/pthread.c	2008-08-08 18:37:52.000000000 +0200
+--- a/linuxthreads/pthread.c	2008-08-08 19:08:25.000000000 +0200
++++ b/linuxthreads/pthread.c	2008-08-08 19:08:49.000000000 +0200
 @@ -309,7 +309,7 @@
    pthread_descr self;
  
@@ -92,8 +92,8 @@ Index: b/linuxthreads/pthread.c
  #else
 Index: b/linuxthreads/spinlock.c
 ===================================================================
---- a/linuxthreads/spinlock.c	2006-03-02 23:23:49.000000000 +0100
-+++ b/linuxthreads/spinlock.c	2008-08-08 18:37:52.000000000 +0200
+--- a/linuxthreads/spinlock.c	2008-08-08 19:08:25.000000000 +0200
++++ b/linuxthreads/spinlock.c	2008-08-08 19:08:49.000000000 +0200
 @@ -24,9 +24,9 @@
  #include "spinlock.h"
  #include "restart.h"
@@ -185,8 +185,8 @@ Index: b/linuxthreads/spinlock.c
    struct timespec tm;
 Index: b/linuxthreads/spinlock.h
 ===================================================================
---- a/linuxthreads/spinlock.h	2006-07-24 17:12:15.000000000 +0200
-+++ b/linuxthreads/spinlock.h	2008-08-08 18:37:52.000000000 +0200
+--- a/linuxthreads/spinlock.h	2008-08-08 19:08:25.000000000 +0200
++++ b/linuxthreads/spinlock.h	2008-08-08 19:08:49.000000000 +0200
 @@ -33,14 +33,28 @@
  #endif
  #endif
@@ -251,8 +251,8 @@ Index: b/linuxthreads/spinlock.h
  }
 Index: b/linuxthreads/sysdeps/pthread/bits/initspin.h
 ===================================================================
---- a/linuxthreads/sysdeps/pthread/bits/initspin.h	2002-08-27 00:39:44.000000000 +0200
-+++ b/linuxthreads/sysdeps/pthread/bits/initspin.h	2008-08-08 18:37:52.000000000 +0200
+--- a/linuxthreads/sysdeps/pthread/bits/initspin.h	2008-08-08 19:08:25.000000000 +0200
++++ b/linuxthreads/sysdeps/pthread/bits/initspin.h	2008-08-08 19:08:49.000000000 +0200
 @@ -23,6 +23,7 @@
  #define __LT_SPINLOCK_INIT 0
  
@@ -264,8 +264,8 @@ Index: b/linuxthreads/sysdeps/pthread/bits/initspin.h
  #define __ATOMIC_INITIALIZER { 0, __LT_SPINLOCK_INIT }
 Index: b/linuxthreads/sysdeps/pthread/bits/libc-lock.h
 ===================================================================
---- a/linuxthreads/sysdeps/pthread/bits/libc-lock.h	2006-01-06 10:55:46.000000000 +0100
-+++ b/linuxthreads/sysdeps/pthread/bits/libc-lock.h	2008-08-08 18:37:52.000000000 +0200
+--- a/linuxthreads/sysdeps/pthread/bits/libc-lock.h	2008-08-08 19:08:25.000000000 +0200
++++ b/linuxthreads/sysdeps/pthread/bits/libc-lock.h	2008-08-08 19:08:49.000000000 +0200
 @@ -71,12 +71,12 @@
     initialized locks must be set to one due to the lack of normal
     atomic operations.) */
@@ -284,8 +284,8 @@ Index: b/linuxthreads/sysdeps/pthread/bits/libc-lock.h
  #define __libc_rwlock_define_initialized(CLASS,NAME) \
 Index: b/linuxthreads/sysdeps/pthread/bits/pthreadtypes.h
 ===================================================================
---- a/linuxthreads/sysdeps/pthread/bits/pthreadtypes.h	2004-09-12 20:44:54.000000000 +0200
-+++ b/linuxthreads/sysdeps/pthread/bits/pthreadtypes.h	2008-08-08 18:37:52.000000000 +0200
+--- a/linuxthreads/sysdeps/pthread/bits/pthreadtypes.h	2008-08-08 19:08:25.000000000 +0200
++++ b/linuxthreads/sysdeps/pthread/bits/pthreadtypes.h	2008-08-08 19:08:49.000000000 +0200
 @@ -22,12 +22,14 @@
  #define __need_schedparam
  #include <bits/sched.h>
@@ -306,8 +306,8 @@ Index: b/linuxthreads/sysdeps/pthread/bits/pthreadtypes.h
  #ifndef _PTHREAD_DESCR_DEFINED
 Index: b/linuxthreads/sysdeps/pthread/pthread.h
 ===================================================================
---- a/linuxthreads/sysdeps/pthread/pthread.h	2004-09-21 00:12:11.000000000 +0200
-+++ b/linuxthreads/sysdeps/pthread/pthread.h	2008-08-08 18:37:52.000000000 +0200
+--- a/linuxthreads/sysdeps/pthread/pthread.h	2008-08-08 19:08:25.000000000 +0200
++++ b/linuxthreads/sysdeps/pthread/pthread.h	2008-08-08 19:08:49.000000000 +0200
 @@ -31,26 +31,26 @@
  /* Initializers.  */
  
