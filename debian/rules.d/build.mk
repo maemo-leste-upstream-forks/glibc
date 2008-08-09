@@ -112,9 +112,9 @@ $(stamp)check_%: $(stamp)build_%
 	  echo Testing $(curpass); \
 	  find $(DEB_BUILDDIR) -name '*.out' -exec rm {} ';' ; \
 	  TIMEOUTFACTOR="$(TIMEOUTFACTOR)" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) -k check 2>&1 | tee -a $(log_test); \
-	  chmod +x debian/testsuite-checking/convertlog.sh; \
+	  chmod +x debian/testsuite-checking/convertlog.sh ; \
 	  debian/testsuite-checking/convertlog.sh $(log_test) > $(log_results) ; \
-	  if -f $(log_expected) ; then ; \
+	  if test -f $(log_expected) ; then \
 	    chmod +x debian/testsuite-checking/compare.sh ; \
 	    debian/testsuite-checking/compare.sh $(log_expected) $(log_results) ; \
 	  else \

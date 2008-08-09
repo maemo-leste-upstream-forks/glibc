@@ -1,6 +1,6 @@
 GLIBC_PSERVER = :pserver:anoncvs@sources.redhat.com:/cvs/glibc
 GLIBC_BRANCH = glibc-$(subst .,_,$(GLIBC_VERSION))-branch
-GLIBC_SNAPSHOT = $(GLIBC_VERSION)~$(shell date "+%Y%m%d")
+GLIBC_SNAPSHOT = $(GLIBC_VERSION)+$(shell date "+%Y%m%d")
 GLIBC_DIR = glibc-$(GLIBC_SNAPSHOT)
 DEB_ORIG = ../glibc_$(GLIBC_SNAPSHOT).orig.tar.gz
 
