@@ -1,5 +1,5 @@
---- locale/programs/ld-collate.c.orig
-+++ locale/programs/ld-collate.c
+--- locale/programs/ld-collate.c.orig	2008-08-08 21:04:42.000000000 +0200
++++ locale/programs/ld-collate.c	2008-08-08 21:59:21.000000000 +0200
 @@ -181,14 +181,6 @@
  #include "3level.h"
  
@@ -129,7 +129,7 @@
    if (nowtok == tok_copy)
      {
        now = lr_token (ldfile, charmap, result, NULL, verbose);
-@@ -3911,7 +3824,6 @@
+@@ -3919,7 +3832,6 @@
  	  break;
  
  	case tok_end:
@@ -137,7 +137,7 @@
  	  /* Next we assume `LC_COLLATE'.  */
  	  if (!ignore_content)
  	    {
-@@ -3952,180 +3864,6 @@
+@@ -3960,182 +3872,6 @@
  	  lr_ignore_rest (ldfile, arg->tok == tok_lc_collate);
  	  return;
  
@@ -223,6 +223,8 @@
 -			     arg->val.str.lenmb) == 0
 -		    && curdef->str[arg->val.str.lenmb] == '\0')
 -		  break;
+-		else
+-		  curdef = curdef->next;
 -
 -	      if ((nowtok == tok_ifdef && curdef != NULL)
 -		  || (nowtok == tok_ifndef && curdef == NULL))
@@ -318,7 +320,7 @@
  	default:
  	err_label:
  	  SYNTAX_ERROR (_("%s: syntax error"), "LC_COLLATE");
-@@ -4136,7 +3874,6 @@
+@@ -4146,7 +3882,6 @@
        nowtok = now->tok;
      }
  

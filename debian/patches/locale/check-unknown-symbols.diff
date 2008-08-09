@@ -26,9 +26,9 @@ Index: b/locale/programs/ld-collate.c
 +		  && find_entry (&collate->elem_table, symstr, symlen, &ptr) != 0
 +	          && find_entry (&collate->sym_table, symstr, symlen, &ptr) != 0)
 +		{
-+		  lr_error (ldfile, _("%s: symbol `%.*s' not known"),
-+			    "LC_COLLATE", (int) symlen, symstr);
-+		  lr_ignore_rest (ldfile, 0);
++		  if (verbose)
++		    lr_error (ldfile, _("%s: symbol `%.*s' not known"),
++			      "LC_COLLATE", (int) symlen, symstr);
 +		}
  	    }
  	  else
