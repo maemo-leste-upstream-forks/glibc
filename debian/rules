@@ -116,13 +116,10 @@ configure_target := $(DEB_HOST_GNU_TYPE)
 # Among other things this lets tests run.
 configure_build := $(DEB_BUILD_GNU_TYPE)
 
-ifneq ($(NO_LOG),yes)
-log_build   = $(build-tree)/log-build-$(call xx,configure_target)-$(curpass)
-log_test    = $(build-tree)/log-test-$(call xx,configure_target)-$(curpass)
-else
-log_build   := /dev/tty
-log_test    := /dev/tty
-endif
+log_build    = $(build-tree)/log-build-$(call xx,configure_target)-$(curpass)
+log_test     = $(build-tree)/log-test-$(call xx,configure_target)-$(curpass)
+log_results  = $(build-tree)/test-results-$(call xx,configure_target)-$(curpass)
+log_expected = debian/expected-results-$(call xx,configure_target)-$(curpass)
 
 # Which build pass are we on?
 curpass = $(filter-out %_,$(subst _,_ ,$@))
