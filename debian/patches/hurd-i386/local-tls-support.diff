@@ -1,7 +1,27 @@
-Index: b/csu/libc-start.c
-===================================================================
---- a/csu/libc-start.c	2008-08-08 19:08:24.000000000 +0200
-+++ b/csu/libc-start.c	2008-08-08 19:08:51.000000000 +0200
+---
+ csu/libc-start.c                    |    2 +
+ hurd/hurdfault.c                    |    2 +
+ hurd/hurdsig.c                      |    4 +-
+ mach/mach.h                         |    3 +
+ mach/setup-thread.c                 |   30 +++++++++++++++++-
+ sysdeps/generic/thread_state.h      |    1 
+ sysdeps/mach/alpha/thread_state.h   |    1 
+ sysdeps/mach/hurd/bits/libc-lock.h  |    1 
+ sysdeps/mach/hurd/bits/libc-tsd.h   |   34 --------------------
+ sysdeps/mach/hurd/fork.c            |    7 +++-
+ sysdeps/mach/hurd/i386/init-first.c |   60 ++++++++++++++++++++++--------------
+ sysdeps/mach/hurd/i386/tls.h        |   43 ++++++++++++++++++++++---
+ sysdeps/mach/hurd/i386/trampoline.c |    2 -
+ sysdeps/mach/hurd/profil.c          |    2 +
+ sysdeps/mach/hurd/setitimer.c       |    3 +
+ sysdeps/mach/hurd/tls.h             |    1 
+ sysdeps/mach/i386/thread_state.h    |   11 ++++++
+ sysdeps/mach/powerpc/thread_state.h |    1 
+ sysdeps/mach/thread_state.h         |    3 +
+ 19 files changed, 142 insertions(+), 69 deletions(-)
+
+--- a/csu/libc-start.c
++++ b/csu/libc-start.c
 @@ -134,10 +134,12 @@
      }
  # endif
@@ -15,10 +35,8 @@ Index: b/csu/libc-start.c
  
    /* Set up the stack checker's canary.  */
    uintptr_t stack_chk_guard = _dl_setup_stack_chk_guard ();
-Index: b/hurd/hurdfault.c
-===================================================================
---- a/hurd/hurdfault.c	2008-08-08 19:08:24.000000000 +0200
-+++ b/hurd/hurdfault.c	2008-08-08 19:08:51.000000000 +0200
+--- a/hurd/hurdfault.c
++++ b/hurd/hurdfault.c
 @@ -206,6 +206,8 @@
    /* This state will be restored when we fault.
       It runs the function above.  */
@@ -28,10 +46,8 @@ Index: b/hurd/hurdfault.c
    MACHINE_THREAD_STATE_SET_PC (&state, faulted);
    MACHINE_THREAD_STATE_SET_SP (&state, faultstack, sizeof faultstack);
  
-Index: b/hurd/hurdsig.c
-===================================================================
---- a/hurd/hurdsig.c	2008-08-08 19:08:24.000000000 +0200
-+++ b/hurd/hurdsig.c	2008-08-08 19:08:51.000000000 +0200
+--- a/hurd/hurdsig.c
++++ b/hurd/hurdsig.c
 @@ -1267,6 +1267,8 @@
  				 (vm_address_t *) &__hurd_sigthread_stack_base,
  				 &stacksize);
@@ -50,10 +66,8 @@ Index: b/hurd/hurdsig.c
  
        /* Reinitialize the MiG support routines so they will use a per-thread
  	 variable for the cached reply port.  */
-Index: b/mach/mach.h
-===================================================================
---- a/mach/mach.h	2008-08-08 19:08:24.000000000 +0200
-+++ b/mach/mach.h	2008-08-08 19:08:51.000000000 +0200
+--- a/mach/mach.h
++++ b/mach/mach.h
 @@ -101,5 +101,8 @@
  				 vm_address_t *stack_base,
  				 vm_size_t *stack_size);
@@ -63,10 +77,8 @@ Index: b/mach/mach.h
 +kern_return_t mach_setup_tls (thread_t thread);
  
  #endif	/* mach.h */
-Index: b/mach/setup-thread.c
-===================================================================
---- a/mach/setup-thread.c	2008-08-08 19:08:24.000000000 +0200
-+++ b/mach/setup-thread.c	2008-08-08 19:08:51.000000000 +0200
+--- a/mach/setup-thread.c
++++ b/mach/setup-thread.c
 @@ -20,6 +20,7 @@
  #include <thread_state.h>
  #include <string.h>
@@ -112,10 +124,8 @@ Index: b/mach/setup-thread.c
 +}
 +
 +weak_alias (__mach_setup_tls, mach_setup_tls)
-Index: b/sysdeps/generic/thread_state.h
-===================================================================
---- a/sysdeps/generic/thread_state.h	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/generic/thread_state.h	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/generic/thread_state.h
++++ b/sysdeps/generic/thread_state.h
 @@ -23,6 +23,7 @@
  
  /* Replace <machine> with "i386" or "mips" or whatever.  */
@@ -124,10 +134,8 @@ Index: b/sysdeps/generic/thread_state.h
  #define MACHINE_THREAD_STATE_FLAVOR	<machine>_THREAD_STATE
  #define MACHINE_THREAD_STATE_COUNT	<machine>_THREAD_STATE_COUNT
  
-Index: b/sysdeps/mach/alpha/thread_state.h
-===================================================================
---- a/sysdeps/mach/alpha/thread_state.h	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/mach/alpha/thread_state.h	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/mach/alpha/thread_state.h
++++ b/sysdeps/mach/alpha/thread_state.h
 @@ -19,6 +19,7 @@
  
  #include <mach/machine/thread_status.h>
@@ -136,10 +144,8 @@ Index: b/sysdeps/mach/alpha/thread_state.h
  #define MACHINE_THREAD_STATE_FLAVOR	ALPHA_THREAD_STATE
  #define MACHINE_THREAD_STATE_COUNT	ALPHA_THREAD_STATE_COUNT
  
-Index: b/sysdeps/mach/hurd/bits/libc-tsd.h
-===================================================================
---- a/sysdeps/mach/hurd/bits/libc-tsd.h	2008-08-08 19:08:24.000000000 +0200
-+++ /dev/null	1970-01-01 00:00:00.000000000 +0000
+--- a/sysdeps/mach/hurd/bits/libc-tsd.h
++++ /dev/null
 @@ -1,34 +0,0 @@
 -/* libc-internal interface for thread-specific data.  Hurd version.
 -   Copyright (C) 1998,2002 Free Software Foundation, Inc.
@@ -175,10 +181,8 @@ Index: b/sysdeps/mach/hurd/bits/libc-tsd.h
 -
 -
 -#endif	/* bits/libc-tsd.h */
-Index: b/sysdeps/mach/hurd/fork.c
-===================================================================
---- a/sysdeps/mach/hurd/fork.c	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/mach/hurd/fork.c	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/mach/hurd/fork.c
++++ b/sysdeps/mach/hurd/fork.c
 @@ -523,6 +523,11 @@
  #endif
        MACHINE_THREAD_STATE_SET_PC (&state,
@@ -200,10 +204,8 @@ Index: b/sysdeps/mach/hurd/fork.c
  	LOSE;
  
        if (err = __thread_set_state (thread, MACHINE_THREAD_STATE_FLAVOR,
-Index: b/sysdeps/mach/hurd/i386/init-first.c
-===================================================================
---- a/sysdeps/mach/hurd/i386/init-first.c	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/mach/hurd/i386/init-first.c	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/mach/hurd/i386/init-first.c
++++ b/sysdeps/mach/hurd/i386/init-first.c
 @@ -104,10 +104,6 @@
    char **argv = &arg0;
    char **envp = &argv[argc + 1];
@@ -301,10 +303,8 @@ Index: b/sysdeps/mach/hurd/i386/init-first.c
    /* The user might have defined a value for this, to get more variables.
       Otherwise it will be zero on startup.  We must make sure it is set
       properly before before cthreads initialization, so cthreads can know
-Index: b/sysdeps/mach/hurd/i386/tls.h
-===================================================================
---- a/sysdeps/mach/hurd/i386/tls.h	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/mach/hurd/i386/tls.h	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/mach/hurd/i386/tls.h
++++ b/sysdeps/mach/hurd/i386/tls.h
 @@ -96,7 +96,7 @@
        /* Fetch the selector set by the first call.  */
        int sel;
@@ -373,10 +373,8 @@ Index: b/sysdeps/mach/hurd/i386/tls.h
      err = __i386_set_ldt (child, sel, &desc, 1);
    else
      err = __i386_set_gdt (child, &sel, desc);
-Index: b/sysdeps/mach/hurd/i386/trampoline.c
-===================================================================
---- a/sysdeps/mach/hurd/i386/trampoline.c	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/mach/hurd/i386/trampoline.c	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/mach/hurd/i386/trampoline.c
++++ b/sysdeps/mach/hurd/i386/trampoline.c
 @@ -65,7 +65,7 @@
  		  sizeof (state->basic));
  	  memcpy (&state->fpu, &ss->context->sc_i386_float_state,
@@ -386,10 +384,8 @@ Index: b/sysdeps/mach/hurd/i386/trampoline.c
  	}
      }
  
-Index: b/sysdeps/mach/hurd/profil.c
-===================================================================
---- a/sysdeps/mach/hurd/profil.c	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/mach/hurd/profil.c	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/mach/hurd/profil.c
++++ b/sysdeps/mach/hurd/profil.c
 @@ -69,6 +69,8 @@
        if (! err)
  	err = __mach_setup_thread (__mach_task_self (), profile_thread,
@@ -399,10 +395,8 @@ Index: b/sysdeps/mach/hurd/profil.c
      }
    else
      err = 0;
-Index: b/sysdeps/mach/hurd/setitimer.c
-===================================================================
---- a/sysdeps/mach/hurd/setitimer.c	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/mach/hurd/setitimer.c	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/mach/hurd/setitimer.c
++++ b/sysdeps/mach/hurd/setitimer.c
 @@ -223,11 +223,12 @@
  	    return __hurd_fail (err);
  	  _hurd_itimer_thread_stack_base = 0; /* Anywhere.  */
@@ -417,10 +411,8 @@ Index: b/sysdeps/mach/hurd/setitimer.c
  	    {
  	      __thread_terminate (_hurd_itimer_thread);
  	      _hurd_itimer_thread = MACH_PORT_NULL;
-Index: b/sysdeps/mach/i386/thread_state.h
-===================================================================
---- a/sysdeps/mach/i386/thread_state.h	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/mach/i386/thread_state.h	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/mach/i386/thread_state.h
++++ b/sysdeps/mach/i386/thread_state.h
 @@ -19,7 +19,8 @@
  
  #include <mach/machine/thread_status.h>
@@ -446,10 +438,8 @@ Index: b/sysdeps/mach/i386/thread_state.h
  struct machine_thread_all_state
    {
      int set;			/* Mask of bits (1 << FLAVOR).  */
-Index: b/sysdeps/mach/powerpc/thread_state.h
-===================================================================
---- a/sysdeps/mach/powerpc/thread_state.h	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/mach/powerpc/thread_state.h	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/mach/powerpc/thread_state.h
++++ b/sysdeps/mach/powerpc/thread_state.h
 @@ -19,6 +19,7 @@
  
  #include <mach/machine/thread_status.h>
@@ -458,10 +448,8 @@ Index: b/sysdeps/mach/powerpc/thread_state.h
  #define MACHINE_THREAD_STATE_FLAVOR	PPC_THREAD_STATE
  #define MACHINE_THREAD_STATE_COUNT	PPC_THREAD_STATE_COUNT
  
-Index: b/sysdeps/mach/thread_state.h
-===================================================================
---- a/sysdeps/mach/thread_state.h	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/mach/thread_state.h	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/mach/thread_state.h
++++ b/sysdeps/mach/thread_state.h
 @@ -38,6 +38,9 @@
    ((ts)->SP = (unsigned long int) (stack) + (size))
  #endif
@@ -472,10 +460,8 @@ Index: b/sysdeps/mach/thread_state.h
  
  /* These functions are of use in machine-dependent signal trampoline
     implementations.  */
-Index: b/sysdeps/mach/hurd/bits/libc-lock.h
-===================================================================
---- a/sysdeps/mach/hurd/bits/libc-lock.h	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/mach/hurd/bits/libc-lock.h	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/mach/hurd/bits/libc-lock.h
++++ b/sysdeps/mach/hurd/bits/libc-lock.h
 @@ -21,6 +21,7 @@
  #define _BITS_LIBC_LOCK_H 1
  
@@ -484,10 +470,8 @@ Index: b/sysdeps/mach/hurd/bits/libc-lock.h
  #include <cthreads.h>
  #include <hurd/threadvar.h>
  
-Index: b/sysdeps/mach/hurd/tls.h
-===================================================================
---- a/sysdeps/mach/hurd/tls.h	2008-08-08 19:08:24.000000000 +0200
-+++ b/sysdeps/mach/hurd/tls.h	2008-08-08 19:08:51.000000000 +0200
+--- a/sysdeps/mach/hurd/tls.h
++++ b/sysdeps/mach/hurd/tls.h
 @@ -23,6 +23,7 @@
  #if defined HAVE_TLS_SUPPORT && !defined __ASSEMBLER__
  

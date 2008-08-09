@@ -7,10 +7,17 @@
 	* sysdeps/unix/sysv/linux/hppa/setcontext.S: New file.
 	* sysdeps/unix/sysv/linux/hppa/swapcontext.c: New file.
  
-Index: b/sysdeps/unix/sysv/linux/hppa/getcontext.S
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/sysdeps/unix/sysv/linux/hppa/getcontext.S	2008-08-08 19:08:48.000000000 +0200
+---
+ sysdeps/unix/sysv/linux/hppa/Makefile       |    5 
+ sysdeps/unix/sysv/linux/hppa/getcontext.S   |  163 ++++++++++++++++++++++++++++
+ sysdeps/unix/sysv/linux/hppa/makecontext.c  |   79 +++++++++++++
+ sysdeps/unix/sysv/linux/hppa/setcontext.S   |  154 ++++++++++++++++++++++++++
+ sysdeps/unix/sysv/linux/hppa/swapcontext.c  |   43 +++++++
+ sysdeps/unix/sysv/linux/hppa/ucontext_i.sym |   59 ++++++++++
+ 6 files changed, 503 insertions(+)
+
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/hppa/getcontext.S
 @@ -0,0 +1,163 @@
 +/* Get current user context.
 +   Copyright (C) 2008 Free Software Foundation, Inc.
@@ -175,10 +182,8 @@ Index: b/sysdeps/unix/sysv/linux/hppa/getcontext.S
 +END(__getcontext)
 +
 +weak_alias (__getcontext, getcontext)
-Index: b/sysdeps/unix/sysv/linux/hppa/makecontext.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/sysdeps/unix/sysv/linux/hppa/makecontext.c	2008-08-08 19:08:48.000000000 +0200
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/hppa/makecontext.c
 @@ -0,0 +1,79 @@
 +/* Create new context.
 +   Copyright (C) 2008 Free Software Foundation, Inc.
@@ -259,20 +264,16 @@ Index: b/sysdeps/unix/sysv/linux/hppa/makecontext.c
 +
 +
 +weak_alias(__makecontext, makecontext)
-Index: b/sysdeps/unix/sysv/linux/hppa/Makefile
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/sysdeps/unix/sysv/linux/hppa/Makefile	2008-08-08 19:08:48.000000000 +0200
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/hppa/Makefile
 @@ -0,0 +1,5 @@
 +# Used by *context() functions
 +ifeq ($(subdir),stdlib)
 +gen-as-const-headers += ucontext_i.sym
 +endif
 +
-Index: b/sysdeps/unix/sysv/linux/hppa/setcontext.S
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/sysdeps/unix/sysv/linux/hppa/setcontext.S	2008-08-08 19:08:48.000000000 +0200
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/hppa/setcontext.S
 @@ -0,0 +1,154 @@
 +/* Install given context.
 +   Copyright (C) 2008 Free Software Foundation, Inc.
@@ -428,10 +429,8 @@ Index: b/sysdeps/unix/sysv/linux/hppa/setcontext.S
 +PSEUDO_END(__setcontext)
 +
 +weak_alias(__setcontext, setcontext)
-Index: b/sysdeps/unix/sysv/linux/hppa/swapcontext.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/sysdeps/unix/sysv/linux/hppa/swapcontext.c	2008-08-08 19:08:48.000000000 +0200
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/hppa/swapcontext.c
 @@ -0,0 +1,43 @@
 +/* Swap to new context.
 +   Copyright (C) 2008 Free Software Foundation, Inc.
@@ -476,10 +475,8 @@ Index: b/sysdeps/unix/sysv/linux/hppa/swapcontext.c
 +}
 +
 +weak_alias (__swapcontext, swapcontext)
-Index: b/sysdeps/unix/sysv/linux/hppa/ucontext_i.sym
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/sysdeps/unix/sysv/linux/hppa/ucontext_i.sym	2008-08-08 19:08:48.000000000 +0200
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/hppa/ucontext_i.sym
 @@ -0,0 +1,59 @@
 +#include <stddef.h>
 +#include <signal.h>

@@ -1,7 +1,29 @@
-Index: b/linuxthreads/man/pthread_atfork.man
-===================================================================
---- a/linuxthreads/man/pthread_atfork.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_atfork.man	2008-08-08 19:09:00.000000000 +0200
+---
+ linuxthreads/man/pthread_atfork.man                |   36 ++---
+ linuxthreads/man/pthread_attr_init.man             |  132 ++++++++++-----------
+ linuxthreads/man/pthread_cancel.man                |   98 +++++++--------
+ linuxthreads/man/pthread_cleanup_push.man          |   66 +++++-----
+ linuxthreads/man/pthread_cond_init.man             |  114 +++++++++---------
+ linuxthreads/man/pthread_condattr_init.man         |   14 +-
+ linuxthreads/man/pthread_create.man                |   36 ++---
+ linuxthreads/man/pthread_detach.man                |   31 ++--
+ linuxthreads/man/pthread_equal.man                 |    6 
+ linuxthreads/man/pthread_exit.man                  |   18 +-
+ linuxthreads/man/pthread_join.man                  |   64 +++++-----
+ linuxthreads/man/pthread_key_create.man            |   62 ++++-----
+ linuxthreads/man/pthread_kill_other_threads_np.man |   22 +--
+ linuxthreads/man/pthread_mutex_init.man            |   92 +++++++-------
+ linuxthreads/man/pthread_mutexattr_init.man        |   62 ++++-----
+ linuxthreads/man/pthread_mutexattr_setkind_np.man  |   20 +--
+ linuxthreads/man/pthread_once.man                  |   18 +-
+ linuxthreads/man/pthread_self.man                  |   12 -
+ linuxthreads/man/pthread_setschedparam.man         |   62 ++++-----
+ linuxthreads/man/pthread_sigmask.man               |   86 ++++++-------
+ linuxthreads/man/sem_init.man                      |   88 +++++++-------
+ 21 files changed, 568 insertions(+), 571 deletions(-)
+
+--- a/linuxthreads/man/pthread_atfork.man
++++ b/linuxthreads/man/pthread_atfork.man
 @@ -10,44 +10,44 @@
  
  .SH DESCRIPTION
@@ -65,10 +87,8 @@ Index: b/linuxthreads/man/pthread_atfork.man
 +\fBfork\fP(2),
 +\fBpthread_mutex_lock\fP(3),
 +\fBpthread_mutex_unlock\fP(3).
-Index: b/linuxthreads/man/pthread_attr_init.man
-===================================================================
---- a/linuxthreads/man/pthread_attr_init.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_attr_init.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_attr_init.man
++++ b/linuxthreads/man/pthread_attr_init.man
 @@ -45,27 +45,27 @@
  .SH DESCRIPTION
  
@@ -313,10 +333,8 @@ Index: b/linuxthreads/man/pthread_attr_init.man
 +\fBpthread_join\fP(3),
 +\fBpthread_detach\fP(3),
 +\fBpthread_setschedparam\fP(3).
-Index: b/linuxthreads/man/pthread_cancel.man
-===================================================================
---- a/linuxthreads/man/pthread_cancel.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_cancel.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_cancel.man
++++ b/linuxthreads/man/pthread_cancel.man
 @@ -27,119 +27,119 @@
  immediately, or defer it till it reaches a cancellation point.
  
@@ -486,10 +504,8 @@ Index: b/linuxthreads/man/pthread_cancel.man
  achieved as follows:
  
  .RS
-Index: b/linuxthreads/man/pthread_cleanup_push.man
-===================================================================
---- a/linuxthreads/man/pthread_cleanup_push.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_cleanup_push.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_cleanup_push.man
++++ b/linuxthreads/man/pthread_cleanup_push.man
 @@ -21,7 +21,7 @@
  .SH DESCRIPTION
  
@@ -607,10 +623,8 @@ Index: b/linuxthreads/man/pthread_cleanup_push.man
  
  .RS
  .ft 3
-Index: b/linuxthreads/man/pthread_condattr_init.man
-===================================================================
---- a/linuxthreads/man/pthread_condattr_init.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_condattr_init.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_condattr_init.man
++++ b/linuxthreads/man/pthread_condattr_init.man
 @@ -15,25 +15,25 @@
  .SH DESCRIPTION
  
@@ -644,10 +658,8 @@ Index: b/linuxthreads/man/pthread_condattr_init.man
  .SH "SEE ALSO"
 -!pthread_cond_init!(3).
 +\fBpthread_cond_init\fP(3).
-Index: b/linuxthreads/man/pthread_cond_init.man
-===================================================================
---- a/linuxthreads/man/pthread_cond_init.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_cond_init.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_cond_init.man
++++ b/linuxthreads/man/pthread_cond_init.man
 @@ -40,31 +40,31 @@
  variable and another thread signals the condition just before the
  first thread actually waits on it.
@@ -850,10 +862,8 @@ Index: b/linuxthreads/man/pthread_cond_init.man
  seconds, do:
  
  .RS
-Index: b/linuxthreads/man/pthread_create.man
-===================================================================
---- a/linuxthreads/man/pthread_create.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_create.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_create.man
++++ b/linuxthreads/man/pthread_create.man
 @@ -9,38 +9,38 @@
  int pthread_create(pthread_t * thread, pthread_attr_t * attr, void * (*start_routine)(void *), void * arg);
  
@@ -911,10 +921,8 @@ Index: b/linuxthreads/man/pthread_create.man
 +\fBpthread_join\fP(3),
 +\fBpthread_detach\fP(3),
 +\fBpthread_attr_init\fP(3).
-Index: b/linuxthreads/man/pthread_detach.man
-===================================================================
---- a/linuxthreads/man/pthread_detach.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_detach.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_detach.man
++++ b/linuxthreads/man/pthread_detach.man
 @@ -9,36 +9,36 @@
  int pthread_detach(pthread_t th);
  
@@ -971,10 +979,8 @@ Index: b/linuxthreads/man/pthread_detach.man
 +\fBpthread_join\fP(3),
 +\fBpthread_attr_setdetachstate\fP(3).
 \ No newline at end of file
-Index: b/linuxthreads/man/pthread_equal.man
-===================================================================
---- a/linuxthreads/man/pthread_equal.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_equal.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_equal.man
++++ b/linuxthreads/man/pthread_equal.man
 @@ -9,15 +9,15 @@
  int pthread_equal(pthread_t thread1, pthread_t thread2);
  
@@ -994,10 +1000,8 @@ Index: b/linuxthreads/man/pthread_equal.man
  .SH "SEE ALSO"
 -!pthread_self!(3).
 +\fBpthread_self\fP(3).
-Index: b/linuxthreads/man/pthread_exit.man
-===================================================================
---- a/linuxthreads/man/pthread_exit.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_exit.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_exit.man
++++ b/linuxthreads/man/pthread_exit.man
 @@ -9,24 +9,24 @@
  void pthread_exit(void *retval);
  
@@ -1032,10 +1036,8 @@ Index: b/linuxthreads/man/pthread_exit.man
 -!pthread_join!(3).
 +\fBpthread_create\fP(3),
 +\fBpthread_join\fP(3).
-Index: b/linuxthreads/man/pthread_join.man
-===================================================================
---- a/linuxthreads/man/pthread_join.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_join.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_join.man
++++ b/linuxthreads/man/pthread_join.man
 @@ -9,62 +9,62 @@
  int pthread_join(pthread_t th, void **thread_return);
  
@@ -1131,10 +1133,8 @@ Index: b/linuxthreads/man/pthread_join.man
 +\fBpthread_attr_setdetachstate\fP(3),
 +\fBpthread_cleanup_push\fP(3),
 +\fBpthread_key_create\fP(3).
-Index: b/linuxthreads/man/pthread_key_create.man
-===================================================================
---- a/linuxthreads/man/pthread_key_create.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_key_create.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_key_create.man
++++ b/linuxthreads/man/pthread_key_create.man
 @@ -23,81 +23,81 @@
  
  Each thread possesses a private memory block, the thread-specific data
@@ -1248,10 +1248,8 @@ Index: b/linuxthreads/man/pthread_key_create.man
  allocated TSD key.
  
  .SH AUTHOR
-Index: b/linuxthreads/man/pthread_kill_other_threads_np.man
-===================================================================
---- a/linuxthreads/man/pthread_kill_other_threads_np.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_kill_other_threads_np.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_kill_other_threads_np.man
++++ b/linuxthreads/man/pthread_kill_other_threads_np.man
 @@ -9,14 +9,14 @@
  void pthread_kill_other_threads_np(void);
  
@@ -1295,10 +1293,8 @@ Index: b/linuxthreads/man/pthread_kill_other_threads_np.man
 +Calling \fBpthread_kill_other_threads_np\fP before \fBexec*\fP achieves much
 +of the same behavior, except that if \fBexec*\fP ultimately fails, then
  all other threads are already killed.
-Index: b/linuxthreads/man/pthread_mutexattr_init.man
-===================================================================
---- a/linuxthreads/man/pthread_mutexattr_init.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_mutexattr_init.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_mutexattr_init.man
++++ b/linuxthreads/man/pthread_mutexattr_init.man
 @@ -21,64 +21,64 @@
  .SH DESCRIPTION
  
@@ -1395,10 +1391,8 @@ Index: b/linuxthreads/man/pthread_mutexattr_init.man
 +\fBpthread_mutex_init\fP(3),
 +\fBpthread_mutex_lock\fP(3),
 +\fBpthread_mutex_unlock\fP(3).
-Index: b/linuxthreads/man/pthread_mutexattr_setkind_np.man
-===================================================================
---- a/linuxthreads/man/pthread_mutexattr_setkind_np.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_mutexattr_setkind_np.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_mutexattr_setkind_np.man
++++ b/linuxthreads/man/pthread_mutexattr_setkind_np.man
 @@ -14,26 +14,26 @@
  
  .SH DESCRIPTION
@@ -1436,10 +1430,8 @@ Index: b/linuxthreads/man/pthread_mutexattr_setkind_np.man
 -!pthread_mutexattr_gettype!(3).
 +\fBpthread_mutexattr_settype\fP(3),
 +\fBpthread_mutexattr_gettype\fP(3).
-Index: b/linuxthreads/man/pthread_mutex_init.man
-===================================================================
---- a/linuxthreads/man/pthread_mutex_init.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_mutex_init.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_mutex_init.man
++++ b/linuxthreads/man/pthread_mutex_init.man
 @@ -38,75 +38,75 @@
  that is already locked by another thread is suspended until the owning
  thread unlocks the mutex first.
@@ -1644,10 +1636,8 @@ Index: b/linuxthreads/man/pthread_mutex_init.man
  
  .RS
  .ft 3
-Index: b/linuxthreads/man/pthread_once.man
-===================================================================
---- a/linuxthreads/man/pthread_once.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_once.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_once.man
++++ b/linuxthreads/man/pthread_once.man
 @@ -12,19 +12,19 @@
  
  .SH DESCRIPTION
@@ -1677,10 +1667,8 @@ Index: b/linuxthreads/man/pthread_once.man
  
  .SH ERRORS
  None.
-Index: b/linuxthreads/man/pthread_self.man
-===================================================================
---- a/linuxthreads/man/pthread_self.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_self.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_self.man
++++ b/linuxthreads/man/pthread_self.man
 @@ -9,15 +9,15 @@
  pthread_t pthread_self(void);
  
@@ -1703,10 +1691,8 @@ Index: b/linuxthreads/man/pthread_self.man
 +\fBpthread_setschedparam\fP(3),
 +\fBpthread_getschedparam\fP(3).
  
-Index: b/linuxthreads/man/pthread_setschedparam.man
-===================================================================
---- a/linuxthreads/man/pthread_setschedparam.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_setschedparam.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_setschedparam.man
++++ b/linuxthreads/man/pthread_setschedparam.man
 @@ -14,66 +14,66 @@
  
  .SH DESCRIPTION
@@ -1805,10 +1791,8 @@ Index: b/linuxthreads/man/pthread_setschedparam.man
 +\fBsched_getparam\fP(2),
 +\fBpthread_attr_setschedpolicy\fP(3),
 +\fBpthread_attr_setschedparam\fP(3).
-Index: b/linuxthreads/man/pthread_sigmask.man
-===================================================================
---- a/linuxthreads/man/pthread_sigmask.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/pthread_sigmask.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/pthread_sigmask.man
++++ b/linuxthreads/man/pthread_sigmask.man
 @@ -19,36 +19,36 @@
  
  .SH DESCRIPTION
@@ -1952,10 +1936,8 @@ Index: b/linuxthreads/man/pthread_sigmask.man
  signal handlers are shared between all threads, other threads must not
  attach their own signal handlers to these signals, or alternatively
  they should all block these signals (which is recommended anyway --
-Index: b/linuxthreads/man/sem_init.man
-===================================================================
---- a/linuxthreads/man/sem_init.man	2008-08-08 19:08:19.000000000 +0200
-+++ b/linuxthreads/man/sem_init.man	2008-08-08 19:09:00.000000000 +0200
+--- a/linuxthreads/man/sem_init.man
++++ b/linuxthreads/man/sem_init.man
 @@ -26,98 +26,98 @@
  
  .SH DESCRIPTION

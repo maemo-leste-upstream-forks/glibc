@@ -2,10 +2,13 @@ This patch is incomplete.  Reported on
 <http://savannah.gnu.org/bugs/?18216>.  The
 `sysdeps/mach/hurd/bits/stat.h' hunk alignes to what Linux uses.
 
-Index: b/sysdeps/mach/hurd/xstatconv.c
-===================================================================
---- a/sysdeps/mach/hurd/xstatconv.c	2008-08-08 19:08:23.000000000 +0200
-+++ b/sysdeps/mach/hurd/xstatconv.c	2008-08-08 19:08:52.000000000 +0200
+---
+ sysdeps/mach/hurd/bits/stat.h |   57 +++++++++++++++++++++++++++++++++++-------
+ sysdeps/mach/hurd/xstatconv.c |    9 ++++++
+ 2 files changed, 57 insertions(+), 9 deletions(-)
+
+--- a/sysdeps/mach/hurd/xstatconv.c
++++ b/sysdeps/mach/hurd/xstatconv.c
 @@ -42,12 +42,21 @@
    buf->st_uid = buf64->st_uid;
    buf->st_gid = buf64->st_gid;
@@ -28,10 +31,8 @@ Index: b/sysdeps/mach/hurd/xstatconv.c
    buf->st_blksize = buf64->st_blksize;
    buf->st_blocks = buf64->st_blocks;
    buf->st_author = buf64->st_author;
-Index: b/sysdeps/mach/hurd/bits/stat.h
-===================================================================
---- a/sysdeps/mach/hurd/bits/stat.h	2008-08-08 19:08:23.000000000 +0200
-+++ b/sysdeps/mach/hurd/bits/stat.h	2008-08-08 19:08:52.000000000 +0200
+--- a/sysdeps/mach/hurd/bits/stat.h
++++ b/sysdeps/mach/hurd/bits/stat.h
 @@ -55,12 +55,32 @@
      __off64_t st_size;		/* Size in bytes.  */
  #endif

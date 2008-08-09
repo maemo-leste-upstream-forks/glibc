@@ -18,10 +18,19 @@
 	* sysdeps/mach/hurd/shmctl.c: New file.
 	* sysdeps/mach/hurd/shmdt.c: New file.
 
-Index: b/hurd/Makefile
-===================================================================
---- a/hurd/Makefile	2008-08-08 19:08:23.000000000 +0200
-+++ b/hurd/Makefile	2008-08-08 19:08:52.000000000 +0200
+---
+ hurd/Makefile              |    3 
+ hurd/sysvshm.c             |   96 +++++++++++++++++
+ hurd/sysvshm.h             |   47 ++++++++
+ sysdeps/mach/hurd/ftok.c   |   43 +++++++
+ sysdeps/mach/hurd/shmat.c  |   78 ++++++++++++++
+ sysdeps/mach/hurd/shmctl.c |  132 ++++++++++++++++++++++++
+ sysdeps/mach/hurd/shmdt.c  |   51 +++++++++
+ sysdeps/mach/hurd/shmget.c |  245 +++++++++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 694 insertions(+), 1 deletion(-)
+
+--- a/hurd/Makefile
++++ b/hurd/Makefile
 @@ -60,6 +60,7 @@
  	   vpprintf \
  	   ports-get ports-set hurdports hurdmsg \
@@ -39,10 +48,8 @@ Index: b/hurd/Makefile
  	     faultexc.defs intr-rpc.defs intr-rpc.h intr-msg.h Notes
  
  # XXX this is a temporary hack; see hurdmalloc.h
-Index: b/hurd/sysvshm.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/hurd/sysvshm.c	2008-08-08 19:08:52.000000000 +0200
+--- /dev/null
++++ b/hurd/sysvshm.c
 @@ -0,0 +1,96 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -140,10 +147,8 @@ Index: b/hurd/sysvshm.c
 +  __mutex_unlock (&sysvshm_lock);
 +  return EINVAL;
 +}
-Index: b/hurd/sysvshm.h
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/hurd/sysvshm.h	2008-08-08 19:08:52.000000000 +0200
+--- /dev/null
++++ b/hurd/sysvshm.h
 @@ -0,0 +1,47 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -192,10 +197,8 @@ Index: b/hurd/sysvshm.h
 +/* Removes a segment attachment.  Returns its size if found, or EINVAL
 +   otherwise.  */
 +error_t __sysvshm_remove (void *addr, size_t *size);
-Index: b/sysdeps/mach/hurd/ftok.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/sysdeps/mach/hurd/ftok.c	2008-08-08 19:08:52.000000000 +0200
+--- /dev/null
++++ b/sysdeps/mach/hurd/ftok.c
 @@ -0,0 +1,43 @@
 +/* Copyright (C) 1995, 1996, 2000, 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -240,10 +243,8 @@ Index: b/sysdeps/mach/hurd/ftok.c
 +
 +  return key;
 +}
-Index: b/sysdeps/mach/hurd/shmat.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/sysdeps/mach/hurd/shmat.c	2008-08-08 19:08:52.000000000 +0200
+--- /dev/null
++++ b/sysdeps/mach/hurd/shmat.c
 @@ -0,0 +1,78 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -323,10 +324,8 @@ Index: b/sysdeps/mach/hurd/shmat.c
 +}
 +
 +weak_alias(__shmat, shmat)
-Index: b/sysdeps/mach/hurd/shmctl.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/sysdeps/mach/hurd/shmctl.c	2008-08-08 19:08:52.000000000 +0200
+--- /dev/null
++++ b/sysdeps/mach/hurd/shmctl.c
 @@ -0,0 +1,132 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -460,10 +459,8 @@ Index: b/sysdeps/mach/hurd/shmctl.c
 +}
 +
 +weak_alias(__shmctl, shmctl)
-Index: b/sysdeps/mach/hurd/shmdt.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/sysdeps/mach/hurd/shmdt.c	2008-08-08 19:08:52.000000000 +0200
+--- /dev/null
++++ b/sysdeps/mach/hurd/shmdt.c
 @@ -0,0 +1,51 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -516,10 +513,8 @@ Index: b/sysdeps/mach/hurd/shmdt.c
 +}
 +
 +weak_alias(__shmdt, shmdt)
-Index: b/sysdeps/mach/hurd/shmget.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ b/sysdeps/mach/hurd/shmget.c	2008-08-08 19:08:52.000000000 +0200
+--- /dev/null
++++ b/sysdeps/mach/hurd/shmget.c
 @@ -0,0 +1,245 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.

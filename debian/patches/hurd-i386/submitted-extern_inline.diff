@@ -1,7 +1,24 @@
-Index: b/hurd/hurd.h
-===================================================================
---- a/hurd/hurd.h	2008-08-08 19:08:22.000000000 +0200
-+++ b/hurd/hurd.h	2008-08-08 19:08:54.000000000 +0200
+---
+ hurd/hurd.h                         |    4 ++++
+ hurd/hurd/fd.h                      |   20 ++++++++++++++++++++
+ hurd/hurd/port.h                    |   31 +++++++++++++++++++++++++++++++
+ hurd/hurd/signal.h                  |   16 +++++++++++++---
+ hurd/hurd/threadvar.h               |    5 +++++
+ hurd/hurd/userlink.h                |   14 ++++++++++++++
+ mach/lock-intern.h                  |   20 ++++++++++++++++++++
+ mach/mach/mig_support.h             |    3 +++
+ mach/spin-lock.c                    |    1 +
+ sysdeps/generic/machine-lock.h      |   12 ++++++++++++
+ sysdeps/generic/machine-sp.h        |    4 ++++
+ sysdeps/mach/alpha/machine-lock.h   |   12 ++++++++++++
+ sysdeps/mach/alpha/machine-sp.h     |    4 ++++
+ sysdeps/mach/i386/machine-lock.h    |   12 ++++++++++++
+ sysdeps/mach/powerpc/machine-lock.h |   12 ++++++++++++
+ sysdeps/mach/powerpc/machine-sp.h   |    4 ++++
+ 16 files changed, 171 insertions(+), 3 deletions(-)
+
+--- a/hurd/hurd.h
++++ b/hurd/hurd.h
 @@ -48,6 +48,9 @@
  #define _HURD_H_EXTERN_INLINE __extern_inline
  #endif
@@ -20,10 +37,8 @@ Index: b/hurd/hurd.h
  
  /* Basic ports and info, initialized by startup.  */
  
-Index: b/hurd/hurd/fd.h
-===================================================================
---- a/hurd/hurd/fd.h	2008-08-08 19:08:54.000000000 +0200
-+++ b/hurd/hurd/fd.h	2008-08-08 19:08:54.000000000 +0200
+--- a/hurd/hurd/fd.h
++++ b/hurd/hurd/fd.h
 @@ -60,6 +60,9 @@
     NULL.  The cell is unlocked; when ready to use it, lock it and check for
     it being unused.  */
@@ -105,10 +120,8 @@ Index: b/hurd/hurd/fd.h
  
  /* Set up *FD to have PORT its server port, doing appropriate ctty magic.
     Does no locking or unlocking.  */
-Index: b/hurd/hurd/port.h
-===================================================================
---- a/hurd/hurd/port.h	2008-08-08 19:08:22.000000000 +0200
-+++ b/hurd/hurd/port.h	2008-08-08 19:08:54.000000000 +0200
+--- a/hurd/hurd/port.h
++++ b/hurd/hurd/port.h
 @@ -62,6 +62,9 @@
  
  /* Initialize *PORT to INIT.  */
@@ -211,10 +224,8 @@ Index: b/hurd/hurd/port.h
  
  
  #endif	/* hurd/port.h */
-Index: b/hurd/hurd/signal.h
-===================================================================
---- a/hurd/hurd/signal.h	2008-08-08 19:08:21.000000000 +0200
-+++ b/hurd/hurd/signal.h	2008-08-08 19:08:54.000000000 +0200
+--- a/hurd/hurd/signal.h
++++ b/hurd/hurd/signal.h
 @@ -130,15 +130,17 @@
  #define _HURD_SIGNAL_H_EXTERN_INLINE __extern_inline
  #endif
@@ -278,10 +289,8 @@ Index: b/hurd/hurd/signal.h
  
  /* Convenient macros for simple uses of critical sections.
     These two must be used as a pair at the same C scoping level.  */
-Index: b/hurd/hurd/threadvar.h
-===================================================================
---- a/hurd/hurd/threadvar.h	2008-08-08 19:08:22.000000000 +0200
-+++ b/hurd/hurd/threadvar.h	2008-08-08 19:08:54.000000000 +0200
+--- a/hurd/hurd/threadvar.h
++++ b/hurd/hurd/threadvar.h
 @@ -82,6 +82,8 @@
  
  extern unsigned long int *__hurd_threadvar_location_from_sp
@@ -314,10 +323,8 @@ Index: b/hurd/hurd/threadvar.h
  
  
  #endif	/* hurd/threadvar.h */
-Index: b/hurd/hurd/userlink.h
-===================================================================
---- a/hurd/hurd/userlink.h	2008-08-08 19:08:21.000000000 +0200
-+++ b/hurd/hurd/userlink.h	2008-08-08 19:08:54.000000000 +0200
+--- a/hurd/hurd/userlink.h
++++ b/hurd/hurd/userlink.h
 @@ -77,6 +77,11 @@
  
  /* Attach LINK to the chain of users at *CHAINP.  */
@@ -371,10 +378,8 @@ Index: b/hurd/hurd/userlink.h
 +#endif
  
  #endif	/* hurd/userlink.h */
-Index: b/mach/lock-intern.h
-===================================================================
---- a/mach/lock-intern.h	2008-08-08 19:08:21.000000000 +0200
-+++ b/mach/lock-intern.h	2008-08-08 19:08:54.000000000 +0200
+--- a/mach/lock-intern.h
++++ b/mach/lock-intern.h
 @@ -29,11 +29,15 @@
  
  /* Initialize LOCK.  */
@@ -448,10 +453,8 @@ Index: b/mach/lock-intern.h
 +#endif
  
  #endif /* lock-intern.h */
-Index: b/mach/mach/mig_support.h
-===================================================================
---- a/mach/mach/mig_support.h	2008-08-08 19:08:21.000000000 +0200
-+++ b/mach/mach/mig_support.h	2008-08-08 19:08:54.000000000 +0200
+--- a/mach/mach/mig_support.h
++++ b/mach/mach/mig_support.h
 @@ -67,6 +67,8 @@
  /* Idiocy support function.  */
  extern vm_size_t mig_strncpy (char *__dst, const char *__src, vm_size_t __len);
@@ -469,10 +472,8 @@ Index: b/mach/mach/mig_support.h
  
  
  
-Index: b/sysdeps/generic/machine-lock.h
-===================================================================
---- a/sysdeps/generic/machine-lock.h	2008-08-08 19:08:22.000000000 +0200
-+++ b/sysdeps/generic/machine-lock.h	2008-08-08 19:08:54.000000000 +0200
+--- a/sysdeps/generic/machine-lock.h
++++ b/sysdeps/generic/machine-lock.h
 @@ -35,14 +35,21 @@
  
  /* Unlock LOCK.  */
@@ -515,10 +516,8 @@ Index: b/sysdeps/generic/machine-lock.h
  
  
  #endif /* machine-lock.h */
-Index: b/sysdeps/generic/machine-sp.h
-===================================================================
---- a/sysdeps/generic/machine-sp.h	2008-08-08 19:08:22.000000000 +0200
-+++ b/sysdeps/generic/machine-sp.h	2008-08-08 19:08:54.000000000 +0200
+--- a/sysdeps/generic/machine-sp.h
++++ b/sysdeps/generic/machine-sp.h
 @@ -26,11 +26,15 @@
  #define _EXTERN_INLINE __extern_inline
  #endif
@@ -535,10 +534,8 @@ Index: b/sysdeps/generic/machine-sp.h
 +#endif
  
  #endif	/* machine-sp.h */
-Index: b/sysdeps/mach/alpha/machine-lock.h
-===================================================================
---- a/sysdeps/mach/alpha/machine-lock.h	2008-08-08 19:08:22.000000000 +0200
-+++ b/sysdeps/mach/alpha/machine-lock.h	2008-08-08 19:08:54.000000000 +0200
+--- a/sysdeps/mach/alpha/machine-lock.h
++++ b/sysdeps/mach/alpha/machine-lock.h
 @@ -35,15 +35,22 @@
  
  /* Unlock LOCK.  */
@@ -582,10 +579,8 @@ Index: b/sysdeps/mach/alpha/machine-lock.h
  
  
  #endif /* machine-lock.h */
-Index: b/sysdeps/mach/alpha/machine-sp.h
-===================================================================
---- a/sysdeps/mach/alpha/machine-sp.h	2008-08-08 19:08:22.000000000 +0200
-+++ b/sysdeps/mach/alpha/machine-sp.h	2008-08-08 19:08:54.000000000 +0200
+--- a/sysdeps/mach/alpha/machine-sp.h
++++ b/sysdeps/mach/alpha/machine-sp.h
 @@ -26,11 +26,15 @@
  #define _EXTERN_INLINE __extern_inline
  #endif
@@ -602,10 +597,8 @@ Index: b/sysdeps/mach/alpha/machine-sp.h
 +#endif
  
  #endif	/* machine-sp.h */
-Index: b/sysdeps/mach/i386/machine-lock.h
-===================================================================
---- a/sysdeps/mach/i386/machine-lock.h	2008-08-08 19:08:22.000000000 +0200
-+++ b/sysdeps/mach/i386/machine-lock.h	2008-08-08 19:08:54.000000000 +0200
+--- a/sysdeps/mach/i386/machine-lock.h
++++ b/sysdeps/mach/i386/machine-lock.h
 @@ -35,6 +35,9 @@
  
  /* Unlock LOCK.  */
@@ -650,10 +643,8 @@ Index: b/sysdeps/mach/i386/machine-lock.h
  
  
  #endif /* machine-lock.h */
-Index: b/sysdeps/mach/powerpc/machine-lock.h
-===================================================================
---- a/sysdeps/mach/powerpc/machine-lock.h	2008-08-08 19:08:22.000000000 +0200
-+++ b/sysdeps/mach/powerpc/machine-lock.h	2008-08-08 19:08:54.000000000 +0200
+--- a/sysdeps/mach/powerpc/machine-lock.h
++++ b/sysdeps/mach/powerpc/machine-lock.h
 @@ -35,6 +35,9 @@
  
  /* Unlock LOCK.  */
@@ -700,10 +691,8 @@ Index: b/sysdeps/mach/powerpc/machine-lock.h
  
  
  #endif /* machine-lock.h */
-Index: b/sysdeps/mach/powerpc/machine-sp.h
-===================================================================
---- a/sysdeps/mach/powerpc/machine-sp.h	2008-08-08 19:08:22.000000000 +0200
-+++ b/sysdeps/mach/powerpc/machine-sp.h	2008-08-08 19:08:54.000000000 +0200
+--- a/sysdeps/mach/powerpc/machine-sp.h
++++ b/sysdeps/mach/powerpc/machine-sp.h
 @@ -31,6 +31,9 @@
  # endif
  #endif
@@ -721,10 +710,8 @@ Index: b/sysdeps/mach/powerpc/machine-sp.h
 +#endif
  
  #endif	/* machine-sp.h */
-Index: b/mach/spin-lock.c
-===================================================================
---- a/mach/spin-lock.c	2008-08-08 19:08:21.000000000 +0200
-+++ b/mach/spin-lock.c	2008-08-08 19:08:54.000000000 +0200
+--- a/mach/spin-lock.c
++++ b/mach/spin-lock.c
 @@ -1,3 +1,4 @@
 +#define __USE_EXTERN_INLINES 1
  #define _EXTERN_INLINE /* Empty to define the real functions.  */

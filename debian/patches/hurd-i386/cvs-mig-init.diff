@@ -8,10 +8,17 @@
 	* hurd/get-host.c (_hurd_get_host_config): Likewise.
 	* sysdeps/mach/hurd/dl-sysdep.c (__libc_read): Likewise.
 
-Index: b/sysdeps/mach/hurd/recv.c
-===================================================================
---- a/sysdeps/mach/hurd/recv.c	2008-08-08 19:08:22.000000000 +0200
-+++ b/sysdeps/mach/hurd/recv.c	2008-08-08 19:08:53.000000000 +0200
+---
+ hurd/fd-read.c                |    1 +
+ hurd/get-host.c               |    1 +
+ sysdeps/mach/hurd/dl-sysdep.c |    1 +
+ sysdeps/mach/hurd/recv.c      |    2 +-
+ sysdeps/mach/hurd/recvfrom.c  |    2 +-
+ sysdeps/mach/hurd/recvmsg.c   |    2 +-
+ 6 files changed, 6 insertions(+), 3 deletions(-)
+
+--- a/sysdeps/mach/hurd/recv.c
++++ b/sysdeps/mach/hurd/recv.c
 @@ -38,7 +38,7 @@
    char *bufp = buf;
    mach_msg_type_number_t nread = n;
@@ -21,10 +28,8 @@ Index: b/sysdeps/mach/hurd/recv.c
    char *cdata = NULL;
    mach_msg_type_number_t clen = 0;
  
-Index: b/sysdeps/mach/hurd/recvfrom.c
-===================================================================
---- a/sysdeps/mach/hurd/recvfrom.c	2008-08-08 19:08:22.000000000 +0200
-+++ b/sysdeps/mach/hurd/recvfrom.c	2008-08-08 19:08:53.000000000 +0200
+--- a/sysdeps/mach/hurd/recvfrom.c
++++ b/sysdeps/mach/hurd/recvfrom.c
 @@ -41,7 +41,7 @@
    char *bufp = buf;
    mach_msg_type_number_t nread = n;
@@ -34,10 +39,8 @@ Index: b/sysdeps/mach/hurd/recvfrom.c
    char *cdata = NULL;
    mach_msg_type_number_t clen = 0;
    struct sockaddr *addr = addrarg.__sockaddr__;
-Index: b/sysdeps/mach/hurd/recvmsg.c
-===================================================================
---- a/sysdeps/mach/hurd/recvmsg.c	2008-08-08 19:08:22.000000000 +0200
-+++ b/sysdeps/mach/hurd/recvmsg.c	2008-08-08 19:08:53.000000000 +0200
+--- a/sysdeps/mach/hurd/recvmsg.c
++++ b/sysdeps/mach/hurd/recvmsg.c
 @@ -34,7 +34,7 @@
    char *data = NULL;
    mach_msg_type_number_t len = 0;
@@ -47,10 +50,8 @@ Index: b/sysdeps/mach/hurd/recvmsg.c
    char *cdata = NULL;
    mach_msg_type_number_t clen = 0;
    size_t amount;
-Index: b/hurd/fd-read.c
-===================================================================
---- a/hurd/fd-read.c	2008-08-08 19:08:22.000000000 +0200
-+++ b/hurd/fd-read.c	2008-08-08 19:08:53.000000000 +0200
+--- a/hurd/fd-read.c
++++ b/hurd/fd-read.c
 @@ -35,6 +35,7 @@
      }
  
@@ -59,10 +60,8 @@ Index: b/hurd/fd-read.c
    if (err = HURD_FD_PORT_USE (fd, _hurd_ctty_input (port, ctty, readfd)))
      return err;
  
-Index: b/hurd/get-host.c
-===================================================================
---- a/hurd/get-host.c	2008-08-08 19:08:22.000000000 +0200
-+++ b/hurd/get-host.c	2008-08-08 19:08:53.000000000 +0200
+--- a/hurd/get-host.c
++++ b/hurd/get-host.c
 @@ -51,6 +51,7 @@
      }
  
@@ -71,10 +70,8 @@ Index: b/hurd/get-host.c
    err = __io_read (config, &data, &nread, -1, buflen);
    if (! err)
      /* Check if there is more in the file we didn't read.  */
-Index: b/sysdeps/mach/hurd/dl-sysdep.c
-===================================================================
---- a/sysdeps/mach/hurd/dl-sysdep.c	2008-08-08 19:08:22.000000000 +0200
-+++ b/sysdeps/mach/hurd/dl-sysdep.c	2008-08-08 19:08:53.000000000 +0200
+--- a/sysdeps/mach/hurd/dl-sysdep.c
++++ b/sysdeps/mach/hurd/dl-sysdep.c
 @@ -367,6 +367,7 @@
    mach_msg_type_number_t nread;
  

@@ -1,7 +1,15 @@
-Index: b/elf/rtld.c
-===================================================================
---- a/elf/rtld.c	2008-08-08 19:08:25.000000000 +0200
-+++ b/elf/rtld.c	2008-08-08 19:08:49.000000000 +0200
+---
+ elf/rtld.c                    |   10 +++++-----
+ include/atomic.h              |   26 +++++++++++++-------------
+ nptl/Makefile                 |   35 ++++++++++++++++++++++++++++++++---
+ nptl/pthread_barrier_wait.c   |    2 +-
+ nptl/sysdeps/pthread/Makefile |    2 ++
+ stdio-common/Makefile         |    2 +-
+ sunrpc/clnt_udp.c             |    2 +-
+ 7 files changed, 55 insertions(+), 24 deletions(-)
+
+--- a/elf/rtld.c
++++ b/elf/rtld.c
 @@ -383,14 +383,14 @@
       know it is available.  We do not have to clear the memory if we
       do not have to use the temporary bootstrap_map.  Global variables
@@ -22,10 +30,8 @@ Index: b/elf/rtld.c
  # endif
  # if USE___THREAD
    bootstrap_map.l_tls_modid = 0;
-Index: b/include/atomic.h
-===================================================================
---- a/include/atomic.h	2008-08-08 19:08:25.000000000 +0200
-+++ b/include/atomic.h	2008-08-08 19:08:49.000000000 +0200
+--- a/include/atomic.h
++++ b/include/atomic.h
 @@ -174,7 +174,7 @@
       __typeof (*(mem)) __atg5_value = (newvalue);			      \
  									      \
@@ -143,10 +149,8 @@ Index: b/include/atomic.h
       while (__builtin_expect						      \
  	    (atomic_compare_and_exchange_bool_acq (__atg19_memp,	      \
  						   __atg19_old | __atg19_mask,\
-Index: b/nptl/Makefile
-===================================================================
---- a/nptl/Makefile	2008-08-08 19:08:25.000000000 +0200
-+++ b/nptl/Makefile	2008-08-08 19:08:49.000000000 +0200
+--- a/nptl/Makefile
++++ b/nptl/Makefile
 @@ -262,9 +262,9 @@
  # Files which must not be linked with libpthread.
  tests-nolibpthread = tst-unload
@@ -196,10 +200,8 @@ Index: b/nptl/Makefile
  CFLAGS-tst-align.c += $(stack-align-test-flags)
  CFLAGS-tst-align3.c += $(stack-align-test-flags)
  CFLAGS-tst-initializers1.c = -W -Wall -Werror
-Index: b/nptl/pthread_barrier_wait.c
-===================================================================
---- a/nptl/pthread_barrier_wait.c	2008-08-08 19:08:25.000000000 +0200
-+++ b/nptl/pthread_barrier_wait.c	2008-08-08 19:08:49.000000000 +0200
+--- a/nptl/pthread_barrier_wait.c
++++ b/nptl/pthread_barrier_wait.c
 @@ -64,7 +64,7 @@
        do
  	lll_futex_wait (&ibarrier->curr_event, event,
@@ -209,10 +211,8 @@ Index: b/nptl/pthread_barrier_wait.c
      }
  
    /* Make sure the init_count is stored locally or in a register.  */
-Index: b/nptl/sysdeps/pthread/Makefile
-===================================================================
---- a/nptl/sysdeps/pthread/Makefile	2008-08-08 19:08:25.000000000 +0200
-+++ b/nptl/sysdeps/pthread/Makefile	2008-08-08 19:08:49.000000000 +0200
+--- a/nptl/sysdeps/pthread/Makefile
++++ b/nptl/sysdeps/pthread/Makefile
 @@ -41,7 +41,9 @@
  
  ifeq ($(have-forced-unwind),yes)
@@ -223,10 +223,8 @@ Index: b/nptl/sysdeps/pthread/Makefile
  endif
  endif
  
-Index: b/stdio-common/Makefile
-===================================================================
---- a/stdio-common/Makefile	2008-08-08 19:08:25.000000000 +0200
-+++ b/stdio-common/Makefile	2008-08-08 19:08:49.000000000 +0200
+--- a/stdio-common/Makefile
++++ b/stdio-common/Makefile
 @@ -79,7 +79,7 @@
  	$(SHELL) -e tst-printf.sh $(common-objpfx) '$(run-program-prefix)'
  endif
@@ -236,10 +234,8 @@ Index: b/stdio-common/Makefile
  CFLAGS-vfwprintf.c = -Wno-uninitialized
  CFLAGS-tst-printf.c = -Wno-format
  CFLAGS-tstdiomisc.c = -Wno-format
-Index: b/sunrpc/clnt_udp.c
-===================================================================
---- a/sunrpc/clnt_udp.c	2008-08-08 19:08:25.000000000 +0200
-+++ b/sunrpc/clnt_udp.c	2008-08-08 19:08:49.000000000 +0200
+--- a/sunrpc/clnt_udp.c
++++ b/sunrpc/clnt_udp.c
 @@ -420,7 +420,7 @@
        while (inlen < 0 && errno == EINTR);
        if (inlen < 0)

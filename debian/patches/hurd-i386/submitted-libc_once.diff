@@ -8,10 +8,16 @@
 	* sysdeps/posix/getaddrinfo.c (getaddrinfo): Use __libc_once_get
 	  instead of using implementational details.
 
-Index: b/bits/libc-lock.h
-===================================================================
---- a/bits/libc-lock.h	2008-08-08 19:08:23.000000000 +0200
-+++ b/bits/libc-lock.h	2008-08-08 19:08:52.000000000 +0200
+---
+ bits/libc-lock.h                              |    3 +++
+ linuxthreads/sysdeps/pthread/bits/libc-lock.h |    3 +++
+ nptl/sysdeps/pthread/bits/libc-lock.h         |    3 +++
+ sysdeps/mach/hurd/bits/libc-lock.h            |    4 ++++
+ sysdeps/posix/getaddrinfo.c                   |    2 +-
+ 5 files changed, 14 insertions(+), 1 deletion(-)
+
+--- a/bits/libc-lock.h
++++ b/bits/libc-lock.h
 @@ -98,6 +98,9 @@
      }									      \
    } while (0)
@@ -22,10 +28,8 @@ Index: b/bits/libc-lock.h
  
  /* Start a critical region with a cleanup function */
  #define __libc_cleanup_region_start(DOIT, FCT, ARG)			    \
-Index: b/linuxthreads/sysdeps/pthread/bits/libc-lock.h
-===================================================================
---- a/linuxthreads/sysdeps/pthread/bits/libc-lock.h	2008-08-08 19:08:49.000000000 +0200
-+++ b/linuxthreads/sysdeps/pthread/bits/libc-lock.h	2008-08-08 19:08:52.000000000 +0200
+--- a/linuxthreads/sysdeps/pthread/bits/libc-lock.h
++++ b/linuxthreads/sysdeps/pthread/bits/libc-lock.h
 @@ -242,6 +242,9 @@
      }									      \
    } while (0)
@@ -36,10 +40,8 @@ Index: b/linuxthreads/sysdeps/pthread/bits/libc-lock.h
  
  /* Start critical region with cleanup.  */
  #define __libc_cleanup_region_start(DOIT, FCT, ARG) \
-Index: b/nptl/sysdeps/pthread/bits/libc-lock.h
-===================================================================
---- a/nptl/sysdeps/pthread/bits/libc-lock.h	2008-08-08 19:08:23.000000000 +0200
-+++ b/nptl/sysdeps/pthread/bits/libc-lock.h	2008-08-08 19:08:52.000000000 +0200
+--- a/nptl/sysdeps/pthread/bits/libc-lock.h
++++ b/nptl/sysdeps/pthread/bits/libc-lock.h
 @@ -377,6 +377,9 @@
      }									      \
    } while (0)
@@ -50,10 +52,8 @@ Index: b/nptl/sysdeps/pthread/bits/libc-lock.h
  
  /* Note that for I/O cleanup handling we are using the old-style
     cancel handling.  It does not have to be integrated with C++ snce
-Index: b/sysdeps/mach/hurd/bits/libc-lock.h
-===================================================================
---- a/sysdeps/mach/hurd/bits/libc-lock.h	2008-08-08 19:08:51.000000000 +0200
-+++ b/sysdeps/mach/hurd/bits/libc-lock.h	2008-08-08 19:08:52.000000000 +0200
+--- a/sysdeps/mach/hurd/bits/libc-lock.h
++++ b/sysdeps/mach/hurd/bits/libc-lock.h
 @@ -186,6 +186,10 @@
      __libc_lock_unlock (ONCE_CONTROL.lock);				      \
    } while (0)
@@ -65,10 +65,8 @@ Index: b/sysdeps/mach/hurd/bits/libc-lock.h
  #ifdef _LIBC
  /* We need portable names for some functions.  E.g., when they are
     used as argument to __libc_cleanup_region_start.  */
-Index: b/sysdeps/posix/getaddrinfo.c
-===================================================================
---- a/sysdeps/posix/getaddrinfo.c	2008-08-08 19:08:23.000000000 +0200
-+++ b/sysdeps/posix/getaddrinfo.c	2008-08-08 19:08:52.000000000 +0200
+--- a/sysdeps/posix/getaddrinfo.c
++++ b/sysdeps/posix/getaddrinfo.c
 @@ -2281,7 +2281,7 @@
  	  __libc_lock_define_initialized (static, lock);
  
