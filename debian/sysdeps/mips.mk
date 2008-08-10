@@ -1,5 +1,8 @@
 libc_add-ons = ports nptl $(add-ons)
 
+# Some tests assume a fast machine
+TIMEOUTFACTOR=3
+
 # build 32-bit (n32) alternative library
 GLIBC_PASSES += mipsn32
 DEB_ARCH_REGULAR_PACKAGES += libc6-mipsn32 libc6-dev-mipsn32
@@ -30,6 +33,3 @@ mips64_extra_config_options := $(extra_config_options) --disable-profile
 define mipsn32_extra_install
 cp debian/tmp-mipsn32/usr/bin/ldd debian/tmp-libc/usr/bin
 endef
-
-# Some tests assume a fast machine
-TIMEOUTFACTOR=3

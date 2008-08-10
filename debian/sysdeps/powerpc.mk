@@ -1,5 +1,5 @@
 # Some tests assume a fast machine
-TIMEOUTFACTOR=4
+TIMEOUTFACTOR=2
 
 # build 64-bit (ppc64) alternative library
 GLIBC_PASSES += ppc64
