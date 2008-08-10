@@ -32,4 +32,4 @@ cp debian/tmp-mipsn32/usr/bin/ldd debian/tmp-libc/usr/bin
 endef
 
 # Some tests assume a fast machine
-TIMEOUTFACTOR=2
+TIMEOUTFACTOR=3

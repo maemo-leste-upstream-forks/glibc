@@ -1,5 +1,5 @@
 # Some tests assume a fast machine
-TIMEOUTFACTOR=8
+TIMEOUTFACTOR=2
 
 # build 64-bit (sparc64) alternative library
 GLIBC_PASSES += sparc64

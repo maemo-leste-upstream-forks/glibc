@@ -1,3 +1,6 @@
+# Some tests assume a fast machine
+TIMEOUTFACTOR=4
+
 # build 64-bit (ppc64) alternative library
 GLIBC_PASSES += ppc64
 DEB_ARCH_REGULAR_PACKAGES += libc6-ppc64 libc6-dev-ppc64
