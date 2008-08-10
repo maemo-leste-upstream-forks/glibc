@@ -1,3 +1,6 @@
+# Some tests assume a fast machine
+TIMEOUTFACTOR=8
+
 # build 64-bit (sparc64) alternative library
 GLIBC_PASSES += sparc64
 DEB_ARCH_REGULAR_PACKAGES += libc6-sparc64 libc6-dev-sparc64
