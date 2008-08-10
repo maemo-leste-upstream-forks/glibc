@@ -96,15 +96,12 @@ $(stamp)build_%: $(stamp)configure_%
 $(patsubst %,check_%,$(GLIBC_PASSES)) :: check_% : $(stamp)check_%
 $(stamp)check_%: $(stamp)build_%
 	@if [ -n "$(findstring nocheck,$(DEB_BUILD_OPTIONS))" ]; then \
-	  echo "DEB_BUILD_OPTIONS contains nocheck, skipping tests."; \
-	  echo "Tests have been disabled via DEB_BUILD_OPTIONS." > $(log_results) ; \
+	  echo "Tests have been disabled via DEB_BUILD_OPTIONS." | tee $(log_results) ; \
 	elif [ $(call xx,configure_build) != $(call xx,configure_target) ] && \
 	     ! $(DEB_BUILDDIR)/elf/ld.so $(DEB_BUILDDIR)/libc.so >/dev/null 2>&1 ; then \
-	  echo "Cross compiling, skipping tests."; \
-	  echo "Flavour cross-compiled, tests have been skipped." > $(log_results) ; \
+	  echo "Flavour cross-compiled, tests have been skipped." | tee $(log_results) ; \
 	elif ! $(call kernel_check,$(call xx,MIN_KERNEL_SUPPORTED)); then \
-	  echo "Kernel too old, skipping tests."; \
-	  echo "Kernel too old, tests have been skipped." > $(log_results) ; \
+	  echo "Kernel too old, tests have been skipped." | tee $(log_results) ; \
 	elif [ $(call xx,RUN_TESTSUITE) != "yes" ]; then \
 	  echo "Testsuite disabled for $(curpass), skipping tests."; \
 	  echo "Tests have been disabled." > $(log_results) ; \
@@ -113,7 +110,7 @@ $(stamp)check_%: $(stamp)build_%
 	  find $(DEB_BUILDDIR) -name '*.out' -exec rm {} ';' ; \
 	  TIMEOUTFACTOR="$(TIMEOUTFACTOR)" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) -k check 2>&1 | tee -a $(log_test); \
 	  chmod +x debian/testsuite-checking/convertlog.sh ; \
-	  debian/testsuite-checking/convertlog.sh $(log_test) > $(log_results) ; \
+	  debian/testsuite-checking/convertlog.sh $(log_test) | tee $(log_results) ; \
 	  if test -f $(log_expected) ; then \
 	    chmod +x debian/testsuite-checking/compare.sh ; \
 	    debian/testsuite-checking/compare.sh $(log_expected) $(log_results) ; \
