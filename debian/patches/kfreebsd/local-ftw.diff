@@ -5,8 +5,12 @@ revert to previous behaviour, inspired by
 	http://sources.redhat.com/cgi-bin/cvsweb.cgi/libc/io/ftw.c.diff?cvsroot=glibc&r1=1.50&r2=1.51
 
 
---- io/ftw.c~	2006-06-26 19:35:23.000000000 +0200
-+++ io/ftw.c	2006-06-26 19:35:23.000000000 +0200
+---
+ io/ftw.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+--- a/io/ftw.c
++++ b/io/ftw.c
 @@ -338,6 +338,7 @@
      {
        assert (data->dirstreams[data->actdir] == NULL);
@@ -21,9 +25,9 @@ revert to previous behaviour, inspired by
        else
 +#endif      
  	{
- 	  const char *name = ((data->flags & FTW_CHDIR)
- 			      ? data->dirbuf + data->ftw.base: data->dirbuf);
-@@ -401,10 +403,12 @@
+ 	  const char *name;
+ 
+@@ -410,10 +412,12 @@
    *((char *) __mempcpy (data->dirbuf + data->ftw.base, name, namlen)) = '\0';
  
    int statres;
@@ -36,7 +40,7 @@ revert to previous behaviour, inspired by
      {
        if ((data->flags & FTW_CHDIR) == 0)
  	name = data->dirbuf;
-@@ -424,10 +428,12 @@
+@@ -433,10 +437,12 @@
  	flag = FTW_SLN;
        else
  	{

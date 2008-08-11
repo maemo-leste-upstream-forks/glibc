@@ -1,26 +1,33 @@
---- glibc-2.6-orig/elf/dl-support.c	2007-07-19 23:45:07.000000000 +0200
-+++ glibc-2.6/elf/dl-support.c	2007-07-20 04:33:59.000000000 +0200
-@@ -137,6 +137,7 @@
- int (*_dl_make_stack_executable_hook) (void **) internal_function
-   = _dl_make_stack_executable;
+---
+ elf/dl-support.c                  |    1 +
+ sysdeps/generic/ldsodefs.h        |    1 +
+ sysdeps/mach/hurd/sysdep-cancel.h |    9 +++++++++
+ sysdeps/mach/hurd/tls.h           |   13 +++++++++++++
+ 4 files changed, 24 insertions(+)
+
+--- a/elf/dl-support.c
++++ b/elf/dl-support.c
+@@ -141,6 +141,7 @@
+ /* Function in libpthread to wait for termination of lookups.  */
+ void (*_dl_wait_lookup_done) (void);
  
 +int volatile _dl_thread_gscope_count;
  struct dl_scope_free_list *_dl_scope_free_list;
  
  #ifdef NEED_DL_SYSINFO
---- glibc-2.6-orig/sysdeps/generic/ldsodefs.h	2007-07-19 23:45:14.000000000 +0200
-+++ glibc-2.6/sysdeps/generic/ldsodefs.h	2007-07-20 04:41:36.000000000 +0200
-@@ -489,6 +489,7 @@
+--- a/sysdeps/generic/ldsodefs.h
++++ b/sysdeps/generic/ldsodefs.h
+@@ -493,6 +493,7 @@
      size_t count;
-     struct r_scope_elem **list[50];
+     void *list[50];
    } *_dl_scope_free_list;
 +  EXTERN volatile int _dl_thread_gscope_count;
  #ifdef SHARED
  };
  # define __rtld_global_attribute__
---- glibc-2.6.1-orig/sysdeps/mach/hurd/tls.h	2005-02-02 20:43:56.000000000 +0100
-+++ glibc-2.6.1/sysdeps/mach/hurd/tls.h	2007-08-01 22:35:38.000000000 +0200
-@@ -73,5 +73,18 @@
+--- a/sysdeps/mach/hurd/tls.h
++++ b/sysdeps/mach/hurd/tls.h
+@@ -74,5 +74,18 @@
  
  #endif /* HAVE_TLS_SUPPORT */
  
@@ -39,8 +46,8 @@
 +#endif
  
  #endif /* tls.h */
---- /dev/null	2007-07-20 20:36:08.980000000 +0200
-+++ glibc-2.6/sysdeps/mach/hurd/sysdep-cancel.h	2007-07-20 01:24:22.000000000 +0200
+--- /dev/null
++++ b/sysdeps/mach/hurd/sysdep-cancel.h
 @@ -0,0 +1,9 @@
 +#include <sysdep.h>
 +
