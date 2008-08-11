@@ -24,6 +24,7 @@ KERNEL_HEADER_DIR = $(stamp)mkincludedir
 $(stamp)mkincludedir:
 	rm -rf debian/include
 	mkdir debian/include
+	ln -s $(KFREEBSD_HEADERS)/bsm debian/include
 	ln -s $(KFREEBSD_HEADERS)/net debian/include
 	ln -s $(KFREEBSD_HEADERS)/netatalk debian/include
 	ln -s $(KFREEBSD_HEADERS)/netipx debian/include
