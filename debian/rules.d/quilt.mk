@@ -9,6 +9,10 @@ QUILT      = quilt $(QUILTOPT)
 
 patch: $(stamp)patch
 $(stamp)patch:
+	@if $(QUILT) next >/dev/null 2>&1; then \
+	  echo "Applying patches... "; \
+	  $(QUILT) push -a -v ; \
+	fi
 	@if test -r debian/patches/series.$(DEB_HOST_ARCH); then \
 	  pc=".pc.$(DEB_HOST_ARCH)"; \
 	  mkdir -p "$$pc"; \
@@ -18,20 +22,11 @@ $(stamp)patch:
 	    echo "Applying architecture specific patches... "; \
 	    QUILT_PC="$$pc" $(QUILT) push -a -v ; \
 	  fi ; \
-	fi ; \
-	if $(QUILT) next >/dev/null 2>&1; then \
-	  echo "Applying patches... "; \
-	  $(QUILT) push -a -v ; \
 	fi
 	touch $@
 
 unpatch:
-	@if $(QUILT) previous >/dev/null 2>&1; then \
-	  echo "Unapplying patches..." ; \
-	  $(QUILT) pop -a -v ; \
-	fi ; \
-	rm -rf .pc ; \
-	if test -r debian/patches/series.$(DEB_HOST_ARCH); then \
+	@if test -r debian/patches/series.$(DEB_HOST_ARCH); then \
 	  pc=".pc.$(DEB_HOST_ARCH)"; \
 	  QUILT_PC="$$pc" $(QUILT) upgrade || true; \
 	  if QUILT_PC="$$pc" $(QUILT) previous >/dev/null 2>&1; then \
@@ -40,12 +35,17 @@ unpatch:
 	  fi ; \
 	  rm -rf $$pc ; \
 	fi
+	@if $(QUILT) previous >/dev/null 2>&1; then \
+	  echo "Unapplying patches..." ; \
+	  $(QUILT) pop -a -v ; \
+	fi ; \
+	rm -rf .pc
 	rm -f $(stamp)patch
 
 refresh: unpatch
-	@while quilt next ; do \
+	@while $(QUILT) next ; do \
 	  $(QUILT) push ; \
-	  $(QUILT) refresh -pab --no-timestamps --no-index --diffstat ; \
+	  $(QUILT) refresh ; \
 	done ; \
 	$(QUILT) pop -a
 
