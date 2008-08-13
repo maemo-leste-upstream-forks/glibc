@@ -1,0 +1,37 @@
+2008-08-12  Roland McGrath  <roland@frob.com>
+
+	* hurd/hurd/signal.h (HURD_MSGPORT_RPC): Avoid -Wparenthesis triggers,
+	in case used outside of libc.
+	Reported by Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+Index: glibc/hurd/hurd/signal.h
+===================================================================
+RCS file: /cvs/glibc/libc/hurd/hurd/signal.h,v
+retrieving revision 1.49
+retrieving revision 1.50
+diff -u -p -r1.49 -r1.50
+--- glibc/hurd/hurd/signal.h	19 Jul 2007 17:20:39 -0000	1.49
++++ glibc/hurd/hurd/signal.h	13 Aug 2008 02:39:55 -0000	1.50
+@@ -1,5 +1,6 @@
+ /* Implementing POSIX.1 signals under the Hurd.
+-   Copyright (C) 1993,94,95,96,98,99,2002,2007 Free Software Foundation, Inc.
++   Copyright (C) 1993,94,95,96,98,99,2002,2007,2008
++	Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -342,10 +343,12 @@ extern mach_msg_timeout_t _hurd_interrup
+     do									      \
+       {									      \
+ 	/* Get the message port.  */					      \
+-	if (__err = (fetch_msgport_expr))				      \
++	__err = (fetch_msgport_expr);					      \
++	if (__err)							      \
+ 	  break;							      \
+ 	/* Get the reference port.  */					      \
+-	if (__err = (fetch_refport_expr))				      \
++	_err = (fetch_refport_expr);					      \
++	if (__err)							      \
+ 	  {								      \
+ 	    /* Couldn't get it; deallocate MSGPORT and fail.  */	      \
+ 	    __mach_port_deallocate (__mach_task_self (), msgport);	      \
