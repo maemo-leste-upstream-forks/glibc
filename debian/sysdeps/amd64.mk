@@ -15,6 +15,7 @@ libc6-i386_shlib_dep = libc6-i386 (>= $(shlib_dep_ver))
 i386_add-ons = nptl $(add-ons)
 i386_configure_target = i486-linux
 i386_CC = $(CC) -m32
+i386_CXX = $(CC) -m32
 i386_extra_cflags = -march=pentium4 -O3
 i386_extra_config_options = $(extra_config_options)
 i386_includedir = /usr/include/i486-linux-gnu
