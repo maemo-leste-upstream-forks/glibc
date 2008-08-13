@@ -1,3 +1,8 @@
+2008-08-11  Aurelien Jarno  <aurel32@debian.org>
+
+	* sysdeps/mach/i386/machine-lock.h (__spin_unlock, __spin_try_lock):
+	Fix asm constraints.
+
 2008-08-02  Roland McGrath  <roland@frob.com>
 
 	* sysdeps/mach/i386/machine-lock.h (__spin_unlock, __spin_try_lock):
@@ -22,7 +27,7 @@
     __asm__ __volatile ("xchgl %0, %1"
 -		       : "=&r" (__unlocked), "=m" (*__lock) : "0" (0));
 +		       : "=&r" (__unlocked), "=m" (*__lock) : "0" (0)
-+		       : : "memory");
++		       : "memory");
  }
  #endif
  
@@ -32,7 +37,7 @@
    __asm__ __volatile ("xchgl %0, %1"
 -		      : "=&r" (__locked), "=m" (*__lock) : "0" (1));
 +		      : "=&r" (__locked), "=m" (*__lock) : "0" (1)
-+		      : : "memory");
++		      : "memory");
    return !__locked;
  }
  #endif
