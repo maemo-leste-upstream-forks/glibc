@@ -6,7 +6,7 @@ if [ $# -ne '2' ]; then
   exit 1
 fi;
 
-REGRESSIONS=$(diff -wBI '^#.*' expected-test-x86_64-linux-gnu-libc /tmp/a | sed -e '/^>/!d;s/^> //g')
+REGRESSIONS=$(diff -wBI '^#.*' $1 $2 | sed -e '/^>/!d;s/^> //g')
 if [ -n "$REGRESSIONS" ] ; then
   echo "Encountered regressions that don't match expected failures:"
   echo "$REGRESSIONS"

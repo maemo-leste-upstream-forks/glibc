@@ -95,7 +95,8 @@ $(stamp)build_%: $(stamp)configure_%
 
 $(patsubst %,check_%,$(GLIBC_PASSES)) :: check_% : $(stamp)check_%
 $(stamp)check_%: $(stamp)build_%
-	@if [ -n "$(findstring nocheck,$(DEB_BUILD_OPTIONS))" ]; then \
+	@set -e ; \
+	if [ -n "$(findstring nocheck,$(DEB_BUILD_OPTIONS))" ]; then \
 	  echo "Tests have been disabled via DEB_BUILD_OPTIONS." | tee $(log_results) ; \
 	elif [ $(call xx,configure_build) != $(call xx,configure_target) ] && \
 	     ! $(DEB_BUILDDIR)/elf/ld.so $(DEB_BUILDDIR)/libc.so >/dev/null 2>&1 ; then \
@@ -108,16 +109,18 @@ $(stamp)check_%: $(stamp)build_%
 	else \
 	  echo Testing $(curpass); \
 	  find $(DEB_BUILDDIR) -name '*.out' -exec rm {} ';' ; \
-	  TIMEOUTFACTOR="$$(($(TIMEOUTFACTOR)*5))" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) -k check 2>&1 | tee -a $(log_test); \
+	  TIMEOUTFACTOR="$$(($(TIMEOUTFACTOR)*10))" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) -k check 2>&1 | tee $(log_test); \
 	  chmod +x debian/testsuite-checking/convertlog.sh ; \
 	  debian/testsuite-checking/convertlog.sh $(log_test) | tee $(log_results) ; \
 	  if test -f $(log_expected) ; then \
+	    echo "***************" ; \
 	    chmod +x debian/testsuite-checking/compare.sh ; \
 	    debian/testsuite-checking/compare.sh $(log_expected) $(log_results) ; \
+	    echo "***************" ; \
 	  else \
-	    echo "***WARNING***" ; \
+	    echo "*** WARNING ***" ; \
 	    echo "Please generate expected testsuite results for this arch!" ; \
-	    echo "***WARNING***" ; \
+	    echo "*** WARNING ***" ; \
 	  fi ; \
 	fi
 	touch $@
