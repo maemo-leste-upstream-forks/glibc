@@ -109,7 +109,7 @@ $(stamp)check_%: $(stamp)build_%
 	else \
 	  echo Testing $(curpass); \
 	  find $(DEB_BUILDDIR) -name '*.out' -exec rm {} ';' ; \
-	  TIMEOUTFACTOR="$$(($(TIMEOUTFACTOR)*10))" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) -k check 2>&1 | tee $(log_test); \
+	  TIMEOUTFACTOR="50" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) -k check 2>&1 | tee $(log_test); \
 	  chmod +x debian/testsuite-checking/convertlog.sh ; \
 	  debian/testsuite-checking/convertlog.sh $(log_test) | tee $(log_results) ; \
 	  if test -f $(log_expected) ; then \

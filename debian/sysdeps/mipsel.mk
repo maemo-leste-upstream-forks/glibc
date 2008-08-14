@@ -1,8 +1,5 @@
 libc_add-ons = ports nptl $(add-ons)
 
-# Some tests assume a fast machine
-TIMEOUTFACTOR=3
-
 # build 32-bit (n32) alternative library
 GLIBC_PASSES += mipsn32
 DEB_ARCH_REGULAR_PACKAGES += libc6-mipsn32 libc6-dev-mipsn32
