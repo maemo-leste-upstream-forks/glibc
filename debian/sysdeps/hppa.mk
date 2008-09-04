@@ -14,8 +14,8 @@ libc_MIN_KERNEL_SUPPORTED = 2.6.9
 define libc6-dev_extra_pkg_install
 mkdir -p debian/$(curpass)/usr
 mkdir -p debian/$(curpass)/usr/hppa64-linux
-ln -sf /usr/include debian/$(curpass)/usr/hppa64-linux/include
+ln -sf ../include debian/$(curpass)/usr/hppa64-linux/include
 mkdir -p debian/$(curpass)/usr/hppa64-linux-gnu
-ln -sf /usr/include debian/$(curpass)/usr/hppa64-linux-gnu/include
+ln -sf ../include debian/$(curpass)/usr/hppa64-linux-gnu/include
 endef
 
