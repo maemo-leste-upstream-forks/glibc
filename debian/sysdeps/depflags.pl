@@ -78,6 +78,9 @@ push @{$libc_c{'Conflicts'}}, 'libterm-readline-gnu-perl (<< 1.15-2)';
 # Conflict with older versions of tzdata that need tzconfig.
 push @{$libc_c{'Conflicts'}}, 'tzdata (<< 2007k-1), tzdata-etch';
 
+# Conflict with older versions of nscd
+push @{$libc_c{'Conflicts'}}, 'nscd (<< 2.8)';
+
 # Depends on libgcc1/libgcc2/libgcc4
 if ($DEB_HOST_ARCH =~ m/^hppa$/) {
     push @{$libc_c{'Depends'}}, 'libgcc4';
