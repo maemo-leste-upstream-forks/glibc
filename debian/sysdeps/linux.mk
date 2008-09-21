@@ -1,5 +1,5 @@
 GLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
-MIN_KERNEL_SUPPORTED := 2.6.8
+MIN_KERNEL_SUPPORTED := 2.6.18
 libc = libc6
 
 # NPTL Config
