@@ -1,9 +1,1014 @@
 ---
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Dist                                |   30
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Implies                             |   11
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile                            |  124 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions                            |  101 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/_G_config.h                         |  100 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/Makefile                      |   28
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/README                        |   11
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/adjtime.c                     |   51 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/kernel_time_t.h          |  143 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/mcontext.h               |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/sigcontext.h             |   84 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/stat16.h                 |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/stat32.h                 |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/time.h                   |   89 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/brk.S                         |   73 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/dl-brk.S                      |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/dl-machine.h                  |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/fhstatfs64.c                  |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/fork.S                        |   30
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/fpu.h                         |  128 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/fstatfs64.c                   |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/futimes.c                     |   43
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getfsstat64.c                 |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getitimer.c                   |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getmntinfo.c                  |    8
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getmntinfo64.c                |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getrusage.c                   |   63 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/gettimeofday.c                |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/ieee_get_fp_control.c         |   35
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/ieee_set_fp_control.c         |   33
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/lutimes.c                     |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/machine/pal.h                 |   57 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/msgctl.c                      |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/nanosleep.c                   |   54 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/poll.c                        |   46 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/regdef.h                      |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/rfork.S                       |   29
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/sched_rr_gi.c                 |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/select.c                      |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/semctl.c                      |   87 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/setfpucw.c                    |   88 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/setitimer.c                   |   63 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/settimeofday.c                |   43
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/shmctl.c                      |   58 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/sigcontextinfo.h              |   25
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/start_thread.S                |  172 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/statfs64.c                    |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/sysarch.h                     |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/syscall.S                     |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/syscalls.list                 |   21
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/sysdep.h                      |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/utimes.c                      |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/vfork.S                       |   29
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bind.c                              |   60 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/dirent.h                       |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/errno.h                        |  182 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/fcntl.h                        |  145 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/in.h                           |  249 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/ioctl-types.h                  |   57 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/ioctls.h                       |   67 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/ipc.h                          |   56 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/local_lim.h                    |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/mman.h                         |  130 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/msq.h                          |   73 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/poll.h                         |   51 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/posix_opt.h                    |   90 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/resource.h                     |  200 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sched.h                        |  177 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sem.h                          |   91 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/shm.h                          |   74 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigaction.h                    |   76 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h                      |  214 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/signum.h                       |   71 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h                       |  140 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/socket.h                       |  386 ++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h                         |  199 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat16.h                       |   56 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/statfs.h                       |   91 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/statvfs.h                      |   95 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sys_errlist.h                  |   33
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/syslog-path.h                  |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/termios.h                      |  259 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/typesizes.h                    |   66 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/uio.h                          |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/utsname.h                      |   27
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/waitflags.h                    |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/brk.c                               |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/check_fds.c                         |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/check_pf.c                          |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_getres.c                      |   33
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_gettime.c                     |   33
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_settime.c                     |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clone.c                             |  105 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/configure                           |  342 +++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/configure.in                        |  268 ++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/connect.c                           |   69 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-execstack.c                      |   58 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-machine.h                        |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-osinfo.h                         |  120 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fcntl.c                             |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstat.c                            |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstat64.c                          |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstatfs.c                          |   35
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstatfs64.c                        |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatfs.c                           |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatfs64.c                         |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatvfs.c                          |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatvfs64.c                        |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate.c                         |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate64.c                       |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fxstat.c                            |   48 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fxstat64.c                          |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c                            |   91 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents.c                          |   90 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents64.c                        |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdirentries.c                     |  100 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdirentries64.c                   |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getfsstat.c                         |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getfsstat64.c                       |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gethostid.c                         |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gethostname.c                       |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getloadavg.c                        |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin.c                          |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin_r.c                        |   70 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getmntinfo.c                        |   80 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getmntinfo64.c                      |   78 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getpagesize.c                       |   42
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getpt.c                             |   92 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getrlimit64.c                       |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getsysstats.c                       |  108 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/glob.c                              |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/glob64.c                            |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gtty.c                              |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/Makefile                       |   19
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/Versions                       |    7
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h                |  111 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h              |   97 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/time.h                    |   89 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/dl-machine.h                   |  124 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/dl-procinfo.h                  |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/get_clockfreq.c                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/getcontext.S                   |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_get_ioperm.c              |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_get_ldt.c                 |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_set_ioperm.c              |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_set_ldt.c                 |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_vm86.c                    |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i486/linuxthreads/pt-machine.h |    8
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i586/linuxthreads/pt-machine.h |    8
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i686/linuxthreads/pt-machine.h |    8
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/iopl.c                         |   54 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/ldconfig.h                     |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/linuxthreads/pt-machine.h      |   76 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/linuxthreads/sysdep-cancel.h   |  166 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/linuxthreads/tls.h             |   93 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/makecontext.S                  |  113 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/rfork.S                        |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sigcontextinfo.h               |   35
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S                 |  207 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/swapcontext.S                  |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/io.h                       |  180 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/perm.h                     |   43
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/vm86.h                     |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_fork.S                     |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_lseek.S                    |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysarch.h                      |   81 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S                      |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.S                       |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.h                       |  235 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/ucontext_i.h                   |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/vfork.S                        |   58 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/if_index.c                          |  303 ++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ifaddrs.c                           |  362 ++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ifreq.c                             |   93 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/init-first.c                        |  128 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-features.h                   |   43
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-posix-cpu-timers.h           |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ldsodefs.h                          |   39
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Implies                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Makefile               |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Versions               |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/allocrtsig.c           |   14
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/local_lim.h       |   48 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/posix_opt.h       |  190 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/sigthread.h       |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/typesizes.h       |   66 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/execve.c               |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/fatal-prepare.h        |   39
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/fork.c                 |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/fork.h                 |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/jmp-unwind.c           |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/lowlevellock.h         |   47 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/pt-sigsuspend.S        |   29
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/raise.c                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/register-atfork.c      |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/smp.h                  |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/unregister-atfork.c    |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/llseek.c                            |    6
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lseek.c                             |   86 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lseek64.c                           |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lxstat.c                            |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lxstat64.c                          |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c                              |   84 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap64.c                            |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/munmap.c                            |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/ethernet.h                      |   76 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/if.h                            |  424 +++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/if_ether.h                      |  104 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/if_ether.h                  |  138 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/ip_icmp.h                   |  296 ++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/tcp.h                       |  258 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nfs/nfs.h                           |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/not-cancel.h                        |   88 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ntp_gettime.c                       |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open.c                              |   89 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open64.c                            |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open_2.c                            |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/openat.c                            |  110 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/openat64.c                          |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/paths.h                             |   74 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread.c                             |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread64.c                           |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/prof-freq.c                         |   47 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptrace.c                            |   68 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptsname.c                           |  104 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite.c                            |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite64.c                          |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir.c                           |   11
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir64.c                         |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir64_r.c                       |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir_r.c                         |   11
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readv.c                             |   57 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/recv.c                              |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/rtld-lowlevel.h                     |  131 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sa_len.c                            |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sbrk.c                              |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sched_getp.c                        |   45 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/seekdir.c                           |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/semctl.c                            |   87 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/send.c                              |   47 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sendto.c                            |   70 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sethostid.c                         |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sethostname.c                       |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/setlogin.c                          |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/setrlimit64.c                       |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigaction.c                         |   47 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigreturn.c                         |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigset-cvt-mask.h                   |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigstack.c                          |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sleep.c                             |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stat16conv.c                        |   80 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statconv.c                          |   46 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statfs.c                            |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statfs64.c                          |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statfsconv.c                        |  203 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statvfs.c                           |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statvfs64.c                         |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stty.c                              |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/kd.h                            |   25
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h                         |  436 ++++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/param.h                         |  237 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ptrace.h                        |  132 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/rfork.h                         |   91 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/swap.h                          |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h                       |  419 +++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/sysmacros.h                     |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ttydefaults.h                   |   96 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ucontext.h                      |   48 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h                   |   54 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list                       |  157 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sysconf.c                           |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sysctlbyname.c                      |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/tcdrain.c                           |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/tcflow.c                            |    4
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/telldir.c                           |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/testrtsig.h                         |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate.c                          |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate64.c                        |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ulimit.c                            |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/uname.c                             |  110 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlockpt.c                          |   45 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/usleep.c                            |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ustat.c                             |   66 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/Makefile                |    6
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/bits/utmp.h             |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutmp.c               |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutmpx.c              |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutxent.c             |   46 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutxid.c              |   68 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutxline.c            |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/pututxline.c            |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/updwtmpx.c              |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/utmp-equal.h            |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/utmp_file.c             |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/utmpconv.c              |  227 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-utmpx/utmp_file.c              |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/wait.c                              |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/wait3.c                             |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/waitpid.c                           |   56 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/writev.c                            |   57 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/Makefile                     |   17
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/Versions                     |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/mcontext.h              |  167 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h            |  147 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/time.h                  |   89 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-cache.h                   |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-machine.h                 |   80 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-procinfo.c                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-procinfo.h                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/elf/start.S                  |  143 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/get_clockfreq.c              |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/getcontext.S                 |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/iopl.c                       |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldconfig.h                   |   39
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldd-rewrite.sed              |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/Makefile        |    4
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/asm/prctl.h     |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/pt-machine.h    |   51 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/sysdep-cancel.h |  145 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/tls.h           |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S                |  146 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/pipe.S                       |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/readelflib.c                 |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/rfork.S                      |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sigcontextinfo.h             |   35
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/start_thread.S               |  196 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/swapcontext.S                |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/io.h                     |  171 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/perm.h                   |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys_fork.S                   |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysarch.h                    |   48 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/syscall.S                    |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysdep.S                     |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysdep.h                     |  233 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ucontext_i.h                 |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Dist                                |   30
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Implies                             |   11
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile                            |  124 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions                            |  101 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/_G_config.h                         |  100 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/Makefile                      |   28
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/README                        |   11
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/adjtime.c                     |   51 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/kernel_time_t.h          |  143 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/mcontext.h               |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/sigcontext.h             |   84 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/stat16.h                 |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/stat32.h                 |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/time.h                   |   89 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/brk.S                         |   73 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/dl-brk.S                      |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/dl-machine.h                  |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/fhstatfs64.c                  |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/fork.S                        |   30
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/fpu.h                         |  128 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/fstatfs64.c                   |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/futimes.c                     |   43
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getfsstat64.c                 |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getitimer.c                   |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getmntinfo.c                  |    8
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getmntinfo64.c                |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getrusage.c                   |   63 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/gettimeofday.c                |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/ieee_get_fp_control.c         |   35
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/ieee_set_fp_control.c         |   33
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/lutimes.c                     |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/machine/pal.h                 |   57 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/msgctl.c                      |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/nanosleep.c                   |   54 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/poll.c                        |   46 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/regdef.h                      |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/rfork.S                       |   29
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/sched_rr_gi.c                 |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/select.c                      |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/semctl.c                      |   87 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/setfpucw.c                    |   88 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/setitimer.c                   |   63 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/settimeofday.c                |   43
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/shmctl.c                      |   58 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/sigcontextinfo.h              |   25
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/start_thread.S                |  172 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/statfs64.c                    |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/sysarch.h                     |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/syscall.S                     |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/syscalls.list                 |   21
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/sysdep.h                      |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/utimes.c                      |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/vfork.S                       |   29
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bind.c                              |   60 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/dirent.h                       |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/errno.h                        |  182 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/fcntl.h                        |  145 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/in.h                           |  249 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/ioctl-types.h                  |   57 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/ioctls.h                       |   67 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/ipc.h                          |   56 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/local_lim.h                    |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/mman.h                         |  130 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/msq.h                          |   73 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/poll.h                         |   51 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/posix_opt.h                    |   90 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/resource.h                     |  200 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sched.h                        |  177 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sem.h                          |   91 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/shm.h                          |   74 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigaction.h                    |   76 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h                      |  214 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/signum.h                       |   71 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h                       |  140 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/socket.h                       |  386 ++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h                         |  199 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat16.h                       |   56 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/statfs.h                       |   91 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/statvfs.h                      |   95 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sys_errlist.h                  |   33
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/syslog-path.h                  |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/termios.h                      |  259 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/typesizes.h                    |   66 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/uio.h                          |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/utsname.h                      |   27
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/waitflags.h                    |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/brk.c                               |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/check_fds.c                         |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/check_pf.c                          |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_getres.c                      |   33
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_gettime.c                     |   33
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_settime.c                     |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clone.c                             |  105 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/configure                           |  342 +++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/configure.in                        |  268 ++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/connect.c                           |   69 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-execstack.c                      |   58 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-machine.h                        |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-osinfo.h                         |  120 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fcntl.c                             |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstat.c                            |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstat64.c                          |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstatfs.c                          |   35
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstatfs64.c                        |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatfs.c                           |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatfs64.c                         |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatvfs.c                          |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatvfs64.c                        |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate.c                         |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate64.c                       |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fxstat.c                            |   48 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fxstat64.c                          |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c                            |   91 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents.c                          |   90 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents64.c                        |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdirentries.c                     |  100 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdirentries64.c                   |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getfsstat.c                         |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getfsstat64.c                       |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gethostid.c                         |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gethostname.c                       |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getloadavg.c                        |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin.c                          |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin_r.c                        |   70 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getmntinfo.c                        |   80 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getmntinfo64.c                      |   78 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getpagesize.c                       |   42
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getpt.c                             |   92 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getrlimit64.c                       |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getsysstats.c                       |  108 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/glob.c                              |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/glob64.c                            |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gtty.c                              |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/Makefile                       |   19
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/Versions                       |    7
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h                |  111 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h              |   97 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/time.h                    |   89 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/dl-machine.h                   |  124 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/dl-procinfo.h                  |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/get_clockfreq.c                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/getcontext.S                   |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_get_ioperm.c              |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_get_ldt.c                 |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_set_ioperm.c              |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_set_ldt.c                 |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_vm86.c                    |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i486/linuxthreads/pt-machine.h |    8
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i586/linuxthreads/pt-machine.h |    8
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i686/linuxthreads/pt-machine.h |    8
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/iopl.c                         |   54 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/ldconfig.h                     |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/linuxthreads/pt-machine.h      |   76 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/linuxthreads/sysdep-cancel.h   |  166 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/linuxthreads/tls.h             |   93 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/makecontext.S                  |  113 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/rfork.S                        |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sigcontextinfo.h               |   35
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S                 |  207 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/swapcontext.S                  |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/io.h                       |  180 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/perm.h                     |   43
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/vm86.h                     |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_fork.S                     |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_lseek.S                    |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysarch.h                      |   81 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S                      |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.S                       |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.h                       |  235 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/ucontext_i.h                   |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/vfork.S                        |   58 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/if_index.c                          |  303 ++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ifaddrs.c                           |  362 ++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ifreq.c                             |   93 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/init-first.c                        |  128 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-features.h                   |   43
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-posix-cpu-timers.h           |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ldsodefs.h                          |   39
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Implies                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Makefile               |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Versions               |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/allocrtsig.c           |   14
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/local_lim.h       |   48 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/posix_opt.h       |  190 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/sigthread.h       |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/typesizes.h       |   66 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/execve.c               |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/fatal-prepare.h        |   39
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/fork.c                 |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/fork.h                 |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/jmp-unwind.c           |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/lowlevellock.h         |   47 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/pt-sigsuspend.S        |   29
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/raise.c                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/register-atfork.c      |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/smp.h                  |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/unregister-atfork.c    |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/llseek.c                            |    6
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lseek.c                             |   86 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lseek64.c                           |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lxstat.c                            |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lxstat64.c                          |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c                              |   84 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap64.c                            |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/munmap.c                            |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/ethernet.h                      |   76 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/if.h                            |  424 +++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/if_ether.h                      |  104 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/if_ether.h                  |  138 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/ip_icmp.h                   |  296 ++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/tcp.h                       |  258 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nfs/nfs.h                           |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/not-cancel.h                        |   88 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ntp_gettime.c                       |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open.c                              |   89 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open64.c                            |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open_2.c                            |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/openat.c                            |  110 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/openat64.c                          |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/paths.h                             |   74 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread.c                             |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread64.c                           |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/prof-freq.c                         |   47 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptrace.c                            |   68 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptsname.c                           |  104 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite.c                            |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite64.c                          |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir.c                           |   11
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir64.c                         |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir64_r.c                       |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir_r.c                         |   11
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readv.c                             |   57 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/recv.c                              |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/rtld-lowlevel.h                     |  131 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sa_len.c                            |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sbrk.c                              |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sched_getp.c                        |   45 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/seekdir.c                           |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/semctl.c                            |   87 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/send.c                              |   47 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sendto.c                            |   70 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sethostid.c                         |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sethostname.c                       |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/setlogin.c                          |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/setrlimit64.c                       |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigaction.c                         |   47 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigreturn.c                         |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigset-cvt-mask.h                   |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigstack.c                          |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sleep.c                             |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stat16conv.c                        |   80 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statconv.c                          |   46 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statfs.c                            |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statfs64.c                          |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statfsconv.c                        |  203 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statvfs.c                           |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statvfs64.c                         |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stty.c                              |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/kd.h                            |   25
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h                         |  436 ++++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/param.h                         |  237 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ptrace.h                        |  132 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/rfork.h                         |   91 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/swap.h                          |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h                       |  419 +++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/sysmacros.h                     |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ttydefaults.h                   |   96 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ucontext.h                      |   48 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h                   |   54 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list                       |  157 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sysconf.c                           |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sysctlbyname.c                      |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/tcdrain.c                           |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/tcflow.c                            |    4
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/telldir.c                           |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/testrtsig.h                         |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate.c                          |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate64.c                        |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ulimit.c                            |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/uname.c                             |  110 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlockpt.c                          |   45 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/usleep.c                            |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ustat.c                             |   66 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/Makefile                |    6
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/bits/utmp.h             |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutmp.c               |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutmpx.c              |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutxent.c             |   46 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutxid.c              |   68 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutxline.c            |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/pututxline.c            |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/updwtmpx.c              |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/utmp-equal.h            |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/utmp_file.c             |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/utmpconv.c              |  227 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-utmpx/utmp_file.c              |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/wait.c                              |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/wait3.c                             |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/waitpid.c                           |   56 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/writev.c                            |   57 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/Makefile                     |   17
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/Versions                     |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/mcontext.h              |  167 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h            |  147 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/time.h                  |   89 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-cache.h                   |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-machine.h                 |   80 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-procinfo.c                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-procinfo.h                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/elf/start.S                  |  143 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/get_clockfreq.c              |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/getcontext.S                 |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/iopl.c                       |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldconfig.h                   |   39
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldd-rewrite.sed              |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/Makefile        |    4
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/asm/prctl.h     |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/pt-machine.h    |   51 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/sysdep-cancel.h |  145 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/tls.h           |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S                |  146 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/pipe.S                       |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/readelflib.c                 |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/rfork.S                      |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sigcontextinfo.h             |   35
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/start_thread.S               |  196 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/swapcontext.S                |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/io.h                     |  171 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/perm.h                   |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys_fork.S                   |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysarch.h                    |   48 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/syscall.S                    |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysdep.S                     |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysdep.h                     |  233 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ucontext_i.h                 |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Dist                                |   30
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Implies                             |   11
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile                            |  124 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions                            |  101 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/_G_config.h                         |  100 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/Makefile                      |   28
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/README                        |   11
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/adjtime.c                     |   51 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/kernel_time_t.h          |  143 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/mcontext.h               |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/sigcontext.h             |   84 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/stat16.h                 |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/stat32.h                 |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/bits/time.h                   |   89 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/brk.S                         |   73 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/dl-brk.S                      |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/dl-machine.h                  |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/fhstatfs64.c                  |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/fork.S                        |   30
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/fpu.h                         |  128 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/fstatfs64.c                   |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/futimes.c                     |   43
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getfsstat64.c                 |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getitimer.c                   |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getmntinfo.c                  |    8
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getmntinfo64.c                |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/getrusage.c                   |   63 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/gettimeofday.c                |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/ieee_get_fp_control.c         |   35
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/ieee_set_fp_control.c         |   33
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/lutimes.c                     |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/machine/pal.h                 |   57 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/msgctl.c                      |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/nanosleep.c                   |   54 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/poll.c                        |   46 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/regdef.h                      |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/rfork.S                       |   29
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/sched_rr_gi.c                 |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/select.c                      |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/semctl.c                      |   87 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/setfpucw.c                    |   88 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/setitimer.c                   |   63 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/settimeofday.c                |   43
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/shmctl.c                      |   58 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/sigcontextinfo.h              |   25
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/start_thread.S                |  172 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/statfs64.c                    |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/sysarch.h                     |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/syscall.S                     |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/syscalls.list                 |   21
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/sysdep.h                      |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/utimes.c                      |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/vfork.S                       |   29
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bind.c                              |   60 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/dirent.h                       |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/errno.h                        |  182 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/fcntl.h                        |  145 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/in.h                           |  249 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/ioctl-types.h                  |   57 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/ioctls.h                       |   67 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/ipc.h                          |   56 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/local_lim.h                    |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/mman.h                         |  130 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/msq.h                          |   73 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/poll.h                         |   51 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/posix_opt.h                    |   90 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/resource.h                     |  200 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sched.h                        |  177 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sem.h                          |   91 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/shm.h                          |   74 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigaction.h                    |   76 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h                      |  214 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/signum.h                       |   71 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h                       |  140 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/socket.h                       |  386 ++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h                         |  199 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat16.h                       |   56 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/statfs.h                       |   91 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/statvfs.h                      |   95 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sys_errlist.h                  |   33
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/syslog-path.h                  |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/termios.h                      |  259 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/typesizes.h                    |   66 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/uio.h                          |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/utsname.h                      |   27
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/waitflags.h                    |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/brk.c                               |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/check_fds.c                         |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/check_pf.c                          |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_getres.c                      |   33
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_gettime.c                     |   33
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_settime.c                     |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clone.c                             |  105 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/configure                           |  342 +++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/configure.in                        |  268 ++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/connect.c                           |   69 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-execstack.c                      |   58 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-machine.h                        |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-osinfo.h                         |  120 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fcntl.c                             |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstat.c                            |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstat64.c                          |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstatfs.c                          |   35
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstatfs64.c                        |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatfs.c                           |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatfs64.c                         |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatvfs.c                          |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fstatvfs64.c                        |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate.c                         |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate64.c                       |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fxstat.c                            |   48 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fxstat64.c                          |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c                            |   91 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents.c                          |   90 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents64.c                        |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdirentries.c                     |  100 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdirentries64.c                   |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getfsstat.c                         |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getfsstat64.c                       |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gethostid.c                         |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gethostname.c                       |   52 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getloadavg.c                        |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin.c                          |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin_r.c                        |   70 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getmntinfo.c                        |   80 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getmntinfo64.c                      |   78 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getpagesize.c                       |   42
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getpt.c                             |   92 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getrlimit64.c                       |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getsysstats.c                       |  108 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/glob.c                              |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/glob64.c                            |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gtty.c                              |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/Makefile                       |   19
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/Versions                       |    7
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h                |  111 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/sigcontext.h              |   97 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/time.h                    |   89 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/dl-machine.h                   |  124 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/dl-procinfo.h                  |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/get_clockfreq.c                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/getcontext.S                   |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_get_ioperm.c              |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_get_ldt.c                 |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_set_ioperm.c              |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_set_ldt.c                 |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i386_vm86.c                    |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i486/linuxthreads/pt-machine.h |    8
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i586/linuxthreads/pt-machine.h |    8
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/i686/linuxthreads/pt-machine.h |    8
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/iopl.c                         |   54 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/ldconfig.h                     |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/linuxthreads/pt-machine.h      |   76 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/linuxthreads/sysdep-cancel.h   |  166 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/linuxthreads/tls.h             |   93 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/makecontext.S                  |  113 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/rfork.S                        |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sigcontextinfo.h               |   35
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/start_thread.S                 |  207 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/swapcontext.S                  |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/io.h                       |  180 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/perm.h                     |   43
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys/vm86.h                     |   53 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_fork.S                     |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_lseek.S                    |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysarch.h                      |   81 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/syscall.S                      |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.S                       |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.h                       |  235 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/ucontext_i.h                   |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/vfork.S                        |   58 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/if_index.c                          |  303 ++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ifaddrs.c                           |  362 ++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ifreq.c                             |   93 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/init-first.c                        |  128 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-features.h                   |   43
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-posix-cpu-timers.h           |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ldsodefs.h                          |   39
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Implies                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Makefile               |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Versions               |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/allocrtsig.c           |   14
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/local_lim.h       |   48 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/posix_opt.h       |  190 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/sigthread.h       |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/typesizes.h       |   66 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/execve.c               |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/fatal-prepare.h        |   39
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/fork.c                 |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/fork.h                 |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/jmp-unwind.c           |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/lowlevellock.h         |   47 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/pt-sigsuspend.S        |   29
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/raise.c                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/register-atfork.c      |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/smp.h                  |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/unregister-atfork.c    |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/llseek.c                            |    6
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lseek.c                             |   86 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lseek64.c                           |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lxstat.c                            |   49 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lxstat64.c                          |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c                              |   84 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap64.c                            |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/munmap.c                            |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/ethernet.h                      |   76 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/if.h                            |  424 +++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/if_ether.h                      |  104 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/if_ether.h                  |  138 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/ip_icmp.h                   |  296 ++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/tcp.h                       |  258 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nfs/nfs.h                           |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/not-cancel.h                        |   88 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ntp_gettime.c                       |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open.c                              |   89 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open64.c                            |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open_2.c                            |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/openat.c                            |  110 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/openat64.c                          |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/paths.h                             |   74 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread.c                             |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread64.c                           |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/prof-freq.c                         |   47 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptrace.c                            |   68 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptsname.c                           |  104 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite.c                            |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite64.c                          |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir.c                           |   11
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir64.c                         |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir64_r.c                       |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir_r.c                         |   11
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readv.c                             |   57 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/recv.c                              |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/rtld-lowlevel.h                     |  131 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sa_len.c                            |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sbrk.c                              |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sched_getp.c                        |   45 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/seekdir.c                           |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/semctl.c                            |   87 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/send.c                              |   47 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sendto.c                            |   70 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sethostid.c                         |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sethostname.c                       |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/setlogin.c                          |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/setrlimit64.c                       |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigaction.c                         |   47 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigreturn.c                         |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigset-cvt-mask.h                   |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigstack.c                          |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sleep.c                             |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stat16conv.c                        |   80 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statconv.c                          |   46 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statfs.c                            |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statfs64.c                          |   37
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statfsconv.c                        |  203 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statvfs.c                           |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statvfs64.c                         |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stty.c                              |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/kd.h                            |   25
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h                         |  436 ++++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/param.h                         |  237 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ptrace.h                        |  132 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/rfork.h                         |   91 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/swap.h                          |   34
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h                       |  419 +++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/sysmacros.h                     |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ttydefaults.h                   |   96 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ucontext.h                      |   48 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h                   |   54 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list                       |  157 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sysconf.c                           |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sysctlbyname.c                      |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/tcdrain.c                           |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/tcflow.c                            |    4
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/telldir.c                           |    2
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/testrtsig.h                         |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate.c                          |   41
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate64.c                        |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ulimit.c                            |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/uname.c                             |  110 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlockpt.c                          |   45 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/usleep.c                            |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ustat.c                             |   66 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/Makefile                |    6
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/bits/utmp.h             |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutmp.c               |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutmpx.c              |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutxent.c             |   46 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutxid.c              |   68 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/getutxline.c            |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/pututxline.c            |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/updwtmpx.c              |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/utmp-equal.h            |   50 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/utmp_file.c             |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-compat/utmpconv.c              |  227 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/utmp-utmpx/utmp_file.c              |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/wait.c                              |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/wait3.c                             |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/waitpid.c                           |   56 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/writev.c                            |   57 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/Makefile                     |   17
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/Versions                     |    5
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/mcontext.h              |  167 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/sigcontext.h            |  147 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/time.h                  |   89 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-cache.h                   |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-machine.h                 |   80 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-procinfo.c                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-procinfo.h                |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/elf/start.S                  |  143 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/get_clockfreq.c              |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/getcontext.S                 |   38
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/iopl.c                       |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldconfig.h                   |   39
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldd-rewrite.sed              |    3
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/Makefile        |    4
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/asm/prctl.h     |    1
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/pt-machine.h    |   51 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/sysdep-cancel.h |  145 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/tls.h           |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S                |  146 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/pipe.S                       |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/readelflib.c                 |   62 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/rfork.S                      |   44 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sigcontextinfo.h             |   35
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/start_thread.S               |  196 ++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/swapcontext.S                |   32
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/io.h                     |  171 +++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys/perm.h                   |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sys_fork.S                   |   36
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysarch.h                    |   48 +
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/syscall.S                    |   31
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysdep.S                     |   40
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysdep.h                     |  233 +++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ucontext_i.h                 |   38
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Dist                                |   30 
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Implies                             |   11 
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile                            |  124 ++
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions                            |  101 ++
- ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/_G_config.h                         |  102 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/_G_config.h                         |  100 ++
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/Makefile                      |   28 
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/README                        |   11 
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/adjtime.c                     |   51 +
@@ -84,7 +1089,7 @@
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/typesizes.h                    |   66 +
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/uio.h                          |   49 +
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/utsname.h                      |   27 
- ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/waitflags.h                    |   36 
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/waitflags.h                    |   37 
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/brk.c                               |   53 +
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/check_fds.c                         |    1 
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/check_pf.c                          |    1 
@@ -232,7 +1237,7 @@
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readdir_r.c                         |   11 
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readv.c                             |   57 +
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/recv.c                              |   41 
- ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/rtld-lowlevel.h                     |  131 ++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/rtld-lowlevel.h                     |  131 +++
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sa_len.c                            |   44 +
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sbrk.c                              |    1 
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sched_getp.c                        |   45 +
@@ -258,7 +1263,7 @@
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statvfs64.c                         |   41 
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stty.c                              |    3 
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/kd.h                            |   25 
- ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h                         |  437 ++++++++++
+ ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h                         |  436 ++++++++++
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/param.h                         |  237 +++++
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ptrace.h                        |  132 +++
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/rfork.h                         |   91 ++
@@ -338,7 +1343,7 @@
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/xmknod.c                            |   48 +
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/xstat.c                             |   49 +
  ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/xstat64.c                           |   44 +
- 339 files changed, 21793 insertions(+)
+ 339 files changed, 21791 insertions(+)
 
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Dist
@@ -429,7 +1434,7 @@
 +# For <sys/stat.h>.
 +sysdep_routines += sys_fstat sys_lstat sys_mknod sys_nfstat sys_nlstat sys_nstat sys_stat
 +# For <sys/statfs.h>.
-+sysdep_routines += fstatfs64 statfs64 sys_fstatfs sys_statfs   
++sysdep_routines += fstatfs64 statfs64 sys_fstatfs sys_statfs
 +# Other.
 +sysdep_routines += lchmod
 +endif
@@ -593,10 +1598,10 @@
 +    # f*
 +    fhstat64; fhstatfs64;
 +    kqueue; kevent;
-+    
++
 +    #errlist-compat     93
 +    _sys_errlist; sys_errlist; _sys_nerr; sys_nerr;
-+    
++
 +    # functions used in inline functions or macros
 +    __libc_sa_len;
 +  }
@@ -620,7 +1625,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/_G_config.h
-@@ -0,0 +1,102 @@
+@@ -0,0 +1,100 @@
 +/* This file is needed by libio to define various configuration parameters.
 +   These are always the same in the GNU C library.  */
 +
@@ -631,19 +1636,15 @@
 +
 +#include <bits/types.h>
 +#define __need_size_t
-+#define __need_wchar_t
-+#define __need_wint_t
++#if defined _LIBC || defined _GLIBCPP_USE_WCHAR_T
++# define __need_wchar_t
++#endif
 +#define __need_NULL
 +#include <stddef.h>
-+#ifndef _WINT_T
-+/* Integral type unchanged by default argument promotions that can
-+   hold any value corresponding to members of the extended character
-+   set, as well as at least one value that does not correspond to any
-+   member of the extended character set.  */
-+# define _WINT_T
-+typedef unsigned int wint_t;
-+#endif
 +#define __need_mbstate_t
++#if defined _LIBC || defined _GLIBCPP_USE_WCHAR_T
++# define __need_wint_t
++#endif
 +#include <wchar.h>
 +#define _G_size_t	size_t
 +typedef struct
@@ -664,7 +1665,8 @@
 +#define _G_wchar_t	wchar_t
 +#define _G_wint_t	wint_t
 +#define _G_stat64	stat64
-+#include <gconv.h>
++#if defined _LIBC || defined _GLIBCPP_USE_WCHAR_T
++# include <gconv.h>
 +typedef union
 +{
 +  struct __gconv_info __cd;
@@ -674,6 +1676,7 @@
 +    struct __gconv_step_data __data;
 +  } __combined;
 +} _G_iconv_t;
++#endif
 +
 +typedef int _G_int16_t __attribute__ ((__mode__ (__HI__)));
 +typedef int _G_int32_t __attribute__ ((__mode__ (__SI__)));
@@ -764,7 +1767,7 @@
 +Note that on alpha glue code is used in order to use a 64-bit __time_t with a
 +32-bit __kernel_time_t type. All system calls taking arguments with
 +'time_t', 'struct timeval', 'struct timespec', 'struct itimerval',
-+'struct rusage', 'struct msqid_ds', 'struct shmid_ds', 'struct semid_ds' need 
++'struct rusage', 'struct msqid_ds', 'struct shmid_ds', 'struct semid_ds' need
 +some special handling. The benefit is that user programs will not need to switch
 +from a 32-bit time_t to a 64-bit time_t in 2038.
 +
@@ -845,7 +1848,7 @@
 +   02111-1307 USA.  */
 +
 +
-+/* This header files describe the way that structures using time_t 
++/* This header files describe the way that structures using time_t
 +   are represented in the kernel */
 +
 +#ifndef _BITS_KERNEL_TIME_T_H
@@ -2012,13 +3015,13 @@
 +#define GEN_DECINV	-10	/* invalid decimal operand */
 +#define GEN_ROPRAND	-11	/* reserved operand */
 +#define GEN_ASSERTERR	-12	/* assertion error */
-+#define GEN_NULPTRERR	-13	/* null pointer error */
++#define GEN_NULPTRERR	-13	/* a/null pointer error */
 +#define GEN_STKOVF	-14	/* stack overflow */
 +#define GEN_STRLENERR	-15	/* string length error */
 +#define GEN_SUBSTRERR	-16	/* substring error */
 +#define GEN_RANGERR	-17	/* range error */
 +#define GEN_SUBRNG	-18
-+#define GEN_SUBRNG1	-19	 
++#define GEN_SUBRNG1	-19
 +#define GEN_SUBRNG2	-20
 +#define GEN_SUBRNG3	-21	/* these report range errors for */
 +#define GEN_SUBRNG4	-22	/* subscripting (indexing) at levels 0..7 */
@@ -2071,9 +3074,9 @@
 +  kmsqid_ds.msg_stime = msqid_ds->msg_stime;
 +  kmsqid_ds.msg_rtime = msqid_ds->msg_rtime;
 +  kmsqid_ds.msg_ctime = msqid_ds->msg_ctime;
-+  
++
 +  retval = __syscall_msgctl (msqid, cmd, &kmsqid_ds);
-+  
++
 +  msqid_ds->msg_perm = kmsqid_ds.msg_perm;
 +  msqid_ds->__msg_first = kmsqid_ds.__msg_first;
 +  msqid_ds->__msg_last = kmsqid_ds.__msg_last;
@@ -2085,7 +3088,7 @@
 +  msqid_ds->msg_stime = kmsqid_ds.msg_stime;
 +  msqid_ds->msg_rtime = kmsqid_ds.msg_rtime;
 +  msqid_ds->msg_ctime = kmsqid_ds.msg_ctime;
-+ 
++
 +  return retval;
 +}
 +
@@ -2446,13 +3449,13 @@
 +{
 +  int result;
 +  va_list ap;
-+  
++
 +  union semun semun;
 +  union semun semun_ptr;
-+  
++
 +  union __kernel_semun ksemun;
-+  struct __kernel_semid_ds ksemid_ds; 
-+  
++  struct __kernel_semid_ds ksemid_ds;
++
 +  va_start (ap, cmd);
 +  if (cmd == GETALL || cmd == SETVAL || cmd == SETALL)
 +    {
@@ -2468,10 +3471,10 @@
 +      ksemid_ds.sem_nsems = semun.buf->sem_nsems;
 +      ksemid_ds.sem_otime = semun.buf->sem_otime;
 +      ksemid_ds.sem_ctime = semun.buf->sem_ctime;
-+      
++
 +      ksemun.buf = &ksemid_ds
 +      semun_ptr = (semun_ptr *) &ksemun;
-+    }	    
++    }
 +  else
 +    {
 +      semun_ptr = NULL;
@@ -2488,7 +3491,7 @@
 +      semun.buf->sem_otime = ksemid_ds.sem_otime;
 +      semun.buf->sem_ctime = ksemid_ds.sem_ctime;
 +    }
-+  
++
 +  return result;
 +}
 +
@@ -2739,7 +3742,7 @@
 +  kshmid_ds.shm_dtime = shmid_ds->shm_dtime;
 +  kshmid_ds.shm_ctime = shmid_ds->shm_ctime;
 +  kshmid_ds.__shm_internal = shmid_ds->__shm_internal;
-+  
++
 +  retval = __syscall_shmctl (shmid, cmd, &kshmid_ds);
 +
 +  shmid_ds->shm_perm = kshmid_ds.shm_perm;
@@ -2751,7 +3754,7 @@
 +  shmid_ds->shm_dtime = kshmid_ds.shm_dtime;
 +  shmid_ds->shm_ctime = kshmid_ds.shm_ctime;
 +  shmid_ds->__shm_internal = kshmid_ds.__shm_internal;
-+  
++
 +  return retval;
 +}
 +
@@ -3191,13 +4194,13 @@
 +
 +/* According to POSIX.1-2004 the len argument specifies the length of
 +   the sockaddr structure pointed to by the addrarg argument. However
-+   the FreeBSD kernel waits the actual length of the address stored 
++   the FreeBSD kernel waits the actual length of the address stored
 +   there. The code below emulate this behaviour. */
 +
 +extern int __libc_sa_len (sa_family_t __af);
 +extern int __libc_sa_len_internal (sa_family_t __af);
 +
-+extern int __syscall_bind (int fd, __CONST_SOCKADDR_ARG addr, 
++extern int __syscall_bind (int fd, __CONST_SOCKADDR_ARG addr,
 +			   socklen_t addrlen) __THROW;
 +libc_hidden_proto (__syscall_bind)
 +
@@ -3210,18 +4213,18 @@
 +__bind (int fd, __CONST_SOCKADDR_ARG addr, socklen_t addrlen)
 +{
 +  socklen_t new_addrlen;
-+  
++
 +#ifndef NOT_IN_libc
 +  new_addrlen = INTUSE(__libc_sa_len) ((addr.__sockaddr__)->sa_family);
 +#else
 +  new_addrlen = __libc_sa_len ((addr.__sockaddr__)->sa_family);
 +#endif
-+	
++
 +  /* Only allow a smaller size, otherwise it could lead to
 +    stack corruption */
 +  if (new_addrlen < addrlen)
 +    addrlen = new_addrlen;
-+		
++
 +  /* We pass 3 arguments.  */
 +  return INLINE_SYSCALL (bind, 3, fd, addr, addrlen);
 +}
@@ -3466,7 +4469,7 @@
 +#define	EILSEQ		86		/* Illegal byte sequence */
 +
 +#endif /* !_ERRNO_H && __need_Emath */
-+      
++
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/fcntl.h
 @@ -0,0 +1,145 @@
@@ -3899,7 +4902,7 @@
 +  _IOT (_IOTS (char), 6, 0, 0, 0, 0)
 +
 +/* Type of ARG for TIOCGLTC and TIOCSLTC requests.  */
-+/* struct ltchars is defined in <sys/ioctl_compat.h> */ 
++/* struct ltchars is defined in <sys/ioctl_compat.h> */
 +#define	_IOT_ltchars	/* Hurd ioctl type field.  */ \
 +  _IOT (_IOTS (char), 6, 0, 0, 0, 0)
 +
@@ -4447,7 +5450,7 @@
 +/* Transmute defines to enumerations.  The macro re-definitions are
 +   necessary because some programs want to test for operating system
 +   features with #ifdef RUSAGE_SELF.  In ISO C the reflexive
-+   definition is a no-op. 
++   definition is a no-op.
 +
 +   These are the values for FreeBSD.  Earlier BSD systems have a subset of
 +   these kinds of resource limit.  */
@@ -5681,7 +6684,7 @@
 +#define MSG_COMPAT MSG_COMPAT
 +    MSG_NOSIGNAL	= 0x20000 /* do not generate SIGPIPE on EOF */
 +#if 0 /* available since FreeBSD 6.0 */
-+#define MSG_NOSIGNAL MSG_NOSIGNAL 
++#define MSG_NOSIGNAL MSG_NOSIGNAL
 +#endif
 +  };
 +
@@ -6097,7 +7100,7 @@
 +
 +/* This structure corresponds to the standard FreeBSD 'struct stat'
 +   (i.e. _STAT_VER_stat), and is used by the stat() system call family. */
-+   
++
 +struct stat16
 +  {
 +    __dev_t st_dev;		/* Device containing the file.  */
@@ -6126,7 +7129,7 @@
 +    __uint32_t st_gen;		/* Generation number.  */
 +
 +    __uint32_t __unused1;
-+    
++
 +    long int st_birthtime;	/* Time of file creation.  */
 +    long int st_birthtimensec;	/* Nanoseconds of file creation.  */
 +
@@ -6810,7 +7813,7 @@
 +#define _UTSNAME_VERSION_LENGTH 256
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/waitflags.h
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,37 @@
 +/* Definitions of flag bits for `waitpid' et al.
 +   Copyright (C) 1992, 1996-1997, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -6842,6 +7845,7 @@
 +/* Bits in the fourth argument to `waitid'.  */
 +#define	WSTOPPED	2	/* Report stopped child (same as WUNTRACED). */
 +#define	WCONTINUED	4	/* Report continued child.  */
++#define	WNOWAIT		8	/* Poll only. Don't delete the proc entry. */
 +
 +#define __WCLONE	0x80000000	/* Wait for cloned process.  */
 +#ifdef __USE_BSD
@@ -7070,7 +8074,7 @@
 +int __clone (int (*fn) (void *), void *child_stack, int flags, void *arg)
 +{
 +  int rfork_flags = RFPROC;
-+  
++
 +  if (fn == NULL || child_stack == NULL)
 +    {
 +      __set_errno (EINVAL);
@@ -7487,7 +8491,7 @@
 +# The kFreeBSD headers can be found in
 +#   /usr/src/sys/
 +# Check whether this directory is available.
-+if test -z "$sysheaders" && 
++if test -z "$sysheaders" &&
 +   test "x$cross_compiling" = xno &&
 +   test -d /usr/src/sys/ ; then
 +  sysheaders="/usr/src/sys/"
@@ -7523,7 +8527,7 @@
 +  AC_MSG_ERROR([GNU libc requires kernel header files from
 +kFreeBSD LIBC_KFREEBSD_VERSION or later to be installed before configuring.
 +The kernel header files are found usually in /usr/src/sys/; make sure
-+these directories use files from kFreeBSD LIBC_KFREEBSD_VERSION or later.  
++these directories use files from kFreeBSD LIBC_KFREEBSD_VERSION or later.
 +This check uses <osreldate.h>, so
 +make sure that file was built correctly when installing the kernel header
 +files.  To use kernel headers not from /usr/src/sys/, use the
@@ -7770,13 +8774,13 @@
 +
 +/* According to POSIX.1-2004 the len argument specifies the length of
 +   the sockaddr structure pointed to by the addrarg argument. However
-+   the FreeBSD kernel waits the actual length of the address stored 
++   the FreeBSD kernel waits the actual length of the address stored
 +   there. The code below emulate this behaviour.  */
 +
 +extern int __libc_sa_len (sa_family_t __af);
 +extern int __libc_sa_len_internal (sa_family_t __af);
 +
-+extern int __syscall_connect (int fd, __CONST_SOCKADDR_ARG addr, 
++extern int __syscall_connect (int fd, __CONST_SOCKADDR_ARG addr,
 +			      socklen_t addrlen);
 +libc_hidden_proto (__syscall_connect)
 +
@@ -7789,7 +8793,7 @@
 +__libc_connect (int fd, __CONST_SOCKADDR_ARG addr, socklen_t addrlen)
 +{
 +  socklen_t new_addrlen;
-+	
++
 +#ifndef NOT_IN_libc
 +  new_addrlen = INTUSE(__libc_sa_len) ((addr.__sockaddr__)->sa_family);
 +#else
@@ -7800,11 +8804,11 @@
 +    stack corruption */
 +  if (new_addrlen < addrlen)
 +    addrlen = new_addrlen;
-+		
++
 +  /* We pass 3 arguments.  */
 +  if (SINGLE_THREAD_P)
 +    return INLINE_SYSCALL (connect, 3, fd, addr, addrlen);
-+  
++
 +  int oldtype = LIBC_CANCEL_ASYNC ();
 +  int result = INLINE_SYSCALL (connect, 3, fd, addr, addrlen);
 +  LIBC_CANCEL_RESET (oldtype);
@@ -8016,7 +9020,7 @@
 +_dl_setup_stack_chk_guard (void)
 +{
 +  uintptr_t ret;
-+#ifdef ENABLE_STACKGUARD_RANDOMIZE 
++#ifdef ENABLE_STACKGUARD_RANDOMIZE
 +  int fd = __open ("/dev/urandom", O_RDONLY);
 +  if (fd >= 0)
 +    {
@@ -8150,7 +9154,7 @@
 +fhstatfs (const fhandle_t *fhp, struct statfs *buf)
 +{
 +  struct statfs_fbsd5 kbuf;
-+   
++
 +  if (__syscall_fhstatfs (fhp, &kbuf) < 0)
 +    return -1;
 +
@@ -8188,7 +9192,7 @@
 +fhstatfs64 (const fhandle_t *fhp, struct statfs64 *buf)
 +{
 +  struct statfs_fbsd5 kbuf;
-+   
++
 +  if (__syscall_fhstatfs (fhp, &kbuf) < 0)
 +    return -1;
 +
@@ -8853,12 +9857,12 @@
 +  if (bufsize < 0)
 +    bufsize = 0;
 +  bufcount = bufsize / sizeof (struct statfs);
-+  
++
 +  if ((bufcount == 0) || (buf == NULL))
 +    tmpbuf = NULL;
-+  else  
++  else
 +    tmpbuf = alloca(bufcount * sizeof (struct statfs_fbsd5));
-+      
++
 +  count = __syscall_getfsstat (tmpbuf, bufcount * sizeof (struct statfs_fbsd5), flags);
 +  if (tmpbuf && count > 0)
 +    for (i = count - 1; i >= 0; i--)
@@ -8905,12 +9909,12 @@
 +  if (bufsize < 0)
 +    bufsize = 0;
 +  bufcount = bufsize / sizeof (struct statfs64);
-+  
++
 +  if ((bufcount == 0) || (buf == NULL))
 +    tmpbuf = NULL;
-+  else  
++  else
 +    tmpbuf = alloca(bufcount * sizeof (struct statfs_fbsd5));
-+      
++
 +  count = __syscall_getfsstat (tmpbuf, bufcount * sizeof (struct statfs_fbsd5), flags);
 +  if (tmpbuf && count > 0)
 +    for (i = count - 1; i >= 0; i--)
@@ -8986,8 +9990,8 @@
 +#include <sys/sysctl.h>
 +#include <errno.h>
 +
-+/* Put the name of the current host in no more than LEN bytes of NAME. 
-+   The result is null-terminated if LEN is large enough for the full
++/* Put the name of the current host in no more than LEN bytes of NAME.
++   The result is a/null-terminated if LEN is large enough for the full
 +   name and the terminator.  */
 +
 +int
@@ -9700,7 +10704,7 @@
 + * modification, are permitted provided that the following conditions
 + * are met:
 + * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer 
++ *    notice, this list of conditions and the following disclaimer
 + *    in this position and unchanged.
 + * 2. Redistributions in binary form must reproduce the above copyright
 + *    notice, this list of conditions and the following disclaimer in the
@@ -9975,7 +10979,7 @@
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/dl-machine.h
 @@ -0,0 +1,124 @@
-+/* Machine-dependent ELF dynamic relocation inline functions. 
++/* Machine-dependent ELF dynamic relocation inline functions.
 +   FreeBSD i386 specific version of dl_platform_init()
 +   Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -10056,7 +11060,7 @@
 +	int val, hwcap;
 +
 +	val = try_flip_flags(X86_EFLAGS_AC | X86_EFLAGS_ID);
-+	
++
 +	if (!(val & X86_EFLAGS_AC))
 +	{
 +		/* 386 */
@@ -10133,9 +11137,9 @@
 +
 +.text
 +ENTRY(__getcontext)
-+        clc  
++        clc
 +        movl 0(%esp), %ecx	/* save the return PC value */
-+ 
++
 +        DO_CALL (getcontext, 1)
 +        jb SYSCALL_ERROR_LABEL
 +
@@ -10497,10 +11501,10 @@
 +#ifndef _FREEBSD_PT_MACHINE_H
 +#define _FREEBSD_PT_MACHINE_H   1
 +
-+/* 
-+  some parts are common with linux/i386 version 
-+  
-+  linux specific parts should be in 
++/*
++  some parts are common with linux/i386 version
++
++  linux specific parts should be in
 +  linuxthreads/sysdeps/unix/sysv/linux/i386/
 +  but they are included directly in
 +  linuxthreads/sysdeps/i386/
@@ -10602,21 +11606,21 @@
 +    jb SYSCALL_ERROR_LABEL;						      \
 +  L(pseudo_end):
 +
-+/* 
-+  on FreeBSD some syscalls return result in pair edx+eax, 
++/*
++  on FreeBSD some syscalls return result in pair edx+eax,
 +  therefore proper way would be
 +
-+# define PUSHRESULT	pushl %edx; pushl %eax; pushfl		
++# define PUSHRESULT	pushl %edx; pushl %eax; pushfl
 +# define POPRESULT	popfl; popl %eax; popl %edx
-+ 
++
 +  for FreeBSD 5.4 affected syscalls are
-+  
++
 +	lseek()
 +	fork()
 +	vfork()
 +	rfork()
 +	pipe()
-+   
++
 +   none of them is cancelable, therefore
 +*/
 +
@@ -10717,7 +11721,7 @@
 +  __builtin_expect (THREAD_GETMEM (THREAD_SELF, \
 +                                     p_header.data.multiple_threads) == 0, 1)
 +#endif
-+                                     
++
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/linuxthreads/tls.h
 @@ -0,0 +1,93 @@
@@ -10725,7 +11729,7 @@
 +   Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Modification for FreeBSD by Petr Salinger, 2005.
-+   
++
 +   The GNU C Library is free software; you can redistribute it and/or
 +   modify it under the terms of the GNU Lesser General Public
 +   License as published by the Free Software Foundation; either
@@ -10747,7 +11751,7 @@
 +#include <linuxthreads/sysdeps/i386/tls.h>
 +
 +/* We can support TLS only if the floating-stack support is available.
-+   To avoid bothering with the TLS support code at all, 
++   To avoid bothering with the TLS support code at all,
 +   use configure --without-tls.
 +
 +   We need USE_TLS to be consistently defined, for ldsodefs.h conditionals.
@@ -10794,7 +11798,7 @@
 +  (TLS_DO_SET_GSBASE(descr)                                                   \
 +   ? "set_thread_area failed when setting up thread-local storage\n" : NULL)
 +
-+/*   The value of this macro is null if successful, or an error string.  */
++/*   The value of this macro is a/null if successful, or an error string.  */
 +
 +#  define TLS_INIT_TP(descr, secondcall)				      \
 +  ({									      \
@@ -10955,9 +11959,9 @@
 +
 +.text;
 +ENTRY (__rfork)
-+	/* save the return PC value into ECX, 
++	/* save the return PC value into ECX,
 +	   preserve stack frame with argument  */
-+	movl 0(%esp), %ecx; 
++	movl 0(%esp), %ecx;
 +	DO_CALL (rfork, 1)
 +	jb SYSCALL_ERROR_LABEL;
 +	/* R1 is now 0 for the parent and 1 for the child.  Decrement it to
@@ -10999,14 +12003,14 @@
 +   02111-1307 USA.  */
 +
 +/*
-+native FreeBSD: 
++native FreeBSD:
 +        sighandler(int signum, int code,       struct sigcontext * sg, void * fault_ip)
-+posix like: 
++posix like:
 +        sighandler(int signum, siginfo_t * si, struct sigcontext * sg, void * fault_ip)
 +*/
 +
 +#define SIGCONTEXT long _code, struct sigcontext * _sg, void *
-+#define SIGCONTEXT_EXTRA_ARGS _code, _sg, 
++#define SIGCONTEXT_EXTRA_ARGS _code, _sg,
 +
 +/* really, really, rest of glibc expects that struct sigcontext is the last argument */
 +#define GET_PC(ctx)	((void *) (_sg)->sc_eip)
@@ -11611,7 +12615,7 @@
 +PSEUDO_NOERRNO(__syscall_freebsd6_lseek, freebsd6_lseek, 4)
 +        jnb L(no_error)
 +	call SYSCALL_ERROR_LABEL;
-+	orl $-1, %edx; 
++	orl $-1, %edx;
 +L(pseudo_end):
 +L(no_error):
 +	ret
@@ -11931,7 +12935,7 @@
 +# endif	/* _LIBC_REENTRANT */
 +#endif	/* PIC */
 +
-+/* 
++/*
 +    FreeBSD expects the system call arguments on the stack,
 +   syscall number is in %eax.
 +   return value is in %eax + %edx
@@ -12564,7 +13568,7 @@
 +			}
 +			free(buf);
 +			buf = NULL;
-+		} 
++		}
 +	} while (buf == NULL);
 +
 +	for (next = buf; next < buf + needed; next += rtm->rtm_msglen) {
@@ -13046,8 +14050,8 @@
 +#endif
 +
 +/* We assume for __KFREEBSD_KERNEL_VERSION the same encoding used in
-+   osreldate.h.  I.e., the major, minor, and subminor are all 
-+   concatenated, with two digits for each.  This means we can do 
++   osreldate.h.  I.e., the major, minor, and subminor are all
++   concatenated, with two digits for each.  This means we can do
 +   numeric comparisons.
 +
 +   In the following we will define certain symbols depending on
@@ -13592,7 +14596,7 @@
 +  volatile void *	uv;	/* in fact struct umtx from <sys/umtx.h> */
 +  volatile int		iv;
 +  volatile long		lv;
-+  
++
 +} __rtld_mrlock_t;
 +
 +#define UMTX_OP_WAIT	2	/*  <sys/umtx.h> */
@@ -13929,7 +14933,7 @@
 +			     int __flags, int __fd, int __unused1,
 +			     __off_t __offset) __THROW;
 +libc_hidden_proto (__syscall_freebsd6_mmap)
-+			     
++
 +extern ssize_t __syscall_freebsd6_pread (int __fd, void *__buf, size_t __nbytes,
 +                                int __unused1, __off_t __offset) __THROW;
 +
@@ -14441,7 +15445,7 @@
 +	void            *ifd_data;
 +};
 +
-+/* 
++/*
 + * Structure used to retrieve aux status data from interfaces.
 + * Kernel suppliers to this interface should respect the formatting
 + * needed by ifconfig(8): each line starts with a TAB and ends with
@@ -14525,7 +15529,7 @@
 +
 +struct if_nameindex {
 +	unsigned int	if_index;	/* 1, 2, ... */
-+	char		*if_name;	/* null terminated name: "le0", ... */
++	char		*if_name;	/* a/null terminated name: "le0", ... */
 +};
 +
 +__BEGIN_DECLS
@@ -14739,7 +15743,7 @@
 +	unsigned short sin_other;
 +#define SIN_PROXY 1
 +};
-+                                                                                                         
++
 +/*
 + * IP and ethernet specific routing flags
 + */
@@ -15420,7 +16424,7 @@
 +
 +/* Uncancelable writev.  */
 +#define writev_not_cancel_no_status(fd, iov, n) \
-+  INLINE_SYSCALL (writev, 3, (fd), (iov), (n)) 
++  INLINE_SYSCALL (writev, 3, (fd), (iov), (n))
 +
 +/* Uncancelable fcntl.  */
 +#define fcntl_not_cancel(fd, cmd, val) \
@@ -15549,9 +16553,9 @@
 +      mode = va_arg (arg, int);
 +      va_end (arg);
 +    }
-+  
++
 +  if (SINGLE_THREAD_P)
-+  { 
++  {
 +    fd = INLINE_SYSCALL (open, 3, file, oflag, mode);
 +  }
 +  else
@@ -15652,13 +16656,13 @@
 +      /* Check FD is associated with a directory.  */
 +      struct stat64 st;
 +      if (__fxstat64 (_STAT_VER, fd, &st) != 0)
-+	/* errno is already set correctly.  */ 
++	/* errno is already set correctly.  */
 +        return -1;
 +
 +      if (!S_ISDIR (st.st_mode))
 +	__set_errno (ENOTDIR);
 +      else
-+	__set_errno (ENOSYS);	
++	__set_errno (ENOSYS);
 +      return -1;
 +    }
 +  return INLINE_SYSCALL (open, 3, file, oflag, mode);
@@ -15846,7 +16850,7 @@
 +  int oldtype = LIBC_CANCEL_ASYNC ();
 +  ssize_t result = INLINE_SYSCALL (freebsd6_pread, 5, fd, buf, nbytes, 0, offset);
 +  LIBC_CANCEL_RESET (oldtype);
-+  return result; 
++  return result;
 +}
 +
 +strong_alias (__libc_pread, __pread)
@@ -16131,7 +17135,7 @@
 +  int oldtype = LIBC_CANCEL_ASYNC ();
 +  ssize_t result = INLINE_SYSCALL (freebsd6_pwrite, 5, fd, buf, nbytes, 0, offset);
 +  LIBC_CANCEL_RESET (oldtype);
-+  return result; 
++  return result;
 +}
 +
 +strong_alias (__libc_pwrite, __pwrite)
@@ -16233,7 +17237,7 @@
 +    ssize_t result = INLINE_SYSCALL (readv, 3, fd, CHECK_N (vector, count), count);
 +    LIBC_CANCEL_RESET (oldtype);
 +    return result;
-+    
++
 +  }
 +  else
 +    return __atomic_readv_replacement (fd, vector, count);
@@ -16272,7 +17276,7 @@
 +#define __syscall_recvfrom __libc_recvfrom
 +ssize_t __libc_recvfrom(int s, void *buf, size_t len, int flags,
 +                        struct sockaddr *from, socklen_t *fromlen);
-+libc_hidden_proto (__libc_recvfrom)                          
++libc_hidden_proto (__libc_recvfrom)
 +
 +/* Read N bytes into BUF from socket FD.
 +   Return the number of bytes read or -1 for error.  */
@@ -16640,9 +17644,9 @@
 +#include <sysdep.h>
 +#include <sysdep-cancel.h>
 +
-+extern ssize_t __syscall_sendto (int fd, __const __ptr_t buf, 
-+		                 size_t n, int flags, 
-+				 __CONST_SOCKADDR_ARG addr, 
++extern ssize_t __syscall_sendto (int fd, __const __ptr_t buf,
++		                 size_t n, int flags,
++				 __CONST_SOCKADDR_ARG addr,
 +				 socklen_t addrlen);
 +libc_hidden_proto (__syscall_sendto)
 +
@@ -16654,7 +17658,7 @@
 +{
 +  if (SINGLE_THREAD_P)
 +    return INLINE_SYSCALL (sendto, 6, fd, buf, n, flags, NULL, 0);
-+  
++
 +  int oldtype = LIBC_CANCEL_ASYNC ();
 +  int result = INLINE_SYSCALL (sendto, 6, fd, buf, n, flags, NULL, 0);
 +  LIBC_CANCEL_RESET (oldtype);
@@ -16693,15 +17697,15 @@
 +
 +/* According to POSIX.1-2004 the len argument specifies the length of
 +   the sockaddr structure pointed to by the addrarg argument. However
-+   the FreeBSD kernel waits the actual length of the address stored 
++   the FreeBSD kernel waits the actual length of the address stored
 +   there. The code below emulate this behaviour.  */
 +
 +extern int __libc_sa_len (sa_family_t __af);
 +extern int __libc_sa_len_internal (sa_family_t __af);
 +
-+extern ssize_t __syscall_sendto (int fd, __const void * buf, 
-+		                 size_t n, int flags, 
-+				 __CONST_SOCKADDR_ARG addr, 
++extern ssize_t __syscall_sendto (int fd, __const void * buf,
++		                 size_t n, int flags,
++				 __CONST_SOCKADDR_ARG addr,
 +				 socklen_t addrlen);
 +libc_hidden_proto (__syscall_sendto)
 +
@@ -16725,11 +17729,11 @@
 +    stack corruption */
 +  if (new_addrlen < addrlen)
 +    addrlen = new_addrlen;
-+		
++
 +  /* We pass 6 arguments.  */
 +  if (SINGLE_THREAD_P)
 +    return INLINE_SYSCALL (sendto, 6, fd, buf, n, flags, addr, addrlen);
-+  
++
 +  int oldtype = LIBC_CANCEL_ASYNC ();
 +  int result = INLINE_SYSCALL (sendto, 6, fd, buf, n, flags, addr, addrlen);
 +  LIBC_CANCEL_RESET (oldtype);
@@ -17062,9 +18066,9 @@
 +  q->st_blksize = p16->st_blksize;
 +  q->st_flags = p16->st_flags;
 +  q->st_gen = p16->st_gen;
-+#if 0  
++#if 0
 +  memcpy (q->__unused1, p16->__unused2, sizeof (p16->__unused2));
-+#endif  
++#endif
 +}
 +
 +/* Convert a 'struct stat16' to 'struct stat64'.  */
@@ -17086,9 +18090,9 @@
 +  q->st_blksize = p16->st_blksize;
 +  q->st_flags = p16->st_flags;
 +  q->st_gen = p16->st_gen;
-+#if 0  
++#if 0
 +  memcpy (q->__unused1, p16->__unused2, sizeof (p16->__unused2));
-+#endif  
++#endif
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statconv.c
@@ -17214,7 +18218,7 @@
 +statfs64 (const char *file, struct statfs64 *buf)
 +{
 +  struct statfs_fbsd5 kbuf;
-+ 
++
 +  if (__syscall_statfs (file, &kbuf) < 0)
 +    return -1;
 +
@@ -17258,7 +18262,7 @@
 + * filesystem statistics
 + */
 +
-+#define MFSNAMELEN	16		/* length of type name including null */
++#define MFSNAMELEN	16		/* length of type name including a/null */
 +#define MNAMELEN	88		/* size of on/from name bufs */
 +
 +struct statfs_fbsd5 {
@@ -17323,7 +18327,7 @@
 +
 +  p32->f_namemax	= MIN(pk->f_namemax, USHRT_MAX);
 +
-+  memcpy(p32->f_fstypename, pk->f_fstypename, sizeof (p32->f_fstypename));	
++  memcpy(p32->f_fstypename, pk->f_fstypename, sizeof (p32->f_fstypename));
 +  memcpy(p32->f_mntonname,  pk->f_mntonname,  sizeof (p32->f_mntonname));
 +  memcpy(p32->f_mntfromname,pk->f_mntfromname,sizeof (p32->f_mntfromname));
 +}
@@ -17360,7 +18364,7 @@
 +
 +  p64->f_namemax	= MIN(pk->f_namemax, USHRT_MAX);
 +
-+  memcpy(p64->f_fstypename, pk->f_fstypename, sizeof (p64->f_fstypename));	
++  memcpy(p64->f_fstypename, pk->f_fstypename, sizeof (p64->f_fstypename));
 +  memcpy(p64->f_mntonname,  pk->f_mntonname,  sizeof (p64->f_mntonname));
 +  memcpy(p64->f_mntfromname,pk->f_mntfromname,sizeof (p64->f_mntfromname));
 +}
@@ -17383,9 +18387,9 @@
 +  p32->f_files		= MIN(pk->f_files,  ULONG_MAX);
 +  p32->f_ffree		= MIN(pk->f_ffree,  ULONG_MAX);
 +  p32->f_favail		= MIN(pk->f_ffree,  ULONG_MAX); /* Hmm.	 May be filesystem dependent.  */
-+  
++
 +  memcpy(&(p32->f_fsid), &(pk->f_fsid), sizeof(__fsid_t));
-+  
++
 +  p32->f_flag		=
 +      (pk->f_flags & MNT_RDONLY ? ST_RDONLY : 0)
 +    | (pk->f_flags & MNT_NOSUID ? ST_NOSUID : 0)
@@ -17415,9 +18419,9 @@
 +  p64->f_files		= pk->f_files;
 +  p64->f_ffree		= pk->f_ffree;
 +  p64->f_favail		= pk->f_ffree; /* Hmm.	May be filesystem dependent.  */
-+  
++
 +  memcpy(&(p64->f_fsid), &(pk->f_fsid), sizeof(__fsid_t));
-+  
++
 +  p64->f_flag		=
 +      (pk->f_flags & MNT_RDONLY ? ST_RDONLY : 0)
 +    | (pk->f_flags & MNT_NOSUID ? ST_NOSUID : 0)
@@ -17551,7 +18555,7 @@
 +#endif	/* sys/kd.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h
-@@ -0,0 +1,437 @@
+@@ -0,0 +1,436 @@
 +/* Header file for handling mounted filesystems.  FreeBSD version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -17580,7 +18584,6 @@
 +
 +#include <sys/stat.h>
 +#include <sys/statfs.h>
-+#include <rpc/types.h>
 +#include <sys/ucred.h>
 +#include <sys/queue.h>
 +
@@ -17599,7 +18602,7 @@
 +/*
 + * filesystem statistics
 + */
-+#define	MFSNAMELEN	16		/* length of type name including null */
++#define	MFSNAMELEN	16		/* length of type name including a/null */
 +#define	MNAMELEN	88		/* size of on/from name bufs */
 +#define	STATFS_VERSION	0x20030518	/* current version number */
 +
@@ -17820,7 +18823,7 @@
 +#define	VFCF_UNICODE	0x00200000	/* stores file names as Unicode*/
 +#define VFCF_JAIL       0x00400000      /* can be mounted from within a jail */
 +
-+typedef uint32_t fsctlop_t;
++typedef u_int32_t fsctlop_t;
 +
 +struct vfsidctl {
 +	int		vc_vers;	/* should be VFSIDCTL_VERS1 (below) */
@@ -18095,7 +19098,7 @@
 +
 +/* Machine type dependent parameters. */
 +#include <machine/param.h>
-+				 
++
 +#ifndef DEV_BSHIFT
 +#define DEV_BSHIFT	9               /* log2(DEV_BSIZE) */
 +#endif
@@ -18191,13 +19194,13 @@
 + *
 + * BKVASIZE -	Nominal buffer space per buffer, in bytes.  BKVASIZE is the
 + *		minimum KVM memory reservation the kernel is willing to make.
-+ *		Filesystems can of course request smaller chunks.  Actual 
++ *		Filesystems can of course request smaller chunks.  Actual
 + *		backing memory uses a chunk size of a page (PAGE_SIZE).
 + *
 + *		If you make BKVASIZE too small you risk seriously fragmenting
 + *		the buffer KVM map which may slow things down a bit.  If you
-+ *		make it too big the kernel will not be able to optimally use 
-+ *		the KVM memory reserved for the buffer cache and will wind 
++ *		make it too big the kernel will not be able to optimally use
++ *		the KVM memory reserved for the buffer cache and will wind
 + *		up with too-few buffers.
 + *
 + *		The default is 16384, roughly 2x the block size used by a
@@ -18223,7 +19226,7 @@
 +
 +#define dbtoc(db)			/* calculates devblks to pages */ \
 +	((db + (ctodb(1) - 1)) >> (PAGE_SHIFT - DEV_BSHIFT))
-+ 
++
 +#define ctodb(db)			/* calculates pages to devblks */ \
 +	((db) << (PAGE_SHIFT - DEV_BSHIFT))
 +
@@ -18433,7 +19436,7 @@
 +#define RFNOTEG		(1<<3)  /* UNIMPL create new plan9 `note group' */
 +#define RFPROC		(1<<4)  /* change child (else changes curproc) */
 +#define RFMEM		(1<<5)  /* share `address space' */
-+#define RFNOWAIT	(1<<6)  /* parent need not wait() on child */ 
++#define RFNOWAIT	(1<<6)  /* parent need not wait() on child */
 +#define RFCNAMEG	(1<<10) /* UNIMPL zero plan9 `name space' */
 +#define RFCENVG		(1<<11) /* UNIMPL zero plan9 `env space' */
 +#define RFCFDG		(1<<12) /* zero fd table */
@@ -19146,7 +20149,7 @@
 +
 +ssize_t __syscall_read(int fd, void *buf, size_t nbyte);
 +ssize_t __syscall_write(int fd, const void *buf, size_t nbyte);
-+ssize_t __syscall_writev(int fd, const struct iovec *iovp, int iovcnt); 
++ssize_t __syscall_writev(int fd, const struct iovec *iovp, int iovcnt);
 +libc_hidden_proto (__syscall_read)
 +libc_hidden_proto (__syscall_write)
 +libc_hidden_proto (__syscall_writev)
@@ -19523,7 +20526,7 @@
 +      return 0;
 +  if ( val < 700050) /* FreeBSD 7.0 is 700055 */
 +      return 0;
-+  return 1;    
++  return 1;
 +#endif
 +}
 --- /dev/null
@@ -20726,7 +21729,7 @@
 + * modification, are permitted provided that the following conditions
 + * are met:
 + * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer 
++ *    notice, this list of conditions and the following disclaimer
 + *    in this position and unchanged.
 + * 2. Redistributions in binary form must reproduce the above copyright
 + *    notice, this list of conditions and the following disclaimer in the
@@ -21258,7 +22261,7 @@
 +		...
 +					NULL
 +
-+   But on amd64 %rsp also have to be 16-byte aligned, 
++   But on amd64 %rsp also have to be 16-byte aligned,
 +   standard C calling convention already passes arguments in registers.
 +
 +   FreeBSD uses %edi as pointer to arguments and environment, %rsp is passed aligned.
@@ -21374,9 +22377,9 @@
 +
 +.text
 +ENTRY(__getcontext)
-+        clc	
++        clc
 +        movq 0(%rsp), %rsi	/* save the return PC value */
-+ 
++
 +        DO_CALL (getcontext, 1)
 +        jb SYSCALL_ERROR_LABEL
 +
@@ -21474,12 +22477,12 @@
 +   License along with the GNU C Library; if not, write to the Free
 +   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 +   02111-1307 USA.  */
-+               
++
 +#ifndef _FREEBSD_PT_MACHINE_H
 +#define _FREEBSD_PT_MACHINE_H   1
 +
-+/* 
-+  almost all parts are common with linux version 
++/*
++  almost all parts are common with linux version
 + */
 +
 +#include <linuxthreads/sysdeps/x86_64/pt-machine.h>
@@ -21513,7 +22516,7 @@
 +   This file is part of the GNU C Library.
 +   Contributed by Jakub Jelinek <jakub@redhat.com>, 2002.
 +   Modification for FreeBSD contributed by Petr Salinger, 2006.
-+ 
++
 +   The GNU C Library is free software; you can redistribute it and/or
 +   modify it under the terms of the GNU Lesser General Public
 +   License as published by the Free Software Foundation; either
@@ -21661,7 +22664,7 @@
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Modification for FreeBSD by Petr Salinger, 2006.
-+   
++
 +   The GNU C Library is free software; you can redistribute it and/or
 +   modify it under the terms of the GNU Lesser General Public
 +   License as published by the Free Software Foundation; either
@@ -21722,7 +22725,7 @@
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S
 @@ -0,0 +1,146 @@
-+/* makecontext() for FreeBSD/amd64. 
++/* makecontext() for FreeBSD/amd64.
 +   Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Petr Salinger, 2006.
@@ -21745,7 +22748,7 @@
 +#include <sysdep.h>
 +#include <ucontext_i.h>
 +
-+/* 
++/*
 +   void makecontext(ucontext_t *ucp, void *func(), int argc, ...);
 +
 +
@@ -21760,13 +22763,13 @@
 +    8(%rsp)	arg4	-> ucp.rcx
 +   16(%rsp)	arg5	-> ucp.r8
 +   24(%rsp)	arg6	-> ucp.r9
-+   i*8+24(%rsp) arg(6+i)-> future stack	
++   i*8+24(%rsp) arg(6+i)-> future stack
 +
 +*/
-+	
++
 +ENTRY(__makecontext)
 +
-+	/* Compute the address of the stack.  
++	/* Compute the address of the stack.
 +	   The information comes from us_stack element. */
 +	movq	oSS_SP(%rdi), %rax
 +	addq	oSS_SIZE(%rdi), %rax
@@ -21777,7 +22780,7 @@
 +	/* properly align future stack */
 +	andq $-16, %rax
 +	subq   $8, %rax
-+	
++
 +	/* Put the next context into preserved ucp.rbx
 +	   (from the uc_link element).  */
 +	movq	oLINK(%rdi), %rsi
@@ -21993,8 +22996,8 @@
 +
 +.text;
 +ENTRY (__rfork)
-+	/* save the return PC value into RSI */ 
-+	movq 0(%rsp), %rsi; 
++	/* save the return PC value into RSI */
++	movq 0(%rsp), %rsi;
 +	DO_CALL (rfork, 1)
 +	jb SYSCALL_ERROR_LABEL;
 +	/* R1 is now 0 for the parent and 1 for the child.  Decrement it to
@@ -22037,14 +23040,14 @@
 +   02111-1307 USA.  */
 +
 +/*
-+native FreeBSD: 
++native FreeBSD:
 +        sighandler(int signum, int code,       struct sigcontext * sg, void * fault_ip)
-+posix like: 
++posix like:
 +        sighandler(int signum, siginfo_t * si, struct sigcontext * sg, void * fault_ip)
 +*/
 +
 +#define SIGCONTEXT long _code, struct sigcontext * _sg, void *
-+#define SIGCONTEXT_EXTRA_ARGS _code, _sg, 
++#define SIGCONTEXT_EXTRA_ARGS _code, _sg,
 +
 +/* really, really, rest of glibc expects that struct sigcontext is the last argument */
 +#define GET_PC(ctx)	((void *) (_sg)->sc_rip)
@@ -22187,7 +23190,7 @@
 +
 +        subq    $16,%rsi
 +        movq    16(%rsp),%rcx
-+        movq    24(%rsp),%rdx  
++        movq    24(%rsp),%rdx
 +        movq    %rcx, 0(%rsi)
 +        movq    %rdx, 8(%rsi)
 +
@@ -22809,13 +23812,13 @@
 +	stack pointer			rsp
 +	C preserved			rbx, rbp, r12-r15
 +	some input params		rdi, rsi
-+	    
++
 +    destroyed:
 +	return value(s)			rax, rdx, eflags
 +	return address from syscall	rcx
 +	eflags from syscall		r11
 +	used internally			r8-r10
-+    
++
 +    Normal function call, including calls to the system call stub
 +    functions in the libc, get the first six parameters passed in
 +    registers and the seventh parameter and later on the stack.  The

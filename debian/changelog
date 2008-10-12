@@ -45,6 +45,7 @@ glibc (2.8+20080809-2) UNRELEASED; urgency=low
     - Remove any/cvs-fchmodat.diff (merged).
     - Remove any/cvs-gcc-4.3.diff (merged).
     - Remove any/cvs-iconv-iso2022jp-loop-bug.diff (merged).
+    - Remove any/cvs-isoc99_vscanf.diff (merged).
     - Remove any/cvs-rfc3484.diff (merged).
     - Remove any/cvs-sched_h.diff (merged).
     - Remove any/cvs-strerror_r.diff (merged).
@@ -56,6 +57,7 @@ glibc (2.8+20080809-2) UNRELEASED; urgency=low
     - Remove any/cvs-wchar_h.diff (merged).
     - Remove any/local-dl-execstack.diff (outdated).
     - Remove any/local-gcc4-wcstol_l.diff (outdated).
+    - Remove any/local-ip6-localhost.diff (fixed differently).
     - Remove any/local-notls.diff (outdated).
     - Remove any/submitted-ieee754_h.diff (merged).
     - Remove any/submitted-link-local_resolver.diff (merged).
@@ -130,13 +132,25 @@ glibc (2.8+20080809-2) UNRELEASED; urgency=low
   * add any/local-linuxthreads-ptw.diff. Closes: #494908.
   * add kfreebsd/local-sysdeps28.diff, glibc 2.8 specific kfreebsd sysdeps.
 
- -- Aurelien Jarno <aurel32@debian.org>  Thu, 11 Sep 2008 23:25:39 +0200
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 12 Oct 2008 22:26:06 +0200
+
+glibc (2.7-15) unstable; urgency=low
+
+  * debhelper.in/locales.config, debhelper.in/locales.postinst: modify
+    /etc/locale.gen instead of regenerating it.  Closes: bug#494468.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 12 Oct 2008 18:00:22 +0200
 
 glibc (2.7-14) unstable; urgency=low
 
   [ Petr Salinger ]
-  * kfreebsd/local-sysdeps.diff: update to revision 2280 (from glibc-bsd).
-
+  * kfreebsd/local-sysdeps.diff: update to revision 2322 (from glibc-bsd).
+  * extend kfreebsd/local-ftw.diff: do not use *at functions also in glob.c,
+    this patch is applied only on kfreebsd, fixes globtest.out failure.
+  * any/local-linuxthreads-weak.diff: new patch to pass 
+    stdio-common/scanf15.out test on linuxthreads platforms, 
+    although it seems to be rather gcc 4.x bug, see GCC Bugzilla Bug 37266.
+    
   [ Aurelien Jarno ]
   * patches/mips/cvs-mknod.diff: new patch from upstream to allow > 255 minors
     on mips.  Closes: #493751.
@@ -144,14 +158,21 @@ glibc (2.7-14) unstable; urgency=low
     getcontext(), setcontext(), makecontext() on Sparc.  Closes: #295173.
   * patches/hppa/cvs-context.diff: new patch from upstream to add
     getcontext(), setcontext(), makecontext() on PARISC.  Closes: #492778.
+  * any/local-ip6-localhost.diff: new patch from upstream BTS, to remove the
+    ::1 -> 127.0.0.1 mapping.
+  * any/cvs-isoc99_vscanf.diff: new patch from upstream to fix vscanf on
+    non-GNU compilers.
+  * Fix nosegneg pseudo hwcap.  Closes: #499366.
 
   [ Samuel Thibault ]
   * patches/hurd-i386/cvs-lock-memory-clobber.diff: new patch from upstream
     to fix safety of locks.
   * patches/hurd-i386/local-pthread_posix-option.diff: new patch to advertise
     the libpthread from the hurd packages.
+  * patches/hurd-i386/cvs-signal-werror.diff: new patch to fix gdb compilation.
+  * patches/hurd-i386/local-tls-support.diff: fix cthread compilation.
 
- -- Aurelien Jarno <aurel32@debian.org>  Wed, 06 Aug 2008 17:00:36 +0200
+ -- Aurelien Jarno <aurel32@debian.org>  Sat, 20 Sep 2008 10:00:36 +0200
 
 glibc (2.7-13) unstable; urgency=low
 
