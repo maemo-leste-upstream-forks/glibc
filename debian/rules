@@ -156,6 +156,7 @@ include debian/rules.d/*.mk
 clean:: unpatch debhelper-clean
 	#  Do not accidentally upload into unstable
 	dpkg-parsechangelog  | grep "^Distribution:" | grep -q -v unstable
+	make -C $(CURDIR)/linuxthreads/man clean
 	rm -rf $(patsubst %,debian/tmp-%,$(GLIBC_PASSES))
 	rm -rf $(build-tree)
 	rm -rf $(stamp)
@@ -176,7 +177,7 @@ binary: binary-indep binary-arch
 
 build:	$(patsubst %,$(stamp)build_%,$(GLIBC_PASSES)) \
 	$(patsubst %,$(stamp)check_%,$(GLIBC_PASSES)) \
-	$(stamp)source
+	$(stamp)source $(stamp)doc
 
 testroot:
 	dh_testroot

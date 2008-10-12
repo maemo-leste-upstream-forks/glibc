@@ -161,6 +161,10 @@ $(stamp)install_%: $(stamp)check_%
 	$(call xx,extra_install)
 	touch $@
 
+$(stamp)doc: $(stamp)patch
+	make -C $(CURDIR)/linuxthreads/man
+	touch $@
+
 $(stamp)source: $(stamp)patch
 	tar -c --bzip2 -C .. \
 		-f $(build-tree)/glibc-$(GLIBC_VERSION).tar.bz2 \
