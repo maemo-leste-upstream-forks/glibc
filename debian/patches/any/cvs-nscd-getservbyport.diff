@@ -1,0 +1,17 @@
+2008-06-03  Jakub Jelinek  <jakub@redhat.com>
+
+	* nscd/nscd_getserv_r.c (__nscd_getservbyport_r): Pass cp
+	instead of portstr to nscd_getserv_r.  Patch by
+	Roman Kagan <rkagan@mail.ru>.
+
+--- a/nscd/nscd_getserv_r.c
++++ b/nscd/nscd_getserv_r.c
+@@ -53,7 +53,7 @@ __nscd_getservbyport_r (int port, const char *proto,
+   portstr[sizeof (portstr) - 1] = '\0';
+   char *cp = _itoa_word (port, portstr + sizeof (portstr) - 1, 10, 0);
+ 
+-  return nscd_getserv_r (portstr, portstr + sizeof (portstr) - cp, proto,
++  return nscd_getserv_r (cp, portstr + sizeof (portstr) - cp, proto,
+ 			 GETSERVBYPORT, result_buf, buf, buflen, result);
+ }
+ 
