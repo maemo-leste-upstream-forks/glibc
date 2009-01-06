@@ -6,7 +6,13 @@ if [ $# -ne '2' ]; then
   exit 1
 fi;
 
-REGRESSIONS=$(diff -wBI '^#.*' $1 $2 | sed -e '/^>/!d;s/^> //g')
+expected=$(tempfile)
+results=$(tempfile)
+sort $1 > $expected
+sort $2 > $results
+
+REGRESSIONS=$(diff -wBI '^#.*' $expected $results | sed -e '/^>/!d;s/^> //g')
+rm -f $expected $results
 if [ -n "$REGRESSIONS" ] ; then
   echo "Encountered regressions that don't match expected failures:"
   echo "$REGRESSIONS"
