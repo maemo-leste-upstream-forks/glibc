@@ -8,10 +8,10 @@ fi;
 
 expected=$(tempfile)
 results=$(tempfile)
-sort $1 > $expected
-sort $2 > $results
+grep -v '^#.*' $1 | sort > $expected
+grep -v '^#.*' $2 | sort > $results
 
-REGRESSIONS=$(diff -wBI '^#.*' $expected $results | sed -e '/^>/!d;s/^> //g')
+REGRESSIONS=$(diff -wB $expected $results | sed -e '/^>/!d;s/^> //g')
 rm -f $expected $results
 if [ -n "$REGRESSIONS" ] ; then
   echo "Encountered regressions that don't match expected failures:"
