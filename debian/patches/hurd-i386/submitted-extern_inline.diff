@@ -226,7 +226,7 @@
  #endif	/* hurd/port.h */
 --- a/hurd/hurd/signal.h
 +++ b/hurd/hurd/signal.h
-@@ -130,15 +130,17 @@
+@@ -131,15 +131,17 @@
  #define _HURD_SIGNAL_H_EXTERN_INLINE __extern_inline
  #endif
  
@@ -245,7 +245,7 @@
  
  /* Thread listening on our message port; also called the "signal thread".  */
  
-@@ -165,10 +167,13 @@
+@@ -166,10 +168,13 @@
     interrupted lest the signal handler try to take the same lock and
     deadlock result.  */
  
@@ -260,7 +260,7 @@
      (void *) __hurd_threadvar_location (_HURD_THREADVAR_SIGSTATE);
    struct hurd_sigstate *ss = *location;
    if (ss == NULL)
-@@ -190,7 +195,11 @@
+@@ -191,7 +196,11 @@
       _hurd_critical_section_unlock to unlock it.  */
    return ss;
  }
@@ -272,7 +272,7 @@
  _HURD_SIGNAL_H_EXTERN_INLINE void
  _hurd_critical_section_unlock (void *our_lock)
  {
-@@ -200,7 +209,7 @@
+@@ -201,7 +210,7 @@
    else
      {
        /* It was us who acquired the critical section lock.  Unlock it.  */
@@ -281,7 +281,7 @@
        sigset_t pending;
        __spin_lock (&ss->lock);
        __spin_unlock (&ss->critical_section_lock);
-@@ -213,6 +222,7 @@
+@@ -214,6 +223,7 @@
  	__msg_sig_post (_hurd_msgport, 0, 0, __mach_task_self ());
      }
  }
@@ -609,9 +609,9 @@
  _EXTERN_INLINE void
  __spin_unlock (__spin_lock_t *__lock)
  {
-@@ -42,9 +45,13 @@
-    __asm__ __volatile ("xchgl %0, %1"
- 		       : "=&r" (__unlocked), "=m" (*__lock) : "0" (0));
+@@ -43,9 +46,13 @@
+ 		       : "=&r" (__unlocked), "=m" (*__lock) : "0" (0)
+ 		       : "memory");
  }
 +#endif
  
@@ -623,8 +623,8 @@
  _EXTERN_INLINE int
  __spin_try_lock (__spin_lock_t *__lock)
  {
-@@ -53,14 +60,19 @@
- 		      : "=&r" (__locked), "=m" (*__lock) : "0" (1));
+@@ -55,14 +62,19 @@
+ 		      : "memory");
    return !__locked;
  }
 +#endif
