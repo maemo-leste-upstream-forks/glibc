@@ -35,7 +35,7 @@
 -    variable = convert (strtou32 (line, &endp, base));			      \
 +    /* Prevent from 32-bit overflow.  */				      \
 +    tmp = __strtoull_internal (line, &endp, base, 0);		      \
-+    if (tmp > UINT_MAX))						      \
++    if (tmp > UINT_MAX)						      \
 +      return 0;								      \
 +    variable = convert ((unsigned long int)tmp);			      \
      if (endp == line)							      \
