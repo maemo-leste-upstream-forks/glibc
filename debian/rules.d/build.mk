@@ -77,6 +77,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		--enable-add-ons=$(standard-add-ons)"$(call xx,add-ons)" \
 		--enable-profile \
 		--without-selinux \
+		--enable-stackguard-randomization \
 		$(call xx,with_headers) $(call xx,extra_config_options))
 	touch $@
 
