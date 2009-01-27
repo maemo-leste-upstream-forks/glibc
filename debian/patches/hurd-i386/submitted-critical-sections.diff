@@ -1,0 +1,65 @@
+Index: glibc/hurd/hurd/fd.h
+===================================================================
+RCS file: /cvs/glibc/libc/hurd/hurd/fd.h,v
+retrieving revision 1.37
+diff -u -p -r1.37 fd.h
+--- glibc/hurd/hurd/fd.h	2 Jul 2008 09:53:29 -0000	1.37
++++ glibc/hurd/hurd/fd.h	27 Jan 2009 21:15:32 -0000
+@@ -63,6 +63,7 @@ extern struct mutex _hurd_dtable_lock; /
+ {
+   struct hurd_fd *descriptor;
+ 
++  HURD_CRITICAL_BEGIN;
+   __mutex_lock (&_hurd_dtable_lock);
+   if (fd < 0 || fd >= _hurd_dtablesize)
+     descriptor = NULL;
+@@ -87,6 +88,7 @@ _hurd_fd_get (int fd)
+ 	}
+     }
+   __mutex_unlock (&_hurd_dtable_lock);
++  HURD_CRITICAL_END;
+ 
+   return descriptor;
+ }
+Index: glibc/sysdeps/mach/hurd/dirfd.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/dirfd.c,v
+retrieving revision 1.4
+diff -u -p -r1.4 dirfd.c
+--- glibc/sysdeps/mach/hurd/dirfd.c	6 Jul 2001 04:55:56 -0000	1.4
++++ glibc/sysdeps/mach/hurd/dirfd.c	27 Jan 2009 21:15:35 -0000
+@@ -26,6 +26,8 @@ int
+ dirfd (DIR *dirp)
+ {
+   int fd;
++
++  HURD_CRITICAL_BEGIN;
+   __mutex_lock (&_hurd_dtable_lock);
+   for (fd = 0; fd < _hurd_dtablesize; ++fd)
+     if (_hurd_dtable[fd] == dirp->__fd)
+@@ -36,6 +38,7 @@ dirfd (DIR *dirp)
+       fd = -1;
+     }
+   __mutex_unlock (&_hurd_dtable_lock);
++  HURD_CRITICAL_END;
+ 
+   return fd;
+ }
+Index: glibc/sysdeps/mach/hurd/opendir.c
+===================================================================
+RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/opendir.c,v
+retrieving revision 1.17
+--- glibc/sysdeps/mach/hurd/opendir.c	5 Mar 2006 11:53:30 -0000	1.17
++++ glibc/sysdeps/mach/hurd/opendir.c	27 Jan 2009 21:15:36 -0000
+@@ -51,9 +51,11 @@ _hurd_fd_opendir (struct hurd_fd *d)
+     return NULL;
+ 
+   /* Set the descriptor to close on exec. */
++  HURD_CRITICAL_BEGIN;
+   __spin_lock (&d->port.lock);
+   d->flags |= FD_CLOEXEC;
+   __spin_unlock (&d->port.lock);
++  HURD_CRITICAL_END;
+ 
+   dirp->__fd = d;
+   dirp->__data = dirp->__ptr = NULL;
