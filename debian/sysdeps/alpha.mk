@@ -1,8 +1,3 @@
-ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
-CC     = gcc-4.2
-CXX    = g++-4.2
-endif
-
 libc = libc6.1
 
 # build an ev67 optimized library
