@@ -1,15 +1,26 @@
-This patch is incomplete.  Reported on
-<http://savannah.gnu.org/bugs/?18216>.  The
-`sysdeps/mach/hurd/bits/stat.h' hunk alignes to what Linux uses.
+Needed for HEAD and glibc-2_7-branch.
 
----
- sysdeps/mach/hurd/bits/stat.h |   57 +++++++++++++++++++++++++++++++++++-------
- sysdeps/mach/hurd/xstatconv.c |    9 ++++++
- 2 files changed, 57 insertions(+), 9 deletions(-)
 
+<http://sources.redhat.com/ml/libc-alpha/2002-12/msg00011.html>
+
+Reported on <http://savannah.gnu.org/bugs/?18216>.
+
+
+2007-10-05  Thomas Schwinge  <tschwinge@gnu.org>
+
+	* sysdeps/mach/hurd/bits/stat.h (struct stat): Align to what is done
+	for Linux: use nsec instead of usec, as well as:
+	[__USE_MISC] (st_atim, st_mtim, st_ctim): Provide these ``struct
+	timespec''s.
+	(struct stat64): Likewise.
+	(_STATBUF_ST_NSEC): Define.
+	* sysdeps/mach/hurd/xstatconv.c (xstat64_conv): Adapt to that.
+
+diff --git a/sysdeps/mach/hurd/xstatconv.c b/sysdeps/mach/hurd/xstatconv.c
+index e28643c..d320285 100644
 --- a/sysdeps/mach/hurd/xstatconv.c
 +++ b/sysdeps/mach/hurd/xstatconv.c
-@@ -42,12 +42,12 @@
+@@ -42,12 +42,9 @@ xstat64_conv (struct stat *buf, const struct stat64 *buf64)
    buf->st_uid = buf64->st_uid;
    buf->st_gid = buf64->st_gid;
    buf->st_size = buf64->st_size;
@@ -19,21 +30,26 @@ This patch is incomplete.  Reported on
 -  buf->st_mtime_usec = buf64->st_mtime_usec;
 -  buf->st_ctime = buf64->st_ctime;
 -  buf->st_ctime_usec = buf64->st_ctime_usec;
-+  buf->st_atim.tv_sec = buf64->st_atim.tv_sec;
-+  buf->st_atim.tv_nsec = buf64->st_atim.tv_nsec;
-+  buf->st_mtim.tv_sec = buf64->st_mtim.tv_sec;
-+  buf->st_mtim.tv_nsec = buf64->st_mtim.tv_nsec;
-+  buf->st_ctim.tv_sec = buf64->st_ctim.tv_sec;
-+  buf->st_ctim.tv_nsec = buf64->st_ctim.tv_nsec;
++  buf->st_atim = buf64->st_atim;
++  buf->st_mtim = buf64->st_mtim;
++  buf->st_ctim = buf64->st_ctim;
    buf->st_blksize = buf64->st_blksize;
    buf->st_blocks = buf64->st_blocks;
    buf->st_author = buf64->st_author;
+diff --git a/sysdeps/mach/hurd/bits/stat.h b/sysdeps/mach/hurd/bits/stat.h
+index c3f9666..62c4201 100644
 --- a/sysdeps/mach/hurd/bits/stat.h
 +++ b/sysdeps/mach/hurd/bits/stat.h
-@@ -55,12 +55,32 @@
+@@ -55,12 +55,27 @@ struct stat
      __off64_t st_size;		/* Size in bytes.  */
  #endif
  
+-    __time_t st_atime;		/* Access time, seconds */
+-    unsigned long int st_atime_usec; /* and microseconds.  */
+-    __time_t st_mtime;		/* Modification time, seconds */
+-    unsigned long int st_mtime_usec; /* and microseconds.  */
+-    __time_t st_ctime;		/* Status change time, seconds */
+-    unsigned long int st_ctime_usec; /* and microseconds.  */
 +#ifdef __USE_MISC
 +    /* Nanosecond resolution timestamps are stored in a format
 +       equivalent to 'struct timespec'.  This is the type used
@@ -48,25 +64,26 @@ This patch is incomplete.  Reported on
 +# define st_mtime st_mtim.tv_sec
 +# define st_ctime st_ctim.tv_sec
 +#else
-+    /* TODO: Align to the st_atimensec, etc. which Linux uses and define
-+       _STATBUF_ST_NSEC?  This requires changes in a) the Hurd code
-+       (which uses st_atime_usec etc.) and b) in the glibc documentation
-+       (which doesn't mention st_atimensec etc. at all, but does explain
-+       the st_atime_used etc. interface).  */
-     __time_t st_atime;		/* Access time, seconds */
-     unsigned long int st_atime_usec; /* and microseconds.  */
-     __time_t st_mtime;		/* Modification time, seconds */
-     unsigned long int st_mtime_usec; /* and microseconds.  */
-     __time_t st_ctime;		/* Status change time, seconds */
-     unsigned long int st_ctime_usec; /* and microseconds.  */
++    __time_t st_atime;			/* Time of last access.  */
++    unsigned long int st_atimensec;	/* Nscecs of last access.  */
++    __time_t st_mtime;			/* Time of last modification.  */
++    unsigned long int st_mtimensec;	/* Nsecs of last modification.  */
++    __time_t st_ctime;			/* Time of last status change.  */
++    unsigned long int st_ctimensec;	/* Nsecs of last status change.  */
 +#endif
  
      __blksize_t st_blksize;	/* Optimal size for I/O.  */
  
-@@ -104,12 +124,29 @@
+@@ -104,12 +119,24 @@ struct stat64
  
      __off64_t st_size;		/* Size in bytes.  */
  
+-    __time_t st_atime;		/* Access time, seconds */
+-    unsigned long int st_atime_usec; /* and microseconds.  */
+-    __time_t st_mtime;		/* Modification time, seconds */
+-    unsigned long int st_mtime_usec; /* and microseconds.  */
+-    __time_t st_ctime;		/* Status change time, seconds */
+-    unsigned long int st_ctime_usec; /* and microseconds.  */
 +#ifdef __USE_MISC
 +    /* Nanosecond resolution timestamps are stored in a format
 +       equivalent to 'struct timespec'.  This is the type used
@@ -78,34 +95,25 @@ This patch is incomplete.  Reported on
 +    struct timespec st_mtim;		/* Time of last modification.  */
 +    struct timespec st_ctim;		/* Time of last status change.  */
 +#else
-+    /* TODO: Align to the st_atimensec, etc. which Linux uses and define
-+       _STATBUF_ST_NSEC?  This requires changes in a) the Hurd code
-+       (which uses st_atime_usec etc.) and b) in the glibc documentation
-+       (which doesn't mention st_atimensec etc. at all, but does explain
-+       the st_atime_used etc. interface).  */
-     __time_t st_atime;		/* Access time, seconds */
-     unsigned long int st_atime_usec; /* and microseconds.  */
-     __time_t st_mtime;		/* Modification time, seconds */
-     unsigned long int st_mtime_usec; /* and microseconds.  */
-     __time_t st_ctime;		/* Status change time, seconds */
-     unsigned long int st_ctime_usec; /* and microseconds.  */
++    __time_t st_atime;			/* Time of last access.  */
++    unsigned long int st_atimensec;	/* Nscecs of last access.  */
++    __time_t st_mtime;			/* Time of last modification.  */
++    unsigned long int st_mtimensec;	/* Nsecs of last modification.  */
++    __time_t st_ctime;			/* Time of last status change.  */
++    unsigned long int st_ctimensec;	/* Nsecs of last status change.  */
 +#endif
  
      __blksize_t st_blksize;	/* Optimal size for I/O.  */
  
-@@ -141,10 +178,11 @@
- #define	__S_IFSOCK	0140000	/* Socket.  */
- #define	__S_IFIFO	0010000	/* FIFO.  */
+@@ -127,7 +154,10 @@ struct stat64
+   };
+ #endif
  
--/* POSIX.1b objects.  */
--#define __S_TYPEISMQ(buf) (0)
--#define __S_TYPEISSEM(buf) (0)
--#define __S_TYPEISSHM(buf) (0)
-+/* POSIX.1b objects.  Note that these macros always evaluate to zero.  But
-+   they do it by enforcing the correct use of the macros.  */
-+#define __S_TYPEISMQ(buf)  ((buf)->st_mode - (buf)->st_mode)
-+#define __S_TYPEISSEM(buf) ((buf)->st_mode - (buf)->st_mode)
-+#define __S_TYPEISSHM(buf) ((buf)->st_mode - (buf)->st_mode)
+-#define	_STATBUF_ST_BLKSIZE	/* Tell code we have this member.  */
++/* Tell code we have these members.  */
++#define	_STATBUF_ST_BLKSIZE
++/* Nanosecond resolution time values are supported.  */
++#define _STATBUF_ST_NSEC
  
- /* Protection bits.  */
+ /* Encoding of the file mode.  */
  
