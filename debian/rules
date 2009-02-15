@@ -154,8 +154,6 @@ endif
 include debian/rules.d/*.mk
 
 clean:: unpatch debhelper-clean
-	#  Do not accidentally upload into unstable
-	dpkg-parsechangelog  | grep "^Distribution:" | grep -q -v unstable
 	make -C $(CURDIR)/linuxthreads/man clean
 	rm -f $(CURDIR)/po/*.mo
 	rm -rf $(patsubst %,debian/tmp-%,$(GLIBC_PASSES))
