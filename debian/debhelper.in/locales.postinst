@@ -65,11 +65,10 @@ EOF
     fi
 
     if ! [ -e $EE ] || [ -n "$DEBCONF_RECONFIGURE" ] ; then
+        # Remove previous definitions
+        update-locale --no-checks LANG
+
         # Set default LANG environment variable
-        if [ -e $EE ]; then
-            # Remove previous definitions
-            update-locale --no-checks LANG
-        fi
         if [ -n "$DEFAULT_ENVIRONMENT" ] && [ "$DEFAULT_ENVIRONMENT" != "None" ]; then
             update-locale "LANG=$DEFAULT_ENVIRONMENT"
         fi
