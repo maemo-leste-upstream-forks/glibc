@@ -31,6 +31,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	echo "LDFLAGS = "		 	>> $(DEB_BUILDDIR)/configparms
 	echo "BASH := /bin/bash"		>> $(DEB_BUILDDIR)/configparms
 	echo "KSH := /bin/bash"			>> $(DEB_BUILDDIR)/configparms
+	echo "SHELL := /bin/bash"		>> $(DEB_BUILDDIR)/configparms
 	echo "LIBGD = no"			>> $(DEB_BUILDDIR)/configparms
 	echo "bindir = $(bindir)"		>> $(DEB_BUILDDIR)/configparms
 	echo "datadir = $(datadir)"		>> $(DEB_BUILDDIR)/configparms
