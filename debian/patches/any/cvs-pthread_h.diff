@@ -6,11 +6,13 @@ Date:   Tue Dec 9 23:04:03 2008 +0000
     warnings.
     (pthread_cleanup_pop_restore_np): Likewise.
 
-diff --git a/nptl/sysdeps/pthread/pthread.h b/nptl/sysdeps/pthread/pthread.h
-index d5ffd38..cc7472e 100644
+---
+ nptl/sysdeps/pthread/pthread.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
 --- a/nptl/sysdeps/pthread/pthread.h
 +++ b/nptl/sysdeps/pthread/pthread.h
-@@ -655,7 +655,7 @@ extern void __pthread_register_cancel (__pthread_unwind_buf_t *__buf)
+@@ -655,7 +655,7 @@
  /* Remove a cleanup handler installed by the matching pthread_cleanup_push.
     If EXECUTE is non-zero, the handler function is called. */
  # define pthread_cleanup_pop(execute) \
@@ -19,7 +21,7 @@ index d5ffd38..cc7472e 100644
      } while (0);							      \
      __pthread_unregister_cancel (&__cancel_buf);			      \
      if (execute)							      \
-@@ -691,7 +691,7 @@ extern void __pthread_register_cancel_defer (__pthread_unwind_buf_t *__buf)
+@@ -691,7 +691,7 @@
     restores the cancellation type that was in effect when the matching
     pthread_cleanup_push_defer was called.  */
  #  define pthread_cleanup_pop_restore_np(execute) \

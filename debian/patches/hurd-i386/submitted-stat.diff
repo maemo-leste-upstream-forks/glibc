@@ -16,11 +16,14 @@ Reported on <http://savannah.gnu.org/bugs/?18216>.
 	(_STATBUF_ST_NSEC): Define.
 	* sysdeps/mach/hurd/xstatconv.c (xstat64_conv): Adapt to that.
 
-diff --git a/sysdeps/mach/hurd/xstatconv.c b/sysdeps/mach/hurd/xstatconv.c
-index e28643c..d320285 100644
+---
+ sysdeps/mach/hurd/bits/stat.h |   56 ++++++++++++++++++++++++++++++++----------
+ sysdeps/mach/hurd/xstatconv.c |    9 ++----
+ 2 files changed, 46 insertions(+), 19 deletions(-)
+
 --- a/sysdeps/mach/hurd/xstatconv.c
 +++ b/sysdeps/mach/hurd/xstatconv.c
-@@ -42,12 +42,9 @@ xstat64_conv (struct stat *buf, const struct stat64 *buf64)
+@@ -42,12 +42,9 @@
    buf->st_uid = buf64->st_uid;
    buf->st_gid = buf64->st_gid;
    buf->st_size = buf64->st_size;
@@ -36,11 +39,9 @@ index e28643c..d320285 100644
    buf->st_blksize = buf64->st_blksize;
    buf->st_blocks = buf64->st_blocks;
    buf->st_author = buf64->st_author;
-diff --git a/sysdeps/mach/hurd/bits/stat.h b/sysdeps/mach/hurd/bits/stat.h
-index c3f9666..62c4201 100644
 --- a/sysdeps/mach/hurd/bits/stat.h
 +++ b/sysdeps/mach/hurd/bits/stat.h
-@@ -55,12 +55,27 @@ struct stat
+@@ -55,12 +55,27 @@
      __off64_t st_size;		/* Size in bytes.  */
  #endif
  
@@ -74,7 +75,7 @@ index c3f9666..62c4201 100644
  
      __blksize_t st_blksize;	/* Optimal size for I/O.  */
  
-@@ -104,12 +119,24 @@ struct stat64
+@@ -104,12 +119,24 @@
  
      __off64_t st_size;		/* Size in bytes.  */
  
@@ -105,7 +106,7 @@ index c3f9666..62c4201 100644
  
      __blksize_t st_blksize;	/* Optimal size for I/O.  */
  
-@@ -127,7 +154,10 @@ struct stat64
+@@ -127,7 +154,10 @@
    };
  #endif
  

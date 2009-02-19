@@ -5,8 +5,11 @@
 	* posix/regcomp.c (re_compile_fastmap_iter): Rewrite COMPLEX_BRACKET
 	handling.
 
-diff --git a/posix/bug-regex17.c b/posix/bug-regex17.c
-index b42f9b6..1c11a1d 100644
+---
+ posix/bug-regex17.c |   31 +++++++++++++++-----
+ posix/regcomp.c     |   79 ++++++++++++++++++++++++++++++++--------------------
+ 2 files changed, 73 insertions(+), 37 deletions(-)
+
 --- a/posix/bug-regex17.c
 +++ b/posix/bug-regex17.c
 @@ -1,5 +1,5 @@
@@ -17,7 +20,7 @@ index b42f9b6..1c11a1d 100644
     This file is part of the GNU C Library.
     Contributed by Jakub Jelinek <jakub@redhat.com>, 2002.
  
-@@ -33,10 +33,10 @@ struct
+@@ -33,10 +33,10 @@
    int flags, nmatch;
    regmatch_t rm[5];
  } tests[] = {
@@ -32,7 +35,7 @@ index b42f9b6..1c11a1d 100644
    { "\xc3\x84\xc3\x96*\xc3\xb6$", "aB\xc3\xa4\xc3\xb6\xc3\xb6\xc3\x96", REG_ICASE, 2,
      { { 2, 10 }, { -1, -1 } } },
    { "[\xc3\x84x]\xc3\x96*\xc3\xb6$", "aB\xc3\x84\xc3\xb6\xc3\xb6\xc3\x96", REG_ICASE, 2,
-@@ -45,10 +45,22 @@ struct
+@@ -45,10 +45,22 @@
      { { 2, 10 }, { -1, -1 } } },
    { "[^x]\xc3\x96*\xc3\xb6$", "aB\xc3\xa4\xc3\xb6\xc3\xb6\xc3\x96", REG_ICASE, 2,
      { { 2, 10 }, { -1, -1 } } },
@@ -57,15 +60,13 @@ index b42f9b6..1c11a1d 100644
  {
    regex_t re;
    regmatch_t rm[5];
-@@ -93,3 +105,6 @@ main (void)
+@@ -93,3 +105,6 @@
  
    return ret;
  }
 +
 +#define TEST_FUNCTION do_test ()
 +#include "../test-skeleton.c"
-diff --git a/posix/regcomp.c b/posix/regcomp.c
-index d5a0535..4843cfe 100644
 --- a/posix/regcomp.c
 +++ b/posix/regcomp.c
 @@ -1,5 +1,6 @@
@@ -76,7 +77,7 @@ index d5a0535..4843cfe 100644
     This file is part of the GNU C Library.
     Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
  
-@@ -350,47 +351,67 @@ re_compile_fastmap_iter (regex_t *bufp, const re_dfastate_t *init_state,
+@@ -350,47 +351,67 @@
  #ifdef RE_ENABLE_I18N
        else if (type == COMPLEX_BRACKET)
  	{

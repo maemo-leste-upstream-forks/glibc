@@ -1,11 +1,12 @@
-Index: glibc/hurd/hurd/fd.h
-===================================================================
-RCS file: /cvs/glibc/libc/hurd/hurd/fd.h,v
-retrieving revision 1.37
-diff -u -p -r1.37 fd.h
---- glibc/hurd/hurd/fd.h	2 Jul 2008 09:53:29 -0000	1.37
-+++ glibc/hurd/hurd/fd.h	27 Jan 2009 21:15:32 -0000
-@@ -63,6 +63,7 @@ extern struct mutex _hurd_dtable_lock; /
+---
+ hurd/hurd/fd.h              |    2 ++
+ sysdeps/mach/hurd/dirfd.c   |    3 +++
+ sysdeps/mach/hurd/opendir.c |    2 ++
+ 3 files changed, 7 insertions(+)
+
+--- a/hurd/hurd/fd.h
++++ b/hurd/hurd/fd.h
+@@ -68,6 +68,7 @@
  {
    struct hurd_fd *descriptor;
  
@@ -13,7 +14,7 @@ diff -u -p -r1.37 fd.h
    __mutex_lock (&_hurd_dtable_lock);
    if (fd < 0 || fd >= _hurd_dtablesize)
      descriptor = NULL;
-@@ -87,6 +88,7 @@ _hurd_fd_get (int fd)
+@@ -90,6 +91,7 @@
  	}
      }
    __mutex_unlock (&_hurd_dtable_lock);
@@ -21,14 +22,9 @@ diff -u -p -r1.37 fd.h
  
    return descriptor;
  }
-Index: glibc/sysdeps/mach/hurd/dirfd.c
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/dirfd.c,v
-retrieving revision 1.4
-diff -u -p -r1.4 dirfd.c
---- glibc/sysdeps/mach/hurd/dirfd.c	6 Jul 2001 04:55:56 -0000	1.4
-+++ glibc/sysdeps/mach/hurd/dirfd.c	27 Jan 2009 21:15:35 -0000
-@@ -26,6 +26,8 @@ int
+--- a/sysdeps/mach/hurd/dirfd.c
++++ b/sysdeps/mach/hurd/dirfd.c
+@@ -26,6 +26,8 @@
  dirfd (DIR *dirp)
  {
    int fd;
@@ -37,7 +33,7 @@ diff -u -p -r1.4 dirfd.c
    __mutex_lock (&_hurd_dtable_lock);
    for (fd = 0; fd < _hurd_dtablesize; ++fd)
      if (_hurd_dtable[fd] == dirp->__fd)
-@@ -36,6 +38,7 @@ dirfd (DIR *dirp)
+@@ -36,6 +38,7 @@
        fd = -1;
      }
    __mutex_unlock (&_hurd_dtable_lock);
@@ -45,13 +41,9 @@ diff -u -p -r1.4 dirfd.c
  
    return fd;
  }
-Index: glibc/sysdeps/mach/hurd/opendir.c
-===================================================================
-RCS file: /cvs/glibc/libc/sysdeps/mach/hurd/opendir.c,v
-retrieving revision 1.17
---- glibc/sysdeps/mach/hurd/opendir.c	5 Mar 2006 11:53:30 -0000	1.17
-+++ glibc/sysdeps/mach/hurd/opendir.c	27 Jan 2009 21:15:36 -0000
-@@ -51,9 +51,11 @@ _hurd_fd_opendir (struct hurd_fd *d)
+--- a/sysdeps/mach/hurd/opendir.c
++++ b/sysdeps/mach/hurd/opendir.c
+@@ -51,9 +51,11 @@
      return NULL;
  
    /* Set the descriptor to close on exec. */

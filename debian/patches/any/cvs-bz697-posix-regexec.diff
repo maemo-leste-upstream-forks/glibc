@@ -5,8 +5,11 @@
 	being NULL also if there are no backreferences.
 	* posix/rxspencer/tests: Add testcases.
 
-diff --git a/posix/regexec.c b/posix/regexec.c
-index 135efe7..7bf0c08 100644
+---
+ posix/regexec.c       |    7 ++++++-
+ posix/rxspencer/tests |    4 ++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+
 --- a/posix/regexec.c
 +++ b/posix/regexec.c
 @@ -1,5 +1,5 @@
@@ -16,7 +19,7 @@ index 135efe7..7bf0c08 100644
     This file is part of the GNU C Library.
     Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
  
-@@ -1004,6 +1004,11 @@ prune_impossible_nodes (mctx)
+@@ -1004,6 +1004,11 @@
        re_node_set_free (&sctx.limits);
        if (BE (ret != REG_NOERROR, 0))
  	goto free_return;
@@ -28,11 +31,9 @@ index 135efe7..7bf0c08 100644
      }
    re_free (mctx->state_log);
    mctx->state_log = sifted_states;
-diff --git a/posix/rxspencer/tests b/posix/rxspencer/tests
-index b84a270..3ad46e2 100644
 --- a/posix/rxspencer/tests
 +++ b/posix/rxspencer/tests
-@@ -536,3 +536,7 @@ a.*\b	&	abT	ab
+@@ -536,3 +536,7 @@
  \B	&	aSbTc
  \B	&	SaT	@SaT
  \B	&	aSTSb	@TSb
