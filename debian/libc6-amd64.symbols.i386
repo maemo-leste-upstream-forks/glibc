@@ -1,10 +1,9 @@
-#include "libc6.symbols.amd64"
-# Get the symbols from the default file
-# Override all dependencies to libc6-amd64
+#include "symbols.common"
+####
+#### Override headers of already defined objects
+####
 ld-linux-x86-64.so.2 libc6-amd64 #MINVER#
 #include "symbols.wildcards"
-### TLS support added/enabled in debian upload 2.3.6-6
- __tls_get_addr@GLIBC_2.3 2.3.6-6~
 libc.so.6 libc6-amd64 #MINVER#
 #include "symbols.wildcards"
 libBrokenLocale.so.1 libc6-amd64 #MINVER#
@@ -36,8 +35,7 @@ libnss_nis.so.2 libc6-amd64 #MINVER#
 libnss_nisplus.so.2 libc6-amd64 #MINVER#
 #include "symbols.wildcards"
 libpcprofile.so libc6-amd64 #MINVER#
-### TLS support added/enabled in debian upload 2.3.6-6
-libpthread.so.0 libc6-amd64 (>= 2.3.6-6~), libc6-amd64 #MINVER#
+libpthread.so.0 libc6-amd64 #MINVER#
 #include "symbols.wildcards"
 libresolv.so.2 libc6-amd64 #MINVER#
 #include "symbols.wildcards"
