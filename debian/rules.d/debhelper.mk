@@ -113,7 +113,7 @@ endif
 
 	dh_installdeb -p$(curpass)
 	if [ $(curpass) = nscd ] ; then \
-		dh_shlibdeps -p$(curpass) -- -xglibc-private ; \
+		dh_shlibdeps -p$(curpass) ; \
 	fi
 	dh_gencontrol -p$(curpass) -- $($(curpass)_control_flags)
 	if [ $(curpass) = nscd ] ; then \
