@@ -93,7 +93,7 @@ stop)
 	;;
 restart|force-reload|reload)
 	log_daemon_msg "Restarting $DESC" "$NAME"
-	for table in passwd group hosts
+	for table in passwd group hosts ; do
 		$DAEMON --invalidate $table
 	done
 	stop_nscd
