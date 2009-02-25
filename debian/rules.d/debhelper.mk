@@ -75,7 +75,7 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 
 	if test "$(NOSTRIP_$(curpass))" != 1; then			\
 	  chmod a+x debian/wrapper/objcopy;				\
-	  export PATH=$(shell pwd)/debian/wrapper:$$PATH;		\
+	  export PATH=$(CURDIR)/debian/wrapper:$$PATH;			\
 	  dh_strip -p$(curpass) -Xlibpthread --dbg-package=$(libc)-dbg; \
 	  (cd debian/$(curpass);					\
 	   find . -name libpthread-\*.so -exec				\
