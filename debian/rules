@@ -174,7 +174,8 @@ binary-arch: build testroot debian/control $(build-tree) \
 
 binary: binary-indep binary-arch
 
-build:	$(patsubst %,$(stamp)build_%,$(GLIBC_PASSES)) \
+build:	$(stamp)info \
+	$(patsubst %,$(stamp)build_%,$(GLIBC_PASSES)) \
 	$(patsubst %,$(stamp)check_%,$(GLIBC_PASSES)) \
 	$(stamp)source $(stamp)doc
 
