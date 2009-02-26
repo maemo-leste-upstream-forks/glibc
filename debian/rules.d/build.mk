@@ -170,8 +170,8 @@ $(stamp)doc: $(stamp)patch
 	touch $@
 
 $(stamp)source: $(stamp)patch
-	tar -c --bzip2 -C .. \
-		-f $(build-tree)/glibc-$(GLIBC_VERSION).tar.bz2 \
+	tar -c --lzma -C .. \
+		-f $(build-tree)/glibc-$(GLIBC_VERSION).tar.lzma \
 		$(GLIBC_SOURCES)
 	touch $@
 
