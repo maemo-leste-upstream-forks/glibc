@@ -74,8 +74,6 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	# else takes too long to load in GDB.
 
 	if test "$(NOSTRIP_$(curpass))" != 1; then			\
-	  chmod a+x debian/wrapper/objcopy;				\
-	  export PATH=$(CURDIR)/debian/wrapper:$$PATH;			\
 	  dh_strip -p$(curpass) -Xlibpthread --dbg-package=$(libc)-dbg; \
 	  (cd debian/$(curpass);					\
 	   find . -name libpthread-\*.so -exec				\
