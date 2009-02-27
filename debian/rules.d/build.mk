@@ -12,13 +12,13 @@ define logme
 endef
 
 
-$(patsubst %,mkbuilddir_%,$(GLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
+$(patsubst %,mkbuilddir_%,$(EGLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
 $(stamp)mkbuilddir_%: $(stamp)patch $(KERNEL_HEADER_DIR)
 	@echo Making builddir for $(curpass)
 	test -d $(DEB_BUILDDIR) || mkdir -p $(DEB_BUILDDIR)
 	touch $@
 
-$(patsubst %,configure_%,$(GLIBC_PASSES)) :: configure_% : $(stamp)configure_%
+$(patsubst %,configure_%,$(EGLIBC_PASSES)) :: configure_% : $(stamp)configure_%
 $(stamp)configure_%: $(stamp)mkbuilddir_%
 	@echo Configuring $(curpass)
 	rm -f $(DEB_BUILDDIR)/configparms
@@ -82,7 +82,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		$(call xx,with_headers) $(call xx,extra_config_options))
 	touch $@
 
-$(patsubst %,build_%,$(GLIBC_PASSES)) :: build_% : $(stamp)build_%
+$(patsubst %,build_%,$(EGLIBC_PASSES)) :: build_% : $(stamp)build_%
 $(stamp)build_%: $(stamp)configure_%
 	@echo Building $(curpass)
 	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS))
@@ -95,7 +95,7 @@ $(stamp)build_%: $(stamp)configure_%
 	fi
 	touch $@
 
-$(patsubst %,check_%,$(GLIBC_PASSES)) :: check_% : $(stamp)check_%
+$(patsubst %,check_%,$(EGLIBC_PASSES)) :: check_% : $(stamp)check_%
 $(stamp)check_%: $(stamp)build_%
 	@set -e ; \
 	if [ -n "$(findstring nocheck,$(DEB_BUILD_OPTIONS))" ]; then \
@@ -129,7 +129,7 @@ $(stamp)check_%: $(stamp)build_%
 	fi
 	touch $@
 
-$(patsubst %,install_%,$(GLIBC_PASSES)) :: install_% : $(stamp)install_%
+$(patsubst %,install_%,$(EGLIBC_PASSES)) :: install_% : $(stamp)install_%
 $(stamp)install_%: $(stamp)check_%
 	@echo Installing $(curpass)
 	rm -rf $(CURDIR)/debian/tmp-$(curpass)
@@ -175,4 +175,4 @@ $(stamp)source: $(stamp)patch
 		$(GLIBC_SOURCES)
 	touch $@
 
-.NOTPARALLEL: $(patsubst %,install_%,$(GLIBC_PASSES))
+.NOTPARALLEL: $(patsubst %,install_%,$(EGLIBC_PASSES))

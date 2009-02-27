@@ -1,4 +1,4 @@
-GLIBC_PASSES += i686
+EGLIBC_PASSES += i686
 DEB_ARCH_REGULAR_PACKAGES += libc0.1-i686
 
 # We use -march=i686 and glibc's i686 routines use cmov, so require it.

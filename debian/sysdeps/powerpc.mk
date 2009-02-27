@@ -1,5 +1,5 @@
 # build 64-bit (ppc64) alternative library
-GLIBC_PASSES += ppc64
+EGLIBC_PASSES += ppc64
 DEB_ARCH_REGULAR_PACKAGES += libc6-ppc64 libc6-dev-ppc64
 ppc64_add-ons = nptl $(add-ons)
 ppc64_configure_target = powerpc64-linux

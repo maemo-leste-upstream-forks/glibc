@@ -59,12 +59,12 @@ DEB_HOST_GNU_TYPE_ALT ?=
 DEB_SOURCE_PACKAGE := $(strip $(shell egrep '^Source: ' debian/control | cut -f 2 -d ':'))
 
 DEB_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
-GLIBC_VERSION = $(shell echo $(DEB_VERSION) | sed -e 's/-.*//')
+EGLIBC_VERSION = $(shell echo $(DEB_VERSION) | sed -e 's/-.*//')
 
 DEB_BUILDDIR ?= $(build-tree)/$(DEB_HOST_ARCH)-$(curpass)
 
-GLIBC_SOURCES = $(addprefix $(shell basename $(CURDIR))/, \
-		$(filter-out $(stamp) CVS $(build-tree), $(wildcard *)))
+EGLIBC_SOURCES = $(addprefix $(shell basename $(CURDIR))/, \
+		 $(filter-out $(stamp) CVS $(build-tree), $(wildcard *)))
 		 
 # The kernel uses different CPU appreviations (uname output) than the GNU
 # tools do (config.sub).  Map them.
@@ -76,7 +76,7 @@ NJOBS := -j $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 endif
 
 # Default setup
-GLIBC_PASSES ?= libc
+EGLIBC_PASSES ?= libc
 
 prefix=/usr
 bindir=$(prefix)/bin
@@ -157,27 +157,27 @@ include debian/rules.d/*.mk
 clean:: unpatch debhelper-clean
 	make -C $(CURDIR)/linuxthreads/man clean
 	rm -f $(CURDIR)/po/*.mo
-	rm -rf $(patsubst %,debian/tmp-%,$(GLIBC_PASSES))
+	rm -rf $(patsubst %,debian/tmp-%,$(EGLIBC_PASSES))
 	rm -rf $(build-tree)
 	rm -rf $(stamp)
 	rm -rf debian/include
 
 # Required Debian targets
 binary-indep: build testroot debian/control $(build-tree) \
-	$(patsubst %,$(stamp)install_%,$(GLIBC_PASSES)) \
+	$(patsubst %,$(stamp)install_%,$(EGLIBC_PASSES)) \
 	$(patsubst %,$(stamp)binaryinst_%,$(DEB_INDEP_REGULAR_PACKAGES))
 # NOTE: Putting install_ stamps before binaryinst_ stamps in the list is the
 # wrong way to represent dependencies.  Fix this.
 binary-arch: build testroot debian/control $(build-tree) \
-	$(patsubst %,$(stamp)install_%,$(GLIBC_PASSES)) \
+	$(patsubst %,$(stamp)install_%,$(EGLIBC_PASSES)) \
 	$(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES)) \
 	$(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES))
 
 binary: binary-indep binary-arch
 
 build:	$(stamp)info \
-	$(patsubst %,$(stamp)build_%,$(GLIBC_PASSES)) \
-	$(patsubst %,$(stamp)check_%,$(GLIBC_PASSES)) \
+	$(patsubst %,$(stamp)build_%,$(EGLIBC_PASSES)) \
+	$(patsubst %,$(stamp)check_%,$(EGLIBC_PASSES)) \
 	$(stamp)source $(stamp)doc
 
 testroot:

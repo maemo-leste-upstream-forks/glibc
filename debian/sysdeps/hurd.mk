@@ -1,6 +1,6 @@
 # This is for the GNU OS.  Commonly known as the Hurd.
 
-GLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
+EGLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
 
 threads = no
 libc = libc0.3

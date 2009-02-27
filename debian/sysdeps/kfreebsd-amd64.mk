@@ -9,7 +9,7 @@ ln -sf lib debian/$(curpass)/usr/lib64
 endef
 
 # build 32-bit (i386) alternative library
-GLIBC_PASSES += i386
+EGLIBC_PASSES += i386
 DEB_ARCH_REGULAR_PACKAGES += libc0.1-i386 libc0.1-dev-i386
 libc0.1-i386_shlib_dep = libc0.1-i386 (>= $(shlib_dep_ver))
 

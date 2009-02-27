@@ -1,5 +1,5 @@
 # build 64-bit (sparc64) alternative library
-GLIBC_PASSES += sparc64
+EGLIBC_PASSES += sparc64
 DEB_ARCH_REGULAR_PACKAGES += libc6-sparc64 libc6-dev-sparc64
 sparc64_add-ons = nptl $(add-ons)
 sparc64_configure_target=sparc64-linux
@@ -20,7 +20,7 @@ mkdir -p debian/libc6-dev-sparc64/usr/include/sparc64-linux-gnu
 endef
 
 # build a sparcv9b optimized library
-GLIBC_PASSES += sparcv9b
+EGLIBC_PASSES += sparcv9b
 DEB_ARCH_REGULAR_PACKAGES += libc6-sparcv9b
 sparcv9b_add-ons = nptl $(add-ons)
 sparcv9b_configure_target=sparcv9b-linux
