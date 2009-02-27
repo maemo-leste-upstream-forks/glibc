@@ -172,7 +172,7 @@ $(stamp)doc: $(stamp)patch
 $(stamp)source: $(stamp)patch
 	tar -c --lzma -C .. \
 		-f $(build-tree)/glibc-$(GLIBC_VERSION).tar.lzma \
-		$(GLIBC_SOURCES)
+		$(EGLIBC_SOURCES)
 	touch $@
 
 .NOTPARALLEL: $(patsubst %,install_%,$(EGLIBC_PASSES))
