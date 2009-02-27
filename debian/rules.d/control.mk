@@ -39,6 +39,6 @@ $(stamp)control: debian/control.in/main $(control_deps) \
 	cat debian/control.in/opt		>> $@T
 	cat debian/control.in/libnss-dns-udeb	>> $@T
 	cat debian/control.in/libnss-files-udeb	>> $@T
-	sed -e 's%@libc@%$(libc)%g;s%@glibc@%glibc%g' < $@T > debian/control
+	sed -e 's%@libc@%$(libc)%g' < $@T > debian/control
 	rm $@T
 	touch $@
