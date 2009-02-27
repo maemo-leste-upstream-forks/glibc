@@ -76,9 +76,9 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	if test "$(NOSTRIP_$(curpass))" != 1; then			\
 	  dh_strip -p$(curpass) -Xlibpthread --dbg-package=$(libc)-dbg; \
 	  (cd debian/$(curpass);					\
-	   find . -name libpthread-\*.so -exec				\
-	     ../../debian/wrapper/objcopy --only-keep-debug '{}'	\
-	     ../$(libc)-dbg/usr/lib/debug/'{}' ';' || true;		\
+	   find . -name libpthread-\*.so -exec objcopy			\
+	     --only-keep-debug '{}' ../$(libc)-dbg/usr/lib/debug/'{}'   \
+	     ';' || true;						\
 	   find . -name libpthread-\*.so -exec objcopy			\
 	     --add-gnu-debuglink=../$(libc)-dbg/usr/lib/debug/'{}'	\
 	     '{}' ';' || true);						\
