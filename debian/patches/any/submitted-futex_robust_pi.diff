@@ -1,14 +1,32 @@
-2009-09-24  Aurelien Jarno  <aurelien@aurel32.net>
+2009-09-27  Aurelien Jarno  <aurelien@aurel32.net>
 
 	* sysdeps/unix/sysv/linux/kernel-features.h
-	(__LINUX_KERNEL_VERSION): Update per-arch conditions when each
-	feature was introduced.
+	(__ASSUME_SET_ROBUST_LIST): Update per-arch conditions when
+	each feature was introduced. (__ASSUME_FUTEX_LOCK_PI): Ditto.
 
 diff --git a/sysdeps/unix/sysv/linux/kernel-features.h b/sysdeps/unix/sysv/linux/kernel-features.h
-index 29afe27..f16298b 100644
+index 29afe27..edbe250 100644
 --- a/sysdeps/unix/sysv/linux/kernel-features.h
 +++ b/sysdeps/unix/sysv/linux/kernel-features.h
-@@ -462,8 +462,15 @@
+@@ -454,16 +454,28 @@
+ # define __ASSUME_ATFCTS	1
+ #endif
+ 
+-/* Support for inter-process robust mutexes was added in 2.6.17.  */
+-#if __LINUX_KERNEL_VERSION >= 0x020611 \
+-    && ((!defined __sh__ && !defined __alpha__) \
+-	|| (__LINUX_KERNEL_VERSION >= 0x020613 && defined __sh__) \
+-	|| (__LINUX_KERNEL_VERSION >= 0x020617 && defined __alpha__))
++/* Support for inter-process robust mutexes was added in 2.6.17 on i386,
++   powerpc and s390. It was added in 2.6.18 on s390 and sparc64, 2.6.19 on
++   ia64 and 2.6.23 on sh. */
++#if (__LINUX_KERNEL_VERSION >= 0x020611 && defined __i386__) \
++     || (__LINUX_KERNEL_VERSION >= 0x020611 && defined __powerpc__) \
++     || (__LINUX_KERNEL_VERSION >= 0x020612 && defined __s390__) \
++     || (__LINUX_KERNEL_VERSION >= 0x020612 && defined __sparc__ && __arch64__) \
++     || (__LINUX_KERNEL_VERSION >= 0x020611 && defined __x86_64__) \
++     || (__LINUX_KERNEL_VERSION >= 0x020613 && defined __ia64__) \
++     || (__LINUX_KERNEL_VERSION >= 0x020617 && defined __sh__)
  # define __ASSUME_SET_ROBUST_LIST	1
  #endif
  
@@ -27,19 +45,25 @@ index 29afe27..f16298b 100644
  #endif
 
 
-2009-09-24  Aurelien Jarno  <aurelien@aurel32.net>
+2009-09-27  Aurelien Jarno  <aurelien@aurel32.net>
 
 	* sysdeps/unix/sysv/linux/arm/kernel-features.h
-	(__LINUX_KERNEL_VERSION): Define for 2.6.28 and later.
+	(__ASSUME_SET_ROBUST_LIST): Define for 2.6.28 and later.
+	(__ASSUME_FUTEX_LOCK_PI): Ditto.
 
-diff --git a/ports/ports/sysdeps/unix/sysv/linux/arm/kernel-features.h b/ports/ports/sysdeps/unix/sysv/linux/arm/kernel-features.h
-index ea439d5..2a40f09 100644
+diff --git a/ports/sysdeps/unix/sysv/linux/arm/kernel-features.h b/ports/sysdeps/unix/sysv/linux/arm/kernel-features.h
+index ea439d5..d4f447b 100644
 --- a/ports/sysdeps/unix/sysv/linux/arm/kernel-features.h
 +++ b/ports/sysdeps/unix/sysv/linux/arm/kernel-features.h
-@@ -51,6 +51,11 @@
+@@ -51,6 +51,16 @@
  # define __ASSUME_SIGFRAME_V2	1
  #endif
  
++/* Support for inter-process robust mutexes was added in 2.6.28.  */
++#if __LINUX_KERNEL_VERSION >= 132636
++ # define __ASSUME_SET_ROBUST_LIST	1
++#endif
++
 +/* Support for PI futexes was added in 2.6.28.  */
 +#if __LINUX_KERNEL_VERSION >= 132636
 + # define __ASSUME_FUTEX_LOCK_PI	1
@@ -50,20 +74,26 @@ index ea439d5..2a40f09 100644
  /* These syscalls are not implemented yet for ARM.  */
 
 
-2009-09-24  Aurelien Jarno  <aurelien@aurel32.net>
+2009-09-27  Aurelien Jarno  <aurelien@aurel32.net>
 
 	* sysdeps/unix/sysv/linux/hppa/kernel-features.h
-	(__LINUX_KERNEL_VERSION): Define for 2.6.19 and later.
+	(__ASSUME_SET_ROBUST_LIST): Define for 2.6.19 and later.
+	(__ASSUME_FUTEX_LOCK_PI): Ditto.
 
 diff --git a/ports/sysdeps/unix/sysv/linux/hppa/kernel-features.h b/ports/sysdeps/unix/sysv/linux/hppa/kernel-features.h
-index e29f6e0..234f0c3 100644
+index e29f6e0..31daca6 100644
 --- a/ports/sysdeps/unix/sysv/linux/hppa/kernel-features.h
 +++ b/ports/sysdeps/unix/sysv/linux/hppa/kernel-features.h
-@@ -36,4 +36,9 @@
+@@ -36,4 +36,14 @@
  # define __ASSUME_LWS_CAS		1
  #endif
  
-+/* Support for PI futexes was added in 2.6.19.  */
++/* Support for inter-process robust mutexes was added in 2.6.19 */
++#if __LINUX_KERNEL_VERSION >= 0x020613
++ # define __ASSUME_SET_ROBUST_LIST	1
++#endif
++
++/* Support for PI futexes was added in 2.6.19 */
 +#if __LINUX_KERNEL_VERSION >= 0x020613
 + # define __ASSUME_FUTEX_LOCK_PI	1
 +#endif
@@ -71,19 +101,26 @@ index e29f6e0..234f0c3 100644
  #include_next <kernel-features.h>
 
 
-2009-09-24  Aurelien Jarno  <aurelien@aurel32.net>
+2009-09-27  Aurelien Jarno  <aurelien@aurel32.net>
 
 	* sysdeps/unix/sysv/linux/mips/kernel-features.h
-	(__LINUX_KERNEL_VERSION): Define for 2.6.18 and later.
+	(__ASSUME_SET_ROBUST_LIST): Define for 2.6.18 and later.
+	(__ASSUME_FUTEX_LOCK_PI): Ditto.
 
 diff --git a/ports/sysdeps/unix/sysv/linux/mips/kernel-features.h b/ports/sysdeps/unix/sysv/linux/mips/kernel-features.h
-index f479b60..f746c01 100644
+index f479b60..39e609e 100644
 --- a/ports/sysdeps/unix/sysv/linux/mips/kernel-features.h
 +++ b/ports/sysdeps/unix/sysv/linux/mips/kernel-features.h
-@@ -31,4 +31,9 @@
+@@ -31,4 +31,15 @@
  # define __ASSUME_FCNTL64		1
  #endif
  
++/* Support for inter-process robust mutexes was added in 2.6.18.  */
++#if __LINUX_KERNEL_VERSION >= 132626
++ # define __ASSUME_SET_ROBUST_LIST	1
++#endif
++
++
 +/* Support for PI futexes was added in 2.6.18.  */
 +#if __LINUX_KERNEL_VERSION >= 132626
 + # define __ASSUME_FUTEX_LOCK_PI	1
