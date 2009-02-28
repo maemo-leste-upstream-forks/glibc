@@ -77,16 +77,27 @@
     This file is part of the GNU C Library.
     Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
  
-@@ -350,47 +351,67 @@
- #ifdef RE_ENABLE_I18N
+@@ -327,8 +328,8 @@
+ 		     && dfa->nodes[node].mb_partial)
+ 		*p++ = dfa->nodes[node].opr.c;
+ 	      memset (&state, '\0', sizeof (state));
+-	      if (mbrtowc (&wc, (const char *) buf, p - buf,
+-			   &state) == p - buf
++	      if (__mbrtowc (&wc, (const char *) buf, p - buf,
++			     &state) == p - buf
+ 		  && (__wcrtomb ((char *) buf, towlower (wc), &state)
+ 		      != (size_t) -1))
+ 		re_set_fastmap (fastmap, 0, buf[0]);
+@@ -354,47 +355,67 @@
+ #if defined RE_ENABLE_I18N && __OPTION_EGLIBC_LOCALE_CODE
        else if (type == COMPLEX_BRACKET)
  	{
--	  int i;
- 	  re_charset_t *cset = dfa->nodes[node].opr.mbcset;
++	  re_charset_t *cset = dfa->nodes[node].opr.mbcset;
+ 	  int i;
+-	  re_charset_t *cset = dfa->nodes[node].opr.mbcset;
 -	  if (cset->non_match || cset->ncoll_syms || cset->nequiv_classes
 -	      || cset->nranges || cset->nchar_classes)
 -	    {
-+	  int i;
 +
  # ifdef _LIBC
 -	      if (_NL_CURRENT_WORD (LC_COLLATE, _NL_COLLATE_NRULES) != 0)
@@ -112,7 +123,7 @@
  		      re_set_fastmap (fastmap, icase, i);
  		}
 -# else
--	      if (dfa->mb_cur_max > 1)
+-	      if (dfa_mb_cur_max (dfa) > 1)
 -		for (i = 0; i < SBC_MAX; ++i)
 -		  if (__btowc (i) == WEOF)
 -		    re_set_fastmap (fastmap, icase, i);
@@ -125,7 +136,7 @@
 +	     i.e. where we would not find an invalid sequence.  This only
 +	     applies to multibyte character sets; for single byte character
 +	     sets, the SIMPLE_BRACKET again suffices.  */
-+	  if (dfa->mb_cur_max > 1
++	  if (dfa_mb_cur_max (dfa) > 1
 +	      && (cset->nchar_classes || cset->non_match
 +# ifdef _LIBC
 +		  || cset->nequiv_classes
@@ -137,7 +148,7 @@
 -	      memset (&state, '\0', sizeof (state));
 -	      if (__wcrtomb (buf, cset->mbchars[i], &state) != (size_t) -1)
 -		re_set_fastmap (fastmap, icase, *(unsigned char *) buf);
--	      if ((bufp->syntax & RE_ICASE) && dfa->mb_cur_max > 1)
+-	      if ((bufp->syntax & RE_ICASE) && dfa_mb_cur_max (dfa) > 1)
 +	      unsigned char c = 0;
 +	      do
  		{
@@ -162,7 +173,7 @@
 +		  memset (&state, '\0', sizeof (state));
 +		  if (__wcrtomb (buf, cset->mbchars[i], &state) != (size_t) -1)
 +		    re_set_fastmap (fastmap, icase, *(unsigned char *) buf);
-+		  if ((bufp->syntax & RE_ICASE) && dfa->mb_cur_max > 1)
++		  if ((bufp->syntax & RE_ICASE) && dfa_mb_cur_max (dfa) > 1)
 +		    {
 +		      if (__wcrtomb (buf, towlower (cset->mbchars[i]), &state)
 +			  != (size_t) -1)
@@ -171,5 +182,5 @@
 + 		}
 + 	    }
  	}
- #endif /* RE_ENABLE_I18N */
+ #endif /* RE_ENABLE_I18N && __OPTION_EGLIBC_LOCALE_CODE */
        else if (type == OP_PERIOD
