@@ -171,7 +171,7 @@ $(stamp)doc: $(stamp)patch
 
 $(stamp)source: $(stamp)patch
 	tar -c --lzma -C .. \
-		-f $(build-tree)/glibc-$(GLIBC_VERSION).tar.lzma \
+		-f $(build-tree)/glibc-$(EGLIBC_VERSION).tar.lzma \
 		$(EGLIBC_SOURCES)
 	touch $@
 
