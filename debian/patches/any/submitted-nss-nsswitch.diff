@@ -1,7 +1,6 @@
 2009-03-01  Aurelien Jarno  <aurelien@aurel32.net>
 
-	* nss/nsswitch.c (lock_nsswitch, unlock_nsswitch): use braces
-	instead of brackets.
+	* nss/nsswitch.c (lock_nsswitch, unlock_nsswitch): remove brackets.
 
 --- a/nss/nsswitch.c	(revision 8009)
 +++ b/nss/nsswitch.c	(working copy)
@@ -11,8 +10,8 @@
  
 -#define lock_nsswitch (__libc_lock_lock (lock))
 -#define unlock_nsswitch (__libc_lock_unlock (lock))
-+#define lock_nsswitch {__libc_lock_lock (lock)}
-+#define unlock_nsswitch {__libc_lock_unlock (lock)}
++#define lock_nsswitch __libc_lock_lock (lock)
++#define unlock_nsswitch __libc_lock_unlock (lock)
  
  #if !defined DO_STATIC_NSS || defined SHARED
  /* String with revision number of the shared object files.  */
