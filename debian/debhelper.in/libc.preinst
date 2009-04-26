@@ -15,8 +15,34 @@ then
     if [ -n "$preversion" ]; then
 	# NSS authentication trouble guard
 	if dpkg --compare-versions "$preversion" lt 2.9-5; then
+	    if pidof xscreensaver xlockmore >/dev/null; then
+		if [ -f /usr/share/debconf/confmodule ] ; then
+		    db_version 2.0
+		    db_reset glibc/disable-screensaver
+		    db_input critical glibc/disable-screensaver || true
+		    db_go || true
+		else
+		    echo "xscreensaver and xlockmore must be restarted before upgrading"
+		    echo
+		    echo "One or more running instances of xscreensaver or xlockmore have been"
+		    echo "detected on this system. Because of incompatible library changes, the"
+		    echo "upgrade of the GNU C library will leave you unable to authenticate to"
+		    echo "these programs. You should arrange for these programs to be restarted"
+		    echo "or stopped before continuing this upgrade, to avoid locking your users"
+		    echo "out of their current sessions."
+		    echo
+		    frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
+		    if [ "$frontend" = noninteractive ]; then
+			echo "Non-interactive mode, upgrade glibc forcibly"
+		    else
+		        echo -n "Press a key to continue"
+		        read answer
+		    fi
+		    echo
+		fi
+	    fi
 
-	    check="gdm kdm proftpd postgresql xscreensaver xdm"
+	    check="gdm kdm proftpd postgresql xdm"
 	    # NSS services check: NSS_CHECK
 	    if [ -n "$services" ]; then 
 		if [ -f /usr/share/debconf/confmodule ] ; then
@@ -28,7 +54,7 @@ then
 		    db_get glibc/upgrade
 		    answer=$RET
 		else
-		    echo "Name Service Switch update in the GNU C Library"
+		    echo "Do you want to upgrade glibc now?"
 		    echo
 		    echo "Running services and programs that are using NSS need to be restarted,"
 		    echo "otherwise they might not be able to do lookup or authentication any more."

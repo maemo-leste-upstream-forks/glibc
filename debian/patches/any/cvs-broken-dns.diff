@@ -1,0 +1,121 @@
+2009-04-16  Ulrich Drepper  <drepper@redhat.com>
+
+	* resolv/res_send.c (send_dg): Don't just ignore the result we got
+	in case we only receive one reply in single-request mode.
+	* resolv/res_send.c (send_dg): Don't switch into single-request
+	 mode if we already are in it
+
+2009-04-06  Ulrich Drepper  <drepper@redhat.com>
+
+	* resolv/resolv.h (RES_SNGLKUP): Define.
+	* resolv/res_init.c (res_setoptions): Recognize single-request option.
+	* resolv/res_send.c (send_dg): If we sent two requests at once and
+	only get one reply before timeout switch to mode where we send the
+	second request only after the first answer has been received
+
+diff --git a/resolv/res_send.c b/resolv/res_send.c
+index f75a26e..25a854f 100644
+--- a/resolv/res_send.c
++++ b/resolv/res_send.c
+@@ -915,7 +915,7 @@
+ 	struct pollfd pfd[1];
+         int ptimeout;
+ 	struct sockaddr_in6 from;
+-	int resplen, seconds, n;
++	int resplen, n;
+ 
+ 	if (EXT(statp).nssocks[ns] == -1) {
+ 		/* only try IPv6 if IPv6 NS and if not failed before */
+@@ -967,11 +967,14 @@
+ 	/*
+ 	 * Compute time for the total operation.
+ 	 */
+-	seconds = (statp->retrans << ns);
++	int seconds = (statp->retrans << ns);
+ 	if (ns > 0)
+ 		seconds /= statp->nscount;
+ 	if (seconds <= 0)
+ 		seconds = 1;
++	bool single_request = ((statp->options) & RES_SNGLKUP) != 0;// XXX
++	int save_gotsomewhere = *gotsomewhere;
++ retry:
+ 	evNowTime(&now);
+ 	evConsTime(&timeout, seconds, 0);
+ 	evAddTime(&finish, &now, &timeout);
+@@ -995,6 +998,7 @@
+ 			return (0);
+ 		}
+ 		evSubTime(&timeout, &finish, &now);
++		need_recompute = 0;
+ 	}
+         /* Convert struct timespec in milliseconds.  */
+ 	ptimeout = timeout.tv_sec * 1000 + timeout.tv_nsec / 1000000;
+@@ -1010,6 +1014,20 @@
+ 		Dprint(statp->options & RES_DEBUG, (stdout, ";; timeout\n"));
+ 		if (resplen > 1 && (recvresp1 || (buf2 != NULL && recvresp2)))
+ 		  {
++		    /* There are quite a few broken name servers out
++		       there which don't handle two outstanding
++		       requests from the same source.  There are also
++		       broken firewall settings.  If we time out after
++		       having received one answer switch to the mode
++		       where we send the second request only once we
++		       have received the first answer.  */
++		    if (!single_request)
++		      {
++			single_request = true;
++			*gotsomewhere = save_gotsomewhere;
++			goto retry;
++		      }
++
+ 		    *resplen2 = 1;
+ 		    return resplen;
+ 		  }
+@@ -1037,7 +1055,7 @@
+ 			Perror(statp, stderr, "send", errno);
+ 			goto err_out;
+ 		}
+-		if (nwritten != 0 || buf2 == NULL)
++		if (nwritten != 0 || buf2 == NULL || single_request)
+ 		  pfd[0].events = POLLIN;
+ 		else
+ 		  pfd[0].events = POLLIN | POLLOUT;
+@@ -1250,8 +1268,11 @@
+ 		else
+ 			recvresp2 = 1;
+ 		/* Repeat waiting if we have a second answer to arrive.  */
+-		if ((recvresp1 & recvresp2) == 0)
++		if ((recvresp1 & recvresp2) == 0) {
++			if (single_request)
++				pfd[0].events = POLLOUT;
+ 			goto wait;
++		}
+ 		/*
+ 		 * All is well, or the error is fatal.  Signal that the
+ 		 * next nameserver ought not be tried.
+diff --git a/resolv/res_init.c b/resolv/res_init.c
+index 2bf830c..8841fe9 100644
+--- a/resolv/res_init.c
++++ b/resolv/res_init.c
+@@ -540,6 +540,9 @@ res_setoptions(res_state statp, const char *options, const char *source) {
+ 			statp->options |= RES_NOCHECKNAME;
+                 } else if (!strncmp(cp, "edns0", sizeof("edns0") - 1)) {
+ 			statp->options |= RES_USE_EDNS0;
++                } else if (!strncmp(cp, "single-request",
++				    sizeof("single-request") - 1)) {
++			statp->options |= RES_SNGLKUP;
+ 		} else {
+ 			/* XXX - print a warning here? */
+ 		}
+diff --git a/resolv/resolv.h b/resolv/resolv.h
+index a0de320..c6e695d 100644
+--- a/resolv/resolv.h
++++ b/resolv/resolv.h
+@@ -215,6 +215,7 @@ struct res_sym {
+ #define RES_NOIP6DOTINT	0x00080000	/* Do not use .ip6.int in IPv6
+ 					   reverse lookup */
+ #define RES_USE_EDNS0	0x00100000	/* Use EDNS0.  */
++#define RES_SNGLKUP	0x00200000	/* one outstanding request at a time */
+ 
+ #define RES_DEFAULT	(RES_RECURSE|RES_DEFNAMES|RES_DNSRCH|RES_NOIP6DOTINT)
+ 

@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: debian-glibc@lists.debian.org\n"
-"POT-Creation-Date: 2007-09-10 10:19+0200\n"
+"Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
+"POT-Creation-Date: 2009-03-08 15:23+0100\n"
 "PO-Revision-Date: 2008-02-17 12:48+0200\n"
 "Last-Translator: stan ioan-eugen <stan.ieugen@gmail.com>\n"
 "Language-Team: romanian <debian-l10n-romanian@lists.debian.org>\n"
@@ -48,10 +48,9 @@ msgid ""
 "default, particularly for new installations. Other character sets may be "
 "useful for backwards compatibility with older systems and software."
 msgstr ""
-"Alegeți ce locale se generează. Localele UTF-8 ar trebui alese "
-"implicit, în special pentru instalări noi. Din motive de compatibilitate cu "
-"soft sau sisteme mai vechi, puteți alege să se genereze și alte seturi de "
-"caractere."
+"Alegeți ce locale se generează. Localele UTF-8 ar trebui alese implicit, în "
+"special pentru instalări noi. Din motive de compatibilitate cu soft sau "
+"sisteme mai vechi, puteți alege să se genereze și alte seturi de caractere."
 
 #. Type: select
 #. Choices
@@ -89,48 +88,124 @@ msgstr ""
 "multi-utilizator unde nu toți utilizatorii vorbesc limba aleasă, atunci ei "
 "vor întâmpina dificultăți."
 
-#. Type: string
+#. Type: boolean
 #. Description
 #: ../debhelper.in/libc.templates:1001
+msgid "Do you want to upgrade glibc now?"
+msgstr ""
+
+#. Type: boolean
+#. Description
+#: ../debhelper.in/libc.templates:1001
+#, fuzzy
+#| msgid ""
+#| "Running services and programs that are using NSS need to be restarted, "
+#| "otherwise they might not be able to do lookup or authentication any more "
+#| "(for services such as ssh, this can affect your ability to login). Please "
+#| "review the following space-separated list of init.d scripts for services "
+#| "to be restarted now, and correct it if needed."
+msgid ""
+"Running services and programs that are using NSS need to be restarted, "
+"otherwise they might not be able to do lookup or authentication any more. "
+"The installation process is able to restart some services (such as ssh or "
+"telnetd), but other programs cannot be restarted automatically. One such "
+"program that needs manual stopping and restart after the glibc upgrade by "
+"yourself is xdm - because automatic restart might disconnect your active X11 "
+"sessions."
+msgstr ""
+"Serviciile și programele care rulează și folosesc NSS trebuiesc repornite, "
+"altfel este posibil să nu mai poată efectua autentificarea sau căutarea "
+"numelor (în cazul serviciilor gen ssh, acest lucru poate determina "
+"imposibilitatea autentificării). Analizati următoarea listă ce conține, "
+"separate prin spațiu, scripturi init.d ale serviciilor ce trebuiesc "
+"repornite acum și corectați-o dacă este nevoie."
+
+#. Type: boolean
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid ""
+"This script detected the following installed services which must be stopped "
+"before the upgrade: ${services}"
+msgstr ""
+
+#. Type: boolean
+#. Description
+#: ../debhelper.in/libc.templates:1001
+msgid ""
+"If you want to interrupt the upgrade now and continue later, please answer "
+"No to the question below."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../debhelper.in/libc.templates:2001
 msgid "Services to restart for GNU libc library upgrade:"
 msgstr "Servicii ce trebuiesc repornite la înnoirea bibliotecii GNU libc:"
 
 #. Type: string
 #. Description
-#: ../debhelper.in/libc.templates:1001
+#: ../debhelper.in/libc.templates:2001
 msgid ""
 "Running services and programs that are using NSS need to be restarted, "
 "otherwise they might not be able to do lookup or authentication any more "
 "(for services such as ssh, this can affect your ability to login). Please "
 "review the following space-separated list of init.d scripts for services to "
 "be restarted now, and correct it if needed."
-msgstr "Serviciile și programele care rulează și folosesc NSS trebuiesc repornite, altfel este posibil să nu mai poată efectua autentificarea sau căutarea numelor (în cazul serviciilor gen ssh, acest lucru poate determina imposibilitatea autentificării). Analizati următoarea listă ce conține, separate prin spațiu, scripturi init.d ale serviciilor ce trebuiesc repornite acum și corectați-o dacă este nevoie."
+msgstr ""
+"Serviciile și programele care rulează și folosesc NSS trebuiesc repornite, "
+"altfel este posibil să nu mai poată efectua autentificarea sau căutarea "
+"numelor (în cazul serviciilor gen ssh, acest lucru poate determina "
+"imposibilitatea autentificării). Analizati următoarea listă ce conține, "
+"separate prin spațiu, scripturi init.d ale serviciilor ce trebuiesc "
+"repornite acum și corectați-o dacă este nevoie."
 
 #. Type: string
 #. Description
-#: ../debhelper.in/libc.templates:1001
-msgid "Note: restarting sshd/telnetd should not affect any existing connections."
-msgstr "Notă: repornirea sshd/telnetd nu ar trebui să afecteze conexiunile existente."
+#: ../debhelper.in/libc.templates:2001
+msgid ""
+"Note: restarting sshd/telnetd should not affect any existing connections."
+msgstr ""
+"Notă: repornirea sshd/telnetd nu ar trebui să afecteze conexiunile existente."
 
 #. Type: error
 #. Description
-#: ../debhelper.in/libc.templates:2001
+#: ../debhelper.in/libc.templates:3001
 msgid "Failure restarting some services for GNU libc upgrade"
 msgstr "Eșec la pornirea unor servicii pentru înnoirea GNU libc"
 
 #. Type: error
 #. Description
-#: ../debhelper.in/libc.templates:2001
+#: ../debhelper.in/libc.templates:3001
 msgid ""
 "The following services could not be restarted for the GNU libc library "
 "upgrade:"
-msgstr "Următoarele servicii nu ar trebui repornite la înnoirea bibliotecii GNU libc."
+msgstr ""
+"Următoarele servicii nu ar trebui repornite la înnoirea bibliotecii GNU libc."
 
 #. Type: error
 #. Description
-#: ../debhelper.in/libc.templates:2001
+#: ../debhelper.in/libc.templates:3001
 msgid ""
 "You will need to start these manually by running '/etc/init.d/<service> "
 "start'."
-msgstr "Va trebui să porniți aceste servicii manual executând comanda '/etc/init.d/<serviciu> start'."
+msgstr ""
+"Va trebui să porniți aceste servicii manual executând comanda '/etc/init.d/"
+"<serviciu> start'."
 
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:4001
+msgid "xscreensaver and xlockmore must be restarted before upgrading"
+msgstr ""
+
+#. Type: error
+#. Description
+#: ../debhelper.in/libc.templates:4001
+msgid ""
+"One or more running instances of xscreensaver or xlockmore have been "
+"detected on this system. Because of incompatible library changes, the "
+"upgrade of the GNU libc library will leave you unable to authenticate to "
+"these programs. You should arrange for these programs to be restarted or "
+"stopped before continuing this upgrade, to avoid locking your users out of "
+"their current sessions."
+msgstr ""

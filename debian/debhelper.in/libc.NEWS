@@ -1,3 +1,19 @@
+glibc (2.9-8) unstable; urgency=low
+
+  Starting with version 2.9-8, unified IPv4/IPv6 lookup have been enabled
+  in the glibc's resolver. This is faster, fixes numerous of bugs, but is
+  problematic on some broken DNS servers and/or wrongly configured 
+  firewalls. 
+  
+  If such a DNS server is detected, the resolver switches (permanently
+  for that process) to a mode where the second request is sent only when
+  the first answer has been received. This means the first request will
+  be timeout, but subsequent requests should be fast again. This 
+  behaviour   can be enabled permanently by adding 'single-request' to 
+  /etc/resolv.conf.  
+
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 23 Apr 2009 21:14:32 +0200
+
 glibc (2.6.1-2) unstable; urgency=low
 
   Starting with version 2.6.1, glibc ships a /etc/ld.so.conf.d/libc.conf that

@@ -174,7 +174,7 @@ $(stamp)debhelper:
 	      rtld=`LANG=C LC_ALL=C readelf -l debian/tmp-libc/usr/bin/iconv | grep "interpreter" | sed -e 's/.*interpreter: \(.*\)]/\1/g'`; \
 	      c_so=`ls debian/tmp-libc/lib/ | grep "libc\.so\."` ; \
 	      m_so=`ls debian/tmp-libc/lib/ | grep "libm\.so\."` ; \
-	      pthread_so=`ls debian/tmp-libc/lib/ | grep "libpthread\.so\."` ; \
+	      pthread_so=`ls debian/tmp-libc/lib/ | grep "libpthread\.so\."` || true; \
 	      rt_so=`ls debian/tmp-libc/lib/ | grep "librt\.so\."` ; \
 	      dl_so=`ls debian/tmp-libc/lib/ | grep "libdl\.so\."` ; \
 	      sed -e "s#RTLD#$$rtld#" -e "s#C_SO#$$c_so#" -e "s#M_SO#$$m_so#" -e "s#PTHREAD_SO#$$pthread_so#" -e "s#RT_SO#$$rt_so#" -e "s#DL_SO#$$dl_so#" -i $$z ; \

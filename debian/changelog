@@ -1,10 +1,11 @@
-eglibc (2.9-5+eglibc) unstable; urgency=low
+eglibc (2.9-8+eglibc) unstable; urgency=low
 
   * Switch to Embedded GLIBC (EGLIBC), sources taken from the 2.9
     branch.
     - Update all/submitted-readme-version.diff.
     - Update any/local-bashisms.diff.
     - Update any/cvs-bz9697-posix-regcomp.diff.
+    - Update any/cvs-binutils_2.20.diff.
     - Drop any/local-makeconfig.diff.
     - Drop any/submitted-getcwd-sys_param_h.diff (merged in eglibc).
     - Add any/submitted-cross-zic.diff to fix biarch builds.
@@ -12,7 +13,94 @@ eglibc (2.9-5+eglibc) unstable; urgency=low
     - More tests of flavour/biarch builds are run, update the expected
       testsuite results accordingly.
 
- -- Aurelien Jarno <aurel32@debian.org>  Sun, 01 Mar 2009 01:24:23 +0100
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 26 Apr 2009 23:36:38 +0200
+
+glibc (2.9-8) unstable; urgency=low
+
+  [ Aurelien Jarno ]
+  * Update Swedish debconf translation, by Martin Bagger.  Closes: #522982.
+  * mips/cvs-context.diff: new patch from upstream to add getcontext, 
+    setcontext, makecontext, swapcontext.
+  * any/submitted-mount_h.diff: new patch to add MNT_DETACH and MNT_EXPIRE to
+    sys/mount.h.  Closes: #523952.
+  * arm/submitted-fpu_control_h.diff: new patch to disable macros from 
+    <fpu_control.h> on EABI.  Closes: #525261.
+  * any/cvs-iconv-utf16.diff: new patch from upstream to reject UTF-8-encoded 
+    UTF-16 surrogates in iconv.  Closes: #525299.
+  * any/local-getaddrinfo-interface.diff: ignore addresses with no interface
+    assigned while sorting with rule 7.  Closes: #521439.
+  * any/cvs-broken_dns.diff: new patch from CVS to provide a fallback for 
+    broken DNS server while doing unified IPv4/IPv6 requests. The first lookup
+    will be slow, but subsequent requests will fallback to the previous 
+    behaviour. This can be enabled by default by setting 'single-request' in 
+    /etc/resolv.conf.
+  * debhelper.in/libc.NEWS: add entry explaining the new behaviour and the new
+    option.
+  * any/local-disable-gethostbyname4.diff: disabled this patch to re-enable
+    unified IPv4/IPv6 requests.  Closes: bug#343140, bug#435646.
+  * localedata/cvs-el_CY-el_GR-frac_digits.diff: new patch from CVS to fix 
+    frac_digits and int_frac_digits on el_CY ad el_GR locales.  Closes: 
+    bug#511621.
+  * mips_asm_unistd.h, sysdeps/mipsel.mk, sysdeps/mips.mk: use our own version
+    of unistd.h corresponding to the one of a 2.6.24 kernel to workaround kernel
+    bugs on the build daemons.
+  * any/cvs-binutils_2.20.diff: new patch from upstream to fix build failure
+    with binutils 2.20.
+
+  [ Petr Salinger ]
+  * kfreebsd/local-sysdeps.diff: update to revision 2450 (from glibc-bsd).
+    Closes: #522686. Thanks to Jan Christoph Nordholz.
+
+  [ Samuel Thibault ]
+  * hurd-i386/cvs-rtld.diff: new patch, fixes boot of glibc built with
+    binutils >= 2.19.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 26 Apr 2009 19:43:13 +0200
+
+glibc (2.9-7) unstable; urgency=low
+
+  [ Aurelien Jarno ]
+  * Update German debconf translation, by Helge Kreutzman.  Closes: #519992.
+  * Update testsuite results on alpha, tst-timer.out exits with SIGILL on
+    some machines, it was already the case with glibc 2.7 on the same 
+    machines.
+  * Update testsuite results on hppa, tst-posix_fallocate.out and 
+    tst-makecontext.out are known to fail with a 32-bit kernel.
+  * debian/script.in/nsscheck.sh: fix a typo.  Closes: #520455.
+  * kfreebsd/local-sysdeps.diff: update to revision 2390 (from glibc-bsd).
+  * libc6.1.symbols.alpha: fix package name for private symbols.
+
+  [ Samuel Thibault ]
+  * debian/rules.d/debhelper.mk: let grep libpthread.so fail because on
+    hurd-i386 glibc does not provide it.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 07 Apr 2009 07:58:50 +0200
+
+glibc (2.9-6) unstable; urgency=low
+
+  [ Samuel Thibault ]
+  * debian/patches/hurd-i386/local-tls-support.diff: fix typo in tlsdesc.sym.
+  
+  [ Aurelien Jarno ]
+  * debian/po/de.po: fix German translation.  Closes: bug#519612.
+  * Update French debconf translation, by Christian Perrier.  Closes: #519662.
+  * any/local-disable-gethostbyname4.diff: disable unified lookup for 
+    getaddrinfo(). While unified lookup fix the problem of DNS servers simply 
+    dropping AAAA requests, it breaks lookup with even more broken DNS servers
+    only returning a broken AAAA answer. As it seems the second type of broken
+    DNS concerns more users, let's revert to the old behaviour.  Closes: 
+    #516218.
+  * any/submitted-getaddrinfo-lo.diff: correctly handle the lo interface and
+    associated addresses when checking for native connection.  Closes: 
+    bug#519545.
+  * debian/control.in/libc: change -dbg packages to section debug. 
+  * debian/control.in/main: update Standards-Version to 3.8.1:
+    - debian/local/etc_init.d/glibc.sh: move set -e out from the shebang line.
+    - debian/debhelper.in/nscd.init: exit successfully if the daemon was 
+      already running.
+  * debian/debhelper.in/nscd.dirs: remove /var/run/nscd directory.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 15 Mar 2009 21:22:48 +0100
 
 glibc (2.9-5) unstable; urgency=low
 
@@ -28,8 +116,32 @@ glibc (2.9-5) unstable; urgency=low
   * debhelper.in/libc.{preinst,postint}: bump the version triggering the
     restart of NSS related services to 2.9-5.
   * debhelper.in/libc.postint: change cupsys into cups.
+  * script.in/nsscheck.sh: convert mysql-server into mysql. Closes:
+    bug#172123.
+  * merge lost patch from lenny:
+    - debhelper.in/locales.config: use previous debconf settings if 
+      /etc/locales does not exists. Closes: bug#517884.
+  * debian/local/manpages/ld.so.8: fix a typo.  Closes: bug#518394.
+  * debhelper.in/libc.preinst, debhelper.in/libc.templates: warn users 
+    about the need to disable xscreensaver and xlockmore before libc6 
+    is unpacked.  Closes: bug#517795.
 
- -- Aurelien Jarno <aurel32@debian.org>  Mon, 02 Mar 2009 10:02:14 +0100
+  [ Samuel Thibault ]
+  * debian/patches/hurd-i386/cvs-ECANCELED.diff: rename into
+    submitted-ECANCELED.diff
+  * debian/patches/hurd-i386/local-net-headers.diff: rename into
+    cvs-net-headers.diff
+  * debian/patches/hurd-i386/local-pthread_types.diff: make it create a new
+    sysdep/mach/hurd/bits/pthreadtypes.h instead of modifying
+    bits/pthreadtypes.h.  Move from series.hurd-i386 to series.
+  * debian/patches/hurd-i386/local-tls-dtv-offset.diff: remove patch, make
+    local-tls-support.diff create tlsdesc.sym instead.
+  * debian/patches/hurd-i386/local-no-strerror_l.diff: remove patch, replaced
+    by...
+  * debian/patches/hurd-i386/cvs-strerror_l.diff: new patch from Thomas
+    Schwinge.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 12 Mar 2009 00:13:02 +0100
 
 glibc (2.9-4) unstable; urgency=low
 
