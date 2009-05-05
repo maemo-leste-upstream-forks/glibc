@@ -13,6 +13,17 @@
 	only get one reply before timeout switch to mode where we send the
 	second request only after the first answer has been received
 
+2008-12-29  Ulrich Drepper  <drepper@redhat.com>
+
+	* sysdeps/posix/getaddrinfo.c (gaih_inet): When the
+	gethostbyname4_r function call succeeded, just leave the loop.
+
+2008-12-02  Ulrich Drepper  <drepper@redhat.com>
+
+        * sysdeps/posix/getaddrinfo.c (gaih_inet): In case we use
+        gethostbyname4_r, we don't have a separate IPv6 status, so copy
+        the no_data variable.
+
 diff --git a/resolv/res_send.c b/resolv/res_send.c
 index f75a26e..25a854f 100644
 --- a/resolv/res_send.c
@@ -119,3 +130,25 @@ index a0de320..c6e695d 100644
  
  #define RES_DEFAULT	(RES_RECURSE|RES_DEFNAMES|RES_DNSRCH|RES_NOIP6DOTINT)
  
+diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
+index 72fbdb0..d346c62 100644
+--- a/sysdeps/posix/getaddrinfo.c
++++ b/sysdeps/posix/getaddrinfo.c
+@@ -714,6 +714,8 @@ gaih_inet (const char *name, const struct gaih_service *service,
+ 		      status = DL_CALL_FCT (fct4, (name, pat, tmpbuf,
+ 						   tmpbuflen, &rc, &herrno,
+ 						   NULL));
++		      if (status == NSS_STATUS_SUCCESS)
++			break;
+ 		      if (status != NSS_STATUS_TRYAGAIN
+ 			  || rc != ERANGE || herrno != NETDB_INTERNAL)
+ 			{
+@@ -733,6 +735,8 @@ gaih_inet (const char *name, const struct gaih_service *service,
+ 					      tmpbuflen, 2 * tmpbuflen);
+ 		    }
+ 
++		  no_inet6_data = no_data;
++
+ 		  if (status == NSS_STATUS_SUCCESS)
+ 		    {
+ 		      if ((req->ai_flags & AI_CANONNAME) != 0 && canon == NULL)

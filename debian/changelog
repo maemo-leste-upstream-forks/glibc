@@ -17,6 +17,22 @@ eglibc (2.9-9eglibc1) experimental; urgency=low
 
  -- Aurelien Jarno <aurel32@debian.org>  Mon, 04 May 2009 17:38:04 +0200
 
+glibc (2.9-10) unstable; urgency=low
+
+  [ Samuel Thibault ]
+  * hurd-i386/local-pthread_posix-option.diff: Set _POSIX_TIMEOUTS to 200112
+    too, to fix gthread compilation in gcc-4.4
+
+  [ Petr Salinger ]
+  * fix up GNU/kFreeBSD specific macro LIST_FOREACH_SAFE.
+  
+  [ Aurelien Jarno ]
+  * any/cvs-broken-dns.diff: backport more parts from upstream.
+  * any/submitted-broken-dns.diff: new patch to not raise an error if one
+    query returns NOTIMP or FORMERR and the other NOERROR.  Closes: #526823.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 05 May 2009 01:39:50 +0200
+
 glibc (2.9-9) unstable; urgency=low
 
   * mips/cvs-context.diff: add missing part from upstream.
@@ -37,7 +53,7 @@ glibc (2.9-8) unstable; urgency=low
     UTF-16 surrogates in iconv.  Closes: #525299.
   * any/local-getaddrinfo-interface.diff: ignore addresses with no interface
     assigned while sorting with rule 7.  Closes: #521439.
-  * any/cvs-broken_dns.diff: new patch from CVS to provide a fallback for 
+  * any/cvs-broken-dns.diff: new patch from CVS to provide a fallback for 
     broken DNS server while doing unified IPv4/IPv6 requests. The first lookup
     will be slow, but subsequent requests will fallback to the previous 
     behaviour. This can be enabled by default by setting 'single-request' in 

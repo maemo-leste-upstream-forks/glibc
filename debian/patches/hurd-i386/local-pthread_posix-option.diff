@@ -7,12 +7,25 @@ packages which have a pthread library.
 
 --- a/sysdeps/mach/hurd/bits/posix_opt.h
 +++ b/sysdeps/mach/hurd/bits/posix_opt.h
-@@ -62,7 +62,7 @@
+@@ -61,8 +61,8 @@
+ #undef _POSIX_SYNC_IO		/* File supports O_SYNC et al?  */
  
  
- /* We do not have the POSIX threads interface.  */
+-/* We do not have the POSIX threads interface.  */
 -#define _POSIX_THREADS	-1
++/* Tell we have POSIX threads.  */
 +#define _POSIX_THREADS	200112L
  
  /* We have the reentrant functions described in POSIX.  */
  #define _POSIX_REENTRANT_FUNCTIONS      1
+@@ -108,8 +108,8 @@
+ /* We have a POSIX shell.  */
+ #define _POSIX_SHELL	1
+ 
+-/* We cannot support the Timeouts option without _POSIX_THREADS.  */
+-#define _POSIX_TIMEOUTS	-1
++/* We support the Timeouts option.  */
++#define _POSIX_TIMEOUTS	200112L
+ 
+ /* The `spawn' function family is supported.  */
+ #define _POSIX_SPAWN	200809L
