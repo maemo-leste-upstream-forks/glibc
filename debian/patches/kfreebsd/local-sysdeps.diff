@@ -47,7 +47,7 @@
 +gnu
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile
-@@ -0,0 +1,124 @@
+@@ -0,0 +1,126 @@
 +# Use bash, not /bin/sh, for executing scripts, because the native
 +# FreeBSD /bin/sh does not interpret the  IFS="<tab>" read ...  command
 +# in localedata/tst-fmon.sh correctly.
@@ -138,6 +138,8 @@
 +ifeq ($(subdir),posix)
 +# For <unistd.h>.
 +sysdep_routines += sys_getlogin sys_pread sys_pwrite sys_setlogin sys_read sys_write
++# for <sched.h>
++sysdep_routines += sys_cpuset_getaffinity sys_cpuset_setaffinity
 +endif
 +
 +ifeq ($(subdir),inet)
@@ -174,7 +176,7 @@
 +endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions
-@@ -0,0 +1,101 @@
+@@ -0,0 +1,102 @@
 +libc {
 +  # The comment lines with "#errlist-compat" are magic; see errlist-compat.awk.
 +  # When you get an error from errlist-compat.awk, you need to add a new
@@ -271,6 +273,7 @@
 +     # misc fixes for FreeBSD:
 +    __syscall_freebsd6_lseek; __syscall_freebsd6_pread; __syscall_freebsd6_pwrite;
 +    __syscall_connect; __syscall_sendto;
++    __syscall_cpuset_getaffinity ; __syscall_cpuset_setaffinity;
 +    __sigprocmask; __ioctl;
 +     # global variable used in brk()
 +    _end;
@@ -4300,10 +4303,11 @@
 +};
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sched.h
-@@ -0,0 +1,177 @@
+@@ -0,0 +1,183 @@
 +/* Definitions of constants and data structure for POSIX 1003.1b-1993
 +   scheduling interface.
-+   Copyright (C) 1996, 1997, 2001, 2003 Free Software Foundation, Inc.
++   Copyright (C) 1996-1999,2001-2003,2005,2006,2007,2008
++   Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -4386,7 +4390,7 @@
 +#if defined _SCHED_H && !defined __cpu_set_t_defined
 +# define __cpu_set_t_defined
 +/* Size definition for CPU sets.  */
-+# define __CPU_SETSIZE	1024
++# define __CPU_SETSIZE	128
 +# define __NCPUBITS	(8 * sizeof (__cpu_mask))
 +
 +/* Type for array elements in 'cpu_set_t'.  */
@@ -4411,26 +4415,31 @@
 +  do {									      \
 +    size_t __i;								      \
 +    size_t __imax = (setsize) / sizeof (__cpu_mask);			      \
-+    cpu_set_t *__arr = (cpusetp);					      \
++    __cpu_mask *__bits = (cpusetp)->__bits;				      \
 +    for (__i = 0; __i < __imax; ++__i)					      \
-+      __arr->__bits[__i] = 0;						      \
++      __bits[__i] = 0;							      \
 +  } while (0)
 +# endif
 +# define __CPU_SET_S(cpu, setsize, cpusetp) \
 +  (__extension__							      \
 +   ({ size_t __cpu = (cpu);						      \
 +      __cpu < 8 * (setsize)						      \
-+      ? ((cpusetp)->__bits[__CPUELT (__cpu)] |= __CPUMASK (__cpu)) : 0; }))
++      ? (((__cpu_mask *) ((cpusetp)->__bits))[__CPUELT (__cpu)]		      \
++	 |= __CPUMASK (__cpu))						      \
++      : 0; }))
 +# define __CPU_CLR_S(cpu, setsize, cpusetp) \
 +  (__extension__							      \
 +   ({ size_t __cpu = (cpu);						      \
 +      __cpu < 8 * (setsize)						      \
-+      ? ((cpusetp)->__bits[__CPUELT (__cpu)] &= ~__CPUMASK (__cpu)) : 0; }))
++      ? (((__cpu_mask *) ((cpusetp)->__bits))[__CPUELT (__cpu)]		      \
++	 &= ~__CPUMASK (__cpu))						      \
++      : 0; }))
 +# define __CPU_ISSET_S(cpu, setsize, cpusetp) \
 +  (__extension__							      \
 +   ({ size_t __cpu = (cpu);						      \
 +      __cpu < 8 * (setsize)						      \
-+      ? (((cpusetp)->__bits[__CPUELT (__cpu)] & __CPUMASK (__cpu))) != 0      \
++      ? ((((__cpu_mask *) ((cpusetp)->__bits))[__CPUELT (__cpu)]	      \
++	  & __CPUMASK (__cpu))) != 0					      \
 +      : 0; }))
 +
 +# define __CPU_COUNT_S(setsize, cpusetp) \
@@ -4442,12 +4451,12 @@
 +# else
 +#  define __CPU_EQUAL_S(setsize, cpusetp1, cpusetp2) \
 +  (__extension__							      \
-+   ({ cpu_set_t *__arr1 = (cpusetp1);					      \
-+      cpu_set_t *__arr2 = (cpusetp2);					      \
++   ({ __cpu_mask *__arr1 = (cpusetp1)->__bits;				      \
++      __cpu_mask *__arr2 = (cpusetp2)->__bits;				      \
 +      size_t __imax = (setsize) / sizeof (__cpu_mask);			      \
 +      size_t __i;							      \
 +      for (__i = 0; __i < __imax; ++__i)				      \
-+	if (__arr1->__bits[__i] != __arr2->__bits[__i])			      \
++	if (__bits[__i] != __bits[__i])					      \
 +	  break;							      \
 +      __i == __imax; }))
 +# endif
@@ -4455,16 +4464,16 @@
 +# define __CPU_OP_S(setsize, destset, srcset1, srcset2, op) \
 +  (__extension__							      \
 +   ({ cpu_set_t *__dest = (destset);					      \
-+      cpu_set_t *__arr1 = (srcset1);					      \
-+      cpu_set_t *__arr2 = (srcset2);					      \
++      __cpu_mask *__arr1 = (srcset1)->__bits;				      \
++      __cpu_mask *__arr2 = (srcset2)->__bits;				      \
 +      size_t __imax = (setsize) / sizeof (__cpu_mask);			      \
 +      size_t __i;							      \
 +      for (__i = 0; __i < __imax; ++__i)				      \
-+	__dest->__bits[__i] = __arr1->__bits[__i] op __arr2->__bits[__i];     \
++	((__cpu_mask *) __dest->__bits)[__i] = __arr1[__i] op __arr2[__i];    \
 +      __dest; }))
 +
 +# define __CPU_ALLOC_SIZE(count) \
-+  ((((count) + __NCPUBITS - 1) / __NCPUBITS) * 8)
++  ((((count) + __NCPUBITS - 1) / __NCPUBITS) * sizeof (__cpu_mask))
 +# define __CPU_ALLOC(count) __sched_cpualloc (count)
 +# define __CPU_FREE(cpuset) __sched_cpufree (cpuset)
 +
@@ -16375,6 +16384,73 @@
 @@ -0,0 +1 @@
 +#include <misc/sbrk.c>
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sched_getaffinity.c
+@@ -0,0 +1,64 @@
++/* Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <sched.h>
++#include <string.h>
++#include <sysdep.h>
++#include <unistd.h>
++#include <sys/types.h>
++
++/* From <sys/cpuset.h> */
++#define CPU_LEVEL_WHICH         3       /* Actual mask/id for which. */
++#define CPU_WHICH_PID           2       /* Specifies a process id. */
++
++extern int __syscall_cpuset_getaffinity(int level, int which, int64_t id,
++					size_t setsize, cpu_set_t *mask);
++libc_hidden_proto(__syscall_cpuset_getaffinity)
++
++int
++__libc_sched_getaffinity (pid_t pid, size_t cpusetsize, cpu_set_t *cpuset)
++{
++  int res;
++
++  if (pid == 0)
++    {
++      pid = __getpid();
++    }
++
++  if (cpusetsize > sizeof(cpu_set_t))
++    {
++      /* Clean the rest of the memory the kernel won't do.  */
++      memset ((char *) cpuset + sizeof(cpu_set_t), '\0', cpusetsize - sizeof(cpu_set_t));
++
++      cpusetsize = sizeof(cpu_set_t);
++    }
++
++  res = INLINE_SYSCALL (cpuset_getaffinity, 5, CPU_LEVEL_WHICH,
++			CPU_WHICH_PID, pid, cpusetsize, cpuset);
++
++  if (errno == ERANGE)
++    {
++      __set_errno(EINVAL);
++    }
++
++  return res;
++}
++
++strong_alias (__libc_sched_getaffinity, __sched_getaffinity)
++weak_alias (__sched_getaffinity, sched_getaffinity)
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sched_getp.c
 @@ -0,0 +1,45 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
@@ -16422,6 +16498,66 @@
 +}
 +
 +weak_alias (__sched_getparam, sched_getparam)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sched_setaffinity.c
+@@ -0,0 +1,57 @@
++/* Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <sched.h>
++#include <string.h>
++#include <sysdep.h>
++#include <unistd.h>
++#include <sys/types.h>
++
++/* From <sys/cpuset.h> */
++#define CPU_LEVEL_WHICH         3       /* Actual mask/id for which. */
++#define CPU_WHICH_PID           2       /* Specifies a process id. */
++
++extern int __syscall_cpuset_setaffinity(int level, int which, int64_t id,
++					size_t setsize, const cpu_set_t *mask);
++libc_hidden_proto(__syscall_cpuset_setaffinity)
++
++int
++__libc_sched_setaffinity (pid_t pid, size_t cpusetsize, const cpu_set_t *cpuset)
++{
++  int res;
++
++  if (pid == 0)
++    {
++      pid = __getpid();
++    }
++
++
++  res = INLINE_SYSCALL (cpuset_setaffinity, 5, CPU_LEVEL_WHICH,
++			CPU_WHICH_PID, pid, cpusetsize, cpuset);
++
++  if (errno == ERANGE || errno == EDEADLK)
++    {
++      __set_errno(EINVAL);
++    }
++
++  return res;
++}
++
++strong_alias (__libc_sched_setaffinity, __sched_setaffinity)
++weak_alias (__sched_setaffinity, sched_setaffinity)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/seekdir.c
 @@ -0,0 +1,2 @@
@@ -18266,7 +18402,7 @@
 +#endif /* _SYS_PTRACE_H */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/reboot.h
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,81 @@
 +/*-
 + * Copyright (c) 1982, 1986, 1988, 1993, 1994
 + *	The Regents of the University of California.  All rights reserved.
@@ -18333,6 +18469,12 @@
 +#define	RB_MULTIPLE	0x20000000	/* use multiple consoles */
 +
 +#define	RB_BOOTINFO	0x80000000	/* have `struct bootinfo *' arg */
++
++/* 
++ * Compatibility with Linux
++ */
++#define RB_HALT_SYSTEM	RB_HALT
++#define RB_POWER_OFF	RB_POWEROFF
 +
 +__BEGIN_DECLS
 +
@@ -18478,7 +18620,7 @@
 +#endif /* sys/swap.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h
-@@ -0,0 +1,419 @@
+@@ -0,0 +1,424 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -18895,7 +19037,12 @@
 +#define	SYS_truncate	479
 +#define	SYS_ftruncate	480
 +#define	SYS_thr_kill2	481
-+#define	SYS_MAXSYSCALL	482
++#define SYS_cpuset      484
++#define SYS_cpuset_setid        485
++#define SYS_cpuset_getid        486
++#define SYS_cpuset_getaffinity  487
++#define SYS_cpuset_setaffinity  488
++#define SYS_MAXSYSCALL  489
 +
 +#endif
 --- /dev/null
@@ -19147,7 +19294,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,157 @@
+@@ -0,0 +1,159 @@
 +# File name	Caller	Syscall name		# args	Strong name	Weak names
 +
 +acl_aclcheck_fd	-	acl_aclcheck_fd		i:iip	__acl_aclcheck_fd
@@ -19304,6 +19451,8 @@
 +kqueue		EXTRA	kqueue			i:	__kqueue	kqueue
 +kevent		EXTRA	kevent			i:ipipip	__kevent	kevent
 +sys_umtx	-	_umtx_op		i:piipp	__syscall__umtx_op
++sys_cpuset_getaffinity - cpuset_getaffinity	i:iiiip	__syscall_cpuset_getaffinity
++sys_cpuset_setaffinity - cpuset_setaffinity	i:iiiip	__syscall_cpuset_setaffinity
 +
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sysconf.c
