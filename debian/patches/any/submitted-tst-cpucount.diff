@@ -1,0 +1,16 @@
+2009-05-21  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* posix/tst-cpucount.c (do_test): use CPU_SETSIZE instead of an
+	hardcoded value.
+
+--- a/posix/tst-cpucount.c
++++ b/posix/tst-cpucount.c
+@@ -8,7 +8,7 @@ do_test (void)
+ 
+   CPU_ZERO (&c);
+ 
+-  for (int cnt = 0; cnt < 130; ++cnt)
++  for (int cnt = 0; cnt < CPU_SETSIZE; ++cnt)
+     {
+       int n = CPU_COUNT (&c);
+       if (n != cnt)
