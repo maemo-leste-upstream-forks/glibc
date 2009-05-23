@@ -1,5 +1,5 @@
 EGLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
-MIN_KERNEL_SUPPORTED := 5.4.0
+MIN_KERNEL_SUPPORTED := 6.0.0
 libc = libc0.1
 
 # Linuxthreads Config
