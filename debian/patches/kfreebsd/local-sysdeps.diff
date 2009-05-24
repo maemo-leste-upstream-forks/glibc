@@ -81,7 +81,7 @@
 +
 +ifeq ($(subdir),io)
 +# For <unistd.h>.
-+sysdep_routines += sys_getcwd sys_lseek
++sysdep_routines += sys_getcwd sys_lseek sys_freebsd6_lseek
 +# For <fcntl.h>.
 +sysdep_routines += sys_open open_2
 +# For <sys/stat.h>.
@@ -101,7 +101,7 @@
 +# For <sched.h>.
 +sysdep_routines += clone start_thread
 +# For <unistd.h>.
-+sysdep_routines += sys_ftruncate sys_truncate
++sysdep_routines += sys_ftruncate sys_freebsd6_ftruncate sys_truncate sys_freebsd6_truncate
 +# For <sys/acl.h>.
 +sysdep_routines += acl_aclcheck_fd acl_aclcheck_file acl_delete_fd acl_delete_file acl_get_fd acl_get_file acl_set_fd acl_set_file
 +# For <sys/extattr.h>.
@@ -113,7 +113,7 @@
 +# For <sys/linker.h>.
 +sysdep_routines += kldfind kldfirstmod kldload kldnext kldstat kldsym kldunload kldunloadf
 +# For <sys/mman.h>.
-+sysdep_routines += minherit sys_mmap
++sysdep_routines += minherit sys_mmap sys_freebsd6_mmap sys_munmap
 +# For <sys/mount.h>.
 +sysdep_routines += fhopen sys_fhstat sys_fhstatfs fhstat fhstat64 fhstatfs fhstatfs64 getfh getfsstat getfsstat64 sys_getfsstat getmntinfo getmntinfo64 mount nmount unmount
 +# For <sys/ptrace.h>.
@@ -137,7 +137,7 @@
 +
 +ifeq ($(subdir),posix)
 +# For <unistd.h>.
-+sysdep_routines += sys_getlogin sys_pread sys_pwrite sys_setlogin sys_read sys_write
++sysdep_routines += sys_getlogin sys_pread sys_freebsd6_pread sys_pwrite sys_freebsd6_pwrite sys_setlogin sys_read sys_write
 +# for <sched.h>
 +sysdep_routines += sys_cpuset_getaffinity sys_cpuset_setaffinity
 +endif
@@ -176,7 +176,7 @@
 +endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions
-@@ -0,0 +1,102 @@
+@@ -0,0 +1,103 @@
 +libc {
 +  # The comment lines with "#errlist-compat" are magic; see errlist-compat.awk.
 +  # When you get an error from errlist-compat.awk, you need to add a new
@@ -272,6 +272,7 @@
 +    __syscall_clock_getres; __syscall_clock_gettime; __syscall_clock_settime;
 +     # misc fixes for FreeBSD:
 +    __syscall_freebsd6_lseek; __syscall_freebsd6_pread; __syscall_freebsd6_pwrite;
++    __syscall_lseek; __syscall_pread; __syscall_pwrite;
 +    __syscall_connect; __syscall_sendto;
 +    __syscall_cpuset_getaffinity ; __syscall_cpuset_setaffinity;
 +    __sigprocmask; __ioctl;
@@ -4976,7 +4977,7 @@
 +#endif	/* have _SIGNAL_H.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/signum.h
-@@ -0,0 +1,71 @@
+@@ -0,0 +1,80 @@
 +/* Signal number definitions.  FreeBSD version.
 +   Copyright (C) 1991-1993, 1996, 1998, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -5045,9 +5046,18 @@
 +#define	SIGUSR1		30	/* User-defined signal 1 (POSIX).  */
 +#define	SIGUSR2		31	/* User-defined signal 2 (POSIX).  */
 +
-+#endif	/* <signal.h> included.  */
++#define	_NSIG		129	/* Biggest signal number + 1
++				   (including real-time signals).  */
 +
-+#define	_NSIG		129	/* Biggest signal number + 1.  */
++#define SIGRTMIN	(__libc_current_sigrtmin ())
++#define SIGRTMAX	(__libc_current_sigrtmax ())
++
++/* These are the hard limits of the kernel.  These values should not be
++   used directly at user level.  */
++#define __SIGRTMIN	32
++#define __SIGRTMAX	(_NSIG - 1)
++
++#endif	/* <signal.h> included.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sigset.h
 @@ -0,0 +1,140 @@
@@ -7039,7 +7049,7 @@
 +
 +echo "$as_me:$LINENO: checking installed kFreeBSD kernel header files" >&5
 +echo $ECHO_N "checking installed kFreeBSD kernel header files... $ECHO_C" >&6
-+if test "${libc_cv_kfreebsd540+set}" = set; then
++if test "${libc_cv_kfreebsd600+set}" = set; then
 +  echo $ECHO_N "(cached) $ECHO_C" >&6
 +else
 +  cat >conftest.$ac_ext <<_ACEOF
@@ -7052,34 +7062,34 @@
 +#if !defined(__FreeBSD_kernel_version) && defined(__FreeBSD_version)
 +#define __FreeBSD_kernel_version __FreeBSD_version
 +#endif
-+#if !defined __FreeBSD_kernel_version || __FreeBSD_kernel_version <  (5 *10000+ 4 *100+ 0) /* 5.4.0 */
++#if !defined __FreeBSD_kernel_version || __FreeBSD_kernel_version <  (6 *65536+ 4 *256+ 0) /* 6.0.0 */
 +eat flaming death
 +#endif
 +_ACEOF
 +if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 +  $EGREP "eat flaming death" >/dev/null 2>&1; then
-+  libc_cv_kfreebsd540='TOO OLD!'
++  libc_cv_kfreebsd600='TOO OLD!'
 +else
-+  libc_cv_kfreebsd540='5.4.0 or later'
++  libc_cv_kfreebsd600='6.0.0 or later'
 +fi
 +rm -f conftest*
 +
 +fi
-+echo "$as_me:$LINENO: result: $libc_cv_kfreebsd540" >&5
-+echo "${ECHO_T}$libc_cv_kfreebsd540" >&6
-+if test "$libc_cv_kfreebsd540" != '5.4.0 or later'; then
++echo "$as_me:$LINENO: result: $libc_cv_kfreebsd600" >&5
++echo "${ECHO_T}$libc_cv_kfreebsd600" >&6
++if test "$libc_cv_kfreebsd600" != '6.0.0 or later'; then
 +  { { echo "$as_me:$LINENO: error: GNU libc requires kernel header files from
-+kFreeBSD 5.4.0 or later to be installed before configuring.
++kFreeBSD 6.0.0 or later to be installed before configuring.
 +The kernel header files are found usually in /usr/src/sys/; make sure
-+these directories use files from kFreeBSD 5.4.0 or later.
++these directories use files from kFreeBSD 6.0.0 or later.
 +This check uses <osreldate.h>, so
 +make sure that file was built correctly when installing the kernel header
 +files.  To use kernel headers not from /usr/src/sys/, use the
 +configure option --with-headers." >&5
 +echo "$as_me: error: GNU libc requires kernel header files from
-+kFreeBSD 5.4.0 or later to be installed before configuring.
++kFreeBSD 6.0.0 or later to be installed before configuring.
 +The kernel header files are found usually in /usr/src/sys/; make sure
-+these directories use files from kFreeBSD 5.4.0 or later.
++these directories use files from kFreeBSD 6.0.0 or later.
 +This check uses <osreldate.h>, so
 +make sure that file was built correctly when installing the kernel header
 +files.  To use kernel headers not from /usr/src/sys/, use the
@@ -7111,19 +7121,19 @@
 +case "$machine" in
 +  i386*)
 +    libc_cv_gcc_unwind_find_fde=yes
-+    arch_minimum_kernel=5.4.0
++    arch_minimum_kernel=6.0.0
 +    ;;
 +  x86_64*)
-+    arch_minimum_kernel=5.4.0
++    arch_minimum_kernel=6.0.0
 +    ;;
 +  *)
-+    arch_minimum_kernel=5.4.0
++    arch_minimum_kernel=6.0.0
 +    ;;
 +esac
 +if test -n "$minimum_kernel"; then
 +
-+  user_version=$((`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 10000 + \2 \* 100 + \3/'`))
-+  arch_version=$((`echo "$arch_minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 10000 + \2 \* 100 + \3/'`))
++  user_version=$((`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 65536 + \2 \* 256 + \3/'`))
++  arch_version=$((`echo "$arch_minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 65536 + \2 \* 256 + \3/'`))
 +
 +  if test $user_version -lt $arch_version; then
 +    { echo "$as_me:$LINENO: WARNING: minimum kernel version reset to $arch_minimum_kernel" >&5
@@ -7131,7 +7141,7 @@
 +    minimum_kernel=$arch_minimum_kernel
 +  fi
 +else
-+  if test $arch_minimum_kernel != '5.4.0'; then
++  if test $arch_minimum_kernel != '6.0.0'; then
 +    minimum_kernel=$arch_minimum_kernel
 +  fi
 +fi
@@ -7139,7 +7149,7 @@
 +if test -n "$minimum_kernel"; then
 +  echo "$as_me:$LINENO: checking for kernel header at least $minimum_kernel" >&5
 +echo $ECHO_N "checking for kernel header at least $minimum_kernel... $ECHO_C" >&6
-+  decnum=`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/(\1 * 10000 + \2 * 100 + \3)/'`;
++  decnum=`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/(\1 * 65536 + \2 * 256 + \3)/'`;
 +  abinum=`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1,\2,\3/'`;
 +  cat >conftest.$ac_ext <<_ACEOF
 +/* confdefs.h.  */
@@ -7363,7 +7373,7 @@
 +# existing system library, because we are the only system library.
 +inhibit_glue=yes
 +
-+define([LIBC_KFREEBSD_VERSION],[5.4.0])dnl
++define([LIBC_KFREEBSD_VERSION],[6.0.0])dnl
 +if test -n "$sysheaders"; then
 +  OLD_CPPFLAGS=$CPPFLAGS
 +  CPPFLAGS="$CPPFLAGS $SYSINCLUDES"
@@ -7376,7 +7386,7 @@
 +#endif
 +#if !defined __FreeBSD_kernel_version || __FreeBSD_kernel_version < ]dnl
 +patsubst(LIBC_KFREEBSD_VERSION,[^\([^.]*\)\.\([^.]*\)\.\([^.]*\)$],dnl
-+[ (\1 *10000+ \2 *100+ \3) /* \1.\2.\3 */])[
++[ (\1 *65536+ \2 *256+ \3) /* \1.\2.\3 */])[
 +eat flaming death
 +#endif],
 +	     libc_cv_kfreebsdVER='TOO OLD!',
@@ -7413,26 +7423,26 @@
 +case "$machine" in
 +  i386*)
 +    libc_cv_gcc_unwind_find_fde=yes
-+    arch_minimum_kernel=5.4.0
++    arch_minimum_kernel=6.0.0
 +    ;;
 +  x86_64*)
-+    arch_minimum_kernel=5.4.0
++    arch_minimum_kernel=6.0.0
 +    ;;
 +  *)
-+    arch_minimum_kernel=5.4.0
++    arch_minimum_kernel=6.0.0
 +    ;;
 +esac
 +if test -n "$minimum_kernel"; then
 +  changequote(,)
-+  user_version=$((`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 10000 + \2 \* 100 + \3/'`))
-+  arch_version=$((`echo "$arch_minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 10000 + \2 \* 100 + \3/'`))
++  user_version=$((`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 65536 + \2 \* 256 + \3/'`))
++  arch_version=$((`echo "$arch_minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 65536 + \2 \* 256 + \3/'`))
 +  changequote([,])
 +  if test $user_version -lt $arch_version; then
 +    AC_MSG_WARN([minimum kernel version reset to $arch_minimum_kernel])
 +    minimum_kernel=$arch_minimum_kernel
 +  fi
 +else
-+  if test $arch_minimum_kernel != '5.4.0'; then
++  if test $arch_minimum_kernel != '6.0.0'; then
 +    minimum_kernel=$arch_minimum_kernel
 +  fi
 +fi
@@ -7440,7 +7450,7 @@
 +if test -n "$minimum_kernel"; then
 +  AC_MSG_CHECKING(for kernel header at least $minimum_kernel)
 +changequote(,)dnl
-+  decnum=`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/(\1 * 10000 + \2 * 100 + \3)/'`;
++  decnum=`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/(\1 * 65536 + \2 * 256 + \3)/'`;
 +  abinum=`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1,\2,\3/'`;
 +changequote([,])dnl
 +  AC_EGREP_CPP([eat flaming death], [#include <osreldate.h>
@@ -7773,7 +7783,7 @@
 +#include_next <dl-machine.h>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-osinfo.h
-@@ -0,0 +1,120 @@
+@@ -0,0 +1,83 @@
 +/* Operating system specific code  for generic dynamic loader functions.
 +   Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -7815,63 +7825,26 @@
 +}
 +#endif
 +
-+
-+#define DL_SYSDEP_OSCHECK(FATAL) \
++#define DL_SYSDEP_OSCHECK(FATAL)					      \
 +  do {									      \
-+    /* Test whether the kernel is new enough.  This test is only	      \
-+       performed if the library is not compiled to run on all		      \
-+       kernels.  */							      \
-+    if (__KFREEBSD_KERNEL_VERSION > 0)					      \
++    /* Test whether the kernel is new enough.  This test is only performed    \
++       if the library is not compiled to run on all kernels.  */	      \
++									      \
++    int version = _dl_discover_osversion ();				      \
++    if (__builtin_expect (version >= 0, 1))				      \
 +      {									      \
-+	char bufmem[64];						      \
-+	char *buf = bufmem;						      \
-+	unsigned int version;						      \
-+	int parts;							      \
-+	char *cp;							      \
-+	struct utsname uts;						      \
++	if (__builtin_expect (GLRO(dl_osversion) == 0, 1)		      \
++	    || GLRO(dl_osversion) > version)				      \
++	  GLRO(dl_osversion) = version;					      \
 +									      \
-+	/* Try the uname syscall */					      \
-+	if (! __uname (&uts))					      	      \
-+	  {							      	      \
-+	    /* Now convert it into a number.  The string consists of at most  \
-+	       three parts.  */						      \
-+	    version = 0;						      \
-+	    parts = 0;							      \
-+            buf = uts.release;						      \
-+	    cp = buf;							      \
-+	    while ((*cp >= '0') && (*cp <= '9'))			      \
-+	      {								      \
-+	        unsigned int here = *cp++ - '0';			      \
-+									      \
-+	        while ((*cp >= '0') && (*cp <= '9'))			      \
-+	          {							      \
-+		    here *= 10;						      \
-+		    here += *cp++ - '0';				      \
-+	          }							      \
-+									      \
-+	        ++parts;						      \
-+	        version *= 100;						      \
-+	        version |= here;					      \
-+									      \
-+	        if (*cp++ != '.')					      \
-+	          /* Another part following?  */			      \
-+	          break;						      \
-+	      }								      \
-+									      \
-+	    if (parts == 2)						      \
-+	      version *= 100;						      \
-+									      \
-+	    if (parts == 1)						      \
-+	      version *= 10000;						      \
-+									      \
-+	    /* Now we can test with the required version.  */		      \
-+	    if (version < __KFREEBSD_KERNEL_VERSION)			      \
-+	      /* Not sufficent.  */					      \
-+	      FATAL ("FATAL: kernel too old\n");			      \
-+									      \
-+	    GLRO(dl_osversion) = version;				      \
-+          }								      \
++	/* Now we can test with the required version.  */		      \
++	if (__KFREEBSD_KERNEL_VERSION > 0 && 				      \
++	    version < __KFREEBSD_KERNEL_VERSION)   			      \
++	  /* Not sufficent.  */						      \
++	  FATAL ("FATAL: kernel too old\n");				      \
 +      }									      \
++    else if (__KFREEBSD_KERNEL_VERSION > 0)				      \
++      FATAL ("FATAL: cannot determine kernel version\n");		      \
 +  } while (0)
 +
 +static inline uintptr_t __attribute__ ((always_inline))
@@ -7896,7 +7869,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-sysdep.c
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,78 @@
 +/* Dynamic linker system dependencies for GNU/kFreeBSD.
 +   Copyright (C) 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -7922,11 +7895,87 @@
 +#include <string.h>
 +#include <fcntl.h>
 +#include <unistd.h>
++#include <sys/utsname.h>
 +#include <ldsodefs.h>
 +#include <kernel-features.h>
 +
 +#ifdef SHARED
 +# include <elf/dl-sysdep.c>
++#endif
++
++int
++attribute_hidden
++_dl_discover_osversion (void)
++{
++  char bufmem[64];
++  char *buf = bufmem;
++  unsigned int version;
++  int parts;
++  char *cp;
++  struct utsname uts;
++
++  /* Try the uname syscall */
++  if (__uname (&uts))
++    return -1;
++
++  /* Now convert it into a number.  The string consists of at most
++     three parts.  */
++  version = 0;
++  parts = 0;
++  buf = uts.release;
++  cp = buf;
++  while ((*cp >= '0') && (*cp <= '9'))
++    {
++      unsigned int here = *cp++ - '0';
++
++      while ((*cp >= '0') && (*cp <= '9'))
++	{
++	  here *= 10;
++	  here += *cp++ - '0';
++	}
++
++      ++parts;
++      version <<= 8;
++      version |= here;
++
++      if (*cp++ != '.' || parts == 3)
++	/* Another part following?  */
++	break;
++    }
++
++  if (parts < 3)
++    version <<= 8 * (3 - parts);
++
++  return version;
++}
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-sysdep.h
+@@ -0,0 +1,26 @@
++/* System-specific settings for dynamic linker code.  Linux version.
++   Copyright (C) 2005, 2008 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include_next <dl-sysdep.h>
++
++#ifndef __ASSEMBLER__
++/* Get version of the OS.  */
++extern int _dl_discover_osversion (void) attribute_hidden;
++# define HAVE_DL_DISCOVER_OSVERSION	1
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fcntl.c
@@ -8266,7 +8315,7 @@
 +weak_alias (__fstatvfs64, fstatvfs64)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate.c
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,52 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
@@ -8289,9 +8338,10 @@
 +#include <unistd.h>
 +#include <sys/types.h>
 +#include <sysdep.h>
++#include <errno.h>
 +
-+/* The real system call has a word of padding before the 64-bit off_t
-+   argument.  */
++extern int __syscall_ftruncate (int __fd, __off_t __length) __THROW;
++libc_hidden_proto (__syscall_ftruncate)
 +extern int __syscall_freebsd6_ftruncate (int __fd, int __unused1,
 +				__off_t __length) __THROW;
 +libc_hidden_proto (__syscall_freebsd6_ftruncate)
@@ -8299,8 +8349,18 @@
 +int
 +__ftruncate (int fd, __off_t length)
 +{
-+  /* We pass 2 arguments in 4 words.  */
-+  return INLINE_SYSCALL (freebsd6_ftruncate, 2, fd, 0, length);
++  int result;
++
++  /* First try the new syscall. */
++  result = INLINE_SYSCALL (ftruncate, 2, fd, length);
++
++#ifndef __ASSUME_FTRUNCATE_SYSCALL
++  if (result == -1 && errno == ENOSYS)
++    /* New syscall not available, us the old one. */
++    result = INLINE_SYSCALL (freebsd6_ftruncate, 3, fd, 0, length);
++#endif
++
++  return result;
 +}
 +
 +weak_alias (__ftruncate, ftruncate)
@@ -11478,6 +11538,41 @@
 +PSEUDO_END (__syscall_fork)
 +libc_hidden_def (__syscall_fork)
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_freebsd6_lseek.S
+@@ -0,0 +1,32 @@
++/* Copyright (C) 2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <sysdep.h>
++
++/* lseek returns a 64-bit result in %eax, %edx.  This means that in the
++   error case we have to set both %eax and %edx to -1.  */
++
++PSEUDO_NOERRNO(__syscall_freebsd6_lseek, freebsd6_lseek, 3)
++        jnb L(no_error)
++	call SYSCALL_ERROR_LABEL;
++	orl $-1, %edx;
++L(pseudo_end):
++L(no_error):
++	ret
++PSEUDO_END(__syscall_freebsd6_lseek)
++libc_hidden_def (__syscall_freebsd6_lseek)
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sys_lseek.S
 @@ -0,0 +1,32 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
@@ -11503,15 +11598,15 @@
 +/* lseek returns a 64-bit result in %eax, %edx.  This means that in the
 +   error case we have to set both %eax and %edx to -1.  */
 +
-+PSEUDO_NOERRNO(__syscall_freebsd6_lseek, freebsd6_lseek, 4)
++PSEUDO_NOERRNO(__syscall_lseek, lseek, 4)
 +        jnb L(no_error)
 +	call SYSCALL_ERROR_LABEL;
 +	orl $-1, %edx;
 +L(pseudo_end):
 +L(no_error):
 +	ret
-+PSEUDO_END(__syscall_freebsd6_lseek)
-+libc_hidden_def (__syscall_freebsd6_lseek)
++PSEUDO_END(__syscall_lseek)
++libc_hidden_def (__syscall_lseek)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysarch.h
 @@ -0,0 +1,81 @@
@@ -12922,7 +13017,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-features.h
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,75 @@
 +/* Set flags signalling availability of kernel features based on given
 +   kernel version number.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -12948,10 +13043,10 @@
 +# define __KFREEBSD_KERNEL_VERSION	0
 +#endif
 +
-+/* We assume for __KFREEBSD_KERNEL_VERSION the same encoding used in
-+   osreldate.h.  I.e., the major, minor, and subminor are all
-+   concatenated, with two digits for each.  This means we can do
-+   numeric comparisons.
++/* The encoding for __KFREEBSD_KERNEL_VERSION is defined the following
++   way: the major, minor, and subminor all get a byte with the major
++   number being in the highest byte.  This means we can do numeric
++   comparisons.
 +
 +   In the following we will define certain symbols depending on
 +   whether the describes kernel feature is available in the kernel
@@ -12960,11 +13055,43 @@
 +   introduced.  If somebody cares these values can afterwards be
 +   corrected.  */
 +
-+/* No real-time signals in FreeBSD 5.x or 6.x.  */
-+#define __ASSUME_REALTIME_SIGNALS	0
++/* Real-time signals introduced in FreeBSD 7.x.  */
++#if __KFREEBSD_KERNEL_VERSION >= 0x70000
++# define __ASSUME_REALTIME_SIGNALS	1
++#endif
 +
 +/* Use signals #32, #33, #34 for internal linuxthreads communication */
 +#define PTHREAD_SIGBASE 32
++
++/* The `ftruncate' syscall was introduced in kFreeBSD 7.0. */
++#if __KFREEBSD_KERNEL_VERSION >= 0x70000
++# define __ASSUME_FTRUNCATE_SYSCALL	1
++#endif
++
++/* The `lseek' syscall was introduced in kFreeBSD 7.0. */
++#if __KFREEBSD_KERNEL_VERSION >= 0x70000
++# define __ASSUME_LSEEK_SYSCALL		1
++#endif
++
++/* The `mmap' syscall was introduced in kFreeBSD 7.0. */
++#if __KFREEBSD_KERNEL_VERSION >= 0x70000
++# define __ASSUME_MMAP_SYSCALL		1
++#endif
++
++/* The `pread' syscall was introduced in kFreeBSD 7.0. */
++#if __KFREEBSD_KERNEL_VERSION >= 0x70000
++# define __ASSUME_PREAD_SYSCALL		1
++#endif
++
++/* The `pwrite' syscall was introduced in kFreeBSD 7.0. */
++#if __KFREEBSD_KERNEL_VERSION >= 0x70000
++# define __ASSUME_PWRITE_SYSCALL	1
++#endif
++
++/* The `truncate' syscall was introduced in kFreeBSD 7.0. */
++#if __KFREEBSD_KERNEL_VERSION >= 0x70000
++# define __ASSUME_TRUNCATE_SYSCALL	1
++#endif
 +
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-posix-cpu-timers.h
@@ -13036,21 +13163,8 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/allocrtsig.c
-@@ -0,0 +1,14 @@
-+#if 1
-+
-+#define __SIGRTMIN 65
-+#define __SIGRTMAX 126
+@@ -0,0 +1 @@
 +#include <linuxthreads/sysdeps/unix/sysv/linux/allocrtsig.c>
-+
-+#else
-+
-+#include <signal/allocrtsig.c>
-+strong_alias (__libc_current_sigrtmin, __libc_current_sigrtmin_private);
-+strong_alias (__libc_current_sigrtmax, __libc_current_sigrtmax_private);
-+strong_alias (__libc_allocate_rtsig, __libc_allocate_rtsig_private);
-+
-+#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/local_lim.h
 @@ -0,0 +1,48 @@
@@ -13608,7 +13722,7 @@
 +the `llseek' function may be dangerous; use `lseek64' instead.")
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/lseek.c
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,59 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
@@ -13633,8 +13747,8 @@
 +#include <sysdep.h>
 +#include <errno.h>
 +
-+/* The real system call has a word of padding before the 64-bit off_t
-+   argument.  */
++extern __off_t __syscall_lseek (int __fd, __off_t __offset, int __whence) __THROW;
++libc_hidden_proto (__syscall_lseek)
 +extern __off_t __syscall_freebsd6_lseek (int __fd, int __unused1, __off_t __offset,
 +				int __whence) __THROW;
 +libc_hidden_proto (__syscall_freebsd6_lseek)
@@ -13642,45 +13756,18 @@
 +__off_t
 +__libc_lseek (int fd, __off_t offset, int whence)
 +{
-+#if 0 /* If the kernel would work right... */
-+  /* We pass 3 arguments in 5 words.  */
-+  return INLINE_SYSCALL (freebsd6_lseek, 3, fd, 0, offset, whence);
-+#else
-+  /* According to POSIX:2001, if the resulting file offset would become
-+     negative, this function has to return an EINVAL error and leave the
-+     file offset unchanged.  But the FreeBSD 4.0 kernel doesn't do this,
-+     so we emulate it.  */
-+  if (offset >= 0)
-+    /* No risk that the file offset could become negative.  */
-+    return INLINE_SYSCALL (freebsd6_lseek, 3, fd, 0, offset, whence);
-+  else
-+    {
-+      /* Test whether the file offset becomes negative.  */
-+      __off_t old_position;
-+      __off_t new_position;
-+      int saved_errno;
++  __off_t result;
 +
-+      saved_errno = errno;
-+      old_position = INLINE_SYSCALL (freebsd6_lseek, 3, fd, 0, 0, SEEK_CUR);
-+      errno = 0;
-+      new_position = INLINE_SYSCALL (freebsd6_lseek, 3, fd, 0, offset, whence);
-+      if (new_position < 0)
-+	{
-+	  if (errno == 0)
-+	    {
-+	      /* The file offset became negative, and the kernel didn't
-+		 notice it.  */
-+	      if (old_position >= 0)
-+		INLINE_SYSCALL (freebsd6_lseek, 3, fd, 0, old_position, SEEK_SET);
-+	      new_position = -1;
-+	      errno = EINVAL;
-+	    }
-+	}
-+      else
-+	errno = saved_errno;
-+      return new_position;
-+    }
++  /* First try the new syscall. */
++  result = INLINE_SYSCALL (lseek, 3, fd, offset, whence);
++
++#ifndef __ASSUME_LSEEK_SYSCALL
++  if (result == -1 && errno == ENOSYS)
++    /* New syscall not available, us the old one. */
++    result = INLINE_SYSCALL (freebsd6_lseek, 4, fd, 0, offset, whence);
 +#endif
++
++  return result;
 +}
 +
 +weak_alias (__libc_lseek, __lseek)
@@ -13800,7 +13887,7 @@
 +hidden_def (__lxstat64)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c
-@@ -0,0 +1,84 @@
+@@ -0,0 +1,86 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
@@ -13826,56 +13913,58 @@
 +#include <errno.h>
 +#include <sysdep.h>
 +
-+/* The real system call has a word of padding before the 64-bit off_t
-+   argument.  */
++extern void *__syscall_mmap (void *__addr, size_t __len, int __prot,
++			     int __flags, int __fd, __off_t __offset) __THROW;
++libc_hidden_proto (__syscall_mmap)
 +extern void *__syscall_freebsd6_mmap (void *__addr, size_t __len, int __prot,
 +			     int __flags, int __fd, int __unused1,
 +			     __off_t __offset) __THROW;
 +libc_hidden_proto (__syscall_freebsd6_mmap)
-+
 +extern ssize_t __syscall_freebsd6_pread (int __fd, void *__buf, size_t __nbytes,
 +                                int __unused1, __off_t __offset) __THROW;
-+
 +libc_hidden_proto (__syscall_freebsd6_pread)
++
 +void *
 +__mmap (void *addr, size_t len, int prot, int flags, int fd, __off_t offset)
 +{
 +  void *result;
 +
 +  /* Validity checks not done by the kernel.  */
-+  if ((flags & MAP_FIXED) || (offset != 0))
++  if (offset != 0)
 +    {
 +      int pagesize = __getpagesize ();
-+
-+      if (((flags & MAP_FIXED)
-+	   && (__builtin_expect (pagesize & (pagesize - 1), 0)
-+	       ? (unsigned long) addr % pagesize
-+	       : (unsigned long) addr & (pagesize - 1)))
-+	  || (__builtin_expect (pagesize & (pagesize - 1), 0)
-+	      ? offset % pagesize
-+	      : offset & (pagesize - 1)))
++      if ((__builtin_expect (pagesize & (pagesize - 1), 0)
++        ? offset % pagesize
++	: offset & (pagesize - 1)))
 +	{
 +	  __set_errno (EINVAL);
 +	  return (void *) (-1);
 +	}
 +    }
 +
-+  /* We pass 7 arguments in 8 words.  */
 +  /* for ANON mapping we must pass -1 in place of fd */
 +  if (flags & MAP_ANON)
-+    return INLINE_SYSCALL (freebsd6_mmap, 7, addr, len, prot, flags, -1, 0, offset);
-+  result = INLINE_SYSCALL (freebsd6_mmap, 7, addr, len, prot, flags, fd, 0, offset);
++    fd = -1;
 +
-+  if (result != (void *) (-1) && fd >= 0 && len > 0)
++  /* First try the new syscall. */
++  result = INLINE_SYSCALL (mmap, 6, addr, len, prot, flags, fd, offset);
++
++#ifndef __ASSUME_MMAP_SYSCALL
++  if (result == (void *) (-1) && errno == ENOSYS)
 +    {
-+      /* Force an update of the atime.  POSIX:2001 mandates that this happens
-+	 at some time between the mmap() call and the first page-in.  Since
-+	 the FreeBSD 4.0 kernel doesn't update the atime upon a page-in, we
-+	 do it here.  */
-+      char dummy;
-+
-+      INLINE_SYSCALL (freebsd6_pread, 5, fd, &dummy, 1, 0, offset);
++      /* New syscall not available, us the old one. */
++      result = INLINE_SYSCALL (freebsd6_mmap, 7, addr, len, prot, flags, fd, 0, offset);
++      if (result != (void *) (-1) && fd >= 0 && len > 0)
++	{
++	  /* Force an update of the atime.  POSIX:2001 mandates that this happens
++	  at some time between the mmap() call and the first page-in.  Since
++	  the FreeBSD 6.0 kernel doesn't update the atime upon a page-in, we
++	  do it here.  */
++	  char dummy;
++	  INLINE_SYSCALL (freebsd6_pread, 5, fd, &dummy, 1, 0, offset);
++	}
 +    }
++#endif
 +
 +  return result;
 +}
@@ -15353,6 +15442,254 @@
 +#define sigsuspend_not_cancel(set) \
 +  INLINE_SYSCALL (sigsuspend, 1, set)
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nptl/Implies
+@@ -0,0 +1 @@
++pthread
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nptl/bits/local_lim.h
+@@ -0,0 +1,48 @@
++/* Minimum guaranteed maximum values for system limits.  FreeBSD version.
++   Copyright (C) 1993-1998, 2000, 2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <sys/syslimits.h>
++
++/* The number of data keys per process.  */
++#define _POSIX_THREAD_KEYS_MAX	128
++/* This is the value this implementation supports.  */
++#define PTHREAD_KEYS_MAX	1024
++
++/* Controlling the iterations of destructors for thread-specific data.  */
++#define _POSIX_THREAD_DESTRUCTOR_ITERATIONS	4
++/* Number of iterations this implementation does.  */
++#define PTHREAD_DESTRUCTOR_ITERATIONS	_POSIX_THREAD_DESTRUCTOR_ITERATIONS
++
++/* The number of threads per process.  */
++#define _POSIX_THREAD_THREADS_MAX	64
++/* This is the value this implementation supports.  */
++#define PTHREAD_THREADS_MAX	1024
++
++/* Maximum amount by which a process can descrease its asynchronous I/O
++   priority level.  */
++#define AIO_PRIO_DELTA_MAX	20
++
++/* Minimum size for a thread.  We are free to choose a reasonable value.  */
++#define PTHREAD_STACK_MIN	16384
++
++/* Maximum number of POSIX timers available.  */
++#define TIMER_MAX	256
++
++/* Maximum number of timer expiration overruns.  */
++#define DELAYTIMER_MAX	2147483647
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nptl/bits/posix_opt.h
+@@ -0,0 +1,190 @@
++/* Define POSIX options for FreeBSD.
++   Copyright (C) 1996-1997, 1999, 2000, 2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++/*
++ * Never include this file directly; use <unistd.h> instead.
++ */
++
++#ifndef	_BITS_POSIX_OPT_H
++#define	_BITS_POSIX_OPT_H	1
++
++/* Job control is supported.  */
++#define	_POSIX_JOB_CONTROL	1
++
++/* Processes have a saved set-user-ID and a saved set-group-ID.  */
++#define	_POSIX_SAVED_IDS	1
++
++/* Priority scheduling is supported.  */
++#define	_POSIX_PRIORITY_SCHEDULING	200112L
++
++/* Synchronizing file data is supported.  */
++#define	_POSIX_SYNCHRONIZED_IO	200112L
++
++/* The fsync function is present.  */
++#define	_POSIX_FSYNC	200112L
++
++/* Mapping of files to memory is supported.  */
++#define	_POSIX_MAPPED_FILES	200112L
++
++/* Locking of all memory is supported.  */
++#define	_POSIX_MEMLOCK	200112L
++
++/* Locking of ranges of memory is supported.  */
++#define	_POSIX_MEMLOCK_RANGE	200112L
++
++/* Setting of memory protections is supported.  */
++#define	_POSIX_MEMORY_PROTECTION	200112L
++
++/* Only root can change owner of file.  */
++#define	_POSIX_CHOWN_RESTRICTED	1
++
++/* `c_cc' member of 'struct termios' structure can be disabled by
++   using the value _POSIX_VDISABLE.  */
++#define	_POSIX_VDISABLE	((unsigned char)'\377')
++
++/* Filenames are not silently truncated.  */
++#define	_POSIX_NO_TRUNC	1
++/* X/Open realtime support is only partially available.  */
++#define _XOPEN_REALTIME	-1
++
++/* X/Open realtime thread support is only partially available.  */
++#define _XOPEN_REALTIME_THREADS	-1
++
++/* Implementation supports `poll' function.  */
++#define	_POSIX_POLL	1
++
++/* Implementation supports `select' and `pselect' functions.  */
++#define	_POSIX_SELECT	1
++
++/* XPG4.2 shared memory is supported.  */
++#define	_XOPEN_SHM	1
++
++/* Tell we have POSIX threads.  */
++#define _POSIX_THREADS	200112L
++
++/* We have the reentrant functions described in POSIX.  */
++#define _POSIX_REENTRANT_FUNCTIONS	1
++#define _POSIX_THREAD_SAFE_FUNCTIONS	200112L
++
++/* We provide priority scheduling for threads.  */
++#define _POSIX_THREAD_PRIORITY_SCHEDULING	200112L
++
++/* We support user-defined stack sizes.  */
++#define _POSIX_THREAD_ATTR_STACKSIZE	200112L
++
++/* We support user-defined stacks.  */
++#define _POSIX_THREAD_ATTR_STACKADDR	200112L
++
++/* We support POSIX.1b semaphores, but only the non-shared form for now.  */
++#define _POSIX_SEMAPHORES	200112L
++
++/* Real-time signals are not available.  */
++#define _POSIX_REALTIME_SIGNALS	-1
++
++/* We support asynchronous I/O.  */
++#define _POSIX_ASYNCHRONOUS_IO	200112L
++#define _POSIX_ASYNC_IO		1
++/* Alternative name for Unix98.  */
++#define _LFS_ASYNCHRONOUS_IO	1
++/* Support for prioritization is not available.  */
++#define _POSIX_PRIORITIZED_IO	-1
++
++/* The LFS support in asynchronous I/O is also available.  */
++#define _LFS64_ASYNCHRONOUS_IO	1
++
++/* The rest of the LFS is also available.  */
++#define _LFS_LARGEFILE		1
++#define _LFS64_LARGEFILE	1
++#define _LFS64_STDIO		1
++
++/* POSIX shared memory objects are implemented.  */
++#define _POSIX_SHARED_MEMORY_OBJECTS	200112L
++
++/* CPU-time clocks somewhere supported.  */
++#define _POSIX_CPUTIME	0
++
++/* We support somewhere the clock also in threads.  */
++#define _POSIX_THREAD_CPUTIME	0
++
++/* GNU libc provides regular expression handling.  */
++#define _POSIX_REGEXP	1
++
++/* Reader/Writer locks are available.  */
++#define _POSIX_READER_WRITER_LOCKS	200112L
++
++/* We have a POSIX shell.  */
++#define _POSIX_SHELL	1
++
++/* We support the Timeouts option.  */
++#define _POSIX_TIMEOUTS	200112L
++
++/* We support spinlocks.  */
++#define _POSIX_SPIN_LOCKS	200112L
++
++/* The `spawn' function family is supported.  */
++#define _POSIX_SPAWN	200112L
++
++/* We have POSIX timers.  */
++#define _POSIX_TIMERS	200112L
++
++/* The barrier functions are available.  */
++#define _POSIX_BARRIERS	200112L
++
++/* POSIX message queues are not available.  */
++#define _POSIX_MESSAGE_PASSING	-1
++
++/* Thread process-shared synchronization is not supported.  */
++#define _POSIX_THREAD_PROCESS_SHARED	-1
++
++/* The monotonic clock is available.  */
++#define _POSIX_MONOTONIC_CLOCK	200112L
++
++/* The clock selection interfaces are not available.  */
++#define _POSIX_CLOCK_SELECTION	-1
++
++/* Advisory information interfaces are not available.  */
++#define _POSIX_ADVISORY_INFO	-1
++
++/* IPv6 support is available.  */
++#define _POSIX_IPV6	200112L
++
++/* Raw socket support is available.  */
++#define _POSIX_RAW_SOCKETS	200112L
++
++/* We have at least one terminal.  */
++#define _POSIX2_CHAR_TERM	200112L
++
++/* Neither process nor thread sporadic server interfaces is available.  */
++#define _POSIX_SPORADIC_SERVER	-1
++#define _POSIX_THREAD_SPORADIC_SERVER	-1
++
++/* trace.h is not available.  */
++#define _POSIX_TRACE	-1
++#define _POSIX_TRACE_EVENT_FILTER	-1
++#define _POSIX_TRACE_INHERIT	-1
++#define _POSIX_TRACE_LOG	-1
++
++/* Typed memory objects are not available.  */
++#define _POSIX_TYPED_MEMORY_OBJECTS	-1
++
++/* No support for priority inheritance or protection.  */
++#define _POSIX_THREAD_PRIO_INHERIT	-1
++#define _POSIX_THREAD_PRIO_PROTECT	-1
++
++#endif /* bits/posix_opt.h */
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ntp_gettime.c
 @@ -0,0 +1,62 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
@@ -15716,7 +16053,7 @@
 +#endif /* !_PATHS_H_ */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread.c
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,65 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
@@ -15740,9 +16077,11 @@
 +#include <sys/types.h>
 +#include <sysdep.h>
 +#include <sysdep-cancel.h>
++#include <errno.h>
 +
-+/* The real system call has a word of padding before the 64-bit off_t
-+   argument.  */
++extern ssize_t __syscall_pread (int __fd, void *__buf, size_t __nbytes,
++				__off_t __offset) __THROW;
++libc_hidden_proto(__syscall_pread)
 +extern ssize_t __syscall_freebsd6_pread (int __fd, void *__buf, size_t __nbytes,
 +				int __unused1, __off_t __offset) __THROW;
 +libc_hidden_proto(__syscall_freebsd6_pread)
@@ -15750,13 +16089,26 @@
 +ssize_t
 +__libc_pread (int fd, void *buf, size_t nbytes, __off_t offset)
 +{
-+  /* We pass 5 arguments in 6 words.  */
-+  if (SINGLE_THREAD_P)
-+    return INLINE_SYSCALL (freebsd6_pread, 5, fd, buf, nbytes, 0, offset);
++  ssize_t result;
++  int oldtype;
 +
-+  int oldtype = LIBC_CANCEL_ASYNC ();
-+  ssize_t result = INLINE_SYSCALL (freebsd6_pread, 5, fd, buf, nbytes, 0, offset);
-+  LIBC_CANCEL_RESET (oldtype);
++  if (!SINGLE_THREAD_P)
++    {
++      oldtype = LIBC_CANCEL_ASYNC ();
++    }
++
++  /* First try the new syscall. */
++  result = INLINE_SYSCALL (pread, 4, fd, buf, nbytes, offset);
++#ifndef __ASSUME_PREAD_SYSCALL
++  if (result == -1 && errno == ENOSYS)
++    /* New syscall not available, us the old one. */
++    result = INLINE_SYSCALL (freebsd6_pread, 5, fd, buf, nbytes, 0, offset);
++#endif
++
++  if (!SINGLE_THREAD_P)
++    {
++      LIBC_CANCEL_RESET (oldtype);
++    }
 +  return result;
 +}
 +
@@ -16001,7 +16353,7 @@
 +weak_alias (__ptsname_r, ptsname_r)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite.c
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,68 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
@@ -16025,9 +16377,11 @@
 +#include <sys/types.h>
 +#include <sysdep.h>
 +#include <sysdep-cancel.h>
++#include <errno.h>
 +
-+/* The real system call has a word of padding before the 64-bit off_t
-+   argument.  */
++extern ssize_t __syscall_pwrite (int __fd, const void *__buf, size_t __nbytes,
++				 __off_t __offset) __THROW;
++libc_hidden_proto(__syscall_pwrite)
 +extern ssize_t __syscall_freebsd6_pwrite (int __fd, const void *__buf, size_t __nbytes,
 +				 int __unused1, __off_t __offset) __THROW;
 +libc_hidden_proto(__syscall_freebsd6_pwrite)
@@ -16035,12 +16389,28 @@
 +ssize_t
 +__libc_pwrite (int fd, const void *buf, size_t nbytes, __off_t offset)
 +{
-+  /* We pass 5 arguments in 6 words.  */
++  ssize_t result;
++
 +  if (SINGLE_THREAD_P)
-+    return INLINE_SYSCALL (freebsd6_pwrite, 5, fd, buf, nbytes, 0, offset);
++    {
++      /* First try the new syscall. */
++      result = INLINE_SYSCALL (pwrite, 4, fd, buf, nbytes, offset);
++#ifndef __ASSUME_PREAD_SYSCALL
++      if (result == -1 && errno == ENOSYS)
++        /* New syscall not available, us the old one. */
++        result = INLINE_SYSCALL (freebsd6_pwrite, 5, fd, buf, nbytes, 0, offset);
++#endif
++      return result;
++    }
 +
 +  int oldtype = LIBC_CANCEL_ASYNC ();
-+  ssize_t result = INLINE_SYSCALL (freebsd6_pwrite, 5, fd, buf, nbytes, 0, offset);
++  /* First try the new syscall. */
++  result = INLINE_SYSCALL (pwrite, 4, fd, buf, nbytes, offset);
++#ifndef __ASSUME_PREAD_SYSCALL
++  if (result == -1 && errno == ENOSYS)
++    /* New syscall not available, us the old one. */
++    result = INLINE_SYSCALL (freebsd6_pwrite, 5, fd, buf, nbytes, 0, offset);
++#endif
 +  LIBC_CANCEL_RESET (oldtype);
 +  return result;
 +}
@@ -19294,165 +19664,170 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,159 @@
-+# File name	Caller	Syscall name		# args	Strong name	Weak names
-+
-+acl_aclcheck_fd	-	acl_aclcheck_fd		i:iip	__acl_aclcheck_fd
-+acl_aclcheck_file -	acl_aclcheck_file	i:sip	__acl_aclcheck_file
-+acl_delete_fd	-	acl_delete_fd		i:ii	__acl_delete_fd
-+acl_delete_file	-	acl_delete_file		i:si	__acl_delete_file
-+acl_get_fd	-	acl_get_fd		i:iip	__acl_get_fd
-+acl_get_file	-	acl_get_file		i:sip	__acl_get_file
-+acl_set_fd	-	acl_set_fd		i:iip	__acl_set_fd
-+acl_set_file	-	acl_set_file		i:sip	__acl_set_file
-+sys_aio_cancel	-	aio_cancel		i:ip	__syscall_aio_cancel
-+sys_aio_error	-	aio_error		i:p	__syscall_aio_error
-+sys_aio_read	-	aio_read		i:p	__syscall_aio_read
-+sys_aio_return	-	aio_return		i:p	__syscall_aio_return
-+sys_aio_suspend	-	aio_suspend		i:bnP	__syscall_aio_suspend
-+sys_aio_waitcomplete -	aio_waitcomplete	i:pp	__syscall_aio_waitcomplete
-+sys_aio_write	-	aio_write		i:p	__syscall_aio_write
-+sys_clock_getres -	clock_getres		i:ip	__syscall_clock_getres
-+sys_clock_gettime -	clock_gettime		i:ip	__syscall_clock_gettime
-+sys_clock_settime -	clock_settime		i:ip	__syscall_clock_settime
-+sys_execve	-	execve			i:ppp	__syscall_execve
-+extattrctl	-	extattrctl		i:sisI	extattrctl
-+extattr_delete_file -	extattr_delete_file	i:ss	extattr_delete_file
-+extattr_get_file -	extattr_get_file	i:ssbn	extattr_get_file
-+extattr_set_file -	extattr_set_file	i:ssbn	extattr_set_file
-+fhopen		-	fhopen			i:pi	fhopen
-+sys_fork	-	fork			i:	__syscall_fork fork
-+sys_fhstat	-	fhstat			i:pp	__syscall_fhstat
-+sys_getfsstat	-	getfsstat		i:pii	__syscall_getfsstat
-+sys_statfs	-	statfs			i:sp	__syscall_statfs
-+sys_fstatfs	-	fstatfs			i:ip	__syscall_fstatfs
-+sys_fhstatfs	-	fhstatfs		i:pp	__syscall_fhstatfs
-+sys_fstat	-	fstat			i:ip	__syscall_fstat
-+sys_ftruncate	-	freebsd6_ftruncate	i:iii	__syscall_freebsd6_ftruncate
-+futimes		-	futimes			i:ip	__futimes	futimes
-+sys_getcwd	-	getcwd			i:bn	__syscall_getcwd
-+sys_getdents	-	getdents		i:ibn	__syscall_getdents
-+sys_getdirentries -	getdirentries		i:ibnP	__syscall_getdirentries
-+getfh		-	getfh			i:sp	getfh
-+sys_getlogin	-	getlogin		i:bn	__syscall_getlogin
-+getpgid		-	getpgid			i:i	__getpgid	__getpgid_internal getpgid
-+getpgrp		-	getpgrp			i:	getpgrp
-+getresgid	-	getresgid		i:ppp	getresgid
-+getresuid	-	getresuid		i:ppp	getresuid
-+getrlimit	-	getrlimit		i:ip	__getrlimit	getrlimit getrlimit64
-+getsid		-	getsid			i:i	getsid
-+issetugid	-	issetugid		i:	issetugid
-+jail		-	jail			i:p	jail
-+kldfind		-	kldfind			i:s	kldfind
-+kldfirstmod	-	kldfirstmod		i:i	kldfirstmod
-+kldload		-	kldload			i:s	kldload
-+kldnext		-	kldnext			i:i	kldnext
-+kldstat		-	kldstat			i:ip	kldstat
-+kldsym		-	kldsym			i:iip	kldsym
-+kldunload	-	kldunload		i:i	kldunload
-+kldunloadf	-	kldunloadf		i:ii	kldunloadf
-+ktrace		-	ktrace			i:siii	ktrace
-+lchmod		-	lchmod			i:si	lchmod
-+lchown		-	lchown			i:sii	__lchown	lchown
-+sys_lio_listio	-	lio_listio		i:ibnP	__syscall_lio_listio
-+sys_lseek	-	freebsd6_lseek		i:iiii	__syscall_freebsd6_lseek
-+sys_lstat	-	lstat			i:sp	__syscall_lstat
-+lutimes		-	lutimes			i:sp	__lutimes	lutimes
-+posix_madvise	-	madvise			i:pii	posix_madvise
-+minherit	-	minherit		i:aii	minherit
-+mincore		-	mincore			i:anV	mincore
-+mlock		-	mlock			i:bn	mlock
-+mlockall	-	mlockall		i:i	mlockall
-+mkfifo		-	mkfifo			i:si	__mkfifo	mkfifo
-+sys_mknod	-	mknod			i:sii	__syscall_mknod
-+sys_mmap	-	freebsd6_mmap		b:aniiiii __syscall_freebsd6_mmap
-+sys_munmap	munmap	munmap			i:pi	__syscall_munmap
-+modfind		-	modfind			i:s	modfind
-+modfnext	-	modfnext		i:i	modfnext
-+modnext		-	modnext			i:i	modnext
-+modstat		-	modstat			i:ip	modstat
-+mount		-	mount			i:ssiP	mount
-+msgctl		-	msgctl			i:iip	msgctl
-+msgget		-	msgget			i:ii	msgget
-+msgrcv		-	msgrcv			Ci:ibnii	__libc_msgrcv	msgrcv
-+msgsnd		-	msgsnd			Ci:ibni	__libc_msgsnd	msgsnd
-+munlock		-	munlock			i:ai	munlock
-+munlockall	-	munlockall		i:	munlockall
-+nanosleep	-	nanosleep		Ci:pp	__libc_nanosleep __nanosleep nanosleep
-+nmount		-	nmount			i:pii	nmount
-+sys_nfstat	-	nfstat			i:ip	__syscall_nfstat
-+sys_nlstat	-	nlstat			i:sp	__syscall_nlstat
-+sys_nstat	-	nstat			i:sp	__syscall_nstat
-+ntp_adjtime	-	ntp_adjtime		i:p	ntp_adjtime
-+obreak		-	obreak			i:a	__syscall_obreak
-+sys_open	-	open			i:siv	__syscall_open
-+poll		-	poll			Ci:pii	__poll		poll
-+sys_pread	-	freebsd6_pread		i:ibnii	__syscall_freebsd6_pread
-+sys_ptrace	-	ptrace			i:iipi	__syscall_ptrace
-+sys_pwrite	-	freebsd6_pwrite		i:ibnii	__syscall_freebsd6_pwrite
-+quotactl	-	quotactl		i:siip	quotactl
-+sys_readv	-	readv			i:ipi	__syscall_readv
-+rfork		-	rfork			i:i	__rfork		rfork
-+rtprio		-	rtprio			i:iip	__rtprio	rtprio
-+sched_gets	-	sched_getscheduler	i:i	__sched_getscheduler sched_getscheduler
-+sched_primax	-	sched_get_priority_max	i:i	__sched_get_priority_max sched_get_priority_max
-+sched_primin	-	sched_get_priority_min	i:i	__sched_get_priority_min sched_get_priority_min
-+sched_rr_gi	-	sched_rr_get_interval	i:ip	__sched_rr_get_interval sched_rr_get_interval
-+sched_setp	-	sched_setparam		i:ip	__sched_setparam sched_setparam
-+sched_sets	-	sched_setscheduler	i:iip	__sched_setscheduler sched_setscheduler
-+sched_yield	-	sched_yield		i:	__sched_yield sched_yield
-+semget		-	semget			i:iii	semget
-+semop		-	semop			i:ipi	semop
-+bsd_sendfile	-	sendfile		i:iiiippi bsd_sendfile
-+setegid		-	setegid			i:i	setegid
-+seteuid		-	seteuid			i:i	seteuid
-+setgid		-	setgid			i:i	__setgid	setgid
-+sys_setlogin	-	setlogin		i:s	__syscall_setlogin
-+setpgid		-	setpgid			i:ii	__setpgid	setpgid
-+setresgid	-	setresgid		i:iii	setresgid
-+setresuid	-	setresuid		i:iii	setresuid
-+setrlimit	-	setrlimit		i:ip	__setrlimit	setrlimit setrlimit64
-+setsid		-	setsid			i:	__setsid	setsid
-+setuid		-	setuid			i:i	__setuid	setuid
-+shmat		-	shmat			i:iai	shmat
-+shmctl		-	shmctl			i:iip	shmctl
-+shmdt		-	shmdt			i:a	shmdt
-+shmget		-	shmget			i:iii	shmget
-+sys_sigaction	-	sigaction		i:ipp   __syscall_sigaction
-+sigpending	-	sigpending		i:p	sigpending
-+sigprocmask	-	sigprocmask		i:iPP	__sigprocmask	sigprocmask
-+sigsuspend	-	sigsuspend		Ci:p	__sigsuspend	sigsuspend
-+sigwaitinfo	-	sigwaitinfo		Ci:pp	__sigwaitinfo	sigwaitinfo
-+sigtimedwait	-	sigtimedwait		Ci:ppP	__sigtimedwait	sigtimedwait
-+sys_stat	-	stat			i:sp	__syscall_stat
-+sysarch		-	sysarch			i:ip	__sysarch	sysarch
-+sysctl		-	sysctl			i:pibNbn __sysctl	sysctl
-+sys_truncate	-	freebsd6_truncate	i:sii	__syscall_freebsd6_truncate
-+undelete	-	undelete		i:s	undelete
-+unmount		-	unmount			i:si	unmount
-+utrace		-	utrace			i:bn	utrace
-+sys_writev	-	writev			i:ipi	__syscall_writev
-+yield		-	yield			i:	__syscall_yield
-+wait4		-       wait4                   i:iWiP  __syscall_wait4	__wait4	wait4
-+sys_close      	-       close                   i:i     __syscall_close
-+sys_fcntl       -       fcntl                   i:iiF   __syscall_fcntl
-+sys_write       -       write                   i:ibn   __syscall_write
-+sys_read        -       read                    i:ibn   __syscall_read
-+sys_connect	-       connect	                i:ipi	__syscall_connect
-+sys_bind        -       bind                    i:ipi   __syscall_bind
-+sys_sendto      -       sendto          	i:ibnibn __syscall_sendto
-+sys_nanosleep	EXTRA	nanosleep		i:pp	__syscall_nanosleep
-+sys_sigsuspend	EXTRA	sigsuspend		i:p	__syscall_sigsuspend
-+swapcontext	-	swapcontext		i:pp	__swapcontext	swapcontext
-+swapon		-	swapon			i:s	swapon
-+swapoff		-	swapoff			i:s	swapoff
-+getcontext	-	getcontext		i:p	__getcontext	getcontext
-+setcontext	-	setcontext		i:p	__setcontext	setcontext
-+kqueue		EXTRA	kqueue			i:	__kqueue	kqueue
-+kevent		EXTRA	kevent			i:ipipip	__kevent	kevent
-+sys_umtx	-	_umtx_op		i:piipp	__syscall__umtx_op
-+sys_cpuset_getaffinity - cpuset_getaffinity	i:iiiip	__syscall_cpuset_getaffinity
-+sys_cpuset_setaffinity - cpuset_setaffinity	i:iiiip	__syscall_cpuset_setaffinity
+@@ -0,0 +1,164 @@
++# File name		Caller	Syscall name		# args		Strong name	Weak names
++acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
++acl_aclcheck_file	-	acl_aclcheck_file	i:sip		__acl_aclcheck_file
++acl_delete_fd		-	acl_delete_fd		i:ii		__acl_delete_fd
++acl_delete_file		-	acl_delete_file		i:si		__acl_delete_file
++acl_get_fd		-	acl_get_fd		i:iip		__acl_get_fd
++acl_get_file		-	acl_get_file		i:sip		__acl_get_file
++acl_set_fd		-	acl_set_fd		i:iip		__acl_set_fd
++acl_set_file		-	acl_set_file		i:sip		__acl_set_file
++sys_aio_cancel		-	aio_cancel		i:ip		__syscall_aio_cancel
++sys_aio_error		-	aio_error		i:p		__syscall_aio_error
++sys_aio_read		-	aio_read		i:p		__syscall_aio_read
++sys_aio_return		-	aio_return		i:p		__syscall_aio_return
++sys_aio_suspend		-	aio_suspend		i:bnP		__syscall_aio_suspend
++sys_aio_waitcomplete	-	aio_waitcomplete	i:pp		__syscall_aio_waitcomplete
++sys_aio_write		-	aio_write		i:p		__syscall_aio_write
++sys_clock_getres	-	clock_getres		i:ip		__syscall_clock_getres
++sys_clock_gettime	-	clock_gettime		i:ip		__syscall_clock_gettime
++sys_clock_settime	-	clock_settime		i:ip		__syscall_clock_settime
++sys_execve		-	execve			i:ppp		__syscall_execve
++extattrctl		-	extattrctl		i:sisI		extattrctl
++extattr_delete_file	-	extattr_delete_file	i:ss		extattr_delete_file
++extattr_get_file	-	extattr_get_file	i:ssbn		extattr_get_file
++extattr_set_file	-	extattr_set_file	i:ssbn		extattr_set_file
++fhopen			-	fhopen			i:pi		fhopen
++sys_fork		-	fork			i:		__syscall_fork	fork
++sys_fhstat		-	fhstat			i:pp		__syscall_fhstat
++sys_getfsstat		-	getfsstat		i:pii		__syscall_getfsstat
++sys_statfs		-	statfs			i:sp		__syscall_statfs
++sys_fstatfs		-	fstatfs			i:ip		__syscall_fstatfs
++sys_fhstatfs		-	fhstatfs		i:pp		__syscall_fhstatfs
++sys_fstat		-	fstat			i:ip		__syscall_fstat
++sys_ftruncate		-	ftruncate		i:ii		__syscall_ftruncate
++sys_freebsd6_ftruncate	-	freebsd6_ftruncate	i:iii		__syscall_freebsd6_ftruncate
++futimes			-	futimes			i:ip		__futimes futimes
++sys_getcwd		-	getcwd			i:bn		__syscall_getcwd
++sys_getdents		-	getdents		i:ibn		__syscall_getdents
++sys_getdirentries	-	getdirentries		i:ibnP		__syscall_getdirentries
++getfh			-	getfh			i:sp		getfh
++sys_getlogin		-	getlogin		i:bn		__syscall_getlogin
++getpgid			-	getpgid			i:i		__getpgid __getpgid_internal getpgid
++getpgrp			-	getpgrp			i:		getpgrp
++getresgid		-	getresgid		i:ppp		getresgid
++getresuid		-	getresuid		i:ppp		getresuid
++getrlimit		-	getrlimit		i:ip		__getrlimit getrlimit getrlimit64
++getsid			-	getsid			i:i		getsid
++issetugid		-	issetugid		i:		issetugid
++jail			-	jail			i:p		jail
++kldfind			-	kldfind			i:s		kldfind
++kldfirstmod		-	kldfirstmod		i:i		kldfirstmod
++kldload			-	kldload			i:s		kldload
++kldnext			-	kldnext			i:i		kldnext
++kldstat			-	kldstat			i:ip		kldstat
++kldsym			-	kldsym			i:iip		kldsym
++kldunload		-	kldunload		i:i		kldunload
++kldunloadf		-	kldunloadf		i:ii		kldunloadf
++ktrace			-	ktrace			i:siii		ktrace
++lchmod			-	lchmod			i:si		lchmod
++lchown			-	lchown			i:sii		__lchown lchown
++sys_lio_listio		-	lio_listio		i:ibnP		__syscall_lio_listio
++sys_lseek		-	lseek			i:iii		__syscall_lseek
++sys_freebsd6_lseek	-	freebsd6_lseek		i:iiii		__syscall_freebsd6_lseek
++sys_lstat		-	lstat			i:sp		__syscall_lstat
++lutimes			-	lutimes			i:sp		__lutimes lutimes
++posix_madvise		-	madvise			i:pii		posix_madvise
++minherit		-	minherit		i:aii		minherit
++mincore			-	mincore			i:anV		mincore
++mlock			-	mlock			i:bn		mlock
++mlockall		-	mlockall		i:i		mlockall
++mkfifo			-	mkfifo			i:si		__mkfifo mkfifo
++sys_mknod		-	mknod			i:sii		__syscall_mknod
++sys_mmap		-	mmap			b:aniiii	__syscall_mmap
++sys_freebsd6_mmap	-	freebsd6_mmap		b:aniiiii	__syscall_freebsd6_mmap
++sys_munmap		-	munmap			i:pi		__syscall_munmap
++modfind			-	modfind			i:s		modfind
++modfnext		-	modfnext		i:i		modfnext
++modnext			-	modnext			i:i		modnext
++modstat			-	modstat			i:ip		modstat
++mount			-	mount			i:ssiP		mount
++msgctl			-	msgctl			i:iip		msgctl
++msgget			-	msgget			i:ii		msgget
++msgrcv			-	msgrcv			Ci:ibnii	__libc_msgrcv msgrcv
++msgsnd			-	msgsnd			Ci:ibni		__libc_msgsnd msgsnd
++munlock			-	munlock			i:ai		munlock
++munlockall		-	munlockall		i:		munlockall
++nanosleep		-	nanosleep		Ci:pp		__libc_nanosleep __nanosleep nanosleep
++nmount			-	nmount			i:pii		nmount
++sys_nfstat		-	nfstat			i:ip		__syscall_nfstat
++sys_nlstat		-	nlstat			i:sp		__syscall_nlstat
++sys_nstat		-	nstat			i:sp		__syscall_nstat
++ntp_adjtime		-	ntp_adjtime		i:p		ntp_adjtime
++obreak			-	obreak			i:a		__syscall_obreak
++sys_open		-	open			i:siv		__syscall_open
++poll			-	poll			Ci:pii		__poll poll
++sys_pread		-	pread			i:ibni		__syscall_pread
++sys_freebsd6_pread	-	freebsd6_pread		i:ibnii		__syscall_freebsd6_pread
++sys_ptrace		-	ptrace			i:iipi		__syscall_ptrace
++sys_pwrite		-	pwrite			i:ibni		__syscall_pwrite
++sys_freebsd6_pwrite	-	freebsd6_pwrite		i:ibnii		__syscall_freebsd6_pwrite
++quotactl		-	quotactl		i:siip		quotactl
++sys_readv		-	readv			i:ipi		__syscall_readv
++rfork			-	rfork			i:i		__rfork rfork
++rtprio			-	rtprio			i:iip		__rtprio rtprio
++sched_gets		-	sched_getscheduler	i:i		__sched_getscheduler sched_getscheduler
++sched_primax		-	sched_get_priority_max	i:i		__sched_get_priority_max sched_get_priority_max
++sched_primin		-	sched_get_priority_min	i:i		__sched_get_priority_min sched_get_priority_min
++sched_rr_gi		-	sched_rr_get_interval	i:ip		__sched_rr_get_interval sched_rr_get_interval
++sched_setp		-	sched_setparam		i:ip		__sched_setparam sched_setparam
++sched_sets		-	sched_setscheduler	i:iip		__sched_setscheduler sched_setscheduler
++sched_yield		-	sched_yield		i:		__sched_yield sched_yield
++semget			-	semget			i:iii		semget
++semop			-	semop			i:ipi		semop
++bsd_sendfile		-	sendfile		i:iiiippi	bsd_sendfile
++setegid			-	setegid			i:i		setegid
++seteuid			-	seteuid			i:i		seteuid
++setgid			-	setgid			i:i		__setgid setgid
++sys_setlogin		-	setlogin		i:s		__syscall_setlogin
++setpgid			-	setpgid			i:ii		__setpgid setpgid
++setresgid		-	setresgid		i:iii		setresgid
++setresuid		-	setresuid		i:iii		setresuid
++setrlimit		-	setrlimit		i:ip		__setrlimit setrlimit setrlimit64
++setsid			-	setsid			i:		__setsid setsid
++setuid			-	setuid			i:i		__setuid setuid
++shmat			-	shmat			i:iai		shmat
++shmctl			-	shmctl			i:iip		shmctl
++shmdt			-	shmdt			i:a		shmdt
++shmget			-	shmget			i:iii		shmget
++sys_sigaction		-	sigaction		i:ipp		__syscall_sigaction
++sigpending		-	sigpending		i:p		sigpending
++sigprocmask		-	sigprocmask		i:iPP		__sigprocmask sigprocmask
++sigsuspend		-	sigsuspend		Ci:p		__sigsuspend sigsuspend
++sigwaitinfo		-	sigwaitinfo		Ci:pp		__sigwaitinfo sigwaitinfo
++sigtimedwait		-	sigtimedwait		Ci:ppP		__sigtimedwait sigtimedwait
++sys_stat		-	stat			i:sp		__syscall_stat
++sysarch			-	sysarch			i:ip		__sysarch sysarch
++sysctl			-	sysctl			i:pibNbn	__sysctl sysctl
++sys_truncate		-	truncate		i:sii		__syscall_truncate
++sys_freebsd6_truncate	-	freebsd6_truncate	i:si		__syscall_freebsd6_truncate
++undelete		-	undelete		i:s		undelete
++unmount			-	unmount			i:si		unmount
++utrace			-	utrace			i:bn		utrace
++sys_writev		-	writev			i:ipi		__syscall_writev
++yield			-	yield			i:		__syscall_yield
++wait4			-	wait4			i:iWiP		__syscall_wait4 __wait4	wait4
++sys_close		-	close			i:i		__syscall_close
++sys_fcntl		-	fcntl			i:iiF		__syscall_fcntl
++sys_write		-	write			i:ibn		__syscall_write
++sys_read		-	read			i:ibn		__syscall_read
++sys_connect		-	connect			i:ipi		__syscall_connect
++sys_bind		-	bind			i:ipi		__syscall_bind
++sys_sendto		-	sendto			i:ibnibn	__syscall_sendto
++sys_nanosleep		EXTRA	nanosleep		i:pp		__syscall_nanosleep
++sys_sigsuspend		EXTRA	sigsuspend		i:p		__syscall_sigsuspend
++swapcontext		-	swapcontext		i:pp		__swapcontext swapcontext
++swapon			-	swapon			i:s		swapon
++swapoff			-	swapoff			i:s		swapoff
++getcontext		-	getcontext		i:p		__getcontext getcontext
++setcontext		-	setcontext		i:p		__setcontext setcontext
++kqueue			EXTRA	kqueue			i:		__kqueue kqueue
++kevent			EXTRA	kevent			i:ipipip	__kevent kevent
++sys_umtx		-	_umtx_op		i:piipp		__syscall__umtx_op
++sys_cpuset_getaffinity	-	cpuset_getaffinity	i:iiiip		__syscall_cpuset_getaffinity
++sys_cpuset_setaffinity	-	cpuset_setaffinity	i:iiiip		__syscall_cpuset_setaffinity
 +
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sysconf.c
@@ -19659,7 +20034,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate.c
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,52 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
@@ -19682,9 +20057,10 @@
 +#include <unistd.h>
 +#include <sys/types.h>
 +#include <sysdep.h>
++#include <errno.h>
 +
-+/* The real system call has a word of padding before the 64-bit off_t
-+   argument.  */
++extern int __syscall_truncate (const char *__file, __off_t __length) __THROW;
++libc_hidden_proto (__syscall_truncate)
 +extern int __syscall_freebsd6_truncate (const char *__file, int __unused1,
 +			       __off_t __length) __THROW;
 +libc_hidden_proto (__syscall_freebsd6_truncate)
@@ -19692,8 +20068,18 @@
 +int
 +__truncate (const char *file, __off_t length)
 +{
-+  /* We pass 2 arguments in 4 words.  */
-+  return INLINE_SYSCALL (freebsd6_truncate, 2, file, 0, length);
++  int result;
++
++  /* First try the new syscall. */
++  result = INLINE_SYSCALL (truncate, 2, file, length);
++
++#ifndef __ASSUME_TRUNCATE_SYSCALL
++  if (result == -1 && errno == ENOSYS)
++    /* New syscall not available, us the old one. */
++    result = INLINE_SYSCALL (freebsd6_truncate, 3, file, 0, length);
++#endif
++
++  return result;
 +}
 +
 +weak_alias (__truncate, truncate)
