@@ -5054,8 +5054,8 @@
 +
 +/* These are the hard limits of the kernel.  These values should not be
 +   used directly at user level.  */
-+#define __SIGRTMIN	32
-+#define __SIGRTMAX	(_NSIG - 1)
++#define __SIGRTMIN	65	/* be in sync with FreeBSD kernel */
++#define __SIGRTMAX	126	/* be in sync with FreeBSD kernel */
 +
 +#endif	/* <signal.h> included.  */
 --- /dev/null
@@ -7869,7 +7869,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-sysdep.c
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,56 @@
 +/* Dynamic linker system dependencies for GNU/kFreeBSD.
 +   Copyright (C) 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -7914,11 +7914,17 @@
 +  len = sizeof(version);
 +  if (__sysctl (request, 2, &version, &len, NULL, 0) < 0)
 +    return -1;
++    
++/*
++ *   scheme is:  <major><two digit minor>Rxx
++ *		'R' is 0 if release branch or x.0-CURRENT before RELENG_*_0
++ *		is created, otherwise 1.
++ */
 +
 +  /* Convert to the GLIBC versioning system */
-+  return ((version / 100000) << 16)
-+	 | (((version % 100000) / 1000) << 8)
-+	 | ((version % 1000) / 10);
++  return ((version / 100000) << 16)		/* major */
++	 | (((version % 100000) / 1000) << 8)   /* minor 	0 -  99 */
++	 | ((version % 1000));			/* subrelease 	0 - 199 */ 
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-sysdep.h
@@ -11535,7 +11541,7 @@
 +/* lseek returns a 64-bit result in %eax, %edx.  This means that in the
 +   error case we have to set both %eax and %edx to -1.  */
 +
-+PSEUDO_NOERRNO(__syscall_freebsd6_lseek, freebsd6_lseek, 3)
++PSEUDO_NOERRNO(__syscall_freebsd6_lseek, freebsd6_lseek, 4)
 +        jnb L(no_error)
 +	call SYSCALL_ERROR_LABEL;
 +	orl $-1, %edx;
@@ -11570,7 +11576,7 @@
 +/* lseek returns a 64-bit result in %eax, %edx.  This means that in the
 +   error case we have to set both %eax and %edx to -1.  */
 +
-+PSEUDO_NOERRNO(__syscall_lseek, lseek, 4)
++PSEUDO_NOERRNO(__syscall_lseek, lseek, 3)
 +        jnb L(no_error)
 +	call SYSCALL_ERROR_LABEL;
 +	orl $-1, %edx;
@@ -19697,8 +19703,8 @@
 +lchmod			-	lchmod			i:si		lchmod
 +lchown			-	lchown			i:sii		__lchown lchown
 +sys_lio_listio		-	lio_listio		i:ibnP		__syscall_lio_listio
-+sys_lseek		-	lseek			i:iii		__syscall_lseek
-+sys_freebsd6_lseek	-	freebsd6_lseek		i:iiii		__syscall_freebsd6_lseek
++sys_lseek		EXTRA	lseek			i:iii		__syscall_lseek
++sys_freebsd6_lseek	EXTRA	freebsd6_lseek		i:iiii		__syscall_freebsd6_lseek
 +sys_lstat		-	lstat			i:sp		__syscall_lstat
 +lutimes			-	lutimes			i:sp		__lutimes lutimes
 +posix_madvise		-	madvise			i:pii		posix_madvise
