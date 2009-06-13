@@ -20,8 +20,8 @@ i386_extra_cflags = -march=pentium4 -O3
 i386_extra_config_options = $(extra_config_options)
 i386_includedir = /usr/include/i486-linux-gnu
 i386_rtlddir = /lib
-i386_slibdir = /emul/ia32-linux/lib
-i386_libdir = /emul/ia32-linux/usr/lib
+i386_slibdir = /usr/lib32
+i386_libdir = /usr/lib32
 
 define libc6-dev-i386_extra_pkg_install
 mkdir -p debian/libc6-dev-i386/usr/include/gnu
@@ -36,9 +36,6 @@ mkdir -p debian/libc6-dev-i386/usr/include/i486-linux-gnu
 endef
 
 define libc6-i386_extra_pkg_install
-mkdir -p debian/libc6-i386/lib
-ln -sf /emul/ia32-linux/lib/ld-linux.so.2 debian/libc6-i386/lib
-ln -sf /emul/ia32-linux/lib debian/libc6-i386/lib32
-ln -sf /emul/ia32-linux/usr/lib debian/libc6-i386/usr/lib32
+mkdir -p debian/libc6-i386/lib debian/libc6-i386/usr/lib
 endef
 
