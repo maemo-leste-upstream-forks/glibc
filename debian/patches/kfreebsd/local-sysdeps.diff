@@ -47,7 +47,7 @@
 +gnu
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile
-@@ -0,0 +1,126 @@
+@@ -0,0 +1,131 @@
 +# Use bash, not /bin/sh, for executing scripts, because the native
 +# FreeBSD /bin/sh does not interpret the  IFS="<tab>" read ...  command
 +# in localedata/tst-fmon.sh correctly.
@@ -81,13 +81,17 @@
 +
 +ifeq ($(subdir),io)
 +# For <unistd.h>.
-+sysdep_routines += sys_getcwd sys_lseek sys_freebsd6_lseek
++sysdep_routines += sys_fchownat sys_fexecve sys_getcwd sys_linkat sys_lseek sys_freebsd6_lseek sys_readlinkat sys_symlinkat sys_unlinkat
 +# For <fcntl.h>.
-+sysdep_routines += sys_open open_2
++sysdep_routines += sys_open sys_openat open_2
 +# For <sys/stat.h>.
-+sysdep_routines += sys_fstat sys_lstat sys_mknod sys_nfstat sys_nlstat sys_nstat sys_stat
++sysdep_routines += sys_fchmodat sys_fstat sys_fstatat sys_lstat sys_mkdirat sys_mkfifoat sys_mknod sys_mknodat sys_nfstat sys_nlstat sys_nstat sys_stat
 +# For <sys/statfs.h>.
 +sysdep_routines += fstatfs64 statfs64 sys_fstatfs sys_statfs
++# For <stdio.h>
++sysdep_routines += sys_renameat
++# For <sys/times.h>.
++sysdep_routines += sys_futimesat
 +# Other.
 +sysdep_routines += lchmod
 +endif
@@ -101,7 +105,7 @@
 +# For <sched.h>.
 +sysdep_routines += clone start_thread
 +# For <unistd.h>.
-+sysdep_routines += sys_ftruncate sys_freebsd6_ftruncate sys_truncate sys_freebsd6_truncate
++sysdep_routines += sys_faccessat sys_ftruncate sys_freebsd6_ftruncate sys_truncate sys_freebsd6_truncate
 +# For <sys/acl.h>.
 +sysdep_routines += acl_aclcheck_fd acl_aclcheck_file acl_delete_fd acl_delete_file acl_get_fd acl_get_file acl_set_fd acl_set_file
 +# For <sys/extattr.h>.
@@ -133,6 +137,7 @@
 +# for INLINE_SYSCALL
 +sysdep_routines += sys_fork sys_execve sys_sigaction sys_close sys_fcntl
 +sysdep_routines += sys_clock_getres sys_clock_gettime sys_clock_settime
++sysdep_routines += sys_shm_open sys_shm_unlink
 +endif
 +
 +ifeq ($(subdir),posix)
@@ -176,7 +181,7 @@
 +endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions
-@@ -0,0 +1,103 @@
+@@ -0,0 +1,106 @@
 +libc {
 +  # The comment lines with "#errlist-compat" are magic; see errlist-compat.awk.
 +  # When you get an error from errlist-compat.awk, you need to add a new
@@ -270,7 +275,10 @@
 +    __syscall_wait4; __syscall_fcntl;
 +    # needed by librt as INLINE_SYSCALL:
 +    __syscall_clock_getres; __syscall_clock_gettime; __syscall_clock_settime;
-+     # misc fixes for FreeBSD:
++    __syscall_shm_open; __syscall_shm_unlink;
++    # needed by librt:
++    __unlink;
++    # misc fixes for FreeBSD:
 +    __syscall_freebsd6_lseek; __syscall_freebsd6_pread; __syscall_freebsd6_pwrite;
 +    __syscall_lseek; __syscall_pread; __syscall_pwrite;
 +    __syscall_connect; __syscall_sendto;
@@ -383,6 +391,149 @@
 +#endif
 +
 +#endif	/* _G_config.h */
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/a.out.h
+@@ -0,0 +1,140 @@
++#ifndef __A_OUT_GNU_H__
++#define __A_OUT_GNU_H__
++
++#define __GNU_EXEC_MACROS__
++
++struct exec
++{
++  unsigned long a_info;	/* Use macros N_MAGIC, etc for access.  */
++  unsigned int a_text;	/* Length of text, in bytes.  */
++  unsigned int a_data;	/* Length of data, in bytes.  */
++  unsigned int a_bss;	/* Length of uninitialized data area for file, in bytes.  */
++  unsigned int a_syms;	/* Length of symbol table data in file, in bytes.  */
++  unsigned int a_entry;	/* Start address.  */
++  unsigned int a_trsize;/* Length of relocation info for text, in bytes.  */
++  unsigned int a_drsize;/* Length of relocation info for data, in bytes.  */
++};
++
++enum machine_type
++{
++  M_OLDSUN2 = 0,
++  M_68010 = 1,
++  M_68020 = 2,
++  M_SPARC = 3,
++  M_386 = 100,
++  M_MIPS1 = 151,
++  M_MIPS2 = 152
++};
++
++#define N_MAGIC(exec)	((exec).a_info & 0xffff)
++#define N_MACHTYPE(exec) ((enum machine_type)(((exec).a_info >> 16) & 0xff))
++#define N_FLAGS(exec)	(((exec).a_info >> 24) & 0xff)
++#define N_SET_INFO(exec, magic, type, flags) \
++  ((exec).a_info = ((magic) & 0xffff)					\
++   | (((int)(type) & 0xff) << 16)					\
++   | (((flags) & 0xff) << 24))
++#define N_SET_MAGIC(exec, magic) \
++  ((exec).a_info = ((exec).a_info & 0xffff0000) | ((magic) & 0xffff))
++#define N_SET_MACHTYPE(exec, machtype) \
++  ((exec).a_info =							\
++   ((exec).a_info&0xff00ffff) | ((((int)(machtype))&0xff) << 16))
++#define N_SET_FLAGS(exec, flags) \
++  ((exec).a_info =							\
++   ((exec).a_info&0x00ffffff) | (((flags) & 0xff) << 24))
++
++/* Code indicating object file or impure executable.  */
++#define OMAGIC 0407
++/* Code indicating pure executable.  */
++#define NMAGIC 0410
++/* Code indicating demand-paged executable.  */
++#define ZMAGIC 0413
++/* This indicates a demand-paged executable with the header in the text. 
++   The first page is unmapped to help trap NULL pointer references.  */
++#define QMAGIC 0314
++/* Code indicating core file.  */
++#define CMAGIC 0421
++
++#define N_TRSIZE(a)	((a).a_trsize)
++#define N_DRSIZE(a)	((a).a_drsize)
++#define N_SYMSIZE(a)	((a).a_syms)
++#define N_BADMAG(x) \
++  (N_MAGIC(x) != OMAGIC	&& N_MAGIC(x) != NMAGIC				\
++   && N_MAGIC(x) != ZMAGIC && N_MAGIC(x) != QMAGIC)
++#define _N_HDROFF(x)	(1024 - sizeof (struct exec))
++#define N_TXTOFF(x) \
++  (N_MAGIC(x) == ZMAGIC ? _N_HDROFF((x)) + sizeof (struct exec) :	\
++   (N_MAGIC(x) == QMAGIC ? 0 : sizeof (struct exec)))
++#define N_DATOFF(x)	(N_TXTOFF(x) + (x).a_text)
++#define N_TRELOFF(x)	(N_DATOFF(x) + (x).a_data)
++#define N_DRELOFF(x)	(N_TRELOFF(x) + N_TRSIZE(x))
++#define N_SYMOFF(x)	(N_DRELOFF(x) + N_DRSIZE(x))
++#define N_STROFF(x)	(N_SYMOFF(x) + N_SYMSIZE(x))
++
++/* Address of text segment in memory after it is loaded.  */
++#define N_TXTADDR(x)	(N_MAGIC(x) == QMAGIC ? 4096 : 0)
++
++/* Address of data segment in memory after it is loaded.  */
++#define SEGMENT_SIZE	1024
++
++#define _N_SEGMENT_ROUND(x) (((x) + SEGMENT_SIZE - 1) & ~(SEGMENT_SIZE - 1))
++#define _N_TXTENDADDR(x) (N_TXTADDR(x)+(x).a_text)
++
++#define N_DATADDR(x) \
++  (N_MAGIC(x)==OMAGIC? (_N_TXTENDADDR(x))				\
++   : (_N_SEGMENT_ROUND (_N_TXTENDADDR(x))))
++#define N_BSSADDR(x) (N_DATADDR(x) + (x).a_data)
++
++#if !defined (N_NLIST_DECLARED)
++struct nlist
++{
++  union 
++  {
++  char *n_name;
++  union
++    {
++      char *n_name;
++      struct nlist *n_next;
++      long n_strx;
++    } n_un;
++  } __attribute__ ((__transparent_union__)); 
++  unsigned char n_type;
++  char n_other;
++  short n_desc;
++  unsigned long n_value;
++};
++#endif /* no N_NLIST_DECLARED.  */
++
++#define N_UNDF	0
++#define N_ABS	2
++#define N_TEXT	4
++#define N_DATA	6
++#define N_BSS	8
++#define N_FN	15
++#define N_EXT	1
++#define N_TYPE	036
++#define N_STAB	0340
++#define N_INDR	0xa
++#define	N_SETA	0x14	/* Absolute set element symbol.  */
++#define	N_SETT	0x16	/* Text set element symbol.  */
++#define	N_SETD	0x18	/* Data set element symbol.  */
++#define	N_SETB	0x1A	/* Bss set element symbol.  */
++#define N_SETV	0x1C	/* Pointer to set vector in data area.  */
++
++#if !defined (N_RELOCATION_INFO_DECLARED)
++/* This structure describes a single relocation to be performed.
++   The text-relocation section of the file is a vector of these structures,
++   all of which apply to the text section.
++   Likewise, the data-relocation section applies to the data section.  */
++
++struct relocation_info
++{
++  int r_address;
++  unsigned int r_symbolnum:24;
++  unsigned int r_pcrel:1;
++  unsigned int r_length:2;
++  unsigned int r_extern:1;
++  unsigned int r_pad:4;
++};
++#endif /* no N_RELOCATION_INFO_DECLARED.  */
++
++#endif /* __A_OUT_GNU_H__ */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/Makefile
 @@ -0,0 +1,28 @@
@@ -3129,7 +3280,7 @@
 +
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/fcntl.h
-@@ -0,0 +1,153 @@
+@@ -0,0 +1,168 @@
 +/* O_*, F_*, FD_* bit values for FreeBSD.
 +   Copyright (C) 1991-1992, 1997, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3207,6 +3358,21 @@
 +   given to `open'.  */
 +#define FREAD		1
 +#define	FWRITE		2
++#endif
++
++/*
++ * We are out of bits in f_flag (which is a short).  However,
++ * the flag bits not set in FMASK are only meaningful in the
++ * initial open syscall.  Those bits can thus be given a
++ * different meaning for fcntl(2).
++ */
++#if __USE_BSD
++/*
++ * Set by shm_open(3) to get automatic MAP_ASYNC behavior
++ * for POSIX shared memory objects (which are otherwise
++ * implemented as plain files).
++ */
++#define FPOSIXSHM	O_NOFOLLOW
 +#endif
 +
 +/* Values for the second argument to `fcntl'.  */
@@ -7000,7 +7166,7 @@
 +weak_alias (__clone, clone)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/configure
-@@ -0,0 +1,342 @@
+@@ -0,0 +1,343 @@
 +# This file is generated from configure.in by Autoconf.  DO NOT EDIT!
 + # Local configure fragment for sysdeps/unix/bsd/bsd4.4/kfreebsd.
 +
@@ -7062,7 +7228,7 @@
 +#if !defined(__FreeBSD_kernel_version) && defined(__FreeBSD_version)
 +#define __FreeBSD_kernel_version __FreeBSD_version
 +#endif
-+#if !defined __FreeBSD_kernel_version || __FreeBSD_kernel_version <  (6 *65536+ 4 *256+ 0) /* 6.0.0 */
++#if !defined __FreeBSD_kernel_version || __FreeBSD_kernel_version <  (6 *100000+ 0 *1000+ 0) /* 6.0.0 */
 +eat flaming death
 +#endif
 +_ACEOF
@@ -7149,6 +7315,7 @@
 +if test -n "$minimum_kernel"; then
 +  echo "$as_me:$LINENO: checking for kernel header at least $minimum_kernel" >&5
 +echo $ECHO_N "checking for kernel header at least $minimum_kernel... $ECHO_C" >&6
++  hdrnum=`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/(\1 * 100000 + \2 * 1000 + \3)/'`;
 +  decnum=`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/(\1 * 65536 + \2 * 256 + \3)/'`;
 +  abinum=`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1,\2,\3/'`;
 +  cat >conftest.$ac_ext <<_ACEOF
@@ -7161,7 +7328,7 @@
 +#if !defined(__FreeBSD_kernel_version) && defined(__FreeBSD_version)
 +#define __FreeBSD_kernel_version __FreeBSD_version
 +#endif
-+#if __FreeBSD_kernel_version < $decnum
++#if __FreeBSD_kernel_version < $hdrnum
 +eat flaming death
 +#endif
 +_ACEOF
@@ -7345,7 +7512,7 @@
 +fi
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/configure.in
-@@ -0,0 +1,268 @@
+@@ -0,0 +1,269 @@
 +GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
 +# Local configure fragment for sysdeps/unix/bsd/bsd4.4/kfreebsd.
 +
@@ -7386,7 +7553,7 @@
 +#endif
 +#if !defined __FreeBSD_kernel_version || __FreeBSD_kernel_version < ]dnl
 +patsubst(LIBC_KFREEBSD_VERSION,[^\([^.]*\)\.\([^.]*\)\.\([^.]*\)$],dnl
-+[ (\1 *65536+ \2 *256+ \3) /* \1.\2.\3 */])[
++[ (\1 *100000+ \2 *1000+ \3) /* \1.\2.\3 */])[
 +eat flaming death
 +#endif],
 +	     libc_cv_kfreebsdVER='TOO OLD!',
@@ -7450,6 +7617,7 @@
 +if test -n "$minimum_kernel"; then
 +  AC_MSG_CHECKING(for kernel header at least $minimum_kernel)
 +changequote(,)dnl
++  hdrnum=`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/(\1 * 100000 + \2 * 1000 + \3)/'`;
 +  decnum=`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/(\1 * 65536 + \2 * 256 + \3)/'`;
 +  abinum=`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1,\2,\3/'`;
 +changequote([,])dnl
@@ -7457,7 +7625,7 @@
 +#if !defined(__FreeBSD_kernel_version) && defined(__FreeBSD_version)
 +#define __FreeBSD_kernel_version __FreeBSD_version
 +#endif
-+#if __FreeBSD_kernel_version < $decnum
++#if __FreeBSD_kernel_version < $hdrnum
 +eat flaming death
 +#endif], libc_minimum_kernel='too old!', libc_minimum_kernel=ok)
 +  AC_MSG_RESULT($libc_minimum_kernel)
@@ -7924,7 +8092,7 @@
 +  /* Convert to the GLIBC versioning system */
 +  return ((version / 100000) << 16)		/* major */
 +	 | (((version % 100000) / 1000) << 8)   /* minor 	0 -  99 */
-+	 | ((version % 1000));			/* subrelease 	0 - 199 */ 
++	 | ((version % 200));			/* subrelease 	0 - 199 */
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-sysdep.h
@@ -7956,9 +8124,547 @@
 +# define HAVE_DL_DISCOVER_OSVERSION	1
 +#endif
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/faccessat.c
+@@ -0,0 +1,164 @@
++/* Test for access to file, relative to open directory.  Linux version.
++   Copyright (C) 2006 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++#include <sysdep.h>
++
++extern int __syscall_faccessat (int fd, const char *path, mode_t mode,
++				int flag);
++libc_hidden_proto (__syscall_faccessat)
++
++int
++faccessat (fd, file, mode, flag)
++     int fd;
++     const char *file;
++     int mode;
++     int flag;
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result = INLINE_SYSCALL (faccessat, 4, fd, file, mode, flag);
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if (flag & ~(AT_SYMLINK_NOFOLLOW | AT_EACCESS))
++    {
++      __set_errno (EINVAL);
++      return -1;
++    }
++
++  if ((!(flag & AT_EACCESS) || !__libc_enable_secure)
++      && !(flag & AT_SYMLINK_NOFOLLOW))
++    {
++      /* If we are not set-uid or set-gid, access does the same.  */
++      if (fd != AT_FDCWD && file[0] != '/')
++	{
++	  int mib[4];
++	  size_t kf_len = 0;
++	  char *kf_buf, *kf_bufp;
++
++	  if (fd < 0)
++	    {
++	      __set_errno (EBADF);
++	      return -1;
++	    }
++
++	  mib[0] = CTL_KERN;
++	  mib[1] = KERN_PROC;
++	  mib[2] = KERN_PROC_FILEDESC;
++	  mib[3] = __getpid ();
++
++	  if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	    {
++	      __set_errno (ENOSYS);
++	      return -1;
++	    }
++
++	  kf_buf = alloca (kf_len + strlen (file));
++	  if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	    {
++	      __set_errno (ENOSYS);
++	      return -1;
++	    }
++
++	  kf_bufp = kf_buf;
++	  while (kf_bufp < kf_buf + kf_len)
++	    {
++	      struct kinfo_file *kf =
++		(struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	      if (kf->kf_fd == fd)
++		{
++		  if (kf->kf_type != KF_TYPE_VNODE ||
++		      kf->kf_vnode_type != KF_VTYPE_VDIR)
++		    {
++		      __set_errno (ENOTDIR);
++		      return -1;
++		    }
++
++		  strcat (kf->kf_path, "/");
++		  strcat (kf->kf_path, file);
++		  file = kf->kf_path;
++		  break;
++		}
++	      kf_bufp += kf->kf_structsize;
++	    }
++
++	  if (kf_bufp >= kf_buf + kf_len)
++	    {
++	      __set_errno (EBADF);
++	      return -1;
++	    }
++	}
++
++      return __access (file, mode);
++    }
++#endif
++
++  struct stat64 stats;
++  if (fstatat64 (fd, file, &stats, flag & AT_SYMLINK_NOFOLLOW))
++    return -1;
++
++  mode &= (X_OK | W_OK | R_OK);	/* Clear any bogus bits. */
++#if R_OK != S_IROTH || W_OK != S_IWOTH || X_OK != S_IXOTH
++# error Oops, portability assumptions incorrect.
++#endif
++
++  if (mode == F_OK)
++    return 0;			/* The file exists. */
++
++  uid_t uid = (flag & AT_EACCESS) ? __geteuid () : __getuid ();
++
++  /* The super-user can read and write any file, and execute any file
++     that anyone can execute. */
++  if (uid == 0 && ((mode & X_OK) == 0
++		   || (stats.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH))))
++    return 0;
++
++  int granted = (uid == stats.st_uid
++		 ? (unsigned int) (stats.st_mode & (mode << 6)) >> 6
++		 : (stats.st_gid == ((flag & AT_EACCESS)
++				     ? __getegid () : __getgid ())
++		    || __group_member (stats.st_gid))
++		 ? (unsigned int) (stats.st_mode & (mode << 3)) >> 3
++		 : (stats.st_mode & mode));
++
++  if (granted == mode)
++    return 0;
++
++  __set_errno (EACCES);
++  return -1;
++}
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fchmodat.c
+@@ -0,0 +1,130 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <sys/stat.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++
++extern int __syscall_fchmodat (int fd, const char *path,
++			       mode_t mode, int flag);
++libc_hidden_proto (__syscall_fchmodat)
++
++/* This is specific to kFreeBSD. */
++extern int __lchmod (__const char *__file, __mode_t __mode);
++
++int
++fchmodat (fd, file, mode, flag)
++     int fd;
++     const char *file;
++     mode_t mode;
++     int flag;
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result = INLINE_SYSCALL (fchmodat, 4, fd, file, mode, flag);
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if (flag & ~AT_SYMLINK_NOFOLLOW)
++    {
++      __set_errno (EINVAL);
++      return -1;
++    }
++
++  if (fd != AT_FDCWD && file[0] != '/')
++    {
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
++
++      if (fd < 0)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_buf = alloca (kf_len + strlen (file));
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_bufp = kf_buf;
++      while (kf_bufp < kf_buf + kf_len)
++	{
++	  struct kinfo_file *kf = (struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	  if (kf->kf_fd == fd)
++	    {
++	      if (kf->kf_type != KF_TYPE_VNODE ||
++		  kf->kf_vnode_type != KF_VTYPE_VDIR)
++		{
++		  __set_errno (ENOTDIR);
++		  return -1;
++		}
++
++	      strcat (kf->kf_path, "/");
++	      strcat (kf->kf_path, file);
++	      file = kf->kf_path;
++	      break;
++	    }
++	  kf_bufp += kf->kf_structsize;
++	}
++
++      if (kf_bufp >= kf_buf + kf_len)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++    }
++
++  if (flag & AT_SYMLINK_NOFOLLOW)
++    return __lchmod(file, mode);
++  else
++    return __chmod(file, mode);
++#endif
++}
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fchownat.c
+@@ -0,0 +1,129 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <unistd.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++
++extern int __syscall_fchownat (int fd, const char *path, uid_t uid,
++			       gid_t gid, int flag);
++libc_hidden_proto (__syscall_fchownat)
++
++/* Change the owner and group of FILE.  */
++int
++fchownat (fd, file, owner, group, flag)
++     int fd;
++     const char *file;
++     uid_t owner;
++     gid_t group;
++     int flag;
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result = INLINE_SYSCALL (fchownat, 5, fd, file, owner, group, flag);
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if (flag & ~AT_SYMLINK_NOFOLLOW)
++    {
++      __set_errno (EINVAL);
++      return -1;
++    }
++
++  if (fd != AT_FDCWD && file[0] != '/')
++    {
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
++
++      if (fd < 0)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_buf = alloca (kf_len + strlen (file));
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_bufp = kf_buf;
++      while (kf_bufp < kf_buf + kf_len)
++	{
++	  struct kinfo_file *kf = (struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	  if (kf->kf_fd == fd)
++	    {
++	      if (kf->kf_type != KF_TYPE_VNODE ||
++		  kf->kf_vnode_type != KF_VTYPE_VDIR)
++		{
++		  __set_errno (ENOTDIR);
++		  return -1;
++		}
++
++	      strcat (kf->kf_path, "/");
++	      strcat (kf->kf_path, file);
++	      file = kf->kf_path;
++	      break;
++	    }
++	  kf_bufp += kf->kf_structsize;
++	}
++
++      if (kf_bufp >= kf_buf + kf_len)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++    }
++
++  if (flag & AT_SYMLINK_NOFOLLOW)
++    return __lchown(file, owner, group);
++  else
++    return __chown(file, owner, group);
++#endif
++}
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fcntl.c
 @@ -0,0 +1 @@
 +#include <sysdeps/unix/sysv/linux/fcntl.c>
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fexecve.c
+@@ -0,0 +1,103 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <unistd.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++
++extern int __syscall_fexecve (int fd, char *const argv[], char *const envp[]);
++libc_hidden_proto (__syscall_fexecve);
++
++/* Execute the file FD refers to, overlaying the running program image.
++   ARGV and ENVP are passed to the new program, as for `execve'.  */
++int
++fexecve (fd, argv, envp)
++     int fd;
++     char *const argv[];
++     char *const envp[];
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result = INLINE_SYSCALL (fexecve, 3, fd, argv, envp);
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if (fd < 0 || argv == NULL || envp == NULL)
++    {
++      __set_errno (EINVAL);
++      return -1;
++    }
++
++  int mib[4];
++  size_t kf_len = 0;
++  char *kf_buf, *kf_bufp;
++
++  mib[0] = CTL_KERN;
++  mib[1] = KERN_PROC;
++  mib[2] = KERN_PROC_FILEDESC;
++  mib[3] = __getpid ();
++
++  if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++    {
++      __set_errno (ENOSYS);
++      return -1;
++    }
++
++  kf_buf = alloca (kf_len);
++  if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++    {
++      __set_errno (ENOSYS);
++      return -1;
++    }
++
++  kf_bufp = kf_buf;
++  while (kf_bufp < kf_buf + kf_len)
++    {
++      struct kinfo_file *kf = (struct kinfo_file *) (uintptr_t) kf_bufp;
++
++      if (kf->kf_fd == fd)
++	{
++	  if (kf->kf_type == KF_TYPE_VNODE &&
++	      kf->kf_vnode_type == KF_VTYPE_VREG)
++	    return __execve (kf->kf_path, argv, envp);
++	  break;
++	}
++      kf_bufp += kf->kf_structsize;
++    }
++
++  __set_errno (EINVAL);
++  return -1;
++#endif
++}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fhstat.c
 @@ -0,0 +1,40 @@
@@ -8332,7 +9038,7 @@
 +  /* First try the new syscall. */
 +  result = INLINE_SYSCALL (ftruncate, 2, fd, length);
 +
-+#ifndef __ASSUME_FTRUNCATE_SYSCALL
++#ifndef __ASSUME_TRUNCATE_SYSCALL
 +  if (result == -1 && errno == ENOSYS)
 +    /* New syscall not available, us the old one. */
 +    result = INLINE_SYSCALL (freebsd6_ftruncate, 3, fd, 0, length);
@@ -8350,6 +9056,139 @@
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ftruncate64.c
 @@ -0,0 +1 @@
 +/* 'ftruncate64' is the same as 'ftruncate', because __off64_t == __off_t.  */
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/futimesat.c
+@@ -0,0 +1,130 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <sys/time.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++
++extern int __syscall_futimesat (int fd, const char *path,
++				const struct timeval *times);
++libc_hidden_proto (__syscall_futimesat)
++
++/* Change the access time of FILE relative to FD to TVP[0] and
++   the modification time of FILE to TVP[1].  */
++int
++futimesat (fd, file, tvp)
++     int fd;
++     const char *file;
++     const struct timeval tvp[2];
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result;
++
++      if (file == NULL)
++	return __futimes (fd, tvp);
++
++      result = INLINE_SYSCALL (futimesat, 3, fd, file, tvp);
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if ((file == NULL) || (fd != AT_FDCWD && file[0] != '/'))
++    {
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
++
++      if (fd < 0)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      if (file == NULL)
++	kf_buf = alloca (kf_len);
++      else
++	kf_buf = alloca (kf_len + strlen (file));
++
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_bufp = kf_buf;
++      while (kf_bufp < kf_buf + kf_len)
++	{
++	  struct kinfo_file *kf = (struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	  if (kf->kf_fd == fd)
++	    {
++	      if (kf->kf_type != KF_TYPE_VNODE ||
++		  kf->kf_vnode_type != KF_VTYPE_VDIR)
++		{
++		  __set_errno (ENOTDIR);
++		  return -1;
++		}
++	      if (file != NULL)
++		{
++		  strcat (kf->kf_path, "/");
++		  strcat (kf->kf_path, file);
++		}
++	      file = kf->kf_path;
++	      break;
++	    }
++	  kf_bufp += kf->kf_structsize;
++	}
++
++      if (kf_bufp >= kf_buf + kf_len)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++    }
++
++  return __utimes(file, tvp);
++#endif
++}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fxstat.c
 @@ -0,0 +1,48 @@
@@ -8448,6 +9287,306 @@
 +    }
 +}
 +hidden_def (__fxstat64)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fxstatat.c
+@@ -0,0 +1,150 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <sys/stat.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++#include <bp-checks.h>
++
++#include "stat16conv.c"
++
++extern int __syscall_fstatat (int fd, const char *path,
++			      struct stat16 *buf, int flag);
++libc_hidden_proto (__syscall_fstatat)
++
++/* Get information about the file NAME relative to FD in ST.  */
++int
++__fxstatat (int vers, int fd, const char *file, struct stat *st, int flag)
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result;
++
++      if (__builtin_expect (vers == _STAT_VER, 1))
++	{
++	  struct stat16 buf16;
++	  result =
++	    INLINE_SYSCALL (fstatat, 4, fd, CHECK_STRING (file),
++			    __ptrvalue (&buf16), flag);
++	  if (result == 0)
++	    stat16_to_stat (&buf16, st);
++	}
++      else if (__builtin_expect (vers == _STAT_VER_stat, 1))
++	{
++	  result =
++	    INLINE_SYSCALL (fstatat, 4, fd, CHECK_STRING (file),
++			    CHECK_1 ((struct stat16 *) st), flag);
++	}
++      else
++	{
++	  __set_errno (EINVAL);
++	  return -1;
++	}
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if (flag & ~AT_SYMLINK_NOFOLLOW)
++    {
++      __set_errno (EINVAL);
++      return -1;
++    }
++
++  if (fd != AT_FDCWD && file[0] != '/')
++    {
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
++
++      if (fd < 0)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_buf = alloca (kf_len + strlen (file));
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_bufp = kf_buf;
++      while (kf_bufp < kf_buf + kf_len)
++	{
++	  struct kinfo_file *kf = (struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	  if (kf->kf_fd == fd)
++	    {
++	      if (kf->kf_type != KF_TYPE_VNODE ||
++		  kf->kf_vnode_type != KF_VTYPE_VDIR)
++		{
++		  __set_errno (ENOTDIR);
++		  return -1;
++		}
++
++	      strcat (kf->kf_path, "/");
++	      strcat (kf->kf_path, file);
++	      file = kf->kf_path;
++	      break;
++	    }
++	  kf_bufp += kf->kf_structsize;
++	}
++
++      if (kf_bufp >= kf_buf + kf_len)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++    }
++
++  if (flag & AT_SYMLINK_NOFOLLOW)
++    return __lxstat (vers, file, st);
++  else
++    return __xstat (vers, file, st);
++#endif
++}
++
++libc_hidden_def (__fxstatat)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fxstatat64.c
+@@ -0,0 +1,144 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <sys/stat.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++#include <bp-checks.h>
++
++#include "stat16conv.c"
++
++extern int __syscall_fstatat (int fd, const char *path,
++			      struct stat16 *buf, int flag);
++libc_hidden_proto (__syscall_fstatat)
++
++/* Get information about the file NAME relative to FD in ST.  */
++int
++__fxstatat64 (int vers, int fd, const char *file, struct stat64 *st, int flag)
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result;
++
++      if (__builtin_expect (vers == _STAT_VER, 1))
++	{
++	  struct stat16 buf16;
++	  result =
++	    INLINE_SYSCALL (fstatat, 4, fd, CHECK_STRING (file),
++			    __ptrvalue (&buf16), flag);
++	  if (result == 0)
++	    stat16_to_stat64 (&buf16, st);
++	}
++      else
++	{
++	  __set_errno (EINVAL);
++	  return -1;
++	}
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if (flag & ~AT_SYMLINK_NOFOLLOW)
++    {
++      __set_errno (EINVAL);
++      return -1;
++    }
++
++  if (fd != AT_FDCWD && file[0] != '/')
++    {
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
++
++      if (fd < 0)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_buf = alloca (kf_len + strlen (file));
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_bufp = kf_buf;
++      while (kf_bufp < kf_buf + kf_len)
++	{
++	  struct kinfo_file *kf = (struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	  if (kf->kf_fd == fd)
++	    {
++	      if (kf->kf_type != KF_TYPE_VNODE ||
++		  kf->kf_vnode_type != KF_VTYPE_VDIR)
++		{
++		  __set_errno (ENOTDIR);
++		  return -1;
++		}
++
++	      strcat (kf->kf_path, "/");
++	      strcat (kf->kf_path, file);
++	      file = kf->kf_path;
++	      break;
++	    }
++	  kf_bufp += kf->kf_structsize;
++	}
++
++      if (kf_bufp >= kf_buf + kf_len)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++    }
++
++  if (flag & AT_SYMLINK_NOFOLLOW)
++    return __lxstat64 (vers, file, st);
++  else
++    return __xstat64 (vers, file, st);
++#endif
++}
++
++libc_hidden_def (__fxstatat64)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c
 @@ -0,0 +1,91 @@
@@ -8750,6 +9889,60 @@
 +#define GETDIRENTRIES getdirentries64
 +#define OFF_T off64_t
 +#include <getdirentries.c>
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdomainname.c
+@@ -0,0 +1,51 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <unistd.h>
++#include <sys/sysctl.h>
++#include <errno.h>
++
++/* Put the name of the current domain in no more than LEN bytes of NAME.
++   The result is null-terminated if LEN is large enough for the full
++   name and the terminator.  */
++
++int
++__getdomainname (char *name, size_t len)
++{
++  /* Fetch the "kern.domainname" sysctl value.  */
++  int request[2] = { CTL_KERN, KERN_NISDOMAINNAME };
++  size_t result_len = len;
++
++  if (__sysctl (request, 2, name, &result_len, NULL, 0) < 0)
++    {
++      if (errno == ENOMEM)
++	__set_errno (ENAMETOOLONG);
++      return -1;
++    }
++
++  if (result_len >= len)
++    {
++      __set_errno (ENAMETOOLONG);
++      return -1;
++    }
++
++  name[result_len] = '\0';
++  return 0;
++}
++
++weak_alias (__getdomainname getdomainname)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getfsstat.c
 @@ -0,0 +1,49 @@
@@ -12864,7 +14057,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/init-first.c
-@@ -0,0 +1,128 @@
+@@ -0,0 +1,135 @@
 +/* Initialization code run first thing by the ELF startup code.  Linux version.
 +   Copyright (C) 1995-1999,2000,01,02,03,2004 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -12889,6 +14082,7 @@
 +#include <fcntl.h>
 +#include <unistd.h>
 +#include <sysdep.h>
++#include <signal.h>
 +#include <fpu_control.h>
 +#include <sys/param.h>
 +#include <sys/types.h>
@@ -12933,6 +14127,12 @@
 +#endif
 +	__setfpucw (__fpu_control);
 +    }
++
++  /* By default on kFreeBSD when a call to non existing syscall is
++     made, the program is terminated. As we want to be able to detect
++     missing syscalls and provide a fallback code, we ignore the SIGSYS
++     signal. */
++  signal(SIGSYS, SIG_IGN);
 +
 +  /* Save the command-line arguments.  */
 +  __libc_argc = argc;
@@ -12995,7 +14195,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-features.h
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,92 @@
 +/* Set flags signalling availability of kernel features based on given
 +   kernel version number.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -13033,8 +14233,25 @@
 +   introduced.  If somebody cares these values can afterwards be
 +   corrected.  */
 +
++/* 
++   The used encoding corresponds to the following in elf/dl-load.c:
++
++            osversion = (abi_note[5] & 0xff) * 65536
++                        + (abi_note[6] & 0xff) * 256
++                        + (abi_note[7] & 0xff);
++            if (abi_note[4] != __ABI_TAG_OS
++                || (GLRO(dl_osversion) && GLRO(dl_osversion) < osversion))
++            
++   Therefore, the __KFREEBSD_KERNEL_VERSION have different value compared to
++   __FreeBSD_version/__FreeBSD_kernel__version. 
++   The transformation is not just prepend 0x to __FreeBSD_kernel_version.
++
++   For changes see i.e.
++   http://www.freebsd.org/doc/en/books/porters-handbook/freebsd-versions.html
++*/
++
 +/* Real-time signals introduced in FreeBSD 7.x.  */
-+#if __KFREEBSD_KERNEL_VERSION >= 0x70000
++#if __KFREEBSD_KERNEL_VERSION >= 0x70032
 +# define __ASSUME_REALTIME_SIGNALS	1
 +#endif
 +
@@ -13042,33 +14259,33 @@
 +#define PTHREAD_SIGBASE 32
 +
 +/* The `ftruncate' syscall was introduced in kFreeBSD 7.0. */
-+#if __KFREEBSD_KERNEL_VERSION >= 0x70000
-+# define __ASSUME_FTRUNCATE_SYSCALL	1
++#if __KFREEBSD_KERNEL_VERSION >= 0x70032
++# define __ASSUME_TRUNCATE_SYSCALL	1
 +#endif
 +
 +/* The `lseek' syscall was introduced in kFreeBSD 7.0. */
-+#if __KFREEBSD_KERNEL_VERSION >= 0x70000
++#if __KFREEBSD_KERNEL_VERSION >= 0x70032
 +# define __ASSUME_LSEEK_SYSCALL		1
 +#endif
 +
 +/* The `mmap' syscall was introduced in kFreeBSD 7.0. */
-+#if __KFREEBSD_KERNEL_VERSION >= 0x70000
++#if __KFREEBSD_KERNEL_VERSION >= 0x70032
 +# define __ASSUME_MMAP_SYSCALL		1
 +#endif
 +
-+/* The `pread' syscall was introduced in kFreeBSD 7.0. */
-+#if __KFREEBSD_KERNEL_VERSION >= 0x70000
-+# define __ASSUME_PREAD_SYSCALL		1
++/* The `pread' and `pwrite' syscalls were introduced in kFreeBSD 7.0. */
++#if __KFREEBSD_KERNEL_VERSION >= 0x70032
++# define __ASSUME_PREAD_PWRITE_SYSCALLS	1
 +#endif
 +
-+/* The `pwrite' syscall was introduced in kFreeBSD 7.0. */
-+#if __KFREEBSD_KERNEL_VERSION >= 0x70000
-+# define __ASSUME_PWRITE_SYSCALL	1
++/* The `shm_*' syscalls were introduced in kFreeBSD 8.0 */
++#if __KFREEBSD_KERNEL_VERSION >= 0x8000C
++# define __ASSUME_SHMFCTS		1
 +#endif
 +
-+/* The `truncate' syscall was introduced in kFreeBSD 7.0. */
-+#if __KFREEBSD_KERNEL_VERSION >= 0x70000
-+# define __ASSUME_TRUNCATE_SYSCALL	1
++/* The `*at' syscalls were introduced in kFreeBSD 8.0. */
++#if __KFREEBSD_KERNEL_VERSION >= 0x8001D
++# define __ASSUME_ATFCTS		1
 +#endif
 +
 --- /dev/null
@@ -13121,6 +14338,180 @@
 +extern void _dl_non_dynamic_init (void) internal_function;
 +
 +#endif /* ldsodefs.h */
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linkat.c
+@@ -0,0 +1,171 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <stdio.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++
++extern int __syscall_linkat (int fd1, const char *path1, int fd2,
++			       const char *path2, int flags);
++libc_hidden_proto (__syscall_linkat)
++
++/* Make a link to FROM named TO but relative paths in TO and FROM are
++   interpreted relative to FROMFD and TOFD respectively.  */
++int
++linkat (fromfd, from, tofd, to, flags)
++     int fromfd;
++     const char *from;
++     int tofd;
++     const char *to;
++     int flags;
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result = INLINE_SYSCALL (linkat, 5, fromfd, from, tofd, to, flags);
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  /* Without kernel support we cannot handle AT_SYMLINK_FOLLOW.  */
++  if (flags != 0)
++    {
++      __set_errno (EINVAL);
++      return -1;
++    }
++
++  if ((fromfd != AT_FDCWD && from[0] != '/')
++      || (tofd != AT_FDCWD && to[0] != '/'))
++    {
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
++
++      if ((fromfd < 0) || (tofd < 0))
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_buf = alloca (kf_len);
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      if (fromfd != AT_FDCWD && from[0] != '/')
++	{
++	  kf_bufp = kf_buf;
++	  while (kf_bufp < kf_buf + kf_len)
++	    {
++	      struct kinfo_file *kf =
++		(struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	      if (kf->kf_fd == fromfd)
++		{
++		  char *buf;
++		  if (kf->kf_type != KF_TYPE_VNODE ||
++		      kf->kf_vnode_type != KF_VTYPE_VDIR)
++		    {
++		      __set_errno (ENOTDIR);
++		      return -1;
++		    }
++
++		  buf = alloca (strlen (kf->kf_path) + strlen (from) + 2);
++		  strcpy(buf, kf->kf_path);
++		  strcat (buf, "/");
++		  strcat (buf, from);
++		  from = buf;
++		  break;
++		}
++	      kf_bufp += kf->kf_structsize;
++	    }
++
++	  if (kf_bufp >= kf_buf + kf_len)
++	    {
++	      __set_errno (EBADF);
++	      return -1;
++	    }
++	}
++
++      if (tofd != AT_FDCWD && to[0] != '/')
++	{
++	  kf_bufp = kf_buf;
++	  while (kf_bufp < kf_buf + kf_len)
++	    {
++	      struct kinfo_file *kf =
++		(struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	      if (kf->kf_fd == tofd)
++		{
++		  char *buf;
++		  if (kf->kf_type != KF_TYPE_VNODE ||
++		      kf->kf_vnode_type != KF_VTYPE_VDIR)
++		    {
++		      __set_errno (ENOTDIR);
++		      return -1;
++		    }
++
++		  buf = alloca (strlen (kf->kf_path) + strlen (to) + 2);
++		  strcpy(buf, kf->kf_path);
++		  strcat (buf, "/");
++		  strcat (buf, to);
++		  to = buf;
++		  break;
++		}
++	      kf_bufp += kf->kf_structsize;
++	    }
++
++	  if (kf_bufp >= kf_buf + kf_len)
++	    {
++	      __set_errno (EBADF);
++	      return -1;
++	    }
++	}
++    }
++  
++  return __link (from, to);
++#endif
++}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Implies
 @@ -0,0 +1 @@
@@ -13863,6 +15254,127 @@
 +    }
 +}
 +hidden_def (__lxstat64)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mkdirat.c
+@@ -0,0 +1,118 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write file the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Bosfilen, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <sys/stat.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++
++extern int __syscall_mkdirat (int fd, const char *path, mode_t mode);
++libc_hidden_proto (__syscall_mkdirat)
++
++/* Create a new direcfilery with permission bits MODE.  But interpret
++   relative PATH names relative file the direcfilery associated with FD.  */
++int
++mkdirat (fd, file, mode)
++     int fd;
++     const char *file;
++     mode_t mode;
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result = INLINE_SYSCALL (mkdirat, 3, fd, file, mode);
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if (fd != AT_FDCWD && file[0] != '/')
++    {
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
++
++      if (fd < 0)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_buf = alloca (kf_len + strlen (file));
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_bufp = kf_buf;
++      while (kf_bufp < kf_buf + kf_len)
++	{
++	  struct kinfo_file *kf = (struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	  if (kf->kf_fd == fd)
++	    {
++	      if (kf->kf_type != KF_TYPE_VNODE ||
++		  kf->kf_vnode_type != KF_VTYPE_VDIR)
++		{
++		  __set_errno (ENOTDIR);
++		  return -1;
++		}
++
++	      strcat (kf->kf_path, "/");
++	      strcat (kf->kf_path, file);
++	      file = kf->kf_path;
++	      break;
++	    }
++	  kf_bufp += kf->kf_structsize;
++	}
++
++      if (kf_bufp >= kf_buf + kf_len)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++    }
++
++  return __mkdir (file, mode);
++#endif
++}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mmap.c
 @@ -0,0 +1,86 @@
@@ -15836,8 +17348,8 @@
 +strong_alias (__open_2, __open64_2)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/openat.c
-@@ -0,0 +1,110 @@
-+/* Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+@@ -0,0 +1,294 @@
++/* Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -15860,12 +17372,26 @@
 +#include <stdarg.h>
 +#include <stddef.h>
 +#include <stdio.h>
-+#include <string.h>
++#include <unistd.h>
++#include <sysdep.h>
 +#include <sys/stat.h>
++#include <sys/time.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
 +#include <kernel-features.h>
 +#include <sysdep-cancel.h>
 +#include <not-cancel.h>
 +
++extern int __syscall_openat (int fd, const char *path, int flag, mode_t mode);
++libc_hidden_proto (__syscall_openat)
++
++# ifndef __ASSUME_ATFCTS
++int __have_atfcts = 0;
++#endif
++
++/* Open FILE with access OFLAG.  Interpret relative paths relative to
++   the directory associated with FD.  If OFLAG includes O_CREAT, a
++   third argument is the file protection.  */
 +int
 +__openat_nocancel (fd, file, oflag, mode)
 +     int fd;
@@ -15873,23 +17399,84 @@
 +     int oflag;
 +     mode_t mode;
 +{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result = INLINE_SYSCALL (openat, 4, fd, file, oflag, mode);
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
 +  if (fd != AT_FDCWD && file[0] != '/')
 +    {
-+      /* Check FD is associated with a directory.  */
-+      struct stat64 st;
-+      if (__fxstat64 (_STAT_VER, fd, &st) != 0)
-+	/* errno is already set correctly.  */
-+        return -1;
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
 +
-+      if (!S_ISDIR (st.st_mode))
-+	__set_errno (ENOTDIR);
-+      else
-+	__set_errno (ENOSYS);
-+      return -1;
++      if (fd < 0)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_buf = alloca (kf_len + strlen (file));
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_bufp = kf_buf;
++      while (kf_bufp < kf_buf + kf_len)
++	{
++	  struct kinfo_file *kf = (struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	  if (kf->kf_fd == fd)
++	    {
++	      if (kf->kf_type != KF_TYPE_VNODE ||
++		  kf->kf_vnode_type != KF_VTYPE_VDIR)
++		{
++		  __set_errno (ENOTDIR);
++		  return -1;
++		}
++
++	      strcat (kf->kf_path, "/");
++	      strcat (kf->kf_path, file);
++	      file = kf->kf_path;
++	      break;
++	    }
++	  kf_bufp += kf->kf_structsize;
++	}
++
++      if (kf_bufp >= kf_buf + kf_len)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
 +    }
 +  return INLINE_SYSCALL (open, 3, file, oflag, mode);
++#endif
 +}
 +
++strong_alias (__openat_nocancel, __openat64_nocancel)
 +
 +/* Open FILE with access OFLAG.  Interpret relative paths relative to
 +   the directory associated with FD.  If OFLAG includes O_CREAT, a
@@ -15900,7 +17487,9 @@
 +     const char *file;
 +     int oflag;
 +{
-+  mode_t mode = 0;
++  int mode = 0;
++  int result;
++
 +  if (oflag & O_CREAT)
 +    {
 +      va_list arg;
@@ -15909,28 +17498,137 @@
 +      va_end (arg);
 +    }
 +
-+  if (SINGLE_THREAD_P)
-+    return __openat_nocancel (fd, file, oflag, mode);
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      if (SINGLE_THREAD_P)
++	{
++	  result = INLINE_SYSCALL (openat, 4, fd, file, oflag, mode);
++	}
++      else
++	{
++	  int oldtype = LIBC_CANCEL_ASYNC ();
++	  result = INLINE_SYSCALL (openat, 4, fd, file, oflag, mode);
++	  LIBC_CANCEL_RESET (oldtype);
++	}
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++# endif
++    }
 +
-+  int oldtype = LIBC_CANCEL_ASYNC ();
++#ifndef __ASSUME_ATFCTS
++  if (__have_atfcts < 0)
++    {
++      if (fd != AT_FDCWD && file[0] != '/')
++	{
++	  int mib[4];
++	  size_t kf_len = 0;
++	  char *kf_buf, *kf_bufp;
 +
-+  int res = __openat_nocancel (fd, file, oflag, mode);
++	  if (fd < 0)
++	    {
++	      __set_errno (EBADF);
++	      return -1;
++	    }
 +
-+  LIBC_CANCEL_RESET (oldtype);
++	  mib[0] = CTL_KERN;
++	  mib[1] = KERN_PROC;
++	  mib[2] = KERN_PROC_FILEDESC;
++	  mib[3] = __getpid ();
 +
-+  return res;
++	  if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	    {
++	      __set_errno (ENOSYS);
++	      return -1;
++	    }
++
++	  kf_buf = alloca (kf_len + strlen (file));
++	  if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	    {
++	      __set_errno (ENOSYS);
++	      return -1;
++	    }
++
++	  kf_bufp = kf_buf;
++	  while (kf_bufp < kf_buf + kf_len)
++	    {
++	      struct kinfo_file *kf =
++		(struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	      if (kf->kf_fd == fd)
++		{
++		  if (kf->kf_type != KF_TYPE_VNODE ||
++		      kf->kf_vnode_type != KF_VTYPE_VDIR)
++		    {
++		      __set_errno (ENOTDIR);
++		      return -1;
++		    }
++
++		  strcat (kf->kf_path, "/");
++		  strcat (kf->kf_path, file);
++		  file = kf->kf_path;
++		  break;
++		}
++	      kf_bufp += kf->kf_structsize;
++	    }
++
++	  if (kf_bufp >= kf_buf + kf_len)
++	    {
++	      __set_errno (EBADF);
++	      return -1;
++	    }
++	}
++      if (SINGLE_THREAD_P)
++	{
++	  result = INLINE_SYSCALL (open, 3, file, oflag, mode);
++	}
++      else
++	{
++	  int oldtype = LIBC_CANCEL_ASYNC ();
++	  result = INLINE_SYSCALL (open, 3, file, oflag, mode);
++	  LIBC_CANCEL_RESET (oldtype);
++	}
++
++    }
++#endif
++
++  if (result >= 0 && (oflag & O_TRUNC))
++    {
++      /* Set the modification time.  The kernel ought to do this.  */
++      int saved_errno = errno;
++      struct timeval tv[2];
++
++      if (__gettimeofday (&tv[1], NULL) >= 0)
++	{
++	  struct stat statbuf;
++
++	  if (__fxstat (_STAT_VER, result, &statbuf) >= 0)
++	    {
++	      tv[0].tv_sec = statbuf.st_atime;
++	      tv[0].tv_usec = 0;
++
++#ifdef NOT_IN_libc
++	      futimes (fd, tv);
++#else
++	      __futimes (fd, tv);
++#endif
++	    }
++	}
++      __set_errno (saved_errno);
++    }
++
++  return result;
 +}
++
 +libc_hidden_def (__openat)
 +weak_alias (__openat, openat)
 +
-+/* openat64 is just the same as openat for us.  */
++/* 'openat64' is the same as 'openat', because __off64_t == __off_t.  */
 +strong_alias (__openat, __openat64)
-+strong_alias (__openat_nocancel, __openat64_nocancel)
-+libc_hidden_weak (__openat64)
++libc_hidden_def (__openat64)
 +weak_alias (__openat64, openat64)
-+
-+stub_warning (openat)
-+stub_warning (openat64)
 +
 +int
 +__openat_2 (fd, file, oflag)
@@ -15945,12 +17643,10 @@
 +}
 +
 +strong_alias (__openat_2, __openat64_2)
-+stub_warning (__openat_2)
-+stub_warning (__openat64_2)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/openat64.c
 @@ -0,0 +1,2 @@
-+/* 'openat64' is the same as 'open', because __off64_t == __off_t and
++/* 'openat64' is the same as 'openat', because __off64_t == __off_t and
 +   O_LARGEFILE == 0.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/paths.h
@@ -16031,7 +17727,7 @@
 +#endif /* !_PATHS_H_ */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pread.c
-@@ -0,0 +1,65 @@
+@@ -0,0 +1,69 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
@@ -16068,25 +17764,29 @@
 +__libc_pread (int fd, void *buf, size_t nbytes, __off_t offset)
 +{
 +  ssize_t result;
-+  int oldtype;
 +
-+  if (!SINGLE_THREAD_P)
++  if (SINGLE_THREAD_P)
 +    {
-+      oldtype = LIBC_CANCEL_ASYNC ();
++
++      /* First try the new syscall. */
++      result = INLINE_SYSCALL (pread, 4, fd, buf, nbytes, offset);
++#ifndef __ASSUME_PREAD_PWRITE_SYSCALLS
++      if (result == -1 && errno == ENOSYS)
++	/* New syscall not available, us the old one. */
++	result = INLINE_SYSCALL (freebsd6_pread, 5, fd, buf, nbytes, 0, offset);
++#endif
++      return result;
 +    }
 +
++  int oldtype = LIBC_CANCEL_ASYNC ();
 +  /* First try the new syscall. */
 +  result = INLINE_SYSCALL (pread, 4, fd, buf, nbytes, offset);
-+#ifndef __ASSUME_PREAD_SYSCALL
++#ifndef __ASSUME_PREAD_PWRITE_SYSCALLS
 +  if (result == -1 && errno == ENOSYS)
 +    /* New syscall not available, us the old one. */
 +    result = INLINE_SYSCALL (freebsd6_pread, 5, fd, buf, nbytes, 0, offset);
 +#endif
-+
-+  if (!SINGLE_THREAD_P)
-+    {
-+      LIBC_CANCEL_RESET (oldtype);
-+    }
++  LIBC_CANCEL_RESET (oldtype);
 +  return result;
 +}
 +
@@ -16373,7 +18073,7 @@
 +    {
 +      /* First try the new syscall. */
 +      result = INLINE_SYSCALL (pwrite, 4, fd, buf, nbytes, offset);
-+#ifndef __ASSUME_PREAD_SYSCALL
++#ifndef __ASSUME_PREAD_PWRITE_SYSCALLS
 +      if (result == -1 && errno == ENOSYS)
 +        /* New syscall not available, us the old one. */
 +        result = INLINE_SYSCALL (freebsd6_pwrite, 5, fd, buf, nbytes, 0, offset);
@@ -16384,7 +18084,7 @@
 +  int oldtype = LIBC_CANCEL_ASYNC ();
 +  /* First try the new syscall. */
 +  result = INLINE_SYSCALL (pwrite, 4, fd, buf, nbytes, offset);
-+#ifndef __ASSUME_PREAD_SYSCALL
++#ifndef __ASSUME_PREAD_PWRITE_SYSCALLS
 +  if (result == -1 && errno == ENOSYS)
 +    /* New syscall not available, us the old one. */
 +    result = INLINE_SYSCALL (freebsd6_pwrite, 5, fd, buf, nbytes, 0, offset);
@@ -16442,6 +18142,230 @@
 +
 +strong_alias (__readdir_r, __readdir64_r)
 +weak_alias (__readdir64_r, readdir64_r)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readlinkat.c
+@@ -0,0 +1,122 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <unistd.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++
++extern int __syscall_readlinkat (int fd, const char *path, char *buf, 
++				 size_t bufsize);
++libc_hidden_proto (__syscall_readlinkat)
++
++/* Read the contents of the symbolic link PATH relative to FD into no
++   more than LEN bytes of BUF.  */
++ssize_t
++readlinkat (fd, path, buf, len)
++     int fd;
++     const char *path;
++     char *buf;
++     size_t len;
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result = INLINE_SYSCALL (readlinkat, 4, fd, path, buf, len);
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if (fd != AT_FDCWD && path[0] != '/')
++    {
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
++
++      if (fd < 0)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_buf = alloca (kf_len + strlen (path));
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_bufp = kf_buf;
++      while (kf_bufp < kf_buf + kf_len)
++	{
++	  struct kinfo_file *kf = (struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	  if (kf->kf_fd == fd)
++	    {
++	      if (kf->kf_type != KF_TYPE_VNODE ||
++		  kf->kf_vnode_type != KF_VTYPE_VDIR)
++		{
++		  __set_errno (ENOTDIR);
++		  return -1;
++		}
++
++	      strcat (kf->kf_path, "/");
++	      strcat (kf->kf_path, path);
++	      path = kf->kf_path;
++	      break;
++	    }
++	  kf_bufp += kf->kf_structsize;
++	}
++
++      if (kf_bufp >= kf_buf + kf_len)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++    }
++
++  return __readlink (path, buf, len);
++#endif
++}
++
++libc_hidden_def (readlinkat)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readonly-area.c
+@@ -0,0 +1,96 @@
++/* Copyright (C) 2004, 2005, 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <stdio_ext.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include "libio/libioP.h"
++
++/* Return 1 if the whole area PTR .. PTR+SIZE is not writable.
++   Return -1 if it is writable.  */
++
++int
++__readonly_area (const char *ptr, size_t size)
++{
++  const void *ptr_end = ptr + size;
++
++  int mib[4];
++  size_t kve_len = 0;
++  char *kve_buf, *kve_bufp;
++
++  mib[0] = CTL_KERN;
++  mib[1] = KERN_PROC;
++  mib[2] = KERN_PROC_VMMAP;
++  mib[3] = __getpid ();
++
++  if (sysctl (mib, 4, NULL, &kve_len, NULL, 0) != 0)
++    {
++      __set_errno (ENOSYS);
++      return 1;
++    }
++
++  kve_buf = alloca (kve_len);
++  if (sysctl (mib, 4, kve_buf, &kve_len, NULL, 0) != 0)
++    {
++      __set_errno (ENOSYS);
++      return 1;
++    }
++
++  kve_bufp = kve_buf;
++  while (kve_bufp < kve_buf + kve_len)
++    {
++      struct kinfo_vmentry *kve = (struct kinfo_vmentry *) (uintptr_t) kve_bufp;
++      kve_bufp += kve->kve_structsize;
++
++      uintptr_t from = kve->kve_start;
++      uintptr_t to = kve->kve_end;
++
++      if (from < (uintptr_t) ptr_end && to > (uintptr_t) ptr)
++	{
++	  /* Found an entry that at least partially covers the area.  */
++	  if (!(kve->kve_protection & KVME_PROT_READ)
++	      || (kve->kve_protection & KVME_PROT_WRITE))
++	    break;
++
++	  if (from <= (uintptr_t) ptr && to >= (uintptr_t) ptr_end)
++	    {
++	      size = 0;
++	      break;
++	    }
++	  else if (from <= (uintptr_t) ptr)
++	    size -= to - (uintptr_t) ptr;
++	  else if (to >= (uintptr_t) ptr_end)
++	    size -= (uintptr_t) ptr_end - from;
++	  else
++	    size -= to - from;
++
++	  if (!size)
++	    break;
++	}
++    }
++
++  /* If the whole area between ptr and ptr_end is covered by read-only
++     VMAs, return 1.  Otherwise return -1.  */
++  return size == 0 ? 1 : -1;
++}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readv.c
 @@ -0,0 +1,57 @@
@@ -16546,6 +18470,170 @@
 +weak_alias (__libc_recv, recv)
 +
 +LIBC_CANCEL_HANDLED (); /* in __libc_recvfrom */
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/renameat.c
+@@ -0,0 +1,161 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <stdio.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++
++extern int __syscall_renameat (int oldfd, const char *old, int newfd,
++			       const char *new);
++libc_hidden_proto (__syscall_renameat)
++
++/* Rename the file OLD relative to OLDFD to NEW relative to NEWFD.  */
++int renameat (oldfd, old, newfd, new)
++     int oldfd;
++     const char *old;
++     int newfd;
++     const char *new;
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result = INLINE_SYSCALL (renameat, 4, oldfd, old, newfd, new);
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if ((oldfd != AT_FDCWD && old[0] != '/')
++      || (newfd != AT_FDCWD && new[0] != '/'))
++    {
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
++
++      if ((oldfd < 0) || (newfd < 0))
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_buf = alloca (kf_len);
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      if (oldfd != AT_FDCWD && old[0] != '/')
++	{
++	  kf_bufp = kf_buf;
++	  while (kf_bufp < kf_buf + kf_len)
++	    {
++	      struct kinfo_file *kf =
++		(struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	      if (kf->kf_fd == oldfd)
++		{
++		  char *buf;
++		  if (kf->kf_type != KF_TYPE_VNODE ||
++		      kf->kf_vnode_type != KF_VTYPE_VDIR)
++		    {
++		      __set_errno (ENOTDIR);
++		      return -1;
++		    }
++
++		  buf = alloca (strlen (kf->kf_path) + strlen (old) + 2);
++		  strcpy(buf, kf->kf_path);
++		  strcat (buf, "/");
++		  strcat (buf, old);
++		  old = buf;
++		  break;
++		}
++	      kf_bufp += kf->kf_structsize;
++	    }
++
++	  if (kf_bufp >= kf_buf + kf_len)
++	    {
++	      __set_errno (EBADF);
++	      return -1;
++	    }
++	}
++
++      if (newfd != AT_FDCWD && new[0] != '/')
++	{
++	  kf_bufp = kf_buf;
++	  while (kf_bufp < kf_buf + kf_len)
++	    {
++	      struct kinfo_file *kf =
++		(struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	      if (kf->kf_fd == newfd)
++		{
++		  char *buf;
++		  if (kf->kf_type != KF_TYPE_VNODE ||
++		      kf->kf_vnode_type != KF_VTYPE_VDIR)
++		    {
++		      __set_errno (ENOTDIR);
++		      return -1;
++		    }
++
++		  buf = alloca (strlen (kf->kf_path) + strlen (new) + 2);
++		  strcpy(buf, kf->kf_path);
++		  strcat (buf, "/");
++		  strcat (buf, new);
++		  new = buf;
++		  break;
++		}
++	      kf_bufp += kf->kf_structsize;
++	    }
++
++	  if (kf_bufp >= kf_buf + kf_len)
++	    {
++	      __set_errno (EBADF);
++	      return -1;
++	    }
++	}
++    }
++  
++  return rename (old, new);
++#endif
++}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/rtld-lowlevel.h
 @@ -0,0 +1,131 @@
@@ -17125,6 +19213,46 @@
 +weak_alias (__libc_sendto, __sendto)
 +weak_alias (__libc_sendto, sendto)
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/setdomainname.c
+@@ -0,0 +1,37 @@
++/* Copyright (C) 2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <unistd.h>
++#include <sys/sysctl.h>
++
++/* Set the name of the current domain to NAME, which is LEN bytes long
++   (excluding a possible trailing NUL byte).  This call is restricted to
++   the super-user.  */
++
++int
++setdomainname (const char *name, size_t len)
++{
++  /* Set the "kern.domainname" sysctl value.  */
++  int request[2] = { CTL_KERN, KERN_NISDOMAINNAME };
++
++  if (__sysctl (request, 2, NULL, NULL, (void *) name, len) < 0)
++    return -1;
++
++  return 0;
++}
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sethostid.c
 @@ -0,0 +1,37 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
@@ -17245,6 +19373,119 @@
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/setrlimit64.c
 @@ -0,0 +1 @@
 +/* 'setrlimit64' is the same as 'setrlimit', because __rlim64_t == __rlim_t.  */
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/shm_open.c
+@@ -0,0 +1,65 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <sys/stat.h>
++#include <sys/mman.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <errno.h>
++#include <sysdep.h>
++
++extern int __syscall_shm_open (const char *path, int flags, mode_t mode);
++libc_hidden_proto (__syscall_shm_open);
++
++/* Open shared memory object.   */
++int
++shm_open (const char *name, int oflag, mode_t mode)
++{
++  /* First try the new syscall. */
++  int fd = INLINE_SYSCALL (shm_open, 3, name, oflag, mode);
++
++#ifndef __ASSUME_POSIXSHM_SYSCALL
++  /* New syscall not available, use fallback code.  */
++  if (fd == -1 && errno == ENOSYS)
++    {
++      struct stat stab;
++
++      if ((oflag & O_ACCMODE) == O_WRONLY)
++	return (EINVAL);
++
++      fd = __open (name, oflag, mode);
++      if (fd != -1)
++	{
++	  if (__fstat (fd, &stab) != 0 || !S_ISREG (stab.st_mode))
++	    {
++	      __close (fd);
++	      __set_errno (EINVAL);
++	      return -1;
++	    }
++
++	  if (__fcntl (fd, F_SETFL, (int) FPOSIXSHM) != 0)
++	    {
++	      __close (fd);
++	      return -1;
++	    }
++	}
++    }
++#endif
++
++  return fd;
++}
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/shm_unlink.c
+@@ -0,0 +1,42 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <sys/stat.h>
++#include <sys/mman.h>
++#include <unistd.h>
++#include <errno.h>
++#include <sysdep.h>
++
++extern int __syscall_shm_unlink (const char *name);
++libc_hidden_proto (__syscall_shm_unlink)
++
++/* Unlink a shared memory object.  */
++int
++shm_unlink (const char *name)
++{
++  /* First try the new syscall. */
++  int result = INLINE_SYSCALL (shm_unlink, 1, name);
++
++#ifndef __ASSUME_POSIXSHM_SYSCALL
++  /* New syscall not available, simply unlink the file. */
++  if (result == -1 && errno == ENOSYS)
++    result = __unlink (name);
++#endif
++
++  return result;
++}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sigaction.c
 @@ -0,0 +1,47 @@
@@ -17906,6 +20147,127 @@
 @@ -0,0 +1,2 @@
 +/* use stub only variant */
 +#include <misc/stty.c>
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/symlinkat.c
+@@ -0,0 +1,118 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <unistd.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++
++extern int __syscall_symlinkat (const char *path1, int fd,
++				const char *path2);
++libc_hidden_proto (__syscall_symlinkat)
++
++/* Make a symbolic link to FROM named TO relative to TOFD.  */
++int
++symlinkat (from, tofd, to)
++     const char *from;
++     int tofd;
++     const char *to;
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result = INLINE_SYSCALL (symlinkat, 3, from, tofd, to);
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if (tofd != AT_FDCWD && to[0] != '/')
++    {
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
++
++      if (tofd < 0)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_buf = alloca (kf_len + strlen (to));
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_bufp = kf_buf;
++      while (kf_bufp < kf_buf + kf_len)
++	{
++	  struct kinfo_file *kf = (struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	  if (kf->kf_fd == tofd)
++	    {
++	      if (kf->kf_type != KF_TYPE_VNODE ||
++		  kf->kf_vnode_type != KF_VTYPE_VDIR)
++		{
++		  __set_errno (ENOTDIR);
++		  return -1;
++		}
++
++	      strcat (kf->kf_path, "/");
++	      strcat (kf->kf_path, to);
++	      to = kf->kf_path;
++	      break;
++	    }
++	  kf_bufp += kf->kf_structsize;
++	}
++
++      if (kf_bufp >= kf_buf + kf_len)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++    }
++
++  return __symlink (from, to);
++#endif
++}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/kd.h
 @@ -0,0 +1,25 @@
@@ -18968,7 +21330,7 @@
 +#endif /* sys/swap.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h
-@@ -0,0 +1,424 @@
+@@ -0,0 +1,446 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -19144,9 +21506,9 @@
 +#define	SYS_freebsd4_fstatfs	158
 +#define	SYS_lgetfh	160
 +#define	SYS_getfh	161
-+#define	SYS_getdomainname	162
-+#define	SYS_setdomainname	163
-+#define	SYS_uname	164
++#define	SYS_freebsd4_getdomainname	162
++#define	SYS_freebsd4_setdomainname	163
++#define	SYS_freebsd4_uname	164
 +#define	SYS_sysarch	165
 +#define	SYS_rtprio	166
 +#define	SYS_semsys	169
@@ -19385,12 +21747,34 @@
 +#define	SYS_truncate	479
 +#define	SYS_ftruncate	480
 +#define	SYS_thr_kill2	481
-+#define SYS_cpuset      484
-+#define SYS_cpuset_setid        485
-+#define SYS_cpuset_getid        486
-+#define SYS_cpuset_getaffinity  487
-+#define SYS_cpuset_setaffinity  488
-+#define SYS_MAXSYSCALL  489
++#define	SYS_shm_open	482
++#define	SYS_shm_unlink	483
++#define	SYS_cpuset	484
++#define	SYS_cpuset_setid	485
++#define	SYS_cpuset_getid	486
++#define	SYS_cpuset_getaffinity	487
++#define	SYS_cpuset_setaffinity	488
++#define	SYS_faccessat	489
++#define	SYS_fchmodat	490
++#define	SYS_fchownat	491
++#define	SYS_fexecve	492
++#define	SYS_fstatat	493
++#define	SYS_futimesat	494
++#define	SYS_linkat	495
++#define	SYS_mkdirat	496
++#define	SYS_mkfifoat	497
++#define	SYS_mknodat	498
++#define	SYS_openat	499
++#define	SYS_readlinkat	500
++#define	SYS_renameat	501
++#define	SYS_symlinkat	502
++#define	SYS_unlinkat	503
++#define	SYS_posix_openpt	504
++#define	SYS_gssd_syscall	505
++#define	SYS_jail_get	506
++#define	SYS_jail_set	507
++#define	SYS_jail_remove	508
++#define	SYS_MAXSYSCALL	509
 +
 +#endif
 --- /dev/null
@@ -19642,7 +22026,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,164 @@
+@@ -0,0 +1,181 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
 +acl_aclcheck_file	-	acl_aclcheck_file	i:sip		__acl_aclcheck_file
@@ -19700,7 +22084,7 @@
 +kldunload		-	kldunload		i:i		kldunload
 +kldunloadf		-	kldunloadf		i:ii		kldunloadf
 +ktrace			-	ktrace			i:siii		ktrace
-+lchmod			-	lchmod			i:si		lchmod
++lchmod			-	lchmod			i:si		__lchmod lchmod
 +lchown			-	lchown			i:sii		__lchown lchown
 +sys_lio_listio		-	lio_listio		i:ibnP		__syscall_lio_listio
 +sys_lseek		-	lseek			i:iii		__syscall_lseek
@@ -19776,6 +22160,7 @@
 +sigsuspend		-	sigsuspend		Ci:p		__sigsuspend sigsuspend
 +sigwaitinfo		-	sigwaitinfo		Ci:pp		__sigwaitinfo sigwaitinfo
 +sigtimedwait		-	sigtimedwait		Ci:ppP		__sigtimedwait sigtimedwait
++sigqueue		-	sigqueue		i:iii		__sigqueue sigqueue
 +sys_stat		-	stat			i:sp		__syscall_stat
 +sysarch			-	sysarch			i:ip		__sysarch sysarch
 +sysctl			-	sysctl			i:pibNbn	__sysctl sysctl
@@ -19806,7 +22191,23 @@
 +sys_umtx		-	_umtx_op		i:piipp		__syscall__umtx_op
 +sys_cpuset_getaffinity	-	cpuset_getaffinity	i:iiiip		__syscall_cpuset_getaffinity
 +sys_cpuset_setaffinity	-	cpuset_setaffinity	i:iiiip		__syscall_cpuset_setaffinity
-+
++sys_faccessat		-	faccessat		i:isii		__syscall_faccessat
++sys_fchmodat		-	fchmodat		i:isii		__syscall_fchmodat
++sys_fchownat		-	fchownat		i:isiii		__syscall_fchownat
++sys_fexecve		-	fexecve			i:ipp		__syscall_fexecve
++sys_fstatat		-	fstatat			i:ispi		__syscall_fstatat
++sys_futimesat		-	futimesat		i:isp		__syscall_futimesat
++sys_linkat		-	linkat			i:isisi		__syscall_linkat
++sys_mkdirat		-	mkdirat			i:isi		__syscall_mkdirat
++sys_mkfifoat		-	mkfifoat		i:isi		__syscall_mkfifoat
++sys_mknodat		-	mknodat			i:isii		__syscall_mknodat
++sys_openat		-	openat			i:isii		__syscall_openat
++sys_readlinkat		-	readlinkat		i:issi		__syscall_readlinkat
++sys_renameat		-	renameat		i:isis		__syscall_renameat
++sys_symlinkat		-	symlinkat		i:sis		__syscall_symlinkat
++sys_unlinkat		-	unlinkat		i:isi		__syscall_unlinkat
++sys_shm_open		-	shm_open		i:sii		__syscall_shm_open
++sys_shm_unlink		-	shm_unlink		i:s		__syscall_shm_unlink
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sysconf.c
 @@ -0,0 +1,50 @@
@@ -20187,6 +22588,134 @@
 +libc_hidden_def (__uname)
 +weak_alias (__uname, uname)
 +libc_hidden_def (uname)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlinkat.c
+@@ -0,0 +1,125 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <unistd.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++
++extern int __syscall_unlinkat (int fd, const char *file, int flag);
++libc_hidden_proto (__syscall_unlinkat)
++
++/* Remove the link named NAME.  */
++int
++unlinkat (fd, file, flag)
++     int fd;
++     const char *file;
++     int flag;
++{
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result = INLINE_SYSCALL (unlinkat, 3, fd, file, flag);
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if (flag & ~AT_REMOVEDIR)
++    {
++      __set_errno (EINVAL);
++      return -1;
++    }
++
++  if (fd != AT_FDCWD && file[0] != '/')
++    {
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
++
++      if (fd < 0)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_buf = alloca (kf_len + strlen (file));
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_bufp = kf_buf;
++      while (kf_bufp < kf_buf + kf_len)
++	{
++	  struct kinfo_file *kf = (struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	  if (kf->kf_fd == fd)
++	    {
++	      if (kf->kf_type != KF_TYPE_VNODE ||
++		  kf->kf_vnode_type != KF_VTYPE_VDIR)
++		{
++		  __set_errno (ENOTDIR);
++		  return -1;
++		}
++
++	      strcat (kf->kf_path, "/");
++	      strcat (kf->kf_path, file);
++	      file = kf->kf_path;
++	      break;
++	    }
++	  kf_bufp += kf->kf_structsize;
++	}
++
++      if (kf_bufp >= kf_buf + kf_len)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++    }
++  if (flag & AT_REMOVEDIR)
++    return __rmdir (file);
++  else
++    return __unlink (file);
++#endif
++}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlockpt.c
 @@ -0,0 +1,45 @@
@@ -23543,6 +26072,146 @@
 +libc_hidden_def (__xmknod)
 +
 +weak_alias (__xmknod, _xmknod)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/xmknodat.c
+@@ -0,0 +1,137 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <sys/stat.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++
++extern int __syscall_mknodat (int fd, const char *path,
++			      mode_t mode, dev_t dev);
++libc_hidden_proto (__syscall_mknodat)
++
++extern int __syscall_mkfifoat (int fd, const char *path,
++			       mode_t mode);
++libc_hidden_proto (__syscall_mkfifoat)
++
++/* Create a device file named PATH relative to FD, with permission and
++   special bits MODE and device number DEV (which can be constructed
++   from major and minor device numbers with the `makedev' macro above).  */
++int
++__xmknodat (int vers, int fd, const char *file, mode_t mode, dev_t * dev)
++{
++  if (vers != _MKNOD_VER)
++    {
++      __set_errno (EINVAL);
++      return -1;
++    }
++
++# ifndef __ASSUME_ATFCTS
++  if (__have_atfcts >= 0)
++# endif
++    {
++      int result;
++
++      /* The FreeBSD mknod() system call cannot be used to create FIFOs; we
++         must use the mkfifo() system call for this purpose.  */
++      if (S_ISFIFO (mode))
++	result = INLINE_SYSCALL (mkfifoat, 4, fd, file, mode);
++      else
++	result = INLINE_SYSCALL (mknodat, 4, fd, file, mode, *dev);
++
++# ifndef __ASSUME_ATFCTS
++      if (result == -1 && errno == ENOSYS)
++	__have_atfcts = -1;
++      else
++# endif
++	return result;
++    }
++
++#ifndef __ASSUME_ATFCTS
++  if (fd != AT_FDCWD && file[0] != '/')
++    {
++      int mib[4];
++      size_t kf_len = 0;
++      char *kf_buf, *kf_bufp;
++
++      if (fd < 0)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      mib[0] = CTL_KERN;
++      mib[1] = KERN_PROC;
++      mib[2] = KERN_PROC_FILEDESC;
++      mib[3] = __getpid ();
++
++      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_buf = alloca (kf_len + strlen (file));
++      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	{
++	  __set_errno (ENOSYS);
++	  return -1;
++	}
++
++      kf_bufp = kf_buf;
++      while (kf_bufp < kf_buf + kf_len)
++	{
++	  struct kinfo_file *kf = (struct kinfo_file *) (uintptr_t) kf_bufp;
++
++	  if (kf->kf_fd == fd)
++	    {
++	      if (kf->kf_type != KF_TYPE_VNODE ||
++		  kf->kf_vnode_type != KF_VTYPE_VDIR)
++		{
++		  __set_errno (ENOTDIR);
++		  return -1;
++		}
++
++	      strcat (kf->kf_path, "/");
++	      strcat (kf->kf_path, file);
++	      file = kf->kf_path;
++	      break;
++	    }
++	  kf_bufp += kf->kf_structsize;
++	}
++
++      if (kf_bufp >= kf_buf + kf_len)
++	{
++	  __set_errno (EBADF);
++	  return -1;
++	}
++    }
++
++  return __xmknod (vers, file, mode, dev);
++#endif
++}
++
++libc_hidden_def (__xmknodat)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/xstat.c
 @@ -0,0 +1,49 @@
