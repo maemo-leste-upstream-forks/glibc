@@ -20,7 +20,7 @@ i386_extra_cflags = -march=pentium4 -O3
 i386_extra_config_options = $(extra_config_options)
 i386_includedir = /usr/include/i486-linux-gnu
 i386_rtlddir = /lib
-i386_slibdir = /usr/lib32
+i386_slibdir = /lib32
 i386_libdir = /usr/lib32
 
 define libc6-dev-i386_extra_pkg_install
