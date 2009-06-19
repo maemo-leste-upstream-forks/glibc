@@ -5369,7 +5369,7 @@
 +#endif /* ! _SIGSET_H_fns.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/socket.h
-@@ -0,0 +1,386 @@
+@@ -0,0 +1,388 @@
 +/* System-specific socket constants and types.  FreeBSD version.
 +   Copyright (C) 1991-1992,1994-1999,2000-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -5561,12 +5561,14 @@
 +#define MSG_DONTWAIT MSG_DONTWAIT
 +    MSG_EOF		= 0x100, /* Data completes connection.  */
 +#define MSG_EOF MSG_EOF
++    MSG_NOTIFICATION	= 0x2000,/* SCTP notification */
++#define MSG_NOTIFICATION MSG_NOTIFICATION
++    MSG_NBIO		= 0x4000,/*FIONBIO mode, used by fifofs */
++#define MSG_NBIO MSG_NBIO
 +    MSG_COMPAT		= 0x8000,/* Used in sendit().  */
 +#define MSG_COMPAT MSG_COMPAT
 +    MSG_NOSIGNAL	= 0x20000 /* do not generate SIGPIPE on EOF */
-+#if 0 /* available since FreeBSD 6.0 */
 +#define MSG_NOSIGNAL MSG_NOSIGNAL
-+#endif
 +  };
 +
 +
@@ -7166,7 +7168,7 @@
 +weak_alias (__clone, clone)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/configure
-@@ -0,0 +1,343 @@
+@@ -0,0 +1,349 @@
 +# This file is generated from configure.in by Autoconf.  DO NOT EDIT!
 + # Local configure fragment for sysdeps/unix/bsd/bsd4.4/kfreebsd.
 +
@@ -7510,9 +7512,15 @@
 +echo "${ECHO_T}ok" >&6
 +  fi
 +fi
++
++# We support internal syscalls.
++# It is advertised as inlined syscalls availability ...
++cat >>confdefs.h <<\_ACEOF
++#define HAVE_INLINED_SYSCALLS 1
++_ACEOF
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/configure.in
-@@ -0,0 +1,269 @@
+@@ -0,0 +1,273 @@
 +GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
 +# Local configure fragment for sysdeps/unix/bsd/bsd4.4/kfreebsd.
 +
@@ -7782,6 +7790,10 @@
 +    AC_MSG_RESULT(ok)
 +  fi
 +fi
++
++# We support internal syscalls.
++# It is advertised as inlined syscalls availability ...
++AC_DEFINE(HAVE_INLINED_SYSCALLS)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/connect.c
 @@ -0,0 +1,69 @@
@@ -12900,6 +12912,97 @@
 +PSEUDO_END (__syscall)
 +weak_alias (__syscall, syscall)
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/syscalls-internal.h
+@@ -0,0 +1,88 @@
++/* generally used "internal syscalls"
++   Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#ifndef KFREEBSD_INTERNAL_SYSCALLS_H
++#define KFREEBSD_INTERNAL_SYSCALLS_H
++
++#include <sys/syscall.h>
++
++/* 
++   for now, we do not care whether syscall succeeded,
++   we do not have defined 
++   INTERNAL_SYSCALL_ERROR_P and INTERNAL_SYSCALL_ERRNO
++   we do not store errno at all
++   to be sure, we return void
++*/
++
++#undef INTERNAL_SYSCALL_DECL
++#undef INTERNAL_SYSCALL_NCS
++#undef INTERNAL_SYSCALL
++#undef INTERNAL_SYSCALL_ERROR_P
++#undef INTERNAL_SYSCALL_ERRNO
++
++#define INTERNAL_SYSCALL_DECL(err)		\
++  do { } while (0)
++
++#define INTERNAL_SYSCALL(name, err, nr, args...) \
++  INTERNAL_SYSCALL_##name(name, err, nr, ##args)
++     
++     
++#define INTERNAL_SYSCALL_close(name, err, nr, fd) \
++(void)({                                        \
++  register long int _a1 = (long int) (fd);	\
++  register long int result;			\
++  asm volatile (                                \
++                "pushl %2\n\t"                  \
++                "pushl %1\n\t"                  \
++                "int $0x80\n\t"                 \
++                "popl %2\n\t"                   \
++                "popl %2\n\t"                   \
++                : "=a" (result)                 \
++                : "0" ((long int) SYS_##name),	\
++                  "d" (_a1)                   	\
++                : "memory", "cc" );             \
++  result;                                       \
++})
++
++#define INTERNAL_SYSCALL_writev(name, err, nr, fd, iov, cnt) \
++(void)({                                        \
++  register long int _a1 = (long int) (fd);	\
++  register long int _a2 = (long int) (iov);	\
++  register long int _a3 = (long int) (cnt);	\
++  register long int result;			\
++  register long int _trash;			\
++  asm volatile (                                \
++                "pushl %5\n\t"                  \
++                "pushl %4\n\t"                  \
++                "pushl %3\n\t"                  \
++                "pushl %2\n\t"                  \
++                "int $0x80\n\t"                 \
++                "addl $16,%%esp\n\t"		\
++                : "=a" (result),		\
++                  "=d" (_trash)                 \
++                : "0" ((long int) SYS_##name),	\
++                  "ri" (_a1),			\
++                  "ri" (_a2),			\
++                  "ri" (_a3)			\
++              /*   may be even "g" constraint could be used */ \
++              /*   but we have to worry about esp register and esp based address */ \
++                : "memory", "cc" );             \
++  result;                                       \
++})
++#endif
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.S
 @@ -0,0 +1,38 @@
 +/* Copyright (C) 1995-1998, 2002 Free Software Foundation, Inc.
@@ -16842,7 +16945,7 @@
 +#include <nfs/nfsproto.h>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/not-cancel.h
-@@ -0,0 +1,88 @@
+@@ -0,0 +1,91 @@
 +/* Uncancelable versions of cancelable interfaces.  kFreeBSD version.
 +   Copyright (C) 2003, 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -16897,8 +17000,10 @@
 +/* Uncancelable close.  */
 +#define close_not_cancel(fd) \
 +  INLINE_SYSCALL (close, 1, fd)
++
 +#define close_not_cancel_no_status(fd) \
-+  INLINE_SYSCALL (close, 1, fd)
++  (void) ({ INTERNAL_SYSCALL_DECL (err); \
++	    INTERNAL_SYSCALL (close, err, 1, (fd)); })
 +
 +/* Uncancelable read.  */
 +#define read_not_cancel(fd, buf, n) \
@@ -16910,7 +17015,8 @@
 +
 +/* Uncancelable writev.  */
 +#define writev_not_cancel_no_status(fd, iov, n) \
-+  INLINE_SYSCALL (writev, 3, (fd), (iov), (n))
++  (void) ({ INTERNAL_SYSCALL_DECL (err); \
++	    INTERNAL_SYSCALL (writev, err, 3, (fd), (iov), (n)); })
 +
 +/* Uncancelable fcntl.  */
 +#define fcntl_not_cancel(fd, cmd, val) \
@@ -21969,7 +22075,7 @@
 +#endif /* sys/ucontext.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,59 @@
 +/* prototypes of generally used "inline syscalls"
 +   Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -21996,6 +22102,8 @@
 +#define __need_sigset_t
 +#include <signal.h>
 +
++#include <syscalls-internal.h>
++
 +struct iovec;
 +struct rusage;
 +struct timespec;
@@ -22012,6 +22120,9 @@
 +libc_hidden_proto (__syscall_write)
 +libc_hidden_proto (__syscall_writev)
 +
++ssize_t __syscall_readlink(const char *path, char *buf, size_t bufsiz);
++libc_hidden_proto (__syscall_readlink)
++
 +int __syscall_fcntl(int fd, int cmd, ...);
 +int __syscall_fork(void);
 +int __syscall_wait4(int pid, int *status, int options, struct rusage *rusage);
@@ -22026,7 +22137,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,181 @@
+@@ -0,0 +1,182 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
 +acl_aclcheck_file	-	acl_aclcheck_file	i:sip		__acl_aclcheck_file
@@ -22208,6 +22319,7 @@
 +sys_unlinkat		-	unlinkat		i:isi		__syscall_unlinkat
 +sys_shm_open		-	shm_open		i:sii		__syscall_shm_open
 +sys_shm_unlink		-	shm_unlink		i:s		__syscall_shm_unlink
++readlink		-	readlink       		i:spi   	__syscall_readlink __readlink readlink
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sysconf.c
 @@ -0,0 +1,50 @@
@@ -25640,6 +25752,87 @@
 +	ret
 +PSEUDO_END (__syscall)
 +weak_alias (__syscall, syscall)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/syscalls-internal.h
+@@ -0,0 +1,78 @@
++/* generally used "internal syscalls"
++   Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#ifndef KFREEBSD_INTERNAL_SYSCALLS_H
++#define KFREEBSD_INTERNAL_SYSCALLS_H
++
++#include <sys/syscall.h>
++
++/* 
++   for now, we do not care whether syscall succeeded,
++   we do not have defined 
++   INTERNAL_SYSCALL_ERROR_P and INTERNAL_SYSCALL_ERRNO
++   we do not store errno at all
++   to be sure, we return void
++*/
++
++#undef INTERNAL_SYSCALL_DECL
++#undef INTERNAL_SYSCALL_NCS
++#undef INTERNAL_SYSCALL
++#undef INTERNAL_SYSCALL_ERROR_P
++#undef INTERNAL_SYSCALL_ERRNO
++
++#define INTERNAL_SYSCALL_DECL(err)		\
++  do { } while (0)
++
++#define INTERNAL_SYSCALL(name, err, nr, args...) \
++  INTERNAL_SYSCALL_##name(name, err, nr, ##args)
++
++
++#define INTERNAL_SYSCALL_close(name, err, nr, fd) \
++(void)({                                        \
++  register long int _a1 = (long int) (fd);	\
++  register long int result;			\
++  asm volatile (				\
++	"syscall"				\
++        : "=a" (result)				\
++        : "0" ((long int) SYS_##name),		\
++	  "D" (_a1)				\
++	: "memory", "cc", "cx", "dx", "r8", "r9", "r10", "r11"); \
++  result;                                       \
++})
++
++#define INTERNAL_SYSCALL_writev(name, err, nr, fd, iov, cnt) \
++(void)({                                        \
++  register long int _a1 = (long int) (fd);	\
++  register long int _a2 = (long int) (iov);	\
++  register long int _a3 = (long int) (cnt);	\
++  register long int result;			\
++  register long int _trash;			\
++  asm volatile (				\
++	"syscall"				\
++        : "=a" (result),			\
++          "=d" (_trash)				\
++        : "0" ((long int) SYS_##name),		\
++	  "D" (_a1),				\
++	  "S" (_a2),				\
++	  "d" (_a3)				\
++          /*  beware rdx is not preserved after syscall */ \
++	: "memory", "cc", "cx", "r8", "r9", "r10", "r11"); \
++  result;                                       \
++})
++#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysdep.S
 @@ -0,0 +1,40 @@
