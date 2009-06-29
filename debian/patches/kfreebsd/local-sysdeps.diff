@@ -181,7 +181,7 @@
 +endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions
-@@ -0,0 +1,106 @@
+@@ -0,0 +1,103 @@
 +libc {
 +  # The comment lines with "#errlist-compat" are magic; see errlist-compat.awk.
 +  # When you get an error from errlist-compat.awk, you need to add a new
@@ -276,14 +276,11 @@
 +    # needed by librt as INLINE_SYSCALL:
 +    __syscall_clock_getres; __syscall_clock_gettime; __syscall_clock_settime;
 +    __syscall_shm_open; __syscall_shm_unlink;
-+    # needed by librt:
-+    __unlink;
 +    # misc fixes for FreeBSD:
 +    __syscall_freebsd6_lseek; __syscall_freebsd6_pread; __syscall_freebsd6_pwrite;
 +    __syscall_lseek; __syscall_pread; __syscall_pwrite;
 +    __syscall_connect; __syscall_sendto;
 +    __syscall_cpuset_getaffinity ; __syscall_cpuset_setaffinity;
-+    __sigprocmask; __ioctl;
 +     # global variable used in brk()
 +    _end;
 +  }
@@ -8221,14 +8218,14 @@
 +	  mib[2] = KERN_PROC_FILEDESC;
 +	  mib[3] = __getpid ();
 +
-+	  if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	  if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	    {
 +	      __set_errno (ENOSYS);
 +	      return -1;
 +	    }
 +
 +	  kf_buf = alloca (kf_len + strlen (file));
-+	  if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	  if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	    {
 +	      __set_errno (ENOSYS);
 +	      return -1;
@@ -8387,14 +8384,14 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
 +	}
 +
 +      kf_buf = alloca (kf_len + strlen (file));
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -8519,14 +8516,14 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
 +	}
 +
 +      kf_buf = alloca (kf_len + strlen (file));
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -8645,14 +8642,14 @@
 +  mib[2] = KERN_PROC_FILEDESC;
 +  mib[3] = __getpid ();
 +
-+  if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++  if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +    {
 +      __set_errno (ENOSYS);
 +      return -1;
 +    }
 +
 +  kf_buf = alloca (kf_len);
-+  if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++  if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +    {
 +      __set_errno (ENOSYS);
 +      return -1;
@@ -9150,7 +9147,7 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -9161,7 +9158,7 @@
 +      else
 +	kf_buf = alloca (kf_len + strlen (file));
 +
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -9402,14 +9399,14 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
 +	}
 +
 +      kf_buf = alloca (kf_len + strlen (file));
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -9549,14 +9546,14 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
 +	}
 +
 +      kf_buf = alloca (kf_len + strlen (file));
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -11548,7 +11545,7 @@
 +          if (__iopl_fd != -1)
 +            return 0;
 +
-+          __iopl_fd = open ("/dev/io", O_RDWR);
++          __iopl_fd = __open ("/dev/io", O_RDWR);
 +          if (__iopl_fd == -1)
 +            {
 +              if (errno == EACCES)
@@ -11559,7 +11556,7 @@
 +
 +        case 0:
 +          if (__iopl_fd != -1)
-+            if (close (__iopl_fd) == -1)
++            if (__close (__iopl_fd) == -1)
 +              return 1;
 +          return 0;
 +
@@ -14161,8 +14158,8 @@
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/init-first.c
 @@ -0,0 +1,135 @@
-+/* Initialization code run first thing by the ELF startup code.  Linux version.
-+   Copyright (C) 1995-1999,2000,01,02,03,2004 Free Software Foundation, Inc.
++/* Initialization code run first thing by the ELF startup code.
++   Copyright (C) 1995-2004, 2005, 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -14193,8 +14190,8 @@
 +
 +#include <ldsodefs.h>
 +
-+/* The function is called from assembly stubs the compiler can't see.  */
-+static void init (int, char **, char **) __attribute__ ((used));
++extern int __syscall_sigaction (int __sig,  const struct sigaction *__act, struct sigaction *__oact) __THROW;
++libc_hidden_proto (__syscall_sigaction)
 +
 +/* Set nonzero if we have to be prepared for more then one libc being
 +   used in the process.  Safe assumption if initializer never runs.  */
@@ -14206,9 +14203,18 @@
 +char **__libc_argv attribute_hidden;
 +
 +
-+static void
-+init (int argc, char **argv, char **envp)
++void
++__libc_init_first (int argc, char **argv, char **envp)
 +{
++#ifdef SHARED
++  /* For DSOs we do not need __libc_init_first but instead _init.  */
++}
++
++void
++attribute_hidden
++_init (int argc, char **argv, char **envp)
++{
++#endif
 +#ifdef USE_NONOPTION_FLAGS
 +  extern void __getopt_clean_environment (char **);
 +#endif
@@ -14235,7 +14241,15 @@
 +     made, the program is terminated. As we want to be able to detect
 +     missing syscalls and provide a fallback code, we ignore the SIGSYS
 +     signal. */
-+  signal(SIGSYS, SIG_IGN);
++  {
++    struct sigaction act;
++    
++    act.sa_handler = SIG_IGN;
++    __sigemptyset (&act.sa_mask);
++    act.sa_flags = 0;
++    
++    INLINE_SYSCALL (sigaction, 3, SIGSYS, &act, NULL); 
++  }  
 +
 +  /* Save the command-line arguments.  */
 +  __libc_argc = argc;
@@ -14250,6 +14264,10 @@
 +  _dl_non_dynamic_init ();
 +#endif
 +
++#ifdef VDSO_SETUP
++  VDSO_SETUP ();
++#endif
++
 +  __init_misc (argc, argv, envp);
 +
 +#ifdef USE_NONOPTION_FLAGS
@@ -14261,27 +14279,6 @@
 +  __libc_global_ctors ();
 +#endif
 +}
-+
-+#ifdef SHARED
-+
-+strong_alias (init, _init);
-+
-+extern void __libc_init_first (void);
-+
-+void
-+__libc_init_first (void)
-+{
-+}
-+
-+#else
-+extern void __libc_init_first (int argc, char **argv, char **envp);
-+
-+void
-+__libc_init_first (int argc, char **argv, char **envp)
-+{
-+  init (argc, argv, envp);
-+}
-+#endif
 +
 +
 +/* This function is defined here so that if this file ever gets into
@@ -14528,14 +14525,14 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
 +	}
 +
 +      kf_buf = alloca (kf_len);
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -14621,9 +14618,10 @@
 +pthread
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Makefile
-@@ -0,0 +1,3 @@
+@@ -0,0 +1,4 @@
 +ifeq ($(subdir),linuxthreads)
 +sysdep_routines += register-atfork unregister-atfork
++libpthread-routines += ptw-sigprocmask ptw-ioctl
 +endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Versions
@@ -15433,14 +15431,14 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
 +	}
 +
 +      kf_buf = alloca (kf_len + strlen (file));
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -17536,14 +17534,14 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
 +	}
 +
 +      kf_buf = alloca (kf_len + strlen (file));
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -17644,14 +17642,14 @@
 +	  mib[2] = KERN_PROC_FILEDESC;
 +	  mib[3] = __getpid ();
 +
-+	  if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++	  if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	    {
 +	      __set_errno (ENOSYS);
 +	      return -1;
 +	    }
 +
 +	  kf_buf = alloca (kf_len + strlen (file));
-+	  if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++	  if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	    {
 +	      __set_errno (ENOSYS);
 +	      return -1;
@@ -18326,14 +18324,14 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
 +	}
 +
 +      kf_buf = alloca (kf_len + strlen (path));
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -18422,14 +18420,14 @@
 +  mib[2] = KERN_PROC_VMMAP;
 +  mib[3] = __getpid ();
 +
-+  if (sysctl (mib, 4, NULL, &kve_len, NULL, 0) != 0)
++  if (__sysctl (mib, 4, NULL, &kve_len, NULL, 0) != 0)
 +    {
 +      __set_errno (ENOSYS);
 +      return 1;
 +    }
 +
 +  kve_buf = alloca (kve_len);
-+  if (sysctl (mib, 4, kve_buf, &kve_len, NULL, 0) != 0)
++  if (__sysctl (mib, 4, kve_buf, &kve_len, NULL, 0) != 0)
 +    {
 +      __set_errno (ENOSYS);
 +      return 1;
@@ -18578,7 +18576,7 @@
 +LIBC_CANCEL_HANDLED (); /* in __libc_recvfrom */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/renameat.c
-@@ -0,0 +1,161 @@
+@@ -0,0 +1,164 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -18609,6 +18607,8 @@
 +#include <sys/sysctl.h>
 +#include <sys/user.h>
 +#include <kernel-features.h>
++
++libc_hidden_proto (rename)
 +
 +extern int __syscall_renameat (int oldfd, const char *old, int newfd,
 +			       const char *new);
@@ -18653,14 +18653,14 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
 +	}
 +
 +      kf_buf = alloca (kf_len);
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -18736,8 +18736,9 @@
 +	    }
 +	}
 +    }
-+  
-+  return rename (old, new);
++
++#define __rename rename /* there is no __rename */
++  return __rename (old, new);
 +#endif
 +}
 --- /dev/null
@@ -19549,7 +19550,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/shm_unlink.c
-@@ -0,0 +1,42 @@
+@@ -0,0 +1,48 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -19577,6 +19578,8 @@
 +extern int __syscall_shm_unlink (const char *name);
 +libc_hidden_proto (__syscall_shm_unlink)
 +
++libc_hidden_proto (__unlink)
++
 +/* Unlink a shared memory object.  */
 +int
 +shm_unlink (const char *name)
@@ -19587,7 +19590,11 @@
 +#ifndef __ASSUME_POSIXSHM_SYSCALL
 +  /* New syscall not available, simply unlink the file. */
 +  if (result == -1 && errno == ENOSYS)
-+    result = __unlink (name);
++# ifdef NOT_IN_libc
++    return unlink (name);
++# else
++    return __unlink (name);
++# endif
 +#endif
 +
 +  return result;
@@ -20329,14 +20336,14 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
 +	}
 +
 +      kf_buf = alloca (kf_len + strlen (to));
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -22702,7 +22709,7 @@
 +libc_hidden_def (uname)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlinkat.c
-@@ -0,0 +1,125 @@
+@@ -0,0 +1,127 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -22736,6 +22743,8 @@
 +
 +extern int __syscall_unlinkat (int fd, const char *file, int flag);
 +libc_hidden_proto (__syscall_unlinkat)
++
++libc_hidden_proto (__unlink)
 +
 +/* Remove the link named NAME.  */
 +int
@@ -22781,14 +22790,14 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
 +	}
 +
 +      kf_buf = alloca (kf_len + strlen (file));
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
@@ -26358,14 +26367,14 @@
 +      mib[2] = KERN_PROC_FILEDESC;
 +      mib[3] = __getpid ();
 +
-+      if (sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, NULL, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
 +	}
 +
 +      kf_buf = alloca (kf_len + strlen (file));
-+      if (sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
++      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
 +	  return -1;
