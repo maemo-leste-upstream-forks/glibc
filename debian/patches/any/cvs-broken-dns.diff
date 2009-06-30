@@ -1,7 +1,24 @@
+2009-06-26  Ulrich Drepper  <drepper@redhat.com>
+
+	* resolv/resolv.h: Define RES_SNGLKUPREOP.
+	* resolv/res_init.c (res_setoptions): Recognize single-request-reopen
+	option.
+	* resolv/res_send.c (reopen): New function.  Broken out of...
+	(send_dg): ... here.  Recognize RES_SNGLKUPREOP.  Implement second
+	fallback mechanism.  If single-request fails switch to
+	single-request-reopen mode which opens a new socket for the second
+	request.
+
 2009-06-11  Ulrich Drepper  <drepper@redhat.com>
 
 	* resolv/res_send.c (send_dg): Remember we switched to
 	single-request mode.
+
+2009-05-05  Aurelien Jarno  <aurelien@aurel32.net>
+
+	[BZ #10128]
+	* resolv/res_query.c (__libc_res_nquery): If one query returns NOTIMP
+	or FORMERR and the other NOERROR, don't raise an error.
 
 2009-04-16  Ulrich Drepper  <drepper@redhat.com>
 
@@ -29,20 +46,68 @@
         gethostbyname4_r, we don't have a separate IPv6 status, so copy
         the no_data variable.
 
-diff --git a/resolv/res_send.c b/resolv/res_send.c
-index f75a26e..25a854f 100644
+---
+ resolv/res_init.c           |    6 ++
+ resolv/res_query.c          |    7 +++
+ resolv/res_send.c           |   90 ++++++++++++++++++++++++++++++++++----------
+ resolv/resolv.h             |    3 +
+ sysdeps/posix/getaddrinfo.c |    4 +
+ 5 files changed, 91 insertions(+), 19 deletions(-)
+
 --- a/resolv/res_send.c
 +++ b/resolv/res_send.c
-@@ -915,7 +915,7 @@
- 	struct pollfd pfd[1];
-         int ptimeout;
- 	struct sockaddr_in6 from;
--	int resplen, seconds, n;
-+	int resplen, n;
+@@ -900,24 +900,11 @@
+ }
  
+ static int
+-send_dg(res_state statp,
+-	const u_char *buf, int buflen, const u_char *buf2, int buflen2,
+-	u_char **ansp, int *anssizp,
+-	int *terrno, int ns, int *v_circuit, int *gotsomewhere, u_char **anscp,
+-	u_char **ansp2, int *anssizp2, int *resplen2)
++reopen (res_state statp, int *terrno, int ns)
+ {
+-	const HEADER *hp = (HEADER *) buf;
+-	const HEADER *hp2 = (HEADER *) buf2;
+-	u_char *ans = *ansp;
+-	int orig_anssizp = *anssizp;
+-	struct sockaddr_in6 *nsap = EXT(statp).nsaddrs[ns];
+-	struct timespec now, timeout, finish;
+-	struct pollfd pfd[1];
+-        int ptimeout;
+-	struct sockaddr_in6 from;
+-	int resplen, seconds, n;
+-
  	if (EXT(statp).nssocks[ns] == -1) {
++		struct sockaddr_in6 *nsap = EXT(statp).nsaddrs[ns];
++
  		/* only try IPv6 if IPv6 NS and if not failed before */
-@@ -967,11 +967,14 @@
+ 		if ((EXT(statp).nscount6 > 0) && !statp->ipv6_unavail) {
+ 			EXT(statp).nssocks[ns] =
+@@ -964,14 +951,44 @@
+ 		       (stdout, ";; new DG socket\n"))
+ 	}
+ 
++	return 1;
++}
++
++static int
++send_dg(res_state statp,
++	const u_char *buf, int buflen, const u_char *buf2, int buflen2,
++	u_char **ansp, int *anssizp,
++	int *terrno, int ns, int *v_circuit, int *gotsomewhere, u_char **anscp,
++	u_char **ansp2, int *anssizp2, int *resplen2)
++{
++	const HEADER *hp = (HEADER *) buf;
++	const HEADER *hp2 = (HEADER *) buf2;
++	u_char *ans = *ansp;
++	int orig_anssizp = *anssizp;
++	struct timespec now, timeout, finish;
++	struct pollfd pfd[1];
++        int ptimeout;
++	struct sockaddr_in6 from;
++	int resplen, n;
++
  	/*
  	 * Compute time for the total operation.
  	 */
@@ -52,13 +117,20 @@ index f75a26e..25a854f 100644
  		seconds /= statp->nscount;
  	if (seconds <= 0)
  		seconds = 1;
-+	bool single_request = (statp->options & RES_SNGLKUP) != 0;// XXX
++	bool single_request = (statp->options & RES_SNGLKUP) != 0;
++	bool single_request_reopen = (statp->options & RES_SNGLKUPREOP) != 0;
 +	int save_gotsomewhere = *gotsomewhere;
++
++	int retval;
++ retry_reopen:
++	retval = reopen (statp, terrno, ns);
++	if (retval <= 0)
++		return retval;
 + retry:
  	evNowTime(&now);
  	evConsTime(&timeout, seconds, 0);
  	evAddTime(&finish, &now, &timeout);
-@@ -995,6 +998,7 @@
+@@ -995,6 +1012,7 @@
  			return (0);
  		}
  		evSubTime(&timeout, &finish, &now);
@@ -66,7 +138,7 @@ index f75a26e..25a854f 100644
  	}
          /* Convert struct timespec in milliseconds.  */
  	ptimeout = timeout.tv_sec * 1000 + timeout.tv_nsec / 1000000;
-@@ -1010,6 +1014,21 @@
+@@ -1010,6 +1028,29 @@
  		Dprint(statp->options & RES_DEBUG, (stdout, ";; timeout\n"));
  		if (resplen > 1 && (recvresp1 || (buf2 != NULL && recvresp2)))
  		  {
@@ -84,63 +156,78 @@ index f75a26e..25a854f 100644
 +			*gotsomewhere = save_gotsomewhere;
 +			goto retry;
 +		      }
++		    else if (!single_request_reopen)
++		      {
++			statp->options |= RES_SNGLKUPREOP;
++			single_request_reopen = true;
++			*gotsomewhere = save_gotsomewhere;
++			__res_iclose (statp, false);
++			goto retry_reopen;
++		      }
 +
  		    *resplen2 = 1;
  		    return resplen;
  		  }
-@@ -1037,7 +1055,7 @@
+@@ -1037,7 +1078,8 @@
  			Perror(statp, stderr, "send", errno);
  			goto err_out;
  		}
 -		if (nwritten != 0 || buf2 == NULL)
-+		if (nwritten != 0 || buf2 == NULL || single_request)
++		if (nwritten != 0 || buf2 == NULL
++		    || single_request || single_request_reopen)
  		  pfd[0].events = POLLIN;
  		else
  		  pfd[0].events = POLLIN | POLLOUT;
-@@ -1250,8 +1268,11 @@
+@@ -1250,8 +1292,18 @@
  		else
  			recvresp2 = 1;
  		/* Repeat waiting if we have a second answer to arrive.  */
 -		if ((recvresp1 & recvresp2) == 0)
 +		if ((recvresp1 & recvresp2) == 0) {
-+			if (single_request)
++			if (single_request || single_request_reopen) {
 +				pfd[0].events = POLLOUT;
++				if (single_request_reopen) {
++					__res_iclose (statp, false);
++					retval = reopen (statp, terrno, ns);
++					if (retval <= 0)
++						return retval;
++				}
++			}
  			goto wait;
 +		}
  		/*
  		 * All is well, or the error is fatal.  Signal that the
  		 * next nameserver ought not be tried.
-diff --git a/resolv/res_init.c b/resolv/res_init.c
-index 2bf830c..8841fe9 100644
 --- a/resolv/res_init.c
 +++ b/resolv/res_init.c
-@@ -540,6 +540,9 @@ res_setoptions(res_state statp, const char *options, const char *source) {
+@@ -541,6 +541,12 @@
  			statp->options |= RES_NOCHECKNAME;
                  } else if (!strncmp(cp, "edns0", sizeof("edns0") - 1)) {
  			statp->options |= RES_USE_EDNS0;
++                } else if (!strncmp(cp, "single-request-reopen",
++				    sizeof("single-request-reopen") - 1)) {
++			statp->options |= RES_SNGLKUPREOP;
 +                } else if (!strncmp(cp, "single-request",
 +				    sizeof("single-request") - 1)) {
 +			statp->options |= RES_SNGLKUP;
  		} else {
  			/* XXX - print a warning here? */
  		}
-diff --git a/resolv/resolv.h b/resolv/resolv.h
-index a0de320..c6e695d 100644
 --- a/resolv/resolv.h
 +++ b/resolv/resolv.h
-@@ -215,6 +215,7 @@ struct res_sym {
+@@ -215,6 +215,9 @@
  #define RES_NOIP6DOTINT	0x00080000	/* Do not use .ip6.int in IPv6
  					   reverse lookup */
  #define RES_USE_EDNS0	0x00100000	/* Use EDNS0.  */
 +#define RES_SNGLKUP	0x00200000	/* one outstanding request at a time */
++#define RES_SNGLKUPREOP	0x00400000	/* -"-, but open new socket for each
++					   request */
  
  #define RES_DEFAULT	(RES_RECURSE|RES_DEFNAMES|RES_DNSRCH|RES_NOIP6DOTINT)
  
-diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
-index 72fbdb0..d346c62 100644
 --- a/sysdeps/posix/getaddrinfo.c
 +++ b/sysdeps/posix/getaddrinfo.c
-@@ -714,6 +714,8 @@ gaih_inet (const char *name, const struct gaih_service *service,
+@@ -714,6 +714,8 @@
  		      status = DL_CALL_FCT (fct4, (name, pat, tmpbuf,
  						   tmpbuflen, &rc, &herrno,
  						   NULL));
@@ -149,7 +236,7 @@ index 72fbdb0..d346c62 100644
  		      if (status != NSS_STATUS_TRYAGAIN
  			  || rc != ERANGE || herrno != NETDB_INTERNAL)
  			{
-@@ -733,6 +735,8 @@ gaih_inet (const char *name, const struct gaih_service *service,
+@@ -733,6 +735,8 @@
  					      tmpbuflen, 2 * tmpbuflen);
  		    }
  
@@ -158,3 +245,19 @@ index 72fbdb0..d346c62 100644
  		  if (status == NSS_STATUS_SUCCESS)
  		    {
  		      if ((req->ai_flags & AI_CANONNAME) != 0 && canon == NULL)
+--- a/resolv/res_query.c
++++ b/resolv/res_query.c
+@@ -289,6 +289,13 @@
+ 			break;
+ 		case FORMERR:
+ 		case NOTIMP:
++			/* Servers must not reply to AAAA queries with
++			   NOTIMP etc but some of them do.  */
++			if ((hp->rcode == NOERROR && ntohs (hp->ancount) != 0)
++			    || (hp2->rcode == NOERROR
++				&& ntohs (hp2->ancount) != 0))
++				goto success;
++			/* FALLTHROUGH */
+ 		case REFUSED:
+ 		default:
+ 			RES_SET_H_ERRNO(statp, NO_RECOVERY);
