@@ -136,9 +136,6 @@ $(stamp)install_%: $(stamp)check_%
 	$(MAKE) -C $(DEB_BUILDDIR) \
 	  install_root=$(CURDIR)/debian/tmp-$(curpass) install
 
-	# Remove files already provided by linux-libc-dev
-	rm -f $(CURDIR)/debian/tmp-$(curpass)/usr/include/scsi/scsi.h
-
 	# Generate the list of SUPPORTED locales
 	if [ $(curpass) = libc ]; then \
 	  $(MAKE) -f debian/generate-supported.mk IN=localedata/SUPPORTED \
