@@ -81,7 +81,7 @@
 +
 +ifeq ($(subdir),io)
 +# For <unistd.h>.
-+sysdep_routines += sys_fchownat sys_fexecve sys_getcwd sys_linkat sys_lseek sys_freebsd6_lseek sys_readlinkat sys_symlinkat sys_unlinkat
++sysdep_routines += sys_access sys_fchownat sys_fexecve sys_getcwd sys_linkat sys_lseek sys_freebsd6_lseek sys_readlinkat sys_symlinkat sys_unlinkat
 +# For <fcntl.h>.
 +sysdep_routines += sys_open sys_openat open_2
 +# For <sys/stat.h>.
@@ -105,7 +105,7 @@
 +# For <sched.h>.
 +sysdep_routines += clone start_thread
 +# For <unistd.h>.
-+sysdep_routines += sys_faccessat sys_ftruncate sys_freebsd6_ftruncate sys_truncate sys_freebsd6_truncate
++sysdep_routines += sys_ftruncate sys_freebsd6_ftruncate sys_truncate sys_freebsd6_truncate
 +# For <sys/acl.h>.
 +sysdep_routines += acl_aclcheck_fd acl_aclcheck_file acl_delete_fd acl_delete_file acl_get_fd acl_get_file acl_set_fd acl_set_file
 +# For <sys/extattr.h>.
@@ -142,7 +142,7 @@
 +
 +ifeq ($(subdir),posix)
 +# For <unistd.h>.
-+sysdep_routines += sys_getlogin sys_pread sys_freebsd6_pread sys_pwrite sys_freebsd6_pwrite sys_setlogin sys_read sys_write
++sysdep_routines += sys_access sys_getlogin sys_pread sys_freebsd6_pread sys_pwrite sys_freebsd6_pwrite sys_setlogin sys_read sys_write
 +# for <sched.h>
 +sysdep_routines += sys_cpuset_getaffinity sys_cpuset_setaffinity
 +endif
@@ -531,6 +531,95 @@
 +#endif /* no N_RELOCATION_INFO_DECLARED.  */
 +
 +#endif /* __A_OUT_GNU_H__ */
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/access.c
+@@ -0,0 +1,86 @@
++/* Copyright (C) 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <sysdep.h>
++
++/*
++   The FreeBSD kernel do not test file access correctly when the 
++   process' real user ID is superuser. In particular, they always return
++   zero when testing execute permissions without regard to whether the 
++   file is executable.
++
++   While this behaviour conforms to POSIX.1-2008, it is explicitely 
++   discouraged. This wrapper implements the recommended behaviour.
++ */
++
++extern int __syscall_access (const char *path, mode_t mode);
++libc_hidden_proto (__syscall_access)
++
++int
++__access (path, mode)
++     const char *path;
++     int mode;
++{
++  uid_t uid;
++  struct stat64 stats;
++
++  uid = __getuid();
++
++  if (uid != 0)
++    return __syscall_access (path, mode);
++
++  if (stat64 (path, &stats))
++    return -1;
++
++  mode &= (X_OK | W_OK | R_OK);	/* Clear any bogus bits. */
++#if R_OK != S_IROTH || W_OK != S_IWOTH || X_OK != S_IXOTH
++# error Oops, portability assumptions incorrect.
++#endif
++
++  if (mode == F_OK)
++    return 0;			/* The file exists. */
++
++  /* The super-user can read and write any file, and execute any file
++     that anyone can execute. */
++  if ((mode & X_OK) == 0 || (stats.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)))
++    return 0;
++
++  int granted = (uid == stats.st_uid
++		 ? (unsigned int) (stats.st_mode & (mode << 6)) >> 6
++		 : (stats.st_gid == (__getgid ())
++		    || __group_member (stats.st_gid))
++		 ? (unsigned int) (stats.st_mode & (mode << 3)) >> 3
++		 : (stats.st_mode & mode));
++
++  if (granted == mode)
++    return 0;
++
++  __set_errno (EACCES);
++  return -1;
++}
++
++weak_alias (__access, access)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/alpha/Makefile
 @@ -0,0 +1,28 @@
@@ -9899,7 +9988,7 @@
 +#define OFF_T off64_t
 +#include <getdirentries.c>
 --- /dev/null
-+++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdomain.c
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdomainname.c
 @@ -0,0 +1,51 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -19320,7 +19409,7 @@
 +weak_alias (__libc_sendto, __sendto)
 +weak_alias (__libc_sendto, sendto)
 --- /dev/null
-+++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/setdomain.c
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/setdomainname.c
 @@ -0,0 +1,37 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -22144,8 +22233,9 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,182 @@
+@@ -0,0 +1,183 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
++sys_access		-	access			i:si		__syscall_access
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
 +acl_aclcheck_file	-	acl_aclcheck_file	i:sip		__acl_aclcheck_file
 +acl_delete_fd		-	acl_delete_fd		i:ii		__acl_delete_fd
