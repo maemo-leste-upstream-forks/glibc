@@ -68,6 +68,8 @@ Patch from the OpenSUSE glibc
 +        cp[strlen (cp) - 1] = '\0';
 +
 +      port = strtoul (cp, &tmp, 0);
++      while (isspace(*tmp))
++        ++tmp;
 +      if (*tmp != '\0' || (port == ULONG_MAX && errno == ERANGE))
 +	continue;
 +
