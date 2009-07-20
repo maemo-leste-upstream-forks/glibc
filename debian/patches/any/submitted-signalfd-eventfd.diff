@@ -1,0 +1,162 @@
+2009-07-20  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/unix/sysv/linux/kernel-features.h: Define 
+	__ASSUME_EVENTFD2 and __ASSUME_SIGNALFD4.
+	* sysdeps/unix/sysv/linux/eventfd.c: Fall back to the old syscall
+	in case the signalfd4 syscall is not available.
+	* sysdeps/unix/sysv/linux/signalfd.c: Fall back to the old syscall
+	in case the eventfd2 syscall is not available.
+
+--- a/sysdeps/unix/sysv/linux/eventfd.c
++++ b/sysdeps/unix/sysv/linux/eventfd.c
+@@ -19,14 +19,20 @@
+ #include <errno.h>
+ #include <sys/eventfd.h>
+ #include <sysdep.h>
++#include <kernel-features.h>
+ 
+ 
+ int
+ eventfd (int count, int flags)
+ {
+ #ifdef __NR_eventfd2
+-  return INLINE_SYSCALL (eventfd2, 2, count, flags);
+-#else
++  int res = INLINE_SYSCALL (eventfd2, 2, count, flags);
++# ifndef __ASSUME_EVENTFD2
++  if (res != -1 || errno != ENOSYS)
++# endif
++    return res;
++#endif
++
+   /* The old system call has no flag parameter which is bad.  So we have
+      to wait until we have to support to pass additional values to the
+      kernel (sys_indirect) before implementing setting flags like
+@@ -37,11 +43,10 @@ eventfd (int count, int flags)
+       return -1;
+     }
+ 
+-# ifdef __NR_eventfd
++#ifdef __NR_eventfd
+   return INLINE_SYSCALL (eventfd, 1, count);
+-# else
++#else
+   __set_errno (ENOSYS);
+   return -1;
+-# endif
+ #endif
+ }
+--- a/sysdeps/unix/sysv/linux/kernel-features.h
++++ b/sysdeps/unix/sysv/linux/kernel-features.h
+@@ -529,3 +529,12 @@
+ # define __ASSUME_PIPE2		1
+ # define __ASSUME_PACCEPT	1
+ #endif
++
++/* Support for the eventfd2 and signalfd4 syscalls was added in 2.6.27.  */
++#if __LINUX_KERNEL_VERSION >= 0x02061b \
++    && (defined __i386__ || defined __x86_64__ || defined __ia64__ \
++	|| defined __powerpc__ || defined __s390__ || defined __sparc__ \
++        || defined __sh__)
++# define __ASSUME_EVENTFD2	1
++# define __ASSUME_SIGNALFD4	1
++#endif
+--- a/sysdeps/unix/sysv/linux/signalfd.c
++++ b/sysdeps/unix/sysv/linux/signalfd.c
+@@ -20,14 +20,20 @@
+ #include <signal.h>
+ #include <sys/signalfd.h>
+ #include <sysdep.h>
++#include <kernel-features.h>
+ 
+ 
+ int
+ signalfd (int fd, const sigset_t *mask, int flags)
+ {
+ #ifdef __NR_signalfd4
+-  return INLINE_SYSCALL (signalfd4, 4, fd, mask, _NSIG / 8, flags);
+-#else
++  int res = INLINE_SYSCALL (signalfd4, 4, fd, mask, _NSIG / 8, flags);
++# ifndef __ASSUME_SIGNALFD4
++  if (res != -1 || errno != ENOSYS)
++# endif
++    return res;
++#endif
++
+   /* The old system call has no flag parameter which is bad.  So we have
+      to wait until we have to support to pass additional values to the
+      kernel (sys_indirect) before implementing setting flags like
+@@ -38,11 +44,10 @@ signalfd (int fd, const sigset_t *mask, int flags)
+       return -1;
+     }
+ 
+-# ifdef __NR_signalfd
++#ifdef __NR_signalfd
+   return INLINE_SYSCALL (signalfd, 3, fd, mask, _NSIG / 8);
+-# else
++#else
+   __set_errno (ENOSYS);
+   return -1;
+-# endif
+ #endif
+ }
+2009-07-20  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/unix/sysv/linux/arm/kernel-features.h: Define
+	__ASSUME_EVENTFD2 and __ASSUME_SIGNALFD4.
+
+--- a/ports/sysdeps/unix/sysv/linux/arm/kernel-features.h
++++ b/ports/sysdeps/unix/sysv/linux/arm/kernel-features.h
+@@ -61,6 +61,12 @@
+  # define __ASSUME_FUTEX_LOCK_PI	1
+ #endif
+ 
++/* Support for the eventfd2 and signalfd4 syscalls was added in 2.6.27.  */
++#if __LINUX_KERNEL_VERSION >= 0x02061b
++# define __ASSUME_EVENTFD2	1
++# define __ASSUME_SIGNALFD4	1
++#endif
++
+ #include_next <kernel-features.h>
+ 
+ /* These syscalls are not implemented yet for ARM.  */
+
+
+2009-07-20  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/unix/sysv/linux/hppa/kernel-features.h: Define
+	__ASSUME_EVENTFD2 and __ASSUME_SIGNALFD4.
+
+--- a/ports/sysdeps/unix/sysv/linux/hppa/kernel-features.h
++++ b/ports/sysdeps/unix/sysv/linux/hppa/kernel-features.h
+@@ -46,4 +46,10 @@
+  # define __ASSUME_FUTEX_LOCK_PI	1
+ #endif
+ 
++/* Support for the eventfd2 and signalfd4 syscalls was added in 2.6.28.  */
++#if __LINUX_KERNEL_VERSION >= 0x02061c
++# define __ASSUME_EVENTFD2	1
++# define __ASSUME_SIGNALFD4	1
++#endif
++
+ #include_next <kernel-features.h>
+
+
+2009-07-20  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/unix/sysv/linux/mips/kernel-features.h: Define
+	__ASSUME_EVENTFD2 and __ASSUME_SIGNALFD4.
+
+--- a/ports/sysdeps/unix/sysv/linux/mips/kernel-features.h
++++ b/ports/sysdeps/unix/sysv/linux/mips/kernel-features.h
+@@ -42,4 +42,10 @@
+  # define __ASSUME_FUTEX_LOCK_PI	1
+ #endif
+ 
++/* Support for the eventfd2 and signalfd4 syscalls was added in 2.6.27.  */
++#if __LINUX_KERNEL_VERSION >= 0x02061c
++# define __ASSUME_EVENTFD2	1
++# define __ASSUME_SIGNALFD4	1
++#endif
++
+ #include_next <kernel-features.h>
