@@ -4,15 +4,15 @@
 	NSS_STATUS_UNAVAIL if __nss_lookup_function() fails.
 
 diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
-index d346c62..2358d81 100644
+index d346c62..d8016f7 100644
 --- a/sysdeps/posix/getaddrinfo.c
 +++ b/sysdeps/posix/getaddrinfo.c
-@@ -834,6 +834,8 @@ gaih_inet (const char *name, const struct gaih_service *service,
+@@ -833,6 +833,8 @@ gaih_inet (const char *name, const struct gaih_service *service,
+ 			       && inet6_status != NSS_STATUS_UNAVAIL)
  			status = inet6_status;
  		    }
++	          else
++		    status = NSS_STATUS_UNAVAIL;
  		}
-+	      else
-+		status = NSS_STATUS_UNAVAIL;
  
  	      if (nss_next_action (nip, status) == NSS_ACTION_RETURN)
- 		break;
