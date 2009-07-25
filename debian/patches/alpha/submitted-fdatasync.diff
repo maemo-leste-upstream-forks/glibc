@@ -1,9 +1,11 @@
-2007-11-26  Aurelien Jarno  <aurelien@aurel32.net>
+2009-07-25  Aurelien Jarno  <aurelien@aurel32.net>
 
-        * sysdeps/unix/sysv/linux/kernel-features.h: define 
+	* sysdeps/unix/sysv/linux/kernel-features.h: define 
 	__ASSUME_FDATASYNC. 
-        * sysdeps/unix/sysv/linux/fdatasync.c: New file.
-        * sysdeps/unix/sysv/linux/syscalls.list: Remove fdatasync.
+	* sysdeps/unix/sysv/linux/fdatasync.c: New file.
+	* sysdeps/unix/sysv/linux/Makefile: compile fdatasync.c with
+	-fexceptions.
+	* sysdeps/unix/sysv/linux/syscalls.list: Remove fdatasync.
 
 ---
  sysdeps/unix/sysv/linux/fdatasync.c       |   69 ++++++++++++++++++++++++++++++
@@ -108,3 +110,14 @@
  flock		-	flock		i:ii	__flock		flock
  fork		-	fork		i:	__libc_fork	__fork fork
  get_kernel_syms	EXTRA	get_kernel_syms	i:p	get_kernel_syms
+--- a/sysdeps/unix/sysv/linux/Makefile
++++ b/sysdeps/unix/sysv/linux/Makefile
+@@ -20,6 +20,7 @@ sysdep_routines += sysctl clone llseek umount umount2 readahead \
+ 		   setfsuid setfsgid makedev epoll_pwait signalfd \
+ 		   eventfd eventfd_read eventfd_write
+ 
++CFLAGS-fdatasync.c = -fexceptions
+ CFLAGS-gethostid.c = -fexceptions
+ 
+ sysdep_headers += sys/mount.h sys/acct.h sys/sysctl.h \
+
