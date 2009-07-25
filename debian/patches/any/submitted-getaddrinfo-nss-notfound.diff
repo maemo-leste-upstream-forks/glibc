@@ -1,0 +1,18 @@
+2009-07-25  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/posix/getaddrinfo.c(gaih_inet): set the status to
+	NSS_STATUS_UNAVAIL if __nss_lookup_function() fails.
+
+diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
+index d346c62..2358d81 100644
+--- a/sysdeps/posix/getaddrinfo.c
++++ b/sysdeps/posix/getaddrinfo.c
+@@ -834,6 +834,8 @@ gaih_inet (const char *name, const struct gaih_service *service,
+ 			status = inet6_status;
+ 		    }
+ 		}
++	      else
++		status = NSS_STATUS_UNAVAIL;
+ 
+ 	      if (nss_next_action (nip, status) == NSS_ACTION_RETURN)
+ 		break;
