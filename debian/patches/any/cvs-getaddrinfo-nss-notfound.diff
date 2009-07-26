@@ -1,26 +1,9 @@
-commit 657317537c09b82a2feb1194fda045f63e3a1222
-Author: Ulrich Drepper <drepper@redhat.com>
-Date:   Sat Jul 25 12:29:04 2009 -0700
-
-    Handle missing NSS modules and those without callbacks.
-    
-    getaddrinfo didn't update the status variable in that round of the
-    loop if no callback was used.
-
-diff --git a/ChangeLog b/ChangeLog
-index 8246614..f47b089 100644
---- a/ChangeLog
-+++ b/ChangeLog
-@@ -1,5 +1,9 @@
  2009-07-25  Ulrich Drepper  <drepper@redhat.com>
  
-+	[BZ #10448]
-+	* sysdeps/posix/getaddrinfo.c (gaih_inet): If NSS module contains no
-+	callback we must touch the status to avoid using stale value.
-+
- 	* sysdeps/x86_64/multiarch/strcmp.S: Exclude unused code from being
- 	compiled in.
- 
+	[BZ #10448]
+	* sysdeps/posix/getaddrinfo.c (gaih_inet): If NSS module contains no
+	callback we must touch the status to avoid using stale value.
+
 diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
 index d346c62..a788d18 100644
 --- a/sysdeps/posix/getaddrinfo.c
