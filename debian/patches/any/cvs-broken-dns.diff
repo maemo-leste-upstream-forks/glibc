@@ -1,3 +1,9 @@
+2009-07-26  Ulrich Drepper  <drepper@redhat.com>
+ 
+	[BZ #10452]
+	* resolv/res_send.c (send_dg): Pass full SERVFAIL, NOTIMP, REFUSED
+	replies up.
+
 2009-06-26  Ulrich Drepper  <drepper@redhat.com>
 
 	* resolv/resolv.h: Define RES_SNGLKUPREOP.
@@ -49,10 +55,10 @@
 ---
  resolv/res_init.c           |    6 ++
  resolv/res_query.c          |    7 +++
- resolv/res_send.c           |   90 ++++++++++++++++++++++++++++++++++----------
+ resolv/res_send.c           |   96 +++++++++++++++++++++++++++++++++-----------
  resolv/resolv.h             |    3 +
  sysdeps/posix/getaddrinfo.c |    4 +
- 5 files changed, 91 insertions(+), 19 deletions(-)
+ 5 files changed, 92 insertions(+), 24 deletions(-)
 
 --- a/resolv/res_send.c
 +++ b/resolv/res_send.c
@@ -178,7 +184,23 @@
  		  pfd[0].events = POLLIN;
  		else
  		  pfd[0].events = POLLIN | POLLOUT;
-@@ -1250,8 +1292,18 @@
+@@ -1200,14 +1242,10 @@
+ 				? *thisanssiz : *thisresplen);
+ 
+ 			if (recvresp1 || (buf2 != NULL && recvresp2))
+-			  {
+-			    *resplen2 = 1;
+-			    return resplen;
+-			  }
++			  return resplen;
+ 			if (buf2 != NULL)
+ 			  {
+ 			    /* We are waiting for a possible second reply.  */
+-			    resplen = 1;
+ 			    if (hp->id == anhp->id)
+ 			      recvresp1 = 1;
+ 			    else
+@@ -1250,8 +1288,18 @@
  		else
  			recvresp2 = 1;
  		/* Repeat waiting if we have a second answer to arrive.  */
