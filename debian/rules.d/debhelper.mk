@@ -20,10 +20,6 @@ $(stamp)binaryinst_$(libc)-pic:: $(stamp)debhelper
 define $(libc)_extra_debhelper_pkg_install
 	install --mode=0644 ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/changelog
 	install --mode=0644 nptl/ChangeLog debian/$(curpass)/usr/share/doc/$(curpass)/ChangeLog.nptl
-	sed -e "/KERNEL_VERSION_CHECK/r debian/script.in/kernelcheck.sh" \
-		debian/local/etc_init.d/glibc.sh | \
-		sed -e "s/EXIT_CHECK/sleep 5/" -e "s/DEB_HOST_ARCH/$(DEB_HOST_ARCH)/" > debian/glibc.sh.generated
-	install --mode=0755 debian/glibc.sh.generated debian/$(curpass)/etc/init.d/glibc.sh
 	# dh_installmanpages thinks that .so is a language.
 	install --mode=0644 debian/local/manpages/ld.so.8 debian/$(curpass)/usr/share/man/man8/ld.so.8
 
@@ -156,7 +152,6 @@ $(stamp)debhelper:
 	  z=`echo $$y | sed -e 's#/libc#/$(libc)#'`; \
 	  cp $$x $$z; \
 	  sed -e "s#BUILD-TREE#$(build-tree)#" -i $$z; \
-	  sed -e "/KERNEL_VERSION_CHECK/r debian/script.in/kernelcheck.sh" -i $$z; \
 	  sed -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" -i $$z; \
 	  sed -e "/NOHWCAP/r debian/script.in/nohwcap.sh" -i $$z; \
 	  sed -e "s#LIBC#$(libc)#" -i $$z; \
