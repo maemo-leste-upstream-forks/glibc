@@ -42,7 +42,7 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	dh_installdebconf -p$(curpass)
 	if [ $(curpass) = glibc-doc ] ; then \
 		dh_installchangelogs -p$(curpass) ; \
-	else ; \
+	else \
 		dh_installchangelogs -p$(curpass) debian/changelog.upstream ; \
 	fi
 	dh_installinit -p$(curpass)
