@@ -47,7 +47,7 @@
 +gnu
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile
-@@ -0,0 +1,131 @@
+@@ -0,0 +1,133 @@
 +# Use bash, not /bin/sh, for executing scripts, because the native
 +# FreeBSD /bin/sh does not interpret the  IFS="<tab>" read ...  command
 +# in localedata/tst-fmon.sh correctly.
@@ -128,6 +128,8 @@
 +sysdep_routines += rtprio
 +# For <sys/socket.h>.
 +sysdep_routines += bsd_sendfile
++# For <sys/stat.h>.
++sysdep_routines += devname
 +# For <sys/sysctl.h>.
 +sysdep_routines += sysctl sysctlbyname sysctlnametomib
 +# For <sys/uio.h>.
@@ -5828,7 +5830,7 @@
 +#endif	/* bits/socket.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h
-@@ -0,0 +1,199 @@
+@@ -0,0 +1,203 @@
 +/* Copyright (C) 1992, 1996-1997, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -6025,6 +6027,10 @@
 +/* Set file flags of the file referred to by FD to FLAGS.  */
 +extern int fchflags (int __fd, unsigned long int __flags) __THROW;
 +
++
++extern char *devname_r(dev_t dev, mode_t type, char *buf, int len) __THROW;
++extern char *devname(dev_t dev, mode_t type) __THROW;
++                                                                                                                                                                                                         
 +__END_DECLS
 +
 +#endif /* __USE_BSD */
@@ -7934,6 +7940,78 @@
 +strong_alias (__libc_connect, __connect_internal)
 +weak_alias (__libc_connect, __connect)
 +weak_alias (__libc_connect, connect)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/devname.c
+@@ -0,0 +1,69 @@
++/*
++ * Copyright (c) 1989, 1993
++ *	The Regents of the University of California.  All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 4. Neither the name of the University nor the names of its contributors
++ *    may be used to endorse or promote products derived from this software
++ *    without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ */
++
++
++#include <stdio.h>
++#include <sys/param.h>
++#include <sys/stat.h>
++#include <sys/sysctl.h>
++
++char *
++__devname_r(dev_t dev, mode_t type, char *buf, int len)
++{
++	int i;
++	size_t j;
++	const char *r;
++
++	if ((type & S_IFMT) == S_IFCHR) {
++		j = len;
++		i = __sysctlbyname("kern.devname", buf, &j, &dev, sizeof (dev));
++		if (i == 0)
++		    return (buf);
++	}
++
++	/* Finally just format it */
++	if (dev == NODEV)
++		r = "#NODEV";
++	else 
++		r = "#%c:%d:0x%x";
++	__snprintf(buf, len, r,
++	    (type & S_IFMT) == S_IFCHR ? 'C' : 'B', major(dev), minor(dev));
++	return (buf);
++}
++
++
++char *
++__devname(dev_t dev, mode_t type)
++{
++	static char buf[SPECNAMELEN + 1];
++
++	return(__devname_r(dev, type, buf, sizeof(buf)));
++}
++weak_alias (__devname_r, devname_r)
++weak_alias (__devname, devname)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-execstack.c
 @@ -0,0 +1,58 @@
@@ -22479,21 +22557,21 @@
 +int
 +__sysctlbyname (const char *name, void *oldval, size_t *oldlenp, void *newval, size_t newlen)
 +{
-+  int request[CTL_MAXNAME];
-+  size_t requestlen = sizeof (request);
++  int request[CTL_MAXNAME+2];
++  size_t requestlen = CTL_MAXNAME+2;
 +
 +  if (__sysctlnametomib(name, request, &requestlen) < 0)
 +    return -1;
 +
 +  /* Now call sysctl using the binary encoded request.  */
-+  return __sysctl (request, requestlen / sizeof (int),
++  return __sysctl (request, requestlen,
 +		   oldval, oldlenp, newval, newlen);
 +}
 +
 +weak_alias (__sysctlbyname, sysctlbyname)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sysctlnametomib.c
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,38 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -22519,15 +22597,16 @@
 +int
 +__sysctlnametomib (const char *name, int *mibp, size_t *sizep)
 +{
-+  int request[CTL_MAXNAME];
-+  size_t requestlen = sizeof (request);
-+
 +  /* Convert the string NAME to a binary encoded request.  The kernel
 +     contains a routine for doing this, called "name2oid".  But the way
 +     to call it is a little bit strange.  */
 +  int name2oid_request[2] = { 0, 3 };
-+  return __sysctl (name2oid_request, 2, mibp, sizep, (void *) name, 
-+		   strlen (name));
++  int retval;
++  
++  *sizep *= sizeof (int);
++  retval = __sysctl (name2oid_request, 2, mibp, sizep, (void *) name, strlen (name));
++  *sizep /= sizeof (int);
++  return retval;
 +}
 +
 +weak_alias (__sysctlnametomib, sysctlnametomib)
