@@ -1,26 +1,28 @@
+2009-08-09  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* Makeconfig: convert i586 and i686 into i486.
+
 2005-01-20  Tollef Fog Heen  <tfheen@debian.org> 
 
 	* Makeconfig: add multiarch support
 
----
- Makeconfig |    9 +++++++++
- 1 file changed, 9 insertions(+)
-
 --- a/Makeconfig
 +++ b/Makeconfig
-@@ -191,6 +191,11 @@
+@@ -191,6 +191,13 @@
  endif
  inst_libdir = $(install_root)$(libdir)
  
-+# Extra places to look for libraries
++# Multiarch places to look for libraries
 +ifndef extra_libdir
-+extra_libdir = /lib/$(config-machine)-$(config-os):$(exec_prefix)/lib/$(config-machine)-$(config-os)
++multiarch-machine = $(subst i586,i486,$(config-machine))
++multiarch-machine = $(subst i686,i486,$(multiarch-machine))
++extra_libdir = /lib/$(multiarch-machine)-$(config-os):$(exec_prefix)/lib/$(multiarch-machine)-$(config-os)
 +endif
 +
  # Where to install the shared library and dynamic linker.
  ifndef slibdir
  slibdir = $(exec_prefix)/lib
-@@ -501,6 +506,10 @@
+@@ -501,6 +508,10 @@
  default-rpath = $(libdir)
  endif
  
