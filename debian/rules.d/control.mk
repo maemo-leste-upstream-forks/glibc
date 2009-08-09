@@ -15,7 +15,7 @@ debian/control.in/libc0.1: debian/control.in/libc debian/rules.d/control.mk
 
 debian/control: $(stamp)control
 $(stamp)control: debian/control.in/main $(control_deps) \
-		   debian/rules.d/control.mk # debian/sysdeps/depflags.pl
+		   debian/rules.d/control.mk
 
 	# Check that all files end with a new line
 	set -e ; for i in debian/control.in/* ; do \
