@@ -155,13 +155,6 @@ $(stamp)install_%: $(stamp)check_%
 	  echo /usr/lib/$$triplet >> $$conffile; \
 	fi
 	
-	# Create a default configuration file that adds /usr/local/lib to the search path
-	if [ $(curpass) = libc ]; then \
-	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \
-	  echo "# libc default configuration" > debian/tmp-$(curpass)/etc/ld.so.conf.d/libc.conf ; \
-	  echo /usr/local/lib >> debian/tmp-$(curpass)/etc/ld.so.conf.d/libc.conf ; \
- 	fi
-
 	$(call xx,extra_install)
 	touch $@
 
