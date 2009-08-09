@@ -6,19 +6,21 @@ type=$1
 preversion=$2
 
 rm_conffile() {
-    CONFFILE="$1"
+    local PKGNAME="$1"
+    local CONFFILE="$2"
 
-    if [ -e "$CONFFILE" ]; then
-        md5sum="`md5sum \"$CONFFILE\" | sed -e \"s/ .*//\"`"
-        old_md5sum="`sed -n -e \"/^Conffiles:/,/^[^ ]/{\\\\' $CONFFILE'{s/.* //;p}}\" /var/lib/dpkg/status`"
-        if [ "$md5sum" != "$old_md5sum" ]; then
-            echo "Obsolete conffile $CONFFILE has been modified by you."
-            echo "Saving as $CONFFILE.dpkg-bak ..."
-            mv -f "$CONFFILE" "$CONFFILE".dpkg-bak
-        else
-            echo "Removing obsolete conffile $CONFFILE ..."
-            rm -f "$CONFFILE"
-        fi
+    [ -e "$CONFFILE" ] || return 0
+
+    local md5sum="$(md5sum $CONFFILE | sed -e 's/ .*//')"
+    local old_md5sum="$(dpkg-query -W -f='${Conffiles}' $PKGNAME | \
+            sed -n -e "\' $CONFFILE ' { s/ obsolete$//; s/.* //; p }")"
+    if [ "$md5sum" != "$old_md5sum" ]; then
+        echo "Obsolete conffile $CONFFILE has been modified by you."
+        echo "Saving as $CONFFILE.dpkg-bak ..."
+        mv -f "$CONFFILE" "$CONFFILE".dpkg-bak
+    else
+        echo "Removing obsolete conffile $CONFFILE ..."
+        rm -f "$CONFFILE"
     fi
 }
 
@@ -49,7 +51,7 @@ if [ "$type" = upgrade ]
 then
     # Remove old /etc/init.d/glibc.sh init script
     if dpkg --compare-versions "$preversion" le "2.9-22"; then
-        rm_conffile "/etc/init.d/glibc.sh"
+        rm_conffile LIBC "/etc/init.d/glibc.sh"
 	update-rc.d glibc.sh remove >/dev/null
     fi
 
