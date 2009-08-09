@@ -47,6 +47,7 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	fi
 	dh_installinit -p$(curpass)
 	dh_installdocs -p$(curpass) 
+	dh_lintian -p $(curpass)
 	dh_link -p$(curpass)
 	set -e; if test -d debian/bug/$(curpass); then                   \
 	    dh_installdirs -p$(curpass) usr/share/bug;                   \
@@ -98,12 +99,6 @@ endif
 	# Add relevant udeb: lines in shlibs files
 	chmod a+x debian/shlibs-add-udebs
 	./debian/shlibs-add-udebs $(curpass)
-
-	if [ -f debian/$(curpass).lintian ] ; then \
-		install -d -m 755 -o root -g root debian/$(curpass)/usr/share/lintian/overrides/ ; \
-		install -m 644 -o root -g root debian/$(curpass).lintian \
-			debian/$(curpass)/usr/share/lintian/overrides/$(curpass) ; \
-	fi
 
 	dh_installdeb -p$(curpass)
 	if [ $(curpass) = nscd ] ; then \
