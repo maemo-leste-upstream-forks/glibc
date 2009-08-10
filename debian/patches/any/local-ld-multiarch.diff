@@ -8,21 +8,24 @@
 
 --- a/Makeconfig
 +++ b/Makeconfig
-@@ -191,6 +191,13 @@
+@@ -191,6 +191,16 @@
  endif
  inst_libdir = $(install_root)$(libdir)
  
 +# Multiarch places to look for libraries
 +ifndef extra_libdir
-+multiarch-machine = $(subst i586,i486,$(config-machine))
-+multiarch-machine = $(subst i686,i486,$(multiarch-machine))
++ifneq (,$(findstring $(config-machine),i586 i686))
++multiarch-machine = i486
++else
++multiarch-machine = $(config-machine)
++endif
 +extra_libdir = /lib/$(multiarch-machine)-$(config-os):$(exec_prefix)/lib/$(multiarch-machine)-$(config-os)
 +endif
 +
  # Where to install the shared library and dynamic linker.
  ifndef slibdir
  slibdir = $(exec_prefix)/lib
-@@ -501,6 +508,10 @@
+@@ -501,6 +511,10 @@
  default-rpath = $(libdir)
  endif
  
