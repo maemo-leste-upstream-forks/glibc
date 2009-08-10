@@ -229,8 +229,7 @@ debhelper-clean:
 	rm -f debian/*.docs
 	rm -f debian/*.doc-base
 	rm -f debian/*.generated
-	rm -f debian/*.lintian
-	rm -f debian/*.linda
+	rm -f debian/*.lintian-overrides
 	rm -f debian/*.NEWS
 	rm -f debian/*.README.Debian
 
