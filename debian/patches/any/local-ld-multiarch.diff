@@ -1,3 +1,8 @@
+2009-08-23  Samuel Thibault  <sthibault@debian.org>
+
+	* Makeconfig: convert back gnu-gnu into gnu.
+        Look for gnu-gnu in configure.in for the reason (easier matching).
+
 2009-08-09  Aurelien Jarno  <aurelien@aurel32.net>
 
 	* Makeconfig: convert i586 and i686 into i486.
@@ -8,7 +13,7 @@
 
 --- a/Makeconfig
 +++ b/Makeconfig
-@@ -191,6 +191,16 @@
+@@ -191,6 +191,21 @@
  endif
  inst_libdir = $(install_root)$(libdir)
  
@@ -19,7 +24,12 @@
 +else
 +multiarch-machine = $(config-machine)
 +endif
-+extra_libdir = /lib/$(multiarch-machine)-$(config-os):$(exec_prefix)/lib/$(multiarch-machine)-$(config-os)
++ifeq ($(config-os),gnu-gnu)
++multiarch-os = gnu
++else
++multiarch-os = $(config-os)
++endif
++extra_libdir = /lib/$(multiarch-machine)-$(multiarch-os):$(exec_prefix)/lib/$(multiarch-machine)-$(multiarch-os)
 +endif
 +
  # Where to install the shared library and dynamic linker.
