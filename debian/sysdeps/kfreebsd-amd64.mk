@@ -13,7 +13,7 @@ EGLIBC_PASSES += i386
 DEB_ARCH_REGULAR_PACKAGES += libc0.1-i386 libc0.1-dev-i386
 libc0.1-i386_shlib_dep = libc0.1-i386 (>= $(shlib_dep_ver))
 
-i386_configure_target = i686-kfreebsd
+i386_configure_target = i686-kfreebsd-gnu
 i386_CC = $(CC) -m32
 i386_CXX = $(CXX) -m32
 i386_add-ons = ports linuxthreads $(add-ons)

@@ -13,7 +13,7 @@ EGLIBC_PASSES += powerpc
 DEB_ARCH_REGULAR_PACKAGES += libc6-powerpc libc6-dev-powerpc
 libc6-powerpc_shlib_dep = libc6-powerpc (>= $(shlib_dep_ver))
 powerpc_add-ons = nptl $(add-ons)
-powerpc_configure_target = powerpc-linux
+powerpc_configure_target = powerpc-linux-gnu
 powerpc_CC = $(CC) -m32
 powerpc_CXX = $(CXX) -m32
 powerpc_extra_cflags = -O3 

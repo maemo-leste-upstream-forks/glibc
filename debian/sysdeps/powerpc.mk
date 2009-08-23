@@ -2,7 +2,7 @@
 EGLIBC_PASSES += ppc64
 DEB_ARCH_REGULAR_PACKAGES += libc6-ppc64 libc6-dev-ppc64
 ppc64_add-ons = nptl $(add-ons)
-ppc64_configure_target = powerpc64-linux
+ppc64_configure_target = powerpc64-linux-gnu
 ppc64_CC = $(CC) -m64
 ppc64_CXX = $(CXX) -m64
 libc6-ppc64_shlib_dep = libc6-ppc64 (>= $(shlib_dep_ver))
