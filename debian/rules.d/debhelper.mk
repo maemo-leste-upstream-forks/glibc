@@ -142,7 +142,7 @@ debhelper: $(stamp)debhelper
 $(stamp)debhelper:
 	for x in `find debian/debhelper.in -maxdepth 1 -type f`; do \
 	  y=debian/`basename $$x`; \
-	  z=`echo $$y | sed -e 's#libc\(\|-alt\|-dev\|-dev-alt\|-otherbuild\|-pic\|-proc\|-udeb\)\.#$(libc)\1.#g'`; \
+	  z=`echo $$y | sed -e 's#libc\(\|-alt\|-dev\|-dev-alt\|-otherbuild\|-pic\|-prof\|-udeb\)\.#$(libc)\1.#g'`; \
 	  cp $$x $$z; \
 	  sed -e "s#BUILD-TREE#$(build-tree)#" -i $$z; \
 	  sed -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" -i $$z; \
