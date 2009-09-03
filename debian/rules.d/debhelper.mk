@@ -66,8 +66,11 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	# table in libc6-dbg but basic thread debugging should
 	# work even without that package installed.
 
+	# strip *.o files as dh_strip does not (yet?) do it.
+
 	if test "$(NOSTRIP_$(curpass))" != 1; then			\
 	  dh_strip -p$(curpass) -Xlibpthread --dbg-package=$(libc)-dbg; \
+	  								\
 	  (cd debian/$(curpass);					\
 	   find . -name libpthread-\*.so -exec objcopy			\
 	     --only-keep-debug '{}' ../$(libc)-dbg/usr/lib/debug/'{}'   \
@@ -78,6 +81,17 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	  find debian/$(curpass) -name libpthread-\*.so -exec		\
 	    strip --strip-debug --remove-section=.comment		\
 	    --remove-section=.note '{}' ';' || true;			\
+	    								\
+	  (cd debian/$(curpass);					\
+	   find . -name \*crt\*.o -exec objcopy				\
+	     --only-keep-debug '{}' ../$(libc)-dbg/usr/lib/debug/'{}'   \
+	     ';' || true;						\
+	   find . -name \*crt\*.o -exec objcopy				\
+	     --add-gnu-debuglink=../$(libc)-dbg/usr/lib/debug/'{}'	\
+	     '{}' ';' || true);						\
+	  find debian/$(curpass) -name \*crt\*.o -exec			\
+	    strip --strip-debug --remove-section=.comment		\
+	    --remove-section=.note --strip-unneeded '{}' ';' || true;	\
 	fi
 endif
 
