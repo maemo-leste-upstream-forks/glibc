@@ -199,6 +199,18 @@ the cache. Each cache record has a timeout, when that timeout expires,
 .BR nscd (8)
 will either reload it (query the NSS service again if the data hasn't changed), or
 drop it.
+.TP
+.BI max-db-size \ service\ number-of-bytes  
+Sets the maximum allowable size for the service. 
+.TP
+.BI auto-propagate \ service\ bool
+When set to no for passwd or group service, then the 
+.I .byname
+requests are not added to
+.I passwd.byuid
+or
+.I group.bygid
+cache. This may help for tables containing multiple records for the same id.
 .SH EXAMPLE
 .nf
 
