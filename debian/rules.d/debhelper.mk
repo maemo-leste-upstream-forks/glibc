@@ -2,7 +2,7 @@
 # renames.  There's very little we can do for now.  Maybe after
 # Sarge releases we can consider breaking packages, but certainly not now.
 
-$(stamp)binaryinst_$(libc)-pic:: $(stamp)debhelper
+$(stamp)binaryinst_$(libc)-pic:: debhelper
 	@echo Running special kludge for $(libc)-pic
 	dh_testroot
 	dh_installdirs -p$(curpass)
@@ -32,7 +32,7 @@ debug-packages = $(filter %-dbg,$(DEB_ARCH_REGULAR_PACKAGES))
 non-debug-packages = $(filter-out %-dbg,$(DEB_ARCH_REGULAR_PACKAGES))
 $(patsubst %,$(stamp)binaryinst_%,$(debug-packages)):: $(patsubst %,$(stamp)binaryinst_%,$(non-debug-packages))
 
-$(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES)):: $(stamp)debhelper
+$(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES)):: $(patsubst %,$(stamp)install_%,$(EGLIBC_PASSES)) debhelper
 	@echo Running debhelper for $(curpass)
 	dh_testroot
 	dh_installdirs -p$(curpass)
@@ -66,11 +66,12 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	# table in libc6-dbg but basic thread debugging should
 	# work even without that package installed.
 
-	# strip *.o files as dh_strip does not (yet?) do it.
+	# We use a wrapper script so that we only include the bare
+	# minimum in /usr/lib/debug/lib for backtraces; anything
+	# else takes too long to load in GDB.
 
 	if test "$(NOSTRIP_$(curpass))" != 1; then			\
 	  dh_strip -p$(curpass) -Xlibpthread --dbg-package=$(libc)-dbg; \
-	  								\
 	  (cd debian/$(curpass);					\
 	   find . -name libpthread-\*.so -exec objcopy			\
 	     --only-keep-debug '{}' ../$(libc)-dbg/usr/lib/debug/'{}'   \
@@ -81,17 +82,6 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	  find debian/$(curpass) -name libpthread-\*.so -exec		\
 	    strip --strip-debug --remove-section=.comment		\
 	    --remove-section=.note '{}' ';' || true;			\
-	    								\
-	  (cd debian/$(curpass);					\
-	   find . -name \*crt\*.o -exec objcopy				\
-	     --only-keep-debug '{}' ../$(libc)-dbg/usr/lib/debug/'{}'   \
-	     ';' || true;						\
-	   find . -name \*crt\*.o -exec objcopy				\
-	     --add-gnu-debuglink=../$(libc)-dbg/usr/lib/debug/'{}'	\
-	     '{}' ';' || true);						\
-	  find debian/$(curpass) -name \*crt\*.o -exec			\
-	    strip --strip-debug --remove-section=.comment		\
-	    --remove-section=.note --strip-unneeded '{}' ';' || true;	\
 	fi
 endif
 
@@ -122,7 +112,7 @@ endif
 	touch $@
 
 $(patsubst %,binaryinst_%,$(DEB_UDEB_PACKAGES)) :: binaryinst_% : $(stamp)binaryinst_%
-$(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): $(stamp)debhelper
+$(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): debhelper $(patsubst %,$(stamp)install_%,$(EGLIBC_PASSES))
 	@echo Running debhelper for $(curpass)
 	dh_testroot
 	dh_installdirs -p$(curpass)
@@ -145,64 +135,23 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): $(stamp)debhelper
 
 	touch $@
 
-OPT_PASSES = $(filter-out libc, $(EGLIBC_PASSES))
-OPT_DIRS = $(foreach pass,$(OPT_PASSES),$($(pass)_slibdir) $($(pass)_libdir))
-
-debhelper: $(stamp)debhelper
-$(stamp)debhelper:
+debhelper: $(stamp)debhelper-common $(patsubst %,$(stamp)debhelper_%,$(EGLIBC_PASSES))
+$(stamp)debhelper-common: 
 	for x in `find debian/debhelper.in -maxdepth 1 -type f`; do \
 	  y=debian/`basename $$x`; \
-	  z=`echo $$y | sed -e 's#libc\(\|-alt\|-dev\|-dev-alt\|-otherbuild\|-pic\|-prof\|-udeb\)\.#$(libc)\1.#g'`; \
-	  cp $$x $$z; \
-	  sed -e "s#BUILD-TREE#$(build-tree)#" -i $$z; \
-	  sed -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" -i $$z; \
-	  sed -e "/NOHWCAP/r debian/script.in/nohwcap.sh" -i $$z; \
-	  sed -e "s#LIBC#$(libc)#" -i $$z; \
-	  sed -e "s#CURRENT_VER#$(DEB_VERSION)#" -i $$z; \
-	  sed -e "s#EXIT_CHECK##" -i $$z; \
-	  sed -e "s#DEB_HOST_ARCH#$(DEB_HOST_ARCH)#" -i $$z; \
-	  case $$z in \
+	  cp $$x $$y; \
+	  sed -e "s#BUILD-TREE#$(build-tree)#" -i $$y; \
+	  sed -e "s#LIBC#$(libc)#" -i $$y; \
+	  sed -e "s#CURRENT_VER#$(DEB_VERSION)#" -i $$y; \
+	  sed -e "s#EXIT_CHECK##" -i $$y; \
+	  sed -e "s#DEB_HOST_ARCH#$(DEB_HOST_ARCH)#" -i $$y; \
+	  sed -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" -i $$y; \
+	  sed -e "/NOHWCAP/r debian/script.in/nohwcap.sh" -i $$y; \
+	  case $$y in \
 	    *.install) \
-	      sed -e "s/^#.*//" -i $$z ; \
-	      ;; \
-	    debian/$(libc).preinst) \
-	      rtld=`LANG=C LC_ALL=C readelf -l debian/tmp-libc/usr/bin/iconv | grep "interpreter" | sed -e 's/.*interpreter: \(.*\)]/\1/g'`; \
-	      c_so=`ls debian/tmp-libc/lib/ | grep "libc\.so\."` ; \
-	      m_so=`ls debian/tmp-libc/lib/ | grep "libm\.so\."` ; \
-	      pthread_so=`ls debian/tmp-libc/lib/ | grep "libpthread\.so\."` || true; \
-	      rt_so=`ls debian/tmp-libc/lib/ | grep "librt\.so\."` ; \
-	      dl_so=`ls debian/tmp-libc/lib/ | grep "libdl\.so\."` ; \
-	      sed -e "s#RTLD#$$rtld#" -e "s#C_SO#$$c_so#" -e "s#M_SO#$$m_so#" -e "s#PTHREAD_SO#$$pthread_so#" -e "s#RT_SO#$$rt_so#" -e "s#DL_SO#$$dl_so#" -i $$z ; \
+	      sed -e "s/^#.*//" -i $$y ; \
 	      ;; \
 	  esac; \
-	done
-
-	# Hack: special-case passes whose destdir is a biarch directory
-	# to use a different install template, which includes more
-	# libraries.  Also generate a -dev.  Other libraries get scripts
-	# to temporarily disable hwcap.  This needs some cleaning up.
-	set -- $(OPT_DIRS); \
-	for x in $(OPT_PASSES); do \
-	  slibdir=$$1; \
-	  shift; \
-	  case $$slibdir in \
-	  /lib32 | /lib64) \
-	    suffix="alt"; \
-	    libdir=$$1; \
-	    shift; \
-	    ;; \
-	  *) \
-	    suffix="otherbuild"; \
-	    ;; \
-	  esac; \
-	  for y in debian/$(libc)*-$$suffix.* ; do \
-	    z=`echo $$y | sed -e "s/$$suffix/$$x/"` ; \
-	    cp $$y $$z ; \
-	    sed -e "s#TMPDIR#debian/tmp-$$x#g" -i $$z; \
-	    sed -e "s#SLIBDIR#$$slibdir#g" -i $$z; \
-	    sed -e "s#LIBDIR#$$libdir#g" -i $$z; \
-	    sed -e "s#FLAVOR#$$x#g" -i $$z; \
-	  done ; \
 	done
 
 	# Substitute __PROVIDED_LOCALES__.
@@ -217,9 +166,58 @@ $(stamp)debhelper:
 	done
 	rm -f tmp.substvars
 
-	touch $(stamp)debhelper
+	touch $@
 
-debhelper-clean:
+$(patsubst %,debhelper_%,$(EGLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
+$(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
+	libdir=$(call xx,libdir) ; \
+	slibdir=$(call xx,slibdir) ; \
+	curpass=$(curpass) ; \
+	c_so=`ls debian/tmp-$$curpass/$$slibdir | grep "libc\.so\."` ; \
+	m_so=`ls debian/tmp-$$curpass/$$slibdir | grep "libm\.so\."` ; \
+	rt_so=`ls debian/tmp-$$curpass/$$slibdir | grep "librt\.so\."` ; \
+	dl_so=`ls debian/tmp-$$curpass/$$slibdir | grep "libdl\.so\."` ; \
+	rtld_so=`LANG=C LC_ALL=C readelf -l debian/tmp-$$curpass/usr/bin/iconv | grep "interpreter" | sed -e 's/.*interpreter: \(.*\)]/\1/g'`; \
+	pthread_so=`ls debian/tmp-$$curpass/$$slibdir | grep "libpthread\.so\."` || true; \
+	case "$$curpass:$$slibdir" in \
+	  libc:*) \
+	    templates="libc libc-dev libc-pic libc-prof libc-udeb libnss-dns-udeb libnss-files-udeb" \
+	    pass="" \
+	    suffix="" \
+	    ;; \
+	  *:/lib32 | *:/lib64) \
+	    templates="libc libc-dev" \
+	    pass="-alt" \
+	    suffix="-$(curpass)" \
+	    ;; \
+	  *:*) \
+	    templates="libc" \
+	    pass="-otherbuild" \
+	    suffix="-$(curpass)" \
+	    ;; \
+	esac ; \
+	for t in $$templates ; do \
+	  for s in debian/$$t$$pass.* ; do \
+	    t=`echo $$s | sed -e "s#libc\(.*\)$$pass#$(libc)\1$$suffix#"` ; \
+	    if [ "$$s" != "$$t" ] ; then \
+	      cp $$s $$t ; \
+	    fi ; \
+	    sed -e "s#TMPDIR#debian/tmp-$$curpass#g" -i $$t; \
+	    sed -e "s#SLIBDIR#$$slibdir#g" -i $$t; \
+	    sed -e "s#LIBDIR#$$libdir#g" -i $$t; \
+	    sed -e "s#FLAVOR#$$curpass#g" -i $$t; \
+	    sed -e "s#C_SO#$$c_so#" -i $$t ; \
+	    sed -e "s#M_SO#$$m_so#" -i $$t ; \
+	    sed -e "s#RT_SO#$$rt_so#" -i $$t ; \
+	    sed -e "s#DL_SO#$$dl_so#" -i $$t ; \
+	    sed -e "s#RTLD_SO#$$rtld_so#" -i $$t ; \
+	    sed -e "s#PTHREAD_SO#$$pthread_so#" -i $$t ; \
+	  done ; \
+	done
+
+	touch $@
+
+clean::
 	dh_clean 
 
 	rm -f debian/*.install*

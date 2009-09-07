@@ -43,12 +43,8 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	echo "docdir = $(docdir)"		>> $(DEB_BUILDDIR)/configparms
 	echo "mandir = $(mandir)"		>> $(DEB_BUILDDIR)/configparms
 	echo "sbindir = $(sbindir)"		>> $(DEB_BUILDDIR)/configparms
-	libdir="$(call xx,libdir)" ; if test -n "$$libdir" ; then \
-		echo "libdir = $$libdir" >> $(DEB_BUILDDIR)/configparms ; \
-	fi
-	slibdir="$(call xx,slibdir)" ; if test -n "$$slibdir" ; then \
-		echo "slibdir = $$slibdir" >> $(DEB_BUILDDIR)/configparms ; \
-	fi
+	echo "libdir = $(call xx,libdir)"	>> $(DEB_BUILDDIR)/configparms
+	echo "slibdir = $(call xx,slibdir)"	>> $(DEB_BUILDDIR)/configparms
 	rtlddir="$(call xx,rtlddir)" ; if test -n "$$rtlddir" ; then \
 		echo "rtlddir = $$rtlddir" >> $(DEB_BUILDDIR)/configparms ; \
 	fi
@@ -167,5 +163,3 @@ $(stamp)source: $(stamp)patch
 		-f $(build-tree)/eglibc-$(EGLIBC_VERSION).tar.lzma \
 		$(EGLIBC_SOURCES)
 	touch $@
-
-.NOTPARALLEL: $(patsubst %,install_%,$(EGLIBC_PASSES))

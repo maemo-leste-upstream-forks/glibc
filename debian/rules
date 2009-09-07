@@ -44,10 +44,10 @@ include debian/locales-depver
 export SHELL          = /bin/bash -e
 
 DEB_HOST_ARCH         ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_HOST_ARCH_OS      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_GNU_CPU      ?= $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
 DEB_HOST_GNU_TYPE     ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_HOST_GNU_SYSTEM   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_SYSTEM)
-DEB_HOST_ARCH_OS      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_BUILD_ARCH        ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 DEB_BUILD_GNU_CPU     ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_CPU)
 DEB_BUILD_GNU_TYPE    ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
@@ -89,6 +89,8 @@ includedir=$(prefix)/include
 docdir=$(prefix)/share/doc
 mandir=$(prefix)/share/man
 sbindir=$(prefix)/sbin
+slibdir=/lib
+libdir=/usr/lib
 
 BUILD_CC = gcc
 BUILD_CXX = g++
@@ -152,7 +154,7 @@ endif
 # And now the rules...
 include debian/rules.d/*.mk
 
-clean:: unpatch debhelper-clean
+clean:: unpatch
 	make -C $(CURDIR)/linuxthreads/man clean
 	rm -f $(CURDIR)/po/*.mo
 	rm -rf $(patsubst %,debian/tmp-%,$(EGLIBC_PASSES))
@@ -162,12 +164,9 @@ clean:: unpatch debhelper-clean
 
 # Required Debian targets
 binary-indep: build testroot debian/control $(build-tree) \
-	$(patsubst %,$(stamp)install_%,$(EGLIBC_PASSES)) \
 	$(patsubst %,$(stamp)binaryinst_%,$(DEB_INDEP_REGULAR_PACKAGES))
-# NOTE: Putting install_ stamps before binaryinst_ stamps in the list is the
-# wrong way to represent dependencies.  Fix this.
+
 binary-arch: build testroot debian/control $(build-tree) \
-	$(patsubst %,$(stamp)install_%,$(EGLIBC_PASSES)) \
 	$(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES)) \
 	$(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES))
 
