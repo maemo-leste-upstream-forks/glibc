@@ -138,7 +138,7 @@ $(stamp)install_%: $(stamp)check_%
 	    OUT=debian/tmp-$(curpass)/usr/share/i18n/SUPPORTED; \
 	fi
 
-	# Create the multidir directories, and the configuration file in /etc/ld.so.conf.d
+	# Create the multiarch directories, and the configuration file in /etc/ld.so.conf.d
 	if [ $(curpass) = libc ]; then \
 	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \
 	  machine=`sed '/^ *config-machine *=/!d;s/.*= *//g' $(DEB_BUILDDIR)/config.make`; \
