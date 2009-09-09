@@ -23,7 +23,7 @@ i386_includedir = /usr/include/i486-kfreebsd-gnu
 i386_rtlddir = /lib
 i386_slibdir = /lib32
 i386_libdir = /usr/lib32
-i386_MIN_KERNEL_SUPPORTED = 5.4.0
+i386_MIN_KERNEL_SUPPORTED = 6.0.0
 
 define libc0.1-dev-i386_extra_pkg_install
 mkdir -p debian/libc0.1-dev-i386/usr/include/gnu
