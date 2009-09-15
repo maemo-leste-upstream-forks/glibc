@@ -142,11 +142,11 @@ $(stamp)debhelper-common:
 	  cp $$x $$y; \
 	  sed -e "s#BUILD-TREE#$(build-tree)#" -i $$y; \
 	  sed -e "s#LIBC#$(libc)#" -i $$y; \
-	  sed -e "s#CURRENT_VER#$(DEB_VERSION)#" -i $$y; \
 	  sed -e "s#EXIT_CHECK##" -i $$y; \
 	  sed -e "s#DEB_HOST_ARCH#$(DEB_HOST_ARCH)#" -i $$y; \
 	  sed -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" -i $$y; \
 	  sed -e "/NOHWCAP/r debian/script.in/nohwcap.sh" -i $$y; \
+	  sed -e "s#CURRENT_VER#$(DEB_VERSION)#" -i $$y; \
 	  case $$y in \
 	    *.install) \
 	      sed -e "s/^#.*//" -i $$y ; \
