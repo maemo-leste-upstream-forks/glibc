@@ -205,10 +205,12 @@ then
     # Generate cache file /usr/lib/gconv/gconv-modules.cache
     iconvconfig || true
 
-    if [ "$(stat -c %d/%i /)" = "$(stat -Lc %d/%i /proc/1/root 2>/dev/null)" ]; then
-      # the devicenumber/inode pair of / is the same as that of /sbin/init's
-      # root, so we're *not* in a chroot
-      (telinit u ; sleep 1)
+    if [ "`uname -s`" = Linux ]; then
+      if [ "$(stat -c %d/%i /)" = "$(stat -Lc %d/%i /proc/1/root 2>/dev/null)" ]; then
+        # the devicenumber/inode pair of / is the same as that of /sbin/init's
+        # root, so we're *not* in a chroot
+        (telinit u ; sleep 1)
+      fi
     fi
 fi
 
