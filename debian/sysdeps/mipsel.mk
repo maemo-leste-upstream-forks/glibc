@@ -1,3 +1,6 @@
+CC = gcc-4.3
+CXX = g++-4.3
+
 #
 # Temporary hack to use our own version of unistd.h
 # to workaround kernel bugs on the build daemons
@@ -26,7 +29,6 @@ mipsn32_configure_target = mips32el-linux-gnu
 mipsn32_CC = $(CC) -mabi=n32
 mipsn32_CXX = $(CXX) -mabi=n32
 libc6-mipsn32_shlib_dep = libc6-mipsn32 (>= $(shlib_dep_ver))
-mipsn32_extra_cflags = -O3
 mipsn32_slibdir = /lib32
 mipsn32_libdir = /usr/lib32
 mipsn32_extra_config_options := $(extra_config_options) --disable-profile
@@ -39,7 +41,6 @@ mips64_configure_target = mips64el-linux-gnu
 mips64_CC = $(CC) -mabi=64
 mips64_CXX = $(CXX) -mabi=64
 libc6-mips64_shlib_dep = libc6-mips64 (>= $(shlib_dep_ver))
-mips64_extra_cflags = -O3
 mips64_slibdir = /lib64
 mips64_libdir = /usr/lib64
 mips64_extra_config_options := $(extra_config_options) --disable-profile

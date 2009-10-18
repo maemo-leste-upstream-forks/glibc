@@ -10,7 +10,7 @@
 
 --- a/elf/rtld.c
 +++ b/elf/rtld.c
-@@ -383,14 +383,14 @@
+@@ -384,14 +384,14 @@
       know it is available.  We do not have to clear the memory if we
       do not have to use the temporary bootstrap_map.  Global variables
       are initialized to zero by default.  */
@@ -113,7 +113,7 @@
      while (__builtin_expect						      \
  	   (atomic_compare_and_exchange_bool_acq (__atg15_memp,		      \
  						  __atg15_old & __atg15_mask, \
-@@ -423,7 +423,7 @@
+@@ -439,7 +439,7 @@
       __typeof (*(mem)) __atg16_mask = (mask);				      \
  									      \
       do									      \
@@ -122,7 +122,7 @@
       while (__builtin_expect						      \
  	    (atomic_compare_and_exchange_bool_acq (__atg16_memp,	      \
  						   __atg16_old & __atg16_mask,\
-@@ -441,7 +441,7 @@
+@@ -457,7 +457,7 @@
      __typeof (*(mem)) __atg17_mask = (mask);				      \
  									      \
      do									      \
@@ -131,7 +131,7 @@
      while (__builtin_expect						      \
  	   (atomic_compare_and_exchange_bool_acq (__atg17_memp,		      \
  						  __atg17_old | __atg17_mask, \
-@@ -457,7 +457,7 @@
+@@ -473,7 +473,7 @@
      __typeof (*(mem)) __atg18_mask = (mask);				      \
  									      \
      do									      \
@@ -140,7 +140,7 @@
      while (__builtin_expect						      \
  	   (catomic_compare_and_exchange_bool_acq (__atg18_memp,	      \
  						   __atg18_old | __atg18_mask,\
-@@ -473,7 +473,7 @@
+@@ -489,7 +489,7 @@
       __typeof (*(mem)) __atg19_mask = (mask);				      \
  									      \
       do									      \
@@ -151,7 +151,7 @@
  						   __atg19_old | __atg19_mask,\
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
-@@ -262,9 +262,9 @@
+@@ -276,9 +276,9 @@
  # Files which must not be linked with libpthread.
  tests-nolibpthread = tst-unload
  
@@ -164,7 +164,7 @@
  
  distribute = eintr.c tst-cleanup4aux.c
  
-@@ -423,6 +423,35 @@
+@@ -437,6 +437,35 @@
  CFLAGS-tst-cleanupx4.c += -fexceptions
  CFLAGS-tst-oncex3.c += -fexceptions
  CFLAGS-tst-oncex4.c += -fexceptions
@@ -225,9 +225,9 @@
  
 --- a/stdio-common/Makefile
 +++ b/stdio-common/Makefile
-@@ -80,7 +80,7 @@
+@@ -96,7 +96,7 @@
  	$(SHELL) -e tst-printf.sh $(common-objpfx) '$(run-program-prefix)'
- endif
+ # eglibc: endif
  
 -CFLAGS-vfprintf.c = -Wno-uninitialized
 +CFLAGS-vfprintf.c = -Wno-uninitialized -fno-delayed-branch

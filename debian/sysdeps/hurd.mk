@@ -1,3 +1,6 @@
+CC = gcc-4.3
+CXX = g++-4.3
+
 # This is for the GNU OS.  Commonly known as the Hurd.
 
 EGLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)

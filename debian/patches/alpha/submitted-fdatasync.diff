@@ -8,14 +8,15 @@
 	* sysdeps/unix/sysv/linux/syscalls.list: Remove fdatasync.
 
 ---
+ sysdeps/unix/sysv/linux/Makefile          |    1 
  sysdeps/unix/sysv/linux/fdatasync.c       |   69 ++++++++++++++++++++++++++++++
  sysdeps/unix/sysv/linux/kernel-features.h |    6 ++
  sysdeps/unix/sysv/linux/syscalls.list     |    1 
- 3 files changed, 75 insertions(+), 1 deletion(-)
+ 4 files changed, 76 insertions(+), 1 deletion(-)
 
 --- a/sysdeps/unix/sysv/linux/kernel-features.h
 +++ b/sysdeps/unix/sysv/linux/kernel-features.h
-@@ -467,6 +467,12 @@
+@@ -474,6 +474,12 @@
  # define __ASSUME_FUTEX_LOCK_PI	1
  #endif
  
@@ -112,12 +113,11 @@
  get_kernel_syms	EXTRA	get_kernel_syms	i:p	get_kernel_syms
 --- a/sysdeps/unix/sysv/linux/Makefile
 +++ b/sysdeps/unix/sysv/linux/Makefile
-@@ -20,6 +20,7 @@ sysdep_routines += sysctl clone llseek umount umount2 readahead \
- 		   setfsuid setfsgid makedev epoll_pwait signalfd \
+@@ -17,6 +17,7 @@
  		   eventfd eventfd_read eventfd_write
+ 
  
 +CFLAGS-fdatasync.c = -fexceptions
  CFLAGS-gethostid.c = -fexceptions
  
  sysdep_headers += sys/mount.h sys/acct.h sys/sysctl.h \
-

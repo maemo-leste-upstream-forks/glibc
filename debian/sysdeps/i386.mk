@@ -5,7 +5,7 @@ EGLIBC_PASSES += i686
 DEB_ARCH_REGULAR_PACKAGES += libc6-i686
 i686_add-ons = nptl $(add-ons)
 i686_configure_target=i686-linux-gnu
-i686_extra_cflags = -march=i686 -mtune=i686 -O3
+i686_extra_cflags = -march=i686 -mtune=generic
 i686_rtlddir = /lib
 i686_slibdir = /lib/i686/cmov
 i686_extra_config_options = $(extra_config_options) --disable-profile
@@ -16,7 +16,7 @@ EGLIBC_PASSES += xen
 DEB_ARCH_REGULAR_PACKAGES += libc6-xen
 xen_add-ons = nptl $(add-ons)
 xen_configure_target=i686-linux-gnu
-xen_extra_cflags = -march=i686 -mtune=i686 -O3 -mno-tls-direct-seg-refs
+xen_extra_cflags = -march=i686 -mtune=generic -mno-tls-direct-seg-refs
 xen_rtlddir = /lib
 xen_slibdir = /lib/i686/nosegneg
 xen_extra_config_options = $(extra_config_options) --disable-profile
@@ -36,12 +36,11 @@ EGLIBC_PASSES += amd64
 DEB_ARCH_REGULAR_PACKAGES += libc6-amd64 libc6-dev-amd64
 libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
 amd64_add-ons = nptl $(add-ons)
-amd64_configure_target = x86_64-linux
+amd64_configure_target = x86_64-linux-gnu
 # __x86_64__ is defined here because Makeconfig uses -undef and the
 # /usr/include/asm wrappers need that symbol.
 amd64_CC = $(CC) -m64 -D__x86_64__
 amd64_CXX = $(CXX) -m64 -D__x86_64__
-amd64_extra_cflags = -O3
 amd64_extra_config_options = $(extra_config_options) --disable-profile
 amd64_slibdir = /lib64
 amd64_libdir = /usr/lib64

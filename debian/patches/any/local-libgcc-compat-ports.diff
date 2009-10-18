@@ -4,6 +4,9 @@
 # DP: Date: 2002-10-13, updated 2006-08-27
 
 ---
+ ports/sysdeps/alpha/Makefile              |    8 ++
+ ports/sysdeps/alpha/Versions              |    2 
+ ports/sysdeps/alpha/libgcc-compat.c       |   35 +++++++++
  ports/sysdeps/arm/Makefile                |    7 +
  ports/sysdeps/arm/Versions                |   16 ++++
  ports/sysdeps/arm/libgcc-compat.c         |  111 ++++++++++++++++++++++++++++++
@@ -14,7 +17,7 @@
  ports/sysdeps/mips/mips32/Makefile        |    8 ++
  ports/sysdeps/mips/mips32/Versions        |    8 ++
  ports/sysdeps/mips/mips32/libgcc-compat.c |   66 +++++++++++++++++
- 10 files changed, 316 insertions(+)
+ 13 files changed, 361 insertions(+)
 
 --- /dev/null
 +++ b/ports/sysdeps/mips/mips32/libgcc-compat.c
@@ -366,6 +369,69 @@
  ifeq ($(filter -mabi=32,$(CC)),)
  CC += -mabi=32
  endif
++
++ifeq ($(subdir),csu)
++ifeq (yes,$(build-shared))
++# Compatibility
++sysdep_routines += libgcc-compat
++shared-only-routines += libgcc-compat
++endif
++endif
+--- /dev/null
++++ b/ports/sysdeps/alpha/libgcc-compat.c
+@@ -0,0 +1,35 @@
++/* pre-.hidden libgcc compatibility
++   Copyright (C) 2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Guido Guenther <agx@sigxcpu.org>
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <stdint.h>
++#include <shlib-compat.h>
++
++#if SHLIB_COMPAT(libc, GLIBC_2_0, GLIBC_2_2_6)
++
++typedef int int128_t __attribute__((__mode__(TI)));
++
++extern int128_t __multi3 (int128_t, int128_t);
++int128_t INTUSE (__multi3) (int128_t x, int128_t y)
++{
++  return __multi3 (x, y);
++}
++symbol_version (INTUSE (__multi3), __multi3, GLIBC_2.0);
++
++#endif
+--- a/ports/sysdeps/alpha/Versions
++++ b/ports/sysdeps/alpha/Versions
+@@ -3,6 +3,8 @@
+     # functions with special/multiple interfaces
+     __divqu; __remqu; __divqs; __remqs; __divlu; __remlu; __divls;
+     __remls; __divl; __reml; __divq; __remq; __divqu; __remqu;
++    # libgcc-compat
++    __multi3;
+   }
+ }
+ libm {
+--- a/ports/sysdeps/alpha/Makefile
++++ b/ports/sysdeps/alpha/Makefile
+@@ -47,3 +47,11 @@
+ # libc.so requires about 16k for the small data area, which is well
+ # below the 64k maximum.
+ pic-ccflag = -fpic
 +
 +ifeq ($(subdir),csu)
 +ifeq (yes,$(build-shared))

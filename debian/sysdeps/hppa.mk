@@ -1,8 +1,7 @@
-# To build the NPTL version of the glibc on hppa, uncomment the following line
-# and comment the two next ones. Note that it is currently not binary 
-# compatible with the linuxthreads version.
-#libc_add-ons = ports nptl $(add-ons)
-libc_add-ons = ports linuxthreads $(add-ons)
+CC = gcc-4.3
+CXX = g++-4.3
+
+libc_add-ons = ports nptl $(add-ons)
 libc_extra_config_options = $(extra_config_options) --disable-sanity-checks
 
 # hppa64 needs symlink /usr/hppa64-linux/include to /usr/include

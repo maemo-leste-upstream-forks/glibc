@@ -1,10 +1,6 @@
 On the Hurd we always at least start the sigthread anyway.  Let's avoid forking
 the file (which would mean having to maintain it)
 
----
- sysdeps/i386/i486/bits/atomic.h |   98 +++++++++++++---------------------------
- 1 file changed, 34 insertions(+), 64 deletions(-)
-
 --- a/sysdeps/i386/i486/bits/atomic.h
 +++ b/sysdeps/i386/i486/bits/atomic.h
 @@ -87,35 +87,26 @@
@@ -220,7 +216,36 @@ the file (which would mean having to maintain it)
  
  #define catomic_decrement(mem) \
    __arch_decrement_body (__arch_decrement_cprefix, __arch_c, mem)
-@@ -524,18 +497,15 @@
+@@ -505,24 +478,21 @@
+     if (sizeof (*mem) == 1)						      \
+       __asm __volatile (lock "andb %b1, %0"				      \
+ 			: "=m" (*mem)					      \
+-			: "iq" (mask), "m" (*mem),			      \
+-			  "i" (offsetof (tcbhead_t, multiple_threads)));      \
++			: "iq" (mask), "m" (*mem));			      \
+     else if (sizeof (*mem) == 2)					      \
+       __asm __volatile (lock "andw %w1, %0"				      \
+ 			: "=m" (*mem)					      \
+-			: "ir" (mask), "m" (*mem),			      \
+-			  "i" (offsetof (tcbhead_t, multiple_threads)));      \
++			: "ir" (mask), "m" (*mem));			      \
+     else if (sizeof (*mem) == 4)					      \
+       __asm __volatile (lock "andl %1, %0"				      \
+ 			: "=m" (*mem)					      \
+-			: "ir" (mask), "m" (*mem),			      \
+-			  "i" (offsetof (tcbhead_t, multiple_threads)));      \
++			: "ir" (mask), "m" (*mem));			      \
+     else								      \
+       abort ();								      \
+   } while (0)
+ 
+ #define __arch_cprefix \
+-  "cmpl $0, %%gs:%P3\n\tje 0f\n\tlock\n0:\t"
++  "lock\n\t"
+ 
+ #define atomic_and(mem, mask) __arch_and_body (LOCK_PREFIX, mem, mask)
+ 
+@@ -534,18 +504,15 @@
      if (sizeof (*mem) == 1)						      \
        __asm __volatile (lock "orb %b1, %0"				      \
  			: "=m" (*mem)					      \
@@ -242,11 +267,3 @@ the file (which would mean having to maintain it)
      else								      \
        abort ();								      \
    } while (0)
-@@ -543,6 +513,6 @@
- #define atomic_or(mem, mask) __arch_or_body (LOCK_PREFIX, mem, mask)
- 
- #define __arch_or_cprefix \
--  "cmpl $0, %%gs:%P3\n\tje 0f\n\tlock\n0:\t"
-+  "lock\n\t"
- 
- #define catomic_or(mem, mask) __arch_or_body (__arch_or_cprefix, mem, mask)

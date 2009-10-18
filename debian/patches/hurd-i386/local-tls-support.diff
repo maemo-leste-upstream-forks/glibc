@@ -1,24 +1,24 @@
 ---
- csu/libc-start.c                    |    2 +
- hurd/hurdfault.c                    |    2 +
- hurd/hurdsig.c                      |    4 +-
- mach/mach.h                         |    3 +
- mach/setup-thread.c                 |   30 +++++++++++++++++-
- sysdeps/generic/thread_state.h      |    1 
- sysdeps/mach/alpha/thread_state.h   |    1 
- sysdeps/mach/hurd/bits/libc-lock.h  |    3 +
- sysdeps/mach/hurd/bits/libc-tsd.h   |   35 ---------------------
- sysdeps/mach/hurd/fork.c            |    7 +++-
- sysdeps/mach/hurd/i386/init-first.c |   60 ++++++++++++++++++++++--------------
- sysdeps/mach/hurd/i386/tls.h        |   43 ++++++++++++++++++++++---
- sysdeps/mach/hurd/i386/trampoline.c |    2 -
- sysdeps/mach/hurd/profil.c          |    2 +
- sysdeps/mach/hurd/setitimer.c       |    3 +
- sysdeps/mach/hurd/tls.h             |    1 
- sysdeps/mach/i386/thread_state.h    |   11 ++++++
- sysdeps/mach/powerpc/thread_state.h |    1 
- sysdeps/mach/thread_state.h         |    3 +
- sysdeps/mach/hurd/i386/tlsdesc.sym  |   17 +++++++++
+ csu/libc-start.c                        |    2 +
+ hurd/hurdfault.c                        |    2 +
+ hurd/hurdsig.c                          |    4 +-
+ mach/mach.h                             |    3 +
+ mach/setup-thread.c                     |   30 +++++++++++++++-
+ ports/sysdeps/mach/alpha/thread_state.h |    1 
+ sysdeps/generic/thread_state.h          |    1 
+ sysdeps/mach/hurd/bits/libc-lock.h      |    3 +
+ sysdeps/mach/hurd/bits/libc-tsd.h       |   35 ------------------
+ sysdeps/mach/hurd/fork.c                |    7 +++
+ sysdeps/mach/hurd/i386/init-first.c     |   60 +++++++++++++++++++-------------
+ sysdeps/mach/hurd/i386/tls.h            |   43 ++++++++++++++++++++--
+ sysdeps/mach/hurd/i386/tlsdesc.sym      |   17 +++++++++
+ sysdeps/mach/hurd/i386/trampoline.c     |    2 -
+ sysdeps/mach/hurd/profil.c              |    2 +
+ sysdeps/mach/hurd/setitimer.c           |    3 +
+ sysdeps/mach/hurd/tls.h                 |    1 
+ sysdeps/mach/i386/thread_state.h        |   11 +++++
+ sysdeps/mach/powerpc/thread_state.h     |    1 
+ sysdeps/mach/thread_state.h             |    3 +
  20 files changed, 161 insertions(+), 70 deletions(-)
 
 --- a/csu/libc-start.c
@@ -35,7 +35,7 @@
 +#endif
  
    /* Set up the stack checker's canary.  */
-   uintptr_t stack_chk_guard = _dl_setup_stack_chk_guard ();
+   uintptr_t stack_chk_guard = _dl_setup_stack_chk_guard (_dl_random);
 --- a/hurd/hurdfault.c
 +++ b/hurd/hurdfault.c
 @@ -206,6 +206,8 @@
@@ -49,7 +49,7 @@
  
 --- a/hurd/hurdsig.c
 +++ b/hurd/hurdsig.c
-@@ -1267,6 +1267,8 @@
+@@ -1268,6 +1268,8 @@
  				 (vm_address_t *) &__hurd_sigthread_stack_base,
  				 &stacksize);
        assert_perror (err);
@@ -58,7 +58,7 @@
  
        __hurd_sigthread_stack_end = __hurd_sigthread_stack_base + stacksize;
        __hurd_sigthread_variables =
-@@ -1275,8 +1277,6 @@
+@@ -1276,8 +1278,6 @@
  	__libc_fatal ("hurd: Can't allocate threadvars for signal thread\n");
        memset (__hurd_sigthread_variables, 0,
  	      __hurd_threadvar_max * sizeof (unsigned long int));
@@ -135,8 +135,8 @@
  #define MACHINE_THREAD_STATE_FLAVOR	<machine>_THREAD_STATE
  #define MACHINE_THREAD_STATE_COUNT	<machine>_THREAD_STATE_COUNT
  
---- a/sysdeps/mach/alpha/thread_state.h
-+++ b/sysdeps/mach/alpha/thread_state.h
+--- a/ports/sysdeps/mach/alpha/thread_state.h
++++ b/ports/sysdeps/mach/alpha/thread_state.h
 @@ -19,6 +19,7 @@
  
  #include <mach/machine/thread_status.h>
@@ -476,14 +476,16 @@
  
 --- a/sysdeps/mach/hurd/tls.h
 +++ b/sysdeps/mach/hurd/tls.h
-@@ -23,6 +23,7 @@
+@@ -23,7 +23,9 @@
  #if defined HAVE_TLS_SUPPORT && !defined __ASSEMBLER__
  
  # include <stddef.h>
 +# include <stdint.h>
  # include <stdbool.h>
++# include <sysdep.h>
  # include <mach/mig_errors.h>
  # include <mach.h>
+ 
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/tlsdesc.sym
 @@ -0,0 +1,17 @@

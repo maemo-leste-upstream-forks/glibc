@@ -4,7 +4,7 @@
 
 --- a/locale/programs/ld-collate.c
 +++ b/locale/programs/ld-collate.c
-@@ -181,14 +181,6 @@
+@@ -185,14 +185,6 @@
  #include "3level.h"
  
  
@@ -19,7 +19,7 @@
  /* The real definition of the struct for the LC_COLLATE locale.  */
  struct locale_collate_t
  {
-@@ -248,15 +240,6 @@
+@@ -252,15 +244,6 @@
    /* The arrays with the collation sequence order.  */
    unsigned char mbseqorder[256];
    struct collseq_table wcseqorder;
@@ -35,7 +35,7 @@
  };
  
  
-@@ -264,9 +247,6 @@
+@@ -268,9 +251,6 @@
     LC_COLLATE category descriptions in all files.  */
  static uint32_t nrules;
  
@@ -45,7 +45,7 @@
  
  /* We need UTF-8 encoding of numbers.  */
  static inline int
-@@ -2653,46 +2633,6 @@
+@@ -2509,46 +2489,6 @@
  }
  
  
@@ -92,7 +92,7 @@
  void
  collate_read (struct linereader *ldfile, struct localedef_t *result,
  	      const struct charmap_t *charmap, const char *repertoire_name,
-@@ -2723,8 +2663,6 @@
+@@ -2579,8 +2519,6 @@
    /* The rest of the line containing `LC_COLLATE' must be free.  */
    lr_ignore_rest (ldfile, 1);
  
@@ -101,7 +101,7 @@
        do
  	{
  	  now = lr_token (ldfile, charmap, result, NULL, verbose);
-@@ -2732,31 +2670,6 @@
+@@ -2588,31 +2526,6 @@
  	}
        while (nowtok == tok_eol);
  
@@ -133,7 +133,7 @@
    if (nowtok == tok_copy)
      {
        now = lr_token (ldfile, charmap, result, NULL, verbose);
-@@ -3911,7 +3824,6 @@
+@@ -3767,7 +3680,6 @@
  	  break;
  
  	case tok_end:
@@ -141,7 +141,7 @@
  	  /* Next we assume `LC_COLLATE'.  */
  	  if (!ignore_content)
  	    {
-@@ -3952,182 +3864,6 @@
+@@ -3808,182 +3720,6 @@
  	  lr_ignore_rest (ldfile, arg->tok == tok_lc_collate);
  	  return;
  
@@ -324,7 +324,7 @@
  	default:
  	err_label:
  	  SYNTAX_ERROR (_("%s: syntax error"), "LC_COLLATE");
-@@ -4138,7 +3874,6 @@
+@@ -3994,7 +3730,6 @@
        nowtok = now->tok;
      }
  

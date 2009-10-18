@@ -1,17 +1,50 @@
 #include "libc6.symbols.common"
 ld.so.1 libc6 #MINVER#
-| libc6 (>> 2.9), libc6 (<< 2.10)
+| libc6 (>> 2.10), libc6 (<< 2.11)
  *@GLIBC_PRIVATE 0 1
 #include "symbols.wildcards"
-### TLS support enabled with Debian upload 2.5
- __tls_get_addr@GLIBC_2.3 2.5
 libc.so.6 libc6 #MINVER#
-| libc6 (>> 2.9), libc6 (<< 2.10)
+| libc6 (>> 2.10), libc6 (<< 2.11)
  *@GLIBC_PRIVATE 0 1
 #include "symbols.wildcards"
 ###
 ### Override headers already defined in libc6.symbols.common
 ###
-libpthread.so.0 libc6 (>= 2.5), libc6 #MINVER#
-| libc6 (>> 2.9), libc6 (<< 2.10)
+# Minimal dependency set to 2.10 due to linuxthreads -> NPTL transition
+libBrokenLocale.so.1 libc6 (>= 2.10), libc6 #MINVER#
+#include "symbols.wildcards"
+libSegFault.so libc6 (>= 2.10), libc6 #MINVER#
+libcidn.so.1 libc6 (>= 2.10), libc6 #MINVER#
+| libc6 (>> 2.10), libc6 (<< 2.11)
  *@GLIBC_PRIVATE 0 1
+#include "symbols.wildcards"
+libcrypt.so.1 libc6 (>= 2.10), libc6 #MINVER#
+#include "symbols.wildcards"
+libdl.so.2 libc6 (>= 2.10), libc6 #MINVER#
+| libc6 (>> 2.10), libc6 (<< 2.11)
+ *@GLIBC_PRIVATE 0 1
+#include "symbols.wildcards"
+libm.so.6 libc6 (>= 2.10), libc6 #MINVER#
+#include "symbols.wildcards"
+libmemusage.so libc6 (>= 2.10), libc6 #MINVER#
+libnsl.so.1 libc6 (>= 2.10), libc6 #MINVER#
+| libc6 (>> 2.10), libc6 (<< 2.11)
+ *@GLIBC_PRIVATE 0 1
+#include "symbols.wildcards"
+libnss_compat.so.2 libc6 (>= 2.10), libc6 #MINVER#
+| libc6 (>> 2.10), libc6 (<< 2.11)
+ *@GLIBC_PRIVATE 0 1
+#include "symbols.wildcards"
+libnss_dns.so.2 libc6 (>= 2.10), libc6 #MINVER#
+| libc6 (>> 2.10), libc6 (<< 2.11)
+ *@GLIBC_PRIVATE 0 1
+#include "symbols.wildcards"
+libnss_files.so.2 libc6 (>= 2.10), libc6 #MINVER#
+| libc6 (>> 2.10), libc6 (<< 2.11)
+ *@GLIBC_PRIVATE 0 1
+#include "symbols.wildcards"
+libnss_hesiod.so.2 libc6 (>= 2.10), libc6 #MINVER#
+| libc6 (>> 2.10), libc6 (<< 2.11)
+ *@GLIBC_PRIVATE 0 1
+#include "symbols.wildcards"
+libnss_nis.so.2 libc6 (>= 2.10), libc6 #MINVER#

@@ -5,9 +5,6 @@
 # DP: Date: 2002-10-13, updated 2006-05-28
 
 ---
- sysdeps/alpha/Makefile                |    8 
- sysdeps/alpha/Versions                |    2 
- sysdeps/alpha/libgcc-compat.c         |   35 +++
  sysdeps/i386/Makefile                 |    5 
  sysdeps/i386/Versions                 |    3 
  sysdeps/i386/libgcc-compat.c          |   75 +++++++
@@ -21,7 +18,7 @@
  sysdeps/sparc/sparc32/Makefile        |    8 
  sysdeps/sparc/sparc32/Versions        |    4 
  sysdeps/sparc/sparc32/libgcc-compat.c |  121 +++++++++++
- 16 files changed, 478 insertions(+), 352 deletions(-)
+ 13 files changed, 433 insertions(+), 352 deletions(-)
 
 --- /dev/null
 +++ b/sysdeps/i386/libgcc-compat.c
@@ -280,69 +277,6 @@
 +    __floatdidf; __floatdisf;
    }
  }
---- /dev/null
-+++ b/sysdeps/alpha/libgcc-compat.c
-@@ -0,0 +1,35 @@
-+/* pre-.hidden libgcc compatibility
-+   Copyright (C) 2002 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+   Contributed by Guido Guenther <agx@sigxcpu.org>
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
-+
-+#include <stdint.h>
-+#include <shlib-compat.h>
-+
-+#if SHLIB_COMPAT(libc, GLIBC_2_0, GLIBC_2_2_6)
-+
-+typedef int int128_t __attribute__((__mode__(TI)));
-+
-+extern int128_t __multi3 (int128_t, int128_t);
-+int128_t INTUSE (__multi3) (int128_t x, int128_t y)
-+{
-+  return __multi3 (x, y);
-+}
-+symbol_version (INTUSE (__multi3), __multi3, GLIBC_2.0);
-+
-+#endif
---- a/sysdeps/alpha/Versions
-+++ b/sysdeps/alpha/Versions
-@@ -3,6 +3,8 @@
-     # functions with special/multiple interfaces
-     __divqu; __remqu; __divqs; __remqs; __divlu; __remlu; __divls;
-     __remls; __divl; __reml; __divq; __remq; __divqu; __remqu;
-+    # libgcc-compat
-+    __multi3;
-   }
- }
- libm {
---- a/sysdeps/alpha/Makefile
-+++ b/sysdeps/alpha/Makefile
-@@ -46,3 +46,11 @@
- # libc.so requires about 16k for the small data area, which is well
- # below the 64k maximum.
- pic-ccflag = -fpic
-+
-+ifeq ($(subdir),csu)
-+ifeq (yes,$(build-shared))
-+# Compatibility
-+sysdep_routines += libgcc-compat
-+shared-only-routines += libgcc-compat
-+endif
-+endif
 --- a/sysdeps/ia64/Makefile
 +++ b/sysdeps/ia64/Makefile
 @@ -12,8 +12,8 @@

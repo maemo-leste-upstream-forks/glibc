@@ -1,7 +1,138 @@
+eglibc (2.10.1-0exp3) experimental; urgency=low
+
+  [ Aurelien Jarno ]
+  * New upstream release.
+    - Fix C++ declaration of string functions.  Closes: #496763.
+    - Add Handling for group shadow files.  Closes: #519479.
+    - Use AT_RANDOM for randomized stack protector value.  Closes:
+      #533077.
+    - don't trigger assertion on __pthread_mutex_lock anymore.  Closes:
+      #479952.
+    - Fix week specifier in en_GB.  Closes: #511474.
+    - Update sys/timex.h.  Closes: #550857.
+    - debian/copyright, debian/*symbols*, debian/shlibver,
+      debian/locales-depver, debian/debhelper.in/*.lintian: upgrade
+      to 2.10.
+    - alpha has been moved to ports, update debian/sysdeps/alpha.mk and
+      debian/patches/alpha/* accordingly.
+    - Remove debian/patches/arm/submitted-setjmp.diff (merged).
+    - Remove debian/patches/arm/submitted-fpu_control_h.diff (merged).
+    - Remove debian/patches/hppa/cvs-tsd.diff (merged).
+    - Remove debian/patches/hppa/cvs-nptl.diff (merged).
+    - Remove debian/patches/hurd-i386/cvs-resource-prio.diff (merged).
+    - Remove debian/patches/hurd-i386/cvs-hurdsig-fix.diff (merged).
+    - Remove debian/patches/hurd-i386/cvs-net-headers.diff (merged).
+    - Remove debian/patches/hurd-i386/cvs-report-wait-fix.diff (merged).
+    - Remove debian/patches/hurd-i386/cvs-get_pc_thunk.diff (merged).
+    - Remove debian/patches/hurd-i386/cvs-strerror_l.diff (merged).
+    - Remove debian/patches/hurd-i386/cvs-rtld.diff (merged).
+    - Update debian/patches/hurd-i386/local-tls-support.diff.
+    - Update debian/patches/hurd-i386/submitted-extern_inline.diff.
+    - Update debian/patches/hurd-i386/local-atomic-no-multiple_threads.diff.
+    - Remove debian/patches/mips/cvs-context.diff (merged).
+    - Remove debian/patches/sparc/cvs-siginfo.diff (merged).
+    - Remove debian/patches/all/submitted-readme-version.diff (merged).
+    - Remove debian/patches/any/submitted-install-map-files.diff (merged).
+    - Remove debian/patches/any/cvs-pthread_h.diff (merged).
+    - Remove debian/patches/any/local-bashisms.diff (merged).
+    - Remove debian/patches/any/cvs-bz7058-nss_nss-nis.diff (merged).
+    - Remove debian/patches/any/cvs-iconv-utf16.diff (merged).
+    - Remove debian/patches/any/submitted-cross-zic.diff (merged).
+    - Remove debian/patches/any/cvs-binutils_2.20.diff (merged).
+    - Remove debian/patches/any/submitted-nss-nsswitch.diff (merged).
+    - Remove debian/patches/any/cvs-bz9706-nss_nss-files_files-parse.diff
+      (merged).
+    - Update debian/patches/any/cvs-broken-dns.diff.
+    - Remove debian/patches/any/cvs-bz9697-posix-regcomp.diff (merged).
+    - Remove debian/patches/any/cvs-bz697-posix-regexec.diff (merged).
+    - Remove debian/patches/any/submitted-broken-dns.diff (merged).
+    - Remove debian/patches/any/submitted-mount_h.diff (merged).
+    - Update debian/patches/any/submitted-futex_robust_pi.diff.
+    - Update debian/patches/any/local-dynamic-resolvconf.diff.
+    - Update debian/patches/any/local-libgcc-compat-main.diff.
+    - Update debian/patches/any/local-libgcc-compat-ports.diff.
+    - Update debian/patches/any/local-no-pagesize.diff.
+    - Remove debian/patches/any/submitted-date-and-unknown-tz.diff (merged).
+    - Remove debian/patches/any/cvs-sunrpc-license.diff (merged).
+    - Remove debian/patches/any/submitted-tst-cpucount.diff (merged).
+    - Remove debian/patches/any/submitted-signalfd-eventfd.diff (merged).
+    - Remove debian/patches/any/cvs-unsetenv.diff (merged).
+    - Remove debian/patches/localedata/mt_MT_euro.diff (merged).
+    - Remove debian/patches/localedata/submitted-bz9731-el_CY_euro.diff
+      (merged).
+    - Remove debian/patches/localedata/sk_SK_euro.diff (merged).
+    - Remove debian/patches/localedata/submitted-bz9730-locale-sv_FI.diff
+      (merged).
+    - Remove debian/patches/localedata/cvs-el_CY-el_GR-frac_digits.diff
+      (merged).
+    - Update debian/patches/localedata/sort-UTF8-first.diff.
+    - Update debian/patches/localedata/fr_CA-first_weekday.diff
+    - Update debian/patches/localedata/fr_BE-first_weekday.diff
+    - Update debian/patches/localedata/cy_GB-first_weekday.diff
+    - Remove debian/patches/localedata/submitted-bz9835-en_GB-first_day.diff
+      (merged).
+    - Update debian/patches/localedata/first_weekday.diff
+    - Update debian/patches/localedata/fr_LU-first_weekday.diff
+    - Update debian/patches/localedata/fr_CH-first_weekday.diff
+    - Remove debian/patches/sh4/cvs-headers-update.diff (merged).
+    - Remove debian/patches/any/local-revert-3270.diff (fixed upstream).
+  * Remove localedata/locale-fr_FR.diff as coreutils has been fixed.
+  * Add debian/patches/any/submitted-autotools.diff to update config.guess
+    and config.sub.
+  * Remove debian/patches/powerpc/local-sysconf.diff, as it only concerns
+    kernel that are not supported anymore.
+  * Add debian/patches/ia64/submitted-sysconf.diff to fix sysconf() on ia64.
+  * Add debian/patches/alpha/submitted-getsysstats.diff,
+    debian/patches/alpha/submitted-includes.diff and
+    debian/patches/alpha/submitted-lowlevellock.diff to partially fix FTBFS
+    on alpha.
+  * Add debian/patches/any/local-linuxthreads-unwind.diff to fix exception
+    handling with linuxthreads.
+  * Add debian/patches/any/cvs-nptl-init.diff to allow overwriting
+    architectures init.c in csu and nptl individually.
+  * Add debian/patches/any/submitted-accept4-hidden.diff to fix build
+    on non Linux architectures.
+  * Add debian/patches/kfreebsd/local-sysdeps-2.10.diff to update sysdeps
+    for glibc 2.10 on GNU/kFreeBSD.
+  * Add debian/patches/alpha/submitted-rtld-fPIC.diff to fix build on alpha.
+  * Add debian/patches/any/submitted-getent-gshadow.diff to add gshadow
+    support to getent.
+  * debian/rules.d/tarball.mk: store the checkout revision in the tarball
+    (file .svn-revision).
+  * debian/rules.d/tarball.mk: add an "update-from-upstream-svn" rule to
+    automatically update debian/patches/svn-updates.diff.
+  * patches/ia64/submitted-libm.diff: new patch to fix errors in the
+    math testsuite on ia64.
+  * Use gcc 4.4 by default, except on armel, hppa, mips, mipsel, sparc and
+    hurd-i386.
+  * Update to upstream revision 8758.
+  * patches/any/submitted-missing-etc-hosts.diff: new patch from Steve
+    Langasek to treat a missing /etc/hosts as a simple "not found", not as
+    an internal error.  Closes: bug#539950.
+
+  [ Petr Salinger ]
+  * Add kfreebsd/local-no-SOCK_NONBLOCK.diff to fix build on GNU/kFreeBSD.
+
+  [ Samuel Thibault ]
+  * Add debian/patches/hurd-i386/local-_dl_random.diff to fix build on
+    hurd-i386.
+  * Add debian/patches/hurd-i386/local-unwind-resume.diff to fix build on
+    hurd-i386.
+  * Fix debian/patches/hurd-i386/local-tls-support.diff to align up includes
+    on Linux, to fix build.
+
+  [ Carlos O'Donell ]
+  * Add hppa/cvs-nptl-compat.diff to keep ABI compatibility between
+    linuxthreads and NPTL on HPPA.
+  * sysdeps/hppa.mk: switch to NPTL. Closes: bug#538513.
+  * testsuite-checking/expected-results-hppa-linux-gnu-libc: update.
+
+ -- Clint Adams <schizo@debian.org>  Wed, 30 Sep 2009 14:40:25 -0400
+
 eglibc (2.9-28) UNRELEASED; urgency=low
 
   * libc.postinst: only call telinit on Linux as originally.
-  * Fix package name in alpha/ia64 private symbols versioning. 
+  * Fix package name in alpha/ia64 private symbols versioning.
 
  -- Aurelien Jarno <aurel32@debian.org>  Wed, 14 Oct 2009 11:47:53 +0200
 

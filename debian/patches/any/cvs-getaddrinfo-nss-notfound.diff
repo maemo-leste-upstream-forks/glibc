@@ -4,11 +4,13 @@
 	* sysdeps/posix/getaddrinfo.c (gaih_inet): If NSS module contains no
 	callback we must touch the status to avoid using stale value.
 
-diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
-index d346c62..a788d18 100644
+---
+ sysdeps/posix/getaddrinfo.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
 --- a/sysdeps/posix/getaddrinfo.c
 +++ b/sysdeps/posix/getaddrinfo.c
-@@ -833,6 +833,8 @@ gaih_inet (const char *name, const struct gaih_service *service,
+@@ -833,6 +833,8 @@
  			       && inet6_status != NSS_STATUS_UNAVAIL)
  			status = inet6_status;
  		    }
