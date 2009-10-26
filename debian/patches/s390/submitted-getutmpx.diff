@@ -1,0 +1,36 @@
+2009-10-26  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/unix/sysv/linux/s390/s390-32/getutmp.c: don't include
+	"sysdeps/gnu/getutmp.c", use a copy of the code instead.
+
+--- a/sysdeps/unix/sysv/linux/s390/s390-32/getutmp.c
++++ b/sysdeps/unix/sysv/linux/s390/s390-32/getutmp.c
+@@ -17,6 +17,7 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
++#include <assert.h>
+ #include <string.h>
+ #include <utmp.h>
+ /* This is an ugly hack but we must not see the getutmpx declaration.  */
+@@ -26,13 +27,13 @@
+ 
+ #include "utmp-compat.h"
+ 
+-#undef weak_alias
+-#define weak_alias(n,a)
+-#define getutmp __getutmp
+-#define getutmpx __getutmpx
+-#include "sysdeps/gnu/getutmp.c"
+-#undef getutmp
+-#undef getutmpx
++void
++__getutmp (const struct utmpx *utmpx, struct utmp *utmp)
++{
++    assert (sizeof (struct utmp) == sizeof (struct utmpx));
++    memcpy (utmp, utmpx, sizeof (struct utmp));
++}
++strong_alias (__getutmp, __getutmpx)
+ 
+ default_symbol_version (__getutmp, getutmp, UTMP_COMPAT_BASE);
+ default_symbol_version (__getutmpx, getutmpx, UTMP_COMPAT_BASE);
