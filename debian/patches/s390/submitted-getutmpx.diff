@@ -1,35 +1,29 @@
 2009-10-26  Aurelien Jarno  <aurelien@aurel32.net>
 
-	* sysdeps/unix/sysv/linux/s390/s390-32/getutmp.c: don't include
-	"sysdeps/gnu/getutmp.c", use a copy of the code instead.
+	* sysdeps/unix/sysv/linux/s390/s390-32/getutmp.c: redefine 
+	strong_alias instead of weak_alias before the include.
+	Alias __getutmpx to __getutmp in this file.
 
+diff --git a/sysdeps/unix/sysv/linux/s390/s390-32/getutmp.c b/sysdeps/unix/sysv/linux/s390/s390-32/getutmp.c
+index 2a14e12..acb6270 100644
 --- a/sysdeps/unix/sysv/linux/s390/s390-32/getutmp.c
 +++ b/sysdeps/unix/sysv/linux/s390/s390-32/getutmp.c
-@@ -17,6 +17,7 @@
-    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA.  */
- 
-+#include <assert.h>
- #include <string.h>
- #include <utmp.h>
- /* This is an ugly hack but we must not see the getutmpx declaration.  */
-@@ -26,13 +27,13 @@
+@@ -26,13 +26,17 @@
  
  #include "utmp-compat.h"
  
 -#undef weak_alias
 -#define weak_alias(n,a)
--#define getutmp __getutmp
--#define getutmpx __getutmpx
--#include "sysdeps/gnu/getutmp.c"
--#undef getutmp
--#undef getutmpx
-+void
-+__getutmp (const struct utmpx *utmpx, struct utmp *utmp)
-+{
-+    assert (sizeof (struct utmp) == sizeof (struct utmpx));
-+    memcpy (utmp, utmpx, sizeof (struct utmp));
-+}
++#undef strong_alias
++#define strong_alias(n,a)
+ #define getutmp __getutmp
+ #define getutmpx __getutmpx
+ #include "sysdeps/gnu/getutmp.c"
+ #undef getutmp
+ #undef getutmpx
++#undef strong_alias
++#define strong_alias(name, aliasname) _strong_alias(name, aliasname)
++
 +strong_alias (__getutmp, __getutmpx)
  
  default_symbol_version (__getutmp, getutmp, UTMP_COMPAT_BASE);
