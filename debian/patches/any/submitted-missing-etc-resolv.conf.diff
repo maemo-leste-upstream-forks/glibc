@@ -1,0 +1,15 @@
+2009-10-26  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* resolv/res_init.c (__res_vinit): Initialize nscount to one.
+
+--- a/resolv/res_init.c
++++ b/resolv/res_init.c
+@@ -183,7 +183,7 @@ __res_vinit(res_state statp, int preinit) {
+ #endif
+ 	statp->nsaddr.sin_family = AF_INET;
+ 	statp->nsaddr.sin_port = htons(NAMESERVER_PORT);
+-	statp->nscount = 0;
++	statp->nscount = 1;
+ 	statp->ndots = 1;
+ 	statp->pfcode = 0;
+ 	statp->_vcsock = -1;
