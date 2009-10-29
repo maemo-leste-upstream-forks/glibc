@@ -1,6 +1,9 @@
 CC = gcc-4.3
 CXX = g++-4.3
 
+# PIE support is currently broken on MIPS
+fpie = no
+
 #
 # Temporary hack to use our own version of unistd.h
 # to workaround kernel bugs on the build daemons

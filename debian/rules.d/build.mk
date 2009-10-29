@@ -33,6 +33,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	echo "KSH := /bin/bash"			>> $(DEB_BUILDDIR)/configparms
 	echo "SHELL := /bin/bash"		>> $(DEB_BUILDDIR)/configparms
 	echo "LIBGD = no"			>> $(DEB_BUILDDIR)/configparms
+	echo "have-fpie = $(fpie)"              >> $(DEB_BUILDDIR)/configparms
 	echo "bindir = $(bindir)"		>> $(DEB_BUILDDIR)/configparms
 	echo "datadir = $(datadir)"		>> $(DEB_BUILDDIR)/configparms
 	echo "localedir = $(localedir)" 	>> $(DEB_BUILDDIR)/configparms
