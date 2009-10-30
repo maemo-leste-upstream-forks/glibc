@@ -64,7 +64,7 @@ EGLIBC_VERSION = $(shell echo $(DEB_VERSION) | sed -e 's/-.*//')
 DEB_BUILDDIR ?= $(build-tree)/$(DEB_HOST_ARCH)-$(curpass)
 
 EGLIBC_SOURCES = $(addprefix $(shell basename $(CURDIR))/, \
-		 $(filter-out $(stamp) CVS $(build-tree), $(wildcard *)))
+		 $(filter-out debian $(shell basename $(stamp)) $(build-tree), $(wildcard *)))
 		 
 # The kernel uses different CPU appreviations (uname output) than the GNU
 # tools do (config.sub).  Map them.
@@ -91,7 +91,6 @@ mandir=$(prefix)/share/man
 sbindir=$(prefix)/sbin
 slibdir=/lib
 libdir=/usr/lib
-fpie=yes
 
 BUILD_CC = gcc
 BUILD_CXX = g++

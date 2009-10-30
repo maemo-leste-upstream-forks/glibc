@@ -160,6 +160,7 @@ $(stamp)doc: $(stamp)patch
 	touch $@
 
 $(stamp)source: $(stamp)patch
+	mkdir -p $(build-tree)
 	tar -c --lzma -C .. \
 		-f $(build-tree)/eglibc-$(EGLIBC_VERSION).tar.lzma \
 		$(EGLIBC_SOURCES)
