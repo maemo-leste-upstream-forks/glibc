@@ -95,10 +95,10 @@ then
 	    check="$check boa cucipop courier-authdaemon cron cups exim"
 	    check="$check exim4-base dovecot-common cucipop lprng lpr"
 	    check="$check lpr-ppd mysql-server nis openbsd-inetd"
-	    check="$check openldapd postfix postfix-tls rsync samba"
+	    check="$check openldapd proftpd postfix postfix-tls rsync samba"
 	    check="$check sasl2-bin slapd smail sendmail snmpd ssh"
 	    check="$check spamassassin vsftpd wu-ftpd wu-ftpd-academ wwwoffle"
-	    check="$check webmin dropbear"
+	    check="$check webmin dropbear gdm"
 	    # NSS services check: NSS_CHECK
 	    if [ -n "$services" ]; then
 
@@ -156,16 +156,29 @@ then
 			else
 			    idl=$(ls /etc/rc${rl}.d/S??${service} 2> /dev/null | head -1)
 			fi
-			echo -n "  $service: stopping..."
-			$idl stop > /dev/null 2>&1 || true
-			sleep 2
-			echo -n "starting..."
-			if $idl start > /dev/null 2>&1; then
-			    echo "done."
-			else
-			    echo "FAILED! ($?)"
-			    failed="$service $failed"
-			fi
+			case "$service" in
+			    gdm)
+				echo -n "  $service: reloading..."
+				if $idl reload > /dev/null 2>&1; then
+				    echo "done."
+				else
+				    echo "FAILED! ($?)"
+				    failed="$service $failed"
+				fi
+				;;
+			    *)
+				echo -n "  $service: stopping..."
+				$idl stop > /dev/null 2>&1 || true
+				sleep 2
+				echo -n "starting..."
+				if $idl start > /dev/null 2>&1; then
+				    echo "done."
+				else
+				    echo "FAILED! ($?)"
+				    failed="$service $failed"
+				fi
+				;;
+			esac
 		    done
 		    echo
 		    if [ -n "$failed" ]; then
@@ -199,7 +212,7 @@ then
 	    else
 		echo "Nothing to restart."
 	    fi
-	fi # end upgrading and $preversion lt 2.6-1
+	fi # end upgrading and $preversion lt 2.10-2
     fi # Upgrading
 
     # Generate cache file /usr/lib/gconv/gconv-modules.cache
