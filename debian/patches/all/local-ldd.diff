@@ -1,0 +1,17 @@
+2009-11-08  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* elf/ldd.bash.in: also handle error code 126 (ld.so non 
+	executable).
+
+--- a/elf/ldd.bash.in
++++ b/elf/ldd.bash.in
+@@ -179,7 +179,7 @@ warning: you do not have execution permission for" "\`$file'" >&2
+       fi
+       [ $rc = 0 ] || result=1
+       ;;
+-    1)
++    1|126)
+       # This can be a non-ELF binary or no binary at all.
+       nonelf "$file" || {
+ 	echo $"	not a dynamic executable"
+
