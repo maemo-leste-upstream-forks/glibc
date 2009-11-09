@@ -69,9 +69,12 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	# We use a wrapper script so that we only include the bare
 	# minimum in /usr/lib/debug/lib for backtraces; anything
 	# else takes too long to load in GDB.
+	
+	# strip *.o files as dh_strip does not (yet?) do it.
 
 	if test "$(NOSTRIP_$(curpass))" != 1; then			\
 	  dh_strip -p$(curpass) -Xlibpthread --dbg-package=$(libc)-dbg; \
+	  								\
 	  (cd debian/$(curpass);					\
 	   find . -name libpthread-\*.so -exec objcopy			\
 	     --only-keep-debug '{}' ../$(libc)-dbg/usr/lib/debug/'{}'   \
@@ -82,6 +85,17 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	  find debian/$(curpass) -name libpthread-\*.so -exec		\
 	    strip --strip-debug --remove-section=.comment		\
 	    --remove-section=.note '{}' ';' || true;			\
+	    								\
+	  (cd debian/$(curpass);					\
+	   find . -name \*crt\*.o -exec objcopy				\
+	     --only-keep-debug '{}' ../$(libc)-dbg/usr/lib/debug/'{}'   \
+	     ';' || true;						\
+	   find . -name \*crt\*.o -exec objcopy				\
+	     --add-gnu-debuglink=../$(libc)-dbg/usr/lib/debug/'{}'	\
+	     '{}' ';' || true);						\
+	  find debian/$(curpass) -name \*crt\*.o -exec			\
+	    strip --strip-debug --remove-section=.comment		\
+	    --remove-section=.note --strip-unneeded '{}' ';' || true;	\
 	fi
 endif
 
