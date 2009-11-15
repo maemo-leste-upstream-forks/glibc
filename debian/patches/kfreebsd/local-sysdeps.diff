@@ -3359,7 +3359,7 @@
 +
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/fcntl.h
-@@ -0,0 +1,168 @@
+@@ -0,0 +1,180 @@
 +/* O_*, F_*, FD_* bit values for FreeBSD.
 +   Copyright (C) 1991-1992, 1997, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3437,6 +3437,18 @@
 +   given to `open'.  */
 +#define FREAD		1
 +#define	FWRITE		2
++#endif
++
++#ifdef __USE_ATFILE
++# define AT_FDCWD		-100	/* Special value used to indicate
++					   the *at functions should use the
++					   current working directory. */
++# define AT_EACCESS		0x100	/* Test access permitted for
++					   effective IDs, not real IDs.  */
++# define AT_SYMLINK_NOFOLLOW	0x200	/* Do not follow symbolic links.  */
++# define AT_SYMLINK_FOLLOW	0x400	/* Follow symbolic links.  */
++# define AT_REMOVEDIR		0x800	/* Remove directory instead of
++					   unlinking file.  */
 +#endif
 +
 +/*
@@ -8310,7 +8322,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/faccessat.c
-@@ -0,0 +1,164 @@
+@@ -0,0 +1,172 @@
 +/* Test for access to file, relative to open directory.  Linux version.
 +   Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -8381,10 +8393,18 @@
 +	  int mib[4];
 +	  size_t kf_len = 0;
 +	  char *kf_buf, *kf_bufp;
++	  size_t filelen;
 +
 +	  if (fd < 0)
 +	    {
 +	      __set_errno (EBADF);
++	      return -1;
++	    }
++
++	  filelen = strlen (file);
++	  if (__builtin_expect (filelen == 0, 0))
++	    {
++	      __set_errno (ENOENT);
 +	      return -1;
 +	    }
 +
@@ -8399,7 +8419,7 @@
 +	      return -1;
 +	    }
 +
-+	  kf_buf = alloca (kf_len + strlen (file));
++	  kf_buf = alloca (kf_len + filelen);
 +	  if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	    {
 +	      __set_errno (ENOSYS);
@@ -8477,7 +8497,7 @@
 +stub_warning(faccessat)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fchmodat.c
-@@ -0,0 +1,131 @@
+@@ -0,0 +1,139 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -8548,10 +8568,18 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t filelen;
 +
 +      if (fd < 0)
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      filelen = strlen (file);
++      if (__builtin_expect (filelen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -8566,7 +8594,7 @@
 +	  return -1;
 +	}
 +
-+      kf_buf = alloca (kf_len + strlen (file));
++      kf_buf = alloca (kf_len + filelen);
 +      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
@@ -8611,7 +8639,7 @@
 +stub_warning(fchmodat)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fchownat.c
-@@ -0,0 +1,130 @@
+@@ -0,0 +1,138 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -8681,10 +8709,18 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t filelen;
 +
 +      if (fd < 0)
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      filelen = strlen (file);
++      if (__builtin_expect (filelen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -8699,7 +8735,7 @@
 +	  return -1;
 +	}
 +
-+      kf_buf = alloca (kf_len + strlen (file));
++      kf_buf = alloca (kf_len + filelen);
 +      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
@@ -9246,7 +9282,7 @@
 +/* 'ftruncate64' is the same as 'ftruncate', because __off64_t == __off_t.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/futimesat.c
-@@ -0,0 +1,131 @@
+@@ -0,0 +1,139 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -9314,10 +9350,18 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t filelen;
 +
 +      if (fd < 0)
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      filelen = strlen (file);
++      if (__builtin_expect (filelen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -9335,7 +9379,7 @@
 +      if (file == NULL)
 +	kf_buf = alloca (kf_len);
 +      else
-+	kf_buf = alloca (kf_len + strlen (file));
++	kf_buf = alloca (kf_len + filelen);
 +
 +      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
@@ -9478,7 +9522,7 @@
 +hidden_def (__fxstat64)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fxstatat.c
-@@ -0,0 +1,151 @@
+@@ -0,0 +1,159 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -9567,10 +9611,18 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t filelen;
 +
 +      if (fd < 0)
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      filelen = strlen (file);
++      if (__builtin_expect (filelen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -9585,7 +9637,7 @@
 +	  return -1;
 +	}
 +
-+      kf_buf = alloca (kf_len + strlen (file));
++      kf_buf = alloca (kf_len + filelen);
 +      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
@@ -9632,7 +9684,7 @@
 +stub_warning(fstatat)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fxstatat64.c
-@@ -0,0 +1,145 @@
+@@ -0,0 +1,153 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -9715,10 +9767,18 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t filelen;
 +
 +      if (fd < 0)
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      filelen = strlen (file);
++      if (__builtin_expect (filelen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -9733,7 +9793,7 @@
 +	  return -1;
 +	}
 +
-+      kf_buf = alloca (kf_len + strlen (file));
++      kf_buf = alloca (kf_len + filelen);
 +      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
@@ -14663,7 +14723,7 @@
 +#endif /* ldsodefs.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linkat.c
-@@ -0,0 +1,172 @@
+@@ -0,0 +1,182 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -14736,10 +14796,20 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t fromlen, tolen;
 +
 +      if ((fromfd < 0) || (tofd < 0))
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      fromlen = strlen (from);
++      tolen = strlen (to);
++      if (__builtin_expect (fromlen == 0, 0)
++	  || __builtin_expect (tolen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -14779,7 +14849,7 @@
 +		      return -1;
 +		    }
 +
-+		  buf = alloca (strlen (kf->kf_path) + strlen (from) + 2);
++		  buf = alloca (strlen (kf->kf_path) + fromlen + 2);
 +		  strcpy(buf, kf->kf_path);
 +		  strcat (buf, "/");
 +		  strcat (buf, from);
@@ -14814,7 +14884,7 @@
 +		      return -1;
 +		    }
 +
-+		  buf = alloca (strlen (kf->kf_path) + strlen (to) + 2);
++		  buf = alloca (strlen (kf->kf_path) + tolen + 2);
 +		  strcpy(buf, kf->kf_path);
 +		  strcat (buf, "/");
 +		  strcat (buf, to);
@@ -15581,7 +15651,7 @@
 +hidden_def (__lxstat64)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mkdirat.c
-@@ -0,0 +1,119 @@
+@@ -0,0 +1,127 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -15643,10 +15713,18 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t filelen;
 +
 +      if (fd < 0)
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      filelen = strlen (file);
++      if (__builtin_expect (filelen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -15661,7 +15739,7 @@
 +	  return -1;
 +	}
 +
-+      kf_buf = alloca (kf_len + strlen (file));
++      kf_buf = alloca (kf_len + filelen);
 +      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
@@ -18078,7 +18156,7 @@
 +strong_alias (__open_2, __open64_2)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/openat.c
-@@ -0,0 +1,296 @@
+@@ -0,0 +1,312 @@
 +/* Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -18148,10 +18226,18 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t filelen;
 +
 +      if (fd < 0)
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      filelen = strlen (file);
++      if (__builtin_expect (filelen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -18166,7 +18252,7 @@
 +	  return -1;
 +	}
 +
-+      kf_buf = alloca (kf_len + strlen (file));
++      kf_buf = alloca (kf_len + filelen);
 +      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
@@ -18256,10 +18342,18 @@
 +	  int mib[4];
 +	  size_t kf_len = 0;
 +	  char *kf_buf, *kf_bufp;
++	  size_t filelen;
 +
 +	  if (fd < 0)
 +	    {
 +	      __set_errno (EBADF);
++	      return -1;
++	    }
++
++	  filelen = strlen (file);
++	  if (__builtin_expect (filelen == 0, 0))
++	    {
++	      __set_errno (ENOENT);
 +	      return -1;
 +	    }
 +
@@ -18274,7 +18368,7 @@
 +	      return -1;
 +	    }
 +
-+	  kf_buf = alloca (kf_len + strlen (file));
++	  kf_buf = alloca (kf_len + filelen);
 +	  if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	    {
 +	      __set_errno (ENOSYS);
@@ -18876,7 +18970,7 @@
 +weak_alias (__readdir64_r, readdir64_r)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/readlinkat.c
-@@ -0,0 +1,123 @@
+@@ -0,0 +1,131 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -18940,10 +19034,18 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t pathlen;
 +
 +      if (fd < 0)
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      pathlen = strlen (path);
++      if (__builtin_expect (pathlen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -18958,7 +19060,7 @@
 +	  return -1;
 +	}
 +
-+      kf_buf = alloca (kf_len + strlen (path));
++      kf_buf = alloca (kf_len + pathlen);
 +      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
@@ -19205,7 +19307,7 @@
 +LIBC_CANCEL_HANDLED (); /* in __libc_recvfrom */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/renameat.c
-@@ -0,0 +1,165 @@
+@@ -0,0 +1,174 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -19270,10 +19372,19 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t old_filelen, new_filelen;
 +
 +      if ((oldfd < 0) || (newfd < 0))
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      old_filelen = strlen (old);
++      if (__builtin_expect (old_filelen == 0, 0)
++	  || __builtin_expect (new_filelen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -19313,7 +19424,7 @@
 +		      return -1;
 +		    }
 +
-+		  buf = alloca (strlen (kf->kf_path) + strlen (old) + 2);
++		  buf = alloca (strlen (kf->kf_path) + old_filelen + 2);
 +		  strcpy(buf, kf->kf_path);
 +		  strcat (buf, "/");
 +		  strcat (buf, old);
@@ -19348,7 +19459,7 @@
 +		      return -1;
 +		    }
 +
-+		  buf = alloca (strlen (kf->kf_path) + strlen (new) + 2);
++		  buf = alloca (strlen (kf->kf_path) + new_filelen + 2);
 +		  strcpy(buf, kf->kf_path);
 +		  strcat (buf, "/");
 +		  strcat (buf, new);
@@ -20892,7 +21003,7 @@
 +#include <misc/stty.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/symlinkat.c
-@@ -0,0 +1,119 @@
+@@ -0,0 +1,127 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -20954,10 +21065,18 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t tolen;
 +
 +      if (tofd < 0)
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      tolen = strlen (to);
++      if (__builtin_expect (tolen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -20972,7 +21091,7 @@
 +	  return -1;
 +	}
 +
-+      kf_buf = alloca (kf_len + strlen (to));
++      kf_buf = alloca (kf_len + tolen);
 +      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
@@ -21012,6 +21131,7 @@
 +#endif
 +}
 +stub_warning(symlinkat)
+Binary files null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/.syscall.h.swp and b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/.syscall.h.swp differ
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/kd.h
 @@ -0,0 +1,25 @@
@@ -21481,7 +21601,7 @@
 +#endif /* _SYS_MOUNT_H */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/param.h
-@@ -0,0 +1,237 @@
+@@ -0,0 +1,238 @@
 +/* Copyright (C) 1995,1996,1997,2000,2001,2003 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -21524,6 +21644,7 @@
 +
 +/* Some inet code expects that this file defines the 'u_int32_t' type.  */
 +#include <sys/types.h>
++#include <stdint.h>
 +
 +/*
 + * Machine-independent constants (some used in following include files).
@@ -23377,7 +23498,7 @@
 +libc_hidden_def (uname)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlinkat.c
-@@ -0,0 +1,128 @@
+@@ -0,0 +1,136 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -23446,10 +23567,18 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t filelen;
 +
 +      if (fd < 0)
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      filelen = strlen (file);
++      if (__builtin_expect (filelen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -23464,7 +23593,7 @@
 +	  return -1;
 +	}
 +
-+      kf_buf = alloca (kf_len + strlen (file));
++      kf_buf = alloca (kf_len + filelen);
 +      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
@@ -27021,7 +27150,7 @@
 +weak_alias (__xmknod, _xmknod)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/xmknodat.c
-@@ -0,0 +1,138 @@
+@@ -0,0 +1,146 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -27100,10 +27229,18 @@
 +      int mib[4];
 +      size_t kf_len = 0;
 +      char *kf_buf, *kf_bufp;
++      size_t filelen;
 +
 +      if (fd < 0)
 +	{
 +	  __set_errno (EBADF);
++	  return -1;
++	}
++
++      filelen = strlen (file);
++      if (__builtin_expect (filelen == 0, 0))
++	{
++	  __set_errno (ENOENT);
 +	  return -1;
 +	}
 +
@@ -27118,7 +27255,7 @@
 +	  return -1;
 +	}
 +
-+      kf_buf = alloca (kf_len + strlen (file));
++      kf_buf = alloca (kf_len + filelen);
 +      if (__sysctl (mib, 4, kf_buf, &kf_len, NULL, 0) != 0)
 +	{
 +	  __set_errno (ENOSYS);
