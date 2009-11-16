@@ -3542,7 +3542,7 @@
 +
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/in.h
-@@ -0,0 +1,305 @@
+@@ -0,0 +1,307 @@
 +/* Copyright (C) 1997, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -3673,6 +3673,8 @@
 +/*
 + * Filter modes; also used to represent per-socket filter mode internally.
 + */
++ 
++#define MCAST_UNDEFINED 0       /* fmode: not yet defined */
 +#define	MCAST_INCLUDE	1	/* fmode: include these source(s) */
 +#define	MCAST_EXCLUDE	2	/* fmode: exclude these source(s) */
 +
@@ -15953,7 +15955,7 @@
 +   systems.  */
 +struct ether_addr
 +{
-+  u_int8_t ether_addr_octet[ETH_ALEN];
++  u_int8_t octet[ETH_ALEN];
 +} __attribute__ ((__packed__));
 +
 +/* 10Mb/s ethernet header */
@@ -15997,7 +15999,7 @@
 +#endif	/* net/ethernet.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/if.h
-@@ -0,0 +1,432 @@
+@@ -0,0 +1,436 @@
 +/*-
 + * Copyright (c) 1982, 1986, 1989, 1993
 + *	The Regents of the University of California.  All rights reserved.
@@ -16138,6 +16140,7 @@
 +#define	IFF_MONITOR	0x40000		/* (n) user-requested monitor mode */
 +#define	IFF_STATICARP	0x80000		/* (n) static ARP */
 +#define	IFF_NEEDSGIANT	0x100000	/* (i) hold Giant over if_start calls */
++#define IFF_DYING       0x200000        /* (n) interface is winding down */
 +
 +/*
 + * Old names for driver flags so that user space tools can continue to use
@@ -16203,6 +16206,7 @@
 +#define	IFCAP_TOE4		0x04000	/* interface can offload TCP */
 +#define	IFCAP_TOE6		0x08000	/* interface can offload TCP6 */
 +#define	IFCAP_VLAN_HWFILTER	0x10000 /* interface hw can filter vlan tag */
++#define IFCAP_POLLING_NOCOUNT   0x20000 /* polling ticks cannot be fragmented */
 +
 +#define	IFCAP_HWCSUM		(IFCAP_RXCSUM | IFCAP_TXCSUM)
 +#define	IFCAP_TSO		(IFCAP_TSO4 | IFCAP_TSO6)
@@ -16283,6 +16287,7 @@
 +		struct	sockaddr ifru_netmask;
 +		short	ifru_flags[2];
 +		short	ifru_index;
++		int	ifru_jid;
 +		int	ifru_metric;
 +		int	ifru_mtu;
 +		int	ifru_phys;
@@ -16296,6 +16301,7 @@
 +#define	ifr_netmask	ifr_ifru.ifru_netmask	/* interface net mask */
 +#define	ifr_flags	ifr_ifru.ifru_flags[0]	/* flags (low 16 bits) */
 +#define	ifr_flagshigh	ifr_ifru.ifru_flags[1]	/* flags (high 16 bits) */
++#define ifr_jid         ifr_ifru.ifru_jid       /* jail/vnet */
 +#define	ifr_metric	ifr_ifru.ifru_metric	/* metric */
 +#define	ifr_mtu		ifr_ifru.ifru_mtu	/* mtu */
 +#define ifr_phys	ifr_ifru.ifru_phys	/* physical wire */
@@ -19307,7 +19313,7 @@
 +LIBC_CANCEL_HANDLED (); /* in __libc_recvfrom */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/renameat.c
-@@ -0,0 +1,174 @@
+@@ -0,0 +1,175 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -19381,6 +19387,7 @@
 +	}
 +
 +      old_filelen = strlen (old);
++      new_filelen = strlen (new);
 +      if (__builtin_expect (old_filelen == 0, 0)
 +	  || __builtin_expect (new_filelen == 0, 0))
 +	{
@@ -21131,7 +21138,6 @@
 +#endif
 +}
 +stub_warning(symlinkat)
-Binary files null/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/.syscall.h.swp and b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/.syscall.h.swp differ
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/kd.h
 @@ -0,0 +1,25 @@
