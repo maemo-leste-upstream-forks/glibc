@@ -95,7 +95,7 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	     '{}' ';' || true);						\
 	  find debian/$(curpass) -name \*crt\*.o -exec			\
 	    strip --strip-debug --remove-section=.comment		\
-	    --remove-section=.note --strip-unneeded '{}' ';' || true;	\
+	    --remove-section=.note '{}' ';' || true;	\
 	fi
 endif
 
