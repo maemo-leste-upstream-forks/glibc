@@ -1,19 +1,24 @@
---- eglibc-2.10.1-orig/nptl/allocatestack.c	2009-02-05 09:29:56.000000000 -0500
-+++ eglibc-2.10.1/nptl/allocatestack.c	2009-11-09 09:39:02.000000000 -0500
-@@ -353,6 +353,12 @@
+diff --git a/nptl/allocatestack.c b/nptl/allocatestack.c
+index 3c3585f..9fba661 100644
+--- a/nptl/allocatestack.c
++++ b/nptl/allocatestack.c
+@@ -353,6 +353,15 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
    if (__builtin_expect (attr->flags & ATTR_FLAG_STACKADDR, 0))
      {
        uintptr_t adj;
 +#if _STACK_GROWS_DOWN
 +      char * stackaddr = (char *) attr->stackaddr;
 +#else
-+      /* Assume the same layout, but later adjust the stack pointer.  */
++      /* Assume the same layout as the _STACK_GROWS_DOWN case, 
++	 with struct pthread at the top of the stack block. 
++	 Later we adjust the guard location and stack address 
++	 to match the _STACK_GROWS_UP case.  */
 +      char * stackaddr = (char *) attr->stackaddr + attr->stacksize;
 +#endif
  
        /* If the user also specified the size of the stack make sure it
  	 is large enough.  */
-@@ -362,11 +368,11 @@
+@@ -362,11 +371,11 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
  
        /* Adjust stack size for alignment of the TLS block.  */
  #if TLS_TCB_AT_TP
@@ -27,7 +32,7 @@
  	    & __static_tls_align_m1;
        assert (size > adj);
  #endif
-@@ -376,10 +382,10 @@
+@@ -376,10 +385,10 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
  	 the stack.  It is the user's responsibility to do this if it
  	 is wanted.  */
  #if TLS_TCB_AT_TP
@@ -40,7 +45,7 @@
  			        - __static_tls_size - adj)
  			       - TLS_PRE_TCB_SIZE);
  #endif
-@@ -391,7 +397,7 @@
+@@ -391,7 +400,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
        pd->specific[0] = pd->specific_1stblock;
  
        /* Remember the stack-related values.  */
@@ -49,7 +54,7 @@
        pd->stackblock_size = size;
  
        /* This is a user-provided stack.  It will not be queued in the
-@@ -616,7 +622,7 @@
+@@ -616,7 +625,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
  	  char *guard = mem + (((size - guardsize) / 2) & ~pagesize_m1);
  #elif _STACK_GROWS_DOWN
  	  char *guard = mem;
@@ -58,7 +63,7 @@
  	  char *guard = (char *) (((uintptr_t) pd - guardsize) & ~pagesize_m1);
  #endif
  	  if (mprotect (guard, guardsize, PROT_NONE) != 0)
-@@ -715,7 +721,6 @@
+@@ -715,7 +724,6 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
    *stack = stacktop;
  #elif _STACK_GROWS_UP
    *stack = pd->stackblock;
@@ -66,63 +71,17 @@
  #endif
  
    return 0;
---- eglibc-2.10.1-orig/nptl/pthread_getattr_np.c	2007-09-12 12:26:54.000000000 -0400
-+++ eglibc-2.10.1/nptl/pthread_getattr_np.c	2009-11-09 09:51:01.000000000 -0500
-@@ -61,7 +61,11 @@
-   if (__builtin_expect (thread->stackblock != NULL, 1))
-     {
-       iattr->stacksize = thread->stackblock_size;
-+#ifdef _STACK_GROWS_DOWN
-       iattr->stackaddr = (char *) thread->stackblock + iattr->stacksize;
-+#else
-+      iattr->stackaddr = (char *) thread->stackblock;
-+#endif
-     }
-   else
-     {
-@@ -94,7 +98,7 @@
+diff --git a/nptl/pthread_attr_getstack.c b/nptl/pthread_attr_getstack.c
+index 1db135e..ae02c9d 100644
+--- a/nptl/pthread_attr_getstack.c
++++ b/nptl/pthread_attr_getstack.c
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2002 Free Software Foundation, Inc.
++/* Copyright (C) 2002, 2009 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
  
- 	      char *line = NULL;
- 	      size_t linelen = 0;
--	      uintptr_t last_to = 0;
-+	      uintptr_t last_stackaddr = 0;
- 
- 	      while (! feof_unlocked (fp))
- 		{
-@@ -110,18 +114,25 @@
- 		    {
- 		      /* Found the entry.  Now we have the info we need.  */
- 		      iattr->stacksize = rl.rlim_cur;
-+#ifdef _STACK_GROWS_DOWN
- 		      iattr->stackaddr = (void *) to;
--
-+#else
-+		      iattr->stackaddr = (void *) from;
-+#endif
- 		      /* The limit might be too high.  */
- 		      if ((size_t) iattr->stacksize
--			  > (size_t) iattr->stackaddr - last_to)
--			iattr->stacksize = (size_t) iattr->stackaddr - last_to;
-+			  > (size_t) iattr->stackaddr - last_stackaddr)
-+			iattr->stacksize = (size_t) iattr->stackaddr - last_stackaddr;
- 
- 		      /* We succeed and no need to look further.  */
- 		      ret = 0;
- 		      break;
- 		    }
--		  last_to = to;
-+#ifdef _STACK_GROWS_DOWN
-+		  last_stackaddr = to;
-+#else
-+		  last_stackaddr = from;
-+#endif
- 		}
- 
- 	      free (line);
-diff -urN eglibc-2.10.1-orig/nptl/pthread_attr_getstack.c eglibc-2.10.1/nptl/pthread_attr_getstack.c
---- eglibc-2.10.1-orig/nptl/pthread_attr_getstack.c	2006-08-16 21:18:26.000000000 -0400
-+++ eglibc-2.10.1/nptl/pthread_attr_getstack.c	2009-11-08 15:22:15.000000000 -0500
-@@ -33,7 +33,11 @@
+@@ -33,7 +33,11 @@ __pthread_attr_getstack (attr, stackaddr, stacksize)
    iattr = (struct pthread_attr *) attr;
  
    /* Store the result.  */
@@ -134,10 +93,17 @@ diff -urN eglibc-2.10.1-orig/nptl/pthread_attr_getstack.c eglibc-2.10.1/nptl/pth
    *stacksize = iattr->stacksize;
  
    return 0;
-diff -urN eglibc-2.10.1-orig/nptl/pthread_attr_setstack.c eglibc-2.10.1/nptl/pthread_attr_setstack.c
---- eglibc-2.10.1-orig/nptl/pthread_attr_setstack.c	2006-10-18 11:30:11.000000000 -0400
-+++ eglibc-2.10.1/nptl/pthread_attr_setstack.c	2009-11-08 15:23:06.000000000 -0500
-@@ -48,7 +48,11 @@
+diff --git a/nptl/pthread_attr_setstack.c b/nptl/pthread_attr_setstack.c
+index be79e32..acf61dd 100644
+--- a/nptl/pthread_attr_setstack.c
++++ b/nptl/pthread_attr_setstack.c
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2002, 2003, 2006 Free Software Foundation, Inc.
++/* Copyright (C) 2002, 2003, 2006, 2009 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
+ 
+@@ -48,7 +48,11 @@ __pthread_attr_setstack (attr, stackaddr, stacksize)
  #endif
  
    iattr->stacksize = stacksize;
@@ -149,7 +115,7 @@ diff -urN eglibc-2.10.1-orig/nptl/pthread_attr_setstack.c eglibc-2.10.1/nptl/pth
    iattr->flags |= ATTR_FLAG_STACKADDR;
  
    return 0;
-@@ -81,7 +85,11 @@
+@@ -81,7 +85,11 @@ __old_pthread_attr_setstack (pthread_attr_t *attr, void *stackaddr,
  #  endif
  
    iattr->stacksize = stacksize;
@@ -161,3 +127,48 @@ diff -urN eglibc-2.10.1-orig/nptl/pthread_attr_setstack.c eglibc-2.10.1/nptl/pth
    iattr->flags |= ATTR_FLAG_STACKADDR;
  
    return 0;
+diff --git a/nptl/pthread_getattr_np.c b/nptl/pthread_getattr_np.c
+index 9c25caf..72da58c 100644
+--- a/nptl/pthread_getattr_np.c
++++ b/nptl/pthread_getattr_np.c
+@@ -1,4 +1,5 @@
+-/* Copyright (C) 2002, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
++/* Copyright (C) 2002, 2003, 2004, 2006, 2007, 
++   2009 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
+ 
+@@ -61,7 +62,11 @@ pthread_getattr_np (thread_id, attr)
+   if (__builtin_expect (thread->stackblock != NULL, 1))
+     {
+       iattr->stacksize = thread->stackblock_size;
++#ifdef _STACK_GROWS_DOWN
+       iattr->stackaddr = (char *) thread->stackblock + iattr->stacksize;
++#else
++      iattr->stackaddr = (char *) thread->stackblock;
++#endif
+     }
+   else
+     {
+@@ -110,13 +115,21 @@ pthread_getattr_np (thread_id, attr)
+ 		    {
+ 		      /* Found the entry.  Now we have the info we need.  */
+ 		      iattr->stacksize = rl.rlim_cur;
++#ifdef _STACK_GROWS_DOWN
+ 		      iattr->stackaddr = (void *) to;
+ 
+ 		      /* The limit might be too high.  */
+ 		      if ((size_t) iattr->stacksize
+ 			  > (size_t) iattr->stackaddr - last_to)
+ 			iattr->stacksize = (size_t) iattr->stackaddr - last_to;
++#else
++		      iattr->stackaddr = (void *) from;
+ 
++		      /* The limit might be too high.  */
++		      if ((size_t) iattr->stacksize
++			  > to - (size_t) iattr->stackaddr)
++			iattr->stacksize = to - (size_t) iattr->stackaddr;
++#endif
+ 		      /* We succeed and no need to look further.  */
+ 		      ret = 0;
+ 		      break;
