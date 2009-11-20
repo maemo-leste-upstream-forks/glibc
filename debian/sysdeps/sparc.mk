@@ -1,6 +1,3 @@
-CC = gcc-4.3
-CXX = g++-4.3
-
 # build a sparcv9b optimized library
 EGLIBC_PASSES += sparcv9b
 DEB_ARCH_REGULAR_PACKAGES += libc6-sparcv9b
