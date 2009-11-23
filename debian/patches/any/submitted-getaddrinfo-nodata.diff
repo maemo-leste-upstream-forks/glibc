@@ -1,15 +1,14 @@
---- a/sysdeps/posix/getaddrinfo.c       2009-11-22 16:21:19.000000000 -0500
-+++ b/sysdeps/posix/getaddrinfo.c       2009-11-22 16:28:26.000000000 -0500
-@@ -715,7 +715,10 @@ gaih_inet (const char *name, const struc
-                                                   tmpbuflen, &rc, &herrno,
-                                                   NULL));
-                      if (status == NSS_STATUS_SUCCESS)
--                       break;
-+                       {
-+                         no_data = 0;
-+                         break;
-+                       }
-                      if (status != NSS_STATUS_TRYAGAIN
-                          || rc != ERANGE || herrno != NETDB_INTERNAL)
-                        {
-
+--- a/sysdeps/posix/getaddrinfo.c
++++ b/sysdeps/posix/getaddrinfo.c
+@@ -715,7 +715,10 @@ gaih_inet (const char *name, const struct gaih_service *service,
+ 						   tmpbuflen, &rc, &herrno,
+ 						   NULL));
+ 		      if (status == NSS_STATUS_SUCCESS)
+-			break;
++			{
++			  no_data = 0;
++			  break;
++			}
+ 		      if (status != NSS_STATUS_TRYAGAIN
+ 			  || rc != ERANGE || herrno != NETDB_INTERNAL)
+ 			{
