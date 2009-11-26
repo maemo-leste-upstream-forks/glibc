@@ -1,6 +1,3 @@
-CC = gcc-4.3
-CXX = g++-4.3
-
 #
 # Temporary hack to use our own version of unistd.h
 # to workaround kernel bugs on the build daemons
