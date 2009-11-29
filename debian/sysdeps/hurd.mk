@@ -21,6 +21,3 @@ libc_extra_config_options := $(extra_config_options)
 
 # Only use libidn as add-on.
 standard-add-ons = libidn
-
-# disabled because the testsuite is known to provoke build abortions.
-RUN_TESTSUITE = no
