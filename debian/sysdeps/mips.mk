@@ -1,21 +1,3 @@
-#
-# Temporary hack to use our own version of unistd.h
-# to workaround kernel bugs on the build daemons
-#
-KERNEL_HEADER_DIR = $(stamp)mkincludedir-mips
-$(stamp)mkincludedir-mips:
-	rm -rf debian/include
-	mkdir debian/include
-	ln -s $(LINUX_HEADERS)/linux debian/include
-	ln -s $(LINUX_HEADERS)/asm-generic debian/include
-	cp -a $(LINUX_HEADERS)/asm debian/include
-	cp -f debian/mips_asm_unistd.h debian/include/asm/unistd.h
-
-	# To make configure happy if libc6-dev is not installed.
-	touch debian/include/assert.h
-
-	touch $@
-
 libc_add-ons = ports nptl $(add-ons)
 
 # build 32-bit (n32) alternative library
