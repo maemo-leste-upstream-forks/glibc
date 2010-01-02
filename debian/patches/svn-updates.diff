@@ -1,0 +1,191 @@
+SVN update of svn://svn.eglibc.org/branches/eglibc-2_10 from revision 9295
+
+--- a/ChangeLog	(révision 9295)
++++ b/ChangeLog	(révision 9588)
+@@ -1,3 +1,8 @@
++2009-11-01  Ulrich Drepper  <drepper@redhat.com>
++
++	* malloc/hooks.c (free_check): Restore locking and call _int_free
++	appropriately.
++
+ 2009-10-28  Roland McGrath  <roland@redhat.com>
+ 
+ 	* Makefile (dist-prepare): New target.
+--- a/malloc/hooks.c	(révision 9295)
++++ b/malloc/hooks.c	(révision 9588)
+@@ -162,8 +162,8 @@
+ 	 ((char*)p + sz)>=(mp_.sbrk_base+main_arena.system_mem) )) ||
+        sz<MINSIZE || sz&MALLOC_ALIGN_MASK || !inuse(p) ||
+        ( !prev_inuse(p) && (p->prev_size&MALLOC_ALIGN_MASK ||
+-                            (contig && (char*)prev_chunk(p)<mp_.sbrk_base) ||
+-                            next_chunk(prev_chunk(p))!=p) ))
++			    (contig && (char*)prev_chunk(p)<mp_.sbrk_base) ||
++			    next_chunk(prev_chunk(p))!=p) ))
+       return NULL;
+     magic = MAGICBYTE(p);
+     for(sz += SIZE_SZ-1; (c = ((unsigned char*)p)[sz]) != magic; sz -= c) {
+@@ -177,9 +177,9 @@
+        first. */
+     offset = (unsigned long)mem & page_mask;
+     if((offset!=MALLOC_ALIGNMENT && offset!=0 && offset!=0x10 &&
+-        offset!=0x20 && offset!=0x40 && offset!=0x80 && offset!=0x100 &&
+-        offset!=0x200 && offset!=0x400 && offset!=0x800 && offset!=0x1000 &&
+-        offset<0x2000) ||
++	offset!=0x20 && offset!=0x40 && offset!=0x80 && offset!=0x100 &&
++	offset!=0x200 && offset!=0x400 && offset!=0x800 && offset!=0x1000 &&
++	offset<0x2000) ||
+        !chunk_is_mmapped(p) || (p->size & PREV_INUSE) ||
+        ( (((unsigned long)p - p->prev_size) & page_mask) != 0 ) ||
+        ( (sz = chunksize(p)), ((p->prev_size + sz) & page_mask) != 0 ) )
+@@ -276,13 +276,17 @@
+   mchunkptr p;
+ 
+   if(!mem) return;
++  (void)mutex_lock(&main_arena.mutex);
+   p = mem2chunk_check(mem, NULL);
+   if(!p) {
++    (void)mutex_unlock(&main_arena.mutex);
++
+     malloc_printerr(check_action, "free(): invalid pointer", mem);
+     return;
+   }
+ #if HAVE_MMAP
+   if (chunk_is_mmapped(p)) {
++    (void)mutex_unlock(&main_arena.mutex);
+     munmap_chunk(p);
+     return;
+   }
+@@ -291,12 +295,11 @@
+   memset(mem, 0, chunksize(p) - (SIZE_SZ+1));
+ #endif
+ #ifdef ATOMIC_FASTBINS
+-  _int_free(&main_arena, p, 0);
++  _int_free(&main_arena, p, 1);
+ #else
+-  (void)mutex_lock(&main_arena.mutex);
+   _int_free(&main_arena, p);
++#endif
+   (void)mutex_unlock(&main_arena.mutex);
+-#endif
+ }
+ 
+ static Void_t*
+@@ -345,13 +348,13 @@
+       if(oldsize - SIZE_SZ >= nb)
+ 	newmem = oldmem; /* do nothing */
+       else {
+-        /* Must alloc, copy, free. */
+-        if (top_check() >= 0)
++	/* Must alloc, copy, free. */
++	if (top_check() >= 0)
+ 	  newmem = _int_malloc(&main_arena, bytes+1);
+-        if (newmem) {
+-          MALLOC_COPY(BOUNDED_N(newmem, bytes+1), oldmem, oldsize - 2*SIZE_SZ);
+-          munmap_chunk(oldp);
+-        }
++	if (newmem) {
++	  MALLOC_COPY(BOUNDED_N(newmem, bytes+1), oldmem, oldsize - 2*SIZE_SZ);
++	  munmap_chunk(oldp);
++	}
+       }
+     }
+   } else {
+@@ -367,7 +370,7 @@
+     nb = chunksize(newp);
+     if(oldp<newp || oldp>=chunk_at_offset(newp, nb)) {
+       memset((char*)oldmem + 2*sizeof(mbinptr), 0,
+-             oldsize - (2*sizeof(mbinptr)+2*SIZE_SZ+1));
++	     oldsize - (2*sizeof(mbinptr)+2*SIZE_SZ+1));
+     } else if(nb > oldsize+SIZE_SZ) {
+       memset((char*)BOUNDED_N(chunk2mem(newp), bytes) + oldsize,
+ 	     0, nb - (oldsize+SIZE_SZ));
+@@ -626,7 +629,7 @@
+ 	mark_bin(&main_arena, i);
+       } else {
+ 	/* Oops, index computation from chunksize must have changed.
+-           Link the whole list into unsorted_chunks.  */
++	   Link the whole list into unsorted_chunks.  */
+ 	first(b) = last(b) = b;
+ 	b = unsorted_chunks(&main_arena);
+ 	ms->av[2*i+2]->bk = b;
+@@ -667,7 +670,7 @@
+     /* Check whether it is safe to enable malloc checking, or whether
+        it is necessary to disable it.  */
+     if (ms->using_malloc_checking && !using_malloc_checking &&
+-        !disallow_malloc_check)
++	!disallow_malloc_check)
+       __malloc_check_init ();
+     else if (!ms->using_malloc_checking && using_malloc_checking) {
+       __malloc_hook = NULL;
+--- a/ports/sysdeps/unix/sysv/linux/mips/mips64/n32/posix_fadvise.c	(révision 0)
++++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n32/posix_fadvise.c	(révision 9588)
+@@ -0,0 +1,38 @@
++/* Copyright (C) 2003, 2004, 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <sysdep.h>
++
++/* Advice the system about the expected behaviour of the application with
++   respect to the file associated with FD.  */
++
++int
++posix_fadvise (int fd, off_t offset, off_t len, int advise)
++{
++#ifdef __NR_fadvise64
++  INTERNAL_SYSCALL_DECL (err);
++  int ret = INTERNAL_SYSCALL (fadvise64, err, 4, fd, offset, len, advise);
++  if (INTERNAL_SYSCALL_ERROR_P (ret, err))
++    return INTERNAL_SYSCALL_ERRNO (ret, err);
++  return 0;
++#else
++  return ENOSYS;
++#endif
++}
+--- a/ports/sysdeps/unix/sysv/linux/mips/mips64/n32/syscalls.list	(révision 9295)
++++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n32/syscalls.list	(révision 9588)
+@@ -2,6 +2,5 @@
+ 
+ readahead	-	readahead	i:iii	__readahead	readahead
+ sync_file_range	-	sync_file_range	i:iiii	sync_file_range
+-posix_fadvise	-	fadvise64	i:iiii	posix_fadvise
+ ftruncate	-	ftruncate	i:ii	__ftruncate	ftruncate ftruncate64 __ftruncate64
+ truncate	-	truncate	i:si	truncate	truncate64
+--- a/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/posix_fadvise.c	(révision 0)
++++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/posix_fadvise.c	(révision 9588)
+@@ -0,0 +1 @@
++#include <sysdeps/unix/sysv/linux/wordsize-64/posix_fadvise.c>
+--- a/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/posix_fadvise64.c	(révision 0)
++++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/posix_fadvise64.c	(révision 9588)
+@@ -0,0 +1 @@
++/* posix_fadvise64 is in posix_fadvise.c */
+--- a/ports/ChangeLog.mips	(révision 9295)
++++ b/ports/ChangeLog.mips	(révision 9588)
+@@ -1,3 +1,11 @@
++2009-12-01  Joseph Myers  <joseph@codesourcery.com>
++
++	* sysdeps/unix/sysv/linux/mips/mips64/n32/syscalls.list
++	(posix_fadvise): Remove.
++	* sysdeps/unix/sysv/linux/mips/mips64/n32/posix_fadvise.c,
++	sysdeps/unix/sysv/linux/mips/mips64/n64/posix_fadvise.c,
++	sysdeps/unix/sysv/linux/mips/mips64/n64/posix_fadvise64.c: New.
++
+ 2009-11-06  Joseph Myers  <joseph@codesourcery.com>
+ 
+ 	* sysdeps/unix/sysv/linux/mips/bits/fcntl.h (fallocate): Fix types
