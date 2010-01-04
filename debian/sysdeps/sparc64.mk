@@ -1,5 +1,5 @@
 libc_rtlddir = /lib64
-libc_extra_cflags = -mcpu=ultrasparc3
+libc_extra_cflags = -mcpu=ultrasparc
 
 # /lib64 and /usr/lib64 are provided by glibc instead base-files: #259302.
 define libc6_extra_pkg_install
