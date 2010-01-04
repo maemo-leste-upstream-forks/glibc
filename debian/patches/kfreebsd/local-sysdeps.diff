@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Dist
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,29 @@
 +bits/mcontext.h
 +bits/stat16.h
 +fpu.h
@@ -14,7 +14,6 @@
 +regdef.h
 +sa_len.c
 +stat16conv.c
-+statconv.c
 +statfsconv.c
 +sys/acl.h
 +sys/extattr.h
@@ -47,7 +46,7 @@
 +gnu
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile
-@@ -0,0 +1,136 @@
+@@ -0,0 +1,134 @@
 +# Use bash, not /bin/sh, for executing scripts, because the native
 +# FreeBSD /bin/sh does not interpret the  IFS="<tab>" read ...  command
 +# in localedata/tst-fmon.sh correctly.
@@ -123,8 +122,6 @@
 +sysdep_routines += minherit sys_mmap sys_freebsd6_mmap sys_munmap
 +# For <sys/mount.h>.
 +sysdep_routines += fhopen sys_fhstat sys_fhstatfs fhstat fhstat64 fhstatfs fhstatfs64 getfh getfsstat getfsstat64 sys_getfsstat getmntinfo getmntinfo64 mount nmount unmount
-+# For <sys/ptrace.h>.
-+sysdep_routines += sys_ptrace
 +# For <sys/rfork.h>.
 +sysdep_routines += rfork
 +# For <sys/rtprio.h>.
@@ -5853,7 +5850,7 @@
 +#endif	/* bits/socket.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat.h
-@@ -0,0 +1,203 @@
+@@ -0,0 +1,207 @@
 +/* Copyright (C) 1992, 1996-1997, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -5899,8 +5896,10 @@
 +    __ino64_t st_ino;		/* File serial number.	*/
 +#endif
 +
-+    __uint32_t st_mode;		/* File mode.  */
-+    __uint32_t st_nlink;	/* Link count.  */
++    __mode_t st_mode;		/* File mode.  */
++    __mode_t __pad_mode;	/* __mode_t is 16 bit, fill to 32 bit to retain previous ABI */
++    __nlink_t st_nlink;		/* Link count.  */
++    __nlink_t __pad_nlink;	/* __nlink_t is 16 bit, fill to 32 bit to retain previous ABI */
 +
 +    __uid_t st_uid;		/* User ID of the file's owner.  */
 +    __gid_t st_gid;		/* Group ID of the file's group.  */
@@ -5949,8 +5948,10 @@
 +    __dev_t st_dev;		/* Device containing the file.  */
 +    __ino64_t st_ino;		/* File serial number.	*/
 +
-+    __uint32_t st_mode;		/* File mode.  */
-+    __uint32_t st_nlink;	/* Link count.  */
++    __mode_t st_mode;		/* File mode.  */
++    __mode_t __pad_mode;	/* __mode_t is 16 bit, fill to 32 bit to retain previous ABI */
++    __nlink_t st_nlink;		/* Link count.  */
++    __nlink_t __pad_nlink;	/* __nlink_t is 16 bit, fill to 32 bit to retain previous ABI */
 +
 +    __uid_t st_uid;		/* User ID of the file's owner.  */
 +    __gid_t st_gid;		/* Group ID of the file's group.  */
@@ -18848,77 +18849,6 @@
 +}
 +libc_hidden_def (__profile_frequency)
 --- /dev/null
-+++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptrace.c
-@@ -0,0 +1,68 @@
-+/* Copyright (C) 1995-1998, 2000, 2002 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
-+
-+#include <errno.h>
-+#include <sys/types.h>
-+#include <sys/ptrace.h>
-+#include <stdarg.h>
-+
-+#include <sysdep.h>
-+#include <sys/syscall.h>
-+
-+extern int __syscall_ptrace (enum __ptrace_request request, pid_t pid,
-+			     void *addr, void *data);
-+
-+int
-+ptrace (enum __ptrace_request request, ...)
-+{
-+  int res, ret;
-+  va_list ap;
-+  pid_t pid;
-+  void *addr, *data;
-+
-+  /* Usually 4 arguments are given, except when request == PTRACE_TRACEME.
-+     But it doesn't harm to peek at the stack in this case as well.  */
-+  va_start (ap, request);
-+  pid = va_arg (ap, pid_t);
-+  addr = va_arg (ap, void *);
-+  data = va_arg (ap, void *);
-+  va_end (ap);
-+
-+  switch (request)
-+    {
-+    case PTRACE_PEEKTEXT:
-+    case PTRACE_PEEKDATA:
-+#ifdef PTRACE_PEEKUSER
-+    case PTRACE_PEEKUSER:
-+#endif
-+      res = INLINE_SYSCALL (ptrace, 4, request, pid, addr, &ret);
-+      if (res >= 0)
-+	{
-+	  /* ret can be -1 even for successful operation.  */
-+	  __set_errno (0);
-+	  return ret;
-+	}
-+      break;
-+
-+    default:
-+      res = INLINE_SYSCALL (ptrace, 4, request, pid, addr, data);
-+      break;
-+    }
-+
-+  return res;
-+}
---- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptsname.c
 @@ -0,0 +1,104 @@
 +/* Copyright (C) 1998, 2002 Free Software Foundation, Inc.
@@ -20704,7 +20634,7 @@
 +weak_alias (__sleep, sleep)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/stat16conv.c
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,84 @@
 +/* Convert between different 'struct stat' formats.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -20745,7 +20675,9 @@
 +  q->st_dev = p16->st_dev;
 +  q->st_ino = p16->st_ino;
 +  q->st_mode = p16->st_mode;
++  q->__pad_mode = 0;
 +  q->st_nlink = p16->st_nlink;
++  q->__pad_nlink = 0;
 +  q->st_uid = p16->st_uid;
 +  q->st_gid = p16->st_gid;
 +  q->st_rdev = p16->st_rdev;
@@ -20769,7 +20701,9 @@
 +  q->st_dev = p16->st_dev;
 +  q->st_ino = p16->st_ino;
 +  q->st_mode = p16->st_mode;
++  q->__pad_mode = 0;
 +  q->st_nlink = p16->st_nlink;
++  q->__pad_nlink = 0;
 +  q->st_uid = p16->st_uid;
 +  q->st_gid = p16->st_gid;
 +  q->st_rdev = p16->st_rdev;
@@ -20784,55 +20718,6 @@
 +#if 0
 +  memcpy (q->__unused1, p16->__unused2, sizeof (p16->__unused2));
 +#endif
-+}
---- /dev/null
-+++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statconv.c
-@@ -0,0 +1,46 @@
-+/* Convert between different 'struct stat' formats.
-+   Copyright (C) 2002 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
-+
-+#include <string.h>
-+
-+/* Convert a 'struct stat' to 'struct stat64'.  */
-+static inline void
-+stat_to_stat64 (const struct stat *p32, struct stat64 *p64)
-+{
-+  p64->st_dev = p32->st_dev;
-+  p64->st_ino = p32->st_ino;
-+  p64->st_mode = p32->st_mode;
-+  p64->st_nlink = p32->st_nlink;
-+  p64->st_uid = p32->st_uid;
-+  p64->st_gid = p32->st_gid;
-+  p64->st_rdev = p32->st_rdev;
-+  p64->st_atime = p32->st_atime;
-+  p64->st_atimensec = p32->st_atimensec;
-+  p64->st_mtime = p32->st_mtime;
-+  p64->st_mtimensec = p32->st_mtimensec;
-+  p64->st_ctime = p32->st_ctime;
-+  p64->st_ctimensec = p32->st_ctimensec;
-+  p64->st_size = p32->st_size;
-+  p64->st_blocks = p32->st_blocks;
-+  p64->st_blksize = p32->st_blksize;
-+  p64->st_flags = p32->st_flags;
-+  p64->st_gen = p32->st_gen;
-+  memcpy (p64->__unused1, p32->__unused1, sizeof (p32->__unused1));
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statfs.c
@@ -23282,7 +23167,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,184 @@
+@@ -0,0 +1,183 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
 +sys_access		-	access			i:si		__syscall_access
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
@@ -23381,7 +23266,6 @@
 +poll			-	poll			Ci:pii		__poll poll
 +sys_pread		-	pread			i:ibni		__syscall_pread
 +sys_freebsd6_pread	-	freebsd6_pread		i:ibnii		__syscall_freebsd6_pread
-+sys_ptrace		-	ptrace			i:iipi		__syscall_ptrace
 +sys_pwrite		-	pwrite			i:ibni		__syscall_pwrite
 +sys_freebsd6_pwrite	-	freebsd6_pwrite		i:ibnii		__syscall_freebsd6_pwrite
 +quotactl		-	quotactl		i:siip		quotactl
