@@ -1,0 +1,33 @@
+2009-01-06  Aurelien Jarno <aurelien@aurel32.net>
+
+        * resolv/res_send.c (__libc_res_nsend): Don't use IPv4-mapped
+	addresses.  Create PF_INET sockets for IPv4 addresses and PF_INET6
+	sockets for IPv6 ones.
+
+diff --git a/resolv/res_send.c b/resolv/res_send.c
+index e2bbfcc..b2c9cf5 100644
+--- a/resolv/res_send.c
++++ b/resolv/res_send.c
+@@ -914,7 +914,7 @@ reopen (res_state statp, int *terrno, int ns)
+ 		struct sockaddr_in6 *nsap = EXT(statp).nsaddrs[ns];
+ 
+ 		/* only try IPv6 if IPv6 NS and if not failed before */
+-		if ((EXT(statp).nscount6 > 0) && !statp->ipv6_unavail) {
++		if (nsap->sin6_family == AF_INET6 && !statp->ipv6_unavail) {
+ 			if (__builtin_expect (__have_o_nonblock >= 0, 1)) {
+ 				EXT(statp).nssocks[ns] =
+ 				  socket(PF_INET6, SOCK_DGRAM|SOCK_NONBLOCK,
+@@ -931,12 +931,7 @@ reopen (res_state statp, int *terrno, int ns)
+ 				  socket(PF_INET6, SOCK_DGRAM, 0);
+ 			if (EXT(statp).nssocks[ns] < 0)
+ 			    statp->ipv6_unavail = errno == EAFNOSUPPORT;
+-			/* If IPv6 socket and nsap is IPv4, make it
+-			   IPv4-mapped */
+-			else if (nsap->sin6_family == AF_INET)
+-			    convaddr4to6(nsap);
+-		}
+-		if (EXT(statp).nssocks[ns] < 0) {
++		} else if (nsap->sin6_family == AF_INET) {
+ 			if (__builtin_expect (__have_o_nonblock >= 0, 1)) {
+ 				EXT(statp).nssocks[ns]
+ 				  = socket(PF_INET, SOCK_DGRAM|SOCK_NONBLOCK,
