@@ -1,32 +1,9 @@
-commit 51e4196f16a2d98377e3c481a44e133369dc7669
-Author: Andreas Schwab <schwab@redhat.com>
-Date:   Tue Nov 10 07:36:50 2009 -0800
+2009-11-10  Andreas Schwab  <schwab@redhat.com>
 
-    Handle running out of buffer space with IPv6 mapping enabled.
-    
-    With big DNS answers like the one you get for goodtimesdot.com you can
-    get a truncated address list if IPv6 mapping is enabled.  Instead tell
-    the caller to resize the buffer.
-
-diff --git a/ChangeLog b/ChangeLog
-index ac8baf1..49c2e08 100644
---- a/ChangeLog
-+++ b/ChangeLog
-@@ -1,7 +1,15 @@
-+2009-11-10  Andreas Schwab  <schwab@redhat.com>
-+
-+	* resolv/mapv4v6hostent.h (map_v4v6_hostent): Return non-zero if
-+	out of buffer space.
-+	* resolv/nss_dns/dns-host.c (getanswer_r): Check for
-+	map_v4v6_hostent running out of space.
-+
- 2009-11-10  Ulrich Drepper  <drepper@redhat.com>
- 
- 	* string/bits/string3.h (memset): If the second parameter is constant
- 	and zero there is likely no transposition.
-+	Patch by Caolan McNamara <caolanm@redhat.com.
- 
- 2009-11-04  Philippe De Muyter  <phdm@macqel.be>
+	* resolv/mapv4v6hostent.h (map_v4v6_hostent): Return non-zero if
+	out of buffer space.
+	* resolv/nss_dns/dns-host.c (getanswer_r): Check for
+	map_v4v6_hostent running out of space.
  
 diff --git a/resolv/mapv4v6hostent.h b/resolv/mapv4v6hostent.h
 index 4151ce3..c11038a 100644
