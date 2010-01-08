@@ -13313,7 +13313,7 @@
 +#endif	/* !PIC */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.h
-@@ -0,0 +1,235 @@
+@@ -0,0 +1,240 @@
 +/* Copyright (C) 1992,1993,1995-2000,2002,2003,2004
 +   Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13344,6 +13344,11 @@
 +/* Defines RTLD_PRIVATE_ERRNO and USE_DL_SYSINFO.  */
 +#include <dl-sysdep.h>
 +#include <tls.h>
++
++#if defined __i686 && defined __ASSEMBLER__
++#undef __i686
++#define __i686 __i686
++#endif
 +
 +#ifdef __ASSEMBLER__
 +
