@@ -1,6 +1,10 @@
 On the Hurd we always at least start the sigthread anyway.  Let's avoid forking
 the file (which would mean having to maintain it)
 
+---
+ atomic.h |  107 +++++++++++++++++++++------------------------------------------
+ 1 file changed, 37 insertions(+), 70 deletions(-)
+
 --- a/sysdeps/i386/i486/bits/atomic.h
 +++ b/sysdeps/i386/i486/bits/atomic.h
 @@ -87,35 +87,26 @@
