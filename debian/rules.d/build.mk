@@ -111,7 +111,7 @@ $(stamp)check_%: $(stamp)build_%
 	else \
 	  echo Testing $(curpass); \
 	  find $(DEB_BUILDDIR) -name '*.out' -exec rm {} ';' ; \
-	  LANG="" TIMEOUTFACTOR="50" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) -k check 2>&1 | tee $(log_test); \
+	  LANG="" TIMEOUTFACTOR="50" $(MAKE) -C $(DEB_BUILDDIR) -k check 2>&1 | tee $(log_test); \
 	  chmod +x debian/testsuite-checking/convertlog.sh ; \
 	  debian/testsuite-checking/convertlog.sh $(log_test) | tee $(log_results) ; \
 	  if test -f $(log_expected) ; then \
@@ -173,3 +173,5 @@ $(stamp)source: $(stamp)patch
 		-f $(build-tree)/eglibc-$(EGLIBC_VERSION).tar.xz \
 		$(EGLIBC_SOURCES)
 	touch $@
+
+.NOTPARALLEL: $(patsubst %,check_%,$(EGLIBC_PASSES))
