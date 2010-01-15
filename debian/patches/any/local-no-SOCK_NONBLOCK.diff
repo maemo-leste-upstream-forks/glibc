@@ -16,15 +16,15 @@
  
  /* From ev_streams.c.  */
  
-@@ -915,6 +915,7 @@
+@@ -913,6 +913,7 @@
  
  		/* only try IPv6 if IPv6 NS and if not failed before */
- 		if (nsap->sin6_family == AF_INET6 && !statp->ipv6_unavail) {
+ 		if (nsap->sa_family == AF_INET6 && !statp->ipv6_unavail) {
 +#ifdef SOCK_NONBLOCK
  			if (__builtin_expect (__have_o_nonblock >= 0, 1)) {
  				EXT(statp).nssocks[ns] =
  				  socket(PF_INET6, SOCK_DGRAM|SOCK_NONBLOCK,
-@@ -927,11 +928,13 @@
+@@ -925,12 +926,14 @@
  #endif
  			}
  			if (__builtin_expect (__have_o_nonblock < 0, 0))
@@ -33,20 +33,21 @@
  				  socket(PF_INET6, SOCK_DGRAM, 0);
  			if (EXT(statp).nssocks[ns] < 0)
  			    statp->ipv6_unavail = errno == EAFNOSUPPORT;
- 		} else if (nsap->sin6_family == AF_INET) {
+ 			slen = sizeof (struct sockaddr_in6);
+ 		} else if (nsap->sa_family == AF_INET) {
 +#ifdef SOCK_NONBLOCK
  			if (__builtin_expect (__have_o_nonblock >= 0, 1)) {
  				EXT(statp).nssocks[ns]
  				  = socket(PF_INET, SOCK_DGRAM|SOCK_NONBLOCK,
-@@ -944,6 +947,7 @@
+@@ -943,6 +946,7 @@
  #endif
  			}
  			if (__builtin_expect (__have_o_nonblock < 0, 0))
 +#endif
  				EXT(statp).nssocks[ns]
  				  = socket(PF_INET, SOCK_DGRAM, 0);
- 		}
-@@ -971,7 +975,11 @@
+ 			slen = sizeof (struct sockaddr_in);
+@@ -969,7 +973,11 @@
  			__res_iclose(statp, false);
  			return (0);
  		}
