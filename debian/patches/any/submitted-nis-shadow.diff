@@ -53,7 +53,7 @@ index fdc7dc9..efb5c61 100644
 +	  /* We found an adjunct style secret password.  Replace
 +	     it by 'x' into the result.  */
 +	  size_t restlen = len - (p - result);
-+	  if (__builtin_expect ((namelen + restlen + 3) > buflen, 0))
++	  if (__builtin_expect ((size_t) (namelen + restlen + 3) > buflen, 0))
  	    {
 -	      free (result2);
  	      free (result);
@@ -73,7 +73,7 @@ index fdc7dc9..efb5c61 100644
  	}
        else
  	{
-@@ -400,47 +383,33 @@ _nss_nis_getpwnam_r (const char *name, struct passwd *pwd,
+@@ -400,47 +383,32 @@ _nss_nis_getpwnam_r (const char *name, struct passwd *pwd,
  
    /* Check for adjunct style secret passwords.  They can be recognized
       by a password starting with "##".  */
@@ -94,7 +94,6 @@ index fdc7dc9..efb5c61 100644
 -      if (encrypted == NULL
 -	  || (endp = strchr (++encrypted, ':')) == NULL
 -	  || (p = strchr (p + 1, ':')) == NULL)
-+      size_t namelen = p - result;
 +      if ((p = strchr (p + 1, ':')) == NULL)
  	{
  	  /* Invalid format of the entry.  This never should happen
@@ -109,7 +108,7 @@ index fdc7dc9..efb5c61 100644
        size_t restlen = len - (p - result);
 -      if (__builtin_expect ((size_t) (namelen + (endp - encrypted)
 -				      + restlen + 2) > buflen, 0))
-+      if (__builtin_expect ((namelen + restlen + 3) > buflen, 0))
++      if (__builtin_expect ((size_t) (namelen + restlen + 3) > buflen, 0))
  	{
 -	  free (result2);
  	  free (result);
@@ -121,9 +120,9 @@ index fdc7dc9..efb5c61 100644
 -				       ":", 1),
 -			    encrypted, endp - encrypted),
 -		 p, restlen + 1);
-+      mempcpy (mempcpy (mempcpy (buffer, result, namelen),
-+			":x", 2),
-+	       p, restlen + 1);
++      __mempcpy (__mempcpy (__mempcpy (buffer, result, namelen),
++			     ":x", 2),
++		 p, restlen + 1);
        p = buffer;
 -
 -      free (result2);
@@ -170,7 +169,7 @@ index fdc7dc9..efb5c61 100644
 +      /* We found an adjunct style secret password.  Replace
 +	 it by 'x' into the result.  */
 +      size_t restlen = len - (p - result);
-+      if (__builtin_expect ((namelen + restlen + 3) > buflen, 0))
++      if (__builtin_expect ((size_t) (namelen + restlen + 3) > buflen, 0))
  	{
 -	  free (result2);
  	  free (result);
@@ -182,9 +181,9 @@ index fdc7dc9..efb5c61 100644
 -				       ":", 1),
 -			    encrypted, endp - encrypted),
 -		 p, restlen + 1);
-+      mempcpy (mempcpy (mempcpy (buffer, result, namelen),
-+			":x", 2),
-+	       p, restlen + 1);
++      __mempcpy (__mempcpy (__mempcpy (buffer, result, namelen),
++			   ":x", 2),
++		 p, restlen + 1);
        p = buffer;
 -
 -      free (result2);
@@ -211,7 +210,7 @@ index 0fc4e17..9bd1ad6 100644
 +	  if (yperr == YPERR_MAP)
 +	    {
 +	      if (result != NULL)
-+		  free(result);
++		free(result);
 +
 +	      yperr = yp_first (domain, "passwd.adjunct.byname", &outkey, &keylen,
 +				&result, &len);
@@ -228,7 +227,7 @@ index 0fc4e17..9bd1ad6 100644
 +	  if (yperr == YPERR_MAP)
 +	    {
 +	      if (result != NULL)
-+		  free(result);
++		free(result);
 +
 +	      yperr = yp_next (domain, "passwd.adjunct.byname", oldkey, oldkeylen,
 +			       &outkey, &keylen, &result, &len);
