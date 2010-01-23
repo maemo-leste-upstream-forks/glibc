@@ -8902,8 +8902,76 @@
 +stub_warning(fchownat)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fcntl.c
-@@ -0,0 +1 @@
-+#include <sysdeps/unix/sysv/linux/fcntl.c>
+@@ -0,0 +1,69 @@
++/* Copyright (C) 2000, 2002, 2003, 2004 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <assert.h>
++#include <errno.h>
++#include <sysdep-cancel.h>	/* Must come before <fcntl.h>.  */
++#include <fcntl.h>
++#include <stdarg.h>
++
++#include <sys/syscall.h>
++
++
++#ifndef NO_CANCELLATION
++int
++__fcntl_nocancel (int fd, int cmd, ...)
++{
++  va_list ap;
++  void *arg;
++
++  va_start (ap, cmd);
++  arg = va_arg (ap, void *);
++  va_end (ap);
++
++  return INLINE_SYSCALL (fcntl, 3, fd, cmd, arg);
++}
++#endif
++
++
++int
++__libc_fcntl (int fd, int cmd, ...)
++{
++  va_list ap;
++  void *arg;
++
++  va_start (ap, cmd);
++  arg = va_arg (ap, void *);
++  va_end (ap);
++
++  if (SINGLE_THREAD_P || cmd != F_SETLKW)
++    return INLINE_SYSCALL (fcntl, 3, fd, cmd, arg);
++
++  int oldtype = LIBC_CANCEL_ASYNC ();
++
++  int result = INLINE_SYSCALL (fcntl, 3, fd, cmd, arg);
++
++  LIBC_CANCEL_RESET (oldtype);
++
++  return result;
++}
++libc_hidden_def (__libc_fcntl)
++
++weak_alias (__libc_fcntl, __fcntl)
++libc_hidden_weak (__fcntl)
++weak_alias (__libc_fcntl, fcntl)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fexecve.c
 @@ -0,0 +1,104 @@
@@ -11164,6 +11232,16 @@
 +    i386_get_ldt; i386_set_ldt;
 +  }
 +}
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/____longjmp_chk.S
+@@ -0,0 +1,7 @@
++/* Jump to the position specified by ENV, causing the
++   setjmp call there to return VAL, or 1 if VAL is 0.
++   void __longjmp (__jmp_buf env, int val).  */
++      
++#warning longjmp_chk unimplemented
++#define __longjmp ____longjmp_chk
++#include<__longjmp.S>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/bits/mcontext.h
 @@ -0,0 +1,111 @@
@@ -23654,6 +23732,290 @@
 @@ -0,0 +1 @@
 +/* 'truncate64' is the same as 'truncate', because __off64_t == __off_t.  */
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ttyname.c
+@@ -0,0 +1,125 @@
++/* Copyright (C) 1991,92,93,96,97,98,2000,2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <limits.h>
++#include <stddef.h>
++#include <dirent.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <unistd.h>
++#include <string.h>
++#include <stdlib.h>
++
++char *__ttyname;
++
++static char *getttyname (int fd, dev_t mydev, ino_t myino,
++			 int save, int *dostat) internal_function;
++
++
++libc_freeres_ptr (static char *getttyname_name);
++
++static char *
++internal_function
++getttyname (fd, mydev, myino, save, dostat)
++     int fd;
++     dev_t mydev;
++     ino_t myino;
++     int save;
++     int *dostat;
++{
++  static const char dev[] = "/dev";
++  static size_t namelen;
++  struct stat st;
++  DIR *dirstream;
++  struct dirent *d;
++
++  dirstream = __opendir (dev);
++  if (dirstream == NULL)
++    {
++      *dostat = -1;
++      return NULL;
++    }
++
++  while ((d = __readdir (dirstream)) != NULL)
++    if (((ino_t) d->d_fileno == myino || *dostat)
++	&& strcmp (d->d_name, "stdin")
++	&& strcmp (d->d_name, "stdout")
++	&& strcmp (d->d_name, "stderr"))
++      {
++	size_t dlen = _D_ALLOC_NAMLEN (d);
++	if (sizeof (dev) + dlen > namelen)
++	  {
++	    free (getttyname_name);
++	    namelen = 2 * (sizeof (dev) + dlen); /* Big enough.  */
++	    getttyname_name = malloc (namelen);
++	    if (! getttyname_name)
++	      {
++		*dostat = -1;
++		/* Perhaps it helps to free the directory stream buffer.  */
++		(void) __closedir (dirstream);
++		return NULL;
++	      }
++	    *((char *) __mempcpy (getttyname_name, dev, sizeof (dev) - 1))
++	      = '/';
++	  }
++	(void) __mempcpy (&getttyname_name[sizeof (dev)], d->d_name, dlen);
++	if (stat (getttyname_name, &st) == 0
++	    && (ino_t) d->d_fileno == myino
++	    && (S_ISCHR (st.st_mode) || st.st_dev == mydev)
++	   )
++	  {
++	    (void) __closedir (dirstream);
++	    __ttyname = getttyname_name;
++	    __set_errno (save);
++	    return getttyname_name;
++	  }
++      }
++
++  (void) __closedir (dirstream);
++  __set_errno (save);
++  return NULL;
++}
++
++/* Return the pathname of the terminal FD is open on, or NULL on errors.
++   The returned storage is good only until the next call to this function.  */
++char *
++ttyname (fd)
++     int fd;
++{
++  struct stat st;
++  int dostat = 0;
++  char *name;
++  int save = errno;
++
++  if (!__isatty (fd))
++    return NULL;
++
++  if (fstat (fd, &st) < 0)
++    return NULL;
++
++  name = getttyname (fd, st.st_dev, st.st_ino, save, &dostat);
++
++  if (!name && dostat != -1)
++    {
++      dostat = 1;
++      name = getttyname (fd, st.st_dev, st.st_ino, save, &dostat);
++    }
++
++  return name;
++}
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ttyname_r.c
+@@ -0,0 +1,153 @@
++/* Copyright (C) 1991,92,93,95,96,97,98,2004 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <limits.h>
++#include <stddef.h>
++#include <dirent.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <unistd.h>
++#include <string.h>
++#include <stdlib.h>
++
++#ifndef MIN
++# define MIN(a, b) ((a) < (b) ? (a) : (b))
++#endif
++
++static const char dev[] = "/dev";
++
++static int getttyname_r (int fd, char *buf, size_t buflen,
++			 dev_t mydev, ino_t myino, int save,
++			 int *dostat) __THROW internal_function;
++
++static int
++internal_function
++getttyname_r (fd, buf, buflen, mydev, myino, save, dostat)
++     int fd;
++     char *buf;
++     size_t buflen;
++     dev_t mydev;
++     ino_t myino;
++     int save;
++     int *dostat;
++{
++  struct stat st;
++  DIR *dirstream;
++  struct dirent *d;
++
++  dirstream = __opendir (dev);
++  if (dirstream == NULL)
++    {
++      *dostat = -1;
++      return errno;
++    }
++
++  while ((d = __readdir (dirstream)) != NULL)
++    if (((ino_t) d->d_fileno == myino || *dostat)
++	&& strcmp (d->d_name, "stdin")
++	&& strcmp (d->d_name, "stdout")
++	&& strcmp (d->d_name, "stderr"))
++      {
++	char *cp;
++	size_t needed = _D_EXACT_NAMLEN (d) + 1;
++
++	if (needed > buflen)
++	  {
++	    *dostat = -1;
++	    (void) __closedir (dirstream);
++	    __set_errno (ERANGE);
++	    return ERANGE;
++	  }
++
++	cp = __stpncpy (&buf[sizeof (dev)], d->d_name, needed);
++	cp[0] = '\0';
++
++	if (stat (buf, &st) == 0
++	    && (ino_t) d->d_fileno == myino
++	    && (S_ISCHR (st.st_mode) || st.st_dev == mydev)
++	   )
++	  {
++	    (void) __closedir (dirstream);
++	    __set_errno (save);
++	    return 0;
++	  }
++      }
++
++  (void) __closedir (dirstream);
++  __set_errno (save);
++  /* It is not clear what to return in this case.  `isatty' says FD
++     refers to a TTY but no entry in /dev has this inode.  */
++  return ENOTTY;
++}
++
++/* Store at most BUFLEN character of the pathname of the terminal FD is
++   open on in BUF.  Return 0 on success,  otherwise an error number.  */
++int
++__ttyname_r (fd, buf, buflen)
++     int fd;
++     char *buf;
++     size_t buflen;
++{
++  struct stat st;
++  int dostat = 0;
++  int save = errno;
++  int ret;
++
++  /* Test for the absolute minimal size.  This makes life easier inside
++     the loop.  */
++  if (!buf)
++    {
++      __set_errno (EINVAL);
++      return EINVAL;
++    }
++
++  if (buflen < (int) (sizeof (dev) + 1))
++    {
++      __set_errno (ERANGE);
++      return ERANGE;
++    }
++
++  if (!__isatty (fd))
++    {
++      __set_errno (ENOTTY);
++      return ENOTTY;
++    }
++
++  if (fstat (fd, &st) < 0)
++    return errno;
++
++  /* Prepare the result buffer.  */
++  memcpy (buf, dev, sizeof (dev) - 1);
++  buf[sizeof (dev) - 1] = '/';
++  buflen -= sizeof (dev);
++
++  ret = getttyname_r (fd, buf, buflen, st.st_dev, st.st_ino, save,
++		      &dostat);
++
++  if (ret && dostat != -1)
++    {
++      dostat = 1;
++      ret = getttyname_r (fd, buf, buflen, st.st_dev, st.st_ino,
++			  save, &dostat);
++    }
++
++  return ret;
++}
++
++weak_alias (__ttyname_r, ttyname_r)
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ulimit.c
 @@ -0,0 +1,2 @@
 +/* just use linux variant */
@@ -24909,6 +25271,16 @@
 +    ioperm;
 +  }
 +}
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/____longjmp_chk.S
+@@ -0,0 +1,7 @@
++/* Jump to the position specified by ENV, causing the
++   setjmp call there to return VAL, or 1 if VAL is 0.
++   void __longjmp (__jmp_buf env, int val).  */
++      
++#warning longjmp_chk unimplemented
++#define __longjmp ____longjmp_chk
++#include<__longjmp.S>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/bits/mcontext.h
 @@ -0,0 +1,167 @@
