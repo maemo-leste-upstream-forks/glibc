@@ -21,6 +21,7 @@ Package: libc-bin
 Architecture: any
 Section: libs
 Priority: required
+Depends: ${misc:Depends}
 Breaks: libc0.1 (<< 2.10), libc0.3 (<< 2.10), libc6 (<< 2.10), libc6.1 (<< 2.10)
 Replaces: libc0.1, libc0.3, libc6, libc6.1
 Description: Embedded GNU C Library: Binaries
@@ -39,7 +40,7 @@ Package: libc-dev-bin
 Architecture: any
 Section: libdevel
 Priority: optional
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: manpages-dev
 Replaces: libc0.1-dev, libc0.3-dev, libc6-dev, libc6.1-dev
 Description: Embedded GNU C Library: Development binaries
@@ -50,6 +51,7 @@ Package: glibc-doc
 Architecture: all
 Section: doc
 Priority: optional
+Depends: ${misc:Depends}
 Suggests: glibc-doc-reference
 Description: Embedded GNU C Library: Documentation
  Contains man pages for libpthread functions and the complete GNU C Library
@@ -60,6 +62,7 @@ Package: eglibc-source
 Architecture: all
 Section: devel
 Priority: optional
+Depends: ${misc:Depends}
 Recommends: xz-utils
 Description: Embedded GNU C Library: sources
  This package contains the sources and patches which are needed to
@@ -69,7 +72,7 @@ Package: locales
 Architecture: all
 Section: localization
 Priority: standard
-Depends: ${locale:Depends}, debconf | debconf-2.0
+Depends: ${locale:Depends}, ${misc:Depends}, debconf | debconf-2.0
 Conflicts: base-config, belocs-locales-bin, belocs-locales-data
 Replaces: base-config, lliurex-belocs-locales-data
 Description: Embedded GNU C Library: National Language (locale) data [support]
@@ -87,7 +90,7 @@ Package: locales-all
 Architecture: any
 Section: localization
 Priority: extra
-Depends: ${locale:Depends}, lzma
+Depends: ${locale:Depends}, ${misc:Depends}, lzma
 Provides: locales
 Description: Embedded GNU C Library: Precompiled locale data
  This package contains the precompiled locale data for all supported locales.
@@ -99,7 +102,7 @@ Package: nscd
 Architecture: any
 Section: admin
 Priority: optional
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Embedded GNU C Library: Name Service Cache Daemon
  A daemon which handles passwd, group and host lookups
  for running programs and caches the results for the next
