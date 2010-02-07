@@ -78,7 +78,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		--without-selinux \
 		--enable-stackguard-randomization \
 		--with-pkgversion="Debian EGLIBC $(DEB_VERSION)" \
-		--with-bugurl="http://www.debian.org/Bugs/"
+		--with-bugurl="http://www.debian.org/Bugs/" \
 		$(call xx,with_headers) $(call xx,extra_config_options))
 	touch $@
 
