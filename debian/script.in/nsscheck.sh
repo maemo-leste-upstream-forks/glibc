@@ -17,12 +17,10 @@
 	    rl=$(runlevel | sed 's/.*\ //')
 	    for service in $check; do
 	    	if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
-		    # Should be "if invoke-rc.d ${service} status; then", but
-		    # it is not yet supported by all scripts
-		    invoke-rc.d --query ${service} start 2>/dev/null || status=$?
-		    if [ "$status" = "104" ] ; then
+	    	    invoke-rc.d ${service} status 2>/dev/null || status=$?
+	    	    if [ "$status" = "0" ] || [ "$status" = "1" ] ; then
 	    	    	services="$service $services"
-	    	    else
+	    	    elif [ "$status" = "100" ] ; then
 	    	    	echo "WARNING: init script for $service not found."
 	    	    fi
 	    	else
