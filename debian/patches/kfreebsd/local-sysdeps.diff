@@ -18315,7 +18315,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/open.c
-@@ -0,0 +1,89 @@
+@@ -0,0 +1,93 @@
 +/* Copyright (C) 1999, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -18368,6 +18368,9 @@
 +    LIBC_CANCEL_RESET (oldtype);
 +  }
 +
++#if 0
++/* At least 8.0 kernel seems be fine and this workaround does not respect "sysctl vfs.timestamp_precision" */
++
 +  if (fd >= 0 && (oflag & O_TRUNC))
 +    {
 +      /* Set the modification time.  The kernel ought to do this.  */
@@ -18392,6 +18395,7 @@
 +	}
 +      __set_errno (saved_errno);
 +    }
++#endif
 +
 +  return fd;
 +}
@@ -18417,7 +18421,7 @@
 +strong_alias (__open_2, __open64_2)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/openat.c
-@@ -0,0 +1,312 @@
+@@ -0,0 +1,316 @@
 +/* Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -18679,6 +18683,9 @@
 +    }
 +#endif
 +
++#if 0
++/* At least 8.0 kernel seems be fine and this workaround does not respect "sysctl vfs.timestamp_precision" */
++
 +  if (result >= 0 && (oflag & O_TRUNC))
 +    {
 +      /* Set the modification time.  The kernel ought to do this.  */
@@ -18703,6 +18710,7 @@
 +	}
 +      __set_errno (saved_errno);
 +    }
++#endif
 +
 +  return result;
 +}
