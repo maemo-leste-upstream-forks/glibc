@@ -66,10 +66,6 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	# table in libc6-dbg but basic thread debugging should
 	# work even without that package installed.
 
-	# We use a wrapper script so that we only include the bare
-	# minimum in /usr/lib/debug/lib for backtraces; anything
-	# else takes too long to load in GDB.
-	
 	# strip *.o files as dh_strip does not (yet?) do it.
 
 	if test "$(NOSTRIP_$(curpass))" != 1; then			\
