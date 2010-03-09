@@ -5,23 +5,9 @@ Date:   Tue Dec 22 11:51:44 2009 -0800
     Hurd: Fix possibly uninitialized variable in _hurd_locked_install_cttyid.
 
 ---
- ChangeLog        |    5 +++++
  hurd/hurdioctl.c |   24 ++++++++++--------------
  2 files changed, 15 insertions(+), 14 deletions(-)
 
-diff --git a/ChangeLog b/ChangeLog
-index 3ff2684..aba0d71 100644
---- a/ChangeLog
-+++ b/ChangeLog
-@@ -1,3 +1,8 @@
-+2009-12-22  Samuel Thibault  <samuel.thibault@ens-lyon.org>
-+
-+	* hurd/hurdioctl.c (_hurd_locked_install_cttyid): Set newctty to
-+	MACH_PORT_NULL when id != cttyid.
-+
- 2009-12-20  Samuel Thibault  <samuel.thibault@ens-lyon.org>
- 
- 	* sysdeps/mach/hurd/getcwd.c (cleanup): Do not call
 diff --git a/hurd/hurdioctl.c b/hurd/hurdioctl.c
 index 96d910b..7c68984 100644
 --- a/hurd/hurdioctl.c
