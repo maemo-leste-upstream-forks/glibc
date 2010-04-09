@@ -1,0 +1,13 @@
+Index: eglibc-2.10.2/linuxthreads/pthread.c
+===================================================================
+--- eglibc-2.10.2.orig/linuxthreads/pthread.c	2010-04-09 13:45:07.000000000 +0000
++++ eglibc-2.10.2/linuxthreads/pthread.c	2010-04-09 13:50:46.000000000 +0000
+@@ -429,6 +429,8 @@
+ #ifdef FLOATING_STACKS
+   if (limit.rlim_cur == RLIM_INFINITY)
+     limit.rlim_cur = ARCH_STACK_MAX_SIZE;
++  if (limit.rlim_cur > 4 * ARCH_STACK_MAX_SIZE)
++    limit.rlim_cur = 4 * ARCH_STACK_MAX_SIZE;
+ # ifdef NEED_SEPARATE_REGISTER_STACK
+   max_stack = limit.rlim_cur / 2;
+ # else
