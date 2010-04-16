@@ -8262,7 +8262,7 @@
 +#include_next <dl-machine.h>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-origin.c
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,79 @@
 +/* Find path of executable.
 +   Copyright (C) 1998, 1999, 2000, 2002, 2004 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -8306,10 +8306,9 @@
 +
 +  len = readlink("/proc/self/exe", linkval, sizeof (linkval));
 +
-+  if (len > 0 && linkval[0] != '[')
++  if (len > 0 && linkval[0] == '/')
 +    {
 +      /* We can use this value.  */
-+      assert (linkval[0] == '/');
 +      while (len > 1 && linkval[len - 1] != '/')
 +	--len;
 +      result = (char *) malloc (len + 1);
