@@ -8262,7 +8262,7 @@
 +#include_next <dl-machine.h>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-origin.c
-@@ -0,0 +1,79 @@
+@@ -0,0 +1,123 @@
 +/* Find path of executable.
 +   Copyright (C) 1998, 1999, 2000, 2002, 2004 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -8293,20 +8293,64 @@
 +
 +#include <dl-dst.h>
 +
-+/* On Linux >= 2.1 systems which have the dcache implementation we can get
-+   the path of the application from the /proc/self/exe symlink.  Try this
-+   first and fall back on the generic method if necessary.  */
++const char *_self_program_name_from_auxv attribute_hidden;
++
++static int
++_dl_self_name(char *buf, int buflen)
++{
++  int len, wdlen;
++
++  /* try /proc/self/exe symlink. */  
++  len = __readlink("/proc/self/exe", buf, buflen);
++
++  if (len > 0 && buf[0] == '/')
++    return len;
++
++  if (!_self_program_name_from_auxv)
++    return -1;
++
++  len = strlen(_self_program_name_from_auxv);
++  if (len > 0 && _self_program_name_from_auxv[0] == '/')
++  {
++    /* absolute file name */
++    if (len < buflen)
++    {
++      strcpy(buf, _self_program_name_from_auxv);
++      return len;
++    }
++    memcpy(buf, _self_program_name_from_auxv, buflen);
++    buf[buflen - 1] = 0;
++    return buflen - 1;
++  };
++  
++  /* relative file name, do our best */
++  if (NULL == __getcwd(buf, buflen))
++    return -1;
++  
++  wdlen = strlen(buf);
++  buf[wdlen] = '/';
++  if ((wdlen + len + 1) < buflen)
++  {
++    strcpy(buf + wdlen + 1, _self_program_name_from_auxv);
++    return wdlen + len + 1;
++  }
++  memcpy(buf + wdlen + 1, _self_program_name_from_auxv, buflen - wdlen - 1);  
++  buf[buflen - 1] = 0;
++  return buflen - 1;  
++}
++
++
 +
 +const char *
 +_dl_get_origin (void)
 +{
-+  char linkval[PATH_MAX];
++  char linkval[2*PATH_MAX];
 +  char *result;
 +  int len;
 +
-+  len = readlink("/proc/self/exe", linkval, sizeof (linkval));
++  len = _dl_self_name(linkval, sizeof(linkval));
 +
-+  if (len > 0 && linkval[0] == '/')
++  if (len > 0)
 +    {
 +      /* We can use this value.  */
 +      while (len > 1 && linkval[len - 1] != '/')
@@ -11547,7 +11591,7 @@
 +#endif /* _BITS_SIGCONTEXT_H */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/dl-machine.h
-@@ -0,0 +1,124 @@
+@@ -0,0 +1,149 @@
 +/* Machine-dependent ELF dynamic relocation inline functions.
 +   FreeBSD i386 specific version of dl_platform_init()
 +   Copyright (C) 2006 Free Software Foundation, Inc.
@@ -11572,6 +11616,30 @@
 +
 +/* For FreeBSD we redefine an initialization function.
 +   This is called very early in dl_sysdep_start.  */
++
++#if 0
++Under FreeBSD:
++#define AT_EXECPATH     15      /* Path to the executable. */
++
++Under Linux:
++#define AT_PLATFORM     15      /* String identifying platform.  */
++
++Filled entries from kernel:
++
++        if (args->execfd != -1)
++                AUXARGS_ENTRY(pos, AT_EXECFD, args->execfd);
++        AUXARGS_ENTRY(pos, AT_PHDR, args->phdr);    
++        AUXARGS_ENTRY(pos, AT_PHENT, args->phent);  
++        AUXARGS_ENTRY(pos, AT_PHNUM, args->phnum);  
++        AUXARGS_ENTRY(pos, AT_PAGESZ, args->pagesz);
++        AUXARGS_ENTRY(pos, AT_FLAGS, args->flags);
++        AUXARGS_ENTRY(pos, AT_ENTRY, args->entry);
++        AUXARGS_ENTRY(pos, AT_BASE, args->base);
++        if (imgp->execpathp != 0)
++                AUXARGS_ENTRY(pos, AT_EXECPATH, imgp->execpathp);
++        AUXARGS_ENTRY(pos, AT_NULL, 0);
++                                                                                                                
++#endif
 +
 +#include_next <dl-machine.h>
 +
@@ -11618,14 +11686,16 @@
 +    );
 +}
 +
++extern const char *_self_program_name_from_auxv attribute_hidden;
++
 +static inline void __attribute__ ((unused))
 +dl_platform_kfreebsd_i386_init (void)
 +{
-+    if ((GLRO(dl_platform) == NULL) || (*GLRO(dl_platform) == '\0'))
-+    {
 +	/* we don't have reasonable AT_PLATFORM from kernel
 +	   try to use cpuid to get one, also guess AT_HWCAP */
 +
++        _self_program_name_from_auxv = GLRO(dl_platform);
++        
 +	int val, hwcap;
 +
 +	val = try_flip_flags(X86_EFLAGS_AC | X86_EFLAGS_ID);
@@ -11668,7 +11738,6 @@
 +		}
 +            }
 +	}
-+    }
 +}
 +
 +#endif
@@ -25444,7 +25513,7 @@
 +#include <sysdeps/unix/sysv/linux/x86_64/dl-cache.h>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-machine.h
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,137 @@
 +/* Machine-dependent ELF dynamic relocation inline functions.  FreeBSD/amd64 version.
 +   Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -25465,9 +25534,6 @@
 +   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 +   02111-1307 USA.  */
 +
-+#ifdef dl_machine_h
-+#include_next <dl-machine.h>
-+#else
 +#include_next <dl-machine.h>
 +
 +#undef RTLD_START
@@ -25523,6 +25589,66 @@
 +	jmp *%r12\n\
 +.previous\n\
 +");
++
++#if 0
++Under FreeBSD:
++#define AT_EXECPATH     15      /* Path to the executable. */
++
++Under Linux:
++#define AT_PLATFORM     15      /* String identifying platform.  */
++
++Filled entries from kernel:
++
++        if (args->execfd != -1)
++                AUXARGS_ENTRY(pos, AT_EXECFD, args->execfd);
++        AUXARGS_ENTRY(pos, AT_PHDR, args->phdr);    
++        AUXARGS_ENTRY(pos, AT_PHENT, args->phent);  
++        AUXARGS_ENTRY(pos, AT_PHNUM, args->phnum);  
++        AUXARGS_ENTRY(pos, AT_PAGESZ, args->pagesz);
++        AUXARGS_ENTRY(pos, AT_FLAGS, args->flags);
++        AUXARGS_ENTRY(pos, AT_ENTRY, args->entry);
++        AUXARGS_ENTRY(pos, AT_BASE, args->base);
++        if (imgp->execpathp != 0)
++                AUXARGS_ENTRY(pos, AT_EXECPATH, imgp->execpathp);
++        AUXARGS_ENTRY(pos, AT_NULL, 0);
++                                                                                                                
++#endif
++
++#undef  DL_PLATFORM_INIT
++#define DL_PLATFORM_INIT dl_platform_kfreebsd_x86_64_init ()
++
++#ifndef _DL_MACHINE_KFREEBSD
++#define _DL_MACHINE_KFREEBSD
++
++static inline void cpuid(long op, long *rax, long *rdx)
++{
++    __asm__(
++	"push %%rbx\n\t"
++	"cpuid\n\t"
++	"pop %%rbx\n\t"
++	: "=a" (*rax),
++	  "=d" (*rdx)
++	: "0" (op)
++	: "rcx"
++    );
++}
++
++extern const char *_self_program_name_from_auxv attribute_hidden;
++
++                           
++static inline void __attribute__ ((unused))
++dl_platform_kfreebsd_x86_64_init (void)
++{
++	/* we don't have reasonable AT_PLATFORM from kernel
++	   use cpuid to guess AT_HWCAP */
++
++	long val, hwcap;
++
++	cpuid(1, &val, &hwcap);
++	GLRO(dl_hwcap) = hwcap;
++	_self_program_name_from_auxv = GLRO(dl_platform);
++	GLRO(dl_platform) = ELF_MACHINE_NAME;
++}
 +
 +#endif
 --- /dev/null
