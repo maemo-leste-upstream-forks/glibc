@@ -17,8 +17,8 @@
 	    rl=$(runlevel | sed 's/.*\ //')
 	    for service in $check; do
 	    	if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
-	    	    invoke-rc.d ${service} status 2>/dev/null || status=$?
-	    	    if [ "$status" = "0" ] || [ "$status" = "1" ] ; then
+	    	    invoke-rc.d ${service} status 2>/dev/null && status=0 || status=$?
+	    	    if [ "$status" = "0" ] || [ "$status" = "2" ] ; then
 	    	    	services="$service $services"
 	    	    elif [ "$status" = "100" ] ; then
 	    	    	echo "WARNING: init script for $service not found."
