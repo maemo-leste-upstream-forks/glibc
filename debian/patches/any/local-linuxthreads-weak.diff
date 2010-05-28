@@ -15,6 +15,16 @@
  #endif
  
  /* Mutex type.  */
+@@ -158,6 +162,9 @@
+ #define __rtld_lock_init_recursive(NAME) \
+   __libc_lock_init_recursive (NAME)
+ 
++#define __rtld_lock_initialize(NAME) \
++ (void) ((NAME) = (__rtld_lock_recursive_t) _RTLD_LOCK_RECURSIVE_INITIALIZER)
++
+ /* Finalize the named lock variable, which must be locked.  It cannot be
+    used again until __libc_lock_init is called again on it.  This must be
+    called on a lock variable before the containing storage is reused.  */
 @@ -379,8 +383,10 @@
  weak_extern (__pthread_atfork)
  weak_extern (BP_SYM (_pthread_cleanup_push))

@@ -34,8 +34,8 @@ start_nscd()
 	# Return
 	#   0 if daemon has been started or was already running
 	#   2 if daemon could not be started
-	start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" --test > /dev/null || return 0
-	start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" || return 2
+	/sbin/start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" --test > /dev/null || return 0
+	/sbin/start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" || return 2
 }
 
 stop_nscd()
@@ -49,13 +49,13 @@ stop_nscd()
 	# in that case, fallback to "good old methods"
 	RETVAL=0
 	if ! $DAEMON --shutdown; then
-		start-stop-daemon --stop --quiet --pidfile "$PIDFILE" --name "$NAME" --test > /dev/null
+		/sbin/start-stop-daemon --stop --quiet --pidfile "$PIDFILE" --name "$NAME" --test > /dev/null
 		RETVAL="$?"
 		[ "$?" -ne 0  -a  "$?" -ne 1 ] && return 2
 	fi
 
 	# Wait for children to finish too
-	start-stop-daemon --stop --quiet --oknodo --retry=0/30/KILL/5 --exec "$DAEMON" > /dev/null
+	/sbin/start-stop-daemon --stop --quiet --oknodo --retry=0/30/KILL/5 --exec "$DAEMON" > /dev/null
 	[ "$?" -ne 0  -a  "$?" -ne 1 ] && return 2
 	rm -f "$PIDFILE"
 	return "$RETVAL"
@@ -66,7 +66,7 @@ status()
 	# Return
 	#   0 if daemon is stopped
 	#   1 if daemon is running
-	start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" --test > /dev/null || return 1
+	/sbin/start-stop-daemon --start --quiet --pidfile "$PIDFILE" --exec "$DAEMON" --test > /dev/null || return 1
 	return 0
 }
 

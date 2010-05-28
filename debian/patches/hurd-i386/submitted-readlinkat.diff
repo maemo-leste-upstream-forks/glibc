@@ -1,40 +1,14 @@
 2009-09-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
-	* sysdeps/mach/hurd/mkdirat.c: Include <hurd/fd.h>
-        (mkdirat): Call __directory_name_split_at instead of
-        __directory_name_split.
 	* sysdeps/mach/hurd/readlinkat.c: New file, heavily inherited from
 	sysdeps/mach/hurd/readlink.c
 
 ---
- mkdirat.c    |    3 +-
  readlinkat.c |   67 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  2 files changed, 69 insertions(+), 1 deletion(-)
 
 diff --git a/sysdeps/mach/hurd/mkdirat.c b/sysdeps/mach/hurd/mkdirat.c
 index 321d59f..a300745 100644
---- a/sysdeps/mach/hurd/mkdirat.c
-+++ b/sysdeps/mach/hurd/mkdirat.c
-@@ -22,6 +22,7 @@
- #include <stddef.h>
- #include <sys/stat.h>
- #include <hurd.h>
-+#include <hurd/fd.h>
- 
- int
- mkdirat (fd, path, mode)
-@@ -31,7 +32,7 @@ mkdirat (fd, path, mode)
- {
-   error_t err;
-   const char *name;
--  file_t parent = __directory_name_split (path, (char **) &name);
-+  file_t parent = __directory_name_split_at (fd, path, (char **) &name);
-   if (parent == MACH_PORT_NULL)
-     return -1;
-   err = __dir_mkdir (parent, name, mode & ~_hurd_umask);
-diff --git a/sysdeps/mach/hurd/readlinkat.c b/sysdeps/mach/hurd/readlinkat.c
-new file mode 100644
-index 0000000..5e44dbb
 --- /dev/null
 +++ b/sysdeps/mach/hurd/readlinkat.c
 @@ -0,0 +1,67 @@

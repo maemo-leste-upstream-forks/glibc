@@ -1,0 +1,26 @@
+2010-05-25  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* elf/tst-audit6.c: always succeed if not AVX support.
+
+diff --git a/elf/tst-audit6.c b/elf/tst-audit6.c
+index 1f6dcb1..3a8411b 100644
+--- a/elf/tst-audit6.c
++++ b/elf/tst-audit6.c
+@@ -1,5 +1,6 @@
+ /* Test case for x86-64 preserved registers in dynamic linker.  */
+ 
++#ifdef __AVX__
+ #include <stdlib.h>
+ #include <string.h>
+ #include <cpuid.h>
+@@ -26,3 +27,10 @@ main (void)
+     }
+   return 0;
+ }
++#else
++int
++main (void)
++{
++  return 0;
++}
++#endif

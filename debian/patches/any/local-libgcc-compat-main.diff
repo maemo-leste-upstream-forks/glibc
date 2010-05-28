@@ -20,8 +20,10 @@
  sysdeps/sparc/sparc32/libgcc-compat.c |  121 +++++++++++
  13 files changed, 433 insertions(+), 352 deletions(-)
 
---- /dev/null
-+++ b/sysdeps/i386/libgcc-compat.c
+Index: eglibc-2.11/sysdeps/i386/libgcc-compat.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ eglibc-2.11/sysdeps/i386/libgcc-compat.c	2009-11-10 23:58:11.812004885 -0500
 @@ -0,0 +1,75 @@
 +/* pre-.hidden libgcc compatibility
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -98,12 +100,14 @@
 +symbol_version (__floatdidf_internal, __floatdidf, GLIBC_2.0);
 +
 +#endif
---- a/sysdeps/i386/Makefile
-+++ b/sysdeps/i386/Makefile
+Index: eglibc-2.11/sysdeps/i386/Makefile
+===================================================================
+--- eglibc-2.11.orig/sysdeps/i386/Makefile	2009-06-25 11:46:40.000000000 -0400
++++ eglibc-2.11/sysdeps/i386/Makefile	2009-11-10 23:58:40.240023370 -0500
 @@ -9,6 +9,11 @@
  # On i686 we must avoid generating the trampoline functions generated
  # to get the GOT pointer.
- CFLAGS-initfini.s += -march=i386 -mtune=i386
+ CFLAGS-initfini.s += -march=i386 -mtune=i386 -fno-asynchronous-unwind-tables -fno-unwind-tables
 +ifeq (yes,$(build-shared))
 +# Compatibility
 +sysdep_routines += libgcc-compat
@@ -111,9 +115,11 @@
 +endif
  endif
  
- ifeq ($(subdir),gmon)
---- a/sysdeps/i386/Versions
-+++ b/sysdeps/i386/Versions
+ ifeq ($(subdir),nptl)
+Index: eglibc-2.11/sysdeps/i386/Versions
+===================================================================
+--- eglibc-2.11.orig/sysdeps/i386/Versions	2006-08-16 21:18:26.000000000 -0400
++++ eglibc-2.11/sysdeps/i386/Versions	2009-11-10 23:58:11.812004885 -0500
 @@ -2,6 +2,9 @@
    GLIBC_2.0 {
      # Functions from libgcc.
@@ -124,8 +130,10 @@
    }
    GLIBC_2.1 {
      # global variable
---- /dev/null
-+++ b/sysdeps/sparc/sparc32/libgcc-compat.c
+Index: eglibc-2.11/sysdeps/sparc/sparc32/libgcc-compat.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ eglibc-2.11/sysdeps/sparc/sparc32/libgcc-compat.c	2009-11-10 23:58:11.812004885 -0500
 @@ -0,0 +1,121 @@
 +/* pre-.hidden libgcc compatibility
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -248,8 +256,10 @@
 +symbol_version (__muldi3_internal, __muldi3, GLIBC_2.0);
 +
 +#endif
---- a/sysdeps/sparc/sparc32/Makefile
-+++ b/sysdeps/sparc/sparc32/Makefile
+Index: eglibc-2.11/sysdeps/sparc/sparc32/Makefile
+===================================================================
+--- eglibc-2.11.orig/sysdeps/sparc/sparc32/Makefile	2008-05-07 07:51:22.000000000 -0400
++++ eglibc-2.11/sysdeps/sparc/sparc32/Makefile	2009-11-10 23:58:11.812004885 -0500
 @@ -24,6 +24,14 @@
  CFLAGS-initfini.s += -mcpu=v7
  endif
@@ -265,8 +275,10 @@
  # We distribute these files, even though they are generated,
  # so as to avoid the need for a functioning m4 to build the library.
  divrem := sdiv udiv rem urem
---- a/sysdeps/sparc/sparc32/Versions
-+++ b/sysdeps/sparc/sparc32/Versions
+Index: eglibc-2.11/sysdeps/sparc/sparc32/Versions
+===================================================================
+--- eglibc-2.11.orig/sysdeps/sparc/sparc32/Versions	2006-08-16 21:18:26.000000000 -0400
++++ eglibc-2.11/sysdeps/sparc/sparc32/Versions	2009-11-10 23:58:11.812004885 -0500
 @@ -1,5 +1,9 @@
  libc {
    GLIBC_2.0 {
@@ -277,8 +289,10 @@
 +    __floatdidf; __floatdisf;
    }
  }
---- a/sysdeps/ia64/Makefile
-+++ b/sysdeps/ia64/Makefile
+Index: eglibc-2.11/sysdeps/ia64/Makefile
+===================================================================
+--- eglibc-2.11.orig/sysdeps/ia64/Makefile	2006-08-16 21:18:26.000000000 -0400
++++ eglibc-2.11/sysdeps/ia64/Makefile	2009-11-10 23:58:11.812004885 -0500
 @@ -12,8 +12,8 @@
  
  ifeq (yes,$(build-shared))
@@ -290,8 +304,10 @@
  endif
  endif
  
---- a/sysdeps/ia64/Versions
-+++ b/sysdeps/ia64/Versions
+Index: eglibc-2.11/sysdeps/ia64/Versions
+===================================================================
+--- eglibc-2.11.orig/sysdeps/ia64/Versions	2006-08-16 21:18:26.000000000 -0400
++++ eglibc-2.11/sysdeps/ia64/Versions	2009-11-10 23:58:11.812004885 -0500
 @@ -10,6 +10,10 @@
      # Functions from libgcc.
      __divtf3; __divdf3; __divsf3; __divdi3; __moddi3; __udivdi3; __umoddi3;
@@ -303,8 +319,10 @@
    }
  }
  libm {
---- a/sysdeps/ia64/ia64libgcc.S
-+++ /dev/null
+Index: eglibc-2.11/sysdeps/ia64/ia64libgcc.S
+===================================================================
+--- eglibc-2.11.orig/sysdeps/ia64/ia64libgcc.S	2006-08-16 21:18:26.000000000 -0400
++++ /dev/null	1970-01-01 00:00:00.000000000 +0000
 @@ -1,350 +0,0 @@
 -/* From the Intel IA-64 Optimization Guide, choose the minimum latency
 -   alternative.  */
@@ -656,8 +674,10 @@
 -	.symver	___multi3, __multi3@GLIBC_2.2
 -
 -#endif
---- /dev/null
-+++ b/sysdeps/ia64/libgcc-compat.c
+Index: eglibc-2.11/sysdeps/ia64/libgcc-compat.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ eglibc-2.11/sysdeps/ia64/libgcc-compat.c	2009-11-10 23:58:11.816005172 -0500
 @@ -0,0 +1,112 @@
 +/* pre-.hidden libgcc compatibility
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -771,8 +791,10 @@
 +symbol_version (INTUSE (__umodsi3), __umodsi3, GLIBC_2.2);
 +
 +#endif
---- a/sysdeps/s390/s390-32/Makefile
-+++ b/sysdeps/s390/s390-32/Makefile
+Index: eglibc-2.11/sysdeps/s390/s390-32/Makefile
+===================================================================
+--- eglibc-2.11.orig/sysdeps/s390/s390-32/Makefile	2006-08-16 21:18:26.000000000 -0400
++++ eglibc-2.11/sysdeps/s390/s390-32/Makefile	2009-11-10 23:58:11.816005172 -0500
 @@ -9,3 +9,11 @@
  CFLAGS-dl-load.c += -Wno-unused
  CFLAGS-dl-reloc.c += -Wno-unused
@@ -785,8 +807,10 @@
 +shared-only-routines += libgcc-compat
 +endif
 +endif
---- a/sysdeps/s390/s390-32/Versions
-+++ b/sysdeps/s390/s390-32/Versions
+Index: eglibc-2.11/sysdeps/s390/s390-32/Versions
+===================================================================
+--- eglibc-2.11.orig/sysdeps/s390/s390-32/Versions	2006-08-16 21:18:26.000000000 -0400
++++ eglibc-2.11/sysdeps/s390/s390-32/Versions	2009-11-10 23:58:11.816005172 -0500
 @@ -2,5 +2,13 @@
    GLIBC_2.0 {
      # Functions from libgcc.
@@ -801,8 +825,10 @@
 +    __ucmpdi2;
    }
  }
---- /dev/null
-+++ b/sysdeps/s390/s390-32/libgcc-compat.c
+Index: eglibc-2.11/sysdeps/s390/s390-32/libgcc-compat.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ eglibc-2.11/sysdeps/s390/s390-32/libgcc-compat.c	2009-11-10 23:58:11.816005172 -0500
 @@ -0,0 +1,83 @@
 +/* pre-.hidden libgcc compatibility
 +   Copyright (C) 2003 Free Software Foundation, Inc.

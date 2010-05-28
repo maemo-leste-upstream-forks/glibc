@@ -1,3 +1,114 @@
+eglibc (2.11.1-1) UNRELEASED; urgency=low
+
+  [ Clint Adams ]
+  * New upstream release:
+    - Fixes a house of mind attack.  Closes: bug#568488.
+    - Add the fallocate64() syscall.  Closes: bug#568924.
+    - Add RES_USE_DNSSEC support.  Closes: bug#569592.
+    - Don't abort in getifaddrs.  Closes: bug#582383.
+    - Update debian/patches/all/local-pthread-manpages.diff
+    - Remove debian/patches/alpha/submitted-getsysstats.diff (merged)
+    - Remove debian/patches/alpha/submitted-includes.diff (merged)
+    - Remove debian/patches/alpha/submitted-lowlevellock.diff (merged)
+    - Remove debian/patches/alpha/submitted-procfs_h.diff (merged)
+    - Remove debian/patches/any/cvs-broken-dns.diff (merged)
+    - Remove debian/patches/any/cvs-getutmpx-compat.diff (merged)
+    - Remove debian/patches/any/cvs-ksm.diff (merged)
+    - Remove debian/patches/any/cvs-malloc_info-output.diff (merged)
+    - Remove debian/patches/any/cvs-nis-not-configured.diff (merged)
+    - Remove debian/patches/any/cvs-nptl-init.diff (merged)
+    - Remove debian/patches/any/cvs-resolv-edns0.diff (merged)
+    - Remove debian/patches/any/cvs-resolv-init.diff (merged)
+    - Remove debian/patches/any/cvs-resolv-uninitialized.diff (merged)
+    - Remove debian/patches/any/cvs-resolv-v6mapped.diff (merged)
+    - Remove debian/patches/any/cvs-sched_h.diff (merged)
+    - Remove debian/patches/any/local-dynamic-resolvconf.diff (merged)
+    - Update debian/patches/any/local-libgcc-compat-main.diff
+    - Remove debian/patches/any/submitted-confname.h.diff (merged)
+    - Remove debian/patches/any/submitted-getent-gshadow.diff (merged)
+    - Remove debian/patches/any/submitted-getaddrinfo-nodata.diff (merged)
+    - Remove debian/patches/any/submitted-gethostbyname3.diff (merged)
+    - Update debian/patches/any/submitted-missing-etc-hosts.diff.
+    - Remove debian/patches/arm/cvs-setjmp-longjmp-fpu.diff (merged)
+    - Update debian/patches/hppa/cvs-nptl-compat.diff.
+    - Update debian/patches/hppa/local-stack-grows-up.diff from
+      Carlos O'Donell.
+    - Remove debian/patches/hppa/submitted-pie.diff (merged)
+    - Remove debian/patches/hppa/submitted-sock_nonblock.diff (merged)
+    - Update debian/patches/hurd-i386/cvs-setsid.diff.
+    - Remove debian/patches/hurd-i386/cvs-termios-IXANY.patch (merged)
+    - Remove debian/patches/hurd-i386/submitted-getnprocs.diff (merged)
+    - Update debian/patches/hurd-i386/submitted-readlinkat.diff
+    - Remove debian/patches/ia64/cvs-memchr.diff (merged)
+    - Remove debian/patches/ia64/submitted-memchr.diff (merged)
+    - Remove debian/patches/ia64/submitted-siginfo.diff (merged)
+    - Update debian/patches/kfreebsd/local-readdir_r.diff.
+    - Remove debian/patches/locale/cvs-C-first_weekday.diff (merged)
+    - Update debian/patches/localedata/first_weekday.diff
+    - Update debian/patches/localedata/tailor-iso14651_t1.diff
+    - Remove debian/patches/mips/local-lazy-eval.diff (obsolete)
+    - Remove debian/patches/s390/submitted-siginfo.diff (merged)
+    - testsuite-checking/expected-results-ia64-linux-gnu-libc: update
+    - Update testsuite-checking/expected-results-sparc-linux-gnu-libc
+    - Update testsuite-checking/expected-results-sparcv9b-linux-gnu-sparcv9b
+
+  * Add debian/patches/alpha/local-fcntl_h.diff.
+  * Add debian/patches/hppa/local-dlfptr.diff from Carlos O'Donnell.
+  * Add debian/patches/localedata/locale-hsb_DE.diff
+
+  [ Aurelien Jarno ]
+  * Enable multi-arch.
+  * Add debian/patches/kfreebsd/local-syscalls_2.11.patch to add the
+    lchflag syscalls on GNU/kFreeBSD.
+  * Add debian/patches/alpha/local-longjmp-chk.diff and
+    debian/patches/alpha/cvs-timer_settime.diff to fix FTBFS on alpha, and
+    debian/patches/alpha/local-lowlevellock.diff to fix the testsuite.
+  * Add debian/patches/mips/local-lowlevellock.diff to fix the testsuite
+    on mips.
+  * Re-enable the testsuite on mips/mipsel build daemons.
+  * Add debian/patches/arm/local-atomic.diff and 
+    debian/patches/arm/local-lowlevellock.diff to fix the testsuite on arm.
+  * Add debian/patches/hppa/local-longjmp-chk.diff to fix FTBFS on hppa.
+  * Add debian/patches/hppa/local-lowlevellock.diff to fix the testsuite
+    on hppa.
+  * Add debian/patches/s390/cvs-makecontext.diff from upstream to fix 
+    makecontext() on s390.
+  * Replace debian/patches/submitted/cvs-stat-issock.diff by the upstream patch
+    debian/patches/any/cvs-stat-issock.diff.
+  * Explictely call /sbin/start-stop-daemon in nscd.init.  Closes: bug#575404.
+  * Add debian/patches/any/cvs-getaddrinfo.diff from upstream to not abort
+    the getaddrinfo loop on the first successful.
+  * Add debian/patches/any/cvs-umount-nofollow.diff from upstream to define
+    UMOUNT_NOFOLLOW.
+  * Add debian/patches/any/cvs-glob.diff from upstream to fix glob() with empty
+    pattern.
+  * Add debian/patches/submitted-tst-audit6-avx.diff to skip AVX tests if if
+    AVX is not available.
+  * Allow failures of the testsuite on HPPA until bugs are fixed:
+    - tstdiomisc.out (due to bug #582787 on gcc-4.4)
+    - tst-fork1.out (due to bug #561203 on linux-2.6)
+  * Add debian/patches/sh4/cvs-register_dump.diff from upstream to fix 
+    iov[] size register-dump.h.
+  * Add debian/patches/hurd-i386/submitted-regex_internal.diff to fix FTBFS on
+    hurd-i386.
+
+  [ Samuel Thibault ]
+  * debian/patches/hurd-i386/submitted-rtld_lock_recursive.diff: New patch to
+    fix elf/ build on hurd-i386.
+  * debian/patches/hurd-i386/local-longjmp_chk.diff: New patch to fix
+    debug/____longjmp_chk.S build on hurd-i386.
+  * Update debian/patches/hurd-i386/local-pthread.diff.
+  * Update debian/testsuite-checking/expected-results-i486-gnu-libc.
+
+  [ Petr Salinger]
+  * define __rtld_lock_initialize also in linuxthreads <bits/libc-lock.h>
+    variant (enhance local-linuxthreads-weak.diff).
+  * allow failure of tst-longjmp_chk.out on GNU/kFreeBSD
+  * Add kfreebsd/local-dosavesse.diff, which does not work,
+    so rather use also added kfreebsd/local-nosavesse.diff
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sat, 29 May 2010 00:50:30 +0200
+
 eglibc (2.10.2-9) unstable; urgency=low
 
   [ Aurelien Jarno ]

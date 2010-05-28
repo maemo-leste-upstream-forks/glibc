@@ -2,9 +2,6 @@
 # thus must be linked statically
 libc-bin: statically-linked-binary ./sbin/ldconfig
 
-# ld.so must be executable, otherwise the system will not work
-libc-bin: shlib-with-executable-bit lib/ld-2.9.so 0755
-
 # pt_chown must be setuid root, otherwise non-root users won't be able
 # to login
 libc-bin: setuid-binary usr/lib/pt_chown 4755 root/root

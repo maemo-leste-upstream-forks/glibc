@@ -1,4 +1,4 @@
-svn-updates.diff
+#svn-updates.diff
 
 locale/check-unknown-symbols.diff
 locale/fix-LC_COLLATE-rules.diff
@@ -6,7 +6,6 @@ locale/preprocessor-collate-uli-sucks.diff
 locale/preprocessor-collate.diff  # should not be needed anymore, but keep it anyways.
 locale/locale-print-LANGUAGE.diff
 locale/LC_IDENTIFICATION-optional-fields.diff
-locale/cvs-C-first_weekday.diff
 locale/LC_COLLATE-keywords-ordering.diff
 localedata/local-all-no-archive.diff
 localedata/sort-UTF8-first.diff
@@ -27,6 +26,7 @@ localedata/locale-ia.diff
 localedata/locale-zh_TW.diff
 localedata/locale-se_NO.diff
 localedata/tailor-iso14651_t1.diff
+localedata/locale-hsb_DE.diff
 localedata/tailor-iso14651_t1-common.diff
 localedata/fix-lang.diff
 localedata/fr_BE-first_weekday.diff
@@ -48,36 +48,38 @@ alpha/submitted-dl-procinfo.diff
 alpha/submitted-dl-support.diff
 alpha/submitted-fdatasync.diff
 alpha/submitted-fpu-round.diff
-alpha/submitted-getsysstats.diff
-alpha/submitted-includes.diff
-alpha/submitted-lowlevellock.diff
 alpha/submitted-PTR_MANGLE.diff
-alpha/submitted-procfs_h.diff
 alpha/submitted-rtld-fPIC.diff
 alpha/submitted-asm-memchr.diff
 alpha/submitted-sock_nonblock.diff
+alpha/cvs-timer_settime.diff
+alpha/local-fcntl_h.diff
+alpha/local-longjmp-chk.diff
+alpha/local-lowlevellock.diff
 
 amd64/local-biarch.diff
 amd64/local-clone.diff
 amd64/local-linuxthreads-gscope.diff
+amd64/submitted-tst-audit6-avx.diff
 
+arm/local-atomic.diff
 arm/local-eabi-wchar.diff
 arm/local-ioperm.diff
 arm/local-lowlevellock.diff
 arm/local-no-hwcap.diff
 arm/local-hwcap-updates.diff
-arm/cvs-setjmp-longjmp-fpu.diff
 
-hppa/submitted-sock_nonblock.diff
 hppa/local-inlining.diff
 hppa/local-linuxthreads.diff
 hppa/local-linuxthreads-gscope.diff
 hppa/submitted-fadvise64_64.diff
 hppa/submitted-lt.diff
 hppa/submitted-nptl-carlos.diff
-hppa/submitted-pie.diff
 hppa/cvs-nptl-compat.diff
 hppa/local-stack-grows-up.diff
+hppa/local-dlfptr.diff
+hppa/local-longjmp-chk.diff
+hppa/local-lowlevellock.diff
 
 hurd-i386/local-dl-dynamic-weak.diff
 hurd-i386/local-enable-ldconfig.diff
@@ -109,20 +111,18 @@ hurd-i386/submitted-null-pathname.diff
 hurd-i386/submitted-sbrk.diff
 hurd-i386/local-thread-cancel.diff
 hurd-i386/submitted-readlinkat.diff
-hurd-i386/cvs-termios-IXANY.patch
 hurd-i386/submitted-SOL_IP.patch
 hurd-i386/local-bigmem.diff
 hurd-i386/local-disable-ioctls.diff
+hurd-i386/submitted-rtld_lock_recursive.diff
+hurd-i386/local-longjmp_chk.diff
 hurd-i386/cvs-getcwd.diff
 hurd-i386/cvs-setsid.diff
-hurd-i386/submitted-getnprocs.diff
 hurd-i386/local-locarchive.diff
+hurd-i386/submitted-regex_internal.diff
 
 ia64/submitted-sysconf.diff
 ia64/submitted-libm.diff
-ia64/submitted-siginfo.diff
-ia64/cvs-memchr.diff
-ia64/submitted-memchr.diff
 
 i386/local-biarch.diff
 i386/local-clone.diff
@@ -138,15 +138,16 @@ m68k/local-reloc.diff
 m68k/local-pthread_lock.diff
 m68k/submitted-gcc34-seccomment.diff
 
-mips/local-lazy-eval.diff
+mips/local-lowlevellock.diff
 mips/local-r10k.diff
 mips/submitted-rld_map.diff
 
+s390/cvs-makecontext.diff
 s390/submitted-nexttowardf.diff
-s390/submitted-siginfo.diff
 
 sh4/local-fpscr_values.diff
 sh4/submitted-set_fpscr.diff
+sh4/cvs-register_dump.diff
 
 sparc/local-fork.diff
 sparc/local-sparcv9-target.diff
@@ -197,7 +198,6 @@ any/local-stdio-lock.diff
 any/local-tcsetaddr.diff
 any/local-disable-test-tgmath2.diff
 any/local-tst-mktime2.diff
-any/local-dynamic-resolvconf.diff
 any/submitted-nis-netgrp.diff
 any/submitted-clock-settime.diff
 any/submitted-longdouble.diff
@@ -212,36 +212,24 @@ any/submitted-futex_robust_pi.diff
 #any/local-disable-gethostbyname4.diff
 any/submitted-getaddrinfo-lo.diff
 any/local-getaddrinfo-interface.diff
-any/cvs-broken-dns.diff
 any/submitted-autotools.diff
-any/cvs-nptl-init.diff
 any/submitted-accept4-hidden.diff
-any/submitted-getent-gshadow.diff
-any/submitted-missing-etc-hosts.diff
 any/submitted-etc-resolv.conf.diff
 any/submitted-localedef-mmap.diff
-any/submitted-confname.h.diff
-any/cvs-getutmpx-compat.diff
-any/cvs-ksm.diff
+any/submitted-missing-etc-hosts.diff
 any/submitted-bits-fcntl_h-at.diff
-any/cvs-sched_h.diff
-any/cvs-nis-not-configured.diff
-any/submitted-getaddrinfo-nodata.diff
-any/submitted-gethostbyname3.diff
 any/local-ntp-update.diff
-any/cvs-malloc_info-output.diff
 #any/cvs-futimens.diff
-any/cvs-resolv-init.diff
-any/cvs-resolv-uninitialized.diff
 any/cvs-resolv-bindv6only.diff
-any/cvs-resolv-edns0.diff
-any/cvs-resolv-v6mapped.diff
 any/submitted-nis-shadow.diff
 any/local-no-SOCK_NONBLOCK.diff
 any/cvs-malloc_info-init.diff
 any/submitted-stack-guard-quick-randomization.diff
 any/submitted-leading-zero-stack-guard.diff
-any/submitted-stat-issock.diff
+any/cvs-stat-issock.diff
 any/cvs-remove.diff
 any/submitted-nptl-invalid-td.patch
 any/local-gai-rfc1918-scope-global.patch
+any/cvs-getaddrinfo.diff
+any/cvs-umount-nofollow.diff
+any/cvs-glob.diff

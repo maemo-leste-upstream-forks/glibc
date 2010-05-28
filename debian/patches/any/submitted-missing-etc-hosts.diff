@@ -1,20 +1,13 @@
-When /etc/hosts is missing, return NO_DATA instead of an internal error;
-otherwise getaddrinfo() fails instead of falling back to the next backend
-(DNS).
-
-Index: eglibc-2.10.1/nss/nss_files/files-hosts.c
+Index: eglibc-2.11/nss/nss_files/files-hosts.c
 ===================================================================
---- eglibc-2.10.1.orig/nss/nss_files/files-hosts.c
-+++ eglibc-2.10.1/nss/nss_files/files-hosts.c
-@@ -423,6 +423,11 @@
-       if (! keep_stream)
- 	internal_endent ();
-     }
-+  else
-+    {
-+      *errnop = errno;
+--- eglibc-2.11.orig/nss/nss_files/files-hosts.c	2009-11-13 01:45:45.604005510 -0500
++++ eglibc-2.11/nss/nss_files/files-hosts.c	2009-11-13 01:45:55.329187688 -0500
+@@ -426,7 +426,7 @@
+   else
+     {
+       *errnop = errno;
+-      *herrnop = NO_DATA;
 +      *herrnop = HOST_NOT_FOUND;
-+    }
+     }
  
    __libc_lock_unlock (lock);
- 

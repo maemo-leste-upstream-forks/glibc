@@ -1,7 +1,13 @@
 diff --git a/nptl/allocatestack.c b/nptl/allocatestack.c
-index 3c3585f..9fba661 100644
+index 3c3585f..68c4a8f 100644
 --- a/nptl/allocatestack.c
 +++ b/nptl/allocatestack.c
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2002-2007, 2009 Free Software Foundation, Inc.
++/* Copyright (C) 2002-2007, 2009, 2010 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
+ 
 @@ -353,6 +353,15 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
    if (__builtin_expect (attr->flags & ATTR_FLAG_STACKADDR, 0))
      {
@@ -72,12 +78,12 @@ index 3c3585f..9fba661 100644
  
    return 0;
 diff --git a/nptl/pthread_attr_getstack.c b/nptl/pthread_attr_getstack.c
-index 1db135e..ae02c9d 100644
+index 1db135e..792f5d5 100644
 --- a/nptl/pthread_attr_getstack.c
 +++ b/nptl/pthread_attr_getstack.c
 @@ -1,4 +1,4 @@
 -/* Copyright (C) 2002 Free Software Foundation, Inc.
-+/* Copyright (C) 2002, 2009 Free Software Foundation, Inc.
++/* Copyright (C) 2002, 2010 Free Software Foundation, Inc.
     This file is part of the GNU C Library.
     Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
  
@@ -94,12 +100,12 @@ index 1db135e..ae02c9d 100644
  
    return 0;
 diff --git a/nptl/pthread_attr_setstack.c b/nptl/pthread_attr_setstack.c
-index be79e32..acf61dd 100644
+index be79e32..a455a04 100644
 --- a/nptl/pthread_attr_setstack.c
 +++ b/nptl/pthread_attr_setstack.c
 @@ -1,4 +1,4 @@
 -/* Copyright (C) 2002, 2003, 2006 Free Software Foundation, Inc.
-+/* Copyright (C) 2002, 2003, 2006, 2009 Free Software Foundation, Inc.
++/* Copyright (C) 2002, 2003, 2006, 2010 Free Software Foundation, Inc.
     This file is part of the GNU C Library.
     Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
  
@@ -127,14 +133,46 @@ index be79e32..acf61dd 100644
    iattr->flags |= ATTR_FLAG_STACKADDR;
  
    return 0;
+diff --git a/nptl/pthread_create.c b/nptl/pthread_create.c
+index 89938b3..9e992ca 100644
+--- a/nptl/pthread_create.c
++++ b/nptl/pthread_create.c
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2002-2007,2008,2009 Free Software Foundation, Inc.
++/* Copyright (C) 2002-2007,2008,2009,2010 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
+ 
+@@ -383,12 +383,18 @@ start_thread (void *arg)
+ #ifdef _STACK_GROWS_DOWN
+   char *sp = CURRENT_STACK_FRAME;
+   size_t freesize = (sp - (char *) pd->stackblock) & ~pagesize_m1;
+-#else
+-# error "to do"
+-#endif
+   assert (freesize < pd->stackblock_size);
+   if (freesize > PTHREAD_STACK_MIN)
+     madvise (pd->stackblock, freesize - PTHREAD_STACK_MIN, MADV_DONTNEED);
++#else
++  char *sp = CURRENT_STACK_FRAME;
++  size_t freesize = ((char *) pd->stackblock + pd->stackblock_size - sp) 
++		     & ~pagesize_m1;
++  void *freeblock = (void *) (sp + PTHREAD_STACK_MIN);
++  assert (freesize < pd->stackblock_size);
++  if (freesize > PTHREAD_STACK_MIN)
++    madvise (freeblock, freesize - PTHREAD_STACK_MIN, MADV_DONTNEED);
++#endif
+ 
+   /* If the thread is detached free the TCB.  */
+   if (IS_DETACHED (pd))
 diff --git a/nptl/pthread_getattr_np.c b/nptl/pthread_getattr_np.c
-index 9c25caf..72da58c 100644
+index 9c25caf..80f0f3c 100644
 --- a/nptl/pthread_getattr_np.c
 +++ b/nptl/pthread_getattr_np.c
 @@ -1,4 +1,5 @@
 -/* Copyright (C) 2002, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
 +/* Copyright (C) 2002, 2003, 2004, 2006, 2007, 
-+   2009 Free Software Foundation, Inc.
++   2010 Free Software Foundation, Inc.
     This file is part of the GNU C Library.
     Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
  
