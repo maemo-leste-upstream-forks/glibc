@@ -4,8 +4,11 @@
 	overflow area.
 	* sysdeps/unix/sysv/linux/s390/s390-64/makecontext.c: Likewise.
 
-diff --git a/sysdeps/unix/sysv/linux/s390/s390-32/makecontext.c b/sysdeps/unix/sysv/linux/s390/s390-32/makecontext.c
-index 94760e0..0e309c3 100644
+---
+ sysdeps/unix/sysv/linux/s390/s390-32/makecontext.c |   64 ++++++++++-----------
+ sysdeps/unix/sysv/linux/s390/s390-64/makecontext.c |   62 ++++++++++----------
+ 2 files changed, 63 insertions(+), 63 deletions(-)
+
 --- a/sysdeps/unix/sysv/linux/s390/s390-32/makecontext.c
 +++ b/sysdeps/unix/sysv/linux/s390/s390-32/makecontext.c
 @@ -1,4 +1,4 @@
@@ -38,7 +41,7 @@ index 94760e0..0e309c3 100644
     The registers are set up like this:
       %r2-%r6: parameters 1 to 5
       %r7    : (*func) pointer
-@@ -54,27 +54,27 @@ void
+@@ -54,27 +54,27 @@
  __makecontext (ucontext_t *ucp, void (*func) (void), int argc, ...)
  {
    extern void __makecontext_ret (void);
@@ -78,7 +81,7 @@ index 94760e0..0e309c3 100644
    va_end (ap);
  
    /* Make room for the save area and set the backchain.  */
-@@ -82,24 +82,24 @@ __makecontext (ucontext_t *ucp, void (*func) (void), int argc, ...)
+@@ -82,24 +82,24 @@
    *sp = 0;
  
    /* Pass (*func) to __start_context in %r7.  */
@@ -114,8 +117,6 @@ index 94760e0..0e309c3 100644
 +     ".size __makecontext_ret, .-__makecontext_ret");
  
  weak_alias (__makecontext, makecontext)
-diff --git a/sysdeps/unix/sysv/linux/s390/s390-64/makecontext.c b/sysdeps/unix/sysv/linux/s390/s390-64/makecontext.c
-index b08f1b4..40ff3ee 100644
 --- a/sysdeps/unix/sysv/linux/s390/s390-64/makecontext.c
 +++ b/sysdeps/unix/sysv/linux/s390/s390-64/makecontext.c
 @@ -1,4 +1,4 @@
@@ -146,7 +147,7 @@ index b08f1b4..40ff3ee 100644
     The registers are set up like this:
       %r2-%r6: parameters 1 to 5
       %r7    : (*func) pointer
-@@ -54,27 +54,27 @@ void
+@@ -54,27 +54,27 @@
  __makecontext (ucontext_t *ucp, void (*func) (void), int argc, ...)
  {
    extern void __makecontext_ret (void);
@@ -186,7 +187,7 @@ index b08f1b4..40ff3ee 100644
    va_end (ap);
  
    /* Make room for the save area and set the backchain.  */
-@@ -82,24 +82,24 @@ __makecontext (ucontext_t *ucp, void (*func) (void), int argc, ...)
+@@ -82,24 +82,24 @@
    *sp = 0;
  
    /* Pass (*func) to __start_context in %r7.  */

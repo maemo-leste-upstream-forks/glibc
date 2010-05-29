@@ -3,9 +3,13 @@
   fixes ruby 1.9 testsuite failure t916 from #542927
 
 
+---
+ linuxthreads/pthread.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
 --- a/linuxthreads/pthread.c
 +++ b/linuxthreads/pthread.c
-@@ -1199,6 +1199,15 @@
+@@ -1222,6 +1222,15 @@
    /* Reset the signal handlers behaviour for the signals the
       implementation uses since this would be passed to the new
       process.  */
@@ -21,7 +25,7 @@
    sigemptyset(&sa.sa_mask);
    sa.sa_flags = 0;
    sa.sa_handler = SIG_DFL;
-@@ -1206,6 +1215,7 @@
+@@ -1229,6 +1238,7 @@
    __libc_sigaction(__pthread_sig_cancel, &sa, NULL);
    if (__pthread_sig_debug > 0)
      __libc_sigaction(__pthread_sig_debug, &sa, NULL);

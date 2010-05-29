@@ -12,7 +12,7 @@ TLS support
  sysdeps/mach/hurd/bits/libc-tsd.h       |   35 ------------------
  sysdeps/mach/hurd/fork.c                |    7 +++
  sysdeps/mach/hurd/i386/init-first.c     |   60 +++++++++++++++++++-------------
- sysdeps/mach/hurd/i386/tls.h            |   53 ++++++++++++++++++++++------
+ sysdeps/mach/hurd/i386/tls.h            |   55 ++++++++++++++++++++++++-----
  sysdeps/mach/hurd/i386/tlsdesc.sym      |   17 +++++++++
  sysdeps/mach/hurd/i386/trampoline.c     |    2 -
  sysdeps/mach/hurd/profil.c              |    2 +
@@ -21,13 +21,13 @@ TLS support
  sysdeps/mach/i386/thread_state.h        |   11 +++++
  sysdeps/mach/powerpc/thread_state.h     |    1 
  sysdeps/mach/thread_state.h             |    3 +
- 20 files changed, 167 insertions(+), 75 deletions(-)
+ 20 files changed, 169 insertions(+), 75 deletions(-)
 
 --- a/csu/libc-start.c
 +++ b/csu/libc-start.c
-@@ -134,10 +134,12 @@
-     }
- # endif
+@@ -140,10 +140,12 @@
+   /* Performe IREL{,A} relocations.  */
+   __libc_csu_irel ();
  
 +#ifndef __GNU__
    /* Initialize the thread library at least a bit since the libgcc
@@ -318,7 +318,7 @@ TLS support
  /* Use i386-specific RPCs to arrange that %gs segment register prefix
     addresses the TCB in each thread.  */
  # include <mach/i386/mach_i386.h>
-@@ -72,7 +72,7 @@ _hurd_tls_init (tcbhead_t *tcb, int secondcall)
+@@ -72,7 +74,7 @@
  
        /* Get the first available selector.  */
        int sel = -1;
@@ -327,7 +327,7 @@ TLS support
        if (err == MIG_BAD_ID)
  	{
  	  /* Old kernel, use a per-thread LDT.  */
-@@ -96,16 +96,16 @@ _hurd_tls_init (tcbhead_t *tcb, int secondcall)
+@@ -96,16 +98,16 @@
        /* Fetch the selector set by the first call.  */
        int sel;
        asm ("mov %%gs, %w0" : "=q" (sel) : "0" (0));
@@ -347,7 +347,7 @@ TLS support
  	  assert_perror (err);
  	  if (err)
  	    return "i386_set_gdt failed";
-@@ -142,9 +142,40 @@ _hurd_tls_init (tcbhead_t *tcb, int secondcall)
+@@ -142,9 +144,40 @@
  
  #include <mach/machine/thread_status.h>
  
@@ -391,7 +391,7 @@ TLS support
  {
    /* Fetch the selector set by _hurd_tls_init.  */
    int sel;
-@@ -152,11 +183,13 @@ _hurd_tls_fork (thread_t child, struct i386_thread_state *state)
+@@ -152,11 +185,13 @@
    if (sel == state->ds)		/* _hurd_tls_init was never called.  */
      return 0;
  

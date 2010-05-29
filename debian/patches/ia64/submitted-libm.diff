@@ -20,8 +20,20 @@
 	* sysdeps/ia64/fpu/s_tanf.S: check for ftanf(inf).
 	* sysdeps/ia64/fpu/s_tanl.S: check for ftanl(inf).
 
-diff --git a/sysdeps/ia64/fpu/e_fmod.S b/sysdeps/ia64/fpu/e_fmod.S
-index dbd0a29..87b6a48 100644
+---
+ sysdeps/ia64/fpu/e_fmod.S           |    8 +--
+ sysdeps/ia64/fpu/e_fmodf.S          |    8 +--
+ sysdeps/ia64/fpu/e_fmodl.S          |   12 ++++-
+ sysdeps/ia64/fpu/libm_error.c       |   75 +++++++++++++++++++++++++++++--
+ sysdeps/ia64/fpu/libm_error_codes.h |    6 ++
+ sysdeps/ia64/fpu/s_cos.S            |   82 +++++++++++++++++++++++++++++++++-
+ sysdeps/ia64/fpu/s_cosf.S           |   85 +++++++++++++++++++++++++++++++++---
+ sysdeps/ia64/fpu/s_cosl.S           |   80 ++++++++++++++++++++++++++++++++-
+ sysdeps/ia64/fpu/s_tan.S            |   15 +++---
+ sysdeps/ia64/fpu/s_tanf.S           |    6 +-
+ sysdeps/ia64/fpu/s_tanl.S           |   21 ++++++--
+ 11 files changed, 355 insertions(+), 43 deletions(-)
+
 --- a/sysdeps/ia64/fpu/e_fmod.S
 +++ b/sysdeps/ia64/fpu/e_fmod.S
 @@ -75,8 +75,8 @@
@@ -35,7 +47,7 @@ index dbd0a29..87b6a48 100644
  //
  // Registers used
  //====================================================================
-@@ -407,13 +407,13 @@ FMOD_X_NAN_INF:
+@@ -407,13 +407,13 @@
        nop.m 999
      // also set Denormal flag if necessary
  (p8)  fma.s0 f9=f9,f1,f0
@@ -51,8 +63,6 @@ index dbd0a29..87b6a48 100644
  }
  
  { .mfb
-diff --git a/sysdeps/ia64/fpu/e_fmodf.S b/sysdeps/ia64/fpu/e_fmodf.S
-index 36e5807..9f8cbbd 100644
 --- a/sysdeps/ia64/fpu/e_fmodf.S
 +++ b/sysdeps/ia64/fpu/e_fmodf.S
 @@ -75,8 +75,8 @@
@@ -66,7 +76,7 @@ index 36e5807..9f8cbbd 100644
  
  // Registers used
  //====================================================================
-@@ -413,13 +413,13 @@ FMOD_X_NAN_INF:
+@@ -413,13 +413,13 @@
        nop.m 999
      // also set Denormal flag if necessary
  (p8)  fma.s0 f9=f9,f1,f0
@@ -82,11 +92,9 @@ index 36e5807..9f8cbbd 100644
  }
  
  { .mfb
-diff --git a/sysdeps/ia64/fpu/e_fmodl.S b/sysdeps/ia64/fpu/e_fmodl.S
-index 3e87eb0..3c38654 100644
 --- a/sysdeps/ia64/fpu/e_fmodl.S
 +++ b/sysdeps/ia64/fpu/e_fmodl.S
-@@ -484,6 +484,11 @@ FMOD_A_NAN_INF:
+@@ -484,6 +484,11 @@
   (p8)  cmp.ne p7, p0 = GR_SIG_B, r0
         nop.i 0
  }
@@ -98,7 +106,7 @@ index 3e87eb0..3c38654 100644
  ;;
  
  { .mfi
-@@ -509,7 +514,12 @@ FMOD_A_NAN_INF:
+@@ -509,7 +514,12 @@
  { .mfb
         nop.m 0
   (p9)  frcpa.s0 f8, p7 = f8, f9
@@ -112,11 +120,9 @@ index 3e87eb0..3c38654 100644
  }
  ;;
  
-diff --git a/sysdeps/ia64/fpu/libm_error.c b/sysdeps/ia64/fpu/libm_error.c
-index 8ef4bb5..cf004fc 100644
 --- a/sysdeps/ia64/fpu/libm_error.c
 +++ b/sysdeps/ia64/fpu/libm_error.c
-@@ -708,15 +708,18 @@ switch(input_tag)
+@@ -708,15 +708,18 @@
    case gammal_negative:
    case gamma_negative:
    case gammaf_negative:
@@ -138,7 +144,7 @@ index 8ef4bb5..cf004fc 100644
    case ldexpl_overflow:
    case ldexpl_underflow:
    case ldexp_overflow:
-@@ -1081,17 +1084,17 @@ switch(input_tag)
+@@ -1081,17 +1084,17 @@
    case powl_zero_to_negative:
      /* 0**neg */
      {
@@ -159,7 +165,7 @@ index 8ef4bb5..cf004fc 100644
      }
    case powl_neg_to_non_integer:
      /* neg**non_integral */
-@@ -1307,6 +1310,21 @@ switch(input_tag)
+@@ -1307,6 +1310,21 @@
      {
         ERRNO_DOMAIN; break;
      }
@@ -181,7 +187,7 @@ index 8ef4bb5..cf004fc 100644
    case coshl_overflow:
      /* coshl overflows */
      {
-@@ -1373,6 +1391,51 @@ switch(input_tag)
+@@ -1373,6 +1391,51 @@
     {
        ERRNO_RANGE; break;
     }
@@ -233,11 +239,9 @@ index 8ef4bb5..cf004fc 100644
    default:
      break;
  }
-diff --git a/sysdeps/ia64/fpu/libm_error_codes.h b/sysdeps/ia64/fpu/libm_error_codes.h
-index 4f0945e..96e67c0 100644
 --- a/sysdeps/ia64/fpu/libm_error_codes.h
 +++ b/sysdeps/ia64/fpu/libm_error_codes.h
-@@ -195,7 +195,11 @@ typedef enum
+@@ -195,7 +195,11 @@
    nextafterl_underflow, nextafter_underflow, 
    nextafterf_underflow,                                /* 267, 268, 269 */
    nexttowardl_underflow, nexttoward_underflow, 
@@ -250,8 +254,6 @@ index 4f0945e..96e67c0 100644
  } error_types;
  
  #define LIBM_ERROR __libm_error_support
-diff --git a/sysdeps/ia64/fpu/s_cos.S b/sysdeps/ia64/fpu/s_cos.S
-index fc121fc..24c258c 100644
 --- a/sysdeps/ia64/fpu/s_cos.S
 +++ b/sysdeps/ia64/fpu/s_cos.S
 @@ -174,7 +174,7 @@
@@ -263,7 +265,7 @@ index fc121fc..24c258c 100644
  
  // predicate registers used:
  // p6 -> p11
-@@ -260,6 +260,10 @@ GR_SAVE_B0                     = r34
+@@ -260,6 +260,10 @@
  GR_SAVE_GP                     = r35
  GR_SAVE_r_sincos               = r36
  
@@ -274,7 +276,7 @@ index fc121fc..24c258c 100644
  
  RODATA
  
-@@ -474,7 +478,7 @@ _SINCOS_COMMON:
+@@ -474,7 +478,7 @@
  // 0x1001a is register_bias + 27.
  // So if f8 >= 2^27, go to large argument routines
  { .mfi
@@ -283,7 +285,7 @@ index fc121fc..24c258c 100644
        fclass.m      p11,p0              = f8, 0x0b // Test for x=unorm
        mov           sincos_GR_all_ones  = -1 // For "inexect" constant create
  }
-@@ -681,20 +685,39 @@ _SINCOS_COMMON2:
+@@ -681,20 +685,39 @@
  ////////// x = 0/Inf/NaN path //////////////////
  _SINCOS_SPECIAL_ARGS:
  .pred.rel "mutex",p8,p9
@@ -325,7 +327,7 @@ index fc121fc..24c258c 100644
        br.ret.sptk   b0 // Exit for x = 0/Inf/NaN path
  };;
  
-@@ -766,3 +789,54 @@ LOCAL_LIBM_END(__libm_callout_sincos)
+@@ -766,3 +789,54 @@
  .type    __libm_cos_large#,@function
  .global  __libm_cos_large#
  
@@ -380,8 +382,6 @@ index fc121fc..24c258c 100644
 +LOCAL_LIBM_END(__libm_error_region)
 +.type   __libm_error_support#,@function
 +.global __libm_error_support#
-diff --git a/sysdeps/ia64/fpu/s_cosf.S b/sysdeps/ia64/fpu/s_cosf.S
-index bcdf1b0..f0bc9a8 100644
 --- a/sysdeps/ia64/fpu/s_cosf.S
 +++ b/sysdeps/ia64/fpu/s_cosf.S
 @@ -171,7 +171,7 @@
@@ -393,7 +393,7 @@ index bcdf1b0..f0bc9a8 100644
  
  // predicate registers used:
  // p6 -> p14
-@@ -260,6 +260,11 @@ GR_SAVE_PFS                     = r41
+@@ -260,6 +260,11 @@
  GR_SAVE_B0                      = r42
  GR_SAVE_GP                      = r43
  
@@ -405,7 +405,7 @@ index bcdf1b0..f0bc9a8 100644
  RODATA
  .align 16
  
-@@ -389,7 +394,7 @@ LOCAL_OBJECT_END(double_sin_cos_beta_k4)
+@@ -389,7 +394,7 @@
  GLOBAL_IEEE754_ENTRY(sinf)
  
  { .mlx
@@ -414,7 +414,7 @@ index bcdf1b0..f0bc9a8 100644
        movl  sincosf_GR_sig_inv_pi_by_16 = 0xA2F9836E4E44152A //signd of 16/pi
  }
  { .mlx
-@@ -413,7 +418,7 @@ GLOBAL_IEEE754_END(sinf)
+@@ -413,7 +418,7 @@
  GLOBAL_IEEE754_ENTRY(cosf)
  
  { .mlx
@@ -423,7 +423,7 @@ index bcdf1b0..f0bc9a8 100644
        movl  sincosf_GR_sig_inv_pi_by_16 = 0xA2F9836E4E44152A //signd of 16/pi
  }
  { .mlx
-@@ -641,20 +646,39 @@ _SINCOSF_COMMON:
+@@ -641,20 +646,39 @@
  ////////// x = 0/Inf/NaN path //////////////////
  _SINCOSF_SPECIAL_ARGS:
  .pred.rel "mutex",p8,p9
@@ -465,7 +465,7 @@ index bcdf1b0..f0bc9a8 100644
        br.ret.sptk   b0 // Exit for x = 0/Inf/NaN path
  };;
  
-@@ -715,3 +739,54 @@ LOCAL_LIBM_END(__libm_callout_sincosf)
+@@ -715,3 +739,54 @@
  .type    __libm_cos_large#, @function
  .global  __libm_cos_large#
  
@@ -520,11 +520,9 @@ index bcdf1b0..f0bc9a8 100644
 +LOCAL_LIBM_END(__libm_error_region)
 +.type   __libm_error_support#,@function
 +.global __libm_error_support#
-diff --git a/sysdeps/ia64/fpu/s_cosl.S b/sysdeps/ia64/fpu/s_cosl.S
-index 8d71e50..8bb330e 100644
 --- a/sysdeps/ia64/fpu/s_cosl.S
 +++ b/sysdeps/ia64/fpu/s_cosl.S
-@@ -747,12 +747,16 @@ GR_SAVE_B0     = r39
+@@ -747,12 +747,16 @@
  GR_SAVE_GP     = r40
  GR_SAVE_PFS    = r41
  
@@ -542,7 +540,7 @@ index 8d71e50..8bb330e 100644
        movl GR_sig_inv_pi = 0xa2f9836e4e44152a // significand of 1/pi
  }
  { .mlx
-@@ -777,7 +781,7 @@ GLOBAL_IEEE754_END(sinl)
+@@ -777,7 +781,7 @@
  
  GLOBAL_IEEE754_ENTRY(cosl)
  { .mlx
@@ -551,7 +549,7 @@ index 8d71e50..8bb330e 100644
        movl GR_sig_inv_pi = 0xa2f9836e4e44152a // significand of 1/pi
  }
  { .mlx
-@@ -2278,13 +2282,31 @@ SINCOSL_DENORMAL:
+@@ -2278,13 +2282,31 @@
  SINCOSL_SPECIAL:
  { .mfb
          nop.m 999
@@ -584,7 +582,7 @@ index 8d71e50..8bb330e 100644
  }
  
  GLOBAL_IEEE754_END(cosl)
-@@ -2363,3 +2385,55 @@ SINCOSL_ARG_TOO_LARGE:
+@@ -2363,3 +2385,55 @@
  LOCAL_LIBM_END(__libm_callout)
  .type   __libm_pi_by_2_reduce#,@function
  .global __libm_pi_by_2_reduce#
@@ -640,11 +638,9 @@ index 8d71e50..8bb330e 100644
 +LOCAL_LIBM_END(__libm_error_region)
 +.type   __libm_error_support#,@function
 +.global __libm_error_support#
-diff --git a/sysdeps/ia64/fpu/s_tan.S b/sysdeps/ia64/fpu/s_tan.S
-index a2f80c8..a4b42c9 100644
 --- a/sysdeps/ia64/fpu/s_tan.S
 +++ b/sysdeps/ia64/fpu/s_tan.S
-@@ -348,15 +348,10 @@ COMMON_PATH:
+@@ -348,15 +348,10 @@
  (p6)  br.ret.spnt    b0    ;;         // Exit for x=0 (tan only)
  }
  
@@ -662,7 +658,7 @@ index a2f80c8..a4b42c9 100644
  }
  
  { .mfi
-@@ -384,6 +379,12 @@ COMMON_PATH:
+@@ -384,6 +379,12 @@
        fma.s1 TAN_W_2TO64_RSH = tan_NORM_f8,TAN_INV_PI_BY_2_2TO64,TAN_RSHF_2TO64
  };;
  
@@ -675,11 +671,9 @@ index a2f80c8..a4b42c9 100644
  { .mmf
        ldfpd      tan_P10,tan_P11 = [tan_AD],16
        and       tan_exp = tan_GR_17_ones, tan_signexp
-diff --git a/sysdeps/ia64/fpu/s_tanf.S b/sysdeps/ia64/fpu/s_tanf.S
-index 193d756..cd0febb 100644
 --- a/sysdeps/ia64/fpu/s_tanf.S
 +++ b/sysdeps/ia64/fpu/s_tanf.S
-@@ -301,11 +301,11 @@ Common_Path:
+@@ -301,11 +301,11 @@
  { .mfi
        cmp.ge    p6, p0      = rSignMask, rExpCut    // p6 = (E => 0x10009)
  (p8)  frcpa.s0  f8, p0      = f0, f0                // Set qnan indef if x=inf
@@ -693,7 +687,7 @@ index 193d756..cd0febb 100644
  (p6)  br.cond.spnt Huge_Argument                    // Branch if |x|>=2^10
  }
  ;;
-@@ -313,7 +313,7 @@ Common_Path:
+@@ -313,7 +313,7 @@
  { .mfi
        nop.m     0
  (p11) fclass.m.unc p6, p0   = f8, 0x07              // Test for x=0 (for cotf)
@@ -702,11 +696,9 @@ index 193d756..cd0febb 100644
  }
  { .mfb
        nop.m     0
-diff --git a/sysdeps/ia64/fpu/s_tanl.S b/sysdeps/ia64/fpu/s_tanl.S
-index 607a271..95d5145 100644
 --- a/sysdeps/ia64/fpu/s_tanl.S
 +++ b/sysdeps/ia64/fpu/s_tanl.S
-@@ -3072,21 +3072,32 @@ TANL_UNSUPPORTED:
+@@ -3072,21 +3072,32 @@
  
  { .mfi
        nop.m 999

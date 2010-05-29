@@ -1,6 +1,11 @@
+---
+ posix/gai.conf              |    3 ---
+ sysdeps/posix/getaddrinfo.c |    4 ----
+ 2 files changed, 7 deletions(-)
+
 --- a/sysdeps/posix/getaddrinfo.c
 +++ b/sysdeps/posix/getaddrinfo.c
-@@ -1100,10 +1100,6 @@
+@@ -1098,10 +1098,6 @@
      /* Link-local addresses: scope 2.  */
      { { { 169, 254, 0, 0 } }, htonl_c (0xffff0000), 2 },
      { { { 127, 0, 0, 0 } }, htonl_c (0xff000000), 2 },
@@ -13,7 +18,7 @@
    };
 --- a/posix/gai.conf
 +++ b/posix/gai.conf
-@@ -62,7 +62,4 @@
+@@ -62,9 +62,6 @@
  #
  #scopev4 ::ffff:169.254.0.0/112  2
  #scopev4 ::ffff:127.0.0.0/104    2
@@ -21,3 +26,5 @@
 -#scopev4 ::ffff:172.16.0.0/108   5
 -#scopev4 ::ffff:192.168.0.0/112  5
  #scopev4 ::ffff:0.0.0.0/96       14
+ #
+ #    For sites which use site-local IPv4 addresses behind NAT there is

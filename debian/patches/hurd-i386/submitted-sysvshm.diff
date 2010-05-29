@@ -20,16 +20,16 @@
 	* sysdeps/mach/hurd/bits/posix_opt.h: Define _XOPEN_SHM	to 1.
 
 ---
- b/hurd/sysvshm.c                   |   96 ++++++++++++++
- b/hurd/sysvshm.h                   |   47 +++++++
- b/sysdeps/mach/hurd/ftok.c         |   43 ++++++
- b/sysdeps/mach/hurd/shmat.c        |   78 +++++++++++
- b/sysdeps/mach/hurd/shmctl.c       |  132 +++++++++++++++++++
- b/sysdeps/mach/hurd/shmdt.c        |   51 +++++++
- b/sysdeps/mach/hurd/shmget.c       |  245 +++++++++++++++++++++++++++++++++++++
  hurd/Makefile                      |    3 
- sysdeps/mach/hurd/bits/posix_opt.h |    3 
- 9 files changed, 697 insertions(+), 1 deletion(-)
+ hurd/sysvshm.c                     |   96 ++++++++++++++
+ hurd/sysvshm.h                     |   47 +++++++
+ sysdeps/mach/hurd/bits/posix_opt.h |    4 
+ sysdeps/mach/hurd/ftok.c           |   43 ++++++
+ sysdeps/mach/hurd/shmat.c          |   78 +++++++++++
+ sysdeps/mach/hurd/shmctl.c         |  132 +++++++++++++++++++
+ sysdeps/mach/hurd/shmdt.c          |   51 +++++++
+ sysdeps/mach/hurd/shmget.c         |  245 +++++++++++++++++++++++++++++++++++++
+ 9 files changed, 696 insertions(+), 3 deletions(-)
 
 --- a/hurd/Makefile
 +++ b/hurd/Makefile
@@ -763,9 +763,9 @@
 +}
 +
 +weak_alias(__shmget, shmget)
---- a/sysdeps/mach/hurd/bits/posix_opt.h	2010-01-05 22:13:57.000000000 +0100
-+++ b/sysdeps/mach/hurd/bits/posix_opt.h	2010-01-05 22:14:42.000000000 +0100
-@@ -61,8 +61,8 @@
+--- a/sysdeps/mach/hurd/bits/posix_opt.h
++++ b/sysdeps/mach/hurd/bits/posix_opt.h
+@@ -69,8 +69,8 @@
  /* X/Open thread realtime support is not supported.  */
  #undef _XOPEN_REALTIME_THREADS
  
@@ -773,7 +773,6 @@
 -#undef	_XOPEN_SHM
 +/* XPG4.2 shared memory is supported.  */
 +#define	_XOPEN_SHM	1
-
+ 
  /* We do not have the POSIX threads interface.  */
  #define _POSIX_THREADS	-1
- 

@@ -27,9 +27,28 @@
 	* sysdeps/unix/sysv/linux/mips/bits/fcntl.h: Define AT_*
 	constants.
 
+---
+ io/fcntl.h                                       |   12 ------------
+ ports/sysdeps/unix/sysv/linux/alpha/bits/fcntl.h |   13 +++++++++++++
+ ports/sysdeps/unix/sysv/linux/am33/bits/fcntl.h  |   15 +++++++++++++++
+ ports/sysdeps/unix/sysv/linux/arm/bits/fcntl.h   |   13 +++++++++++++
+ ports/sysdeps/unix/sysv/linux/cris/bits/fcntl.h  |   13 +++++++++++++
+ ports/sysdeps/unix/sysv/linux/hppa/bits/fcntl.h  |   13 +++++++++++++
+ ports/sysdeps/unix/sysv/linux/m68k/bits/fcntl.h  |   13 +++++++++++++
+ ports/sysdeps/unix/sysv/linux/mips/bits/fcntl.h  |   13 +++++++++++++
+ sysdeps/mach/hurd/bits/fcntl.h                   |   13 +++++++++++++
+ sysdeps/unix/sysv/linux/i386/bits/fcntl.h        |   13 +++++++++++++
+ sysdeps/unix/sysv/linux/ia64/bits/fcntl.h        |   13 +++++++++++++
+ sysdeps/unix/sysv/linux/powerpc/bits/fcntl.h     |   13 +++++++++++++
+ sysdeps/unix/sysv/linux/s390/bits/fcntl.h        |   13 +++++++++++++
+ sysdeps/unix/sysv/linux/sh/bits/fcntl.h          |   13 +++++++++++++
+ sysdeps/unix/sysv/linux/sparc/bits/fcntl.h       |   13 +++++++++++++
+ sysdeps/unix/sysv/linux/x86_64/bits/fcntl.h      |   13 +++++++++++++
+ 16 files changed, 197 insertions(+), 12 deletions(-)
+
 --- a/io/fcntl.h
 +++ b/io/fcntl.h
-@@ -56,18 +56,6 @@ __BEGIN_DECLS
+@@ -56,18 +56,6 @@
  # define SEEK_END	2	/* Seek from end of file.  */
  #endif	/* XPG */
  
@@ -50,7 +69,7 @@
  
 --- a/sysdeps/mach/hurd/bits/fcntl.h
 +++ b/sysdeps/mach/hurd/bits/fcntl.h
-@@ -219,3 +219,16 @@ struct flock64
+@@ -219,3 +219,16 @@
  # define POSIX_FADV_DONTNEED	4 /* Don't need these pages.  */
  # define POSIX_FADV_NOREUSE	5 /* Data will be accessed once.  */
  #endif
@@ -69,7 +88,7 @@
 +#endif
 --- a/sysdeps/unix/sysv/linux/i386/bits/fcntl.h
 +++ b/sysdeps/unix/sysv/linux/i386/bits/fcntl.h
-@@ -227,6 +227,19 @@ struct f_owner_ex
+@@ -227,6 +227,19 @@
  # define SPLICE_F_GIFT		8	/* Pages passed in are a gift.  */
  #endif
  
@@ -91,7 +110,7 @@
  #ifdef __USE_GNU
 --- a/sysdeps/unix/sysv/linux/ia64/bits/fcntl.h
 +++ b/sysdeps/unix/sysv/linux/ia64/bits/fcntl.h
-@@ -221,6 +221,19 @@ struct f_owner_ex
+@@ -221,6 +221,19 @@
  # define SPLICE_F_GIFT		8	/* Pages passed in are a gift.  */
  #endif
  
@@ -113,7 +132,7 @@
  #ifdef __USE_GNU
 --- a/sysdeps/unix/sysv/linux/powerpc/bits/fcntl.h
 +++ b/sysdeps/unix/sysv/linux/powerpc/bits/fcntl.h
-@@ -227,6 +227,19 @@ struct f_owner_ex
+@@ -227,6 +227,19 @@
  # define SPLICE_F_GIFT		8	/* Pages passed in are a gift.  */
  #endif
  
@@ -135,7 +154,7 @@
  #ifdef __USE_GNU
 --- a/sysdeps/unix/sysv/linux/s390/bits/fcntl.h
 +++ b/sysdeps/unix/sysv/linux/s390/bits/fcntl.h
-@@ -247,6 +247,19 @@ struct f_owner_ex
+@@ -247,6 +247,19 @@
  # define SPLICE_F_GIFT		8	/* Pages passed in are a gift.  */
  #endif
  
@@ -157,7 +176,7 @@
  #ifdef __USE_GNU
 --- a/sysdeps/unix/sysv/linux/sh/bits/fcntl.h
 +++ b/sysdeps/unix/sysv/linux/sh/bits/fcntl.h
-@@ -227,6 +227,19 @@ struct f_owner_ex
+@@ -227,6 +227,19 @@
  # define SPLICE_F_GIFT		8	/* Pages passed in are a gift.  */
  #endif
  
@@ -179,7 +198,7 @@
  #ifdef __USE_GNU
 --- a/sysdeps/unix/sysv/linux/sparc/bits/fcntl.h
 +++ b/sysdeps/unix/sysv/linux/sparc/bits/fcntl.h
-@@ -246,6 +246,19 @@ struct f_owner_ex
+@@ -246,6 +246,19 @@
  # define SPLICE_F_GIFT		8	/* Pages passed in are a gift.  */
  #endif
  
@@ -201,7 +220,7 @@
  #ifdef __USE_GNU
 --- a/sysdeps/unix/sysv/linux/x86_64/bits/fcntl.h
 +++ b/sysdeps/unix/sysv/linux/x86_64/bits/fcntl.h
-@@ -241,6 +241,19 @@ struct f_owner_ex
+@@ -241,6 +241,19 @@
  # define SPLICE_F_GIFT		8	/* Pages passed in are a gift.  */
  #endif
  
@@ -223,7 +242,7 @@
  #ifdef __USE_GNU
 --- a/ports/sysdeps/unix/sysv/linux/alpha/bits/fcntl.h
 +++ b/ports/sysdeps/unix/sysv/linux/alpha/bits/fcntl.h
-@@ -200,6 +200,19 @@ struct flock64
+@@ -215,6 +215,19 @@
  # define SPLICE_F_GIFT		8	/* Pages passed in are a gift.  */
  #endif
  
@@ -245,7 +264,7 @@
  #ifdef __USE_GNU
 --- a/ports/sysdeps/unix/sysv/linux/am33/bits/fcntl.h
 +++ b/ports/sysdeps/unix/sysv/linux/am33/bits/fcntl.h
-@@ -179,3 +179,18 @@ struct flock64
+@@ -179,3 +179,18 @@
  # define POSIX_FADV_DONTNEED	4 /* Don't need these pages.  */
  # define POSIX_FADV_NOREUSE	5 /* Data will be accessed once.  */
  #endif
@@ -266,7 +285,7 @@
 +
 --- a/ports/sysdeps/unix/sysv/linux/arm/bits/fcntl.h
 +++ b/ports/sysdeps/unix/sysv/linux/arm/bits/fcntl.h
-@@ -227,6 +227,19 @@ struct f_owner_ex
+@@ -227,6 +227,19 @@
  # define SPLICE_F_GIFT		8	/* Pages passed in are a gift.  */
  #endif
  
@@ -288,7 +307,7 @@
  #ifdef __USE_GNU
 --- a/ports/sysdeps/unix/sysv/linux/cris/bits/fcntl.h
 +++ b/ports/sysdeps/unix/sysv/linux/cris/bits/fcntl.h
-@@ -182,6 +182,19 @@ struct flock64
+@@ -182,6 +182,19 @@
  # define POSIX_FADV_NOREUSE	5 /* Data will be accessed once.  */
  #endif
  
@@ -310,7 +329,7 @@
  /* Provide kernel hint to read ahead.  */
 --- a/ports/sysdeps/unix/sysv/linux/hppa/bits/fcntl.h
 +++ b/ports/sysdeps/unix/sysv/linux/hppa/bits/fcntl.h
-@@ -198,6 +198,19 @@ struct flock64
+@@ -198,6 +198,19 @@
  # define SPLICE_F_GIFT		8	/* Pages passed in are a gift.  */
  #endif
  
@@ -332,7 +351,7 @@
  #ifdef __USE_GNU
 --- a/ports/sysdeps/unix/sysv/linux/m68k/bits/fcntl.h
 +++ b/ports/sysdeps/unix/sysv/linux/m68k/bits/fcntl.h
-@@ -226,6 +226,19 @@ struct f_owner_ex
+@@ -226,6 +226,19 @@
  # define SPLICE_F_GIFT		8	/* Pages passed in are a gift.  */
  #endif
  
@@ -354,7 +373,7 @@
  #ifdef __USE_GNU
 --- a/ports/sysdeps/unix/sysv/linux/mips/bits/fcntl.h
 +++ b/ports/sysdeps/unix/sysv/linux/mips/bits/fcntl.h
-@@ -240,6 +240,19 @@ struct f_owner_ex
+@@ -240,6 +240,19 @@
  # define SPLICE_F_GIFT		8	/* Pages passed in are a gift.  */
  #endif
  

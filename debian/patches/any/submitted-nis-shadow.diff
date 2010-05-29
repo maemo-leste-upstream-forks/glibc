@@ -10,11 +10,14 @@
 	does not exist, look in passwd.adjunct.byname and adapt the result.
 	(_nss_nis_getspnam_r): Likewise.
 
-diff --git a/nis/nss_nis/nis-pwd.c b/nis/nss_nis/nis-pwd.c
-index fdc7dc9..efb5c61 100644
+---
+ nis/nss_nis/nis-pwd.c  |   99 ++++++++++++-------------------------------------
+ nis/nss_nis/nis-spwd.c |   55 ++++++++++++++++++++++++---
+ 2 files changed, 74 insertions(+), 80 deletions(-)
+
 --- a/nis/nss_nis/nis-pwd.c
 +++ b/nis/nss_nis/nis-pwd.c
-@@ -266,49 +266,32 @@ internal_nis_getpwent_r (struct passwd *pwd, char *buffer, size_t buflen,
+@@ -266,49 +266,32 @@
        /* Check for adjunct style secret passwords.  They can be
  	 recognized by a password starting with "##".  */
        char *p = strchr (result, ':');
@@ -73,7 +76,7 @@ index fdc7dc9..efb5c61 100644
  	}
        else
  	{
-@@ -400,47 +383,32 @@ _nss_nis_getpwnam_r (const char *name, struct passwd *pwd,
+@@ -400,47 +383,32 @@
  
    /* Check for adjunct style secret passwords.  They can be recognized
       by a password starting with "##".  */
@@ -119,17 +122,16 @@ index fdc7dc9..efb5c61 100644
 -      __mempcpy (__mempcpy (__mempcpy (__mempcpy (buffer, name, namelen),
 -				       ":", 1),
 -			    encrypted, endp - encrypted),
--		 p, restlen + 1);
 +      __mempcpy (__mempcpy (__mempcpy (buffer, result, namelen),
 +			     ":x", 2),
-+		 p, restlen + 1);
+ 		 p, restlen + 1);
        p = buffer;
 -
 -      free (result2);
      }
    else
      {
-@@ -499,50 +468,33 @@ _nss_nis_getpwuid_r (uid_t uid, struct passwd *pwd,
+@@ -499,50 +467,33 @@
  
    /* Check for adjunct style secret passwords.  They can be recognized
       by a password starting with "##".  */
@@ -180,21 +182,18 @@ index fdc7dc9..efb5c61 100644
 -      __mempcpy (__mempcpy (__mempcpy (__mempcpy (buffer, result, namelen),
 -				       ":", 1),
 -			    encrypted, endp - encrypted),
--		 p, restlen + 1);
 +      __mempcpy (__mempcpy (__mempcpy (buffer, result, namelen),
 +			   ":x", 2),
-+		 p, restlen + 1);
+ 		 p, restlen + 1);
        p = buffer;
 -
 -      free (result2);
      }
    else
      {
-diff --git a/nis/nss_nis/nis-spwd.c b/nis/nss_nis/nis-spwd.c
-index 0fc4e17..9bd1ad6 100644
 --- a/nis/nss_nis/nis-spwd.c
 +++ b/nis/nss_nis/nis-spwd.c
-@@ -81,13 +81,38 @@ internal_nis_getspent_r (struct spwd *sp, char *buffer, size_t buflen,
+@@ -81,13 +81,38 @@
        int len;
        int keylen;
        int yperr;
@@ -237,7 +236,7 @@ index 0fc4e17..9bd1ad6 100644
  
        if (__builtin_expect (yperr != YPERR_SUCCESS, 0))
          {
-@@ -98,7 +123,7 @@ internal_nis_getspent_r (struct spwd *sp, char *buffer, size_t buflen,
+@@ -98,7 +123,7 @@
            return retval;
          }
  
@@ -246,7 +245,7 @@ index 0fc4e17..9bd1ad6 100644
          {
            free (result);
  	  *errnop = ERANGE;
-@@ -107,6 +132,9 @@ internal_nis_getspent_r (struct spwd *sp, char *buffer, size_t buflen,
+@@ -107,6 +132,9 @@
  
        char *p = strncpy (buffer, result, len);
        buffer[len] = '\0';
@@ -256,7 +255,7 @@ index 0fc4e17..9bd1ad6 100644
        while (isspace (*p))
          ++p;
        free (result);
-@@ -149,6 +177,8 @@ enum nss_status
+@@ -149,6 +177,8 @@
  _nss_nis_getspnam_r (const char *name, struct spwd *sp,
  		     char *buffer, size_t buflen, int *errnop)
  {
@@ -265,7 +264,7 @@ index 0fc4e17..9bd1ad6 100644
    if (name == NULL)
      {
        *errnop = EINVAL;
-@@ -164,6 +194,16 @@ _nss_nis_getspnam_r (const char *name, struct spwd *sp,
+@@ -164,6 +194,16 @@
    int yperr = yp_match (domain, "shadow.byname", name, strlen (name), &result,
  			&len);
  
@@ -282,7 +281,7 @@ index 0fc4e17..9bd1ad6 100644
    if (__builtin_expect (yperr != YPERR_SUCCESS, 0))
      {
        enum nss_status retval = yperr2nss (yperr);
-@@ -173,7 +213,7 @@ _nss_nis_getspnam_r (const char *name, struct spwd *sp,
+@@ -173,7 +213,7 @@
        return retval;
      }
  
@@ -291,7 +290,7 @@ index 0fc4e17..9bd1ad6 100644
      {
        free (result);
        *errnop = ERANGE;
-@@ -182,6 +222,9 @@ _nss_nis_getspnam_r (const char *name, struct spwd *sp,
+@@ -182,6 +222,9 @@
  
    char *p = strncpy (buffer, result, len);
    buffer[len] = '\0';

@@ -8,8 +8,11 @@
 	* posix/glob.c (glob): Clean up gl_pathc and gl_pathv earlier.
 	If pattern is "" bail out early
 
-diff --git a/posix/glob.c b/posix/glob.c
-index 73081ec..3ae055d 100644
+---
+ posix/glob.c        |   52 ++++++++++++++++++++----------------
+ posix/tst-gnuglob.c |   75 +++++++++++++++++++++++++++++++++++++---------------
+ 2 files changed, 83 insertions(+), 44 deletions(-)
+
 --- a/posix/glob.c
 +++ b/posix/glob.c
 @@ -1,4 +1,4 @@
@@ -103,8 +106,6 @@ index 73081ec..3ae055d 100644
  #  else
  #   if ! _LIBC || __OPTION_EGLIBC_GETLOGIN
  	  if (home_dir == NULL || home_dir[0] == '\0')
-diff --git a/posix/tst-gnuglob.c b/posix/tst-gnuglob.c
-index 95bfbae..d4539bd 100644
 --- a/posix/tst-gnuglob.c
 +++ b/posix/tst-gnuglob.c
 @@ -1,6 +1,6 @@
@@ -115,7 +116,7 @@ index 95bfbae..d4539bd 100644
     This file is part of the GNU C Library.
     Contributed by Ulrich Drepper <drepper@redhat.com>, 2001.
  
-@@ -61,9 +61,9 @@ static struct
+@@ -61,9 +61,9 @@
        { "..", 3, DT_DIR },
        { ".foo", 3, DT_REG },
        { "dir1lev3", 3, DT_DIR },
@@ -128,7 +129,7 @@ index 95bfbae..d4539bd 100644
        { "file1lev3", 3, DT_REG },
        { "file2lev3", 3, DT_REG },
      { "file2lev2", 2, DT_REG },
-@@ -81,9 +81,9 @@ static struct
+@@ -81,9 +81,9 @@
        { "..", 3, DT_DIR },
        { ".foo", 3, DT_REG },
        { ".dir", 3, DT_DIR },
@@ -141,7 +142,7 @@ index 95bfbae..d4539bd 100644
  };
  #define nfiles (sizeof (filesystem) / sizeof (filesystem[0]))
  
-@@ -283,7 +283,7 @@ static const char *glob_errstring[] =
+@@ -283,7 +283,7 @@
  static const char *
  flagstr (int flags)
  {
@@ -150,7 +151,7 @@ index 95bfbae..d4539bd 100644
    {
      "GLOB_ERR", "GLOB_MARK", "GLOB_NOSORT", "GLOB_DOOFSS", "GLOB_NOCHECK",
      "GLOB_APPEND", "GLOB_NOESCAPE", "GLOB_PERIOD", "GLOB_MAGCHAR",
-@@ -312,6 +312,29 @@ flagstr (int flags)
+@@ -312,6 +312,29 @@
      }
  
    return buf;
@@ -180,7 +181,7 @@ index 95bfbae..d4539bd 100644
  }
  
  
-@@ -376,28 +399,34 @@ main (void)
+@@ -376,28 +399,34 @@
    gl.gl_lstat = my_stat;
    gl.gl_stat = my_stat;
  
@@ -224,7 +225,7 @@ index 95bfbae..d4539bd 100644
  	"dir1lev1/dir1lev2/.",
  	"dir1lev1/dir1lev2/..",
  	"dir1lev1/dir2lev2/.",
-@@ -415,7 +444,7 @@ main (void)
+@@ -415,7 +444,7 @@
  	"dir2lev1/dir1lev2/.dir",
  	"dir2lev1/dir1lev2/.foo");
  
@@ -233,7 +234,7 @@ index 95bfbae..d4539bd 100644
  	"dir1lev1/dir1lev2/.",
  	"dir1lev1/dir1lev2/..",
  	"dir1lev1/dir2lev2/.",
-@@ -428,7 +457,7 @@ main (void)
+@@ -428,7 +457,7 @@
  	"dir2lev1/dir1lev2/.dir",
  	"dir2lev1/dir1lev2/.foo");
  
@@ -242,7 +243,7 @@ index 95bfbae..d4539bd 100644
  	"dir1lev1/dir1lev2/.",
  	"dir1lev1/dir1lev2/..",
  	"dir1lev1/dir2lev2/.",
-@@ -441,7 +470,7 @@ main (void)
+@@ -441,7 +470,7 @@
  	"dir2lev1/dir1lev2/.dir",
  	"dir2lev1/dir1lev2/.foo");
  
@@ -251,7 +252,7 @@ index 95bfbae..d4539bd 100644
  	"dir1lev1/dir1lev2/.",
  	"dir1lev1/dir1lev2/..",
  	"dir2lev1/dir1lev2/.",
-@@ -449,12 +478,16 @@ main (void)
+@@ -449,12 +478,16 @@
  	"dir2lev1/dir1lev2/.dir",
  	"dir2lev1/dir1lev2/.foo");
  

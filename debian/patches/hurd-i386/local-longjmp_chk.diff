@@ -2,13 +2,13 @@ From Thomas Schwinge.
 
 Provide ____longjmp_chk, still WIP.
 ---
- b/sysdeps/mach/hurd/i386/Makefile         |    4 +
+ sysdeps/mach/hurd/i386/Makefile           |    4 +
  sysdeps/mach/hurd/i386/____longjmp_chk.S  |  108 ++++++++++++++++++++++++++++++
  sysdeps/mach/hurd/i386/signal-defines.sym |   10 ++
  3 files changed, 122 insertions(+)
 
---- a/sysdeps/mach/hurd/i386/____longjmp_chk.S	2010-01-17 13:39:52.030010467 +0100
-+++ b/sysdeps/mach/hurd/i386/____longjmp_chk.S	2010-01-17 20:26:36.000000000 +0100
+--- /dev/null
++++ b/sysdeps/mach/hurd/i386/____longjmp_chk.S
 @@ -0,0 +1,108 @@
 +/* Copyright (C) 2001,2004,2005,2006,2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -118,7 +118,7 @@ Provide ____longjmp_chk, still WIP.
 +	/* Jump to saved PC.  */
 +	jmp	*%edx
 +END (____longjmp_chk)
---- a/sysdeps/mach/hurd/i386/signal-defines.sym
+--- /dev/null
 +++ b/sysdeps/mach/hurd/i386/signal-defines.sym
 @@ -0,0 +1,10 @@
 +#include <hurd/signal.h>
@@ -131,11 +131,9 @@ Provide ____longjmp_chk, still WIP.
 +SIGALTSTACK__SS_SP__OFFSET		offsetof(struct sigaltstack, ss_sp)
 +SIGALTSTACK__SS_SIZE__OFFSET		offsetof(struct sigaltstack, ss_size)
 +SIGALTSTACK__SS_FLAGS__OFFSET		offsetof(struct sigaltstack, ss_flags)
-diff --git a/sysdeps/mach/hurd/i386/Makefile b/sysdeps/mach/hurd/i386/Makefile
-index 0eef17e..5f98809 100644
 --- a/sysdeps/mach/hurd/i386/Makefile
 +++ b/sysdeps/mach/hurd/i386/Makefile
-@@ -2,3 +2,7 @@ ifeq ($(subdir),misc)
+@@ -2,3 +2,7 @@
  sysdep_routines += ioperm
  sysdep_headers += sys/io.h
  endif

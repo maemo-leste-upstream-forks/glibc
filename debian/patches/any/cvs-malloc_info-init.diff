@@ -4,11 +4,13 @@
 	* malloc/malloc.c (malloc_info): Initialize malloc if not already
 	done.  Handle empty bin lists.
  
-diff --git a/malloc/malloc.c b/malloc/malloc.c
-index ea10d17..b43e454 100644
+---
+ malloc/malloc.c |   41 ++++++++++++++++++++++++-----------------
+ 1 file changed, 24 insertions(+), 17 deletions(-)
+
 --- a/malloc/malloc.c
 +++ b/malloc/malloc.c
-@@ -6369,16 +6369,19 @@ malloc_info (int options, FILE *fp)
+@@ -6372,16 +6372,19 @@
  
      mbinptr bin = bin_at (ar_ptr, 1);
      struct malloc_chunk *r = bin->fd;
@@ -36,7 +38,7 @@ index ea10d17..b43e454 100644
  
      for (size_t i = 2; i < NBINS; ++i)
        {
-@@ -6388,17 +6391,18 @@ malloc_info (int options, FILE *fp)
+@@ -6391,17 +6394,18 @@
  	sizes[NFASTBINS - 1 + i].to = sizes[NFASTBINS - 1 + i].total
  	  = sizes[NFASTBINS - 1 + i].count = 0;
  
@@ -64,7 +66,7 @@ index ea10d17..b43e454 100644
  
  	if (sizes[NFASTBINS - 1 + i].count == 0)
  	  sizes[NFASTBINS - 1 + i].from = 0;
-@@ -6460,6 +6464,9 @@ malloc_info (int options, FILE *fp)
+@@ -6463,6 +6467,9 @@
      fputs ("</heap>\n", fp);
    }
  

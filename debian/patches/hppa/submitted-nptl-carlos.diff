@@ -10,7 +10,7 @@
 
 --- a/elf/rtld.c
 +++ b/elf/rtld.c
-@@ -384,14 +384,14 @@
+@@ -389,14 +389,14 @@
       know it is available.  We do not have to clear the memory if we
       do not have to use the temporary bootstrap_map.  Global variables
       are initialized to zero by default.  */
@@ -32,7 +32,7 @@
    bootstrap_map.l_tls_modid = 0;
 --- a/include/atomic.h
 +++ b/include/atomic.h
-@@ -174,7 +174,7 @@
+@@ -185,7 +185,7 @@
       __typeof (*(mem)) __atg5_value = (newvalue);			      \
  									      \
       do									      \
@@ -41,7 +41,7 @@
       while (__builtin_expect						      \
  	    (atomic_compare_and_exchange_bool_acq (__atg5_memp, __atg5_value, \
  						   __atg5_oldval), 0));	      \
-@@ -195,7 +195,7 @@
+@@ -206,7 +206,7 @@
       __typeof (*(mem)) __atg6_value = (value);				      \
  									      \
       do									      \
@@ -50,7 +50,7 @@
       while (__builtin_expect						      \
  	    (atomic_compare_and_exchange_bool_acq (__atg6_memp,		      \
  						   __atg6_oldval	      \
-@@ -213,7 +213,7 @@
+@@ -224,7 +224,7 @@
       __typeof (*(mem)) __atg7_value = (value);				      \
  									      \
       do									      \
@@ -59,7 +59,7 @@
       while (__builtin_expect						      \
  	    (catomic_compare_and_exchange_bool_acq (__atg7_memp,	      \
  						    __atg7_oldv		      \
-@@ -231,7 +231,7 @@
+@@ -242,7 +242,7 @@
      __typeof (mem) __atg8_memp = (mem);					      \
      __typeof (*(mem)) __atg8_value = (value);				      \
      do {								      \
@@ -68,7 +68,7 @@
        if (__atg8_oldval >= __atg8_value)				      \
  	break;								      \
      } while (__builtin_expect						      \
-@@ -248,7 +248,7 @@
+@@ -259,7 +259,7 @@
      __typeof (mem) __atg9_memp = (mem);					      \
      __typeof (*(mem)) __atg9_value = (value);				      \
      do {								      \
@@ -77,7 +77,7 @@
        if (__atg9_oldv >= __atg9_value)					      \
  	break;								      \
      } while (__builtin_expect						      \
-@@ -266,7 +266,7 @@
+@@ -277,7 +277,7 @@
      __typeof (mem) __atg10_memp = (mem);				      \
      __typeof (*(mem)) __atg10_value = (value);				      \
      do {								      \
@@ -86,7 +86,7 @@
        if (__atg10_oldval <= __atg10_value)				      \
  	break;								      \
      } while (__builtin_expect						      \
-@@ -350,7 +350,7 @@
+@@ -361,7 +361,7 @@
  									      \
       do									      \
         {								      \
@@ -95,7 +95,7 @@
  	 if (__builtin_expect (__atg11_oldval <= 0, 0))			      \
  	   break;							      \
         }								      \
-@@ -389,7 +389,7 @@
+@@ -400,7 +400,7 @@
       __typeof (*(mem)) __atg14_mask = ((__typeof (*(mem))) 1 << (bit));	      \
  									      \
       do									      \
@@ -104,7 +104,7 @@
       while (__builtin_expect						      \
  	    (atomic_compare_and_exchange_bool_acq (__atg14_memp,	      \
  						   __atg14_old | __atg14_mask,\
-@@ -407,7 +407,7 @@
+@@ -418,7 +418,7 @@
      __typeof (*(mem)) __atg15_mask = (mask);				      \
  									      \
      do									      \
@@ -113,7 +113,7 @@
      while (__builtin_expect						      \
  	   (atomic_compare_and_exchange_bool_acq (__atg15_memp,		      \
  						  __atg15_old & __atg15_mask, \
-@@ -439,7 +439,7 @@
+@@ -450,7 +450,7 @@
       __typeof (*(mem)) __atg16_mask = (mask);				      \
  									      \
       do									      \
@@ -122,7 +122,7 @@
       while (__builtin_expect						      \
  	    (atomic_compare_and_exchange_bool_acq (__atg16_memp,	      \
  						   __atg16_old & __atg16_mask,\
-@@ -457,7 +457,7 @@
+@@ -468,7 +468,7 @@
      __typeof (*(mem)) __atg17_mask = (mask);				      \
  									      \
      do									      \
@@ -131,7 +131,7 @@
      while (__builtin_expect						      \
  	   (atomic_compare_and_exchange_bool_acq (__atg17_memp,		      \
  						  __atg17_old | __atg17_mask, \
-@@ -473,7 +473,7 @@
+@@ -484,7 +484,7 @@
      __typeof (*(mem)) __atg18_mask = (mask);				      \
  									      \
      do									      \
@@ -140,7 +140,7 @@
      while (__builtin_expect						      \
  	   (catomic_compare_and_exchange_bool_acq (__atg18_memp,	      \
  						   __atg18_old | __atg18_mask,\
-@@ -489,7 +489,7 @@
+@@ -500,7 +500,7 @@
       __typeof (*(mem)) __atg19_mask = (mask);				      \
  									      \
       do									      \
@@ -164,7 +164,7 @@
  
  distribute = eintr.c tst-cleanup4aux.c
  
-@@ -437,6 +437,35 @@
+@@ -442,6 +442,35 @@
  CFLAGS-tst-cleanupx4.c += -fexceptions
  CFLAGS-tst-oncex3.c += -fexceptions
  CFLAGS-tst-oncex4.c += -fexceptions
@@ -213,7 +213,7 @@
    /* Make sure the init_count is stored locally or in a register.  */
 --- a/nptl/sysdeps/pthread/Makefile
 +++ b/nptl/sysdeps/pthread/Makefile
-@@ -41,7 +41,9 @@
+@@ -44,7 +44,9 @@
  
  ifeq ($(have-forced-unwind),yes)
  tests += tst-mqueue8x
@@ -236,7 +236,7 @@
  CFLAGS-tstdiomisc.c = -Wno-format
 --- a/sunrpc/clnt_udp.c
 +++ b/sunrpc/clnt_udp.c
-@@ -462,7 +462,7 @@
+@@ -456,7 +456,7 @@
        while (inlen < 0 && errno == EINTR);
        if (inlen < 0)
  	{
