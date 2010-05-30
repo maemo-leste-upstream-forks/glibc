@@ -9,54 +9,54 @@ die after very few seconds with a deadlock due to even more erratas.
 --- a/ports/sysdeps/mips/bits/atomic.h
 +++ b/ports/sysdeps/mips/bits/atomic.h
 @@ -74,7 +74,7 @@
-      "bne	%0,%2,2f\n\t"						      \
-      "move	%1,%3\n\t"						      \
-      "sc	%1,%4\n\t"						      \
+      "bne	%0,%3,2f\n\t"						      \
+      "move	%1,%4\n\t"						      \
+      "sc	%1,%2\n\t"						      \
 -     "beqz	%1,1b\n"						      \
 +     "beqzl	%1,1b\n"						      \
       acq	"\n\t"							      \
       ".set	pop\n"							      \
       "2:\n\t"								      \
 @@ -98,7 +98,7 @@
-      "bne	%0,%2,2f\n\t"						      \
-      "move	%1,%3\n\t"						      \
-      "scd	%1,%4\n\t"						      \
+      "bne	%0,%3,2f\n\t"						      \
+      "move	%1,%4\n\t"						      \
+      "scd	%1,%2\n\t"						      \
 -     "beqz	%1,1b\n"						      \
 +     "beqzl	%1,1b\n"						      \
       acq	"\n\t"							      \
       ".set	pop\n"							      \
       "2:\n\t"								      \
 @@ -192,7 +192,7 @@
-      "ll	%0,%3\n\t"						      \
-      "move	%1,%2\n\t"						      \
-      "sc	%1,%3\n\t"						      \
+      "ll	%0,%4\n\t"						      \
+      "move	%1,%3\n\t"						      \
+      "sc	%1,%2\n\t"						      \
 -     "beqz	%1,1b\n"						      \
 +     "beqzl	%1,1b\n"						      \
       acq	"\n\t"							      \
       ".set	pop\n"							      \
       "2:\n\t"								      \
 @@ -216,7 +216,7 @@
-      "lld	%0,%3\n\t"						      \
-      "move	%1,%2\n\t"						      \
-      "scd	%1,%3\n\t"						      \
+      "lld	%0,%4\n\t"						      \
+      "move	%1,%3\n\t"						      \
+      "scd	%1,%2\n\t"						      \
 -     "beqz	%1,1b\n"						      \
 +     "beqzl	%1,1b\n"						      \
       acq	"\n\t"							      \
       ".set	pop\n"							      \
       "2:\n\t"								      \
 @@ -251,7 +251,7 @@
-      "ll	%0,%3\n\t"						      \
-      "addu	%1,%0,%2\n\t"						      \
-      "sc	%1,%3\n\t"						      \
+      "ll	%0,%4\n\t"						      \
+      "addu	%1,%0,%3\n\t"						      \
+      "sc	%1,%2\n\t"						      \
 -     "beqz	%1,1b\n"						      \
 +     "beqzl	%1,1b\n"						      \
       acq	"\n\t"							      \
       ".set	pop\n"							      \
       "2:\n\t"								      \
 @@ -275,7 +275,7 @@
-      "lld	%0,%3\n\t"						      \
-      "daddu	%1,%0,%2\n\t"						      \
-      "scd	%1,%3\n\t"						      \
+      "lld	%0,%4\n\t"						      \
+      "daddu	%1,%0,%3\n\t"						      \
+      "scd	%1,%2\n\t"						      \
 -     "beqz	%1,1b\n"						      \
 +     "beqzl	%1,1b\n"						      \
       acq	"\n\t"							      \
