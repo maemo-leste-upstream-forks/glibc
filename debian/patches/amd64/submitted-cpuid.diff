@@ -3,11 +3,9 @@
 	* sysdeps/x86_64/multiarch/init-arch.c (__init_cpu_features):
 	Properly check family and model.
 
-diff --git a/sysdeps/x86_64/multiarch/init-arch.c b/sysdeps/x86_64/multiarch/init-arch.c
-index efb89b6..f13a9f4 100644
 --- a/sysdeps/x86_64/multiarch/init-arch.c
 +++ b/sysdeps/x86_64/multiarch/init-arch.c
-@@ -62,15 +62,15 @@ __init_cpu_features (void)
+@@ -62,12 +62,12 @@
        unsigned int eax = __cpu_features.cpuid[COMMON_CPUID_INDEX_1].eax;
        unsigned int extended_family = (eax >> 20) & 0xff;
        unsigned int extended_model = (eax >> 12) & 0xf0;
@@ -19,11 +17,6 @@ index efb89b6..f13a9f4 100644
  	}
 -      else if (__cpu_features.family == 0x06)
 +      else if (family == 0x06)
- 	{
- 	  model += extended_model;
--	  switch (__cpu_features.model)
-+	  switch (model)
- 	    {
- 	    case 0x1a:
- 	    case 0x1e:
-
+ 	model += extended_model;
+     }
+   /* This spells out "AuthenticAMD".  */
