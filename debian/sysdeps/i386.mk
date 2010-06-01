@@ -1,6 +1,3 @@
-CC = gcc-4.3
-CXX = g++-4.3
-
 extra_config_options = --enable-multi-arch
 
 # We use -march=i686 and glibc's i686 routines use cmov, so require it.
