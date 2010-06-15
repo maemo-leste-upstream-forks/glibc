@@ -1,0 +1,99 @@
+2010-06-07  Jakub Jelinek  <jakub@redhat.com>
+
+	* libio/stdio.h (sscanf, vsscanf): Use __REDIRECT_NTH instead of
+	__REDIRECT followed by __THROW.
+	* wcsmbs/wchar.h (swscanf, vswscanf): Likewise.
+	* posix/getopt.h (getopt): Likewise.
+
+diff --git a/libio/stdio.h b/libio/stdio.h
+index 85542b1..bf16b3f 100644
+--- a/libio/stdio.h
++++ b/libio/stdio.h
+@@ -447,9 +447,9 @@ extern int __REDIRECT (fscanf, (FILE *__restrict __stream,
+ 		       __isoc99_fscanf) __wur;
+ extern int __REDIRECT (scanf, (__const char *__restrict __format, ...),
+ 		       __isoc99_scanf) __wur;
+-extern int __REDIRECT (sscanf, (__const char *__restrict __s,
+-				__const char *__restrict __format, ...),
+-		       __isoc99_sscanf) __THROW;
++extern int __REDIRECT_NTH (sscanf, (__const char *__restrict __s,
++				    __const char *__restrict __format, ...),
++			   __isoc99_sscanf);
+ # else
+ extern int __isoc99_fscanf (FILE *__restrict __stream,
+ 			    __const char *__restrict __format, ...) __wur;
+@@ -501,11 +501,11 @@ extern int __REDIRECT (vfscanf,
+ extern int __REDIRECT (vscanf, (__const char *__restrict __format,
+ 				_G_va_list __arg), __isoc99_vscanf)
+      __attribute__ ((__format__ (__scanf__, 1, 0))) __wur;
+-extern int __REDIRECT (vsscanf,
+-		       (__const char *__restrict __s,
+-			__const char *__restrict __format, _G_va_list __arg),
+-		       __isoc99_vsscanf)
+-     __THROW __attribute__ ((__format__ (__scanf__, 2, 0)));
++extern int __REDIRECT_NTH (vsscanf,
++			   (__const char *__restrict __s,
++			    __const char *__restrict __format,
++			    _G_va_list __arg), __isoc99_vsscanf)
++     __attribute__ ((__format__ (__scanf__, 2, 0)));
+ #  else
+ extern int __isoc99_vfscanf (FILE *__restrict __s,
+ 			     __const char *__restrict __format,
+diff --git a/posix/getopt.h b/posix/getopt.h
+index ff0251d..6e2fa27 100644
+--- a/posix/getopt.h
++++ b/posix/getopt.h
+@@ -1,5 +1,5 @@
+ /* Declarations for getopt.
+-   Copyright (C) 1989-1994,1996-1999,2001,2003,2004,2009
++   Copyright (C) 1989-1994,1996-1999,2001,2003,2004,2009,2010
+    Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+@@ -158,9 +158,9 @@ extern int getopt (int ___argc, char *const *___argv, const char *__shortopts)
+    additional functionality can be disable at runtime.  This redirection
+    helps to also do this at runtime.  */
+ #  ifdef __REDIRECT
+-  extern int __REDIRECT (getopt, (int ___argc, char *const *___argv,
+-				  const char *__shortopts),
+-			 __posix_getopt) __THROW;
++  extern int __REDIRECT_NTH (getopt, (int ___argc, char *const *___argv,
++				      const char *__shortopts),
++			     __posix_getopt);
+ #  else
+ extern int __posix_getopt (int ___argc, char *const *___argv,
+ 			   const char *__shortopts) __THROW;
+diff --git a/wcsmbs/wchar.h b/wcsmbs/wchar.h
+index 5a4e10e..061b105 100644
+--- a/wcsmbs/wchar.h
++++ b/wcsmbs/wchar.h
+@@ -658,10 +658,10 @@ extern int __REDIRECT (fwscanf, (__FILE *__restrict __stream,
+ extern int __REDIRECT (wscanf, (__const wchar_t *__restrict __format, ...),
+ 		       __isoc99_wscanf)
+      /* __attribute__ ((__format__ (__wscanf__, 1, 2))) */;
+-extern int __REDIRECT (swscanf, (__const wchar_t *__restrict __s,
+-				 __const wchar_t *__restrict __format, ...),
+-		       __isoc99_swscanf)
+-     __THROW /* __attribute__ ((__format__ (__wscanf__, 2, 3))) */;
++extern int __REDIRECT_NTH (swscanf, (__const wchar_t *__restrict __s,
++				     __const wchar_t *__restrict __format,
++				     ...), __isoc99_swscanf)
++     /* __attribute__ ((__format__ (__wscanf__, 2, 3))) */;
+ #  else
+ extern int __isoc99_fwscanf (__FILE *__restrict __stream,
+ 			     __const wchar_t *__restrict __format, ...);
+@@ -712,10 +712,10 @@ extern int __REDIRECT (vfwscanf, (__FILE *__restrict __s,
+ extern int __REDIRECT (vwscanf, (__const wchar_t *__restrict __format,
+ 				 __gnuc_va_list __arg), __isoc99_vwscanf)
+      /* __attribute__ ((__format__ (__wscanf__, 1, 0))) */;
+-extern int __REDIRECT (vswscanf, (__const wchar_t *__restrict __s,
+-				  __const wchar_t *__restrict __format,
+-				  __gnuc_va_list __arg), __isoc99_vswscanf)
+-     __THROW /* __attribute__ ((__format__ (__wscanf__, 2, 0))) */;
++extern int __REDIRECT_NTH (vswscanf, (__const wchar_t *__restrict __s,
++				      __const wchar_t *__restrict __format,
++				      __gnuc_va_list __arg), __isoc99_vswscanf)
++     /* __attribute__ ((__format__ (__wscanf__, 2, 0))) */;
+ #  else
+ extern int __isoc99_vfwscanf (__FILE *__restrict __s,
+ 			      __const wchar_t *__restrict __format,
