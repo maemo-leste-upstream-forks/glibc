@@ -1,8 +1,10 @@
 Even if glibc doesn't have an integrated pthread library, it depends on the hurd
 packages which have a pthread library.
 
+Avoid letting glibc try to install its own headers for libpthread.
+
 ---
- sysdeps/mach/hurd/Makeconfig       |   10 ++++++++
+ sysdeps/mach/hurd/Makeconfig       |   14 +++++++++++
  sysdeps/mach/hurd/bits/posix_opt.h |   40 +++++++++++++++++++++++-----------
  sysdeps/mach/hurd/gai_misc.h       |   43 +++++++++++++++++++++++++++++++++++++
  3 files changed, 80 insertions(+), 13 deletions(-)
@@ -89,7 +91,7 @@ packages which have a pthread library.
  #define	_POSIX_MESSAGE_PASSING	0
 --- a/sysdeps/mach/hurd/Makeconfig
 +++ b/sysdeps/mach/hurd/Makeconfig
-@@ -2,3 +2,13 @@
+@@ -2,3 +2,17 @@
  # See Makefile in this directory for the rule that builds this.
  # We must define this variable earlier than sysdeps Makefiles are included.
  static-start-installed-name = crt0.o
@@ -103,6 +105,10 @@ packages which have a pthread library.
 +	true
 +$(static-thread-library):
 +	true
++$(inst_includedir)/pthread.h:
++	true
++
+++force =
 --- /dev/null
 +++ b/sysdeps/mach/hurd/gai_misc.h
 @@ -0,0 +1,43 @@
