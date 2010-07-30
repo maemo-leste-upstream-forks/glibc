@@ -11214,7 +11214,7 @@
 +/* 'getrlimit64' is the same as 'getrlimit', because __rlim64_t == __rlim_t.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getsysstats.c
-@@ -0,0 +1,108 @@
+@@ -0,0 +1,109 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
@@ -11235,6 +11235,7 @@
 +   02111-1307 USA.  */
 +
 +#include <sys/sysctl.h>
++#include <unistd.h>
 +#include <stddef.h>
 +
 +
@@ -11243,14 +11244,14 @@
 +{
 +  /* Fetch sysctl value of "hw.ncpu".  */
 +  int request[2] = { CTL_HW, HW_NCPU };
-+  int result;
++  long int result;
 +  size_t result_len = sizeof (result);
 +
 +  if (__sysctl (request, 2, &result, &result_len, NULL, 0) < 0)
 +    /* Dummy result.  */
 +    return 1;
 +
-+  return result;
++  return result / __getpagesize();
 +}
 +
 +weak_alias (__get_nprocs, get_nprocs)
