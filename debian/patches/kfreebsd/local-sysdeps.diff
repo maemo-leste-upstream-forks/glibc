@@ -20256,7 +20256,7 @@
 +weak_alias (__send, send)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sendto.c
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,73 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Aurelien Jarno <aurelien@aurel32.net>, 2005.
@@ -20304,6 +20304,8 @@
 +{
 +  socklen_t new_addrlen;
 +
++  if (addr.__sockaddr__)
++  {
 +#ifndef NOT_IN_libc
 +  new_addrlen = INTUSE(__libc_sa_len) ((addr.__sockaddr__)->sa_family);
 +#else
@@ -20314,6 +20316,7 @@
 +    stack corruption */
 +  if (new_addrlen < addrlen)
 +    addrlen = new_addrlen;
++  }
 +
 +  /* We pass 6 arguments.  */
 +  if (SINGLE_THREAD_P)
