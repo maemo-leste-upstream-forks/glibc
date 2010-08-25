@@ -113,7 +113,7 @@ Architecture: amd64 arm armeb armel i386 m32r m68k mips mipsel powerpc powerpcsp
 Section: libs
 Priority: required
 Depends: libc-bin (= ${binary:Version}), hurd (>= 20070606-1+SVN) [hurd-i386], libgcc1 [!hppa !m68k], libgcc2 [m68k], libgcc4 [hppa]
-Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386]
+Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386]
 Suggests: glibc-doc, debconf | debconf-2.0, locales [!hurd-i386]
 Provides: ${locale-compat:Depends}
 Conflicts: tzdata-etch, tzdata (<< 2007k-1)
@@ -188,7 +188,7 @@ Architecture: alpha ia64
 Section: libs
 Priority: required
 Depends: libc-bin (= ${binary:Version}), hurd (>= 20070606-1+SVN) [hurd-i386], libgcc1 [!hppa !m68k], libgcc2 [m68k], libgcc4 [hppa]
-Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386]
+Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386]
 Suggests: glibc-doc, debconf | debconf-2.0, locales [!hurd-i386]
 Provides: ${locale-compat:Depends}
 Conflicts: tzdata-etch, tzdata (<< 2007k-1)
@@ -263,7 +263,7 @@ Architecture: hurd-i386
 Section: libs
 Priority: required
 Depends: libc-bin (= ${binary:Version}), hurd (>= 20070606-1+SVN) [hurd-i386], libgcc1 [!hppa !m68k], libgcc2 [m68k], libgcc4 [hppa]
-Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386]
+Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386]
 Suggests: glibc-doc, debconf | debconf-2.0, locales [!hurd-i386]
 Provides: ${locale-compat:Depends}
 Conflicts: tzdata-etch, tzdata (<< 2007k-1)
@@ -338,7 +338,7 @@ Architecture: kfreebsd-i386 kfreebsd-amd64
 Section: libs
 Priority: required
 Depends: libc-bin (= ${binary:Version}), hurd (>= 20070606-1+SVN) [hurd-i386], libgcc1 [!hppa !m68k], libgcc2 [m68k], libgcc4 [hppa]
-Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386]
+Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386]
 Suggests: glibc-doc, debconf | debconf-2.0, locales [!hurd-i386]
 Provides: ${locale-compat:Depends}
 Conflicts: tzdata-etch, tzdata (<< 2007k-1)
@@ -674,6 +674,37 @@ Description: Embedded GNU C Library: Shared libraries [i686 optimized]
  Pentium Pro, Pentium II/III/IV, Celeron CPU's and similar class CPU's
  (including clones such as AMD Athlon/Opteron, VIA C3 Nehemiah, but not VIA 
  C3 Ezla).  
+
+Package: libc0.3-i686
+Architecture: hurd-i386
+Section: libs
+Priority: extra
+Pre-Depends: libc0.3 (= ${binary:Version})
+Depends: ${misc:Depends}
+Description: Embedded GNU C Library: Shared libraries [i686 optimized]
+ Contains the standard libraries that are used by nearly all programs on
+ the system. This package includes shared versions of the standard C
+ library and the standard math library, as well as many others.
+ .
+ This set of libraries is optimized for i686 machines, and will only be
+ used on an i686 class CPU (check the output of `uname -m').  This includes 
+ Pentium Pro, Pentium II/III/IV, Celeron CPU's and similar class CPU's
+ (including clones such as AMD Athlon/Opteron, VIA C3 Nehemiah, but not VIA 
+ C3 Ezla).  
+
+Package: libc0.3-xen
+Architecture: hurd-i386
+Section: libs
+Priority: extra
+Pre-Depends: libc0.3 (= ${binary:Version})
+Depends: ${misc:Depends}
+Description: Embedded GNU C Library: Shared libraries [Xen version]
+ Contains the standard libraries that are used by nearly all programs on
+ the system. This package includes shared versions of the standard C
+ library and the standard math library, as well as many others.
+ .
+ This set of libraries is optimized for the Xen hypervisor, and will be
+ selected instead when running under Xen.
 
 Package: libc6.1-alphaev67
 Architecture: alpha
