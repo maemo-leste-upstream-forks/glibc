@@ -107,10 +107,13 @@ if ($no_checks == 0)
 			}
 		}
 		$msg =~ s/["']//g;
-		die "*** $progname: Error: LANGUAGE ($arg{LANGUAGE}) is not compatible with $var ($msg)\n"
-			if ($msg !~ m/^$language/ && $var ne ''
-			    && $msg ne 'C' && $msg ne 'POSIX'
-			    && $language ne 'C' && $language ne 'POSIX');
+		if ($msg !~ m/^$language/ && $var ne ''
+		    && $msg ne 'C' && $msg ne 'POSIX'
+		    && $language ne 'C' && $language ne 'POSIX')
+		{
+			print "*** $progname: Warning: LANGUAGE ($arg{LANGUAGE}) is not compatible with $var ($msg). Disabling it.\n";
+			$content =~ s/^(\s*LANGUAGE=)/#$1/mg;
+		}
 	}
 }
 
