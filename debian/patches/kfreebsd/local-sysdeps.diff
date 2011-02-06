@@ -113,7 +113,7 @@
 +# For <sys/extattr.h>.
 +sysdep_routines += extattrctl extattr_delete_file extattr_get_file extattr_set_file
 +# For <sys/jail.h>.
-+sysdep_routines += jail
++sysdep_routines += jail jail_attach jail_remove jail_get jail_set
 +# For <sys/ktrace.h>.
 +sysdep_routines += ktrace utrace
 +# For <sys/linker.h>.
@@ -139,7 +139,7 @@
 +# for INLINE_SYSCALL
 +sysdep_routines += sys_fork sys_execve sys_sigaction sys_close sys_fcntl
 +sysdep_routines += sys_clock_getres sys_clock_gettime sys_clock_settime
-+sysdep_routines += sys_shm_open sys_shm_unlink sys_pselect
++sysdep_routines += sys_shm_open sys_shm_unlink sys_pselect sys_semctl
 +endif
 +
 +ifeq ($(subdir),posix)
@@ -3115,7 +3115,7 @@
 +    addrlen = new_addrlen;
 +
 +  /* We pass 3 arguments.  */
-+  return INLINE_SYSCALL (bind, 3, fd, addr, addrlen);
++  return INLINE_SYSCALL (bind, 3, fd, addr.__sockaddr__, addrlen);
 +}
 +
 +weak_alias (__bind, bind)
@@ -6075,7 +6075,7 @@
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/stat16.h
 @@ -0,0 +1,56 @@
-+/* Copyright (C) 2002, 2006 Free Software Foundation, Inc.
++/* Copyright (C) 2002, 2006, 2010 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -6125,10 +6125,10 @@
 +
 +    __uint32_t __unused1;
 +
-+    long int st_birthtime;	/* Time of file creation.  */
++    __time_t st_birthtime;	/* Time of file creation.  */
 +    long int st_birthtimensec;	/* Nanoseconds of file creation.  */
 +
-+#define _BIRTH_PADSIZE     (2*(8 - sizeof (long)))
++#define _BIRTH_PADSIZE     (16 - sizeof(__time_t) - sizeof (long int))
 +    char __birth_padding[_BIRTH_PADSIZE];
 +  };
 --- /dev/null
@@ -6752,9 +6752,9 @@
 +#endif	/* need timeval */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/typesizes.h
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,82 @@
 +/* bits/typesizes.h -- underlying types for *_t.  kFreeBSD version.
-+   Copyright (C) 2002, 2003 Free Software Foundation, Inc.
++   Copyright (C) 2002, 2003, 2010 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -6802,7 +6802,23 @@
 +#define	__FSFILCNT64_T_TYPE	__UQUAD_TYPE
 +#define	__ID_T_TYPE		__U32_TYPE
 +#define __CLOCK_T_TYPE		__S32_TYPE
++
++/*
++ * This one is a bit tricky.  It needs to match the size
++ * in the sys/${arch}/include/_types.h typedefs.
++ *
++ * However, for i386 and amd64 we started with __SLONGWORD_TYPE
++ * and we need to maintain ABI.  Even if size is the same, using
++ * a different type may affect C++ ABI (this distinction is
++ * necessary to implement function overload), so it must stay
++ * with __SLONGWORD_TYPE.
++ */
++#if defined(__i386__) || defined(__amd64__) || defined(__powerpc__)
 +#define __TIME_T_TYPE		__SLONGWORD_TYPE
++#else
++#define __TIME_T_TYPE		__S64_TYPE
++#endif
++
 +#define __USECONDS_T_TYPE	__U32_TYPE
 +#define __SUSECONDS_T_TYPE	__SLONGWORD_TYPE
 +#define __DADDR_T_TYPE		__SQUAD_TYPE
@@ -7057,10 +7073,10 @@
 +#endif	/* Use BSD.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/brk.c
-@@ -0,0 +1,53 @@
-+/* Copyright (C) 2004 Free Software Foundation, Inc.
+@@ -0,0 +1,47 @@
++/* Copyright (C) 2004, 2010 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
-+   Contributed by Robert Millan <robertmh@gnu.org>
++   Contributed by Robert Millan
 +
 +   The GNU C Library is free software; you can redistribute it and/or
 +   modify it under the terms of the GNU Lesser General Public
@@ -7079,13 +7095,7 @@
 +
 +#include <errno.h>
 +#include <unistd.h>
-+#include <sys/syscall.h>
-+
-+#ifndef SYS_break
-+#define SYS_break SYS_obreak
-+#endif
-+
-+int __syscall(int number, ...);
++#include <sysdep.h>
 +
 +extern void _end;
 +
@@ -7101,7 +7111,7 @@
 +  if (addr < &_end)
 +    return 0;
 +
-+  if (__syscall (SYS_break, addr) == -1)
++  if (INLINE_SYSCALL (obreak, 1, addr) == -1)
 +    {
 +      __set_errno (ENOMEM);
 +      return -1;
@@ -8089,10 +8099,10 @@
 +
 +  /* We pass 3 arguments.  */
 +  if (SINGLE_THREAD_P)
-+    return INLINE_SYSCALL (connect, 3, fd, addr, addrlen);
++    return INLINE_SYSCALL (connect, 3, fd, addr.__sockaddr__, addrlen);
 +
 +  int oldtype = LIBC_CANCEL_ASYNC ();
-+  int result = INLINE_SYSCALL (connect, 3, fd, addr, addrlen);
++  int result = INLINE_SYSCALL (connect, 3, fd, addr.__sockaddr__, addrlen);
 +  LIBC_CANCEL_RESET (oldtype);
 +  return result;
 +}
@@ -8235,9 +8245,9 @@
 +rtld_hidden_def (_dl_make_stack_executable)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-machine.h
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,32 @@
 +/* Dynamic linker magic for glibc on FreeBSD kernel.
-+   Copyright (C) 2006 Free Software Foundation, Inc.
++   Copyright (C) 2006, 2010 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Aurelien Jarno <aurelien@aurel32.net>, 2006.
 +
@@ -8256,17 +8266,18 @@
 +   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 +   02111-1307 USA.  */
 +
++#include_next <dl-machine.h>
++
 +/* Contrary to most kernels which use ELFOSABI_SYSV aka ELFOSABI_NONE,
 +   FreeBSD uses ELFOSABI_FREEBSD for the OSABI field. */
 +
-+# define VALID_ELF_OSABI(osabi)		(osabi == ELFOSABI_FREEBSD)
-+# define VALID_ELF_ABIVERSION(ver)	(ver == 0)
-+# define VALID_ELF_HEADER(hdr,exp,size) \
++#undef VALID_ELF_OSABI
++#define VALID_ELF_OSABI(osabi)		(osabi == ELFOSABI_FREEBSD)
++#undef VALID_ELF_HEADER
++#define VALID_ELF_HEADER(hdr,exp,size) \
 +  memcmp (hdr,exp,size-2) == 0 \
 +  && VALID_ELF_OSABI (hdr[EI_OSABI]) \
 +  && VALID_ELF_ABIVERSION (hdr[EI_ABIVERSION])
-+
-+#include_next <dl-machine.h>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-origin.c
 @@ -0,0 +1,123 @@
@@ -15201,6 +15212,68 @@
 @@ -0,0 +1 @@
 +#include <linuxthreads/sysdeps/unix/sysv/linux/allocrtsig.c>
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/libc-tsd.h
+@@ -0,0 +1,59 @@
++/* libc-internal interface for thread-specific data.  LinuxThreads version.
++   Copyright (C) 1997-2002, 2003, 2010 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#ifndef _BITS_LIBC_TSD_H
++#define _BITS_LIBC_TSD_H 1
++
++#include <linuxthreads/descr.h>
++#include <tls.h>
++
++#if USE_TLS && HAVE___THREAD
++
++/* When __thread works, the generic definition is what we want.  */
++# include_next <bits/libc-tsd.h>
++
++#else
++
++# include <bits/libc-lock.h>
++
++# ifndef SHARED
++extern void ** __pthread_internal_tsd_address (int);
++extern void *__pthread_internal_tsd_get (int);
++extern int __pthread_internal_tsd_set (int, const void *);
++
++weak_extern (__pthread_internal_tsd_address)
++weak_extern (__pthread_internal_tsd_get)
++weak_extern (__pthread_internal_tsd_set)
++# endif
++
++#define __libc_tsd_define(CLASS, TYPE, KEY)	CLASS TYPE __libc_tsd_##KEY##_data;
++#define __libc_tsd_address(TYPE, KEY) \
++  (TYPE *) __libc_maybe_call2 (pthread_internal_tsd_address,			\
++		      (_LIBC_TSD_KEY_##KEY), &__libc_tsd_##KEY##_data)
++#define __libc_tsd_get(TYPE, KEY) \
++  (TYPE) __libc_maybe_call2 (pthread_internal_tsd_get,				\
++		      (_LIBC_TSD_KEY_##KEY), __libc_tsd_##KEY##_data)
++#define __libc_tsd_set(TYPE, KEY, VALUE) \
++  __libc_maybe_call2 (pthread_internal_tsd_set,				\
++		      (_LIBC_TSD_KEY_##KEY, (VALUE)),			\
++		       (__libc_tsd_##KEY##_data = (VALUE), 0))
++
++#endif
++
++#endif	/* bits/libc-tsd.h */
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/local_lim.h
 @@ -0,0 +1,48 @@
 +/* Minimum guaranteed maximum values for system limits.  FreeBSD version.
@@ -15487,9 +15560,9 @@
 +#endif	/* bits/sigthread.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/typesizes.h
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,82 @@
 +/* bits/typesizes.h -- underlying types for *_t.  kFreeBSD version.
-+   Copyright (C) 2002, 2003 Free Software Foundation, Inc.
++   Copyright (C) 2002, 2003, 2010 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -15537,7 +15610,23 @@
 +#define	__FSFILCNT64_T_TYPE	__UQUAD_TYPE
 +#define	__ID_T_TYPE		__U32_TYPE
 +#define __CLOCK_T_TYPE		__S32_TYPE
++
++/*
++ * This one is a bit tricky.  It needs to match the size
++ * in the sys/${arch}/include/_types.h typedefs.
++ *
++ * However, for i386 and amd64 we started with __SLONGWORD_TYPE
++ * and we need to maintain ABI.  Even if size is the same, using
++ * a different type may affect C++ ABI (this distinction is
++ * necessary to implement function overload), so it must stay
++ * with __SLONGWORD_TYPE.
++ */
++#if defined(__i386__) || defined(__amd64__) || defined(__powerpc__)
 +#define __TIME_T_TYPE		__SLONGWORD_TYPE
++#else
++#define __TIME_T_TYPE		__S64_TYPE
++#endif
++
 +#define __USECONDS_T_TYPE	__U32_TYPE
 +#define __SUSECONDS_T_TYPE	__SLONGWORD_TYPE
 +#define __DADDR_T_TYPE		__SQUAD_TYPE
@@ -16111,13 +16200,13 @@
 +    fd = -1;
 +
 +  /* First try the new syscall. */
-+  result = INLINE_SYSCALL (mmap, 6, addr, len, prot, flags, fd, offset);
++  result = (void *) INLINE_SYSCALL (mmap, 6, addr, len, prot, flags, fd, offset);
 +
 +#ifndef __ASSUME_MMAP_SYSCALL
 +  if (result == (void *) (-1) && errno == ENOSYS)
 +    {
-+      /* New syscall not available, us the old one. */
-+      result = INLINE_SYSCALL (freebsd6_mmap, 7, addr, len, prot, flags, fd, 0, offset);
++      /* New syscall not available, use the old one. */
++      result = (void *) INLINE_SYSCALL (freebsd6_mmap, 7, addr, len, prot, flags, fd, 0, offset);
 +      if (result != (void *) (-1) && fd >= 0 && len > 0)
 +	{
 +	  /* Force an update of the atime.  POSIX:2001 mandates that this happens
@@ -20178,10 +20267,10 @@
 +#include <sysdeps/unix/seekdir.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/semctl.c
-@@ -0,0 +1,87 @@
-+/* Copyright (C) 2004 Free Software Foundation, Inc.
+@@ -0,0 +1,85 @@
++/* Copyright (C) 2004, 2010 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
-+   Contributed by Robert Millan <robertmh@gnu.org>
++   Contributed by Robert Millan
 +
 +   The GNU C Library is free software; you can redistribute it and/or
 +   modify it under the terms of the GNU Lesser General Public
@@ -20225,8 +20314,8 @@
 + *
 + */
 +
++#include <sysdep.h>
 +#include <sys/sem.h>
-+#include <sys/syscall.h>
 +#include <stdarg.h> /* va_list */
 +#include <stdlib.h> /* NULL */
 +#include <unistd.h>
@@ -20241,8 +20330,6 @@
 +  struct semid_ds *buf;		/* buffer for IPC_STAT & IPC_SET */
 +  unsigned short *array;	/* array for GETALL & SETALL */
 +};
-+
-+int __syscall(int number, ...);
 +
 +int
 +semctl (int semid, int semnum, int cmd, ...)
@@ -20264,7 +20351,7 @@
 +    }
 +  va_end (ap);
 +
-+  return __syscall (SYS_semctl, semid, semnum, cmd, semun_ptr);
++  return INLINE_SYSCALL (semctl, 4, semid, semnum, cmd, semun_ptr);
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/send.c
@@ -20382,10 +20469,10 @@
 +
 +  /* We pass 6 arguments.  */
 +  if (SINGLE_THREAD_P)
-+    return INLINE_SYSCALL (sendto, 6, fd, buf, n, flags, addr, addrlen);
++    return INLINE_SYSCALL (sendto, 6, fd, buf, n, flags, addr.__sockaddr__, addrlen);
 +
 +  int oldtype = LIBC_CANCEL_ASYNC ();
-+  int result = INLINE_SYSCALL (sendto, 6, fd, buf, n, flags, addr, addrlen);
++  int result = INLINE_SYSCALL (sendto, 6, fd, buf, n, flags, addr.__sockaddr__, addrlen);
 +  LIBC_CANCEL_RESET (oldtype);
 +  return result;
 +}
@@ -23349,7 +23436,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,187 @@
+@@ -0,0 +1,192 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
 +sys_access		-	access			i:si		__syscall_access
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
@@ -23399,6 +23486,10 @@
 +getsid			-	getsid			i:i		getsid
 +issetugid		-	issetugid		i:		issetugid
 +jail			-	jail			i:p		jail
++jail_attach		-	jail_attach		i:i		jail_attach
++jail_remove		-	jail_remove		i:i		jail_remove
++jail_get		-	jail_get		i:pii		jail_get
++jail_set		-	jail_set		i:pii		jail_set
 +kenv			-	kenv			i:issi		kenv
 +kldfind			-	kldfind			i:s		kldfind
 +kldfirstmod		-	kldfirstmod		i:i		kldfirstmod
@@ -23466,6 +23557,7 @@
 +sched_yield		-	sched_yield		i:		__sched_yield sched_yield
 +semget			-	semget			i:iii		semget
 +semop			-	semop			i:ipi		semop
++sys_semctl		-	semctl			i:iiip		__syscall_semctl
 +bsd_sendfile		-	sendfile		i:iiiippi	bsd_sendfile
 +setegid			-	setegid			i:i		setegid
 +seteuid			-	seteuid			i:i		seteuid
@@ -27810,7 +27902,7 @@
 +      /* The FreeBSD mknod() system call cannot be used to create FIFOs; we
 +         must use the mkfifo() system call for this purpose.  */
 +      if (S_ISFIFO (mode))
-+	result = INLINE_SYSCALL (mkfifoat, 4, fd, file, mode);
++	result = INLINE_SYSCALL (mkfifoat, 3, fd, file, mode);
 +      else
 +	result = INLINE_SYSCALL (mknodat, 4, fd, file, mode, *dev);
 +
