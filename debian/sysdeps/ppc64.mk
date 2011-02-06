@@ -1,6 +1,7 @@
 libc_slibdir = /lib
 libc_libdir = /usr/lib
 libc_rtlddir = /lib64
+extra_config_options = --enable-multi-arch
 
 # /lib64 and /usr/lib64 are provided as symlinks 
 define libc6_extra_pkg_install

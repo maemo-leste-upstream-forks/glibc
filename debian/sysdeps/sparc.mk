@@ -1,3 +1,5 @@
+extra_config_options = --enable-multi-arch
+
 # build a sparcv9b optimized library
 EGLIBC_PASSES += sparcv9b
 DEB_ARCH_REGULAR_PACKAGES += libc6-sparcv9b
