@@ -88,6 +88,9 @@ $(stamp)build_%: $(stamp)configure_%
 	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS))
 	$(call logme, -a $(log_build), echo "---------------" ; echo -n "Build ended: " ; date --rfc-2822)
 	if [ $(curpass) = libc ]; then \
+	    I18NPATH=$(CURDIR)/localedata GCONV_PATH=$(DEB_BUILDDIR)/iconvdata localedef --quiet -c -f UTF-8 -i C $(CURDIR)/build-tree/C.UTF-8 ; \
+	fi
+	if [ $(curpass) = libc ]; then \
 	  $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) \
 	    objdir=$(DEB_BUILDDIR) install_root=$(CURDIR)/build-tree/locales-all \
 	    localedata/install-locales; \
