@@ -8,12 +8,6 @@
 
 --- a/nptl/allocatestack.c
 +++ b/nptl/allocatestack.c
-@@ -1,4 +1,4 @@
--/* Copyright (C) 2002-2007, 2009 Free Software Foundation, Inc.
-+/* Copyright (C) 2002-2007, 2009, 2010 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
-    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
- 
 @@ -353,6 +353,15 @@
    if (__builtin_expect (attr->flags & ATTR_FLAG_STACKADDR, 0))
      {
@@ -54,7 +48,7 @@
  #elif TLS_DTV_AT_TP
 -      pd = (struct pthread *) (((uintptr_t) attr->stackaddr
 +      pd = (struct pthread *) (((uintptr_t) stackaddr
- 			        - __static_tls_size - adj)
+				- __static_tls_size - adj)
  			       - TLS_PRE_TCB_SIZE);
  #endif
 @@ -391,7 +400,7 @@
@@ -137,12 +131,6 @@
    return 0;
 --- a/nptl/pthread_create.c
 +++ b/nptl/pthread_create.c
-@@ -1,4 +1,4 @@
--/* Copyright (C) 2002-2007,2008,2009 Free Software Foundation, Inc.
-+/* Copyright (C) 2002-2007,2008,2009,2010 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
-    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
- 
 @@ -388,12 +388,18 @@
  #ifdef _STACK_GROWS_DOWN
    char *sp = CURRENT_STACK_FRAME;

@@ -1,3 +1,2 @@
-libc_MIN_KERNEL_SUPPORTED = 2.4.1
-libc_add-ons = ports linuxthreads $(add-ons)
-libc_extra_config_options = $(extra_config_options) --disable-sanity-checks --without-__thread --without-tls
+libc_MIN_KERNEL_SUPPORTED = 2.6.32
+libc_add-ons = ports nptl $(add-ons)

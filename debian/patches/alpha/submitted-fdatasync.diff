@@ -16,7 +16,7 @@
 
 --- a/sysdeps/unix/sysv/linux/kernel-features.h
 +++ b/sysdeps/unix/sysv/linux/kernel-features.h
-@@ -474,6 +474,12 @@
+@@ -454,6 +454,12 @@
  # define __ASSUME_FUTEX_LOCK_PI	1
  #endif
  
@@ -26,7 +26,7 @@
 +# define __ASSUME_FDATASYNC	1
 +#endif
 +
- /* Support for utimensat syscall was added in 2.6.22, on alpha and s390
+ /* Support for utimensat syscall was added in 2.6.22, on SH
     only after 2.6.22-rc1.  */
  #if __LINUX_KERNEL_VERSION >= 0x020616 \
 --- /dev/null
@@ -113,11 +113,10 @@
  get_kernel_syms	EXTRA	get_kernel_syms	i:p	get_kernel_syms
 --- a/sysdeps/unix/sysv/linux/Makefile
 +++ b/sysdeps/unix/sysv/linux/Makefile
-@@ -21,6 +21,7 @@
- 		   eventfd eventfd_read eventfd_write
- 
+@@ -20,6 +20,7 @@
  
 +CFLAGS-fdatasync.c = -fexceptions
  CFLAGS-gethostid.c = -fexceptions
  
  sysdep_headers += sys/mount.h sys/acct.h sys/sysctl.h \
+

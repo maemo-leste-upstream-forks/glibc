@@ -13,15 +13,13 @@
 
 --- a/sysdeps/unix/sysv/linux/kernel-features.h
 +++ b/sysdeps/unix/sysv/linux/kernel-features.h
-@@ -454,11 +454,16 @@
+@@ -454,9 +454,17 @@
  # define __ASSUME_ATFCTS	1
  #endif
  
 -/* Support for inter-process robust mutexes was added in 2.6.17.  */
 -#if __LINUX_KERNEL_VERSION >= 0x020611 \
--    && ((!defined __sh__ && !defined __alpha__) \
--	|| (__LINUX_KERNEL_VERSION >= 0x020613 && defined __sh__) \
--	|| (__LINUX_KERNEL_VERSION >= 0x020617 && defined __alpha__))
+-    && (!defined __sh__ || __LINUX_KERNEL_VERSION >= 0x020613)
 +/* Support for inter-process robust mutexes was added in 2.6.17 on i386,
 +   powerpc and s390. It was added in 2.6.18 on s390 and sparc64, 2.6.19 on
 +   ia64 and 2.6.23 on sh. */
@@ -31,7 +29,8 @@
 +     || (__LINUX_KERNEL_VERSION >= 0x020612 && defined __sparc__ && __arch64__) \
 +     || (__LINUX_KERNEL_VERSION >= 0x020611 && defined __x86_64__) \
 +     || (__LINUX_KERNEL_VERSION >= 0x020613 && defined __ia64__) \
-+     || (__LINUX_KERNEL_VERSION >= 0x020617 && defined __sh__)
++     || (__LINUX_KERNEL_VERSION >= 0x020617 && defined __sh__) \
++     || (__LINUX_KERNEL_VERSION >= 0x020617 && defined __alpha__)
  # define __ASSUME_SET_ROBUST_LIST	1
  #endif
  

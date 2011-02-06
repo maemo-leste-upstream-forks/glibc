@@ -51,7 +51,7 @@
      {
 --- a/elf/dl-cache.c
 +++ b/elf/dl-cache.c
-@@ -244,6 +244,7 @@
+@@ -245,6 +245,7 @@ _dl_load_cache_lookup (const char *name)
    if (cache_new != (void *) -1)
      {
        uint64_t platform;
@@ -59,16 +59,18 @@
  
        /* This is where the strings start.  */
        cache_data = (const char *) cache_new;
-@@ -255,11 +256,16 @@
+@@ -256,6 +257,9 @@ _dl_load_cache_lookup (const char *name)
        if (platform != (uint64_t) -1)
  	platform = 1ULL << platform;
  
 +      if (__access ("/etc/ld.so.nohwcap", F_OK) == 0)
 +	disable_hwcap = 1;
 +
-       /* Only accept hwcap if it's for the right platform.  */
  #define _DL_HWCAP_TLS_MASK (1LL << 63)
- #define HWCAP_CHECK \
+       uint64_t hwcap_exclude = ~((GLRO(dl_hwcap) & GLRO(dl_hwcap_mask))
+ 				 | _DL_HWCAP_PLATFORM | _DL_HWCAP_TLS_MASK);
+@@ -266,6 +270,8 @@ _dl_load_cache_lookup (const char *name)
+ 	continue;							      \
        if (GLRO(dl_osversion) && lib->osversion > GLRO(dl_osversion))	      \
  	continue;							      \
 +      if (disable_hwcap && lib->hwcap != 0)				      \
