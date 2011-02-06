@@ -163,19 +163,23 @@ clean:: unpatch
 	rm -rf debian/include
 
 # Required Debian targets
-binary-indep: build testroot debian/control $(build-tree) \
+build:	$(stamp)info \
+	$(patsubst %,$(stamp)build_%,$(EGLIBC_PASSES)) \
+	$(patsubst %,$(stamp)check_%,$(EGLIBC_PASSES))
+
+build-indep: $(stamp)source $(stamp)doc
+
+build: build-arch build-indep
+
+
+binary-indep: build-indep testroot debian/control $(build-tree) \
 	$(patsubst %,$(stamp)binaryinst_%,$(DEB_INDEP_REGULAR_PACKAGES))
 
-binary-arch: build testroot debian/control $(build-tree) \
+binary-arch: build-arch testroot debian/control $(build-tree) \
 	$(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES)) \
 	$(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES))
 
 binary: binary-indep binary-arch
-
-build:	$(stamp)info \
-	$(patsubst %,$(stamp)build_%,$(EGLIBC_PASSES)) \
-	$(patsubst %,$(stamp)check_%,$(EGLIBC_PASSES)) \
-	$(stamp)source $(stamp)doc
 
 testroot:
 	dh_testroot
