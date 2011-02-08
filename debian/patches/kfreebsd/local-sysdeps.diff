@@ -8255,41 +8255,6 @@
 +}
 +rtld_hidden_def (_dl_make_stack_executable)
 --- /dev/null
-+++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-machine.h
-@@ -0,0 +1,32 @@
-+/* Dynamic linker magic for glibc on FreeBSD kernel.
-+   Copyright (C) 2006, 2010 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+   Contributed by Aurelien Jarno <aurelien@aurel32.net>, 2006.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
-+
-+#include_next <dl-machine.h>
-+
-+/* Contrary to most kernels which use ELFOSABI_SYSV aka ELFOSABI_NONE,
-+   FreeBSD uses ELFOSABI_FREEBSD for the OSABI field. */
-+
-+#undef VALID_ELF_OSABI
-+#define VALID_ELF_OSABI(osabi)		(osabi == ELFOSABI_FREEBSD)
-+#undef VALID_ELF_HEADER
-+#define VALID_ELF_HEADER(hdr,exp,size) \
-+  memcmp (hdr,exp,size-2) == 0 \
-+  && VALID_ELF_OSABI (hdr[EI_OSABI]) \
-+  && VALID_ELF_ABIVERSION (hdr[EI_ABIVERSION])
---- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-origin.c
 @@ -0,0 +1,123 @@
 +/* Find path of executable.
@@ -14975,7 +14940,7 @@
 +
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ldsodefs.h
-@@ -0,0 +1,39 @@
+@@ -0,0 +1,58 @@
 +/* Run-time dynamic linker data structures for loaded ELF shared objects.
 +   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -15013,6 +14978,25 @@
 +
 +/* Initialization which is normally done by the dynamic linker.  */
 +extern void _dl_non_dynamic_init (void) internal_function;
++
++/* Contrary to most kernels which use ELFOSABI_SYSV aka ELFOSABI_NONE,
++   FreeBSD uses ELFOSABI_FREEBSD for the OSABI field. */
++#define VALID_ELF_HEADER(hdr,exp,size)	(memcmp (hdr, expected2, size) == 0)
++#define VALID_ELF_OSABI(osabi)		(osabi == ELFOSABI_FREEBSD)
++#define VALID_ELF_ABIVERSION(osabi,ver) (ver == 0)
++#define MORE_ELF_HEADER_DATA \
++  static const unsigned char expected2[EI_PAD] =	\
++  {							\
++    [EI_MAG0] = ELFMAG0,				\
++    [EI_MAG1] = ELFMAG1,				\
++    [EI_MAG2] = ELFMAG2,				\
++    [EI_MAG3] = ELFMAG3,				\
++    [EI_CLASS] = ELFW(CLASS),				\
++    [EI_DATA] = byteorder,				\
++    [EI_VERSION] = EV_CURRENT,				\
++    [EI_OSABI] = ELFOSABI_FREEBSD			\
++    [EI_ABIVERSION] = 0					\
++  }
 +
 +#endif /* ldsodefs.h */
 --- /dev/null
@@ -23903,7 +23887,7 @@
 +/* 'truncate64' is the same as 'truncate', because __off64_t == __off_t.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ttyname.c
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,71 @@
 +/* Copyright (C) 1991,92,93,96,97,98,2000,2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -23925,6 +23909,7 @@
 +#include <stddef.h>
 +#include <sys/types.h>
 +#include <sys/ioctl.h>
++#include <termios.h>
 +#include <unistd.h>
 +#include <string.h>
 +#include <stdlib.h>
@@ -23943,7 +23928,10 @@
 +  static size_t buflen;
 +  struct fiodgname_arg fgn;
 +
-+  if (!__isatty (fd))
++  /* isatty check, tcgetattr is used because it sets the correct
++     errno (EBADF resp. ENOTTY) on error.  */
++  struct termios term;
++  if (__builtin_expect (__tcgetattr (fd, &term) < 0, 0))
 +    return NULL;
 +
 +  if (buflen == 0)
@@ -23973,7 +23961,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ttyname_r.c
-@@ -0,0 +1,77 @@
+@@ -0,0 +1,78 @@
 +/* Copyright (C) 1991,92,93,95,96,97,98,2004 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -23996,6 +23984,7 @@
 +#include <stddef.h>
 +#include <sys/types.h>
 +#include <sys/ioctl.h>
++#include <termios.h>
 +#include <unistd.h>
 +#include <string.h>
 +#include <stdlib.h>
@@ -24027,11 +24016,11 @@
 +      return ERANGE;
 +    }
 +
-+  if (!__isatty (fd))
-+    {
-+      __set_errno (ENOTTY);
-+      return ENOTTY;
-+    }
++  /* isatty check, tcgetattr is used because it sets the correct
++     errno (EBADF resp. ENOTTY) on error.  */
++  struct termios term;
++  if (__builtin_expect (__tcgetattr (fd, &term) < 0, 0))
++    return errno;
 +
 +  /* Prepare the result buffer.  */
 +  memcpy (buf, dev, sizeof (dev) - 1);
