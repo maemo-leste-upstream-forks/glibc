@@ -1,3 +1,7 @@
+# Main library
+extra_config_options = --disable-compatible-utmp --disable-multi-arch
+
+# Build a 32-bit optimized library
 EGLIBC_PASSES += i686
 DEB_ARCH_REGULAR_PACKAGES += libc0.1-i686
 
@@ -8,4 +12,4 @@ i686_configure_target=i686-kfreebsd-gnu
 i686_extra_cflags = -march=i686 -mtune=generic
 i686_rtlddir = /lib
 i686_slibdir = /lib/i686/cmov
-i686_extra_config_options = $(extra_config_options) --disable-profile --disable-compatible-utmp
+i686_extra_config_options = $(extra_config_options)

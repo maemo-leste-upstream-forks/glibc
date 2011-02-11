@@ -5,7 +5,7 @@ libc = libc0.1
 # Linuxthreads Config
 threads = yes
 libc_add-ons = ports linuxthreads $(add-ons)
-libc_extra_config_options = $(extra_config_options) --disable-compatible-utmp --disable-multi-arch
+libc_extra_config_options = $(extra_config_options)
 
 ifndef KFREEBSD_SOURCE
   ifeq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
