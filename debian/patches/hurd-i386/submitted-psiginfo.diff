@@ -1,0 +1,33 @@
+2011-02-16  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	* stdio-common/psiginfo.c (psiginfo): Check pinfo->si_signo against
+	SIGRTMIN and SIGRTMAX and print information in that case only when
+	SIGRTMIN is defined.
+
+---
+ psiginfo.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+--- eglibc-2.13/stdio-common/psiginfo.c.original	2011-02-10 18:39:10.000000000 +0000
++++ eglibc-2.13/stdio-common/psiginfo.c	2011-02-10 18:40:19.000000000 +0000
+@@ -86,8 +86,12 @@ psiginfo (const siginfo_t *pinfo, const
+   const char *desc;
+   if (pinfo->si_signo >= 0 && pinfo->si_signo < NSIG
+       && ((desc = INTUSE(_sys_siglist)[pinfo->si_signo]) != NULL
+-	  || (pinfo->si_signo >= SIGRTMIN && pinfo->si_signo < SIGRTMAX)))
++#ifdef SIGRTMIN
++	  || (pinfo->si_signo >= SIGRTMIN && pinfo->si_signo < SIGRTMAX)
++#endif
++	 ))
+     {
++#ifdef SIGRTMIN
+       if (desc == NULL)
+ 	{
+ 	  if (pinfo->si_signo - SIGRTMIN < SIGRTMAX - pinfo->si_signo)
+@@ -106,6 +110,7 @@ psiginfo (const siginfo_t *pinfo, const
+ 	    }
+ 	}
+       else
++#endif
+ 	fprintf (fp, "%s (", _(desc));
+ 
+       const char *base = NULL;
