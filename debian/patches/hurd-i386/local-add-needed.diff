@@ -1,0 +1,15 @@
+These are not implicit any more with gold.
+
+---
+ Makerules |    1 +
+ 1 file changed, 1 insertion(+)
+--- a/Makerules.original	2011-02-21 02:30:30.000000000 +0000
++++ b/Makerules	2011-02-21 02:33:37.000000000 +0000
+@@ -1043,6 +1043,7 @@
+ 	 echo 'GROUP ( $(slibdir)/libc.so$(libc.so-version)' \
+ 	      '$(libdir)/$(patsubst %,$(libtype.oS),$(libprefix)$(libc-name))'\
+ 	      ' AS_NEEDED (' $(slibdir)/$(rtld-installed-name) ') )' ;\
++	 echo 'INPUT ( AS_NEEDED ( -lmachuser -lhurduser ) )' ;\
+ 	 echo 'INPUT ( AS_NEEDED ( -lpthread-stubs ) )' \
+ 	) > $@.new
+ 	mv -f $@.new $@
