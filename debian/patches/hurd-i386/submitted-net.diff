@@ -51,44 +51,39 @@ Date:   Sun Jan 10 23:55:28 2010 +0100
     	* sysdeps/mach/hurd/net/route.h: Remove file.
 
 ---
- b/sysdeps/gnu/Makefile                     |    5 
- b/sysdeps/gnu/net/ethernet.h               |   84 +++++++++++++
- b/sysdeps/gnu/net/if_arp.h                 |  184 +++++++++++++++++++++++++++++
- b/sysdeps/gnu/net/if_ether.h               |  116 ++++++++++++++++++
- b/sysdeps/gnu/net/if_ppp.h                 |  169 ++++++++++++++++++++++++++
- b/sysdeps/gnu/net/route.h                  |  145 ++++++++++++++++++++++
- b/sysdeps/gnu/netinet/if_ether.h           |  104 ++++++++++++++++
- b/sysdeps/mach/hurd/Makefile               |    5 
- b/sysdeps/unix/sysv/linux/Makefile         |    3 
- b/sysdeps/unix/sysv/linux/net/if_ether.h   |    7 +
+ sysdeps/gnu/Makefile                       |    5 
+ sysdeps/gnu/net/ethernet.h                 |   84 +++++++++++++
+ sysdeps/gnu/net/if_arp.h                   |  184 +++++++++++++++++++++++++++++
+ sysdeps/gnu/net/if_ether.h                 |  116 ++++++++++++++++++
+ sysdeps/gnu/net/if_ppp.h                   |  169 ++++++++++++++++++++++++++
+ sysdeps/gnu/net/route.h                    |  145 ++++++++++++++++++++++
+ sysdeps/gnu/netinet/if_ether.h             |  104 ++++++++++++++++
+ sysdeps/mach/hurd/Makefile                 |    5 
  sysdeps/mach/hurd/net/ethernet.h           |   76 -----------
  sysdeps/mach/hurd/net/if_arp.h             |  145 ----------------------
  sysdeps/mach/hurd/net/if_ether.h           |   85 -------------
  sysdeps/mach/hurd/net/if_ppp.h             |  169 --------------------------
  sysdeps/mach/hurd/net/route.h              |  141 ----------------------
+ sysdeps/unix/sysv/linux/Makefile           |    3 
  sysdeps/unix/sysv/linux/net/ethernet.h     |   84 -------------
  sysdeps/unix/sysv/linux/net/if_arp.h       |  184 -----------------------------
+ sysdeps/unix/sysv/linux/net/if_ether.h     |    7 +
  sysdeps/unix/sysv/linux/net/if_ppp.h       |  169 --------------------------
  sysdeps/unix/sysv/linux/net/route.h        |  145 ----------------------
  sysdeps/unix/sysv/linux/netinet/if_ether.h |  105 ----------------
  20 files changed, 815 insertions(+), 1310 deletions(-)
 
-diff --git a/sysdeps/gnu/Makefile b/sysdeps/gnu/Makefile
-index 5b9a0a5..b8ded38 100644
 --- a/sysdeps/gnu/Makefile
 +++ b/sysdeps/gnu/Makefile
-@@ -77,3 +77,8 @@ endif
- ifeq ($(subdir),misc)
- sysdep_headers += sys/mtio.h
+@@ -91,3 +91,8 @@
+ librt-shared-only-routines += rt-unwind-resume
+ CFLAGS-rt-unwind-resume.c += -fexceptions -fasynchronous-unwind-tables
  endif
 +
 +ifeq ($(subdir),socket)
 +sysdep_headers += net/ethernet.h net/if_arp.h net/if_ether.h net/if_ppp.h \
 +		  net/route.h
 +endif
-diff --git a/sysdeps/gnu/net/ethernet.h b/sysdeps/gnu/net/ethernet.h
-new file mode 100644
-index 0000000..450d519
 --- /dev/null
 +++ b/sysdeps/gnu/net/ethernet.h
 @@ -0,0 +1,84 @@
@@ -176,9 +171,6 @@ index 0000000..450d519
 +__END_DECLS
 +
 +#endif	/* net/ethernet.h */
-diff --git a/sysdeps/gnu/net/if_arp.h b/sysdeps/gnu/net/if_arp.h
-new file mode 100644
-index 0000000..97cb61f
 --- /dev/null
 +++ b/sysdeps/gnu/net/if_arp.h
 @@ -0,0 +1,184 @@
@@ -366,9 +358,6 @@ index 0000000..97cb61f
 +__END_DECLS
 +
 +#endif	/* net/if_arp.h */
-diff --git a/sysdeps/gnu/net/if_ether.h b/sysdeps/gnu/net/if_ether.h
-new file mode 100644
-index 0000000..4f33f3f
 --- /dev/null
 +++ b/sysdeps/gnu/net/if_ether.h
 @@ -0,0 +1,116 @@
@@ -488,9 +477,6 @@ index 0000000..4f33f3f
 +} __attribute__((packed));
 +
 +#endif	/* net/if_ether.h */
-diff --git a/sysdeps/gnu/net/if_ppp.h b/sysdeps/gnu/net/if_ppp.h
-new file mode 100644
-index 0000000..bf5ec83
 --- /dev/null
 +++ b/sysdeps/gnu/net/if_ppp.h
 @@ -0,0 +1,169 @@
@@ -663,9 +649,6 @@ index 0000000..bf5ec83
 +__END_DECLS
 +
 +#endif /* net/if_ppp.h */
-diff --git a/sysdeps/gnu/net/route.h b/sysdeps/gnu/net/route.h
-new file mode 100644
-index 0000000..da5c810
 --- /dev/null
 +++ b/sysdeps/gnu/net/route.h
 @@ -0,0 +1,145 @@
@@ -814,9 +797,6 @@ index 0000000..da5c810
 +#define RTMSG_AR_FAILED		0x51	/* Address Resolution failed.  */
 +
 +#endif /* net/route.h */
-diff --git a/sysdeps/gnu/netinet/if_ether.h b/sysdeps/gnu/netinet/if_ether.h
-new file mode 100644
-index 0000000..47278a3
 --- /dev/null
 +++ b/sysdeps/gnu/netinet/if_ether.h
 @@ -0,0 +1,104 @@
@@ -924,11 +904,9 @@ index 0000000..47278a3
 +#endif /* __USE_BSD */
 +
 +#endif /* netinet/if_ether.h */
-diff --git a/sysdeps/mach/hurd/Makefile b/sysdeps/mach/hurd/Makefile
-index 95d7ba3..7e6e86a 100644
 --- a/sysdeps/mach/hurd/Makefile
 +++ b/sysdeps/mach/hurd/Makefile
-@@ -206,11 +206,6 @@ ifeq ($(subdir),sunrpc)
+@@ -206,11 +206,6 @@
  sysdep_headers += nfs/nfs.h
  endif
  
@@ -940,9 +918,6 @@ index 95d7ba3..7e6e86a 100644
  ifeq ($(subdir),csu)
  routines += unwind-resume
  shared-only-routines += unwind-resume
-diff --git a/sysdeps/mach/hurd/net/ethernet.h b/sysdeps/mach/hurd/net/ethernet.h
-deleted file mode 100644
-index 2c524dc..0000000
 --- a/sysdeps/mach/hurd/net/ethernet.h
 +++ /dev/null
 @@ -1,76 +0,0 @@
@@ -1022,9 +997,6 @@ index 2c524dc..0000000
 -__END_DECLS
 -
 -#endif /* net/ethernet.h */
-diff --git a/sysdeps/mach/hurd/net/if_arp.h b/sysdeps/mach/hurd/net/if_arp.h
-deleted file mode 100644
-index c0153c9..0000000
 --- a/sysdeps/mach/hurd/net/if_arp.h
 +++ /dev/null
 @@ -1,145 +0,0 @@
@@ -1173,9 +1145,6 @@ index c0153c9..0000000
 -__END_DECLS
 -
 -#endif	/* net/if_arp.h */
-diff --git a/sysdeps/mach/hurd/net/if_ether.h b/sysdeps/mach/hurd/net/if_ether.h
-deleted file mode 100644
-index 36300cb..0000000
 --- a/sysdeps/mach/hurd/net/if_ether.h
 +++ /dev/null
 @@ -1,85 +0,0 @@
@@ -1264,9 +1233,6 @@ index 36300cb..0000000
 -};
 -
 -#endif	/* net/if_ether.h */
-diff --git a/sysdeps/mach/hurd/net/if_ppp.h b/sysdeps/mach/hurd/net/if_ppp.h
-deleted file mode 100644
-index bf5ec83..0000000
 --- a/sysdeps/mach/hurd/net/if_ppp.h
 +++ /dev/null
 @@ -1,169 +0,0 @@
@@ -1439,9 +1405,6 @@ index bf5ec83..0000000
 -__END_DECLS
 -
 -#endif /* net/if_ppp.h */
-diff --git a/sysdeps/mach/hurd/net/route.h b/sysdeps/mach/hurd/net/route.h
-deleted file mode 100644
-index 7b67461..0000000
 --- a/sysdeps/mach/hurd/net/route.h
 +++ /dev/null
 @@ -1,141 +0,0 @@
@@ -1586,11 +1549,9 @@ index 7b67461..0000000
 -#define RTMSG_AR_FAILED		0x51	/* Address Resolution failed.  */
 -
 -#endif /* net/route.h */
-diff --git a/sysdeps/unix/sysv/linux/Makefile b/sysdeps/unix/sysv/linux/Makefile
-index 91c123b..01ee1f8 100644
 --- a/sysdeps/unix/sysv/linux/Makefile
 +++ b/sysdeps/unix/sysv/linux/Makefile
-@@ -101,8 +101,7 @@ sysdep_routines += ntp_gettime ntp_gettimex
+@@ -102,8 +102,7 @@
  endif
  
  ifeq ($(subdir),socket)
@@ -1600,9 +1561,6 @@ index 91c123b..01ee1f8 100644
  		  net/if_slip.h net/if_packet.h net/if_shaper.h
  sysdep_routines += cmsg_nxthdr sa_len
  endif
-diff --git a/sysdeps/unix/sysv/linux/net/ethernet.h b/sysdeps/unix/sysv/linux/net/ethernet.h
-deleted file mode 100644
-index 0242d58..0000000
 --- a/sysdeps/unix/sysv/linux/net/ethernet.h
 +++ /dev/null
 @@ -1,84 +0,0 @@
@@ -1690,9 +1648,6 @@ index 0242d58..0000000
 -__END_DECLS
 -
 -#endif	/* net/ethernet.h */
-diff --git a/sysdeps/unix/sysv/linux/net/if_arp.h b/sysdeps/unix/sysv/linux/net/if_arp.h
-deleted file mode 100644
-index 97cb61f..0000000
 --- a/sysdeps/unix/sysv/linux/net/if_arp.h
 +++ /dev/null
 @@ -1,184 +0,0 @@
@@ -1880,9 +1835,6 @@ index 97cb61f..0000000
 -__END_DECLS
 -
 -#endif	/* net/if_arp.h */
-diff --git a/sysdeps/unix/sysv/linux/net/if_ether.h b/sysdeps/unix/sysv/linux/net/if_ether.h
-new file mode 100644
-index 0000000..e0fe7b5
 --- /dev/null
 +++ b/sysdeps/unix/sysv/linux/net/if_ether.h
 @@ -0,0 +1,7 @@
@@ -1893,9 +1845,6 @@ index 0000000..e0fe7b5
 +#include <linux/if_ether.h>
 +
 +#endif /* net/if_ether.h */
-diff --git a/sysdeps/unix/sysv/linux/net/if_ppp.h b/sysdeps/unix/sysv/linux/net/if_ppp.h
-deleted file mode 100644
-index bf5ec83..0000000
 --- a/sysdeps/unix/sysv/linux/net/if_ppp.h
 +++ /dev/null
 @@ -1,169 +0,0 @@
@@ -2068,9 +2017,6 @@ index bf5ec83..0000000
 -__END_DECLS
 -
 -#endif /* net/if_ppp.h */
-diff --git a/sysdeps/unix/sysv/linux/net/route.h b/sysdeps/unix/sysv/linux/net/route.h
-deleted file mode 100644
-index da5c810..0000000
 --- a/sysdeps/unix/sysv/linux/net/route.h
 +++ /dev/null
 @@ -1,145 +0,0 @@
@@ -2219,9 +2165,6 @@ index da5c810..0000000
 -#define RTMSG_AR_FAILED		0x51	/* Address Resolution failed.  */
 -
 -#endif /* net/route.h */
-diff --git a/sysdeps/unix/sysv/linux/netinet/if_ether.h b/sysdeps/unix/sysv/linux/netinet/if_ether.h
-deleted file mode 100644
-index aadb59b..0000000
 --- a/sysdeps/unix/sysv/linux/netinet/if_ether.h
 +++ /dev/null
 @@ -1,105 +0,0 @@
