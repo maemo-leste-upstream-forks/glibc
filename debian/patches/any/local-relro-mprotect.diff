@@ -1,8 +1,12 @@
 http://sources.redhat.com/bugzilla/show_bug.cgi?id=12492
 
+---
+ elf/dl-load.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
 --- a/elf/dl-load.c
 +++ b/elf/dl-load.c
-@@ -1398,7 +1398,11 @@
+@@ -1388,7 +1388,11 @@
  	  if (__builtin_expect (p + s <= relro_end, 1))
  	    {
  	      /* The variable lies in the region protected by RELRO.  */
@@ -15,4 +19,3 @@ http://sources.redhat.com/bugzilla/show_bug.cgi?id=12492
  	      __stack_prot |= PROT_READ|PROT_WRITE|PROT_EXEC;
  	      __mprotect ((void *) p, s, PROT_READ);
  	    }
-

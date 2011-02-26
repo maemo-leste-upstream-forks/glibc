@@ -1,10 +1,13 @@
 http://sourceware.org/bugzilla/show_bug.cgi?id=12403
 
-diff --git a/nptl/sysdeps/unix/sysv/linux/x86_64/pthread_rwlock_timedrdlock.S b/nptl/sysdeps/unix/sysv/linux/x86_64/pthread_rwlock_timedrdlock.S
-index f5d055c..8f3c68c 100644
+---
+ nptl/sysdeps/unix/sysv/linux/x86_64/pthread_rwlock_timedrdlock.S |    2 +-
+ nptl/sysdeps/unix/sysv/linux/x86_64/pthread_rwlock_timedwrlock.S |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
 --- a/nptl/sysdeps/unix/sysv/linux/x86_64/pthread_rwlock_timedrdlock.S
 +++ b/nptl/sysdeps/unix/sysv/linux/x86_64/pthread_rwlock_timedrdlock.S
-@@ -210,7 +210,7 @@ pthread_rwlock_timedrdlock:
+@@ -210,7 +210,7 @@
  	cfi_restore(%r12)
  	retq
  
@@ -13,11 +16,9 @@ index f5d055c..8f3c68c 100644
  	cfi_adjust_cfa_offset(16)
  	cfi_rel_offset(%r12, 8)
  	cfi_rel_offset(%r13, 0)
-diff --git a/nptl/sysdeps/unix/sysv/linux/x86_64/pthread_rwlock_timedwrlock.S b/nptl/sysdeps/unix/sysv/linux/x86_64/pthread_rwlock_timedwrlock.S
-index 6ed8b49..9aaaeba 100644
 --- a/nptl/sysdeps/unix/sysv/linux/x86_64/pthread_rwlock_timedwrlock.S
 +++ b/nptl/sysdeps/unix/sysv/linux/x86_64/pthread_rwlock_timedwrlock.S
-@@ -192,7 +192,7 @@ pthread_rwlock_timedwrlock:
+@@ -192,7 +192,7 @@
  
  7:	movq	%rdx, %rax
  
@@ -26,7 +27,7 @@ index 6ed8b49..9aaaeba 100644
  	addq	$16, %rsp
  	cfi_adjust_cfa_offset(-16)
  	popq	%r14
-@@ -207,7 +207,7 @@ pthread_rwlock_timedwrlock:
+@@ -207,7 +207,7 @@
  	cfi_restore(%r12)
  	retq
  

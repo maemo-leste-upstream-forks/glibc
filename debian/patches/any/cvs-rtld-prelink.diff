@@ -6,8 +6,10 @@
 	before performing relro protection.  At old place add assertion
 	to make sure nothing changed.
 
-diff --git a/elf/rtld.c b/elf/rtld.c
-index 8510380..174954b 100644
+---
+ elf/rtld.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
 --- a/elf/rtld.c
 +++ b/elf/rtld.c
 @@ -1,5 +1,5 @@
@@ -17,7 +19,7 @@ index 8510380..174954b 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -2179,6 +2179,10 @@ ERROR: ld.so: object '%s' cannot be loaded as audit interface: %s; ignored.\n",
+@@ -2184,6 +2184,10 @@
       we need it in the memory handling later.  */
    GLRO(dl_initial_searchlist) = *GL(dl_ns)[LM_ID_BASE]._ns_main_searchlist;
  
@@ -28,7 +30,7 @@ index 8510380..174954b 100644
    if (prelinked)
      {
        if (main_map->l_info [ADDRIDX (DT_GNU_CONFLICT)] != NULL)
-@@ -2298,9 +2302,8 @@ ERROR: ld.so: object '%s' cannot be loaded as audit interface: %s; ignored.\n",
+@@ -2303,9 +2307,8 @@
  			  lossage);
      }
  
