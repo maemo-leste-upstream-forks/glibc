@@ -1,5 +1,3 @@
-libc_slibdir = /lib
-libc_libdir = /usr/lib
 libc_rtlddir = /lib64
 extra_config_options = --enable-multi-arch
 
@@ -19,7 +17,6 @@ powerpc_CC = $(CC) -m32
 powerpc_CXX = $(CXX) -m32
 powerpc_includedir = /usr/include/powerpc-linux-gnu
 powerpc_extra_config_options := $(extra_config_options) --disable-profile
-powerpc_rtlddir = /lib
 powerpc_slibdir = /lib32
 powerpc_libdir = /usr/lib32
 

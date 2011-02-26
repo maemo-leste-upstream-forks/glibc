@@ -8,6 +8,7 @@ s390x_CXX = $(CXX) -m64
 libc6-s390x_shlib_dep = libc6-s390x (>= $(shlib_dep_ver))
 s390x_extra_config_options := $(extra_config_options) --disable-profile
 s390x_includedir = /usr/include/s390x-linux-gnu
+s390x_rtlddir = /lib64
 s390x_slibdir = /lib64
 s390x_libdir = /usr/lib64
 

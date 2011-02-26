@@ -1,3 +1,6 @@
+2011-02-08  Steve Langasek  <steve.langasek@ubuntu.com>
+	* elf/Makefile: use the correct path in the ldd script as well
+
 2006-01-21  Aurelien Jarno  <aurel32@debian.org> 
 
 	* Makeconfig: new configuration variable rtlddir to change the
@@ -46,3 +49,12 @@
  		  -DNOT_IN_libc=1
  $(objpfx)interp.os: $(common-objpfx)config.make
  
+@@ -423,7 +423,7 @@
+ endif
+ 
+ 
+-common-ldd-rewrite = -e 's%@RTLD@%$(slibdir)/$(rtld-installed-name)%g' \
++common-ldd-rewrite = -e 's%@RTLD@%$(rltddir)/$(rtld-installed-name)%g' \
+ 		     -e 's%@VERSION@%$(version)%g' \
+ 		     -e 's%@PKGVERSION@%$(PKGVERSION)%g' \
+ 		     -e 's%@REPORT_BUGS_TO@%$(REPORT_BUGS_TO)%g'

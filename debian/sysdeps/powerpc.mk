@@ -9,6 +9,7 @@ ppc64_CC = $(CC) -m64
 ppc64_CXX = $(CXX) -m64
 libc6-ppc64_shlib_dep = libc6-ppc64 (>= $(shlib_dep_ver))
 ppc64_extra_config_options := $(extra_config_options) --disable-profile
+ppc64_rtlddir = /lib64
 ppc64_slibdir = /lib64
 ppc64_libdir = /usr/lib64
 ppc64_includedir = /usr/include/powerpc64-linux-gnu

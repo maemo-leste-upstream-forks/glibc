@@ -12,7 +12,6 @@ eglibc (2.13-0exp1) experimental; urgency=low
     - Provide POSIX2008 compliant futimens().  Closes: #563724.
     - Fix auxilary cache file creation.  Closes: 588218.
     - Fix POSIX2008 compliance.  Closes: #610824.
-    - Fix qsort_r() crashes.  Closes: #614892.
     - Update patches/locale/locale-print-LANGUAGE.diff.
     - Update patches/localedata/sort-UTF8-first.diff.
     - Remove patches/localedata/submitted-pt_BR.diff (merged upstream).
@@ -83,6 +82,8 @@ eglibc (2.13-0exp1) experimental; urgency=low
     - Remove patches/any/cvs-audit-suid.diff (merged upstream).
     - Remove patches/any/cvs-dont-expand-dst-twice.diff (merged upstream).
     - Remove patches/any/cvs-ignore-origin-privileged.diff (merged upstream).
+    - Remove patches/any/cvs-fnmatch-alloca.diff (merged upstream).
+    - Remove patches/any/cvs-qsort-race.diff from upstream (merged upstream).
     - Remove patches/any/submitted-etc-resolv.conf.diff (obsolete).
     - Update patches/any/submitted-bits-fcntl_h-at.diff.
     - Remove patches/any/submitted-nis-shadow.diff (obsolete).
@@ -111,8 +112,6 @@ eglibc (2.13-0exp1) experimental; urgency=low
     in pthread_rwlock_timedrdlock() and pthread_rwlock_timedwrlock().
   * Whitelist tst-makecontext3.out test on ia64, as it is new and can't 
     succeed on this architecture.
-  * debian/quiltrc: use new option "--reject-format=unified" instead of
-    "--unified-reject-files".  Closes: #612540.
   * Build depends on binutils (>= 2.21) on sparc and sparc64 to gain 
     STT_GNU_IFUNC support.
   * Add patches/any/submitted-ldsodefs_rtld_debug.diff to fix 
@@ -137,6 +136,35 @@ eglibc (2.13-0exp1) experimental; urgency=low
     libmachuser and libhurduser with gold linking.
 
  -- Aurelien Jarno <aurel32@debian.org>  Mon, 21 Feb 2011 02:35:57 +0000
+
+eglibc (2.11.2-12) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * Re-enable build failure in case of testsuite regressions.
+  * Add patches/any/cvs-fnmatch-alloca.patch from upstream to fix a 
+    memory corruption in fnmatch() that can lead to code execution.  
+    Closes: #615120.
+  * Add patches/any/cvs-qsort-race.diff from upstream to fix race in
+    qsort_r().  Closes: #614892.
+
+  [ Samuel Thibault ]
+  * patches/any/submitted-sched_h.diff: Synchronize bits/sched.h with
+    sysdeps/unix/sysv/linux/bits/sched.h (Closes: #527589), rename to
+    cvs-sched_h.diff.
+  * patches/hurd-i386/cvs-if_freereq.diff: Fix crash when siocgifconf
+    actually succeeds.
+
+  [ Clint Adams ]
+  * Patch from Nobuhiro Iwamatsu to cope with the removal of
+    patch --unified-reject-files.  closes: #612540.
+
+  [ Steve Langasek ]
+  * Merge parts of multiarch patch:
+    - Use the correct path in the ldd script as well
+    - Set default rtlddir to /lib and override it when needed.
+    - Install xen library in $(libdir)/xen instead of /usr/lib/xen.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sat, 26 Feb 2011 18:28:26 +0100
 
 eglibc (2.11.2-11) unstable; urgency=low
 

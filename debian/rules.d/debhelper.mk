@@ -213,6 +213,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	      cp $$s $$t ; \
 	    fi ; \
 	    sed -e "s#TMPDIR#debian/tmp-$$curpass#g" -i $$t; \
+	    sed -e "s#RTLDDIR#$$rtlddir#g" -i $$t; \
 	    sed -e "s#SLIBDIR#$$slibdir#g" -i $$t; \
 	    sed -e "s#LIBDIR#$$libdir#g" -i $$t; \
 	    sed -e "s#FLAVOR#$$curpass#g" -i $$t; \

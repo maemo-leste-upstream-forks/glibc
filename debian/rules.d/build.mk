@@ -47,9 +47,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	echo "sbindir = $(sbindir)"		>> $(DEB_BUILDDIR)/configparms
 	echo "libdir = $(call xx,libdir)"	>> $(DEB_BUILDDIR)/configparms
 	echo "slibdir = $(call xx,slibdir)"	>> $(DEB_BUILDDIR)/configparms
-	rtlddir="$(call xx,rtlddir)" ; if test -n "$$rtlddir" ; then \
-		echo "rtlddir = $$rtlddir" >> $(DEB_BUILDDIR)/configparms ; \
-	fi
+	echo "rtlddir = $(call xx,rtlddir)"	>> $(DEB_BUILDDIR)/configparms
 
 	# Prevent autoconf from running unexpectedly by setting it to false.
 	# Also explicitly pass CC down - this is needed to get -m64 on

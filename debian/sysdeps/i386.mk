@@ -8,7 +8,6 @@ DEB_ARCH_REGULAR_PACKAGES += libc6-i686
 i686_add-ons = nptl $(add-ons)
 i686_configure_target=i686-linux-gnu
 i686_extra_cflags = -march=i686 -mtune=generic
-i686_rtlddir = /lib
 i686_slibdir = /lib/i686/cmov
 i686_extra_config_options = $(extra_config_options) --disable-profile
 
@@ -19,7 +18,6 @@ DEB_ARCH_REGULAR_PACKAGES += libc6-xen
 xen_add-ons = nptl $(add-ons)
 xen_configure_target=i686-linux-gnu
 xen_extra_cflags = -march=i686 -mtune=generic -mno-tls-direct-seg-refs
-xen_rtlddir = /lib
 xen_slibdir = /lib/i686/nosegneg
 xen_extra_config_options = $(extra_config_options) --disable-profile
 
@@ -44,6 +42,7 @@ amd64_configure_target = x86_64-linux-gnu
 amd64_CC = $(CC) -m64 -D__x86_64__
 amd64_CXX = $(CXX) -m64 -D__x86_64__
 amd64_extra_config_options = $(extra_config_options) --disable-profile
+amd64_rtlddir = /lib64
 amd64_slibdir = /lib64
 amd64_libdir = /usr/lib64
 
@@ -56,9 +55,9 @@ rm -f debian/tmp-libc/usr/include/gnu/stubs-64.h
 endef
 
 define libc6-dev_extra_pkg_install
-mkdir -p debian/libc6-dev/usr/lib/xen
-cp -af debian/tmp-xen/usr/lib/*.a \
-	debian/libc6-dev/usr/lib/xen
+mkdir -p debian/libc6-dev/$(libdir)/xen
+cp -af debian/tmp-xen/$(libdir)/*.a \
+	debian/libc6-dev/$(libdir)/xen
 endef
 
 define libc6-dev-amd64_extra_pkg_install
