@@ -147,6 +147,14 @@ eglibc (2.13-0exp3) experimental; urgency=low
   * Add patches/hurd-i386/local-add-needed.diff to fix getting functions from
     libmachuser and libhurduser with gold linking.
 
+  [ Steve Langasek ]
+  * Set Multi-Arch: foreign on the appropriate packages.
+  * debian/rules.d/debhelper.mk: set $rtlddir in the debhelper substitution
+    rules, so we don't substitute an empty string.
+  * debian/debhelper.in/libc.install: ld is always installed relative to
+    RTLDDIR, not SLIBDIR; a no-op for the moment, but relevant once we start
+    building for multiarch.
+
  -- Aurelien Jarno <aurel32@debian.org>  Mon, 28 Feb 2011 23:43:03 +0100
 
 eglibc (2.11.2-13) unstable; urgency=low

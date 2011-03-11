@@ -182,6 +182,7 @@ $(patsubst %,debhelper_%,$(EGLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
 $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	libdir=$(call xx,libdir) ; \
 	slibdir=$(call xx,slibdir) ; \
+	rtlddir=$(call xx,rtlddir) ; \
 	curpass=$(curpass) ; \
 	c_so=`ls debian/tmp-$$curpass/$$slibdir | grep "libc\.so\."` ; \
 	m_so=`ls debian/tmp-$$curpass/$$slibdir | grep "libm\.so\."` ; \
