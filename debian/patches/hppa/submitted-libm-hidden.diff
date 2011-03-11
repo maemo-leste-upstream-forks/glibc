@@ -1,0 +1,20 @@
+2011-03-11  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/hppa/fpu/feupdateenv.c (feupdateenv): Add
+	libm_hidden_def.
+	* sysdeps/hppa/fpu/ftestexcept.c (fetestexcept): Likewise.
+
+--- a/ports/sysdeps/hppa/fpu/feupdateenv.c
++++ b/ports/sysdeps/hppa/fpu/feupdateenv.c
+@@ -38,3 +38,4 @@ feupdateenv (const fenv_t *envp)
+   /* Success.  */
+   return 0;
+ }
++libm_hidden_def (feupdateenv)
+--- a/ports/sysdeps/hppa/fpu/ftestexcept.c
++++ b/ports/sysdeps/hppa/fpu/ftestexcept.c
+@@ -32,3 +32,4 @@ fetestexcept (int excepts)
+ 
+   return (s.sw[0] >> 27) & excepts & FE_ALL_EXCEPT;
+ }
++libm_hidden_def (fetestexcept)
