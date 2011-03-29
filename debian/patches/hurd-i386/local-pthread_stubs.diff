@@ -17,14 +17,12 @@ patch can be dropped.
 
 --- a/Makerules
 +++ b/Makerules
-@@ -1042,7 +1042,8 @@
- 	 cat $<; \
- 	 echo 'GROUP ( $(slibdir)/libc.so$(libc.so-version)' \
- 	      '$(libdir)/$(patsubst %,$(libtype.oS),$(libprefix)$(libc-name))'\
--	      ' AS_NEEDED (' $(slibdir)/$(rtld-installed-name) ') )' \
-+	      ' AS_NEEDED (' $(slibdir)/$(rtld-installed-name) ') )' ;\
-+	 echo 'INPUT ( AS_NEEDED ( -lpthread-stubs ) )' \
+@@ -979,6 +979,7 @@
  	) > $@.new
+ ifeq ($(patsubst gnu%,,$(config-os)),)
+ 	echo 'INPUT ( AS_NEEDED ( -lmachuser -lhurduser ) )' >> $@.new
++	echo 'INPUT ( AS_NEEDED ( -lpthread-stubs ) )' >> $@.new
+ endif
  	mv -f $@.new $@
  
 --- a/sysdeps/mach/hurd/libc-ldscript
