@@ -1,5 +1,5 @@
 Even if glibc doesn't have an integrated pthread library, it depends on the hurd
-packages which have a pthread library.
+packages which have a pthread library, so we should provide all the defines etc.
 
 Avoid letting glibc try to install its own headers for libpthread.
 
@@ -109,6 +109,21 @@ Avoid letting glibc try to install its own headers for libpthread.
 +	true
 +
 ++force =
+diff --git a/sysdeps/mach/hurd/Makefile b/sysdeps/mach/hurd/Makefile
+index 482b6ba..0e5bc08 100644
+--- a/sysdeps/mach/hurd/Makefile
++++ b/sysdeps/mach/hurd/Makefile
+@@ -212,6 +212,10 @@ shared-only-routines += unwind-resume
+ CFLAGS-unwind-resume.c += -fexceptions -fasynchronous-unwind-tables
+ endif
+ 
++ifeq ($(subdir),posix)
++CFLAGS-confstr.c += -DLIBPTHREAD_VERSION='"libpthread 0.3"'
++endif
++
+ ifeq ($(subdir),rt)
+ librt-sysdep_routines += rt-unwind-resume
+ librt-shared-only-routines += rt-unwind-resume
 --- /dev/null
 +++ b/sysdeps/mach/hurd/gai_misc.h
 @@ -0,0 +1,43 @@
