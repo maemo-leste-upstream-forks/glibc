@@ -1,38 +1,11 @@
-Building static apps on i686/x86_64 systems which use memmove such as:
-	#include <string.h>
-	char buf[8192];
-	main(int argc, char **argv) { memmove(buf, buf + argc, argc % 4); }
-
-Result in linking errors along the lines of:
-	.../libc.a(memmove_chk.o): In function `__memmove_chk':
-	(.text+0x1b4): undefined reference to `__memmove_chk_ssse3_back'
-	.../libc.a(memmove_chk.o): In function `__memmove_chk':
-	(.text+0x1b9): undefined reference to `__memmove_chk_ssse3'
-	collect2: ld returned 1 exit status
-
-This is due to the new ssse3 funcs only enabling their chk symbols when
-being compiled into shared code.
-
-URL: https://bugs.gentoo.org/353816
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-
 2011-02-06  Mike Frysinger  <vapier@gentoo.org>
 
+	[BZ #12653]
 	* sysdeps/i386/i686/multiarch/memcpy-ssse3-rep.S: Only protect
 	MEMCPY_CHK with USE_AS_BCOPY ifdef check.
 	* sysdeps/i386/i686/multiarch/memcpy-ssse3.S: Likewise.
 	* sysdeps/x86_64/multiarch/memcpy-ssse3.S: Likewise.
 	* sysdeps/x86_64/multiarch/memcpy-ssse3-back.S: Likewise.
----
-v2
-	- also update i686 symbols
-	- drop shared/libc ifdefs since the surrounding code already handles it
-
- sysdeps/i386/i686/multiarch/memcpy-ssse3-rep.S |    2 +-
- sysdeps/i386/i686/multiarch/memcpy-ssse3.S     |    2 +-
- sysdeps/x86_64/multiarch/memcpy-ssse3-back.S   |    2 +-
- sysdeps/x86_64/multiarch/memcpy-ssse3.S        |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/sysdeps/i386/i686/multiarch/memcpy-ssse3-rep.S b/sysdeps/i386/i686/multiarch/memcpy-ssse3-rep.S
 index 48a109c..8e81183 100644
@@ -86,7 +59,3 @@ index 9a878d3..cd7e45f 100644
  ENTRY (MEMCPY_CHK)
  	cmpq	%rdx, %rcx
  	jb	HIDDEN_JUMPTARGET (__chk_fail)
--- 
-1.7.4.rc2
-
-

@@ -11,4 +11,4 @@ i686_add-ons = ports linuxthreads $(add-ons)
 i686_configure_target=i686-kfreebsd-gnu
 i686_extra_cflags = -march=i686 -mtune=generic
 i686_slibdir = /lib/i686/cmov
-i686_extra_config_options = $(extra_config_options)
+i686_extra_config_options = $(extra_config_options) --disable-profile
