@@ -140,7 +140,7 @@
      [345]86:Windows_95:* | [345]86:Windows_98:* | [345]86:Windows_NT:*)
  	echo i${UNAME_MACHINE}-pc-mks
  	exit ;;
-@@ -830,6 +852,16 @@
+@@ -830,6 +852,21 @@
  	echo ${UNAME_MACHINE}-pc-minix
  	exit ;;
      arm*:Linux:*:*)
@@ -150,7 +150,12 @@
 +	then
 +	    echo ${UNAME_MACHINE}-unknown-linux-gnu
 +	else
-+	    echo ${UNAME_MACHINE}-unknown-linux-gnueabi
++	    if echo __ARM_PCS_VFP__ | $CC_FOR_BUILD -E - 2>/dev/null \
++	        | grep -q __ARM_PCS_VFP__
++	        echo ${UNAME_MACHINE}-unknown-linux-gnueabi
++	    else
++	        echo ${UNAME_MACHINE}-unknown-linux-gnueabihf
++	    endif
 +	fi
 +	exit ;;
 +    avr32*:Linux:*:*)
