@@ -140,7 +140,7 @@
      [345]86:Windows_95:* | [345]86:Windows_98:* | [345]86:Windows_NT:*)
  	echo i${UNAME_MACHINE}-pc-mks
  	exit ;;
-@@ -830,6 +852,21 @@
+@@ -830,6 +852,22 @@
  	echo ${UNAME_MACHINE}-pc-minix
  	exit ;;
      arm*:Linux:*:*)
@@ -150,19 +150,20 @@
 +	then
 +	    echo ${UNAME_MACHINE}-unknown-linux-gnu
 +	else
-+	    if echo __ARM_PCS_VFP__ | $CC_FOR_BUILD -E - 2>/dev/null \
-+	        | grep -q __ARM_PCS_VFP__
++	    if echo __ARM_PCS_VFP | $CC_FOR_BUILD -E - 2>/dev/null \
++	        | grep -q __ARM_PCS_VFP
++	    then
 +	        echo ${UNAME_MACHINE}-unknown-linux-gnueabi
 +	    else
 +	        echo ${UNAME_MACHINE}-unknown-linux-gnueabihf
-+	    endif
++	    fi
 +	fi
 +	exit ;;
 +    avr32*:Linux:*:*)
  	echo ${UNAME_MACHINE}-unknown-linux-gnu
  	exit ;;
      cris:Linux:*:*)
-@@ -919,6 +951,9 @@
+@@ -919,6 +957,9 @@
  	if test "$?" = 0 ; then LIBC="libc1" ; else LIBC="" ; fi
  	echo ${UNAME_MACHINE}-unknown-linux-gnu${LIBC}
  	exit ;;
@@ -172,7 +173,7 @@
      parisc:Linux:*:* | hppa:Linux:*:*)
  	# Look for CPU level
  	case `grep '^cpu[^a-z]*:' /proc/cpuinfo 2>/dev/null | cut -d' ' -f2` in
-@@ -948,6 +983,9 @@
+@@ -948,6 +989,9 @@
      x86_64:Linux:*:*)
  	echo x86_64-unknown-linux-gnu
  	exit ;;
@@ -182,7 +183,7 @@
      i*86:Linux:*:*)
  	# The BFD linker knows what the default object file format is, so
  	# first see if it will tell us. cd to the root directory to prevent
-@@ -966,9 +1004,6 @@
+@@ -966,9 +1010,6 @@
  	  a.out-i386-linux)
  		echo "${UNAME_MACHINE}-pc-linux-gnuaout"
  		exit ;;
@@ -192,7 +193,7 @@
  	  "")
  		# Either a pre-BFD a.out linker (linux-gnuoldld) or
  		# one that does not give us useful --help.
-@@ -990,7 +1025,7 @@
+@@ -990,7 +1031,7 @@
  	LIBC=gnulibc1
  	# endif
  	#else
@@ -201,7 +202,7 @@
  	LIBC=gnu
  	#else
  	LIBC=gnuaout
-@@ -1083,8 +1118,11 @@
+@@ -1083,8 +1124,11 @@
      pc:*:*:*)
  	# Left here for compatibility:
          # uname -m prints for DJGPP always 'pc', but it prints nothing about
@@ -215,7 +216,7 @@
          exit ;;
      Intel:Mach:3*:*)
  	echo i386-pc-mach3
-@@ -1122,6 +1160,16 @@
+@@ -1122,6 +1166,16 @@
      3[34]??:*:4.0:* | 3[34]??,*:*:4.0:*)
          /bin/uname -p 2>/dev/null | grep 86 >/dev/null \
            && { echo i486-ncr-sysv4; exit; } ;;
@@ -232,7 +233,7 @@
      m68*:LynxOS:2.*:* | m68*:LynxOS:3.0*:*)
  	echo m68k-unknown-lynxos${UNAME_RELEASE}
  	exit ;;
-@@ -1197,6 +1245,9 @@
+@@ -1197,6 +1251,9 @@
      BePC:BeOS:*:*)	# BeOS running on Intel PC compatible.
  	echo i586-pc-beos
  	exit ;;
@@ -242,7 +243,7 @@
      SX-4:SUPER-UX:*:*)
  	echo sx4-nec-superux${UNAME_RELEASE}
  	exit ;;
-@@ -1206,6 +1257,15 @@
+@@ -1206,6 +1263,15 @@
      SX-6:SUPER-UX:*:*)
  	echo sx6-nec-superux${UNAME_RELEASE}
  	exit ;;
@@ -258,7 +259,7 @@
      Power*:Rhapsody:*:*)
  	echo powerpc-apple-rhapsody${UNAME_RELEASE}
  	exit ;;
-@@ -1296,6 +1356,9 @@
+@@ -1296,6 +1362,9 @@
      i*86:rdos:*:*)
  	echo ${UNAME_MACHINE}-pc-rdos
  	exit ;;
@@ -268,7 +269,7 @@
  esac
  
  #echo '(No uname command or uname output not recognized.)' 1>&2
-@@ -1456,9 +1519,9 @@
+@@ -1456,9 +1525,9 @@
  the operating system you are using. It is advised that you
  download the most up to date version of the config scripts from
  
