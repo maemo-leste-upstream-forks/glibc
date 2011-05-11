@@ -21,6 +21,17 @@ i386_includedir = /usr/include/i486-linux-gnu
 i386_slibdir = /lib32
 i386_libdir = /usr/lib32
 
+define libc6_extra_pkg_install
+make -C debian/local/memcpy-wrapper
+install -m 755 -o root -g root -d debian/libc6/$(libdir)/libc
+install -m 755 -o root -g root \
+	debian/local/memcpy-wrapper/memcpy-preload.so \
+	debian/libc6/$(libdir)/libc
+install -m 755 -o root -g root \
+	debian/local/memcpy-wrapper/memcpy-syslog-preload.so \
+	debian/libc6/$(libdir)/libc
+endef
+
 define libc6-dev-i386_extra_pkg_install
 mkdir -p debian/libc6-dev-i386/usr/include/gnu
 cp -af debian/tmp-i386/usr/include/i486-linux-gnu/gnu/stubs-32.h \
