@@ -91,8 +91,8 @@ docdir=$(prefix)/share/doc
 mandir=$(prefix)/share/man
 sbindir=$(prefix)/sbin
 rtlddir=/lib
-slibdir=/lib
-libdir=/usr/lib
+slibdir=/lib/$(DEB_HOST_MULTIARCH)
+libdir=/usr/lib/$(DEB_HOST_MULTIARCH)
 
 BUILD_CC = gcc
 BUILD_CXX = g++
@@ -127,7 +127,7 @@ log_expected = debian/testsuite-checking/expected-results-$(call xx,configure_ta
 # Which build pass are we on?
 curpass = $(filter-out %_,$(subst _,_ ,$@))
 
-DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg $(libc)-prof $(libc)-pic libc-bin libc-dev-bin locales-all
+DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg $(libc)-prof $(libc)-pic libc-bin libc-dev-bin locales-all multiarch-support
 DEB_INDEP_REGULAR_PACKAGES = glibc-doc eglibc-source locales
 DEB_UDEB_PACKAGES = $(libc)-udeb libnss-dns-udeb libnss-files-udeb
 

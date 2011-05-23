@@ -1,0 +1,22 @@
+#!/bin/sh
+set -e
+export LC_ALL=C
+
+type=$1
+if [ "x$2" != "xin-favour" ]; then
+    preversion=$2
+fi
+
+#DEBHELPER#
+
+if [ -n "$preversion" ]; then
+    if dpkg --compare-versions "$preversion" lt 2.13-5; then
+        # downgrading from a multiarch libc to a pre-multiarch libc; we have
+        # to blow away /etc/ld.so.cache, otherwise the old unpacked libc
+        # is still first in the cache and segfaults when combined with
+        # our newly-unpacked ld.so. 
+        rm -f /etc/ld.so.cache
+    fi
+fi
+
+exit 0

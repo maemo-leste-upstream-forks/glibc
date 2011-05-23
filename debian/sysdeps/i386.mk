@@ -8,7 +8,7 @@ DEB_ARCH_REGULAR_PACKAGES += libc6-i686
 i686_add-ons = nptl $(add-ons)
 i686_configure_target=i686-linux-gnu
 i686_extra_cflags = -march=i686 -mtune=generic
-i686_slibdir = /lib/i686/cmov
+i686_slibdir = /lib/$(DEB_HOST_MULTIARCH)/i686/cmov
 i686_extra_config_options = $(extra_config_options) --disable-profile
 
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
@@ -18,7 +18,7 @@ DEB_ARCH_REGULAR_PACKAGES += libc6-xen
 xen_add-ons = nptl $(add-ons)
 xen_configure_target=i686-linux-gnu
 xen_extra_cflags = -march=i686 -mtune=generic -mno-tls-direct-seg-refs
-xen_slibdir = /lib/i686/nosegneg
+xen_slibdir = /lib/$(DEB_HOST_MULTIARCH)/i686/nosegneg
 xen_extra_config_options = $(extra_config_options) --disable-profile
 
 define libc6-xen_extra_pkg_install

@@ -151,14 +151,40 @@ endif
 	# Create the multiarch directories, and the configuration file in /etc/ld.so.conf.d
 	if [ $(curpass) = libc ]; then \
 	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \
-	  machine=`sed '/^ *config-machine *=/!d;s/.*= *//g' $(DEB_BUILDDIR)/config.make`; \
-	  os=`sed '/^ *config-os *=/!d;s/.*= *//g;s/gnu-gnu/gnu/' $(DEB_BUILDDIR)/config.make`; \
-	  triplet="$$machine-$$os"; \
-	  mkdir -p debian/tmp-$(curpass)/lib/$$triplet debian/tmp-$(curpass)/usr/lib/$$triplet; \
-	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/$$triplet.conf"; \
+	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/$(DEB_HOST_GNU_TYPE).conf"; \
 	  echo "# Multiarch support" > $$conffile; \
-	  echo /lib/$$triplet >> $$conffile; \
-	  echo /usr/lib/$$triplet >> $$conffile; \
+	  echo "$(call xx,slibdir)" >> $$conffile; \
+	  echo "$(call xx,libdir)" >> $$conffile; \
+	  if [ "$(DEB_HOST_GNU_TYPE)" != "$(DEB_HOST_MULTIARCH)" ]; then \
+	    echo "/lib/$(DEB_HOST_GNU_TYPE)" >> $$conffile; \
+	    echo "/usr/lib/$(DEB_HOST_GNU_TYPE)" >> $$conffile; \
+	  fi; \
+	fi
+
+	# For our biarch libc, add an ld.so.conf.d configuration; this
+	# is needed because multiarch libc Replaces: libc6-i386 for ld.so, and
+	# the multiarch ld.so doesn't look at the (non-standard) /lib32, so we
+	# need path compatibility when biarch and multiarch packages are both
+	# installed.
+	# We don't want this for lib64 because lib64 *is* standard on amd64
+	# and powerpc64 so the multiarch package should support it
+	# intrinsically.
+	case $(curpass) in i386|powerpc) \
+	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \
+	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/biarch-compat.conf"; \
+	  echo "# Legacy biarch compatibility support" > $$conffile; \
+	  echo "$(call xx,slibdir)" >> $$conffile; \
+	  echo "$(call xx,libdir)" >> $$conffile; \
+	  ;; \
+	esac
+
+	# Create the ld.so symlink to the multiarch directory
+	if [ $(curpass) = libc ]; then \
+	  rtld_so="$$(LANG=C LC_ALL=C readelf -l debian/tmp-$(curpass)/usr/bin/iconv | grep 'interpreter' | sed -e 's/.*interpreter: \(.*\)]/\1/g')" ; \
+	  rtld_so="$$(basename $$rtld_so)" ; \
+	  link_name="debian/tmp-$(curpass)/lib/$$rtld_so" ; \
+	  target="$(call xx,slibdir)/$$(readlink debian/tmp-$(curpass)/$(call xx,slibdir)/$$rtld_so)" ; \
+	  ln -s $$target $$link_name ;  \
 	fi
 	
 	$(call xx,extra_install)

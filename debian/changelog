@@ -1,5 +1,6 @@
 eglibc (2.13-5) UNRELEASED; urgency=low
 
+  [ Aurelien Jarno ]
   * Update from stable branch:
     - Remove any/cvs-rtld-prelink.diff (merged upstream).
   * debhelper.in/libc.preinst: require a 8.0 kernel on GNU/kFreeBSD.
@@ -18,6 +19,23 @@ eglibc (2.13-5) UNRELEASED; urgency=low
     format.  Closes: #577988.
   * Add patches/any/submitted-rlimit-rttime.diff to fix missing 
     RLIMIT_RTTIME entry in <bits/resource.h>.  Closes: #627619.
+  * patches/any/local-ld-multiarch.diff: add the multiarch compat dir
+    instead of the multiarch dir.
+  * Use the multiarch path for the native version and optimized flavors.
+
+  [ Steve Langasek ]
+  * Tighten the dependency on dpkg to a multiarch aware version.
+  * Simplify the creation of /etc/ld.so.conf.d/<triplet>.conf.
+  * Add multiarch fields to debian/control.
+  * debian/debhelper.in/libc.preinst, debian/debhelper.in/libc.prerm:
+    remove the ld.so.cache when upgrading from or downgrading to a
+    pre-multiarch version; otherwise maintainer scripts start segfaulting
+    immediately, and dpkg will entertainingly roll back the libc upgrade.
+  * debian/control.in/libc: make the main multiarch main libc replace the
+    biarch or triarch libc-foo package of the *corresponding* architecture;
+    this gives us a libc6:i386 package that Replaces libc6-i386, since both
+    packages contain the same linker and we want multiarch to take
+    precedence.
 
  -- Aurelien Jarno <aurel32@debian.org>  Thu, 12 May 2011 08:56:53 +0200
 
