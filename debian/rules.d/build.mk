@@ -166,12 +166,9 @@ endif
 	# the multiarch ld.so doesn't look at the (non-standard) /lib32, so we
 	# need path compatibility when biarch and multiarch packages are both
 	# installed.
-	# We don't want this for lib64 because lib64 *is* standard on amd64
-	# and powerpc64 so the multiarch package should support it
-	# intrinsically.
-	case $(curpass) in i386|powerpc) \
+	case $(call xx,slibdir) in /lib32 | /lib64) \
 	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \
-	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/biarch-compat.conf"; \
+	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/$(curpass)-biarch-compat.conf"; \
 	  echo "# Legacy biarch compatibility support" > $$conffile; \
 	  echo "$(call xx,slibdir)" >> $$conffile; \
 	  echo "$(call xx,libdir)" >> $$conffile; \
