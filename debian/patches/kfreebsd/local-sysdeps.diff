@@ -21376,7 +21376,7 @@
 +#include <sysdeps/unix/seekdir.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/semctl.c
-@@ -0,0 +1,85 @@
+@@ -0,0 +1,89 @@
 +/* Copyright (C) 2004, 2010 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Robert Millan
@@ -21439,6 +21439,10 @@
 +  struct semid_ds *buf;		/* buffer for IPC_STAT & IPC_SET */
 +  unsigned short *array;	/* array for GETALL & SETALL */
 +};
++
++extern int __syscall_semctl (int semid, int semnum,
++                             int cmd, union semun *arg);
++libc_hidden_proto (__syscall_semctl)
 +
 +int
 +semctl (int semid, int semnum, int cmd, ...)
