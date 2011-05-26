@@ -196,6 +196,10 @@ $(stamp)source: $(stamp)patch
 	tar -c -J -C .. \
 		-f $(build-tree)/eglibc-$(EGLIBC_VERSION).tar.xz \
 		$(EGLIBC_SOURCES)
+	mkdir -p debian/eglibc-source/usr/src/glibc
+	tar cf - --files-from debian/eglibc-source.filelist \
+	  | tar -x -C debian/eglibc-source/usr/src/glibc -f -
+
 	touch $@
 
 .NOTPARALLEL: $(patsubst %,check_%,$(EGLIBC_PASSES))
