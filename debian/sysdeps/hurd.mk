@@ -4,7 +4,6 @@ EGLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
 
 threads = no
 libc = libc0.3
-slibdir = /lib
 
 # Glibc should really do this for us.
 define libc_extra_install
