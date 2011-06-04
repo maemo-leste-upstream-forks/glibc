@@ -1,0 +1,17 @@
+2011-06-04  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* rt/bits/mqueue2.h(mq_open): Add __THROW.
+
+diff --git a/rt/bits/mqueue2.h b/rt/bits/mqueue2.h
+index 4c90609..6728d93 100644
+--- a/rt/bits/mqueue2.h
++++ b/rt/bits/mqueue2.h
+@@ -34,7 +34,7 @@ __errordecl (__mq_open_missing_mode_and_attr,
+ 	     "mq_open with O_CREAT in second argument needs 4 arguments");
+ 
+ __extern_always_inline mqd_t
+-mq_open (__const char *__name, int __oflag, ...)
++mq_open (__const char *__name, int __oflag, ...) __THROW
+ {
+   if (__va_arg_pack_len () != 0 && __va_arg_pack_len () != 2)
+     __mq_open_wrong_number_of_args ();
