@@ -16,6 +16,9 @@
         kfreebsd-i386)
             hwcappkgs="libc0.1-i686"
             ;;
+        mipsel)
+	    hwcappkgs="libc6-loongson2f"
+	    ;;
         sparc)
             hwcappkgs="libc6-sparcv9 libc6-sparcv9b"
             ;;
