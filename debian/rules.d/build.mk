@@ -135,12 +135,13 @@ $(stamp)install_%: $(stamp)check_%
 	$(MAKE) -C $(DEB_BUILDDIR) \
 	  install_root=$(CURDIR)/debian/tmp-$(curpass) install
 
-ifneq (,$(findstring $(call xx,slibdir), /lib /lib32 /lib64))
 	# Generate gconv-modules.cache
-	/usr/sbin/iconvconfig --nostdlib --prefix=$(CURDIR)/debian/tmp-$(curpass) \
-			      -o $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)/gconv/gconv-modules.cache \
-			      $(call xx,libdir)/gconv
-endif
+	case $(curpass)-$(call xx,slibdir) in libc-* | *-/lib32 | *-/lib64) \
+	  /usr/sbin/iconvconfig --nostdlib --prefix=$(CURDIR)/debian/tmp-$(curpass) \
+				-o $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)/gconv/gconv-modules.cache \
+				$(call xx,libdir)/gconv \
+	  ;; \
+	esac
 
 	# Generate the list of SUPPORTED locales
 	if [ $(curpass) = libc ]; then \
