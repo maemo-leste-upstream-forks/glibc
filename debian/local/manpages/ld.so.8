@@ -25,7 +25,8 @@ is ignored.
 From the cache file
 .BR /etc/ld.so.cache
 which contains a compiled list of candidate libraries previously found
-in the augmented library path.
+in the augmented library path. Libraries installed in hardware capabilities
+directories (see below) are prefered to other libraries.
 .IP o
 In the default path
 .BR /lib ,
@@ -157,6 +158,36 @@ string to the dynamic linker.
 The string \fB$LIB\fR (or equivalently \fB${LIB}\fR) in an rpath corresponds
 to the system libraries directory, which is /lib for the native architecture
 on FHS compliant GNU/Linux systems.
+.SH HARDWARE CAPABILITIES
+Libraries might be compiled using hardware-specific instructions which do not
+exist on all CPU. Such libraries should be installed in directories whose name
+defines the hardware capabilities such as \fB/usr/lib/sse2/\fR. The dynamic 
+linker checks these directories against the hardware of the machine and selects
+the best suitable version of a given library. Hardware capabilities directories
+could be cascaded to combine CPU features. Hardware capabilities depends on
+the CPU. The following names are currently recognized:
+.B Alpha
+ev4, ev5, ev56, ev6, ev67
+.TP
+.B MIPS
+loongson2e, loongson2f, octeon, octeon2
+.TP
+.B PowerPC
+4xxmac, altivec, arch_2_05, arch_2_06, booke, cellbe, dfp, efpdouble, efpsingle,
+fpu, ic_snoop, mmu, notb, pa6t, power4, power5, power5+, power6x, ppc32, ppc601,
+ppc64, smt, spe, ucache, vsx
+.TP
+.B SPARC
+flush, muldiv, stbar, swap, ultra3, v9, v9v, v9v2
+.TP
+.B s390
+dfp, eimm, esan3, etf3enh, g5, highgprs, hpage, ldisp, msa, stfle,
+z900, z990, z9-109, z10, zarch
+.TP
+.TP
+.B x86 (32-bit only)
+acpi, apic, clflush, cmov, cx8, dts, fxsr, ht, i386, i486, i586, i686, mca, mmx, 
+mtrr, pat, pbe, pge, pn, pse36, sep, ss, sse, sse2, tm
 .SH FILES
 .PD 0
 .TP 20
