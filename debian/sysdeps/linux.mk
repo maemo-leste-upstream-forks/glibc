@@ -13,6 +13,7 @@ ifndef LINUX_SOURCE
   else
     LINUX_HEADERS := /usr/$(DEB_HOST_GNU_TYPE)/include
   endif
+  LINUX_ARCH_HEADERS := /usr/include/$(DEB_HOST_MULTIARCH)
 else
   LINUX_HEADERS := $(LINUX_SOURCE)/include
 endif
@@ -24,12 +25,13 @@ KERNEL_HEADER_DIR = $(stamp)mkincludedir
 $(stamp)mkincludedir:
 	rm -rf debian/include
 	mkdir debian/include
+	if [ -d "$(LINUX_ARCH_HEADERS)" ]; then \
+		ln -s $(LINUX_ARCH_HEADERS)/asm debian/include; \
+	else ; \
+		ln -s $(LINUX_HEADERS)/asm debian/include; \
+	fi
+	ln -s $(LINUX_HEADERS)/asm-generic debian/include
 	ln -s $(LINUX_HEADERS)/linux debian/include
-	# Link all asm directories.  We can't just link asm and asm-generic
-	# because of explicit references to <asm-sparc/*> and
-	# <asm-sparc64/*>.
-	find $(LINUX_HEADERS) -maxdepth 1 -xtype d -name asm\* \
-	  -exec ln -s '{}' debian/include ';'
 
 	# To make configure happy if libc6-dev is not installed.
 	touch debian/include/assert.h
