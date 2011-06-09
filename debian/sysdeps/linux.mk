@@ -27,7 +27,7 @@ $(stamp)mkincludedir:
 	mkdir debian/include
 	if [ -d "$(LINUX_ARCH_HEADERS)" ]; then \
 		ln -s $(LINUX_ARCH_HEADERS)/asm debian/include; \
-	else ; \
+	else \
 		ln -s $(LINUX_HEADERS)/asm debian/include; \
 	fi
 	ln -s $(LINUX_HEADERS)/asm-generic debian/include
