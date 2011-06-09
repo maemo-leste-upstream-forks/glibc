@@ -14,6 +14,12 @@ eglibc (2.13-6) UNRELEASED; urgency=low
   * Remove spurious exclamation point in architecture dependency.
   * Add lintian overrides for eglibc-source, from Marcin Juszkiewicz.
 
+  [ Steve Langasek ]
+  * debian/debhelper.in/libc.preinst: additional check for extra copies of
+    /lib/ld-2.*.so not known to dpkg, as these cause problems when the real
+    linker moves to /lib/<triplet> for multiarch and ldconfig leaves
+    /lib/ld-linux.so.N pointing at an old glibc.  Closes: #629534.
+
  -- Clint Adams <clint@debian.org>  Wed, 08 Jun 2011 19:50:01 -0400
 
 eglibc (2.13-5) unstable; urgency=low

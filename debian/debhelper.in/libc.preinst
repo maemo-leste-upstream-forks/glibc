@@ -239,6 +239,15 @@ then
       exit 1
     fi
   done
+  for i in /lib/ld-2.*.so; do
+    if [ "$i" != "/lib/ld-2.*.so" ] && ! dpkg-query -L LIBC 2>/dev/null | grep -q $i; then
+      echo
+      echo "A non-dpkg owned copy of the C library was found in /lib/."
+      echo "It is not safe to upgrade the C library in this situation;"
+      echo "please remove that copy of the C library and try again."
+      exit 1
+    fi
+  done
   if [ -e /lib/tls/i686/cmov/libc.so.6 ] || [ -e /lib/i686/cmov/libc.so.6 ] ; then
     status_i686=$(dpkg -s libc6-i686 2>/dev/null | grep ^Status: | sed -e 's/^Status: \(.*\) \(.*\) \(.*\)/\3/g')
     status_xen=$(dpkg -s libc6-xen 2>/dev/null | grep ^Status: | sed -e 's/^Status: \(.*\) \(.*\) \(.*\)/\3/g')
