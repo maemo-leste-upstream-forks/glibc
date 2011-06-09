@@ -230,23 +230,27 @@ then
       exit 1
     fi
   fi
-  for i in ld-2.3.2.so libc-2.3.2.so ld-2.3.6.so libc-2.3.6.so ; do
-    if [ -e /lib/tls/$i ] && ! dpkg-query -L LIBC 2>/dev/null | grep -q /lib/tls/$i ; then
+  for dir in /lib /lib/tls ; do
+    for i in $dir/ld*.so* ; do
+      # Skip if no match
+      if [ "$i" = "$dir/ld*.so*" ] ; then 
+          continue
+      fi
+      # Skip if it is a symlink (as installed by lsb-core)
+      if test -L $i ; then
+          continue
+      fi
+      # Binaries owned packages are considered to do the right thing
+      if dpkg-query -L LIBC 2>/dev/null | grep -q $i; then
+          continue
+      fi
+      # Stop the upgrade if there is a risk of crash after the upgrade
       echo
-      echo "A non-dpkg owned copy of the C library was found in /lib/tls."
+      echo "A non-dpkg owned copy of the C library was found in $dir."
       echo "It is not safe to upgrade the C library in this situation;"
       echo "please remove that copy of the C library and try again."
       exit 1
-    fi
-  done
-  for i in /lib/ld-2.*.so; do
-    if [ "$i" != "/lib/ld-2.*.so" ] && ! dpkg-query -L LIBC 2>/dev/null | grep -q $i; then
-      echo
-      echo "A non-dpkg owned copy of the C library was found in /lib/."
-      echo "It is not safe to upgrade the C library in this situation;"
-      echo "please remove that copy of the C library and try again."
-      exit 1
-    fi
+    done
   done
   if [ -e /lib/tls/i686/cmov/libc.so.6 ] || [ -e /lib/i686/cmov/libc.so.6 ] ; then
     status_i686=$(dpkg -s libc6-i686 2>/dev/null | grep ^Status: | sed -e 's/^Status: \(.*\) \(.*\) \(.*\)/\3/g')
