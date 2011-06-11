@@ -25,7 +25,7 @@ KERNEL_HEADER_DIR = $(stamp)mkincludedir
 $(stamp)mkincludedir:
 	rm -rf debian/include
 	mkdir debian/include
-	if [ -d "$(LINUX_ARCH_HEADERS)" ]; then \
+	if [ -d "$(LINUX_ARCH_HEADERS)/asm" ]; then \
 		ln -s $(LINUX_ARCH_HEADERS)/asm debian/include; \
 	else \
 		ln -s $(LINUX_HEADERS)/asm debian/include; \
