@@ -1,0 +1,56 @@
+2011-06-11  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* elf/dl-runtime.c(_dl_fixup,_dl_profile_fixup): Pass dl_hwcap to i
+	funcs.
+	* elf/dl-sym.c(do_sym): Likewise.
+
+diff --git a/elf/dl-runtime.c b/elf/dl-runtime.c
+index b27cfbf..f48702b 100644
+--- a/elf/dl-runtime.c
++++ b/elf/dl-runtime.c
+@@ -146,7 +146,8 @@ _dl_fixup (
+ 
+   if (sym != NULL
+       && __builtin_expect (ELFW(ST_TYPE) (sym->st_info) == STT_GNU_IFUNC, 0))
+-    value = ((DL_FIXUP_VALUE_TYPE (*) (void)) DL_FIXUP_VALUE_ADDR (value)) ();
++    value = ((DL_FIXUP_VALUE_TYPE (*) (int))
++	     DL_FIXUP_VALUE_ADDR (value)) (GLRO(dl_hwcap));
+ 
+   /* Finally, fix up the plt itself.  */
+   if (__builtin_expect (GLRO(dl_bind_not), 0))
+@@ -235,8 +236,8 @@ _dl_profile_fixup (
+ 	  if (defsym != NULL
+ 	      && __builtin_expect (ELFW(ST_TYPE) (defsym->st_info)
+ 				   == STT_GNU_IFUNC, 0))
+-	    value = ((DL_FIXUP_VALUE_TYPE (*) (void))
+-		     DL_FIXUP_VALUE_ADDR (value)) ();
++	    value = ((DL_FIXUP_VALUE_TYPE (*) (int))
++		     DL_FIXUP_VALUE_ADDR (value)) (GLRO(dl_hwcap));
+ 	}
+       else
+ 	{
+@@ -246,8 +247,8 @@ _dl_profile_fixup (
+ 
+ 	  if (__builtin_expect (ELFW(ST_TYPE) (refsym->st_info)
+ 				== STT_GNU_IFUNC, 0))
+-	    value = ((DL_FIXUP_VALUE_TYPE (*) (void))
+-		     DL_FIXUP_VALUE_ADDR (value)) ();
++	    value = ((DL_FIXUP_VALUE_TYPE (*) (int))
++		     DL_FIXUP_VALUE_ADDR (value)) (GLRO(dl_hwcap));
+ 
+ 	  result = l;
+ 	}
+diff --git a/elf/dl-sym.c b/elf/dl-sym.c
+index 4faf05c..de6d34a 100644
+--- a/elf/dl-sym.c
++++ b/elf/dl-sym.c
+@@ -197,7 +197,8 @@ RTLD_NEXT used in code not dynamically loaded"));
+ 	  DL_FIXUP_VALUE_TYPE fixup
+ 	    = DL_FIXUP_MAKE_VALUE (result, (ElfW(Addr)) value);
+ 	  fixup =
+-	    ((DL_FIXUP_VALUE_TYPE (*) (void)) DL_FIXUP_VALUE_ADDR (fixup)) ();
++	    ((DL_FIXUP_VALUE_TYPE (*) (int))
++	     DL_FIXUP_VALUE_ADDR (fixup)) (GLRO(dl_hwcap));
+ 	  value = (void *) DL_FIXUP_VALUE_CODE_ADDR (fixup);
+ 	}
+ 
