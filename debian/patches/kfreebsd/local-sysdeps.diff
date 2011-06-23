@@ -183,7 +183,7 @@
 +endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions
-@@ -0,0 +1,120 @@
+@@ -0,0 +1,121 @@
 +libc {
 +  # The comment lines with "#errlist-compat" are magic; see errlist-compat.awk.
 +  # When you get an error from errlist-compat.awk, you need to add a new
@@ -298,6 +298,7 @@
 +    # misc fixes for FreeBSD:
 +    __syscall_freebsd6_lseek; __syscall_freebsd6_pread; __syscall_freebsd6_pwrite;
 +    __syscall_lseek; __syscall_pread; __syscall_pwrite;
++    __syscall_posix_openpt;
 +    __syscall_connect; __syscall_sendto;
 +    __syscall_cpuset_getaffinity ; __syscall_cpuset_setaffinity;
 +     # global variable used in brk()
@@ -4014,8 +4015,32 @@
 +  };
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/local_lim.h
-@@ -0,0 +1 @@
-+#include <sys/syslimits.h>
+@@ -0,0 +1,25 @@
++/* Minimum guaranteed maximum values for system limits.  kFreeBSD version.
++   Copyright (C) 2011 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <sys/param.h>
++
++/* BSD userland provides MAXHOSTNAMELEN via <sys/param.h>.  GNU
++   userland provides HOST_NAME_MAX via <limits.h>.  This makes
++   both worlds happy.  */
++#define HOST_NAME_MAX MAXHOSTNAMELEN
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/mman.h
 @@ -0,0 +1,130 @@
@@ -11106,7 +11131,7 @@
 +weak_alias (__getpagesize, getpagesize)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getpt.c
-@@ -0,0 +1,92 @@
+@@ -0,0 +1,67 @@
 +/* Copyright (C) 1998-1999, 2000-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -11130,63 +11155,27 @@
 +#include <string.h>
 +#include <unistd.h>
 +#include <sys/ioctl.h>
++#include <sysdep.h>
 +
++/* The system call does not change the controlling terminal, so we have
++ * to do it ourselves.  */
++extern int __syscall_posix_openpt (int oflag);
++libc_hidden_proto (__syscall_posix_openpt)
 +
-+/* Prefix for master pseudo terminal nodes.  */
-+#define _PATH_PTY "/dev/pty"
-+
-+
-+/* Letters indicating a series of pseudo terminals.  */
-+#ifndef PTYNAME1
-+#define PTYNAME1 "pqrs"
-+#endif
-+const char __libc_ptyname1[] attribute_hidden = PTYNAME1;
-+
-+/* Letters indicating the position within a series.  */
-+#ifndef PTYNAME2
-+#define PTYNAME2 "0123456789abcdefghijklmnopqrstuv";
-+#endif
-+const char __libc_ptyname2[] attribute_hidden = PTYNAME2;
-+
++/* Prototype for function that opens BSD-style master pseudo-terminals.  */
++int __bsd_getpt (void);
 +
 +/* Open a master pseudo terminal and return its file descriptor.  */
 +int
 +__posix_openpt (int oflag)
 +{
-+  char buf[sizeof (_PATH_PTY) + 2];
-+  const char *p, *q;
-+  char *s;
-+
-+  s = __mempcpy (buf, _PATH_PTY, sizeof (_PATH_PTY) - 1);
-+  /* s[0] and s[1] will be filled in the loop.  */
-+  s[2] = '\0';
-+
-+  for (p = __libc_ptyname1; *p != '\0'; ++p)
++  int fd = INLINE_SYSCALL (posix_openpt, 1, oflag);
++  if (fd >= 0)
 +    {
-+      s[0] = *p;
-+
-+      for (q = __libc_ptyname2; *q != '\0'; ++q)
-+	{
-+	  int fd;
-+
-+	  s[1] = *q;
-+
-+	  fd = __open (buf, oflag);
-+	  if (fd >= 0)
-+	    {
-+	      if (!(oflag & O_NOCTTY))
-+		__ioctl (fd, TIOCSCTTY, NULL);
-+
-+	      return fd;
-+	    }
-+
-+	  if (errno == ENOENT)
-+	    return -1;
-+	}
++      if (!(oflag & O_NOCTTY))
++        __ioctl (fd, TIOCSCTTY, NULL);
 +    }
-+
-+  __set_errno (ENOENT);
-+  return -1;
++  return fd;
 +}
 +
 +weak_alias (__posix_openpt, posix_openpt)
@@ -11195,10 +11184,21 @@
 +int
 +__getpt (void)
 +{
-+  return __posix_openpt (O_RDWR);
++  int fd = __posix_openpt (O_RDWR);
++  if (fd == -1)
++      fd = __bsd_getpt ();
++  return fd;
 +}
 +
-+weak_alias (__getpt, getpt)
++
++/* Letters indicating a series of pseudo terminals.  */
++#define PTYNAME1 "pqrs";
++/* Letters indicating the position within a series.  */
++#define PTYNAME2 "0123456789abcdefghijklmnopqrstuv";
++
++#define __getpt __bsd_getpt
++#define HAVE_POSIX_OPENPT
++#include <sysdeps/unix/bsd/getpt.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getrlimit64.c
 @@ -0,0 +1 @@
@@ -11327,6 +11327,41 @@
 +/* 'glob64' is different from 'glob', because
 +   'struct stat64' != 'struct stat'.  */
 +#include <sysdeps/gnu/glob64.c>
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/grantpt.c
+@@ -0,0 +1,32 @@
++/* Copyright (C) 2011 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <unistd.h>
++
++extern int __isptymaster(int fd);
++
++int
++grantpt (int fd)
++{
++  /* there is no need/way to do granting of slave pseudo-terminal device,
++     just check whether fd might be valid master pseudo-terminal device */
++  return __isptymaster(fd);
++}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gtty.c
 @@ -0,0 +1,2 @@
@@ -20224,7 +20259,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptsname.c
-@@ -0,0 +1,111 @@
+@@ -0,0 +1,98 @@
 +/* Copyright (C) 1998, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -20251,10 +20286,10 @@
 +#include <sys/sysmacros.h>
 +#include <sys/sysctl.h>
 +#include <unistd.h>
-+
++#include <sys/ioctl.h>
 +
 +/* Static buffer for `ptsname'.  */
-+static char buffer[sizeof (_PATH_TTY) + 2];
++static char buffer[sizeof (_PATH_DEV) + 20];
 +
 +
 +/* Return the pathname of the pseudo terminal slave associated with
@@ -20266,15 +20301,26 @@
 +  return __ptsname_r (fd, buffer, sizeof (buffer)) != 0 ? NULL : buffer;
 +}
 +
-+/* The are declared in getpt.c.  */
-+extern const char __libc_ptyname1[] attribute_hidden;
-+extern const char __libc_ptyname2[] attribute_hidden;
-+
-+
 +int
-+__ptsname_internal (int fd, char *buf, size_t buflen, struct stat64 *stp)
++__isptymaster(int fd)
++{
++  if (0 == __ioctl(fd, TIOCPTMASTER))
++    return 0;
++
++  if (errno != EBADF)
++    __set_errno (EINVAL);
++
++  return -1;
++}
++
++/* Store at most BUFLEN characters of the pathname of the slave pseudo
++   terminal associated with the master FD is open on in BUF.
++   Return 0 on success, otherwise an error number.  */
++int
++__ptsname_r (int fd, char *buf, size_t buflen)
 +{
 +  int saved_errno = errno;
++  struct fiodgname_arg fiodgname;
 +  char *p;
 +
 +  if (buf == NULL)
@@ -20283,19 +20329,14 @@
 +      return EINVAL;
 +    }
 +
-+  /* Don't call isatty (fd) - it usually fails with errno = EAGAIN.  */
-+
-+  if (__fxstat64 (_STAT_VER, fd, stp) < 0)
-+    return errno;
-+
 +  /* Check if FD really is a master pseudo terminal.  */
-+  if (!(S_ISCHR (stp->st_mode)))
++  if (0 != __isptymaster(fd))
 +    {
 +      __set_errno (ENOTTY);
 +      return ENOTTY;
 +    }
 +
-+  if (buflen < sizeof (_PATH_TTY) + 2)
++  if (buflen < sizeof (_PATH_DEV) + 5)
 +    {
 +      __set_errno (ERANGE);
 +      return ERANGE;
@@ -20305,36 +20346,17 @@
 +  /* instead of strlen(_PATH_DEV) we use (sizeof (_PATH_DEV) - 1)  */
 +  p = __mempcpy (buf, _PATH_DEV, sizeof (_PATH_DEV) - 1);
 +  buflen -= (sizeof (_PATH_DEV) - 1);
-+  if(__sysctlbyname("kern.devname", p, &buflen, &stp->st_rdev, sizeof (stp->st_rdev)) < 0)
-+    return errno;
-+  p[0] = 't';
 +
-+  if (__xstat64 (_STAT_VER, buf, stp) < 0)
-+    return errno;
++  fiodgname.buf = p;
++  fiodgname.len = buflen;
 +
-+  /* Check if the pathname we're about to return might be
-+     slave pseudo terminal of the given master pseudo terminal.  */
-+  if (!(S_ISCHR (stp->st_mode)))
-+    {
-+      /* This really is a configuration problem.  */
-+      __set_errno (ENOTTY);
-+      return ENOTTY;
-+    }
++  if (0 != __ioctl(fd, FIODGNAME, &fiodgname))
++    return errno;
 +
 +  __set_errno (saved_errno);
 +  return 0;
 +}
 +
-+
-+/* Store at most BUFLEN characters of the pathname of the slave pseudo
-+   terminal associated with the master FD is open on in BUF.
-+   Return 0 on success, otherwise an error number.  */
-+int
-+__ptsname_r (int fd, char *buf, size_t buflen)
-+{
-+  struct stat64 st;
-+  return __ptsname_internal (fd, buf, buflen, &st);
-+}
 +weak_alias (__ptsname_r, ptsname_r)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/pwrite.c
@@ -23854,7 +23876,7 @@
 +#endif /* sys/swap.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h
-@@ -0,0 +1,441 @@
+@@ -0,0 +1,449 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -24293,7 +24315,15 @@
 +#define	SYS_jail_set	507
 +#define	SYS_jail_remove	508
 +#define	SYS_pselect	522
-+#define	SYS_MAXSYSCALL	523
++#define SYS_getloginclass	523
++#define SYS_setloginclass	524
++#define SYS_rctl_get_racct	525
++#define SYS_rctl_get_rules	526
++#define SYS_rctl_get_limits	527
++#define SYS_rctl_add_rule	528
++#define SYS_rctl_remove_rule	529
++#define SYS_posix_fallocate	530
++#define	SYS_MAXSYSCALL	532
 +
 +#endif
 --- /dev/null
@@ -24550,7 +24580,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,192 @@
+@@ -0,0 +1,193 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
 +sys_access		-	access			i:si		__syscall_access
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
@@ -24651,6 +24681,7 @@
 +ntp_adjtime		-	ntp_adjtime		i:p		ntp_adjtime
 +obreak			-	obreak			i:a		__syscall_obreak
 +sys_open		-	open			i:siv		__syscall_open
++posix_openpt		getpt	posix_openpt		i:i		__syscall_posix_openpt
 +poll			-	poll			Ci:pii		__poll poll
 +sys_pread		-	pread			i:ibni		__syscall_pread
 +sys_freebsd6_pread	-	freebsd6_pread		i:ibnii		__syscall_freebsd6_pread
@@ -25472,7 +25503,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlockpt.c
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,32 @@
 +/* Copyright (C) 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -25496,28 +25527,15 @@
 +#include <sys/stat.h>
 +#include <unistd.h>
 +
++extern int __isptymaster(int fd);
 +
 +int
-+__unlockpt (int fd)
++unlockpt (int fd)
 +{
-+  struct stat64 st;
-+
 +  /* there is no need/way to do unlocking of slave pseudo-terminal device,
 +     just check whether fd might be valid master pseudo-terminal device */
-+
-+  if (__fxstat64 (_STAT_VER, fd, &st) < 0)
-+    return -1;
-+
-+  if (!(S_ISCHR (st.st_mode)))
-+  {
-+    __set_errno (ENOTTY);
-+    return -1;
-+  }
-+
-+  return 0;
++  return __isptymaster(fd);
 +}
-+
-+weak_alias (__unlockpt, unlockpt)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/usleep.c
 @@ -0,0 +1,50 @@
