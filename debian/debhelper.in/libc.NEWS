@@ -1,3 +1,19 @@
+eglibc (2.13-8) unstable; urgency=low
+
+  Starting with the eglibc package version 2.13-5, the libraries are 
+  shipped in the multiarch directory /lib/$arch instead of the more
+  traditional /lib. 
+  
+  The toolchain in Debian has been updated to cope with that, and most
+  build systems should be unaffected. If you are using a non-Debian 
+  toolchain to build your software and it is not able to cope with 
+  multiarch, you might try to pass the following options to your 
+  compiler:
+
+    -I/usr/include/$arch --sysroot /usr/lib/$arch
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 26 Jun 2011 22:28:52 +0200
+
 eglibc (2.13-7) unstable; urgency=low
 
   Starting with version 2.13, eglibc provides an SSSE3 optimized version 
