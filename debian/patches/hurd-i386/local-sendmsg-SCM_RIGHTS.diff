@@ -16,7 +16,7 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -33,13 +33,35 @@
+@@ -33,13 +33,33 @@
    addr_port_t aport;
    char *data = NULL;
    mach_msg_type_number_t len = 0;
@@ -32,8 +32,6 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
 +  int nfds, *fds;
 +  int i, j;
 +
-+  auth_t auth;
-+
 +  error_t reauthenticate (mach_port_t port, mach_port_t *result)
 +    {
 +      error_t err;
@@ -44,9 +42,9 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
 +      while (err == EINTR);
 +      if (!err)
 +	do
-+	  err = __auth_user_authenticate (auth,
++	  err = __USEPORT (AUTH, __auth_user_authenticate (port,
 +					  ref, MACH_MSG_TYPE_MAKE_SEND,
-+					  result);
++					  result));
 +	while (err == EINTR);
 +      __mach_port_destroy (__mach_task_self (), ref);
 +      return err;
@@ -54,14 +52,13 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
  
    /* Find the total number of bytes to be read.  */
    amount = 0;
-@@ -136,6 +158,86 @@
+@@ -136,6 +156,85 @@
      message->msg_controllen = clen;
    memcpy (message->msg_control, cdata, message->msg_controllen);
  
 +  /* SCM_RIGHTS ports.  */
 +  if (nports > 0)
 +    {
-+      auth = getauth ();
 +      newports = __alloca (nports * sizeof (mach_port_t));
 +
 +      /* Reauthenticate all ports here.  */
