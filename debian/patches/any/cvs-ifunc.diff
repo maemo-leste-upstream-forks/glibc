@@ -1,8 +1,3 @@
-2011-06-21  Joseph Myers  <joseph@codesourcery.com>
-
-	* ports/sysdeps/arm/dl-irel.h (elf_ifunc_invoke): New.
-	(elf_irel): Use it.
-
 2011-06-20  David S. Miller  <davem@davemloft.net>
 
 	* sysdeps/sparc/sparc32/dl-plt.h: Protect against multiple
@@ -303,33 +298,6 @@ index d2d5c06..19f9457 100644
      {
 -      Elf64_Addr value = ((Elf64_Addr (*) (void)) reloc->r_addend) ();
 +      Elf64_Addr value = elf_ifunc_invoke(reloc->r_addend);
-       *reloc_addr = value;
-     }
-   else
-diff --git a/ports/sysdeps/arm/dl-irel.h b/ports/sysdeps/arm/dl-irel.h
-index 735e0a3..ab33ef8 100644
---- a/ports/sysdeps/arm/dl-irel.h
-+++ b/ports/sysdeps/arm/dl-irel.h
-@@ -26,6 +26,13 @@
- 
- #define ELF_MACHINE_IREL	1
- 
-+static inline Elf32_Addr
-+__attribute ((always_inline))
-+elf_ifunc_invoke (Elf32_Addr addr)
-+{
-+  return ((Elf32_Addr (*) (void)) (addr)) ();
-+}
-+
- static inline void
- __attribute ((always_inline))
- elf_irel (const Elf32_Rel *reloc)
-@@ -35,7 +42,7 @@ elf_irel (const Elf32_Rel *reloc)
- 
-   if (__builtin_expect (r_type == R_ARM_IRELATIVE, 1))
-     {
--      Elf32_Addr value = ((Elf32_Addr (*) (void)) (*reloc_addr)) ();
-+      Elf32_Addr value = elf_ifunc_invoke (*reloc_addr);
        *reloc_addr = value;
      }
    else
