@@ -184,12 +184,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	slibdir=$(call xx,slibdir) ; \
 	rtlddir=$(call xx,rtlddir) ; \
 	curpass=$(curpass) ; \
-	c_so=`ls debian/tmp-$$curpass/$$slibdir | grep "libc\.so\."` ; \
-	m_so=`ls debian/tmp-$$curpass/$$slibdir | grep "libm\.so\."` ; \
-	rt_so=`ls debian/tmp-$$curpass/$$slibdir | grep "librt\.so\."` ; \
-	dl_so=`ls debian/tmp-$$curpass/$$slibdir | grep "libdl\.so\."` ; \
 	rtld_so=`LANG=C LC_ALL=C readelf -l debian/tmp-$$curpass/usr/bin/iconv | grep "interpreter" | sed -e 's/.*interpreter: \(.*\)]/\1/g'`; \
-	pthread_so=`ls debian/tmp-$$curpass/$$slibdir | grep "libpthread\.so\."` || true; \
 	case "$$curpass:$$slibdir" in \
 	  libc:*) \
 	    templates="libc libc-dev libc-pic libc-prof libc-udeb libnss-dns-udeb libnss-files-udeb" \
@@ -218,12 +213,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	    sed -e "s#SLIBDIR#$$slibdir#g" -i $$t; \
 	    sed -e "s#LIBDIR#$$libdir#g" -i $$t; \
 	    sed -e "s#FLAVOR#$$curpass#g" -i $$t; \
-	    sed -e "s#C_SO#$$c_so#" -i $$t ; \
-	    sed -e "s#M_SO#$$m_so#" -i $$t ; \
-	    sed -e "s#RT_SO#$$rt_so#" -i $$t ; \
-	    sed -e "s#DL_SO#$$dl_so#" -i $$t ; \
 	    sed -e "s#RTLD_SO#$$rtld_so#" -i $$t ; \
-	    sed -e "s#PTHREAD_SO#$$pthread_so#" -i $$t ; \
 	  done ; \
 	done
 
