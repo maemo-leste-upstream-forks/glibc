@@ -197,7 +197,14 @@ check_dir () {
     fi
 
     # Binaries owned packages are considered to do the right thing
+    # First try a quick lookup which should catch all cases on a 
+    # normal system
     if echo $libcfiles | grep -q "[ ^]$lib[ $]" ; then 
+      continue
+    fi
+
+    # Slower lookup to confirm
+    if dpkg-query -S "$lib" >/dev/null 2>&1 ; then
       continue
     fi
 
