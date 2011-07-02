@@ -1,0 +1,29 @@
+http://sourceware.org/ml/libc-alpha/2011-06/msg00124.html
+
+* hurd/hurdsig.c (post_signal): Don't call resume() with ACT uninitialized,
+as it might result in the target thread being left suspended.
+---
+ hurd/hurdsig.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
+index 0ec0f27..74a01a6 100644
+--- a/hurd/hurdsig.c
++++ b/hurd/hurdsig.c
+@@ -558,8 +558,11 @@ post_signal (struct hurd_sigstate *ss,
+   if (signo == 0)
+     {
+       if (untraced)
+-	/* This is PTRACE_CONTINUE.  */
+-	resume ();
++	{
++	  /* This is PTRACE_CONTINUE.  */
++	  act = ignore;
++	  resume ();
++	}
+ 
+       /* This call is just to check for pending signals.  */
+       __spin_lock (&ss->lock);
+-- 
+1.7.5.3
+
