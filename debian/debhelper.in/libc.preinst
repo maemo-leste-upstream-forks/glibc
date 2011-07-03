@@ -47,6 +47,77 @@ kernel26_help() {
     echo "Then reboot into this new kernel, and proceed with your upgrade"
 }
 
+# Sanity check.
+# If there are versions of glibc outside of the normal installation
+# location (/lib, /lib64, etc.) then things may break very badly
+# as soon as ld.so is replaced by a new version.  This check is not
+# foolproof, but it's pretty accurate.  This script ignores libraries
+# with different sonames, and libraries incompatible with the 
+# to-be-installed ld.so.
+check_dir () {
+  msg=$1
+  dir=$2
+
+  # Follow symlinks
+  dir=$(readlink -e $dir || true)
+
+  # Ignore inexistent directories
+  if ! test -d "$dir" ; then
+    return
+  fi
+  
+  # Detect possible candidates
+  files=$(ls $dir | egrep '^(ld|lib(d|c|m|pthread|rt|dl))-2.*.so' 2>/dev/null || true)
+  if test -z "$files" ; then
+    return
+  fi
+  
+  for file in $files ; do
+    lib=$dir/$file
+
+    # Skip if it is a symlink (as installed by lsb-core)
+    if test -L "$lib" ; then
+      continue
+    fi
+
+    # Skip if it is the currently dynamic loader
+    if test "$lib" = "$ldfile" ; then
+      continue
+    fi
+
+    # See if the found libraries are compatible with the system ld.so;
+    # if they aren't, they'll be ignored. Check e_ident, e_type (which
+    # will just be ET_DYN), and e_machine. If a match is found, there
+    # is a risk of breakage.
+    libbytes=`head -c 20 $lib | od -c`
+    if test "$ldbytes" != "$libbytes" ; then 
+      continue
+    fi
+
+    # Binaries owned packages are considered to do the right thing
+    # First try a quick lookup which should catch all cases on a 
+    # normal system
+    if echo $libcfiles | grep -q "[ ^]$lib[ $]" ; then 
+      continue
+    fi
+
+    # Slower lookup to confirm
+    if dpkg-query -S "$lib" >/dev/null 2>&1 ; then
+      continue
+    fi
+
+    # Output an error message and exit
+    echo
+    echo "A copy of the C library was found $msg:"
+    echo "  '$lib'"
+    echo "It is not safe to upgrade the C library in this situation;"
+    echo "please remove that copy of the C library or get it out of"
+    echo "'$dir' and try again."
+    echo
+    exit 1
+  done
+}
+
 if [ "$type" = upgrade ]
 then
     # Remove old /etc/init.d/glibc.sh init script
@@ -146,82 +217,7 @@ then
     # This will keep us from using hwcap libs (optimized) during an
     # upgrade.
     touch /etc/ld.so.nohwcap
-fi
 
-# Sanity check.
-# If there are versions of glibc outside of the normal installation
-# location (/lib, /lib64, etc.) then things may break very badly
-# as soon as ld.so is replaced by a new version.  This check is not
-# foolproof, but it's pretty accurate.  This script ignores libraries
-# with different sonames, and libraries incompatible with the 
-# to-be-installed ld.so.
-
-check_dir () {
-  msg=$1
-  dir=$2
-
-  # Follow symlinks
-  dir=$(readlink -e $dir || true)
-
-  # Ignore inexistent directories
-  if ! test -d "$dir" ; then
-    return
-  fi
-  
-  # Detect possible candidates
-  files=$(ls $dir | egrep '^(ld|lib(d|c|m|pthread|rt|dl))-2.*.so' 2>/dev/null || true)
-  if test -z "$files" ; then
-    return
-  fi
-  
-  for file in $files ; do
-    lib=$dir/$file
-
-    # Skip if it is a symlink (as installed by lsb-core)
-    if test -L "$lib" ; then
-      continue
-    fi
-
-    # Skip if it is the currently dynamic loader
-    if test "$lib" = "$ldfile" ; then
-      continue
-    fi
-
-    # See if the found libraries are compatible with the system ld.so;
-    # if they aren't, they'll be ignored. Check e_ident, e_type (which
-    # will just be ET_DYN), and e_machine. If a match is found, there
-    # is a risk of breakage.
-    libbytes=`head -c 20 $lib | od -c`
-    if test "$ldbytes" != "$libbytes" ; then 
-      continue
-    fi
-
-    # Binaries owned packages are considered to do the right thing
-    # First try a quick lookup which should catch all cases on a 
-    # normal system
-    if echo $libcfiles | grep -q "[ ^]$lib[ $]" ; then 
-      continue
-    fi
-
-    # Slower lookup to confirm
-    if dpkg-query -S "$lib" >/dev/null 2>&1 ; then
-      continue
-    fi
-
-    # Output an error message and exit
-    echo
-    echo "A copy of the C library was found $msg:"
-    echo "  '$lib'"
-    echo "It is not safe to upgrade the C library in this situation;"
-    echo "please remove that copy of the C library or get it out of"
-    echo "'$dir' and try again."
-    echo
-    exit 1
-  done
-}
-
-if [ "$type" != abort-upgrade ]
-then
   # See if LD_LIBRARY_PATH contains the traditional /lib, but not the
   # multiarch path
   dirs=$(echo $LD_LIBRARY_PATH | sed 's/:/ /g')
@@ -299,7 +295,10 @@ then
       exit 1
     fi
   fi
+fi
 
+if [ "$type" != abort-upgrade ]
+then
   # glibc kernel version check
   system=`uname -s`
   if [ "$system" = "Linux" ]
