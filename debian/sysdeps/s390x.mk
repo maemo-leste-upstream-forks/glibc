@@ -1,9 +1,10 @@
-libc_rtlddir = /lib32
+libc_rtlddir = /lib64
 
-# /lib32 and /usr/lib32 are provided by glibc instead base-files: #259302.
+# /lib64 and /usr/lib64 are provided by glibc instead base-files: #259302.
 define libc6_extra_pkg_install
-ln -sf /lib debian/$(curpass)/lib32
-ln -sf lib debian/$(curpass)/usr/lib32
+ln -sf /lib debian/$(curpass)/lib64
+ln -sf lib debian/$(curpass)/usr/lib64
+endef
 
 # build 32-bit (s390) alternative library
 EGLIBC_PASSES += s390
