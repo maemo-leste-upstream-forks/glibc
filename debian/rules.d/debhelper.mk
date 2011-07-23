@@ -113,13 +113,13 @@ endif
 	#
 	# Disable multiarch support on some architectures until we fix the /lib64 -> /lib issue
 	#
-	case $(curpass)/$(DEB_HOST_ARCH) in
-	libc6/amd64 | libc6/kfreebsd-amd64 | libc6/ppc64 | libc6/sparc64)
-		dh_gencontrol -p$(curpass) -- -UMulti-Arch
-		;;
-	*)
-		dh_gencontrol -p$(curpass)
-		;;
+	case $(curpass)/$(DEB_HOST_ARCH) in \
+	libc6/amd64 | libc6/kfreebsd-amd64 | libc6/ppc64 | libc6/sparc64) \
+		dh_gencontrol -p$(curpass) -- -UMulti-Arch \
+		;; \
+	*) \
+		dh_gencontrol -p$(curpass) \
+		;; \
 	esac
 
 	if [ $(curpass) = nscd ] ; then \
