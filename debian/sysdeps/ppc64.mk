@@ -22,7 +22,8 @@ powerpc_libdir = /usr/lib32
 
 define libc6-dev-powerpc_extra_pkg_install
 mkdir -p debian/libc6-dev-powerpc/usr/include/powerpc64-linux-gnu/gnu
-cp -a debian/tmp-powerpc/usr/include/gnu/stubs-32.h debian/libc6-dev-powerpc/usr/include/powerpc64-linux-gnu/gnu
+cp -af debian/tmp-powerpc/usr/include/powerpc-linux-gnu/gnu/stubs-32.h \
+        debian/libc6-dev-powerpc/usr/include/powerpc64-linux-gnu/gnu
 ln -s powerpc64-linux-gnu/gnu debian/libc6-dev-powerpc/usr/include/gnu
 ln -s powerpc64-linux-gnu/sys debian/libc6-dev-powerpc/usr/include/sys
 ln -s powerpc64-linux-gnu/bits debian/libc6-dev-powerpc/usr/include/bits

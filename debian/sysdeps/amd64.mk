@@ -32,7 +32,8 @@ i386_libdir = /usr/lib32
 
 define libc6-dev-i386_extra_pkg_install
 mkdir -p debian/libc6-dev-i386/usr/include/x86_64-linux-gnu/gnu
-cp -a debian/tmp-i386/usr/include/gnu/stubs-32.h debian/libc6-dev-i386/usr/include/x86_64-linux-gnu/gnu/
+cp -af debian/tmp-i386/usr/include/i486-linux-gnu/gnu/stubs-32.h \
+	debian/libc6-dev-i386/usr/include/x86_64-linux-gnu/gnu/
 ln -s x86_64-linux-gnu/gnu debian/libc6-dev-i386/usr/include/gnu
 ln -s x86_64-linux-gnu/sys debian/libc6-dev-i386/usr/include/sys
 ln -s x86_64-linux-gnu/bits debian/libc6-dev-i386/usr/include/bits
