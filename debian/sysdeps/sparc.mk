@@ -15,8 +15,9 @@ sparc64_slibdir = /lib64
 sparc64_libdir = /usr/lib64
 
 define libc6-dev-sparc64_extra_pkg_install
-mkdir -p debian/libc6-dev-sparc64/usr/include/gnu
-cp -af debian/tmp-sparc64/usr/include/sparc64-linux-gnu/gnu/stubs-64.h \
-        debian/libc6-dev-sparc64/usr/include/gnu
+mkdir -p debian/libc6-dev-sparc64/usr/include
+ln -s sparc-linux-gnu/gnu debian/libc6-dev-sparc64/usr/include/gnu
+ln -s sparc-linux-gnu/sys debian/libc6-dev-sparc64/usr/include/sys
+ln -s sparc-linux-gnu/bits debian/libc6-dev-sparc64/usr/include/bits
 mkdir -p debian/libc6-dev-sparc64/usr/include/sparc64-linux-gnu
 endef
