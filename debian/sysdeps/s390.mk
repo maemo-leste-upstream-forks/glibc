@@ -13,7 +13,8 @@ s390x_slibdir = /lib64
 s390x_libdir = /usr/lib64
 
 define libc6-dev-s390x_extra_pkg_install
-mkdir -p debian/libc6-dev-s390x/usr/include
+mkdir -p debian/libc6-dev-s390x/usr/include/s390-linux-gnu/gnu
+cp -a debian/tmp-s390x/usr/include/gnu/stubs-64.h debian/libc6-dev-s390x/usr/include/s390-linux-gnu/gnu
 ln -s s390-linux-gnu/gnu debian/libc6-dev-s390x/usr/include/gnu
 ln -s s390-linux-gnu/sys debian/libc6-dev-s390x/usr/include/sys
 ln -s s390-linux-gnu/bits debian/libc6-dev-s390x/usr/include/bits

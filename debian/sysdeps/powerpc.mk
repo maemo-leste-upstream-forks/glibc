@@ -15,7 +15,8 @@ ppc64_libdir = /usr/lib64
 ppc64_includedir = /usr/include/powerpc64-linux-gnu
 
 define libc6-dev-ppc64_extra_pkg_install
-mkdir -p debian/libc6-dev-ppc64/usr/include
+mkdir -p debian/libc6-dev-ppc64/usr/include/powerpc-linux-gnu/gnu
+cp -a debian/tmp-ppc64/usr/include/gnu/stubs-64.h debian/libc6-dev-ppc64/usr/include/powerpc-linux-gnu/gnu
 ln -s powerpc-linux-gnu/gnu debian/libc6-dev-ppc64/usr/include/gnu
 ln -s powerpc-linux-gnu/sys debian/libc6-dev-ppc64/usr/include/sys
 ln -s powerpc-linux-gnu/bits debian/libc6-dev-ppc64/usr/include/bits
