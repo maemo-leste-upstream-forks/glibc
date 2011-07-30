@@ -15,12 +15,19 @@ ppc64_libdir = /usr/lib64
 ppc64_includedir = /usr/include/powerpc64-linux-gnu
 
 define libc6-dev-ppc64_extra_pkg_install
-mkdir -p debian/libc6-dev-ppc64/usr/include/powerpc-linux-gnu/gnu
-cp -af debian/tmp-ppc64/usr/include/powerpc64-linux-gnu/gnu/stubs-64.h \
-        debian/libc6-dev-ppc64/usr/include/powerpc-linux-gnu/gnu
-ln -s powerpc-linux-gnu/gnu debian/libc6-dev-ppc64/usr/include/gnu
-ln -s powerpc-linux-gnu/sys debian/libc6-dev-ppc64/usr/include/sys
-ln -s powerpc-linux-gnu/bits debian/libc6-dev-ppc64/usr/include/bits
+
 mkdir -p debian/libc6-dev-ppc64/usr/include/powerpc64-linux-gnu
+ln -s powerpc-linux-gnu/bits debian/libc6-dev-ppc64/usr/include/
+ln -s powerpc-linux-gnu/gnu debian/libc6-dev-ppc64/usr/include/
+
+mkdir -p debian/libc6-dev-ppc64/usr/include/powerpc-linux-gnu/gnu
+cp -a debian/tmp-amd64/usr/include/powerpc64-linux-gnu/gnu/stubs-64.h \
+        debian/libc6-dev-ppc64/usr/include/powerpc-linux-gnu/gnu
+
+mkdir -p debian/libc6-dev-ppc64/usr/include/sys
+for i in `ls debian/tmp-libc/usr/include/powerpc-linux-gnu/sys` ; do \
+        ln -s ../powerpc-linux-gnu/sys/$$i debian/libc6-dev-ppc64/usr/include/sys/$$i ; \
+done
+
 endef
 
