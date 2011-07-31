@@ -62,12 +62,12 @@ endef
 
 define libc6-dev-amd64_extra_pkg_install
 
-mkdir -p debian/libc6-dev-amd64/usr/include/x86_64-linux-gnu
+mkdir -p debian/libc6-dev-amd64/usr/include
 ln -s i386-linux-gnu/bits debian/libc6-dev-amd64/usr/include/
 ln -s i386-linux-gnu/gnu debian/libc6-dev-amd64/usr/include/
 
 mkdir -p debian/libc6-dev-amd64/usr/include/i386-linux-gnu/gnu
-cp -a debian/tmp-amd64/usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
+cp -a debian/tmp-amd64/usr/include/gnu/stubs-64.h \
         debian/libc6-dev-amd64/usr/include/i386-linux-gnu/gnu
 
 mkdir -p debian/libc6-dev-amd64/usr/include/sys

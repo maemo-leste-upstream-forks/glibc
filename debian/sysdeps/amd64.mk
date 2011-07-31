@@ -26,18 +26,17 @@ i386_CC = $(CC) -m32
 i386_CXX = $(CC) -m32
 i386_extra_cflags = -march=pentium4 -mtune=generic
 i386_extra_config_options = $(extra_config_options) --disable-profile
-i386_includedir = /usr/include/i386-linux-gnu
 i386_slibdir = /lib32
 i386_libdir = /usr/lib32
 
 define libc6-dev-i386_extra_pkg_install
 
-mkdir -p debian/libc6-dev-i386/usr/include/i386-linux-gnu
+mkdir -p debian/libc6-dev-i386/usr/include
 ln -s x86_64-linux-gnu/bits debian/libc6-dev-i386/usr/include/
 ln -s x86_64-linux-gnu/gnu debian/libc6-dev-i386/usr/include/
 
 mkdir -p debian/libc6-dev-i386/usr/include/x86_64-linux-gnu/gnu
-cp -a debian/tmp-i386/usr/include/i386-linux-gnu/gnu/stubs-32.h \
+cp -a debian/tmp-i386/usr/include/gnu/stubs-32.h \
         debian/libc6-dev-i386/usr/include/x86_64-linux-gnu/gnu
 
 mkdir -p debian/libc6-dev-i386/usr/include/sys
@@ -45,9 +44,9 @@ for i in `ls debian/tmp-libc/usr/include/x86_64-linux-gnu/sys` ; do \
 	ln -s ../x86_64-linux-gnu/sys/$$i debian/libc6-dev-i386/usr/include/sys/$$i ; \
 done
 
-cp -a debian/tmp-i386/usr/include/i386-linux-gnu/sys/elf.h \
+cp -a debian/tmp-i386/usr/include/sys/elf.h \
 	debian/libc6-dev-i386/usr/include/sys
-cp -a debian/tmp-i386/usr/include/i386-linux-gnu/sys/vm86.h \
+cp -a debian/tmp-i386/usr/include/sys/vm86.h \
 	debian/libc6-dev-i386/usr/include/sys
 
 endef
