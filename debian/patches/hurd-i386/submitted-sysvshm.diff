@@ -517,7 +517,7 @@
 +weak_alias(__shmdt, shmdt)
 --- /dev/null
 +++ b/sysdeps/mach/hurd/shmget.c
-@@ -0,0 +1,245 @@
+@@ -0,0 +1,242 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -674,14 +674,11 @@
 +  error_t err = 0;
 +  char filename[sizeof (SHM_DIR) - 1 + SHM_NAMEMAX];
 +  int fd = -1;
-+  int create_flag;
-+
-+  create_flag = (shmflags & IPC_CREAT) ? O_CREAT : 0;
 +  sprintf (filename, SHM_DIR SHM_NAMEPRI, key);
 +
 +  do
 +    {
-+      fd = __open (filename, O_NORW | create_flag, shmflags & 0777);
++      fd = __open (filename, O_NORW, shmflags & 0777);
 +
 +      if (fd < 0 && errno != ENOENT)
 +	/* We give up.  */
@@ -710,7 +707,7 @@
 +      else
 +	{
 +	  /* The memory segment doesn't exist.  */
-+	  if (create_flag)
++	  if (shmflags & IPC_CREAT)
 +	    {
 +	      /* Try to create it exclusively.  */
 +	      err = get_exclusive (shmflags, size, &key, &fd);
