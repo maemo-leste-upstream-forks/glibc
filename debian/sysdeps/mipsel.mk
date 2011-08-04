@@ -16,12 +16,12 @@ mipsn32_extra_config_options := $(extra_config_options) --disable-profile
 define libc6-dev-mipsn32_extra_pkg_install
 
 mkdir -p debian/libc6-dev-mipsn32/usr/include
-ln -s mips-linux-gnu/bits debian/libc6-dev-mipsn32/usr/include/
-ln -s mips-linux-gnu/gnu debian/libc6-dev-mipsn32/usr/include/
+ln -s mipsel-linux-gnu/bits debian/libc6-dev-mipsn32/usr/include/
+ln -s mipsel-linux-gnu/gnu debian/libc6-dev-mipsn32/usr/include/
 
 mkdir -p debian/libc6-dev-mipsn32/usr/include/sys
-for i in `ls debian/tmp-libc/usr/include/mips-linux-gnu/sys` ; do \
-        ln -s ../mips-linux-gnu/sys/$$i debian/libc6-dev-mipsn32/usr/include/sys/$$i ; \
+for i in `ls debian/tmp-libc/usr/include/mipsel-linux-gnu/sys` ; do \
+        ln -s ../mipsel-linux-gnu/sys/$$i debian/libc6-dev-mipsn32/usr/include/sys/$$i ; \
 done
 
 endef
@@ -42,12 +42,12 @@ mips64_extra_config_options := $(extra_config_options) --disable-profile
 define libc6-dev-mips64_extra_pkg_install
 
 mkdir -p debian/libc6-dev-mips64/usr/include
-ln -s mips-linux-gnu/bits debian/libc6-dev-mips64/usr/include/
-ln -s mips-linux-gnu/gnu debian/libc6-dev-mips64/usr/include/
+ln -s mipsel-linux-gnu/bits debian/libc6-dev-mips64/usr/include/
+ln -s mipsel-linux-gnu/gnu debian/libc6-dev-mips64/usr/include/
 
 mkdir -p debian/libc6-dev-mips64/usr/include/sys
-for i in `ls debian/tmp-libc/usr/include/mips-linux-gnu/sys` ; do \
-        ln -s ../mips-linux-gnu/sys/$$i debian/libc6-dev-mips64/usr/include/sys/$$i ; \
+for i in `ls debian/tmp-libc/usr/include/mipsel-linux-gnu/sys` ; do \
+        ln -s ../mipsel-linux-gnu/sys/$$i debian/libc6-dev-mips64/usr/include/sys/$$i ; \
 done
 
 endef
