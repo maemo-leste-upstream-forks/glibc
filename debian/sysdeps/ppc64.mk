@@ -24,6 +24,7 @@ define libc6-dev-powerpc_extra_pkg_install
 mkdir -p debian/libc6-dev-powerpc/usr/include
 ln -s powerpc64-linux-gnu/bits debian/libc6-dev-powerpc/usr/include/
 ln -s powerpc64-linux-gnu/gnu debian/libc6-dev-powerpc/usr/include/
+ln -s powerpc64-linux-gnu/fpu_control.h debian/libc6-dev-powerpc/usr/include/
 
 mkdir -p debian/libc6-dev-powerpc/usr/include/powerpc64-linux-gnu/gnu
 cp -a debian/tmp-powerpc/usr/include/gnu/stubs-32.h \

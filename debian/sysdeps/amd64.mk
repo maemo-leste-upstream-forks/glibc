@@ -34,6 +34,7 @@ define libc6-dev-i386_extra_pkg_install
 mkdir -p debian/libc6-dev-i386/usr/include
 ln -s x86_64-linux-gnu/bits debian/libc6-dev-i386/usr/include/
 ln -s x86_64-linux-gnu/gnu debian/libc6-dev-i386/usr/include/
+ln -s x86_64-linux-gnu/fpu_control.h debian/libc6-dev-i386/usr/include/
 
 mkdir -p debian/libc6-dev-i386/usr/include/x86_64-linux-gnu/gnu
 cp -a debian/tmp-i386/usr/include/gnu/stubs-32.h \

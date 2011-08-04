@@ -18,6 +18,7 @@ define libc6-dev-mipsn32_extra_pkg_install
 mkdir -p debian/libc6-dev-mipsn32/usr/include
 ln -s mipsel-linux-gnu/bits debian/libc6-dev-mipsn32/usr/include/
 ln -s mipsel-linux-gnu/gnu debian/libc6-dev-mipsn32/usr/include/
+ln -s mipsel-linux-gnu/fpu_control.h debian/libc6-dev-mipsn32/usr/include/
 
 mkdir -p debian/libc6-dev-mipsn32/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/mipsel-linux-gnu/sys` ; do \
@@ -44,6 +45,7 @@ define libc6-dev-mips64_extra_pkg_install
 mkdir -p debian/libc6-dev-mips64/usr/include
 ln -s mipsel-linux-gnu/bits debian/libc6-dev-mips64/usr/include/
 ln -s mipsel-linux-gnu/gnu debian/libc6-dev-mips64/usr/include/
+ln -s mipsel-linux-gnu/fpu_control.h debian/libc6-dev-mips64/usr/include/
 
 mkdir -p debian/libc6-dev-mips64/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/mipsel-linux-gnu/sys` ; do \

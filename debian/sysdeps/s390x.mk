@@ -22,6 +22,7 @@ define libc6-dev-s390_extra_pkg_install
 mkdir -p debian/libc6-dev-s390/usr/include
 ln -s s390x-linux-gnu/bits debian/libc6-dev-s390/usr/include/
 ln -s s390x-linux-gnu/gnu debian/libc6-dev-s390/usr/include/
+ln -s s390x-linux-gnu/fpu_control.h debian/libc6-dev-s390/usr/include/
 
 mkdir -p debian/libc6-dev-s390/usr/include/s390x-linux-gnu/gnu
 cp -a debian/tmp-s390/usr/include/gnu/stubs-32.h \

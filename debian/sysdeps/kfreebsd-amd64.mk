@@ -26,6 +26,7 @@ define libc0.1-dev-i386_extra_pkg_install
 mkdir -p debian/libc0.1-dev-i386/usr/include
 ln -s x86_64-kfreebsd-gnu/bits debian/libc0.1-dev-i386/usr/include/
 ln -s x86_64-kfreebsd-gnu/gnu debian/libc0.1-dev-i386/usr/include/
+ln -s x86_64-kfreebsd-gnu/fpu_control.h debian/libc0.1-dev-i386/usr/include/
 
 mkdir -p debian/libc0.1-dev-i386/usr/include/x86_64-kfreebsd-gnu/gnu
 cp -a debian/tmp-i386/usr/include/gnu/stubs-32.h \
