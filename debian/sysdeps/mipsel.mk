@@ -13,20 +13,6 @@ mipsn32_slibdir = /lib32
 mipsn32_libdir = /usr/lib32
 mipsn32_extra_config_options := $(extra_config_options) --disable-profile
 
-define libc6-dev-mipsn32_extra_pkg_install
-
-mkdir -p debian/libc6-dev-mipsn32/usr/include
-ln -s mipsel-linux-gnu/bits debian/libc6-dev-mipsn32/usr/include/
-ln -s mipsel-linux-gnu/gnu debian/libc6-dev-mipsn32/usr/include/
-ln -s mipsel-linux-gnu/fpu_control.h debian/libc6-dev-mipsn32/usr/include/
-
-mkdir -p debian/libc6-dev-mipsn32/usr/include/sys
-for i in `ls debian/tmp-libc/usr/include/mipsel-linux-gnu/sys` ; do \
-        ln -s ../mipsel-linux-gnu/sys/$$i debian/libc6-dev-mipsn32/usr/include/sys/$$i ; \
-done
-
-endef
-
 # build 64-bit alternative library
 EGLIBC_PASSES += mips64
 DEB_ARCH_REGULAR_PACKAGES += libc6-mips64 libc6-dev-mips64
