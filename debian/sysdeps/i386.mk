@@ -46,6 +46,11 @@ amd64_rtlddir = /lib64
 amd64_slibdir = /lib64
 amd64_libdir = /usr/lib64
 
+define amd64_extra_install
+cp debian/tmp-amd64/usr/bin/ldd \
+	debian/tmp-libc/usr/bin
+endef
+
 define libc6-dev_extra_pkg_install
 mkdir -p debian/libc6-dev/$(libdir)/xen
 cp -af debian/tmp-xen/$(libdir)/*.a \
