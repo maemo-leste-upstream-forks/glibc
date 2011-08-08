@@ -49,9 +49,6 @@ amd64_libdir = /usr/lib64
 define amd64_extra_install
 cp debian/tmp-amd64/usr/bin/ldd \
 	debian/tmp-libc/usr/bin
-cp -af debian/tmp-amd64/usr/include/* \
-        debian/tmp-libc/usr/include
-rm -f debian/tmp-libc/usr/include/gnu/stubs-64.h
 endef
 
 define libc6-dev_extra_pkg_install
@@ -61,20 +58,13 @@ cp -af debian/tmp-xen/$(libdir)/*.a \
 endef
 
 define libc6-dev-amd64_extra_pkg_install
-
 mkdir -p debian/libc6-dev-amd64/usr/include
-ln -s i386-linux-gnu/bits debian/libc6-dev-amd64/usr/include/
-ln -s i386-linux-gnu/gnu debian/libc6-dev-amd64/usr/include/
-ln -s i386-linux-gnu/fpu_control.h debian/libc6-dev-amd64/usr/include/
-
-mkdir -p debian/libc6-dev-amd64/usr/include/i386-linux-gnu/gnu
-cp -a debian/tmp-amd64/usr/include/gnu/stubs-64.h \
-        debian/libc6-dev-amd64/usr/include/i386-linux-gnu/gnu
-
-mkdir -p debian/libc6-dev-amd64/usr/include/sys
-for i in `ls debian/tmp-libc/usr/include/i386-linux-gnu/sys` ; do \
-        ln -s ../i386-linux-gnu/sys/$$i debian/libc6-dev-amd64/usr/include/sys/$$i ; \
-done
-
+cp -a debian/tmp-amd64/usr/include/bits \
+	debian/libc6-dev-amd64/usr/include/
+cp -a debian/tmp-amd64/usr/include/gnu \
+	debian/libc6-dev-amd64/usr/include/
+cp -a debian/tmp-amd64/usr/include/sys \
+	debian/libc6-dev-amd64/usr/include/
+cp debian/tmp-amd64/usr/include/fpu_control.h \
+	debian/libc6-dev-amd64/usr/include/
 endef
-
