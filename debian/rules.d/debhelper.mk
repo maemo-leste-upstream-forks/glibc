@@ -126,7 +126,16 @@ endif
 		sed -i -e "s/\(Depends:.*libc[0-9.]\+\)-[a-z0-9]\+/\1/" debian/nscd/DEBIAN/control ; \
 	fi
 	dh_md5sums -p$(curpass)
-	dh_builddeb -p$(curpass)
+
+	# We adjust the compression format depending on the package:
+	# - libc*-dbg and locales-all contains highly compressible data
+	# - other packages use the default gzip format
+	case $(curpass) in \
+	libc*-dbg | locales-all) \
+		dh_builddeb -p$(curpass) -- -Zxz -c7 ;; \
+	*) \
+		dh_builddeb -p$(curpass) ;; \
+	esac
 
 	touch $@
 
