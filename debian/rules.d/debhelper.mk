@@ -132,7 +132,7 @@ endif
 	# - other packages use the default gzip format
 	case $(curpass) in \
 	libc*-dbg | locales-all) \
-		dh_builddeb -p$(curpass) -- -Zxz -c7 ;; \
+		dh_builddeb -p$(curpass) -- -Zxz -z7 ;; \
 	*) \
 		dh_builddeb -p$(curpass) ;; \
 	esac
