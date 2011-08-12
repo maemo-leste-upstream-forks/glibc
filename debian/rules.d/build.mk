@@ -92,6 +92,18 @@ $(stamp)build_%: $(stamp)configure_%
 	  $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) \
 	    objdir=$(DEB_BUILDDIR) install_root=$(CURDIR)/build-tree/locales-all \
 	    localedata/install-locales; \
+	  cd $(CURDIR)/build-tree/locales-all/usr/lib/locale ; \
+	  fdupes -1 -H -q -R . | while read line ; do \
+	    set -- $${line} ; \
+	    tgt="$${1##./}" ; \
+	    shift ; \
+	    while [ "$$#" != 0 ] ; do \
+	      link="$${1##./}" ; \
+	      reltgt="$$(dirname $$link | sed -e 's#[^/]\+#..#g')/$${tgt}" ; \
+	      ln -sf $${reltgt} $${link} ; \
+	      shift ; \
+	    done ; \
+	  done ; \
 	fi
 	touch $@
 
