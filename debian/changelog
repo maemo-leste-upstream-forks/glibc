@@ -25,7 +25,15 @@ eglibc (2.13-17) UNRELEASED; urgency=low
   * debian/patches/hurd-i386/submitted-ioctl-unsigned-size_t.diff: Add
     u?int{8,16,32,64} ioctl types.
 
- -- Samuel Thibault <sthibault@debian.org>  Fri, 19 Aug 2011 00:10:09 +0200
+  [ Steve Langasek ]
+  * Install ld*.so to RTLDDIR (/lib64 or /lib), as appropriate, and convert
+    /lib64 from a symlink to a directory on upgrade (with appropriate
+    downgrade and error-unwind handling), so that multiarch and biarch
+    packages will play nicely together on the filesystem..  Thanks to
+    Sven Joachim <svenjoac@gmx.de> for preliminary patches.  Closes: #632682.
+  * Restore multiarch support on all architectures.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 09 Aug 2011 11:40:02 +0200
 
 eglibc (2.13-16) unstable; urgency=low
 

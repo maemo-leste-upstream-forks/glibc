@@ -1,12 +1,6 @@
 # Main library
 extra_config_options = --disable-compatible-utmp --disable-multi-arch
 
-# /lib64 and /usr/lib64 are provided by glibc instead base-files: #259302.
-define libc0.1_extra_pkg_install
-ln -sf /lib debian/$(curpass)/lib64
-ln -sf lib debian/$(curpass)/usr/lib64
-endef
-
 # build 32-bit (i386) alternative library
 EGLIBC_PASSES += i386
 DEB_ARCH_REGULAR_PACKAGES += libc0.1-i386 libc0.1-dev-i386

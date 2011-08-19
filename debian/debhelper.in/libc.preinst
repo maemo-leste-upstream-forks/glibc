@@ -118,6 +118,31 @@ check_dir () {
     done
 }
 
+# On upgrade, if /lib64 is a symlink, remove it and replace it with a real
+# directory so we can ensure biarch and multiarch packages play nicely
+# together
+remove_lib64_symlink() {
+    ldfile=$(readlink -e RTLD_SO)
+    # Test if libc is of the same architecture as coreutils
+    # If not, they almost surely have a multiarch system and we can use
+    # the native ELF interpreter
+    if ! $ldfile /bin/true 2>/dev/null; then
+        interpreter=
+    else
+        interpreter=$ldfile
+    fi
+
+    mkdir /lib64.eglibc-new
+    ln -s $ldfile /lib64.eglibc-new/$(basename RTLD_SO)
+    # sync before and after the operation to reduce the danger of hosing
+    # the system
+    sync
+    rm -f /lib64
+    $interpreter /bin/mv /lib64.eglibc-new /lib64
+    sync
+    rm -f /lib/$(basename RTLD_SO)
+}
+
 if [ "$type" = upgrade ]
 then
     # Remove old /etc/init.d/glibc.sh init script
@@ -382,6 +407,18 @@ then
 fi
 
 #DEBHELPER#
+
+case $type in
+    upgrade|abort-upgrade)
+        if test -L /lib64 && dpkg --compare-versions "$2" lt 2.13-17; then
+            case ${DPKG_MAINTSCRIPT_ARCH:-$(dpkg --print-architecture)} in
+                amd64 | kfreebsd-amd64 | ppc64 | sparc64 | s390x)
+                    remove_lib64_symlink
+                    ;;
+            esac
+        fi
+        ;;
+esac
 
 if [ -n "$preversion" ]; then
     if dpkg --compare-versions "$preversion" lt 2.13-5; then

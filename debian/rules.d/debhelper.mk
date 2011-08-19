@@ -109,19 +109,7 @@ endif
 
 	dh_installdeb -p$(curpass)
 	dh_shlibdeps -p$(curpass)
-
-	#
-	# Disable multiarch support on some architectures until we fix the /lib64 -> /lib issue
-	#
-	case $(curpass)/$(DEB_HOST_ARCH) in \
-	libc6/amd64 | libc0.1/kfreebsd-amd64 | libc6/ppc64 | libc6/s390x | libc6/sparc64) \
-		dh_gencontrol -p$(curpass) -- -UMulti-Arch \
-		;; \
-	*) \
-		dh_gencontrol -p$(curpass) \
-		;; \
-	esac
-
+	dh_gencontrol -p$(curpass)
 	if [ $(curpass) = nscd ] ; then \
 		sed -i -e "s/\(Depends:.*libc[0-9.]\+\)-[a-z0-9]\+/\1/" debian/nscd/DEBIAN/control ; \
 	fi

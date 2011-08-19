@@ -1,12 +1,6 @@
 libc_rtlddir = /lib64
 extra_config_options = --enable-multi-arch
 
-# /lib64 and /usr/lib64 are provided as symlinks 
-define libc6_extra_pkg_install
-ln -sf /lib debian/$(curpass)/lib64
-ln -sf lib debian/$(curpass)/usr/lib64
-endef
-
 # build 32-bit (powerpc) alternative library
 EGLIBC_PASSES += powerpc
 DEB_ARCH_REGULAR_PACKAGES += libc6-powerpc libc6-dev-powerpc
