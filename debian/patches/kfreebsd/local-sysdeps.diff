@@ -7387,7 +7387,7 @@
 +#include <sysdeps/unix/clock_settime.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clone.c
-@@ -0,0 +1,144 @@
+@@ -0,0 +1,143 @@
 +/* Create a thread.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -7426,7 +7426,6 @@
 +
 +    int mib[2];
 +    size_t size;
-+    char *temp;
 +
 +    if (osreldate == 0)
 +    {
@@ -8649,7 +8648,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-sysdep.c
-@@ -0,0 +1,248 @@
+@@ -0,0 +1,253 @@
 +/* Dynamic linker system dependencies for GNU/kFreeBSD.
 +   Copyright (C) 1995-1998,2000-2008,2009,2010,2011
 +        Free Software Foundation, Inc.
@@ -8688,6 +8687,8 @@
 +# undef _dl_sysdep_start
 +# undef _dl_show_auxv
 +
++extern const char *_self_program_name_from_auxv attribute_hidden;
++
 +ElfW(Addr)
 +_dl_sysdep_start (void **start_argptr,
 +		  void (*dl_main) (const ElfW(Phdr) *phdr, ElfW(Word) phnum,
@@ -8724,6 +8725,9 @@
 +	break;
 +      case AT_ENTRY:
 +	user_entry = av->a_un.a_val;
++	break;
++      case AT_EXECPATH:
++	_self_program_name_from_auxv = (char *) av->a_un.a_val;
 +	break;
 +#ifdef NEED_DL_BASE_ADDR
 +      case AT_BASE:
@@ -12072,7 +12076,7 @@
 +#endif /* _BITS_SIGCONTEXT_H */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/dl-machine.h
-@@ -0,0 +1,149 @@
+@@ -0,0 +1,145 @@
 +/* Machine-dependent ELF dynamic relocation inline functions.
 +   FreeBSD i386 specific version of dl_platform_init()
 +   Copyright (C) 2006 Free Software Foundation, Inc.
@@ -12167,16 +12171,12 @@
 +    );
 +}
 +
-+extern const char *_self_program_name_from_auxv attribute_hidden;
-+
 +static inline void __attribute__ ((unused))
 +dl_platform_kfreebsd_i386_init (void)
 +{
 +	/* we don't have reasonable AT_PLATFORM from kernel
 +	   try to use cpuid to get one, also guess AT_HWCAP */
 +
-+        _self_program_name_from_auxv = GLRO(dl_platform);
-+        
 +	int val, hwcap;
 +
 +	val = try_flip_flags(X86_EFLAGS_AC | X86_EFLAGS_ID);
@@ -27350,7 +27350,7 @@
 +#include <sysdeps/unix/sysv/linux/x86_64/dl-cache.h>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-machine.h
-@@ -0,0 +1,137 @@
+@@ -0,0 +1,133 @@
 +/* Machine-dependent ELF dynamic relocation inline functions.  FreeBSD/amd64 version.
 +   Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -27470,9 +27470,6 @@
 +    );
 +}
 +
-+extern const char *_self_program_name_from_auxv attribute_hidden;
-+
-+                           
 +static inline void __attribute__ ((unused))
 +dl_platform_kfreebsd_x86_64_init (void)
 +{
@@ -27483,7 +27480,6 @@
 +
 +	cpuid(1, &val, &hwcap);
 +	GLRO(dl_hwcap) = hwcap;
-+	_self_program_name_from_auxv = GLRO(dl_platform);
 +	GLRO(dl_platform) = ELF_MACHINE_NAME;
 +}
 +
