@@ -99,7 +99,7 @@ $(stamp)build_%: $(stamp)configure_%
 	    shift ; \
 	    while [ "$$#" != 0 ] ; do \
 	      link="$${1##./}" ; \
-	      reltgt="$$(dirname $$link | sed -e 's#[^/]\+#..#g')/$${tgt}" ; \
+	      reltgt="$$(echo $$link | sed -e 's,[^/]\+$$,,g' -e 's,[^/]\+,..,g')$${tgt}" ; \
 	      ln -sf $${reltgt} $${link} ; \
 	      shift ; \
 	    done ; \
