@@ -1,4 +1,4 @@
-libc_rtlddir = /lib64
+libc_rtlddir = /lib
 
 # build 32-bit (s390) alternative library
 EGLIBC_PASSES += s390
