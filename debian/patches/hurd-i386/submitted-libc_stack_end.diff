@@ -60,16 +60,3 @@ index e79af1d..7b2ea12 100644
        /* Copy per-thread variables from that temporary
  	 area onto the new cthread stack.  */
        memcpy (__hurd_threadvar_location_from_sp (0, newsp),
-diff --git a/sysdeps/mach/hurd/dl-sysdep.c b/sysdeps/mach/hurd/dl-sysdep.c
-index a63151f..a5df5c1 100644
---- a/sysdeps/mach/hurd/dl-sysdep.c
-+++ b/sysdeps/mach/hurd/dl-sysdep.c
-@@ -55,7 +55,7 @@ INTVARDEF(__libc_enable_secure)
- int __libc_multiple_libcs = 0;	/* Defining this here avoids the inclusion
- 				   of init-first.  */
- /* This variable containts the lowest stack address ever used.  */
--void *__libc_stack_end attribute_relro = NULL;
-+void *__libc_stack_end = NULL;
- rtld_hidden_data_def(__libc_stack_end)
- void *_dl_random attribute_relro = NULL; /* TODO */
- 
