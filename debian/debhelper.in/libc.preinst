@@ -123,10 +123,10 @@ check_dir () {
 # together
 remove_lib64_symlink() {
     ldfile=$(readlink -e RTLD_SO)
-    # Test if libc is of the same architecture as coreutils
+    # Test if libc is of the same architecture as /bin/mv
     # If not, they almost surely have a multiarch system and we can use
     # the native ELF interpreter
-    if ! $ldfile /bin/true 2>/dev/null; then
+    if ! $ldfile /bin/mv 2>/dev/null; then
         interpreter=
     else
         interpreter=$ldfile
