@@ -478,6 +478,13 @@ t/extern_inline
  
  
  
+--- a/mach/spin-lock.c
++++ b/mach/spin-lock.c
+@@ -1,3 +1,4 @@
++#define __USE_EXTERN_INLINES 1
+ #define _EXTERN_INLINE /* Empty to define the real functions.  */
+ #include "spin-lock.h"
+ 
 --- a/sysdeps/generic/machine-lock.h
 +++ b/sysdeps/generic/machine-lock.h
 @@ -35,14 +35,21 @@
@@ -535,69 +542,6 @@ t/extern_inline
  __thread_stack_pointer (void)
  {
    register void *__sp__ ("{STACK-POINTER}");
-   return __sp__;
- }
-+#endif
- 
- #endif	/* machine-sp.h */
---- a/ports/sysdeps/mach/alpha/machine-lock.h
-+++ b/ports/sysdeps/mach/alpha/machine-lock.h
-@@ -35,15 +35,22 @@
- 
- /* Unlock LOCK.  */
- 
-+void __spin_unlock (__spin_lock_t *__lock);
-+
-+#ifdef __USE_EXTERN_INLINES
- _EXTERN_INLINE void
- __spin_unlock (__spin_lock_t *__lock)
- {
-   __asm__ __volatile__ ("mb; stq $31, %0; mb"
- 			: "=m" (__lock));
- }
-+#endif
- 
- /* Try to lock LOCK; return nonzero if we locked it, zero if another has.  */
- 
-+int __spin_try_lock (register __spin_lock_t *__lock);
-+
-+#ifdef __USE_EXTERN_INLINES
- _EXTERN_INLINE int
- __spin_try_lock (register __spin_lock_t *__lock)
- {
-@@ -67,14 +74,19 @@
-   /* RTN is now nonzero; we have the lock.  */
-   return __rtn;
- }
-+#endif
- 
- /* Return nonzero if LOCK is locked.  */
- 
-+int __spin_lock_locked (__spin_lock_t *__lock);
-+
-+#ifdef __USE_EXTERN_INLINES
- _EXTERN_INLINE int
- __spin_lock_locked (__spin_lock_t *__lock)
- {
-   return *__lock != 0;
- }
-+#endif
- 
- 
- #endif /* machine-lock.h */
---- a/ports/sysdeps/mach/alpha/machine-sp.h
-+++ b/ports/sysdeps/mach/alpha/machine-sp.h
-@@ -26,11 +26,15 @@
- #define _EXTERN_INLINE __extern_inline
- #endif
- 
-+void * __thread_stack_pointer (void);
-+
-+#ifdef __USE_EXTERN_INLINES
- _EXTERN_INLINE void *
- __thread_stack_pointer (void)
- {
-   register void *__sp__ __asm__ ("$30");
    return __sp__;
  }
 +#endif
@@ -716,10 +660,3 @@ t/extern_inline
 +#endif
  
  #endif	/* machine-sp.h */
---- a/mach/spin-lock.c
-+++ b/mach/spin-lock.c
-@@ -1,3 +1,4 @@
-+#define __USE_EXTERN_INLINES 1
- #define _EXTERN_INLINE /* Empty to define the real functions.  */
- #include "spin-lock.h"
- 

@@ -29,6 +29,18 @@ t/gscope
  #ifdef SHARED
  };
  # define __rtld_global_attribute__
+--- /dev/null
++++ b/sysdeps/mach/hurd/sysdep-cancel.h
+@@ -0,0 +1,9 @@
++#include <sysdep.h>
++
++/* Always multi-thread (since there's at least the sig handler), but no
++   handling enabled.  */
++#define SINGLE_THREAD_P (0)
++#define RTLD_SINGLE_THREAD_P (0)
++#define LIBC_CANCEL_ASYNC()	0 /* Just a dummy value.  */
++#define LIBC_CANCEL_RESET(val)	((void)(val)) /* Nothing, but evaluate it.  */
++#define LIBC_CANCEL_HANDLED()	/* Nothing.  */
 --- a/sysdeps/mach/hurd/tls.h
 +++ b/sysdeps/mach/hurd/tls.h
 @@ -75,5 +75,18 @@
@@ -50,15 +62,3 @@ t/gscope
 +#endif
  
  #endif /* tls.h */
---- /dev/null
-+++ b/sysdeps/mach/hurd/sysdep-cancel.h
-@@ -0,0 +1,9 @@
-+#include <sysdep.h>
-+
-+/* Always multi-thread (since there's at least the sig handler), but no
-+   handling enabled.  */
-+#define SINGLE_THREAD_P (0)
-+#define RTLD_SINGLE_THREAD_P (0)
-+#define LIBC_CANCEL_ASYNC()	0 /* Just a dummy value.  */
-+#define LIBC_CANCEL_RESET(val)	((void)(val)) /* Nothing, but evaluate it.  */
-+#define LIBC_CANCEL_HANDLED()	/* Nothing.  */

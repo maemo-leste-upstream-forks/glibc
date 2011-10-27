@@ -10,6 +10,16 @@ t/____longjmp_chk
  sysdeps/mach/hurd/i386/signal-defines.sym |   10 ++
  3 files changed, 122 insertions(+)
 
+--- a/sysdeps/mach/hurd/i386/Makefile
++++ b/sysdeps/mach/hurd/i386/Makefile
+@@ -2,3 +2,7 @@
+ sysdep_routines += ioperm
+ sysdep_headers += sys/io.h
+ endif
++
++ifeq ($(subdir),debug)
++gen-as-const-headers += signal-defines.sym
++endif
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/____longjmp_chk.S
 @@ -0,0 +1,108 @@
@@ -134,13 +144,3 @@ t/____longjmp_chk
 +SIGALTSTACK__SS_SP__OFFSET		offsetof(struct sigaltstack, ss_sp)
 +SIGALTSTACK__SS_SIZE__OFFSET		offsetof(struct sigaltstack, ss_size)
 +SIGALTSTACK__SS_FLAGS__OFFSET		offsetof(struct sigaltstack, ss_flags)
---- a/sysdeps/mach/hurd/i386/Makefile
-+++ b/sysdeps/mach/hurd/i386/Makefile
-@@ -2,3 +2,7 @@
- sysdep_routines += ioperm
- sysdep_headers += sys/io.h
- endif
-+
-+ifeq ($(subdir),debug)
-+gen-as-const-headers += signal-defines.sym
-+endif
