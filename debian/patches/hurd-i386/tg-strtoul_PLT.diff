@@ -1,0 +1,34 @@
+From: Thomas Schwinge <thomas@schwinge.name>
+Subject: [PATCH] strtoul_PLT
+
+Don't go through the PLT for strtoul.
+
+glibc-2.8/debian/patches/hurd-i386/submitted-strtoul.diff 3057
+
+---
+
+    /media/Stalin/tmp/glibc.hurd.gnu-2/elf/librtld.os: In function `strtoul':
+    /media/data/home/thomas/tmp/source/glibc/git/glibc.hurd/stdlib/strtol.c:110: undefined reference to `__libc_tsd_LOCALE_data'
+    /media/Stalin/tmp/glibc.hurd.gnu-2/elf/librtld.os: In function `__strtoul_internal':
+    /media/data/home/thomas/tmp/source/glibc/git/glibc.hurd/stdlib/strtol.c:99: undefined reference to `__libc_tsd_LOCALE_data'
+    collect2: ld returned 1 exit status
+    make[2]: *** [/media/Stalin/tmp/glibc.hurd.gnu-2/elf/ld.so] Error 1
+
+ hurd/lookup-retry.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/hurd/lookup-retry.c b/hurd/lookup-retry.c
+index 0a88622..96968f8 100644
+--- a/hurd/lookup-retry.c
++++ b/hurd/lookup-retry.c
+@@ -194,7 +194,7 @@ __hurd_file_name_lookup_retry (error_t (*use_init_port)
+ 		  char *end;
+ 		  int save = errno;
+ 		  errno = 0;
+-		  fd = (int) strtoul (&retryname[3], &end, 10);
++		  fd = (int) __strtoul_internal (&retryname[3], &end, 10, 0);
+ 		  if (end == NULL || errno || /* Malformed number.  */
+ 		      /* Check for excess text after the number.  A slash
+ 			 is valid; it ends the component.  Anything else
+-- 
+tg: (0234227..) t/strtoul_PLT (depends on: baseline)

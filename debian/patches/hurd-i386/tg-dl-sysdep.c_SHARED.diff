@@ -1,0 +1,61 @@
+From: Thomas Schwinge <thomas@schwinge.name>
+Subject: [PATCH] Hurd: dl-sysdep.c: Include code only #ifdef SHARED.
+
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+---
+
+2009-01-31  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	* sysdeps/mach/hurd/dl-sysdep.c: Include code only #ifdef SHARED.
+
+---
+
+Earlier submission:
+<http://sourceware.org/ml/libc-alpha/2009-01/msg00037.html>.
+
+Error message:
+
+    [...]/glibc.hurd.gnu-2/libc.a(dl-sysdep.o): In function `_dl_important_hwcaps':
+    [...]/glibc/git/glibc.hurd/elf/../sysdeps/mach/hurd/dl-sysdep.c:653: multiple definition of `_dl_important_hwcaps'
+    [...]/glibc.hurd.gnu-2/libc.a(dl-support.o):[...]/glibc/git/glibc.hurd/elf/dl-support.c:313: first defined here
+    [...]/glibc.hurd.gnu-2/libc.a(dl-sysdep.o):(.data.rel.ro+0x0): multiple definition of `__libc_enable_secure'
+    [...]/glibc.hurd.gnu-2/libc.a(init-first.o):(.data.rel.ro+0x0): first defined here
+    [...]/glibc.hurd.gnu-2/libc.a(dl-sysdep.o): In function `use_init_port':
+    [...]/glibc/git/glibc.hurd/elf/../sysdeps/mach/hurd/dl-sysdep.c:302: multiple definition of `__libc_multiple_libcs'
+    [...]/glibc.hurd.gnu-2/libc.a(init-first.o):(.data+0x0): first defined here
+    [...]/glibc.hurd.gnu-2/libc.a(dl-sysdep.o):(.data.rel.ro+0x8): multiple definition of `__libc_stack_end'
+    [...]/glibc.hurd.gnu-2/libc.a(dl-support.o):(.data.rel.ro+0x4): first defined here
+    [...]/glibc.hurd.gnu-2/libc.a(dl-sysdep.o): In function `go.11385':
+    dl-sysdep.c:(.text+0xb22): undefined reference to `_dl_argc'
+    dl-sysdep.c:(.text+0xbb2): undefined reference to `_dl_skip_args'
+    dl-sysdep.c:(.text+0xbca): undefined reference to `_dl_skip_args'
+    dl-sysdep.c:(.text+0xbfc): undefined reference to `_dl_start_user'
+    collect2: ld returned 1 exit status
+    make[2]: *** [[...]/glibc.hurd.gnu-2/elf/sln] Error 1
+    make[2]: Leaving directory `[...]/glibc/git/glibc.hurd/elf'
+
+ sysdeps/mach/hurd/dl-sysdep.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/sysdeps/mach/hurd/dl-sysdep.c b/sysdeps/mach/hurd/dl-sysdep.c
+index 6f27874..055f8a4 100644
+--- a/sysdeps/mach/hurd/dl-sysdep.c
++++ b/sysdeps/mach/hurd/dl-sysdep.c
+@@ -18,6 +18,8 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
++#ifdef SHARED
++
+ #include <hurd.h>
+ #include <link.h>
+ #include <unistd.h>
+@@ -669,3 +671,5 @@ _dl_init_first (int argc, ...)
+ {
+   /* This no-op definition only gets used if libc is not linked in.  */
+ }
++
++#endif /* SHARED */
+-- 
+tg: (0234227..) t/dl-sysdep.c_SHARED (depends on: baseline)

@@ -1,35 +1,43 @@
-TLS support
-TODO: get rid of threadvar variables
+From: Thomas Schwinge <thomas@schwinge.name>
+Subject: [PATCH] tls
 
-t/tls
-t/tlsdesc.sym
+TLS support.
+
+All by Samuel Thibault.
+
+glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
+
+2009-07-30  Samuel Thibault  <samuel.thibault@gnu.org>
+
+	Align up includes as on Linux, to fix build.
+	* sysdeps/mach/hurd/tls.h: Include <sysdep.h>.
 
 ---
  csu/libc-start.c                        |    2 +
  hurd/hurdfault.c                        |    2 +
  hurd/hurdsig.c                          |    4 +-
- mach/mach.h                             |    3 +
- mach/setup-thread.c                     |   30 +++++++++++++++-
- ports/sysdeps/mach/alpha/thread_state.h |    1 
- sysdeps/generic/thread_state.h          |    1 
- sysdeps/mach/hurd/bits/libc-lock.h      |    3 +
- sysdeps/mach/hurd/bits/libc-tsd.h       |   35 ------------------
- sysdeps/mach/hurd/fork.c                |    7 +++
- sysdeps/mach/hurd/i386/init-first.c     |   60 +++++++++++++++++++-------------
- sysdeps/mach/hurd/i386/tls.h            |   55 ++++++++++++++++++++++++-----
- sysdeps/mach/hurd/i386/tlsdesc.sym      |   17 +++++++++
- sysdeps/mach/hurd/i386/trampoline.c     |    2 -
+ mach/mach.h                         |    3 ++
+ mach/setup-thread.c                 |   30 +++++++++++++++++-
+ sysdeps/generic/thread_state.h      |    1 +
+ sysdeps/mach/hurd/bits/libc-lock.h  |    3 ++
+ sysdeps/mach/hurd/bits/libc-tsd.h   |   35 --------------------
+ sysdeps/mach/hurd/fork.c            |    7 +++-
+ sysdeps/mach/hurd/i386/init-first.c |   60 +++++++++++++++++++++-------------
+ sysdeps/mach/hurd/i386/tls.h        |   53 +++++++++++++++++++++++++------
+ sysdeps/mach/hurd/i386/trampoline.c |    2 +-
  sysdeps/mach/hurd/profil.c              |    2 +
- sysdeps/mach/hurd/setitimer.c           |    3 +
- sysdeps/mach/hurd/tls.h                 |    2 +
- sysdeps/mach/i386/thread_state.h        |   11 +++++
- sysdeps/mach/powerpc/thread_state.h     |    1 
- sysdeps/mach/thread_state.h             |    3 +
- 20 files changed, 169 insertions(+), 75 deletions(-)
+ sysdeps/mach/hurd/setitimer.c       |    3 +-
+ sysdeps/mach/hurd/tls.h             |    6 +++-
+ sysdeps/mach/i386/thread_state.h    |   11 ++++++-
+ sysdeps/mach/powerpc/thread_state.h |    1 +
+ sysdeps/mach/thread_state.h         |    3 ++
+ 18 files changed, 152 insertions(+), 76 deletions(-)
 
+diff --git a/csu/libc-start.c b/csu/libc-start.c
+index dc7ca55..7576623 100644
 --- a/csu/libc-start.c
 +++ b/csu/libc-start.c
-@@ -140,10 +140,12 @@
+@@ -140,10 +140,12 @@ LIBC_START_MAIN (int (*main) (int, char **, char ** MAIN_AUXVEC_DECL),
    /* Performe IREL{,A} relocations.  */
    __libc_csu_irel ();
  
@@ -42,9 +50,11 @@ t/tlsdesc.sym
  
    /* Set up the stack checker's canary.  */
    uintptr_t stack_chk_guard = _dl_setup_stack_chk_guard (_dl_random);
+diff --git a/hurd/hurdfault.c b/hurd/hurdfault.c
+index 36653e1..10b19c8 100644
 --- a/hurd/hurdfault.c
 +++ b/hurd/hurdfault.c
-@@ -206,6 +206,8 @@
+@@ -206,6 +206,8 @@ _hurdsig_fault_init (void)
    /* This state will be restored when we fault.
       It runs the function above.  */
    memset (&state, 0, sizeof state);
@@ -53,9 +63,11 @@ t/tlsdesc.sym
    MACHINE_THREAD_STATE_SET_PC (&state, faulted);
    MACHINE_THREAD_STATE_SET_SP (&state, faultstack, sizeof faultstack);
  
+diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
+index 7a6b1d5..4cb5e3c 100644
 --- a/hurd/hurdsig.c
 +++ b/hurd/hurdsig.c
-@@ -1268,6 +1268,8 @@
+@@ -1268,6 +1268,8 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
  				 (vm_address_t *) &__hurd_sigthread_stack_base,
  				 &stacksize);
        assert_perror (err);
@@ -64,7 +76,7 @@ t/tlsdesc.sym
  
        __hurd_sigthread_stack_end = __hurd_sigthread_stack_base + stacksize;
        __hurd_sigthread_variables =
-@@ -1276,8 +1278,6 @@
+@@ -1276,8 +1278,6 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
  	__libc_fatal ("hurd: Can't allocate threadvars for signal thread\n");
        memset (__hurd_sigthread_variables, 0,
  	      __hurd_threadvar_max * sizeof (unsigned long int));
@@ -73,9 +85,11 @@ t/tlsdesc.sym
  
        /* Reinitialize the MiG support routines so they will use a per-thread
  	 variable for the cached reply port.  */
+diff --git a/mach/mach.h b/mach/mach.h
+index f8fd44b..502db5a 100644
 --- a/mach/mach.h
 +++ b/mach/mach.h
-@@ -101,5 +101,8 @@
+@@ -101,5 +101,8 @@ kern_return_t mach_setup_thread (task_t task, thread_t thread, void *pc,
  				 vm_address_t *stack_base,
  				 vm_size_t *stack_size);
  
@@ -84,6 +98,8 @@ t/tlsdesc.sym
 +kern_return_t mach_setup_tls (thread_t thread);
  
  #endif	/* mach.h */
+diff --git a/mach/setup-thread.c b/mach/setup-thread.c
+index fecffd9..bf0bfa9 100644
 --- a/mach/setup-thread.c
 +++ b/mach/setup-thread.c
 @@ -20,6 +20,7 @@
@@ -94,7 +110,7 @@ t/tlsdesc.sym
  #include "sysdep.h"		/* Defines stack direction.  */
  
  #define	STACK_SIZE	(16 * 1024 * 1024) /* 16MB, arbitrary.  */
-@@ -73,8 +74,35 @@
+@@ -73,8 +74,35 @@ __mach_setup_thread (task_t task, thread_t thread, void *pc,
    if (error = __vm_protect (task, stack, __vm_page_size, 0, VM_PROT_NONE))
      return error;
  
@@ -131,6 +147,8 @@ t/tlsdesc.sym
 +}
 +
 +weak_alias (__mach_setup_tls, mach_setup_tls)
+diff --git a/sysdeps/generic/thread_state.h b/sysdeps/generic/thread_state.h
+index 7f8c0f8..3d4b0b5 100644
 --- a/sysdeps/generic/thread_state.h
 +++ b/sysdeps/generic/thread_state.h
 @@ -23,6 +23,7 @@
@@ -141,16 +159,23 @@ t/tlsdesc.sym
  #define MACHINE_THREAD_STATE_FLAVOR	<machine>_THREAD_STATE
  #define MACHINE_THREAD_STATE_COUNT	<machine>_THREAD_STATE_COUNT
  
---- a/ports/sysdeps/mach/alpha/thread_state.h
-+++ b/ports/sysdeps/mach/alpha/thread_state.h
-@@ -19,6 +19,7 @@
+diff --git a/sysdeps/mach/hurd/bits/libc-lock.h b/sysdeps/mach/hurd/bits/libc-lock.h
+index 90e46e0..013615e 100644
+--- a/sysdeps/mach/hurd/bits/libc-lock.h
++++ b/sysdeps/mach/hurd/bits/libc-lock.h
+@@ -21,6 +21,9 @@
+ #define _BITS_LIBC_LOCK_H 1
  
- #include <mach/machine/thread_status.h>
+ #if (_LIBC - 0) || (_CTHREADS_ - 0)
++#if (_LIBC - 0)
++#include <tls.h>
++#endif
+ #include <cthreads.h>
+ #include <hurd/threadvar.h>
  
-+#define MACHINE_NEW_THREAD_STATE_FLAVOR	ALPHA_THREAD_STATE
- #define MACHINE_THREAD_STATE_FLAVOR	ALPHA_THREAD_STATE
- #define MACHINE_THREAD_STATE_COUNT	ALPHA_THREAD_STATE_COUNT
- 
+diff --git a/sysdeps/mach/hurd/bits/libc-tsd.h b/sysdeps/mach/hurd/bits/libc-tsd.h
+deleted file mode 100644
+index 926dd1f..0000000
 --- a/sysdeps/mach/hurd/bits/libc-tsd.h
 +++ /dev/null
 @@ -1,35 +0,0 @@
@@ -189,9 +214,11 @@ t/tlsdesc.sym
 -  (*__libc_tsd_address (TYPE, KEY) = (VALUE))
 -
 -#endif	/* bits/libc-tsd.h */
+diff --git a/sysdeps/mach/hurd/fork.c b/sysdeps/mach/hurd/fork.c
+index 66fa7e2..78b7c6c 100644
 --- a/sysdeps/mach/hurd/fork.c
 +++ b/sysdeps/mach/hurd/fork.c
-@@ -523,6 +523,11 @@
+@@ -523,6 +523,11 @@ __fork (void)
  #endif
        MACHINE_THREAD_STATE_SET_PC (&state,
  				   (unsigned long int) _hurd_msgport_receive);
@@ -203,18 +230,20 @@ t/tlsdesc.sym
        if (err = __thread_set_state (sigthread, MACHINE_THREAD_STATE_FLAVOR,
  				    (natural_t *) &state, statecount))
  	LOSE;
-@@ -533,7 +538,7 @@
+@@ -533,7 +538,7 @@ __fork (void)
        _hurd_longjmp_thread_state (&state, env, 1);
  
        /* Do special thread setup for TLS if needed.  */
 -      if (err = _hurd_tls_fork (thread, &state))
-+      if (err = _hurd_tls_fork (thread, ss->thread, &state))
++      if (err = _hurd_tls_fork (thread, __mach_thread_self (), &state))
  	LOSE;
  
        if (err = __thread_set_state (thread, MACHINE_THREAD_STATE_FLAVOR,
+diff --git a/sysdeps/mach/hurd/i386/init-first.c b/sysdeps/mach/hurd/i386/init-first.c
+index 60823bd..63214de 100644
 --- a/sysdeps/mach/hurd/i386/init-first.c
 +++ b/sysdeps/mach/hurd/i386/init-first.c
-@@ -104,10 +104,6 @@
+@@ -104,10 +104,6 @@ init1 (int argc, char *arg0, ...)
    char **argv = &arg0;
    char **envp = &argv[argc + 1];
    struct hurd_startup_data *d;
@@ -225,7 +254,7 @@ t/tlsdesc.sym
  
    while (*envp)
      ++envp;
-@@ -118,27 +114,9 @@
+@@ -118,27 +114,9 @@ init1 (int argc, char *arg0, ...)
       data block; the argument strings start there.  */
    if ((void *) d == argv[0])
      {
@@ -253,7 +282,7 @@ t/tlsdesc.sym
    _hurd_init_dtable = d->dtable;
    _hurd_init_dtablesize = d->dtablesize;
  
-@@ -172,13 +150,16 @@
+@@ -172,13 +150,16 @@ init (int *data)
    char **envp = &argv[argc + 1];
    struct hurd_startup_data *d;
    unsigned long int threadvars[_HURD_THREADVAR_MAX];
@@ -271,7 +300,7 @@ t/tlsdesc.sym
    __hurd_threadvar_stack_offset = (unsigned long int) threadvars;
  
    /* Since the cthreads initialization code uses malloc, and the
-@@ -192,6 +173,39 @@
+@@ -192,6 +173,39 @@ init (int *data)
      ++envp;
    d = (void *) ++envp;
  
@@ -311,18 +340,11 @@ t/tlsdesc.sym
    /* The user might have defined a value for this, to get more variables.
       Otherwise it will be zero on startup.  We must make sure it is set
       properly before before cthreads initialization, so cthreads can know
+diff --git a/sysdeps/mach/hurd/i386/tls.h b/sysdeps/mach/hurd/i386/tls.h
+index 46e0982..3315ad1 100644
 --- a/sysdeps/mach/hurd/i386/tls.h
 +++ b/sysdeps/mach/hurd/i386/tls.h
-@@ -31,6 +31,8 @@
- 
- # ifndef __ASSEMBLER__
- 
-+#include <pthread/pthread.h>
-+
- /* Use i386-specific RPCs to arrange that %gs segment register prefix
-    addresses the TCB in each thread.  */
- # include <mach/i386/mach_i386.h>
-@@ -72,7 +74,7 @@
+@@ -71,7 +71,7 @@ _hurd_tls_init (tcbhead_t *tcb, int secondcall)
  
        /* Get the first available selector.  */
        int sel = -1;
@@ -331,7 +353,7 @@ t/tlsdesc.sym
        if (err == MIG_BAD_ID)
  	{
  	  /* Old kernel, use a per-thread LDT.  */
-@@ -96,16 +98,16 @@
+@@ -95,16 +95,16 @@ _hurd_tls_init (tcbhead_t *tcb, int secondcall)
        /* Fetch the selector set by the first call.  */
        int sel;
        asm ("mov %%gs, %w0" : "=q" (sel) : "0" (0));
@@ -351,9 +373,9 @@ t/tlsdesc.sym
  	  assert_perror (err);
  	  if (err)
  	    return "i386_set_gdt failed";
-@@ -142,9 +144,40 @@
+@@ -141,9 +141,40 @@ _hurd_tls_init (tcbhead_t *tcb, int secondcall)
  
- #include <mach/machine/thread_status.h>
+ # include <mach/machine/thread_status.h>
  
 -/* Set up TLS in the new thread of a fork child, copying from our own.  */
 -static inline error_t __attribute__ ((unused))
@@ -395,7 +417,7 @@ t/tlsdesc.sym
  {
    /* Fetch the selector set by _hurd_tls_init.  */
    int sel;
-@@ -152,11 +185,13 @@
+@@ -151,11 +182,13 @@ _hurd_tls_fork (thread_t child, struct i386_thread_state *state)
    if (sel == state->ds)		/* _hurd_tls_init was never called.  */
      return 0;
  
@@ -412,9 +434,11 @@ t/tlsdesc.sym
      err = __i386_set_ldt (child, sel, &desc, 1);
    else
      err = __i386_set_gdt (child, &sel, desc);
+diff --git a/sysdeps/mach/hurd/i386/trampoline.c b/sysdeps/mach/hurd/i386/trampoline.c
+index 99d9308..390a245 100644
 --- a/sysdeps/mach/hurd/i386/trampoline.c
 +++ b/sysdeps/mach/hurd/i386/trampoline.c
-@@ -65,7 +65,7 @@
+@@ -65,7 +65,7 @@ _hurd_setup_sighandler (struct hurd_sigstate *ss, __sighandler_t handler,
  		  sizeof (state->basic));
  	  memcpy (&state->fpu, &ss->context->sc_i386_float_state,
  		  sizeof (state->fpu));
@@ -423,9 +447,11 @@ t/tlsdesc.sym
  	}
      }
  
+diff --git a/sysdeps/mach/hurd/profil.c b/sysdeps/mach/hurd/profil.c
+index 0426f67..fa5c016 100644
 --- a/sysdeps/mach/hurd/profil.c
 +++ b/sysdeps/mach/hurd/profil.c
-@@ -69,6 +69,8 @@
+@@ -69,6 +69,8 @@ update_waiter (u_short *sample_buffer, size_t size, size_t offset, u_int scale)
        if (! err)
  	err = __mach_setup_thread (__mach_task_self (), profile_thread,
  				   &profile_waiter, NULL, NULL);
@@ -434,9 +460,11 @@ t/tlsdesc.sym
      }
    else
      err = 0;
+diff --git a/sysdeps/mach/hurd/setitimer.c b/sysdeps/mach/hurd/setitimer.c
+index fec64a8..22f1b16 100644
 --- a/sysdeps/mach/hurd/setitimer.c
 +++ b/sysdeps/mach/hurd/setitimer.c
-@@ -223,11 +223,12 @@
+@@ -223,11 +223,12 @@ setitimer_locked (const struct itimerval *new, struct itimerval *old,
  	    return __hurd_fail (err);
  	  _hurd_itimer_thread_stack_base = 0; /* Anywhere.  */
  	  _hurd_itimer_thread_stack_size = __vm_page_size; /* Small stack.  */
@@ -450,9 +478,34 @@ t/tlsdesc.sym
  	    {
  	      __thread_terminate (_hurd_itimer_thread);
  	      _hurd_itimer_thread = MACH_PORT_NULL;
+diff --git a/sysdeps/mach/hurd/tls.h b/sysdeps/mach/hurd/tls.h
+index d63045f..747470d 100644
+--- a/sysdeps/mach/hurd/tls.h
++++ b/sysdeps/mach/hurd/tls.h
+@@ -1,5 +1,7 @@
+ /* Definitions for thread-local data handling.  Hurd version.
+-   Copyright (C) 2003, 2005, 2007 Free Software Foundation, Inc.
++
++   Copyright (C) 2003, 2005, 2007, 2009 Free Software Foundation, Inc.
++
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -23,7 +25,9 @@
+ #ifndef __ASSEMBLER__
+ 
+ # include <stddef.h>
++# include <stdint.h>
+ # include <stdbool.h>
++# include <sysdep.h>
+ # include <mach/mig_errors.h>
+ # include <mach.h>
+ 
+diff --git a/sysdeps/mach/i386/thread_state.h b/sysdeps/mach/i386/thread_state.h
+index e8fdef6..106ebc0 100644
 --- a/sysdeps/mach/i386/thread_state.h
 +++ b/sysdeps/mach/i386/thread_state.h
-@@ -19,7 +19,8 @@
+@@ -22,7 +22,8 @@
  
  #include <mach/machine/thread_status.h>
  
@@ -462,7 +515,7 @@ t/tlsdesc.sym
  #define MACHINE_THREAD_STATE_COUNT	i386_THREAD_STATE_COUNT
  
  #define machine_thread_state i386_thread_state
-@@ -28,6 +29,14 @@
+@@ -31,6 +32,14 @@
  #define SP uesp
  #define SYSRETURN eax
  
@@ -477,6 +530,8 @@ t/tlsdesc.sym
  struct machine_thread_all_state
    {
      int set;			/* Mask of bits (1 << FLAVOR).  */
+diff --git a/sysdeps/mach/powerpc/thread_state.h b/sysdeps/mach/powerpc/thread_state.h
+index e6ca104..4ef1fe1 100644
 --- a/sysdeps/mach/powerpc/thread_state.h
 +++ b/sysdeps/mach/powerpc/thread_state.h
 @@ -19,6 +19,7 @@
@@ -487,6 +542,8 @@ t/tlsdesc.sym
  #define MACHINE_THREAD_STATE_FLAVOR	PPC_THREAD_STATE
  #define MACHINE_THREAD_STATE_COUNT	PPC_THREAD_STATE_COUNT
  
+diff --git a/sysdeps/mach/thread_state.h b/sysdeps/mach/thread_state.h
+index 38effdf..4445c2e 100644
 --- a/sysdeps/mach/thread_state.h
 +++ b/sysdeps/mach/thread_state.h
 @@ -38,6 +38,9 @@
@@ -499,47 +556,5 @@ t/tlsdesc.sym
  
  /* These functions are of use in machine-dependent signal trampoline
     implementations.  */
---- a/sysdeps/mach/hurd/bits/libc-lock.h
-+++ b/sysdeps/mach/hurd/bits/libc-lock.h
-@@ -21,6 +21,9 @@
- #define _BITS_LIBC_LOCK_H 1
- 
- #if (_LIBC - 0) || (_CTHREADS_ - 0)
-+#if (_LIBC - 0)
-+#include <tls.h>
-+#endif
- #include <cthreads.h>
- #include <hurd/threadvar.h>
- 
---- a/sysdeps/mach/hurd/tls.h
-+++ b/sysdeps/mach/hurd/tls.h
-@@ -23,7 +23,9 @@
- #if defined HAVE_TLS_SUPPORT && !defined __ASSEMBLER__
- 
- # include <stddef.h>
-+# include <stdint.h>
- # include <stdbool.h>
-+# include <sysdep.h>
- # include <mach/mig_errors.h>
- # include <mach.h>
- 
---- /dev/null
-+++ b/sysdeps/mach/hurd/i386/tlsdesc.sym
-@@ -0,0 +1,17 @@
-+#include <stddef.h>
-+#include <sysdep.h>
-+#include <tls.h>
-+#include <link.h>
-+#include <dl-tlsdesc.h>
-+
-+--
-+
-+-- Abuse tls.h macros to derive offsets relative to the thread register.
-+
-+DTV_OFFSET			offsetof(tcbhead_t, dtv)
-+
-+TLSDESC_ARG			offsetof(struct tlsdesc, arg)
-+
-+TLSDESC_GEN_COUNT		offsetof(struct tlsdesc_dynamic_arg, gen_count)
-+TLSDESC_MODID			offsetof(struct tlsdesc_dynamic_arg, tlsinfo.ti_module)
-+TLSDESC_MODOFF			offsetof(struct tlsdesc_dynamic_arg, tlsinfo.ti_offset)
+-- 
+tg: (0234227..) t/tls (depends on: baseline)

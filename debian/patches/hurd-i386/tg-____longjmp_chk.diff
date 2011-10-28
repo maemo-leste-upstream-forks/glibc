@@ -1,18 +1,19 @@
-From Thomas Schwinge.
+From: Thomas Schwinge <thomas@schwinge.name>
+Subject: [PATCH] ____longjmp_chk
 
-Provide ____longjmp_chk, still WIP.
-
-t/____longjmp_chk
+____longjmp_chk for GNU Hurd on i386.
 
 ---
  sysdeps/mach/hurd/i386/Makefile           |    4 +
- sysdeps/mach/hurd/i386/____longjmp_chk.S  |  108 ++++++++++++++++++++++++++++++
- sysdeps/mach/hurd/i386/signal-defines.sym |   10 ++
- 3 files changed, 122 insertions(+)
+ sysdeps/mach/hurd/i386/____longjmp_chk.S  |  108 +++++++++++++++++++++++++++++
+ sysdeps/mach/hurd/i386/signal-defines.sym |   10 +++
+ 3 files changed, 122 insertions(+), 0 deletions(-)
 
+diff --git a/sysdeps/mach/hurd/i386/Makefile b/sysdeps/mach/hurd/i386/Makefile
+index 0eef17e..5f98809 100644
 --- a/sysdeps/mach/hurd/i386/Makefile
 +++ b/sysdeps/mach/hurd/i386/Makefile
-@@ -2,3 +2,7 @@
+@@ -2,3 +2,7 @@ ifeq ($(subdir),misc)
  sysdep_routines += ioperm
  sysdep_headers += sys/io.h
  endif
@@ -20,6 +21,9 @@ t/____longjmp_chk
 +ifeq ($(subdir),debug)
 +gen-as-const-headers += signal-defines.sym
 +endif
+diff --git a/sysdeps/mach/hurd/i386/____longjmp_chk.S b/sysdeps/mach/hurd/i386/____longjmp_chk.S
+new file mode 100644
+index 0000000..fc7ae7a
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/____longjmp_chk.S
 @@ -0,0 +1,108 @@
@@ -131,6 +135,9 @@ t/____longjmp_chk
 +	/* Jump to saved PC.  */
 +	jmp	*%edx
 +END (____longjmp_chk)
+diff --git a/sysdeps/mach/hurd/i386/signal-defines.sym b/sysdeps/mach/hurd/i386/signal-defines.sym
+new file mode 100644
+index 0000000..9521bd7
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/signal-defines.sym
 @@ -0,0 +1,10 @@
@@ -144,3 +151,5 @@ t/____longjmp_chk
 +SIGALTSTACK__SS_SP__OFFSET		offsetof(struct sigaltstack, ss_sp)
 +SIGALTSTACK__SS_SIZE__OFFSET		offsetof(struct sigaltstack, ss_size)
 +SIGALTSTACK__SS_FLAGS__OFFSET		offsetof(struct sigaltstack, ss_flags)
+-- 
+tg: (0234227..) t/____longjmp_chk (depends on: baseline)

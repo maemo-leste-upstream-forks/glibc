@@ -1,16 +1,20 @@
-Regenerate errnos.
+Subject: [PATCH] t/regenerate_errno.h
 
-http://www.cygwin.com/ml/libc-alpha/2007-08/msg00050.html
-
-t/regenerate_errno.h
+	* sysdeps/mach/hurd/bits/errno.h: Regenerate.
 
 ---
- sysdeps/mach/hurd/bits/errno.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
 
+The build system will regenerate the file itself, but keeping the in-tree file
+up-to-date avoids having spurious rebuilds due to that.
+
+ sysdeps/mach/hurd/bits/errno.h |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/sysdeps/mach/hurd/bits/errno.h b/sysdeps/mach/hurd/bits/errno.h
+index a7d57ad..3b6fe76 100644
 --- a/sysdeps/mach/hurd/bits/errno.h
 +++ b/sysdeps/mach/hurd/bits/errno.h
-@@ -212,8 +212,8 @@
+@@ -212,8 +212,8 @@ enum __error_t_codes
  #define	EPROTO          _HURD_ERRNO (116)/* Protocol error */
  	ETIME           = _HURD_ERRNO (117),
  #define	ETIME           _HURD_ERRNO (117)/* Timer expired */
@@ -21,7 +25,7 @@ t/regenerate_errno.h
  
  	/* Errors from <mach/message.h>.  */
  	EMACH_SEND_IN_PROGRESS          = 0x10000001,
-@@ -297,7 +297,7 @@
+@@ -297,7 +297,7 @@ enum __error_t_codes
  
  };
  
@@ -30,3 +34,5 @@ t/regenerate_errno.h
  
  /* User-visible type of error codes.  It is ok to use `int' or
     `kern_return_t' for these, but with `error_t' the debugger prints
+-- 
+tg: (0234227..) t/regenerate_errno.h (depends on: baseline)
