@@ -1,18 +1,16 @@
 2007-10-28  Aurelien Jarno  <aurelien@aurel32.net>
 
 	* bits/libc-lock.h (__libc_once_get): New definiton.
-	* linuxthreads/sysdeps/pthread/bits/libc-lock.h: Likewise
 	* nptl/sysdeps/pthread/bits/libc-lock.h: Likewise.
 	* sysdeps/mach/bits/libc-lock.h: Likewise.
 	* sysdeps/mach/hurd/bits/libc-lock.h: Likewise.
 	* sysdeps/posix/getaddrinfo.c (getaddrinfo): Use __libc_once_get
 	  instead of using implementational details.
 
-t/libc_once, except the linuxthread/ part, which is for kfreebsd.
+t/libc_once
 
 ---
  bits/libc-lock.h                              |    3 +++
- linuxthreads/sysdeps/pthread/bits/libc-lock.h |    3 +++
  nptl/sysdeps/pthread/bits/libc-lock.h         |    3 +++
  sysdeps/mach/hurd/bits/libc-lock.h            |    4 ++++
  sysdeps/posix/getaddrinfo.c                   |    2 +-
@@ -30,18 +28,6 @@ t/libc_once, except the linuxthread/ part, which is for kfreebsd.
  
  /* Start a critical region with a cleanup function */
  #define __libc_cleanup_region_start(DOIT, FCT, ARG)			    \
---- a/linuxthreads/sysdeps/pthread/bits/libc-lock.h
-+++ b/linuxthreads/sysdeps/pthread/bits/libc-lock.h
-@@ -242,6 +242,9 @@
-     }									      \
-   } while (0)
- 
-+/* Get once control variable.  */
-+#define __libc_once_get(ONCE_CONTROL) \
-+  ((ONCE_CONTROL) != PTHREAD_ONCE_INIT)
- 
- /* Start critical region with cleanup.  */
- #define __libc_cleanup_region_start(DOIT, FCT, ARG) \
 --- a/nptl/sysdeps/pthread/bits/libc-lock.h
 +++ b/nptl/sysdeps/pthread/bits/libc-lock.h
 @@ -451,6 +451,9 @@
