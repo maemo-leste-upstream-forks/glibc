@@ -1,4 +1,6 @@
-http://sourceware.org/ml/libc-alpha/2011-06/msg00087.html
+Subject: [PATCH] ELFOSABI_GNU
+
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
 binutils started emitting ELF files with ELFOSABI_GNU due to GNU-specific
 ELF extensions. We need to accept loading such binaries on hurd-i386 too.
@@ -15,10 +17,27 @@ ELF extensions. We need to accept loading such binaries on hurd-i386 too.
         declaration.
 	* sysdeps/mach/hurd/i386/init-first.c (_dl_non_dynamic_init): Likewise.
 
-t/elfosabi_gnu, except the first hook which is in cvs.
+---
+
+This is Debian glibc svn r4778 of patches/hurd-i386/submitted-ldsodefs.h.diff.
+
+---
+
+<http://www.bddebian.com:8888/~hurd-web/toolchain/elfosabi_gnu/>
+
+---
+
+TODO.  Can unify GNU/Linux and GNU/Hurd files and put them into sysdeps/gnu/?
+TODO.  Correct some comment strings, s%Linux%GNU.
+
+ sysdeps/mach/hurd/i386/init-first.c    |    3 --
+ sysdeps/mach/hurd/ldsodefs.h           |   52 ++++++++++++++++++++++++++++++++
+ sysdeps/mach/hurd/powerpc/init-first.c |    3 --
+ sysdeps/unix/sysv/linux/ldsodefs.h     |    6 ++--
+ 4 files changed, 55 insertions(+), 9 deletions(-)
 
 diff --git a/sysdeps/mach/hurd/i386/init-first.c b/sysdeps/mach/hurd/i386/init-first.c
-index e79af1d..7c86609 100644
+index 60823bd..a55d8c4 100644
 --- a/sysdeps/mach/hurd/i386/init-first.c
 +++ b/sysdeps/mach/hurd/i386/init-first.c
 @@ -37,9 +37,6 @@ extern void __init_misc (int, char **, char **);
@@ -32,8 +51,9 @@ index e79af1d..7c86609 100644
  
  unsigned int __hurd_threadvar_max;
 diff --git a/sysdeps/mach/hurd/ldsodefs.h b/sysdeps/mach/hurd/ldsodefs.h
-index e69de29..56e4b03 100644
---- a/sysdeps/mach/hurd/ldsodefs.h
+new file mode 100644
+index 0000000..1f6d64f
+--- /dev/null
 +++ b/sysdeps/mach/hurd/ldsodefs.h
 @@ -0,0 +1,52 @@
 +/* Run-time dynamic linker data structures for loaded ELF shared objects.
@@ -127,3 +147,5 @@ index 5d5b1b4..cf20217 100644
    }
  
  #endif /* ldsodefs.h */
+-- 
+tg: (0234227..) t/elfosabi_gnu (depends on: baseline)
