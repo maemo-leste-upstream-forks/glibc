@@ -104,16 +104,21 @@ then
 
 	        if [ -f /usr/share/debconf/confmodule ] ; then
 		    db_version 2.0
-		    db_reset glibc/restart-services
-		    db_set glibc/restart-services "$services"
-		    db_input critical glibc/restart-services || true
+		    db_input critical libraries/restart-without-asking || true
 		    db_go || true
-		    db_get glibc/restart-services
-		    if [ "x$RET" != "x" ]
-		    then
-		        services="$RET"
-		    else
-		    	services=""
+		    db_get libraries/restart-without-asking
+		    if [ "$RET" != true ]; then
+			db_reset glibc/restart-services
+			db_set glibc/restart-services "$services"
+			db_input critical glibc/restart-services || true
+			db_go || true
+			db_get glibc/restart-services
+			if [ "x$RET" != "x" ]
+			then
+			    services="$RET"
+			else
+			    services=""
+			fi
 		    fi
 		else
 		    echo
