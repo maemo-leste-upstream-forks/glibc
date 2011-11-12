@@ -1,0 +1,19 @@
+Use the realtime clock for the monotonic clock. This is of course not a proper
+implementation (which is being done in Mach), but will permit to fix at least
+the iceweasel stack.
+
+---
+ clock_gettime.c |    1 +
+ 1 file changed, 1 insertion(+)
+diff --git a/sysdeps/unix/clock_gettime.c b/sysdeps/unix/clock_gettime.c
+index d467f2b..fcf892a 100644
+--- a/sysdeps/unix/clock_gettime.c
++++ b/sysdeps/unix/clock_gettime.c
+@@ -101,6 +101,7 @@ clock_gettime (clockid_t clock_id, struct timespec *tp)
+ #endif
+ 
+ #ifndef HANDLED_REALTIME
++    case CLOCK_MONOTONIC:
+     case CLOCK_REALTIME:
+       {
+ 	struct timeval tv;
