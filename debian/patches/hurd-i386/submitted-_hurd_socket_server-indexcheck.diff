@@ -1,0 +1,21 @@
+Refuse negative socket domains right away; otherwise, it is possible to read
+and set out-of-bounds locations of the `servers' array (returning the values
+at those invalid memory locations), and even try to deallocate ports with
+random values if the `dead' parameter is different than zero.
+
+* hurd/hurdsock.c (_hurd_socket_server): Check for negative domains.
+--- a/hurd/hurdsock.c
++++ b/hurd/hurdsock.c
+@@ -47,6 +47,12 @@
+ {
+   socket_t server;
+ 
++  if (domain < 0)
++    {
++      errno = EAFNOSUPPORT;
++      return MACH_PORT_NULL;
++    }
++
+   HURD_CRITICAL_BEGIN;
+   __mutex_lock (&lock);
+ 
