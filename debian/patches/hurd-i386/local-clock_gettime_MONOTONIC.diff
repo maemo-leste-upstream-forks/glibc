@@ -3,8 +3,9 @@ implementation (which is being done in Mach), but will permit to fix at least
 the iceweasel stack.
 
 ---
- clock_gettime.c |    1 +
- 1 file changed, 1 insertion(+)
+ posix/sysconf.c      |    2 +-
+ unix/clock_gettime.c |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 diff --git a/sysdeps/unix/clock_gettime.c b/sysdeps/unix/clock_gettime.c
 index d467f2b..fcf892a 100644
 --- a/sysdeps/unix/clock_gettime.c
@@ -17,3 +18,16 @@ index d467f2b..fcf892a 100644
      case CLOCK_REALTIME:
        {
  	struct timeval tv;
+diff --git a/sysdeps/posix/sysconf.c b/sysdeps/posix/sysconf.c
+index e734fdd..a1d3c98 100644
+--- a/sysdeps/posix/sysconf.c
++++ b/sysdeps/posix/sysconf.c
+@@ -989,7 +989,7 @@ __sysconf (name)
+ #endif
+ 
+     case _SC_MONOTONIC_CLOCK:
+-#if _POSIX_MONOTONIC_CLOCK
++#if _POSIX_MONOTONIC_CLOCK > 0
+       return _POSIX_MONOTONIC_CLOCK;
+ #else
+       return -1;
