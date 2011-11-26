@@ -3,8 +3,8 @@ implementation (which is being done in Mach), but will permit to fix at least
 the iceweasel stack.
 
 ---
- posix/sysconf.c      |    2 +-
- unix/clock_gettime.c |    1 +
+ mach/hurd/bits/posix_opt.h |    2 +-
+ unix/clock_gettime.c       |    1 +
  2 files changed, 2 insertions(+), 1 deletion(-)
 diff --git a/sysdeps/unix/clock_gettime.c b/sysdeps/unix/clock_gettime.c
 index d467f2b..fcf892a 100644
@@ -18,16 +18,16 @@ index d467f2b..fcf892a 100644
      case CLOCK_REALTIME:
        {
  	struct timeval tv;
-diff --git a/sysdeps/posix/sysconf.c b/sysdeps/posix/sysconf.c
-index e734fdd..a1d3c98 100644
---- a/sysdeps/posix/sysconf.c
-+++ b/sysdeps/posix/sysconf.c
-@@ -989,7 +989,7 @@ __sysconf (name)
- #endif
+diff --git a/sysdeps/mach/hurd/bits/posix_opt.h b/sysdeps/mach/hurd/bits/posix_opt.h
+index 775c921..0172995 100644
+--- a/sysdeps/mach/hurd/bits/posix_opt.h
++++ b/sysdeps/mach/hurd/bits/posix_opt.h
+@@ -127,7 +127,7 @@
+ #define _POSIX_THREAD_PROCESS_SHARED	-1
  
-     case _SC_MONOTONIC_CLOCK:
--#if _POSIX_MONOTONIC_CLOCK
-+#if _POSIX_MONOTONIC_CLOCK > 0
-       return _POSIX_MONOTONIC_CLOCK;
- #else
-       return -1;
+ /* The monotonic clock might be available.  */
+-#define _POSIX_MONOTONIC_CLOCK	0
++#define _POSIX_MONOTONIC_CLOCK	200809L
+ 
+ /* The clock selection interfaces are available.  */
+ #define _POSIX_CLOCK_SELECTION	200809L
