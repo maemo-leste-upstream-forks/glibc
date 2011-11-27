@@ -1,0 +1,31 @@
+hurd: recvfrom(): take into account null address ports
+
+Some kinds of sockets may return a null address port when calling the
+`socket_recv' RPC, so avoid using it in case an address argument buffer is
+asked to be filled.  In such case, set the length of that address buffer to
+zero.
+
+2011-11-26  Pino Toscano  <toscano.pino@tiscali.it>
+
+	* sysdeps/mach/hurd/recvfrom.c (__recvfrom): Check also for a null
+	address port.  Set `addr_len' to 0 when not filling `addrarg'.
+--- a/sysdeps/mach/hurd/recvfrom.c
++++ b/sysdeps/mach/hurd/recvfrom.c
+@@ -55,7 +55,7 @@
+     return __hurd_sockfail (fd, flags, err);
+ 
+   /* Get address data for the returned address port if requested.  */
+-  if (addr != NULL)
++  if (addr != NULL && addrport != MACH_PORT_NULL)
+     {
+       char *buf = (char *) addr;
+       mach_msg_type_number_t buflen = *addr_len;
+@@ -89,6 +89,8 @@
+       if (buflen > 0)
+ 	addr->sa_family = type;
+     }
++  else if (addr_len != NULL)
++    *addr_len = 0;
+ 
+   __mach_port_deallocate (__mach_task_self (), addrport);
+ 
