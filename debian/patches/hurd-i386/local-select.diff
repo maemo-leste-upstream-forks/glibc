@@ -1,0 +1,27 @@
+http://bugs.debian.org/79358
+
+this is not a proper fix, but should unbreak quite a few things.
+
+-- 
+ hurdselect.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
+diff --git a/hurd/hurdselect.c b/hurd/hurdselect.c
+index a7228f0..7afe22c 100644
+--- a/hurd/hurdselect.c
++++ b/hurd/hurdselect.c
+@@ -75,6 +75,15 @@ _hurd_select (int nfds,
+   if (sigmask && __sigprocmask (SIG_SETMASK, sigmask, &oset))
+     return -1;
+ 
++  if (timeout == NULL)
++    to = 0;
++  else
++    {
++      to = timeout->tv_sec * 1000 + (timeout->tv_nsec + 999999) / 1000000;
++      if (!to)
++	to = 1;
++    }
++
+   if (pollfds)
+     {
+       /* Collect interesting descriptors from the user's `pollfd' array.
