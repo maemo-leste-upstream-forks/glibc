@@ -1,0 +1,61 @@
+2011-12-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+* bits/sigaction.h [__USE_XOPEN2K8]: Define SA_RESTART, SA_NODEFER,
+SA_RESETHAND.
+* sysdeps/mach/hurd/bits/fcntl.h [__USE_XOPEN2K8]: Define O_NOFOLLOW,
+O_DIRECTORY, O_CLOEXEC, F_GETOWN, F_SETOWN, F_DUPFD_CLOEXEC.
+
+diff --git a/bits/sigaction.h b/bits/sigaction.h
+index adcc276..97242a6 100644
+--- a/bits/sigaction.h
++++ b/bits/sigaction.h
+@@ -55,6 +55,8 @@ struct sigaction
+ /* Bits in `sa_flags'.  */
+ #if defined __USE_UNIX98 || defined __USE_MISC
+ # define SA_ONSTACK	0x0001	/* Take signal on signal stack.  */
++#endif
++#if defined __USE_UNIX98 || defined __USE_MISC || defined __USE_XOPEN2K8
+ # define SA_RESTART	0x0002	/* Restart syscall on signal return.  */
+ # define SA_NODEFER	0x0010	/* Don't automatically block the signal when
+ 				    its handler is being executed.  */
+diff --git a/sysdeps/mach/hurd/bits/fcntl.h b/sysdeps/mach/hurd/bits/fcntl.h
+index b4147ce..74cf913 100644
+--- a/sysdeps/mach/hurd/bits/fcntl.h
++++ b/sysdeps/mach/hurd/bits/fcntl.h
+@@ -55,7 +55,9 @@
+ #ifdef __USE_GNU
+ # define O_NOLINK	0x0040	/* No name mappings on final component.  */
+ # define O_NOTRANS	0x0080	/* No translator on final component. */
++#endif
+ 
++#ifdef __USE_XOPEN2K8
+ # define O_NOFOLLOW	0x00100000 /* Produce ENOENT if file is a symlink.  */
+ # define O_DIRECTORY	0x00200000 /* Produce ENOTDIR if not a directory.  */
+ #endif
+@@ -119,7 +121,7 @@
+    once the file has been opened.  */
+ 
+ #define	O_TRUNC		0x00010000 /* Truncate file to zero length.  */
+-#ifdef __USE_GNU
++#ifdef __USE_XOPEN2K8
+ # define O_CLOEXEC	0x00400000 /* Set FD_CLOEXEC.  */
+ #endif
+ 
+@@ -159,7 +161,7 @@
+ #define	F_SETFD		2	/* Set file descriptor flags.  */
+ #define	F_GETFL		3	/* Get file status flags.  */
+ #define	F_SETFL		4	/* Set file status flags.  */
+-#if defined __USE_BSD || defined __USE_UNIX98
++#if defined __USE_BSD || defined __USE_UNIX98 || defined __USE_XOPEN2K8
+ # define F_GETOWN	5	/* Get owner (receiver of SIGIO).  */
+ # define F_SETOWN	6	/* Set owner (receiver of SIGIO).  */
+ #endif
+@@ -167,7 +169,7 @@
+ #define	F_SETLK		8	/* Set record locking info (non-blocking).  */
+ #define	F_SETLKW	9	/* Set record locking info (blocking).  */
+ 
+-#ifdef __USE_GNU
++#ifdef __USE_XOPEN2K8
+ # define F_DUPFD_CLOEXEC 1030	/* Duplicate, set FD_CLOEXEC on new one.  */
+ #endif
+ 
