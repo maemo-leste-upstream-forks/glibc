@@ -192,6 +192,25 @@ $(stamp)install_%: $(stamp)check_%
 	  ;; \
 	esac
 
+	# handle the non-default multilib for arm targets
+	case $(curpass) in arm*) \
+	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \
+	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/$$(basename $(call xx,slibdir)).conf"; \
+	  echo "# Multiarch support" > $$conffile; \
+	  echo "$(call xx,slibdir)" >> $$conffile; \
+	  echo "$(call xx,libdir)" >> $$conffile; \
+	esac
+
+	# ARM: add dynamic linker name for the non-default multilib in ldd
+	if [ $(curpass) = libc ]; then \
+	  case $(DEB_HOST_ARCH) in \
+	    armel) \
+	      sed -i '/RTLDLIST=/s,=\(.*\),="\1 /lib/arm-linux-gnueabihf/ld-linux.so.3",' debian/tmp-$(curpass)/usr/bin/ldd;; \
+	    armhf) \
+	      sed -i '/RTLDLIST=/s,=\(.*\),="\1 /lib/ld-linux.so.3",' debian/tmp-$(curpass)/usr/bin/ldd;; \
+	  esac; \
+	fi
+
 	# Create the ld.so symlink to the multiarch directory
 	if [ $(curpass) = libc ]; then \
 	  rtld_so="$$(LANG=C LC_ALL=C readelf -l debian/tmp-$(curpass)/usr/bin/iconv | grep 'interpreter' | sed -e 's/.*interpreter: \(.*\)]/\1/g')" ; \

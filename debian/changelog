@@ -1,5 +1,23 @@
 eglibc (2.13-22) UNRELEASED; urgency=low
 
+  [ Adam Conrad ]
+  * patches/arm/unsubmitted-ldconfig-cache-abi.diff: New patch from
+    Steve McIntyre that adds tagging to armhf libraries in ld.so.cache
+  * patches/arm/unsubmitted-ldso-abi-check.diff: Another patch from
+    Steve McIntyre, giving ld.so the ability to differentiate between
+    soft and hard-float ABIs and provide sane exits when required.
+  * Merge armel/armhf bi-arch support from Ubuntu, but disable until
+    the armhf bootstrap in Debian has removed /lib/ld-linux.so.3:
+    - Fix install locations for libc6-dev-armel in sysdeps.
+    - Change armel_rtlddir (for libc6-armel) to /lib, as required.
+    - Install /lib/ld-linux.so.3 symlink in libc6-armel.
+    - Install ld.so.conf.d file for the multilib ARM targets.
+  * Add dynamic linker name for the non-default multilib in ARM ldd.
+  * debian/debhelper.in/libc-udeb.install.armhf: Install ld-linux.so.3
+    to the correct location in the udeb, so binaries can find it.
+  * Install /lib/ld-linux.so.3 symlink in libc6:armhf, this will need
+    to be reverted once the rebuild/rebootstrap is completed.
+
   [ Aurelien Jarno ]
   * patches/i386/local-cpuid-level2.diff: fix a typo.  Closes: #609389.
   * Don't ship /usr/share/doc/locales/README.  Closes: #643885, #643887.
