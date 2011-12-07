@@ -195,7 +195,7 @@ $(stamp)install_%: $(stamp)check_%
 	# handle the non-default multilib for arm targets
 	case $(curpass) in arm*) \
 	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \
-	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/$$(basename $(call xx,slibdir)).conf"; \
+	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/zz_$(curpass)-biarch-compat.conf"; \
 	  echo "# Multiarch support" > $$conffile; \
 	  echo "$(call xx,slibdir)" >> $$conffile; \
 	  echo "$(call xx,libdir)" >> $$conffile; \
