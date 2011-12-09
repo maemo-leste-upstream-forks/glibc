@@ -140,9 +140,9 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): debhelper $(patsubst %,
 
 	dh_compress -p$(curpass)
 	dh_fixperms -p$(curpass)
-	find debian/$(curpass) -type f \( -regex '.*lib[0-9]*/ld.*so.*' \
-		-o -regex '.*lib[0-9]*/.*libpthread.*so.*' \
-		-o -regex '.*lib[0-9]*/libc[.-].*so.*' \) \
+	find debian/$(curpass) -type f \( -regex '.*/ld.*so' \
+		-o -regex '.*/libpthread-.*so' \
+		-o -regex '.*/libc-.*so' \) \
 		-exec chmod a+x '{}' ';'
 	dh_installdeb -p$(curpass)
 	# dh_shlibdeps -p$(curpass)
