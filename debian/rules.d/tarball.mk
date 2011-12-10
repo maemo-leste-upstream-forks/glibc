@@ -24,5 +24,5 @@ update-from-upstream-svn:
 	test -n "$(DEB_ORIG_REVISION)"
 	echo "SVN update of $(EGLIBC_SVN)/$(EGLIBC_BRANCH) from revision $(DEB_ORIG_REVISION)" > $(SVN_UPDATES_DIFF)
 	echo "" >> $(SVN_UPDATES_DIFF)
-	svn diff -r$(DEB_ORIG_REVISION) $(EGLIBC_SVN)/$(EGLIBC_BRANCH)/libc | filterdiff --addoldprefix=a/ --addnewprefix=b/ >> $(SVN_UPDATES_DIFF)
+	svn diff -r$(DEB_ORIG_REVISION) $(EGLIBC_SVN)/$(EGLIBC_BRANCH)/libc | filterdiff --addoldprefix=a/ --addnewprefix=b/ -x 'manual/*' >> $(SVN_UPDATES_DIFF)
 	svn diff -r$(DEB_ORIG_REVISION) $(EGLIBC_SVN)/$(EGLIBC_BRANCH)/ports | filterdiff --addoldprefix=a/ports/ --addnewprefix=b/ports/ >> $(SVN_UPDATES_DIFF)
