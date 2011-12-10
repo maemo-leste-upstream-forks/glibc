@@ -101,11 +101,12 @@ RUN_TESTSUITE = yes
 
 # Set CC and CXX for cross-compiling
 ifneq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
-CC     = $(DEB_HOST_GNU_TYPE)-gcc
-CXX    = $(DEB_HOST_GNU_TYPE)-g++
+CC     = $(DEB_HOST_GNU_TYPE)-gcc$(DEB_GCC_VERSION)
+CXX    = $(DEB_HOST_GNU_TYPE)-g++$(DEB_GCC_VERSION)
 else
-CC     = gcc-4.4
-CXX    = g++-4.4
+DEB_GCC_VERSION ?= -4.4
+CC     = gcc$(DEB_GCC_VERSION)
+CXX    = g++$(DEB_GCC_VERSION)
 endif
 
 BUILD_CFLAGS = -O2 -g
