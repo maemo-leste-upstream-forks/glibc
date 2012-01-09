@@ -1,4 +1,4 @@
-eglibc (2.13-17) unstable; urgency=low
+eglibc (2.13-25) unstable; urgency=low
 
   Starting with the eglibc package version 2.13-5, the libraries are 
   shipped in the multiarch directory /lib/<triplet> instead of the more
@@ -10,12 +10,18 @@ eglibc (2.13-17) unstable; urgency=low
   The toolchain in Debian has been updated to cope with that, and most
   build systems should be unaffected. If you are using a non-Debian 
   toolchain to build your software and it is not able to cope with 
-  multiarch, you might try to pass the following option to your 
+  multiarch, you might try to pass the following options to your 
   compiler:
 
     -B/usr/lib/<triplet> -I/usr/include/<triplet>
+  
+  Alternatively if the build system makes hard to pass the above options,
+  you might try to set the LIBRARY_PATH and CPATH environment variables:                                                                                                                                                          
+    LIBRARY_PATH=/usr/lib/<triplet>
+    CPATH=/usr/include/<triplet>
+    export LIBRARY_PATH CPATH
 
- -- Aurelien Jarno <aurel32@debian.org>  Tue, 09 Aug 2011 19:58:28 +0200 
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 09 Jan 2012 12:47:16 +0100 
 
 eglibc (2.13-7) unstable; urgency=low
 
