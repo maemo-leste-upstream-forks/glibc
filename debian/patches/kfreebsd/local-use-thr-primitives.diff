@@ -99,7 +99,24 @@
    char end_padding[];
 --- a/linuxthreads/join.c
 +++ b/linuxthreads/join.c
-@@ -89,6 +89,9 @@
+@@ -76,12 +76,15 @@
+   /* If this is the initial thread, block until all threads have terminated.
+      If another thread calls exit, we'll be terminated from our signal
+      handler. */
+-  if (self == __pthread_main_thread && __pthread_manager_request >= 0) {
++  if (self == __pthread_main_thread)
++  {
++   if (__pthread_manager_request >= 0) {
+     request.req_thread = self;
+     request.req_kind = REQ_MAIN_THREAD_EXIT;
+     TEMP_FAILURE_RETRY(write_not_cancel(__pthread_manager_request,
+ 					(char *)&request, sizeof(request)));
+     suspend(self);
++   }
+     /* Main thread flushes stdio streams and runs atexit functions.
+        It also calls a handler within LinuxThreads which sends a process exit
+        request to the thread manager. */
+@@ -89,6 +92,9 @@
    }
    /* Threads other than the main one  terminate without flushing stdio streams
       or running atexit functions. */
