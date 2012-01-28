@@ -1,24 +1,10 @@
-From feed50101967bd7b97762d68a3b592d9798e6eb2 Mon Sep 17 00:00:00 2001
-From: Mike Frysinger <vapier@gentoo.org>
-Date: Tue, 31 Aug 2010 16:06:02 -0400
-Subject: [PATCH 1/2] linux/alpha: convert from epoll_create2 to epoll_create1
-
-Alpha's epoll.h was missed when epoll_create2 was changed to epoll_create1.
-
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-
 2010-08-31  Mike Frysinger  <vapier@gentoo.org>
 
-	* sysdeps/unix/sysv/linux/alpha/sys/epoll.h (epoll_create2): Delete.
+	* ports/sysdeps/unix/sysv/linux/alpha/sys/epoll.h (epoll_create2): Delete.
 	(epoll_create1): Add.
----
- sysdeps/unix/sysv/linux/alpha/sys/epoll.h |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/sysdeps/unix/sysv/linux/alpha/sys/epoll.h b/sysdeps/unix/sysv/linux/alpha/sys/epoll.h
-index 9f983a5..9177c31 100644
---- a/sysdeps/unix/sysv/linux/alpha/sys/epoll.h
-+++ b/sysdeps/unix/sysv/linux/alpha/sys/epoll.h
+--- a/ports/sysdeps/unix/sysv/linux/alpha/sys/epoll.h
++++ b/ports/sysdeps/unix/sysv/linux/alpha/sys/epoll.h
 @@ -1,4 +1,4 @@
 -/* Copyright (C) 2002-2006, 2007, 2008 Free Software Foundation, Inc.
 +/* Copyright (C) 2002-2008, 2010 Free Software Foundation, Inc.
@@ -46,6 +32,3 @@ index 9f983a5..9177c31 100644
  
  
  /* Manipulate an epoll instance "epfd". Returns 0 in case of success,
--- 
-1.7.6
-
