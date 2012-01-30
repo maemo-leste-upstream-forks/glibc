@@ -1,0 +1,17 @@
+2012-01-16  Ulrich Drepper  <drepper@gmail.com>
+
+	* stdlib/fmtmsg.c (init): Add missing unlock.
+	Patch by Peng Haitao <penght@cn.fujitsu.com>.
+
+
+--- a/stdlib/fmtmsg.c
++++ b/stdlib/fmtmsg.c
+@@ -280,6 +281,8 @@ init (void)
+ 
+ 	  sevlevel_var = end + (*end == ':' ? 1 : 0);
+ 	}
++
++      __libc_lock_unlock (lock);
+     }
+ }
+ 
