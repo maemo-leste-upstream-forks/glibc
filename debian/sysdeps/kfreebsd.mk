@@ -24,14 +24,11 @@ KERNEL_HEADER_DIR = $(stamp)mkincludedir
 $(stamp)mkincludedir:
 	rm -rf debian/include
 	mkdir debian/include
-	ln -s $(KFREEBSD_HEADERS)/bsm debian/include
-	ln -s $(KFREEBSD_HEADERS)/net debian/include
-	ln -s $(KFREEBSD_HEADERS)/netatalk debian/include
-	ln -s $(KFREEBSD_HEADERS)/netipx debian/include
-	ln -s $(KFREEBSD_HEADERS)/nfs debian/include
-	ln -s $(KFREEBSD_HEADERS)/osreldate.h debian/include
-	ln -s $(KFREEBSD_HEADERS)/sys debian/include
-	ln -s $(KFREEBSD_HEADERS)/vm debian/include
+	for file in bsm net netatalk netipx nfs osreldate.h sys x86 vm ; do \
+	    if test -e $(KFREEBSD_HEADERS)/$$file ; then \
+	        ln -s $(KFREEBSD_HEADERS)/$$file debian/include ; \
+	    fi ; \
+	done
 
         # Link all machine directories.  We can't just link machine
         # because of explicit references to <machine-amd64/*> and
