@@ -781,7 +781,7 @@
 +#endif	/* elf.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/errno.h
-@@ -0,0 +1,183 @@
+@@ -0,0 +1,192 @@
 +/*-
 + * Copyright (c) 1982, 1986, 1989, 1993
 + *	The Regents of the University of California.  All rights reserved.
@@ -816,7 +816,7 @@
 + * SUCH DAMAGE.
 + *
 + *	@(#)errno.h	8.5 (Berkeley) 1/21/94
-+ * based on $FreeBSD: src/sys/sys/errno.h,v 1.28 2005/04/02 12:33:28 das Exp $
++ * $FreeBSD$
 + */
 +
 +#ifdef _ERRNO_H
@@ -933,15 +933,24 @@
 +#define	EILSEQ		86		/* Illegal byte sequence */
 +#define	ENOATTR		87		/* Attribute not found */
 +
-+#define EDOOFUS		88		/* Programming error */
++#define	EDOOFUS		88		/* Programming error */
 +
 +#define	EBADMSG		89		/* Bad message */
 +#define	EMULTIHOP	90		/* Multihop attempted */
 +#define	ENOLINK		91		/* Link has been severed */
 +#define	EPROTO		92		/* Protocol error */
++
 +#define	ENOTCAPABLE	93		/* Capabilities insufficient */
 +
 +#define	ELAST		93		/* Must be equal largest errno */
++
++#ifdef _KERNEL
++/* pseudo-errors returned inside kernel to modify return to process */
++#define	ERESTART	(-1)		/* restart syscall */
++#define	EJUSTRETURN	(-2)		/* don't modify regs, just return */
++#define	ENOIOCTL	(-3)		/* ioctl not handled by this layer */
++#define	EDIRIOCTL	(-4)		/* do direct ioctl in GEOM */
++#endif
 +
 +# ifndef __ASSEMBLER__
 +/* Function to get address of global `errno' variable.  */
@@ -20322,7 +20331,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/statfsconv.c
-@@ -0,0 +1,205 @@
+@@ -0,0 +1,203 @@
 +/* Convert between different 'struct statfs' and 'struct statvfs' formats.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -20487,7 +20496,6 @@
 +  p32->f_flag		=
 +      (pk->f_flags & MNT_RDONLY ? ST_RDONLY : 0)
 +    | (pk->f_flags & MNT_NOSUID ? ST_NOSUID : 0)
-+    | (pk->f_flags & MNT_NODEV ? ST_NODEV : 0)
 +    | (pk->f_flags & MNT_NOEXEC ? ST_NOEXEC : 0)
 +    | (pk->f_flags & MNT_SYNCHRONOUS ? ST_SYNCHRONOUS : 0)
 +    | (pk->f_flags & MNT_NOATIME ? ST_NOATIME : 0);
@@ -20520,7 +20528,6 @@
 +  p64->f_flag		=
 +      (pk->f_flags & MNT_RDONLY ? ST_RDONLY : 0)
 +    | (pk->f_flags & MNT_NOSUID ? ST_NOSUID : 0)
-+    | (pk->f_flags & MNT_NODEV ? ST_NODEV : 0)
 +    | (pk->f_flags & MNT_NOEXEC ? ST_NOEXEC : 0)
 +    | (pk->f_flags & MNT_SYNCHRONOUS ? ST_SYNCHRONOUS : 0)
 +    | (pk->f_flags & MNT_NOATIME ? ST_NOATIME : 0);
@@ -20779,7 +20786,7 @@
 +#endif	/* sys/kd.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/mount.h
-@@ -0,0 +1,454 @@
+@@ -0,0 +1,521 @@
 +/* Header file for handling mounted filesystems.  FreeBSD version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -20811,6 +20818,14 @@
 +#include <sys/ucred.h>
 +#include <sys/queue.h>
 +
++/* For getvfsbyname.  */
++#include <stddef.h>
++#include <sys/mount.h>
++#include <sys/sysctl.h>
++#include <errno.h>
++#include <stdlib.h>
++#include <string.h>
++
 +/*
 + * File identifier.
 + * These are unique per filesystem on a single machine.
@@ -20834,45 +20849,44 @@
 +/*
 + * User specifiable flags.
 + */
-+#define	MNT_RDONLY	0x00000001	/* read only filesystem */
-+#define	MNT_SYNCHRONOUS	0x00000002	/* filesystem written synchronously */
-+#define	MNT_NOEXEC	0x00000004	/* can't exec from filesystem */
-+#define	MNT_NOSUID	0x00000008	/* don't honor setuid bits on fs */
-+#define	MNT_NODEV	0x00000010	/* don't interpret special files */
-+#define	MNT_UNION	0x00000020	/* union with underlying filesystem */
-+#define	MNT_ASYNC	0x00000040	/* filesystem written asynchronously */
-+#define	MNT_SUIDDIR	0x00100000	/* special handling of SUID on dirs */
-+#define	MNT_SOFTDEP	0x00200000	/* soft updates being done */
-+#define	MNT_NOSYMFOLLOW	0x00400000	/* do not follow symlinks */
-+#define	MNT_GJOURNAL	0x02000000	/* GEOM journal support enabled */
-+#define	MNT_JAILDEVFS	0x02000000	/* jail-friendly DEVFS behaviour */
-+#define	MNT_MULTILABEL	0x04000000	/* MAC support for individual objects */
-+#define	MNT_ACLS	0x08000000	/* ACL support enabled */
-+#define	MNT_NOATIME	0x10000000	/* disable update of file access time */
-+#define	MNT_NOCLUSTERR	0x40000000	/* disable cluster read */
-+#define	MNT_NOCLUSTERW	0x80000000	/* disable cluster write */
-+#define	MNT_NFS4ACLS	0x00000010
++#define	MNT_RDONLY	0x0000000000000001ULL /* read only filesystem */
++#define	MNT_SYNCHRONOUS	0x0000000000000002ULL /* fs written synchronously */
++#define	MNT_NOEXEC	0x0000000000000004ULL /* can't exec from filesystem */
++#define	MNT_NOSUID	0x0000000000000008ULL /* don't honor setuid fs bits */
++#define	MNT_NFS4ACLS	0x0000000000000010ULL /* enable NFS version 4 ACLs */
++#define	MNT_UNION	0x0000000000000020ULL /* union with underlying fs */
++#define	MNT_ASYNC	0x0000000000000040ULL /* fs written asynchronously */
++#define	MNT_SUIDDIR	0x0000000000100000ULL /* special SUID dir handling */
++#define	MNT_SOFTDEP	0x0000000000200000ULL /* using soft updates */
++#define	MNT_NOSYMFOLLOW	0x0000000000400000ULL /* do not follow symlinks */
++#define	MNT_GJOURNAL	0x0000000002000000ULL /* GEOM journal support enabled */
++#define	MNT_MULTILABEL	0x0000000004000000ULL /* MAC support for objects */
++#define	MNT_ACLS	0x0000000008000000ULL /* ACL support enabled */
++#define	MNT_NOATIME	0x0000000010000000ULL /* dont update file access time */
++#define	MNT_NOCLUSTERR	0x0000000040000000ULL /* disable cluster read */
++#define	MNT_NOCLUSTERW	0x0000000080000000ULL /* disable cluster write */
++#define	MNT_SUJ		0x0000000100000000ULL /* using journaled soft updates */
 +
 +/*
 + * NFS export related mount flags.
 + */
-+#define	MNT_EXRDONLY	0x00000080	/* exported read only */
-+#define	MNT_EXPORTED	0x00000100	/* filesystem is exported */
-+#define	MNT_DEFEXPORTED	0x00000200	/* exported to the world */
-+#define	MNT_EXPORTANON	0x00000400	/* use anon uid mapping for everyone */
-+#define	MNT_EXKERB	0x00000800	/* exported with Kerberos uid mapping */
-+#define	MNT_EXPUBLIC	0x20000000	/* public export (WebNFS) */
++#define	MNT_EXRDONLY	0x0000000000000080ULL	/* exported read only */
++#define	MNT_EXPORTED	0x0000000000000100ULL	/* filesystem is exported */
++#define	MNT_DEFEXPORTED	0x0000000000000200ULL	/* exported to the world */
++#define	MNT_EXPORTANON	0x0000000000000400ULL	/* anon uid mapping for all */
++#define	MNT_EXKERB	0x0000000000000800ULL	/* exported with Kerberos */
++#define	MNT_EXPUBLIC	0x0000000020000000ULL	/* public export (WebNFS) */
 +
 +/*
 + * Flags set by internal operations,
 + * but visible to the user.
 + * XXX some of these are not quite right.. (I've never seen the root flag set)
 + */
-+#define	MNT_LOCAL	0x00001000	/* filesystem is stored locally */
-+#define	MNT_QUOTA	0x00002000	/* quotas are enabled on filesystem */
-+#define	MNT_ROOTFS	0x00004000	/* identifies the root filesystem */
-+#define	MNT_USER	0x00008000	/* mounted by a user */
-+#define	MNT_IGNORE	0x00800000	/* do not show entry in df */
++#define	MNT_LOCAL	0x0000000000001000ULL /* filesystem is stored locally */
++#define	MNT_QUOTA	0x0000000000002000ULL /* quotas are enabled on fs */
++#define	MNT_ROOTFS	0x0000000000004000ULL /* identifies the root fs */
++#define	MNT_USER	0x0000000000008000ULL /* mounted by a user */
++#define	MNT_IGNORE	0x0000000000800000ULL /* do not show entry in df */
 +
 +/*
 + * Mask of flags that are visible to statfs().
@@ -20880,22 +20894,23 @@
 + * but the 'mount' program may need changing to handle this.
 + */
 +#define	MNT_VISFLAGMASK	(MNT_RDONLY	| MNT_SYNCHRONOUS | MNT_NOEXEC	| \
-+			MNT_NOSUID	| MNT_NODEV	| MNT_UNION	| \
++			MNT_NOSUID	| MNT_UNION	| MNT_SUJ	| \
 +			MNT_ASYNC	| MNT_EXRDONLY	| MNT_EXPORTED	| \
 +			MNT_DEFEXPORTED	| MNT_EXPORTANON| MNT_EXKERB	| \
 +			MNT_LOCAL	| MNT_USER	| MNT_QUOTA	| \
 +			MNT_ROOTFS	| MNT_NOATIME	| MNT_NOCLUSTERR| \
 +			MNT_NOCLUSTERW	| MNT_SUIDDIR	| MNT_SOFTDEP	| \
 +			MNT_IGNORE	| MNT_EXPUBLIC	| MNT_NOSYMFOLLOW | \
-+			MNT_JAILDEVFS	| MNT_MULTILABEL | MNT_ACLS)
++			MNT_GJOURNAL	| MNT_MULTILABEL | MNT_ACLS	| \
++			MNT_NFS4ACLS)
 +
 +/* Mask of flags that can be updated. */
-+#define	MNT_UPDATEMASK (MNT_NOSUID	| MNT_NOEXEC	| MNT_NODEV	| \
++#define	MNT_UPDATEMASK (MNT_NOSUID	| MNT_NOEXEC	| \
 +			MNT_SYNCHRONOUS	| MNT_UNION	| MNT_ASYNC	| \
 +			MNT_NOATIME | \
-+			MNT_NOSYMFOLLOW	| MNT_IGNORE	| MNT_JAILDEVFS	| \
++			MNT_NOSYMFOLLOW	| MNT_IGNORE	| \
 +			MNT_NOCLUSTERR	| MNT_NOCLUSTERW | MNT_SUIDDIR	| \
-+			MNT_ACLS	| MNT_USER)
++			MNT_ACLS	| MNT_USER | MNT_NFS4ACLS)
 +
 +/*
 + * External filesystem command modifier flags.
@@ -21127,8 +21142,67 @@
 +int	nmount(struct iovec *, unsigned int, int);
 +int	unmount(const char *, int);
 +
-+/* C library stuff */
-+int	getvfsbyname(const char *, struct xvfsconf *);
++/*
++ * Copyright (c) 1995
++ *	The Regents of the University of California.  All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 4. Neither the name of the University nor the names of its contributors
++ *    may be used to endorse or promote products derived from this software
++ *    without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ */
++
++/*
++ * Given a filesystem name, determine if it is resident in the kernel,
++ * and if it is resident, return its xvfsconf structure.
++ */
++static inline int
++getvfsbyname(const char *fsname, struct xvfsconf *vfcp)
++{
++	struct xvfsconf *xvfsp;
++	size_t buflen;
++	int cnt, i;
++
++	if (sysctlbyname("vfs.conflist", NULL, &buflen, NULL, 0) < 0)
++		return (-1);
++	xvfsp = malloc(buflen);
++	if (xvfsp == NULL)
++		return (-1);
++	if (sysctlbyname("vfs.conflist", xvfsp, &buflen, NULL, 0) < 0) {
++		free(xvfsp);
++		return (-1);
++	}
++	cnt = buflen / sizeof(struct xvfsconf);
++	for (i = 0; i < cnt; i++) {
++		if (strcmp(fsname, xvfsp[i].vfc_name) == 0) {
++			memcpy(vfcp, xvfsp + i, sizeof(struct xvfsconf));
++			free(xvfsp);
++			return (0);
++		}
++	}
++	free(xvfsp);
++	errno = ENOENT;
++	return (-1);
++}
 +
 +/* getfsstat() appears in BSD 4.4.  A variant of this API is found on OSF/1,
 +   but on that system the user also needs to include <sys/fs_types.h>.  */
@@ -21236,7 +21310,7 @@
 +#endif /* _SYS_MOUNT_H */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/param.h
-@@ -0,0 +1,239 @@
+@@ -0,0 +1,242 @@
 +/* Copyright (C) 1995,1996,1997,2000,2001,2003 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -21280,6 +21354,9 @@
 +/* Some inet code expects that this file defines the 'u_int32_t' type.  */
 +#include <sys/types.h>
 +#include <stdint.h>
++
++/* FreeBSD code expects that this file implicitly defines SIG* macros.  */
++#include <signal.h>
 +
 +/*
 + * Machine-independent constants (some used in following include files).
@@ -22011,27 +22088,17 @@
 +#endif /* sys/swap.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h
-@@ -0,0 +1,451 @@
-+/* Copyright (C) 2002 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
-+
+@@ -0,0 +1,486 @@
 +#ifndef _SYSCALL_H
 +#define _SYSCALL_H	1
++
++/*
++ * System call numbers.
++ *
++ * DO NOT EDIT-- this file is automatically generated.
++ * $FreeBSD$
++ * created from FreeBSD: head/sys/kern/syscalls.master 224987 2011-08-18 22:51:30Z jonathan 
++ */
 +
 +#define	SYS_syscall	0
 +#define	SYS_exit	1
@@ -22050,7 +22117,7 @@
 +#define	SYS_mknod	14
 +#define	SYS_chmod	15
 +#define	SYS_chown	16
-+#define	SYS_obreak	17
++#define	SYS_break	17
 +#define	SYS_freebsd4_getfsstat	18
 +				/* 19 is old lseek */
 +#define	SYS_getpid	20
@@ -22180,9 +22247,8 @@
 +#define	SYS_setsid	147
 +#define	SYS_quotactl	148
 +				/* 149 is old quota */
-+
-+#define SYS_nlm_syscall	154
 +				/* 150 is old getsockname */
++#define	SYS_nlm_syscall	154
 +#define	SYS_nfssvc	155
 +				/* 156 is old getdirentries */
 +#define	SYS_freebsd4_statfs	157
@@ -22199,6 +22265,7 @@
 +#define	SYS_shmsys	171
 +#define	SYS_freebsd6_pread	173
 +#define	SYS_freebsd6_pwrite	174
++#define	SYS_setfib	175
 +#define	SYS_ntp_adjtime	176
 +#define	SYS_setgid	181
 +#define	SYS_setegid	182
@@ -22216,22 +22283,22 @@
 +#define	SYS_freebsd6_lseek	199
 +#define	SYS_freebsd6_truncate	200
 +#define	SYS_freebsd6_ftruncate	201
-+#define	SYS_sysctl	202
++#define	SYS___sysctl	202
 +#define	SYS_mlock	203
 +#define	SYS_munlock	204
 +#define	SYS_undelete	205
 +#define	SYS_futimes	206
 +#define	SYS_getpgid	207
 +#define	SYS_poll	209
-+#define	SYS_semctl	220
++#define	SYS_freebsd7___semctl	220
 +#define	SYS_semget	221
 +#define	SYS_semop	222
-+#define	SYS_msgctl	224
++#define	SYS_freebsd7_msgctl	224
 +#define	SYS_msgget	225
 +#define	SYS_msgsnd	226
 +#define	SYS_msgrcv	227
 +#define	SYS_shmat	228
-+#define	SYS_shmctl	229
++#define	SYS_freebsd7_shmctl	229
 +#define	SYS_shmdt	230
 +#define	SYS_shmget	231
 +#define	SYS_clock_gettime	232
@@ -22291,7 +22358,7 @@
 +				/* 323 is obsolete thr_wakeup */
 +#define	SYS_mlockall	324
 +#define	SYS_munlockall	325
-+#define	SYS_getcwd	326
++#define	SYS___getcwd	326
 +#define	SYS_sched_setparam	327
 +#define	SYS_sched_getparam	328
 +#define	SYS_sched_setscheduler	329
@@ -22304,6 +22371,7 @@
 +#define	SYS_freebsd4_sendfile	336
 +#define	SYS_kldsym	337
 +#define	SYS_jail	338
++#define	SYS_nnpfs_syscall	339
 +#define	SYS_sigprocmask	340
 +#define	SYS_sigsuspend	341
 +#define	SYS_freebsd4_sigaction	342
@@ -22311,14 +22379,14 @@
 +#define	SYS_freebsd4_sigreturn	344
 +#define	SYS_sigtimedwait	345
 +#define	SYS_sigwaitinfo	346
-+#define	SYS_acl_get_file	347
-+#define	SYS_acl_set_file	348
-+#define	SYS_acl_get_fd	349
-+#define	SYS_acl_set_fd	350
-+#define	SYS_acl_delete_file	351
-+#define	SYS_acl_delete_fd	352
-+#define	SYS_acl_aclcheck_file	353
-+#define	SYS_acl_aclcheck_fd	354
++#define	SYS___acl_get_file	347
++#define	SYS___acl_set_file	348
++#define	SYS___acl_get_fd	349
++#define	SYS___acl_set_fd	350
++#define	SYS___acl_delete_file	351
++#define	SYS___acl_delete_fd	352
++#define	SYS___acl_aclcheck_file	353
++#define	SYS___acl_aclcheck_fd	354
 +#define	SYS_extattrctl	355
 +#define	SYS_extattr_set_file	356
 +#define	SYS_extattr_get_file	357
@@ -22331,16 +22399,17 @@
 +#define	SYS_extattr_set_fd	371
 +#define	SYS_extattr_get_fd	372
 +#define	SYS_extattr_delete_fd	373
-+#define	SYS_setugid	374
-+#define	SYS_nfsclnt	375
++#define	SYS___setugid	374
++#define SYS_nfsclnt	375
 +#define	SYS_eaccess	376
++#define	SYS_afs3_syscall	377
 +#define	SYS_nmount	378
-+#define	SYS_mac_get_proc	384
-+#define	SYS_mac_set_proc	385
-+#define	SYS_mac_get_fd	386
-+#define	SYS_mac_get_file	387
-+#define	SYS_mac_set_fd	388
-+#define	SYS_mac_set_file	389
++#define	SYS___mac_get_proc	384
++#define	SYS___mac_set_proc	385
++#define	SYS___mac_get_fd	386
++#define	SYS___mac_get_file	387
++#define	SYS___mac_set_fd	388
++#define	SYS___mac_set_file	389
 +#define	SYS_kenv	390
 +#define	SYS_lchflags	391
 +#define	SYS_uuidgen	392
@@ -22359,23 +22428,23 @@
 +#define	SYS_ksem_unlink	406
 +#define	SYS_ksem_getvalue	407
 +#define	SYS_ksem_destroy	408
-+#define	SYS_mac_get_pid	409
-+#define	SYS_mac_get_link	410
-+#define	SYS_mac_set_link	411
++#define	SYS___mac_get_pid	409
++#define	SYS___mac_get_link	410
++#define	SYS___mac_set_link	411
 +#define	SYS_extattr_set_link	412
 +#define	SYS_extattr_get_link	413
 +#define	SYS_extattr_delete_link	414
-+#define	SYS_mac_execve	415
++#define	SYS___mac_execve	415
 +#define	SYS_sigaction	416
 +#define	SYS_sigreturn	417
 +#define	SYS_getcontext	421
 +#define	SYS_setcontext	422
 +#define	SYS_swapcontext	423
 +#define	SYS_swapoff	424
-+#define	SYS_acl_get_link	425
-+#define	SYS_acl_set_link	426
-+#define	SYS_acl_delete_link	427
-+#define	SYS_acl_aclcheck_link	428
++#define	SYS___acl_get_link	425
++#define	SYS___acl_set_link	426
++#define	SYS___acl_delete_link	427
++#define	SYS___acl_aclcheck_link	428
 +#define	SYS_sigwait	429
 +#define	SYS_thr_create	430
 +#define	SYS_thr_exit	431
@@ -22451,16 +22520,59 @@
 +#define	SYS_jail_get	506
 +#define	SYS_jail_set	507
 +#define	SYS_jail_remove	508
++#define	SYS_closefrom	509
++#define	SYS___semctl	510
++#define	SYS_msgctl	SYS_freebsd7_msgctl
++#define	SYS_shmctl	SYS_freebsd7_shmctl
++#define	SYS_lpathconf	513
++#define	SYS_cap_new	514
++#define	SYS_cap_getrights	515
++#define	SYS_cap_enter	516
++#define	SYS_cap_getmode	517
++#define	SYS_pdfork	518
++#define	SYS_pdkill	519
++#define	SYS_pdgetpid	520
 +#define	SYS_pselect	522
-+#define SYS_getloginclass	523
-+#define SYS_setloginclass	524
-+#define SYS_rctl_get_racct	525
-+#define SYS_rctl_get_rules	526
-+#define SYS_rctl_get_limits	527
-+#define SYS_rctl_add_rule	528
-+#define SYS_rctl_remove_rule	529
++#define	SYS_getloginclass	523
++#define	SYS_setloginclass	524
++#define	SYS_rctl_get_racct	525
++#define	SYS_rctl_get_rules	526
++#define	SYS_rctl_get_limits	527
++#define	SYS_rctl_add_rule	528
++#define	SYS_rctl_remove_rule	529
 +#define SYS_posix_fallocate	530
++#define SYS_posix_fadvise	531
 +#define	SYS_MAXSYSCALL	532
++
++#define SYS_obreak	SYS_break
++#define SYS_sysctl	SYS___sysctl
++#define SYS_getcwd	SYS___getcwd
++#define SYS_setugid	SYS___setugid
++#define SYS_semctl	SYS_freebsd7___semctl
++
++#define SYS_acl_get_file	SYS___acl_get_file
++#define SYS_acl_set_file	SYS___acl_set_file
++#define SYS_acl_get_fd		SYS___acl_get_fd
++#define SYS_acl_set_fd		SYS___acl_set_fd
++#define SYS_acl_delete_file	SYS___acl_delete_file
++#define SYS_acl_delete_fd	SYS___acl_delete_fd
++#define SYS_acl_aclcheck_file	SYS___acl_aclcheck_file
++#define SYS_acl_aclcheck_fd	SYS___acl_aclcheck_fd
++#define SYS_acl_get_link	SYS___acl_get_link
++#define SYS_acl_set_link	SYS___acl_set_link
++#define SYS_acl_delete_link	SYS___acl_delete_link
++#define SYS_acl_aclcheck_link	SYS___acl_aclcheck_link
++
++#define SYS_mac_get_proc	SYS___mac_get_proc
++#define SYS_mac_set_proc	SYS___mac_set_proc
++#define SYS_mac_get_fd		SYS___mac_get_fd
++#define SYS_mac_get_file	SYS___mac_get_file
++#define SYS_mac_set_fd		SYS___mac_set_fd
++#define SYS_mac_set_file	SYS___mac_set_file
++#define SYS_mac_get_pid		SYS___mac_get_pid
++#define SYS_mac_get_link	SYS___mac_get_link
++#define SYS_mac_set_link	SYS___mac_set_link
++#define SYS_mac_execve		SYS___mac_execve
 +
 +#endif
 --- /dev/null
@@ -23064,7 +23176,7 @@
 +
 +/* Read or write system parameters.  */
 +int
-+__sysctlbyname (const char *name, void *oldval, size_t *oldlenp, void *newval, size_t newlen)
++__sysctlbyname (const char *name, void *oldval, size_t *oldlenp, const void *newval, size_t newlen)
 +{
 +  int request[CTL_MAXNAME+2];
 +  size_t requestlen = CTL_MAXNAME+2;
