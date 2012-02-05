@@ -3110,7 +3110,7 @@
 +#endif /* ! _SIGSET_H_fns.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/socket.h
-@@ -0,0 +1,388 @@
+@@ -0,0 +1,397 @@
 +/* System-specific socket constants and types.  FreeBSD version.
 +   Copyright (C) 1991-1992,1994-1999,2000-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3167,6 +3167,15 @@
 +  SOCK_SEQPACKET = 5		/* Sequenced, reliable, connection-based,
 +				   datagrams of fixed maximum length.  */
 +#define SOCK_SEQPACKET SOCK_SEQPACKET
++};
++
++/*
++ * Structure used by kernel to pass protocol
++ * information in raw sockets.
++ */
++struct sockproto {
++	unsigned short	sp_family;		/* address family */
++	unsigned short	sp_protocol;		/* protocol */
 +};
 +
 +/* Protocol families.  */
@@ -21184,7 +21193,7 @@
 +
 +	if (sysctlbyname("vfs.conflist", NULL, &buflen, NULL, 0) < 0)
 +		return (-1);
-+	xvfsp = malloc(buflen);
++	xvfsp = (struct xvfsconf *) malloc(buflen);
 +	if (xvfsp == NULL)
 +		return (-1);
 +	if (sysctlbyname("vfs.conflist", xvfsp, &buflen, NULL, 0) < 0) {
