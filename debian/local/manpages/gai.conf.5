@@ -51,7 +51,7 @@ value.
 .TP
 \fBprecedence\fR \fInetmask\fR \fIprecedence\fR
 This  keyword is similar to \fBlabel\fR but instead the value is added
-to the precendence table as specified in RFC 3484.  Once again, the
+to the precedence table as specified in RFC 3484.  Once again, the
 presence of a single \fBprecedence\fR line in the configuration file
 causes the default table to not be used.
 
@@ -62,6 +62,12 @@ file has been changes since the last time it was read.  If the value is
 `\fByes\fR' the file is re-read.  This might cause problems in multi-threaded
 applications and is generally a bad idea.  The default is `\fBno\fR'.
 
+.TP
+\fBscopev4\fR \fImask\fR \fIvalue\fR
+Add another rule to the RFC 3484 scope table for IPv4 address.
+By default the scope IDs described in section 3.2 in 
+RFC 3438 are used. 
+Changing these defaults should hardly ever be necessary.
 
 .SH EXAMPLE
 
@@ -74,11 +80,11 @@ label  ::/0          1
 label  2002::/16     2
 label ::/96          3
 label ::ffff:0:0/96  4
-precendence  ::1/128       50
-precendence  ::/0          40
-precendence  2002::/16     30
-precendence ::/96          20
-precendence ::ffff:0:0/96  10
+precedence  ::1/128       50
+precedence  ::/0          40
+precedence  2002::/16     30
+precedence ::/96          20
+precedence ::ffff:0:0/96  10
 
 
 .SH FILES
