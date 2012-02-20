@@ -1,16 +1,24 @@
-http://cygwin.com/ml/libc-alpha/2011-12/msg00012.html
-
-_hurd_select: check for invalid parameter values
+From: Pino Toscano <toscano.pino@tiscali.it>
+Subject: [PATCH] _hurd_select: check for invalid parameter values
 
 Check for invalid values of the `timeout' and `nfds' parameters; move the
 calculation of `to' right after the validation of `timeout'.
 
 2011-11-26  Pino Toscano  <toscano.pino@tiscali.it>
 
-	* hurd/hurdselect.c (_hurd_select): Return EINVAL for negative
-	`timeout' values.
-	Return EINVAL for `nfds' values either negative or greater than
-	FD_SETSIZE.
+        * hurd/hurdselect.c (_hurd_select): Return EINVAL for negative
+        `timeout' values.
+        Return EINVAL for `nfds' values either negative or greater than
+        FD_SETSIZE.
+
+---
+http://cygwin.com/ml/libc-alpha/2011-12/msg00012.html
+
+ hurd/hurdselect.c |   23 +++++++++++++++++++----
+ 1 files changed, 19 insertions(+), 4 deletions(-)
+
+diff --git a/hurd/hurdselect.c b/hurd/hurdselect.c
+index a7228f0..ccc275d 100644
 --- a/hurd/hurdselect.c
 +++ b/hurd/hurdselect.c
 @@ -50,10 +50,7 @@ _hurd_select (int nfds,
@@ -50,3 +58,5 @@ calculation of `to' right after the validation of `timeout'.
    if (sigmask && __sigprocmask (SIG_SETMASK, sigmask, &oset))
      return -1;
  
+-- 
+tg: (0234227..) t/select-inputcheck (depends on: baseline)

@@ -1,17 +1,21 @@
-Unwind resume support
-
-No topgit branch, TODO.
+Subject: [PATCH] Unwind resume support
 
 ---
  sysdeps/mach/hurd/Makefile           |   12 ++++++
- sysdeps/mach/hurd/rt-unwind-resume.c |    1 
- sysdeps/mach/hurd/unwind-resume.c    |   64 +++++++++++++++++++++++++++++++++++
- 3 files changed, 77 insertions(+)
+ sysdeps/mach/hurd/rt-unwind-resume.c |    1 +
+ sysdeps/mach/hurd/unwind-resume.c    |   64 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 77 insertions(+), 0 deletions(-)
 
+diff --git a/sysdeps/mach/hurd/rt-unwind-resume.c b/sysdeps/mach/hurd/rt-unwind-resume.c
+new file mode 100644
+index 0000000..743e675
 --- /dev/null
 +++ b/sysdeps/mach/hurd/rt-unwind-resume.c
 @@ -0,0 +1 @@
 +#include <unwind-resume.c>
+diff --git a/sysdeps/mach/hurd/unwind-resume.c b/sysdeps/mach/hurd/unwind-resume.c
+new file mode 100644
+index 0000000..088f4c6
 --- /dev/null
 +++ b/sysdeps/mach/hurd/unwind-resume.c
 @@ -0,0 +1,64 @@
@@ -79,9 +83,11 @@ No topgit branch, TODO.
 +  return libgcc_s_personality (version, actions, exception_class,
 +			       ue_header, context);
 +}
+diff --git a/sysdeps/mach/hurd/Makefile b/sysdeps/mach/hurd/Makefile
+index 93058ff..c0b1400 100644
 --- a/sysdeps/mach/hurd/Makefile
 +++ b/sysdeps/mach/hurd/Makefile
-@@ -211,4 +211,16 @@
+@@ -207,4 +207,16 @@ sysdep_headers += net/ethernet.h net/if_arp.h net/if_ether.h net/if_ppp.h \
  		  net/route.h
  endif
  
@@ -98,3 +104,5 @@ No topgit branch, TODO.
 +endif
 +
  endif	# in-Makerules
+-- 
+tg: (0234227..) t/unwind-resume (depends on: baseline)

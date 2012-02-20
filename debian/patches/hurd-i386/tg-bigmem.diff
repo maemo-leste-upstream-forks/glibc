@@ -1,16 +1,17 @@
-Allow the kernel to start earlier than VM_MAX_ADDRESS
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Allow the kernel to start earlier than VM_MAX_ADDRESS
 
 A bit hackish.
 
-No topgit branch, TODO.
-
 ---
  sysdeps/mach/hurd/dl-sysdep.c |   26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ 1 files changed, 20 insertions(+), 6 deletions(-)
 
+diff --git a/sysdeps/mach/hurd/dl-sysdep.c b/sysdeps/mach/hurd/dl-sysdep.c
+index 6f27874..2923832 100644
 --- a/sysdeps/mach/hurd/dl-sysdep.c
 +++ b/sysdeps/mach/hurd/dl-sysdep.c
-@@ -105,12 +105,26 @@
+@@ -102,12 +102,26 @@ static void fmh(void) {
  	max=a; break;}
        fmha=a+=fmhs;}
      if (err) assert(err==KERN_NO_SPACE);
@@ -43,3 +44,5 @@ No topgit branch, TODO.
    }
  /* XXX loser kludge for vm_map kernel bug */
  #endif
+-- 
+tg: (0234227..) t/bigmem (depends on: baseline)

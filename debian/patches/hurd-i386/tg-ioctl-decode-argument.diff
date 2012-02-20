@@ -1,4 +1,5 @@
-=http://www.sourceware.org/bugzilla/show_bug.cgi?id=766
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] ioctl() incorrectly decodes argument
 
 2005-07-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
@@ -8,16 +9,18 @@
 
         * ioctls.h (_IOIW): New macro for immediate-write ioctls.
 
-No topgit branch, TODO.
-
 ---
- sysdeps/mach/hurd/bits/ioctls.h |    1 +
+http://www.sourceware.org/bugzilla/show_bug.cgi?id=766
+
  sysdeps/mach/hurd/ioctl.c       |   16 ++++++++++------
+ sysdeps/mach/hurd/bits/ioctls.h |    1 +
  2 files changed, 11 insertions(+), 6 deletions(-)
 
+diff --git a/sysdeps/mach/hurd/ioctl.c b/sysdeps/mach/hurd/ioctl.c
+index bcc78bc..769eb68 100644
 --- a/sysdeps/mach/hurd/ioctl.c
 +++ b/sysdeps/mach/hurd/ioctl.c
-@@ -89,7 +89,7 @@
+@@ -89,7 +89,7 @@ __ioctl (int fd, unsigned long int request, ...)
    void *p;
  #endif
  
@@ -26,7 +29,7 @@ No topgit branch, TODO.
  
    error_t err;
  
-@@ -140,7 +140,7 @@
+@@ -140,7 +140,7 @@ __ioctl (int fd, unsigned long int request, ...)
  	  in (_IOT_COUNT1 (type), _IOT_TYPE1 (type));
  	  in (_IOT_COUNT2 (type), _IOT_TYPE2 (type));
  	}
@@ -35,7 +38,7 @@ No topgit branch, TODO.
  	{
  	  /* The RPC takes a single integer_t argument.
  	     Rather than pointing to the value, ARG is the value itself.  */
-@@ -209,11 +209,15 @@
+@@ -209,11 +209,15 @@ __ioctl (int fd, unsigned long int request, ...)
        return msg.header.RetCode;
      }
  
@@ -55,9 +58,11 @@ No topgit branch, TODO.
  
    {
      /* Check for a registered handler for REQUEST.  */
+diff --git a/sysdeps/mach/hurd/bits/ioctls.h b/sysdeps/mach/hurd/bits/ioctls.h
+index 8718aac..d35e272 100644
 --- a/sysdeps/mach/hurd/bits/ioctls.h
 +++ b/sysdeps/mach/hurd/bits/ioctls.h
-@@ -158,6 +158,7 @@
+@@ -158,6 +158,7 @@ enum __ioctl_datum { IOC_8, IOC_16, IOC_32, IOC_64 };
     _IOT_foobar is defined either in this file,
     or where struct foobar is defined.  */
  #define	_IO(g, n)	_IOC (IOC_VOID, (g), (n), 0)
@@ -65,3 +70,5 @@ No topgit branch, TODO.
  #define	_IOR(g, n, t)	_IOC (IOC_OUT, (g), (n), _IOC_ENCODE_TYPE (t))
  #define	_IOW(g, n, t)	_IOC (IOC_IN, (g), (n), _IOC_ENCODE_TYPE (t))
  #define	_IOWR(g, n, t)	_IOC (IOC_INOUT, (g), (n), _IOC_ENCODE_TYPE (t))
+-- 
+tg: (0234227..) t/ioctl_decode_argument (depends on: baseline)

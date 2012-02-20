@@ -1,15 +1,18 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Fix installation of locales-all
+
 Dirty hack to fix installation of locales-all: instead of just locking the
 archive extension (which is not supported on hurd-i386), lock it all.
 
-No topgit branch, TODO.
-
 ---
  locale/programs/locarchive.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
+diff --git a/locale/programs/locarchive.c b/locale/programs/locarchive.c
+index 770a731..4af9fe1 100644
 --- a/locale/programs/locarchive.c
 +++ b/locale/programs/locarchive.c
-@@ -416,7 +416,16 @@
+@@ -414,7 +414,16 @@ enlarge_archive (struct locarhandle *ah, const struct locarhead *head)
      }
  
    /* Lock the new file.  */
@@ -26,7 +29,7 @@ No topgit branch, TODO.
      {
        int errval = errno;
        unlink (fname);
-@@ -564,7 +573,16 @@
+@@ -560,7 +569,16 @@ open_archive (struct locarhandle *ah, bool readonly)
  	error (EXIT_FAILURE, errno, _("cannot stat locale archive \"%s\""),
  	       archivefname);
  
@@ -43,3 +46,5 @@ No topgit branch, TODO.
  	{
  	  close (fd);
  
+-- 
+tg: (0234227..) t/locarchive (depends on: baseline)

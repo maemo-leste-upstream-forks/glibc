@@ -1,33 +1,39 @@
-http://cygwin.ru/ml/libc-alpha/2010-01/msg00012.html
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Update posix_opt.h
+
+The patch below brings Hurd's posix_opt.h up to date with newer standard
+macros.
 
 2010-01-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
         * posix/tst-sysconf.c (posix_options): Only use
         _POSIX_PRIORITIZED_IO, _POSIX_PRIORITY_SCHEDULING, and
         _POSIX_SYNCHRONIZED_IO when they are defined
-	* sysdeps/mach/hurd/bits/posix_opt.h:
-	(_POSIX_PRIORITY_SCHEDULING): Undefine macro.
-	(_XOPEN_REALTIME): Undefine macro.
-	(_XOPEN_REALTIME_THREADS): Undefine macro.
-	(_XOPEN_SHM): Undefine macro.
-	[__USE_XOPEN2K8] (_POSIX_THREAD_ROBUST_PRIO_INHERIT): Define
-	macro to -1.
-	[__USE_XOPEN2K8] (_POSIX_THREAD_ROBUST_PRIO_PROTECT): Define
-	macro to -1.
-	(_POSIX_ASYNC_IO): Undefine macro.
-	(_POSIX_PRIORITIZED_IO): Undefine macro.
-	(_POSIX_SPIN_LOCKS): Define macro to -1.
-
-No topgit branch, TODO.
+        * sysdeps/mach/hurd/bits/posix_opt.h:
+        (_POSIX_PRIORITY_SCHEDULING): Undefine macro.
+        (_XOPEN_REALTIME): Undefine macro.
+        (_XOPEN_REALTIME_THREADS): Undefine macro.
+        (_XOPEN_SHM): Undefine macro.
+        [__USE_XOPEN2K8] (_POSIX_THREAD_ROBUST_PRIO_INHERIT): Define
+        macro to -1.
+        [__USE_XOPEN2K8] (_POSIX_THREAD_ROBUST_PRIO_PROTECT): Define
+        macro to -1.
+        (_POSIX_ASYNC_IO): Undefine macro.
+        (_POSIX_PRIORITIZED_IO): Undefine macro.
+        (_POSIX_SPIN_LOCKS): Define macro to -1.
 
 ---
+http://cygwin.com/ml/libc-alpha/2010-01/msg00012.html
+
  posix/tst-sysconf.c                |    6 ++++++
  sysdeps/mach/hurd/bits/posix_opt.h |   28 +++++++++++++++++++++++-----
  2 files changed, 29 insertions(+), 5 deletions(-)
 
+diff --git a/posix/tst-sysconf.c b/posix/tst-sysconf.c
+index e297229..105c7c2 100644
 --- a/posix/tst-sysconf.c
 +++ b/posix/tst-sysconf.c
-@@ -29,8 +29,12 @@
+@@ -29,8 +29,12 @@ static struct
      N (MEMORY_PROTECTION),
      N (MESSAGE_PASSING),
      N (MONOTONIC_CLOCK),
@@ -40,7 +46,7 @@ No topgit branch, TODO.
      N (RAW_SOCKETS),
      N (READER_WRITER_LOCKS),
      N (REALTIME_SIGNALS),
-@@ -42,7 +46,9 @@
+@@ -42,7 +46,9 @@ static struct
      N (SPAWN),
      N (SPIN_LOCKS),
      N (SPORADIC_SERVER),
@@ -50,6 +56,8 @@ No topgit branch, TODO.
      N (THREAD_ATTR_STACKADDR),
      N (THREAD_ATTR_STACKSIZE),
      N (THREAD_CPUTIME),
+diff --git a/sysdeps/mach/hurd/bits/posix_opt.h b/sysdeps/mach/hurd/bits/posix_opt.h
+index 775c921..4c1b06b 100644
 --- a/sysdeps/mach/hurd/bits/posix_opt.h
 +++ b/sysdeps/mach/hurd/bits/posix_opt.h
 @@ -31,6 +31,9 @@
@@ -122,3 +130,5 @@ No topgit branch, TODO.
 -
 -
  #endif /* bits/posix_opt.h */
+-- 
+tg: (0234227..) t/posix_opt.h (depends on: baseline)

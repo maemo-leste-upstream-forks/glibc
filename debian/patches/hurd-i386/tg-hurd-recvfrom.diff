@@ -1,6 +1,5 @@
-http://cygwin.com/ml/libc-alpha/2011-11/msg00089.html
-
-hurd: recvfrom(): take into account null address ports
+From: Pino Toscano  <toscano.pino@tiscali.it>
+Subject: [PATCH] recvfrom(): take into account null address ports
 
 Some kinds of sockets may return a null address port when calling the
 `socket_recv' RPC, so avoid using it in case an address argument buffer is
@@ -9,11 +8,21 @@ zero.
 
 2011-11-26  Pino Toscano  <toscano.pino@tiscali.it>
 
-	* sysdeps/mach/hurd/recvfrom.c (__recvfrom): Check also for a null
-	address port.  Set `addr_len' to 0 when not filling `addrarg'.
+        * sysdeps/mach/hurd/recvfrom.c (__recvfrom): Check also for a null
+        address port.  Set `addr_len' to 0 when not filling `addrarg'.
+
+---
+
+http://cygwin.com/ml/libc-alpha/2011-11/msg00089.html
+
+ sysdeps/mach/hurd/recvfrom.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/sysdeps/mach/hurd/recvfrom.c b/sysdeps/mach/hurd/recvfrom.c
+index 2aca570..94de4e7 100644
 --- a/sysdeps/mach/hurd/recvfrom.c
 +++ b/sysdeps/mach/hurd/recvfrom.c
-@@ -55,7 +55,7 @@
+@@ -55,7 +55,7 @@ __recvfrom (fd, buf, n, flags, addrarg, addr_len)
      return __hurd_sockfail (fd, flags, err);
  
    /* Get address data for the returned address port if requested.  */
@@ -22,7 +31,7 @@ zero.
      {
        char *buf = (char *) addr;
        mach_msg_type_number_t buflen = *addr_len;
-@@ -89,6 +89,8 @@
+@@ -89,6 +89,8 @@ __recvfrom (fd, buf, n, flags, addrarg, addr_len)
        if (buflen > 0)
  	addr->sa_family = type;
      }
@@ -31,3 +40,5 @@ zero.
  
    __mach_port_deallocate (__mach_task_self (), addrport);
  
+-- 
+tg: (0234227..) t/recvfrom (depends on: baseline)

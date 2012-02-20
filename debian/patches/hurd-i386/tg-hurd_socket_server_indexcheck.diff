@@ -1,0 +1,38 @@
+From: Pino Toscano <toscano.pino@tiscali.it>
+Subject: [PATCH] hurdsock: reject negative domains
+
+Reject negative socket domains right away; otherwise, it is possible to read
+and set out-of-bounds locations of the `servers' array (returning the values
+at those invalid memory locations), and even try to deallocate ports with
+random values if the `dead' parameter is different than zero.
+
+2011-11-21  Pino Toscano  <toscano.pino@tiscali.it>
+
+        * hurd/hurdsock.c (_hurd_socket_server): Check for negative domains,
+        and reject them.
+
+---
+http://cygwin.com/ml/libc-alpha/2011-11/msg00076.html
+
+ hurd/hurdsock.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/hurd/hurdsock.c b/hurd/hurdsock.c
+index a01b8aa..f2817e3 100644
+--- a/hurd/hurdsock.c
++++ b/hurd/hurdsock.c
+@@ -47,6 +47,12 @@ _hurd_socket_server (int domain, int dead)
+ {
+   socket_t server;
+ 
++  if (domain < 0)
++    {
++      errno = EAFNOSUPPORT;
++      return MACH_PORT_NULL;
++    }
++
+   HURD_CRITICAL_BEGIN;
+   __mutex_lock (&lock);
+ 
+-- 
+tg: (0234227..) t/socket_server_indexcheck (depends on: baseline)

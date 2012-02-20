@@ -1,4 +1,9 @@
-http://www.cygwin.com/ml/libc-alpha/2011-08/msg00124.html
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Fix value of __libc_stack_end
+
+When using some libthread, we need to update the value of __libc_stack_end
+to what the libthread allocated. This requires making __libc_stack_end
+non-relro to be able to modify it.
 
 2011-08-24  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
@@ -9,20 +14,19 @@ not use attribute_relro.
 libthread-provided value.
 * sysdeps/mach/hurd/dl-sysdep.c (__libc_stack_end): Do not use attribute_relro.
 
-No topgit branch, TODO.
-
 ---
- generic/ldsodefs.h          |    6 +++++-
- mach/hurd/dl-sysdep.c       |    2 +-
- mach/hurd/dl-sysdep.h       |    3 ++-
- mach/hurd/i386/init-first.c |    2 ++
- 4 files changed, 10 insertions(+), 3 deletions(-)
+http://www.cygwin.com/ml/libc-alpha/2011-08/msg00124.html
+
+ sysdeps/generic/ldsodefs.h          |    6 +++++-
+ sysdeps/mach/hurd/dl-sysdep.h       |    3 ++-
+ sysdeps/mach/hurd/i386/init-first.c |    2 ++
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/sysdeps/generic/ldsodefs.h b/sysdeps/generic/ldsodefs.h
-index d040590..cb24ca7 100644
+index b24bff3..804d9ee 100644
 --- a/sysdeps/generic/ldsodefs.h
 +++ b/sysdeps/generic/ldsodefs.h
-@@ -723,7 +723,11 @@ rtld_hidden_proto (_dl_make_stack_executable)
+@@ -724,7 +724,11 @@ rtld_hidden_proto (_dl_make_stack_executable)
     might use the variable which results in copy relocations on some
     platforms.  But this does not matter, ld.so can always use the local
     copy.  */
@@ -36,7 +40,7 @@ index d040590..cb24ca7 100644
  
  /* Parameters passed to the dynamic linker.  */
 diff --git a/sysdeps/mach/hurd/dl-sysdep.h b/sysdeps/mach/hurd/dl-sysdep.h
-index 4b21b77..8f1c728 100644
+index 4b21b77..5b86fec 100644
 --- a/sysdeps/mach/hurd/dl-sysdep.h
 +++ b/sysdeps/mach/hurd/dl-sysdep.h
 @@ -25,7 +25,8 @@
@@ -50,10 +54,10 @@ index 4b21b77..8f1c728 100644
 +# define LIBC_STACK_END_NOT_RELRO 1
  #endif
 diff --git a/sysdeps/mach/hurd/i386/init-first.c b/sysdeps/mach/hurd/i386/init-first.c
-index e79af1d..7b2ea12 100644
+index 60823bd..9e5b723 100644
 --- a/sysdeps/mach/hurd/i386/init-first.c
 +++ b/sysdeps/mach/hurd/i386/init-first.c
-@@ -227,6 +224,8 @@ init (int *_data)
+@@ -212,6 +212,8 @@ init (int *data)
  
        void switch_stacks (void);
  
@@ -62,3 +66,5 @@ index e79af1d..7b2ea12 100644
        /* Copy per-thread variables from that temporary
  	 area onto the new cthread stack.  */
        memcpy (__hurd_threadvar_location_from_sp (0, newsp),
+-- 
+tg: (0234227..) t/libc_stack_end (depends on: baseline)

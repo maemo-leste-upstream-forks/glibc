@@ -1,0 +1,24 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Fix pty path in chroot
+
+when e.g. using a chroot, the pty path is not so short.
+
+---
+ sysdeps/unix/bsd/unlockpt.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/sysdeps/unix/bsd/unlockpt.c b/sysdeps/unix/bsd/unlockpt.c
+index 59fc739..4c3dc5b 100644
+--- a/sysdeps/unix/bsd/unlockpt.c
++++ b/sysdeps/unix/bsd/unlockpt.c
+@@ -28,7 +28,7 @@
+ int
+ unlockpt (int fd)
+ {
+-  char buf[sizeof (_PATH_TTY) + 2];
++  char buf[1024]; /* XXX */
+ 
+   /* BSD doesn't have a lock, but it does have `revoke'.  */
+   if (__ptsname_r (fd, buf, sizeof (buf)))
+-- 
+tg: (0234227..) t/unlockpt-chroot (depends on: baseline)

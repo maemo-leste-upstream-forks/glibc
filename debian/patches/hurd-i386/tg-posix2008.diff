@@ -1,11 +1,26 @@
-http://cygwin.com/ml/libc-alpha/2011-12/msg00005.html
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Fix POSIX 2008 visibility
+
+Here are a few POSIX 2008 visibility updates, to align the core & hurd
+with the Linux headers.
+
+Samuel
+
 
 2011-12-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
-* bits/sigaction.h [__USE_XOPEN2K8]: Define SA_RESTART, SA_NODEFER,
-SA_RESETHAND.
-* sysdeps/mach/hurd/bits/fcntl.h [__USE_XOPEN2K8]: Define O_NOFOLLOW,
-O_DIRECTORY, O_CLOEXEC, F_GETOWN, F_SETOWN, F_DUPFD_CLOEXEC.
+        * bits/sigaction.h [__USE_XOPEN2K8]: Define SA_RESTART,
+        SA_NODEFER, SA_RESETHAND.
+        * sysdeps/mach/hurd/bits/fcntl.h [__USE_XOPEN2K8]: Define
+        O_NOFOLLOW, O_DIRECTORY, O_CLOEXEC, F_GETOWN, F_SETOWN,
+        F_DUPFD_CLOEXEC.
+
+---
+http://cygwin.com/ml/libc-alpha/2011-12/msg00005.html
+
+ bits/sigaction.h               |    2 ++
+ sysdeps/mach/hurd/bits/fcntl.h |    8 +++++---
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/bits/sigaction.h b/bits/sigaction.h
 index adcc276..97242a6 100644
@@ -61,3 +76,5 @@ index b4147ce..74cf913 100644
  # define F_DUPFD_CLOEXEC 1030	/* Duplicate, set FD_CLOEXEC on new one.  */
  #endif
  
+-- 
+tg: (0234227..) t/posix2008 (depends on: baseline)

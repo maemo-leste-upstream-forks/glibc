@@ -1,0 +1,80 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Missing critical region locks.
+
+2009-01-12  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+        * hurd/hurd/fd.h (_hurd_fd_get): Call HURD_CRITICAL_BEGIN/
+        HURD_CRITICAL_END around holding _hurd_dtable_lock.
+        * sysdeps/mach/hurd/dirfd (dirfd): Likewise.
+        * sysdeps/mach/hurd/opendir.c (_hurd_fd_opendir): Call
+        HURD_CRITICAL_BEGIN/HURD_CRITICAL_END around holding
+        d->port.lock.
+
+---
+
+http://sources.redhat.com/ml/libc-alpha/2009-01/msg00030.html
+
+ hurd/hurd/fd.h              |    2 ++
+ sysdeps/mach/hurd/dirfd.c   |    3 +++
+ sysdeps/mach/hurd/opendir.c |    2 ++
+ 3 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/hurd/hurd/fd.h b/hurd/hurd/fd.h
+index 2473476..e1b1a5d 100644
+--- a/hurd/hurd/fd.h
++++ b/hurd/hurd/fd.h
+@@ -65,6 +65,7 @@ _hurd_fd_get (int fd)
+ {
+   struct hurd_fd *descriptor;
+ 
++  HURD_CRITICAL_BEGIN;
+   __mutex_lock (&_hurd_dtable_lock);
+   if (fd < 0 || fd >= _hurd_dtablesize)
+     descriptor = NULL;
+@@ -87,6 +88,7 @@ _hurd_fd_get (int fd)
+ 	}
+     }
+   __mutex_unlock (&_hurd_dtable_lock);
++  HURD_CRITICAL_END;
+ 
+   return descriptor;
+ }
+diff --git a/sysdeps/mach/hurd/dirfd.c b/sysdeps/mach/hurd/dirfd.c
+index fde13fa..be2a6a9 100644
+--- a/sysdeps/mach/hurd/dirfd.c
++++ b/sysdeps/mach/hurd/dirfd.c
+@@ -26,6 +26,8 @@ int
+ dirfd (DIR *dirp)
+ {
+   int fd;
++
++  HURD_CRITICAL_BEGIN;
+   __mutex_lock (&_hurd_dtable_lock);
+   for (fd = 0; fd < _hurd_dtablesize; ++fd)
+     if (_hurd_dtable[fd] == dirp->__fd)
+@@ -36,6 +38,7 @@ dirfd (DIR *dirp)
+       fd = -1;
+     }
+   __mutex_unlock (&_hurd_dtable_lock);
++  HURD_CRITICAL_END;
+ 
+   return fd;
+ }
+diff --git a/sysdeps/mach/hurd/opendir.c b/sysdeps/mach/hurd/opendir.c
+index 23e04ed..3a1b48e 100644
+--- a/sysdeps/mach/hurd/opendir.c
++++ b/sysdeps/mach/hurd/opendir.c
+@@ -51,9 +51,11 @@ _hurd_fd_opendir (struct hurd_fd *d)
+     return NULL;
+ 
+   /* Set the descriptor to close on exec. */
++  HURD_CRITICAL_BEGIN;
+   __spin_lock (&d->port.lock);
+   d->flags |= FD_CLOEXEC;
+   __spin_unlock (&d->port.lock);
++  HURD_CRITICAL_END;
+ 
+   dirp->__fd = d;
+   dirp->__data = dirp->__ptr = NULL;
+-- 
+tg: (0234227..) t/critical-sections (depends on: baseline)

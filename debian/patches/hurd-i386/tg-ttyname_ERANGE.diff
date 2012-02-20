@@ -1,11 +1,16 @@
-http://sourceware.org/ml/libc-alpha/2011-08/msg00013.html
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] ttyname_r returning EINVAL
 
 2011-08-05  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
         * sysdeps/mach/hurd/ttyname_r.c (__ttyname_r): Return ERANGE instead of
         EINVAL when BUFLEN is too smal.
 
-No topgit branch, TODO.
+---
+http://sourceware.org/ml/libc-alpha/2011-08/msg00013.html
+
+ sysdeps/mach/hurd/ttyname_r.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/sysdeps/mach/hurd/ttyname_r.c b/sysdeps/mach/hurd/ttyname_r.c
 index 5f6c9c3..5718fca 100644
@@ -20,3 +25,5 @@ index 5f6c9c3..5718fca 100644
        return errno;
      }
  
+-- 
+tg: (0234227..) t/ttyname_ERANGE (depends on: baseline)

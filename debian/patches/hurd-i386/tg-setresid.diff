@@ -1,4 +1,8 @@
-http://cygwin.com/ml/libc-alpha/2011-10/msg00031.html
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Fix setres[ug]id handling of -1
+
+When passed -1, setres[ug]id are supposed not to change the existing
+value.  The patch below does this the same way as setre[ug]id.
 
 2011-10-17  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
@@ -6,11 +10,11 @@ http://cygwin.com/ml/libc-alpha/2011-10/msg00031.html
 shall preserve existing values.
 * sysdeps/mach/hurd/setresuid.c (__setresuid): Likewise.
 
-No topgit branch, TODO.
-
 ---
- setresgid.c |   73 ++++++++++++++++++++++++++++++++++++++++++++++++------------
- setresuid.c |   73 ++++++++++++++++++++++++++++++++++++++++++++++++------------
+http://cygwin.com/ml/libc-alpha/2011-10/msg00031.html
+
+ sysdeps/mach/hurd/setresgid.c |   73 +++++++++++++++++++++++++++++++++--------
+ sysdeps/mach/hurd/setresuid.c |   73 +++++++++++++++++++++++++++++++++--------
  2 files changed, 118 insertions(+), 28 deletions(-)
 
 diff --git a/sysdeps/mach/hurd/setresgid.c b/sysdeps/mach/hurd/setresgid.c
@@ -227,3 +231,5 @@ index ccf8d08..e254437 100644
    __mutex_unlock (&_hurd_id.lock);
    HURD_CRITICAL_END;
  
+-- 
+tg: (0234227..) t/setresid (depends on: baseline)

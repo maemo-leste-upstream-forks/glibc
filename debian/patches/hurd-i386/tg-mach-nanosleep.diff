@@ -1,4 +1,5 @@
-http://cygwin.com/ml/libc-alpha/2011-12/msg00020.html
+From: Pino Toscano <toscano.pino@tiscali.it>
+Subject: [PATCH] nanosleep: check for invalid parameter values
 
 mach: nanosleep: check for invalid parameter values
 
@@ -7,12 +8,21 @@ calculation of `ms' after the validation of `requested_time'.
 
 2011-12-10  Pino Toscano  <toscano.pino@tiscali.it>
 
-	* sysdeps/mach/nanosleep.c (__nanosleep): Return EINVAL for negative
-	seconds or nanoseconds of `requested_time', or for nanoseconds equal
-	or greater than 1000000000.
+        * sysdeps/mach/nanosleep.c (__nanosleep): Return EINVAL for negative
+        seconds or nanoseconds of `requested_time', or for nanoseconds equal
+        or greater than 1000000000.
+
+---
+http://cygwin.com/ml/libc-alpha/2011-12/msg00020.html
+
+ sysdeps/mach/nanosleep.c |   14 +++++++++++---
+ 1 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/sysdeps/mach/nanosleep.c b/sysdeps/mach/nanosleep.c
+index e433adb..124af98 100644
 --- a/sysdeps/mach/nanosleep.c
 +++ b/sysdeps/mach/nanosleep.c
-@@ -28,11 +28,19 @@ __nanosleep (const struct timespec *requ
+@@ -28,11 +28,19 @@ __nanosleep (const struct timespec *requested_time,
  {
    mach_port_t recv;
    struct timeval before, after;
@@ -35,3 +45,5 @@ calculation of `ms' after the validation of `requested_time'.
  
    if (remaining && __gettimeofday (&before, NULL) < 0)
      return -1;
+-- 
+tg: (0234227..) t/mach-nanosleep (depends on: baseline)

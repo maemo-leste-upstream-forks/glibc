@@ -1,4 +1,8 @@
-http://sources.redhat.com/ml/libc-alpha/2009-09/msg00025.html
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] null pathnames shall return ENOENT
+
+Here is a patch to fix chdir("") and chroot("") into returning ENOENT as
+required by POSIX.
 
 2009-09-13  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
@@ -7,16 +11,18 @@ http://sources.redhat.com/ml/libc-alpha/2009-09/msg00025.html
         * sysdeps/mach/hurd/chroot.c (chroot): Return ENOENT when path
         is empty.
 
-No topgit branch, TODO.
-
 ---
+http://sources.redhat.com/ml/libc-alpha/2009-09/msg00025.html
+
  hurd/hurdchdir.c           |    6 ++++++
  sysdeps/mach/hurd/chroot.c |    6 ++++++
- 2 files changed, 12 insertions(+)
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
+diff --git a/hurd/hurdchdir.c b/hurd/hurdchdir.c
+index 5115e4d..b1cc7a5 100644
 --- a/hurd/hurdchdir.c
 +++ b/hurd/hurdchdir.c
-@@ -38,6 +38,12 @@
+@@ -38,6 +38,12 @@ _hurd_change_directory_port_from_name (struct hurd_port *portcell,
    len = strlen (name);
    if (len >= 2 && name[len - 2] == '/' && name[len - 1] == '.')
      lookup = name;
@@ -29,9 +35,11 @@ No topgit branch, TODO.
    else
      {
        char *n = alloca (len + 3);
+diff --git a/sysdeps/mach/hurd/chroot.c b/sysdeps/mach/hurd/chroot.c
+index fde0164..cabeb7d 100644
 --- a/sysdeps/mach/hurd/chroot.c
 +++ b/sysdeps/mach/hurd/chroot.c
-@@ -38,6 +38,12 @@
+@@ -38,6 +38,12 @@ chroot (const char *path)
    len = strlen (path);
    if (len >= 2 && path[len - 2] == '/' && path[len - 1] == '.')
      lookup = path;
@@ -44,3 +52,5 @@ No topgit branch, TODO.
    else
      {
        char *n = alloca (len + 3);
+-- 
+tg: (0234227..) t/null-pathname (depends on: baseline)
