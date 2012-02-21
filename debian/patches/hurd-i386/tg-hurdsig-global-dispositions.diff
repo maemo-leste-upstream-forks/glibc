@@ -1,38 +1,34 @@
-jkoenig's work on signals
+From: Jeremie Koenig <jk@jk.fr.eu.org>
+Subject: [PATCH] Global signal dispositions.
 
-No topgit branch
+Although they should not change the
+default behaviors of signals for cthread programs, these patches add
+new functions which can be used by libpthread to enable
+POSIX-conforming behavior of signals on a per-thread basis.
 
-diff --git a/Versions.def b/Versions.def
-index 98c2800..d20b95c 100644
---- a/Versions.def
-+++ b/Versions.def
-@@ -39,6 +39,7 @@ libc {
-   GCC_3.0
- %endif
-   GLIBC_PRIVATE
-+  GLIBC_2.13_DEBIAN_19
- }
- libcrypt {
-   GLIBC_2.0
-diff --git a/hurd/Versions b/hurd/Versions
-index 83c8ab1..b697019 100644
---- a/hurd/Versions
-+++ b/hurd/Versions
-@@ -156,6 +156,14 @@ libc {
-     # functions used in macros & inline functions
-     __errno_location;
-   }
-+  GLIBC_2.13_DEBIAN_19 {
-+    # functions used by libpthread and <hurd/signal.h>
-+    _hurd_sigstate_set_global_rcv;
-+    _hurd_sigstate_lock;
-+    _hurd_sigstate_pending;
-+    _hurd_sigstate_unlock;
-+    _hurd_sigstate_delete;
-+  }
- 
- %if !SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_2)
-   HURD_CTHREADS_0.3 {
+    e407ae3 Hurd signals: implement global signal dispositions
+    38eb4b3 Hurd signals: provide a sigstate destructor
+    344dfd6 Hurd signals: fix sigwait() for global signals
+    fb055f2 Hurd signals: fix global untraced signals.
+
+---
+ hurd/ctty-input.c                   |   18 ++-
+ hurd/ctty-output.c                  |   18 ++-
+ hurd/hurd/signal.h                  |   40 ++++--
+ hurd/hurdexec.c                     |   11 +-
+ hurd/hurdmsg.c                      |   27 +---
+ hurd/hurdsig.c                      |  272 +++++++++++++++++++++++++++--------
+ sysdeps/mach/hurd/fork.c            |    9 +-
+ sysdeps/mach/hurd/i386/sigreturn.c  |   13 +-
+ sysdeps/mach/hurd/i386/trampoline.c |    8 +-
+ sysdeps/mach/hurd/sigaction.c       |   18 ++--
+ sysdeps/mach/hurd/sigpending.c      |    9 +-
+ sysdeps/mach/hurd/sigprocmask.c     |   11 +-
+ sysdeps/mach/hurd/sigsuspend.c      |   19 ++--
+ sysdeps/mach/hurd/sigwait.c         |   23 ++--
+ sysdeps/mach/hurd/spawni.c          |   23 ++--
+ 15 files changed, 350 insertions(+), 169 deletions(-)
+
 diff --git a/hurd/ctty-input.c b/hurd/ctty-input.c
 index ef8395a..4da33c7 100644
 --- a/hurd/ctty-input.c
@@ -827,7 +823,7 @@ index 74a01a6..67037e8 100644
  
    if (__hurd_threadvar_stack_mask == 0)
 diff --git a/sysdeps/mach/hurd/fork.c b/sysdeps/mach/hurd/fork.c
-index 3288f18..a4f3055 100644
+index 66fa7e2..bae4204 100644
 --- a/sysdeps/mach/hurd/fork.c
 +++ b/sysdeps/mach/hurd/fork.c
 @@ -459,6 +459,7 @@ __fork (void)
@@ -1183,16 +1179,9 @@ index 9794076..af50f74 100644
    __mach_port_destroy (__mach_task_self (), wait);
    *sig = signo;
 diff --git a/sysdeps/mach/hurd/spawni.c b/sysdeps/mach/hurd/spawni.c
-index 244ca2d..373da8d 100644
+index 3d2b591..c12f448 100644
 --- a/sysdeps/mach/hurd/spawni.c
 +++ b/sysdeps/mach/hurd/spawni.c
-@@ -1,5 +1,5 @@
- /* spawn a new process running an executable.  Hurd version.
--   Copyright (C) 2001,02,04 Free Software Foundation, Inc.
-+   Copyright (C) 2001,2002,2004,2011 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -239,26 +239,29 @@ __spawni (pid_t *pid, const char *file,
    assert (! __spin_lock_locked (&ss->critical_section_lock));
    __spin_lock (&ss->critical_section_lock);
@@ -1209,10 +1198,6 @@ index 244ca2d..373da8d 100644
 -    for (i = 1; i < NSIG; ++i)
 -      if (ss->actions[i].sa_handler == SIG_IGN)
 -	ints[INIT_SIGIGN] |= __sigmask (i);
--
--  /* We hold the sigstate lock until the exec has failed so that no signal
--     can arrive between when we pack the blocked and ignored signals, and
--     when the exec actually happens.  A signal handler could change what
 +  {
 +    struct sigaction *actions = _hurd_sigstate_actions (ss);
 +    if ((flags & POSIX_SPAWN_SETSIGDEF) == 0)
@@ -1220,7 +1205,10 @@ index 244ca2d..373da8d 100644
 +	if (actions[i].sa_handler == SIG_IGN)
 +	  ints[INIT_SIGIGN] |= __sigmask (i);
 +  }
-+
+ 
+-  /* We hold the sigstate lock until the exec has failed so that no signal
+-     can arrive between when we pack the blocked and ignored signals, and
+-     when the exec actually happens.  A signal handler could change what
 +  /* We hold the critical section lock until the exec has failed so that no
 +     signal can arrive between when we pack the blocked and ignored signals,
 +     and when the exec actually happens.  A signal handler could change what
@@ -1234,3 +1222,5 @@ index 244ca2d..373da8d 100644
  
    /* Set signal mask.  */
    if ((flags & POSIX_SPAWN_SETSIGMASK) != 0)
+-- 
+tg: (c2fb0b6..) t/hurdsig-global-dispositions (depends on: t/hurdsig-fixes)

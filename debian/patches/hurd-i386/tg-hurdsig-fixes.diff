@@ -1,6 +1,22 @@
-jkoenig's work on signals
+From: Jeremie Koenig <jk@jk.fr.eu.org>
+Subject: [PATCH] Signal code refactoring.
 
-No topgit branch
+These patches should not change the current
+behavior, although they do fix a few minor bugs which were made
+apparent in the process. They are unchanged from my previous post
+earlier this month.
+
+    34f5960 _hurd_internal_post_signal: Split into more functions
+    420eec9 _hurd_internal_post_signal: Scope variables more restrictively
+    1f5accd _hurd_internal_post_signal: Split out inner functions
+    1bb0a1d Hurd signals: refactor check_pending_signals
+    1764465 Hurd signals: reindent
+    28473d2 Hurd signals: make sigsuspend POSIX-conformant.
+    26d091a Hurd signals: fix uninitialized value.
+
+---
+ hurd/hurdsig.c |  274 +++++++++++++++++++++++++++++++++-----------------------
+ 1 files changed, 161 insertions(+), 113 deletions(-)
 
 diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
 index 7a6b1d5..74a01a6 100644
@@ -354,3 +370,5 @@ index 7a6b1d5..74a01a6 100644
  }
  
  /* Decide whether REFPORT enables the sender to send us a SIGNO signal.
+-- 
+tg: (0234227..) t/hurdsig-fixes (depends on: baseline)

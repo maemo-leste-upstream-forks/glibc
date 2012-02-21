@@ -1,6 +1,15 @@
-jkoenig's work on signals
+From: Jeremie Koenig <jk@jk.fr.eu.org>
+Subject: [PATCH] Small signal fixes
 
-No topgit branch
+    22e7268 Hurd signals: fix sigwait for pending signals
+    da8bf5e Hurd signals: clear the pending mask in fork and spawn
+    8e87205 Hurd signals: don't drop blocked ignored signals     
+
+---
+ hurd/hurdsig.c             |    4 +---
+ sysdeps/mach/hurd/fork.c   |    4 +++-
+ sysdeps/mach/hurd/spawni.c |    2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
 index 67037e8..44e067c 100644
@@ -18,7 +27,7 @@ index 67037e8..44e067c 100644
        mark_pending ();
        act = ignore;
 diff --git a/sysdeps/mach/hurd/fork.c b/sysdeps/mach/hurd/fork.c
-index a4f3055..c74998d 100644
+index bae4204..09f4321 100644
 --- a/sysdeps/mach/hurd/fork.c
 +++ b/sysdeps/mach/hurd/fork.c
 @@ -648,8 +648,10 @@ __fork (void)
@@ -34,7 +43,7 @@ index a4f3055..c74998d 100644
        /* Run things that want to run in the child task to set up.  */
        RUN_HOOK (_hurd_fork_child_hook, ());
 diff --git a/sysdeps/mach/hurd/spawni.c b/sysdeps/mach/hurd/spawni.c
-index 373da8d..2442e6f 100644
+index c12f448..62e39eb 100644
 --- a/sysdeps/mach/hurd/spawni.c
 +++ b/sysdeps/mach/hurd/spawni.c
 @@ -241,7 +241,7 @@ __spawni (pid_t *pid, const char *file,
@@ -46,3 +55,5 @@ index 373da8d..2442e6f 100644
    ints[INIT_SIGIGN] = 0;
    /* Unless we were asked to reset all handlers to SIG_DFL,
       pass down the set of signals that were set to SIG_IGN.  */
+-- 
+tg: (e19a2fa..) t/hurdsig-fixes-2 (depends on: t/hurdsig-SA_SIGINFO)

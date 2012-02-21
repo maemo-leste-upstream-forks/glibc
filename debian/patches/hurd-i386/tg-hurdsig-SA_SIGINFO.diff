@@ -1,8 +1,20 @@
-jkoenig's work on signals
+From: Jeremie Koenig <jk@jk.fr.eu.org>
+Subject: [PATCH] implement SA_SIGINFO signal handlers.
 
-No topgit branch
+    52baaca Hurd signals: Copy bits/sigaction.h
+    4232c66 Hurd signals: SA_SIGINFO support
+    1831cfe Hurd signals: Use POSIX sigcodes
 
-NOTE: this includes a merge of submitted-posix2008 fix for sigaction.h!
+---
+ hurd/hurd/signal.h                       |    5 +
+ hurd/hurdinit.c                          |    2 +-
+ sysdeps/mach/hurd/bits/sigaction.h       |   81 ++++++++++++++++++++
+ sysdeps/mach/hurd/i386/bits/sigcontext.h |    4 +
+ sysdeps/mach/hurd/i386/exc2signal.c      |  123 +++++++++++++++++++-----------
+ sysdeps/mach/hurd/i386/trampoline.c      |  113 +++++++++++++++++++++++++--
+ sysdeps/mach/hurd/kill.c                 |    2 +-
+ sysdeps/mach/hurd/setitimer.c            |    2 +-
+ 8 files changed, 274 insertions(+), 58 deletions(-)
 
 diff --git a/hurd/hurd/signal.h b/hurd/hurd/signal.h
 index 1c4733a..cc96f21 100644
@@ -35,7 +47,7 @@ index 259f8a3..97d3460 100644
  #include <shlib-compat.h>
 diff --git a/sysdeps/mach/hurd/bits/sigaction.h b/sysdeps/mach/hurd/bits/sigaction.h
 new file mode 100644
-index 0000000..4528b38
+index 0000000..d3a4220
 --- /dev/null
 +++ b/sysdeps/mach/hurd/bits/sigaction.h
 @@ -0,0 +1,81 @@
@@ -533,3 +545,5 @@ index fec64a8..c82bfcd 100644
  	  break;
  
  	case MACH_RCV_INTERRUPTED:
+-- 
+tg: (2ec583b..) t/hurdsig-SA_SIGINFO (depends on: t/hurdsig-global-dispositions)
