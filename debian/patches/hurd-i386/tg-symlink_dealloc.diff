@@ -1,0 +1,75 @@
+From: Ludovic Courtès <ludo@gnu.org>
+Subject: [PATCH] Fix invalid port deallocation in `symlink'
+
+2012-03-18  Ludovic Courtès  <address@hidden>
+
+        * sysdeps/mach/hurd/symlink.c (__symlink): Deallocate NODE only
+        when it is non-null.
+        * sysdeps/mach/hurd/symlinkat.c (symlinkat): Likewise.
+
+---
+ sysdeps/mach/hurd/symlink.c   |    7 +++++--
+ sysdeps/mach/hurd/symlinkat.c |    7 +++++--
+ 2 files changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/sysdeps/mach/hurd/symlink.c b/sysdeps/mach/hurd/symlink.c
+index 857e236..4a4e61f 100644
+--- a/sysdeps/mach/hurd/symlink.c
++++ b/sysdeps/mach/hurd/symlink.c
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1991, 92, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
++/* Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 12 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -44,6 +44,7 @@ __symlink (from, to)
+     return -1;
+ 
+   /* Create a new, unlinked node in the target directory.  */
++  node = MACH_PORT_NULL;
+   err = __dir_mkfile (dir, O_WRITE, 0777 & ~_hurd_umask, &node);
+ 
+   if (! err)
+@@ -59,7 +60,9 @@ __symlink (from, to)
+     err = __dir_link (dir, node, name, 1);
+ 
+   __mach_port_deallocate (__mach_task_self (), dir);
+-  __mach_port_deallocate (__mach_task_self (), node);
++
++  if (node != MACH_PORT_NULL)
++    __mach_port_deallocate (__mach_task_self (), node);
+ 
+   if (err)
+     return __hurd_fail (err);
+diff --git a/sysdeps/mach/hurd/symlinkat.c b/sysdeps/mach/hurd/symlinkat.c
+index 9a51c66..71806d7 100644
+--- a/sysdeps/mach/hurd/symlinkat.c
++++ b/sysdeps/mach/hurd/symlinkat.c
+@@ -1,5 +1,5 @@
+ /* Create a symbolic link named relative to an open directory.  Hurd version.
+-   Copyright (C) 1991,1992,1993,1994,1995,1996,1997,2006
++   Copyright (C) 1991,1992,1993,1994,1995,1996,1997,2006,2012
+ 	Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+@@ -51,6 +51,7 @@ symlinkat (from, fd, to)
+     return -1;
+ 
+   /* Create a new, unlinked node in the target directory.  */
++  node = MACH_PORT_NULL;
+   err = __dir_mkfile (dir, O_WRITE, 0777 & ~_hurd_umask, &node);
+ 
+   if (! err)
+@@ -66,7 +67,9 @@ symlinkat (from, fd, to)
+     err = __dir_link (dir, node, name, 1);
+ 
+   __mach_port_deallocate (__mach_task_self (), dir);
+-  __mach_port_deallocate (__mach_task_self (), node);
++
++  if (node != MACH_PORT_NULL)
++    __mach_port_deallocate (__mach_task_self (), node);
+ 
+   if (err)
+     return __hurd_fail (err);
+-- 
+tg: (0234227..) t/symlink_dealloc (depends on: baseline)
