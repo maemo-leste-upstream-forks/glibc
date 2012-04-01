@@ -116,16 +116,16 @@ index 482b6ba..0e5bc08 100644
 --- a/sysdeps/mach/hurd/Makefile
 +++ b/sysdeps/mach/hurd/Makefile
 @@ -212,6 +212,10 @@ shared-only-routines += unwind-resume
- CFLAGS-unwind-resume.c += -fexceptions -fasynchronous-unwind-tables
+ CFLAGS-dl-load.c = -DEXTERNAL_MAP_FROM_FD
  endif
  
 +ifeq ($(subdir),posix)
 +CFLAGS-confstr.c += -DLIBPTHREAD_VERSION='"libpthread 0.3"'
 +endif
 +
- ifeq ($(subdir),rt)
- librt-sysdep_routines += rt-unwind-resume
- librt-shared-only-routines += rt-unwind-resume
+ # We need these libs to link static programs in the libc source tree, too.
+ ifeq (yes,$(build-static))
+ link-libc-static := -Wl,-\( \
 --- /dev/null
 +++ b/sysdeps/mach/hurd/gai_misc.h
 @@ -0,0 +1,44 @@
