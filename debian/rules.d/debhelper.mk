@@ -221,7 +221,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	    sed -e "s#SLIBDIR#$$slibdir#g" -i $$t; \
 	    sed -e "s#LIBDIR#$$libdir#g" -i $$t; \
 	    sed -e "s#FLAVOR#$$curpass#g" -i $$t; \
-	    sed -e "s#RTLD_SO#$$rtld_so#" -i $$t ; \
+	    sed -e "s#RTLD_SO#$$rtld_so#g" -i $$t ; \
 	  done ; \
 	done
 
