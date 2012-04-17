@@ -205,7 +205,7 @@ $(stamp)install_%: $(stamp)check_%
 	if [ $(curpass) = libc ]; then \
 	  case $(DEB_HOST_ARCH) in \
 	    armel) \
-	      sed -i '/RTLDLIST=/s,=\(.*\),="\1 /lib/arm-linux-gnueabihf/ld-linux.so.3",' debian/tmp-$(curpass)/usr/bin/ldd;; \
+	      sed -i '/RTLDLIST=/s,=\(.*\),="\1 /lib/ld-linux-armhf.so.3",' debian/tmp-$(curpass)/usr/bin/ldd;; \
 	    armhf) \
 	      sed -i '/RTLDLIST=/s,=\(.*\),="\1 /lib/ld-linux.so.3",' debian/tmp-$(curpass)/usr/bin/ldd;; \
 	  esac; \

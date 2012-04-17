@@ -4,6 +4,24 @@ eglibc (2.13-28) UNRELEASED; urgency=low
   * debian/rules.d/debhelper.mk: Fix RTLD_SO replacement regex for sanity.
   * debian/debhelper.in/libc{,-alt}.postrm: If we remove libc6:i386 before
     libc6-i386:amd64, maintain sanity of /lib/ld-linux.so.2 (LP: #852101)
+  * debian/patches/arm/unsubmitted-armhf-linker.diff: Add the new armhf
+    linker to the triplet/LDSO table in ports/sysdeps/arm/shlib-versions
+  * debian/sysdeps/arm{el,hf}.mk: Stop installing armhf linker to its
+    multiarch path, the new standard path is /lib/ld-linux-armhf.so.3
+  * debian/sysdeps/arm{el,hf}.mk: Define configure targets for alt libs
+  * debian/sysdeps/arm{el,hf}.mk: Provide compat symlinks in armhf builds
+    so that old binaries continue to work without needing rebuilding
+  * debian/rules.d/build.mk: Change ldd to use the new armhf linker path
+  * debian/libc6.symbols.armhf: ld-linux-armhf.so.3 depends on having a
+    new enough version of libc6 installed to make the linker available
+  * debian/patches/arm/unsubmitted-soname-hack.diff: Apply unfortunate
+    hack to elf/dl-load.c to allow our old binaries keep running with the
+    new linker, by spoofing the SONAME of the new as if it were the old
+  * debian/debhelper.in/libc-udeb.install.armhf: No longer required
+  * debian/sysdeps/armhf.mk: Create symlink in the udeb for legacy linker
+  * debian/debhelper.in/libc.preinst: When we upgrade from older versions,
+    our linker doesn't exist before unpack, so create a temporary one.
+  * debian/sysdeps/armhf.mk: Drop the obsolete armel/armhf compat symlink
 
   [ Samuel Thibault ]
   * patches/hurd-i386/tg-symlink_dealloc.diff: New patch from Ludovic Courtès
