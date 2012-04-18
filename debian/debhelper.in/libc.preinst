@@ -7,7 +7,11 @@ preversion=$2
 
 package_name()
 {
-    echo LIBC${DPKG_MAINTSCRIPT_ARCH:+:$DPKG_MAINTSCRIPT_ARCH}
+    if dpkg --assert-multi-arch 2>/dev/null; then
+        echo LIBC:${DPKG_MAINTSCRIPT_ARCH}
+    else
+        echo LIBC
+    fi
 }
 
 rm_conffile() {
