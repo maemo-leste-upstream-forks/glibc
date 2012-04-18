@@ -5,6 +5,11 @@ export LC_ALL=C
 type=$1
 preversion=$2
 
+package_name()
+{
+    echo LIBC${DPKG_MAINTSCRIPT_ARCH:+:$DPKG_MAINTSCRIPT_ARCH}
+}
+
 rm_conffile() {
     local PKGNAME="$1"
     local CONFFILE="$2"
@@ -147,7 +152,7 @@ if [ "$type" = upgrade ]
 then
     # Remove old /etc/init.d/glibc.sh init script
     if dpkg --compare-versions "$preversion" le "2.9-22"; then
-        rm_conffile LIBC "/etc/init.d/glibc.sh"
+        rm_conffile $(package_name) "/etc/init.d/glibc.sh"
 	update-rc.d glibc.sh remove >/dev/null
     fi
 
@@ -255,7 +260,7 @@ then
     # the dynamic linker uses.
     ldfile=$(readlink -e RTLD_SO)
     ldbytes=$(head -c 20 RTLD_SO | od -c)
-    libcfiles=$(dpkg-query -L LIBC 2>/dev/null)
+    libcfiles=$(dpkg-query -L $(package_name) 2>/dev/null)
 
     dirs="SLIBDIR /lib /lib/tls /lib32 /lib64 /usr/local/lib /usr/local/lib32 /usr/local/lib64"
     for dir in $dirs ; do
