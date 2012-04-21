@@ -46,7 +46,7 @@
 +gnu
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile
-@@ -0,0 +1,134 @@
+@@ -0,0 +1,135 @@
 +# Use bash, not /bin/sh, for executing scripts, because the native
 +# FreeBSD /bin/sh does not interpret the  IFS="<tab>" read ...  command
 +# in localedata/tst-fmon.sh correctly.
@@ -107,7 +107,7 @@
 +# For <sched.h>.
 +sysdep_routines += clone start_thread
 +# For <unistd.h>.
-+sysdep_routines += sys_ftruncate sys_freebsd6_ftruncate sys_truncate sys_freebsd6_truncate
++sysdep_routines += sys_ftruncate sys_freebsd6_ftruncate sys_truncate sys_freebsd6_truncate getosreldate
 +# For <sys/acl.h>.
 +sysdep_routines += acl_aclcheck_fd acl_aclcheck_file acl_delete_fd acl_delete_file acl_get_fd acl_get_file acl_set_fd acl_set_file
 +# For <sys/extattr.h>.
@@ -139,6 +139,7 @@
 +# for INLINE_SYSCALL
 +sysdep_routines += sys_fork sys_execve sys_sigaction sys_close sys_fcntl
 +sysdep_routines += sys_clock_getres sys_clock_gettime sys_clock_settime
++sysdep_routines += sys_ktimer_create sys_ktimer_gettime sys_ktimer_settime sys_ktimer_getoverrun sys_ktimer_delete
 +sysdep_routines += sys_shm_open sys_shm_unlink sys_pselect sys_semctl
 +endif
 +
@@ -183,7 +184,7 @@
 +endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions
-@@ -0,0 +1,120 @@
+@@ -0,0 +1,121 @@
 +libc {
 +  # The comment lines with "#errlist-compat" are magic; see errlist-compat.awk.
 +  # When you get an error from errlist-compat.awk, you need to add a new
@@ -286,7 +287,7 @@
 +  }
 +  GLIBC_PRIVATE {
 +    # needed by libpthread.
-+    __clone; __libc_fork; __libc_sigaction;
++    __clone; __libc_fork; __libc_sigaction; __kernel_getosreldate;
 +    # needed by libpthread as INLINE_SYSCALL:
 +    __syscall_fork;
 +    __syscall_open; __syscall_close;
@@ -294,6 +295,7 @@
 +    __syscall_wait4; __syscall_fcntl;
 +    # needed by librt as INLINE_SYSCALL:
 +    __syscall_clock_getres; __syscall_clock_gettime; __syscall_clock_settime;
++    __syscall_ktimer_create; __syscall_ktimer_gettime; __syscall_ktimer_settime; __syscall_ktimer_getoverrun; __syscall_ktimer_delete;
 +    __syscall_shm_open; __syscall_shm_unlink;
 +    # misc fixes for FreeBSD:
 +    __syscall_freebsd6_lseek; __syscall_freebsd6_pread; __syscall_freebsd6_pwrite;
@@ -976,7 +978,7 @@
 +
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/fcntl.h
-@@ -0,0 +1,180 @@
+@@ -0,0 +1,185 @@
 +/* O_*, F_*, FD_* bit values for FreeBSD.
 +   Copyright (C) 1991-1992, 1997, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -1042,6 +1044,11 @@
 +#if defined __USE_POSIX199309 || defined __USE_UNIX98
 +# define O_DSYNC	O_SYNC	/* Synchronize data.  */
 +# define O_RSYNC	O_SYNC	/* Synchronize read operations.	 */
++#endif
++
++#if _POSIX_C_SOURCE >= 200809L
++#define O_TTY_INIT	0x00080000	/* Restore default termios attributes */
++#define O_CLOEXEC	0x00100000
 +#endif
 +
 +/* Since 'off_t' is 64-bit, O_LARGEFILE is a no-op.  */
@@ -1855,7 +1862,7 @@
 +#endif /* __USE_MISC */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/poll.h
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,62 @@
 +/* Copyright (C) 1997, 2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -1889,16 +1896,13 @@
 +/* These values are defined in XPG4.2.  */
 +# define POLLRDNORM	0x0040		/* Normal data may be read.  */
 +# define POLLRDBAND	0x0080		/* Priority data may be read.  */
-+# define POLLWRNORM	0x0004		/* Writing now will not block.  */
++# define POLLWRNORM	POLLOUT		/* Writing now will not block.  */
 +# define POLLWRBAND	0x0100		/* Priority data may be written.  */
 +#endif
 +
 +#ifdef __USE_BSD
-+/* These are extensions for FreeBSD.  */
-+# define POLLEXTEND	0x0200		/* File size may have grown.  */
-+# define POLLATTRIB	0x0400		/* File attributes may have changed.  */
-+# define POLLNLINK	0x0800		/* File may have been moved/removed.  */
-+# define POLLWRITE	0x1000		/* File's contents may have changed.  */
++/* General FreeBSD extension (currently only supported for sockets): */
++# define POLLINIGNEOF	0x2000		/* like POLLIN, except ignore EOF */
 +#endif
 +
 +/* Event types always implicitly polled for.  These bits need not be set in
@@ -1907,6 +1911,20 @@
 +#define POLLERR		0x0008		/* Error condition.  */
 +#define POLLHUP		0x0010		/* Hung up.  */
 +#define POLLNVAL	0x0020		/* Invalid polling request.  */
++
++#ifdef __USE_BSD
++
++# define POLLSTANDARD	(POLLIN|POLLPRI|POLLOUT|POLLRDNORM|POLLRDBAND|\
++			POLLWRBAND|POLLERR|POLLHUP|POLLNVAL)
++
++/*
++ * Request that poll() wait forever.
++ * XXX in SYSV, this is defined in stropts.h, which is not included
++ * by poll.h.
++ */
++#define INFTIM		(-1)
++
++#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/posix_opt.h
 @@ -0,0 +1,90 @@
@@ -2002,7 +2020,7 @@
 +#endif /* bits/posix_opt.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/resource.h
-@@ -0,0 +1,200 @@
+@@ -0,0 +1,211 @@
 +/* Bit values & structures for resource limits.  FreeBSD version.
 +   Copyright (C) 1994, 1996-1998, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2027,6 +2045,7 @@
 +#endif
 +
 +#include <bits/types.h>
++#include <sys/_types.h>
 +
 +/* Transmute defines to enumerations.  The macro re-definitions are
 +   necessary because some programs want to test for operating system
@@ -2122,6 +2141,16 @@
 +    rlim64_t rlim_max;
 + };
 +#endif
++
++struct orlimit {
++	__int32_t	rlim_cur;	/* current (soft) limit */
++	__int32_t	rlim_max;	/* maximum value for rlim_cur */
++};
++
++struct loadavg {
++	__fixpt_t	ldavg[3];
++	long		fscale;
++};
 +
 +#define	CP_USER		0
 +#define	CP_NICE		1
@@ -2661,7 +2690,7 @@
 +#define	SIG_SETMASK	3	/* Set the set of blocked signals.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h
-@@ -0,0 +1,220 @@
+@@ -0,0 +1,235 @@
 +/* siginfo_t, sigevent and constants.  FreeBSD version.
 +   Copyright (C) 1997-1998, 2000-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2733,6 +2762,10 @@
 +# define SI_QUEUE	SI_QUEUE
 +  SI_USER = 0x10001,		/* Sent by kill, sigsend, raise.  */
 +# define SI_USER	SI_USER
++  SI_KERNEL = 0x10006,
++# define SI_KERNEL	SI_KERNEL
++  SI_LWP = 0x10007,		/* Sent by thr_kill.  */
++# define SI_LWP		SI_LWP
 +  SI_UNDEFINED = 0
 +# define SI_UNDEFINED	SI_UNDEFINED
 +};
@@ -2851,6 +2884,8 @@
 +    && !defined __have_sigevent_t
 +# define __have_sigevent_t	1
 +
++#include <sys/_types.h>		/* __lwpid_t */
++
 +/* Structure to transport application-defined values with signals.  */
 +
 +typedef struct sigevent
@@ -2858,12 +2893,21 @@
 +    int sigev_notify;
 +    int sigev_signo;
 +    sigval_t sigev_value;
-+    /* Not yet supported by the kernel.  */
-+    void (*sigev_notify_function) (sigval_t);	/* Function to start.  */
-+    void *sigev_notify_attributes;		/* Really pthread_attr_t.  */
++    union
++    {
++      __lwpid_t threadid;
++      struct
++      {
++	void (*function) (sigval_t);	/* Function to start.  */
++	void *attributes;		/* Really pthread_attr_t.  */
++      } thread;
++    } un;
 +  } sigevent_t;
 +
 +#define sigev_notify_kqueue	sigev_signo
++#define sigev_notify_function	un.thread.function
++#define sigev_notify_attributes	un.thread.attributes
++#define sigev_notify_thread_id	un.threadid
 +
 +/* `sigev_notify' values.  */
 +enum
@@ -2884,7 +2928,7 @@
 +#endif	/* have _SIGNAL_H.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/signum.h
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,84 @@
 +/* Signal number definitions.  FreeBSD version.
 +   Copyright (C) 1991-1993, 1996, 1998, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2952,6 +2996,10 @@
 +#define SIGINFO		29	/* Information request (4.4 BSD).  */
 +#define	SIGUSR1		30	/* User-defined signal 1 (POSIX).  */
 +#define	SIGUSR2		31	/* User-defined signal 2 (POSIX).  */
++/* Signals 32 and 33 are reserved for system libraries. */
++
++/* Signal 34 is used (but not reserved) by thread library.
++   See PTHREAD_SIGBASE in kernel-features.h.  */
 +
 +#define	_NSIG		129	/* Biggest signal number + 1
 +				   (including real-time signals).  */
@@ -4973,7 +5021,7 @@
 +#include <sysdeps/unix/clock_settime.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clone.c
-@@ -0,0 +1,143 @@
+@@ -0,0 +1,122 @@
 +/* Create a thread.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -5000,29 +5048,8 @@
 +#include <errno.h>
 +#include <signal.h>
 +#include <stddef.h>
++#include <getosreldate.h>
 +#undef __clone
-+
-+
-+#include <sys/sysctl.h>
-+
-+static inline int
-+__kernel_osreldate(void)
-+{
-+    static int osreldate;
-+
-+    int mib[2];
-+    size_t size;
-+
-+    if (osreldate == 0)
-+    {
-+	mib[0] = CTL_KERN;
-+	mib[1] = KERN_OSRELDATE;
-+	size = sizeof osreldate;
-+	if (__sysctl(mib, 2, &osreldate, &size, NULL, 0) == -1)
-+		return (-1);
-+    }		
-+    return (osreldate);
-+}
 +
 +/* __start_thread (flags, child_stack, fn, arg)
 +   is roughly equivalent to
@@ -5062,7 +5089,7 @@
 +
 +  if ((flags & CSIGNAL) != SIGCHLD)
 +  {
-+    if (__kernel_osreldate() >= 802510)
++    if (__kernel_getosreldate() >= 802510)
 +                /* we slightly cheat here, */
 +                /* the 9.x snapshot prior to r223966 does not support it too */
 +    {
@@ -9025,7 +9052,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getosreldate.c
-@@ -0,0 +1,58 @@
+@@ -0,0 +1,74 @@
 +/*
 + * Copyright (c) 1989, 1993
 + *	The Regents of the University of California.  All rights reserved.
@@ -9058,6 +9085,26 @@
 +#include <stddef.h>
 +#include <sys/sysctl.h>
 +#include <stdlib.h>
++#include <getosreldate.h>
++
++int
++__kernel_getosreldate(void)
++{
++    static int osreldate;
++
++    int mib[2];
++    size_t size;
++
++    if (osreldate == 0)
++    {
++	mib[0] = CTL_KERN;
++	mib[1] = KERN_OSRELDATE;
++	size = sizeof osreldate;
++	if (__sysctl(mib, 2, &osreldate, &size, NULL, 0) == -1)
++		return (-1);
++    }		
++    return (osreldate);
++}
 +
 +int
 +__getosreldate(void)
@@ -9075,15 +9122,16 @@
 +		return (osreldate);
 +	}
 +
-+	mib[0] = CTL_KERN;
-+	mib[1] = KERN_OSRELDATE;
-+	size = sizeof osreldate;
-+	if (__sysctl(mib, 2, &osreldate, &size, NULL, 0) == -1)
-+		return (-1);
++	osreldate = __kernel_getosreldate ();
 +    }		
 +    return (osreldate);
 +}
 +weak_alias (__getosreldate, getosreldate)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getosreldate.h
+@@ -0,0 +1,2 @@
++int __kernel_getosreldate (void);
++int __getosreldate (void);
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getpagesize.c
 @@ -0,0 +1,42 @@
@@ -13371,10 +13419,14 @@
 +pthread
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Makefile
-@@ -0,0 +1,4 @@
+@@ -0,0 +1,8 @@
 +ifeq ($(subdir),linuxthreads)
 +sysdep_routines += register-atfork unregister-atfork
 +libpthread-routines += ptw-sigprocmask ptw-ioctl
++endif
++
++ifeq ($(subdir),rt)
++librt-sysdep_routines += timer_routines
 +endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/Versions
@@ -13818,6 +13870,135 @@
 @@ -0,0 +1 @@
 +#include <linuxthreads/sysdeps/unix/sysv/linux/jmp-unwind.c>
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/kernel-posix-timers.h
+@@ -0,0 +1,126 @@
++/* Copyright (C) 2003, 2007, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <pthread.h>
++#include <setjmp.h>
++#include <signal.h>
++#include <sys/types.h>
++#include <sys/_types.h>
++
++/* The signal used for asynchronous cancelation.  */
++#define SIGCANCEL	(PTHREAD_SIGBASE + 1)
++
++/* Signal needed for the kernel-supported POSIX timer implementation.
++   We can reuse the cancellation signal since we can distinguish
++   cancellation from timer expirations.  */
++#define SIGTIMER	SIGCANCEL
++
++/* Nonzero if the system calls are not available.  */
++extern int __no_posix_timers attribute_hidden;
++
++/* Callback to start helper thread.  */
++extern void __start_helper_thread (void) attribute_hidden;
++
++/* Control variable for helper thread creation.  */
++extern pthread_once_t __helper_once attribute_hidden;
++
++/* TID of the helper thread.  */
++extern __lwpid_t __helper_tid attribute_hidden;
++
++/* List of active SIGEV_THREAD timers.  */
++extern struct timer *__active_timer_sigev_thread attribute_hidden;
++/* Lock for the __active_timer_sigev_thread.  */
++extern pthread_mutex_t __active_timer_sigev_thread_lock attribute_hidden;
++
++
++/* Type of timers in the kernel.  */
++typedef int kernel_timer_t;
++
++
++/* Internal representation of timer.  */
++struct timer
++{
++  /* Notification mechanism.  */
++  int sigev_notify;
++
++  /* Timer ID returned by the kernel.  */
++  kernel_timer_t ktimerid;
++
++  /* All new elements must be added after ktimerid.  And if the thrfunc
++     element is not the third element anymore the memory allocation in
++     timer_create needs to be changed.  */
++
++  /* Parameters for the thread to be started for SIGEV_THREAD.  */
++  void (*thrfunc) (sigval_t);
++  sigval_t sival;
++  pthread_attr_t attr;
++
++  /* Next element in list of active SIGEV_THREAD timers.  */
++  struct timer *next;
++};
++
++extern struct timer *__all_timers[TIMER_MAX];
++
++static inline struct timer *
++__kfreebsd_timer_alloc ()
++{
++  unsigned int i;
++  struct timer *timer = malloc (sizeof (struct timer));
++
++  /* Find a free slot (and reserve it atomically).  */
++  for (i = 0; i < TIMER_MAX; i++)
++    if (atomic_compare_and_exchange_val_acq (&__all_timers[i],
++					     timer, NULL) == NULL)
++      return timer;
++
++  errno = EAGAIN;
++  return NULL;
++}
++
++static inline struct timer *
++__kfreebsd_timer_id2ptr (timer_t id)
++{
++  void *ret = NULL;
++
++  if (id >= 0 && id < TIMER_MAX)
++    ret = __all_timers[id];
++
++  if (! ret)
++    errno = EINVAL;
++
++  return ret;
++}
++
++static inline timer_t
++__kfreebsd_timer_ptr2id (struct timer *ptr)
++{
++  unsigned int i;
++  for (i = 0; i < TIMER_MAX; i++)
++    if (__all_timers[i] == ptr)
++      return i;
++
++  return -1;
++}
++
++void static inline
++__kfreebsd_timer_free (struct timer *ptr)
++{
++  __all_timers[__kfreebsd_timer_ptr2id (ptr)] = NULL;
++  free (ptr);
++}
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/lowlevellock.h
 @@ -0,0 +1,47 @@
 +/* Copyright (C) 2007 Free Software Foundation, Inc.
@@ -13946,6 +14127,839 @@
 +
 +  return (result > 1);
 +}
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/timer_create.c
+@@ -0,0 +1,226 @@
++/* Copyright (C) 2003,2004, 2007, 2009, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <errno.h>
++#include <pthread.h>
++#include <signal.h>
++#include <stdlib.h>
++#include <string.h>
++#include <time.h>
++#include <sysdep.h>
++#include <kernel-features.h>
++#include "kernel-posix-timers.h"
++#include "kernel-posix-cpu-timers.h"
++
++
++#ifdef SYS_ktimer_create
++# ifndef __ASSUME_POSIX_TIMERS
++static int compat_timer_create (clockid_t clock_id, struct sigevent *evp,
++				timer_t *timerid);
++#  define timer_create static compat_timer_create
++#  include <linuxthreads/sysdeps/pthread/timer_create.c>
++#  undef timer_create
++
++/* Nonzero if the system calls are not available.  */
++int __no_posix_timers attribute_hidden;
++# endif
++
++# ifdef timer_create_alias
++#  define timer_create timer_create_alias
++# endif
++
++
++int
++timer_create (clock_id, evp, timerid)
++     clockid_t clock_id;
++     struct sigevent *evp;
++     timer_t *timerid;
++{
++# undef timer_create
++# ifndef __ASSUME_POSIX_TIMERS
++  if  (__no_posix_timers >= 0)
++# endif
++    {
++      /* If the user wants notification via a thread we need to handle
++	 this special.  */
++      if (evp == NULL
++	  || __builtin_expect (evp->sigev_notify != SIGEV_THREAD, 1))
++	{
++	  struct sigevent local_evp;
++
++	  struct timer *newp = __kfreebsd_timer_alloc ();
++
++	  if (newp == NULL)
++	    /* No more memory.  */
++	    return -1;
++
++	  if (evp == NULL)
++	    {
++	      /* The kernel has to pass up the timer ID which is a
++		 userlevel object.  Therefore we cannot leave it up to
++		 the kernel to determine it.  */
++	      local_evp.sigev_notify = SIGEV_SIGNAL;
++	      local_evp.sigev_signo = SIGALRM;
++	      local_evp.sigev_value.sival_ptr = newp;
++
++	      evp = &local_evp;
++	    }
++
++	  kernel_timer_t ktimerid;
++	  int retval = INLINE_SYSCALL (ktimer_create, 3, clock_id, evp,
++				       &ktimerid);
++
++# ifndef __ASSUME_POSIX_TIMERS
++	  if (retval != -1 || errno != ENOSYS)
++# endif
++	    {
++# ifndef __ASSUME_POSIX_TIMERS
++	      __no_posix_timers = 1;
++# endif
++
++	      if (retval != -1)
++		{
++		  newp->sigev_notify = (evp != NULL
++					? evp->sigev_notify : SIGEV_SIGNAL);
++		  newp->ktimerid = ktimerid;
++
++		  *timerid = __kfreebsd_timer_ptr2id (newp);
++		}
++	      else
++		{
++		  /* Cannot allocate the timer, fail.  */
++		  __kfreebsd_timer_free (newp);
++		  retval = -1;
++		}
++
++	      return retval;
++	    }
++
++	  __kfreebsd_timer_free (newp);
++
++# ifndef __ASSUME_POSIX_TIMERS
++	  /* When we come here the syscall does not exist.  Make sure we
++	     do not try to use it again.  */
++	  __no_posix_timers = -1;
++# endif
++	}
++      else
++	{
++# ifndef __ASSUME_POSIX_TIMERS
++	  /* Make sure we have the necessary kernel support.  */
++	  if (__no_posix_timers == 0)
++	    {
++	      struct timespec ts;
++	      int res;
++	      res = INLINE_SYSCALL (clock_getres, 2,
++				    CLOCK_REALTIME, &ts);
++	      __no_posix_timers = (res == -1 ? -1 : 1);
++	    }
++
++	  if (__no_posix_timers > 0)
++# endif
++	    {
++	      /* Create the helper thread.  */
++	      pthread_once (&__helper_once, __start_helper_thread);
++	      if (__helper_tid == 0)
++		{
++		  /* No resources to start the helper thread.  */
++		  __set_errno (EAGAIN);
++		  return -1;
++		}
++
++	      struct timer *newp;
++	      newp = __kfreebsd_timer_alloc ();
++	      if (newp == NULL)
++		return -1;
++
++	      /* Copy the thread parameters the user provided.  */
++	      newp->sival = evp->sigev_value;
++	      newp->thrfunc = evp->sigev_notify_function;
++	      newp->sigev_notify = SIGEV_THREAD;
++
++	      /* We cannot simply copy the thread attributes since the
++		 implementation might keep internal information for
++		 each instance.  */
++	      (void) pthread_attr_init (&newp->attr);
++	      if (evp->sigev_notify_attributes != NULL)
++		{
++		  pthread_attr_t *nattr;
++		  pthread_attr_t *oattr;
++
++		  nattr = (pthread_attr_t *) &newp->attr;
++		  oattr = (pthread_attr_t *) evp->sigev_notify_attributes;
++
++		  nattr->__schedparam = oattr->__schedparam;
++		  nattr->__schedpolicy = oattr->__schedpolicy;
++		  nattr->__guardsize = oattr->__guardsize;
++		  nattr->__stackaddr = oattr->__stackaddr;
++		  nattr->__stacksize = oattr->__stacksize;
++		}
++
++	      /* In any case set the detach flag.  */
++	      (void) pthread_attr_setdetachstate (&newp->attr,
++						  PTHREAD_CREATE_DETACHED);
++
++	      /* Create the event structure for the kernel timer.  */
++	      struct sigevent sev =
++		{ .sigev_value.sival_ptr = newp,
++		  .sigev_signo = SIGTIMER,
++		  .sigev_notify = SIGEV_THREAD_ID,
++		  .sigev_notify_thread_id = __helper_tid,
++		};
++
++	      /* Create the timer.  */
++	      int res;
++	      res = INLINE_SYSCALL (ktimer_create, 3,
++				      clock_id, &sev, &newp->ktimerid);
++	      if (res != -1)
++		{
++		  /* Add to the queue of active timers with thread
++		     delivery.  */
++		  pthread_mutex_lock (&__active_timer_sigev_thread_lock);
++		  newp->next = __active_timer_sigev_thread;
++		  __active_timer_sigev_thread = newp;
++		  pthread_mutex_unlock (&__active_timer_sigev_thread_lock);
++
++		  *timerid = __kfreebsd_timer_ptr2id (newp);
++		  return 0;
++		}
++
++	      /* Free the resources.  */
++	      __kfreebsd_timer_free (newp);
++
++	      return -1;
++	    }
++	}
++    }
++
++# ifndef __ASSUME_POSIX_TIMERS
++  /* Compatibility code.  */
++  return compat_timer_create (clock_id, evp, timerid);
++# endif
++}
++#else
++# ifdef timer_create_alias
++#  define timer_create timer_create_alias
++# endif
++/* The new system calls are not available.  Use the userlevel
++   implementation.  */
++# include <linuxthreads/sysdeps/pthread/timer_create.c>
++#endif
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/timer_delete.c
+@@ -0,0 +1,117 @@
++/* Copyright (C) 2003, 2007, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <errno.h>
++#include <stdlib.h>
++#include <time.h>
++#include <sysdep.h>
++#include <kernel-features.h>
++#include "kernel-posix-timers.h"
++
++
++#ifdef SYS_ktimer_delete
++# ifndef __ASSUME_POSIX_TIMERS
++static int compat_timer_delete (timer_t timerid);
++#  define timer_delete static compat_timer_delete
++#  include <linuxthreads/sysdeps/pthread/timer_delete.c>
++#  undef timer_delete
++# endif
++
++# ifdef timer_delete_alias
++#  define timer_delete timer_delete_alias
++# endif
++
++
++int
++timer_delete (timerid)
++     timer_t timerid;
++{
++# undef timer_delete
++# ifndef __ASSUME_POSIX_TIMERS
++  if (__no_posix_timers >= 0)
++# endif
++    {
++      struct timer *kt = __kfreebsd_timer_id2ptr (timerid);
++      if (! kt)
++	return -1;
++
++      /* Delete the kernel timer object.  */
++      int res = INLINE_SYSCALL (ktimer_delete, 1, kt->ktimerid);
++
++      if (res == 0)
++	{
++	  if (kt->sigev_notify == SIGEV_THREAD)
++	    {
++	      /* Remove the timer from the list.  */
++	      pthread_mutex_lock (&__active_timer_sigev_thread_lock);
++	      if (__active_timer_sigev_thread == kt)
++		__active_timer_sigev_thread = kt->next;
++	      else
++		{
++		  struct timer *prevp = __active_timer_sigev_thread;
++		  while (prevp->next != NULL)
++		    if (prevp->next == kt)
++		      {
++			prevp->next = kt->next;
++			break;
++		      }
++		    else
++		      prevp = prevp->next;
++		}
++	      pthread_mutex_unlock (&__active_timer_sigev_thread_lock);
++	    }
++
++# ifndef __ASSUME_POSIX_TIMERS
++	  /* We know the syscall support is available.  */
++	  __no_posix_timers = 1;
++# endif
++
++	  /* Free the memory.  */
++	  (void) __kfreebsd_timer_free (kt);
++
++	  return 0;
++	}
++
++      /* The kernel timer is not known or something else bad happened.
++	 Return the error.  */
++# ifndef __ASSUME_POSIX_TIMERS
++      if (errno != ENOSYS)
++	{
++	  __no_posix_timers = 1;
++# endif
++	  return -1;
++# ifndef __ASSUME_POSIX_TIMERS
++	}
++
++      __no_posix_timers = -1;
++# endif
++    }
++
++# ifndef __ASSUME_POSIX_TIMERS
++  return compat_timer_delete (timerid);
++# endif
++}
++#else
++# ifdef timer_delete_alias
++#  define timer_delete timer_delete_alias
++# endif
++/* The new system calls are not available.  Use the userlevel
++   implementation.  */
++# include <linuxthreads/sysdeps/pthread/timer_delete.c>
++#endif
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/timer_getoverr.c
+@@ -0,0 +1,83 @@
++/* Copyright (C) 2003, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <errno.h>
++#include <time.h>
++#include <sysdep.h>
++#include <kernel-features.h>
++#include "kernel-posix-timers.h"
++
++
++#ifdef SYS_ktimer_getoverrun
++# ifndef __ASSUME_POSIX_TIMERS
++static int compat_timer_getoverrun (timer_t timerid);
++#  define timer_getoverrun static compat_timer_getoverrun
++#  include <linuxthreads/sysdeps/pthread/timer_getoverr.c>
++#  undef timer_getoverrun
++# endif
++
++# ifdef timer_getoverrun_alias
++#  define timer_getoverrun timer_getoverrun_alias
++# endif
++
++
++int
++timer_getoverrun (timerid)
++     timer_t timerid;
++{
++# undef timer_getoverrun
++# ifndef __ASSUME_POSIX_TIMERS
++  if (__no_posix_timers >= 0)
++# endif
++    {
++      struct timer *kt = __kfreebsd_timer_id2ptr (timerid);
++      if (! kt)
++	return -1;
++
++      /* Get the information from the kernel.  */
++      int res = INLINE_SYSCALL (ktimer_getoverrun, 1, kt->ktimerid);
++
++# ifndef __ASSUME_POSIX_TIMERS
++      if (res != -1 || errno != ENOSYS)
++	{
++	  /* We know the syscall support is available.  */
++	  __no_posix_timers = 1;
++# endif
++	  return res;
++# ifndef __ASSUME_POSIX_TIMERS
++	}
++# endif
++
++# ifndef __ASSUME_POSIX_TIMERS
++      __no_posix_timers = -1;
++# endif
++    }
++
++# ifndef __ASSUME_POSIX_TIMERS
++  return compat_timer_getoverrun (timerid);
++# endif
++}
++#else
++# ifdef timer_getoverrun_alias
++#  define timer_getoverrun timer_getoverrun_alias
++# endif
++/* The new system calls are not available.  Use the userlevel
++   implementation.  */
++# include <linuxthreads/sysdeps/pthread/timer_getoverr.c>
++#endif
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/timer_gettime.c
+@@ -0,0 +1,85 @@
++/* Copyright (C) 2003, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <errno.h>
++#include <stdlib.h>
++#include <time.h>
++#include <sysdep.h>
++#include <kernel-features.h>
++#include "kernel-posix-timers.h"
++
++
++#ifdef SYS_ktimer_gettime
++# ifndef __ASSUME_POSIX_TIMERS
++static int compat_timer_gettime (timer_t timerid, struct itimerspec *value);
++#  define timer_gettime static compat_timer_gettime
++#  include <linuxthreads/sysdeps/pthread/timer_gettime.c>
++#  undef timer_gettime
++# endif
++
++# ifdef timer_gettime_alias
++#  define timer_gettime timer_gettime_alias
++# endif
++
++
++int
++timer_gettime (timerid, value)
++     timer_t timerid;
++     struct itimerspec *value;
++{
++# undef timer_gettime
++# ifndef __ASSUME_POSIX_TIMERS
++  if (__no_posix_timers >= 0)
++# endif
++    {
++      struct timer *kt = __kfreebsd_timer_id2ptr (timerid);
++      if (! kt)
++	return -1;
++
++      /* Delete the kernel timer object.  */
++      int res = INLINE_SYSCALL (ktimer_gettime, 2, kt->ktimerid, value);
++
++# ifndef __ASSUME_POSIX_TIMERS
++      if (res != -1 || errno != ENOSYS)
++	{
++	  /* We know the syscall support is available.  */
++	  __no_posix_timers = 1;
++# endif
++	  return res;
++# ifndef __ASSUME_POSIX_TIMERS
++	}
++# endif
++
++# ifndef __ASSUME_POSIX_TIMERS
++      __no_posix_timers = -1;
++# endif
++    }
++
++# ifndef __ASSUME_POSIX_TIMERS
++  return compat_timer_gettime (timerid, value);
++# endif
++}
++#else
++# ifdef timer_gettime_alias
++#  define timer_gettime timer_gettime_alias
++# endif
++/* The new system calls are not available.  Use the userlevel
++   implementation.  */
++# include <linuxthreads/sysdeps/pthread/timer_gettime.c>
++#endif
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/timer_routines.c
+@@ -0,0 +1,214 @@
++/* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <errno.h>
++#include <setjmp.h>
++#include <signal.h>
++#include <stdbool.h>
++#include <sysdep.h>
++#include <sys/_types.h> /* __lwpid_t */
++#include <atomic.h>
++#include <kernel-features.h>
++#include <linuxthreads/internals.h>	/* LIBC_CANCEL_ASYNC */
++#include <semaphore.h>
++#include "kernel-posix-timers.h"
++
++/* NPTL/Linux simply casts "timer_t" to "struct timer *", but on
++   kFreeBSD timer_t may not be large enough to hold a pointer.
++   So we store the pointers here... (sigh) */
++struct timer *__all_timers[TIMER_MAX];
++
++/* List of active SIGEV_THREAD timers.  */
++struct timer *__active_timer_sigev_thread;
++/* Lock for the __active_timer_sigev_thread.  */
++pthread_mutex_t __active_timer_sigev_thread_lock = PTHREAD_MUTEX_INITIALIZER;
++
++
++struct thread_start_data
++{
++  void (*thrfunc) (sigval_t);
++  sigval_t sival;
++};
++
++/* TID of the helper thread.  */
++__lwpid_t __helper_tid attribute_hidden;
++sem_t __helper_tid_semaphore attribute_hidden;
++
++#ifdef SYS_ktimer_create
++/* Helper thread to call the user-provided function.  */
++static void *
++timer_sigev_thread (void *arg)
++{
++  /* The parent thread has all signals blocked.  This is a bit
++     surprising for user code, although valid.  We unblock all
++     signals.  */
++  sigset_t ss;
++  sigemptyset (&ss);
++  sigprocmask (SIG_SETMASK, &ss, NULL);
++
++  struct thread_start_data *td = (struct thread_start_data *) arg;
++
++  void (*thrfunc) (sigval_t) = td->thrfunc;
++  sigval_t sival = td->sival;
++
++  /* The TD object was allocated in timer_helper_thread.  */
++  free (td);
++
++  /* Call the user-provided function.  */
++  thrfunc (sival);
++
++  return NULL;
++}
++
++
++/* Helper function to support starting threads for SIGEV_THREAD.  */
++static void *
++timer_helper_thread (void *arg)
++{
++  /* Wait for the SIGTIMER signal, allowing the setXid signal, and
++     none else.  */
++  sigset_t ss;
++  sigemptyset (&ss);
++  __sigaddset (&ss, SIGTIMER);
++
++  syscall (SYS_thr_self, &__helper_tid);
++  sem_post (&__helper_tid_semaphore);
++
++  /* Endless loop of waiting for signals.  The loop is only ended when
++     the thread is canceled.  */
++  while (1)
++    {
++      siginfo_t si;
++
++      /* sigwaitinfo cannot be used here, since it deletes
++	 SIGCANCEL == SIGTIMER from the set.  */
++
++      int oldtype = LIBC_CANCEL_ASYNC ();
++
++      /* XXX The size argument hopefully will have to be changed to the
++	 real size of the user-level sigset_t.  */
++      int result = sigtimedwait (&ss, &si, NULL);
++
++      LIBC_CANCEL_RESET (oldtype);
++
++      if (result > 0)
++	{
++	  if (si.si_code == SI_TIMER)
++	    {
++	      struct timer *tk = (struct timer *) si.si_value.sival_ptr;
++
++	      /* Check the timer is still used and will not go away
++		 while we are reading the values here.  */
++	      pthread_mutex_lock (&__active_timer_sigev_thread_lock);
++
++	      struct timer *runp = __active_timer_sigev_thread;
++	      while (runp != NULL)
++		if (runp == tk)
++		  break;
++		else
++		  runp = runp->next;
++
++	      if (runp != NULL)
++		{
++		  struct thread_start_data *td = malloc (sizeof (*td));
++
++		  /* There is not much we can do if the allocation fails.  */
++		  if (td != NULL)
++		    {
++		      /* This is the signal we are waiting for.  */
++		      td->thrfunc = tk->thrfunc;
++		      td->sival = tk->sival;
++
++		      pthread_t th;
++		      (void) pthread_create (&th, &tk->attr,
++					     timer_sigev_thread, td);
++		    }
++		}
++
++	      pthread_mutex_unlock (&__active_timer_sigev_thread_lock);
++	    }
++	  else if (si.si_code == SI_LWP
++		   /* Backward compatibility (see rev 211732 in -CURRENT).  */
++		   || si.si_code == SI_USER)
++	    /* The thread is canceled.  */
++	    pthread_exit (NULL);
++	}
++    }
++}
++
++
++/* Control variable for helper thread creation.  */
++pthread_once_t __helper_once attribute_hidden;
++
++
++/* Reset variables so that after a fork a new helper thread gets started.  */
++static void
++reset_helper_control (void)
++{
++  __helper_once = PTHREAD_ONCE_INIT;
++  __helper_tid = 0;
++  sem_destroy (&__helper_tid_semaphore);
++}
++
++
++void
++attribute_hidden
++__start_helper_thread (void)
++{
++  /* The helper thread needs only very little resources
++     and should go away automatically when canceled.  */
++  pthread_attr_t attr;
++  (void) pthread_attr_init (&attr);
++  (void) pthread_attr_setstacksize (&attr, PTHREAD_STACK_MIN);
++
++  /* Block all signals in the helper thread but SIGSETXID.  To do this
++     thoroughly we temporarily have to block all signals here.  The
++     helper can lose wakeups if SIGCANCEL is not blocked throughout,
++     but sigfillset omits it SIGSETXID.  So, we add SIGCANCEL back
++     explicitly here.  */
++  sigset_t ss;
++  sigset_t oss;
++  sigfillset (&ss);
++  __sigaddset (&ss, SIGCANCEL);
++  sigprocmask (SIG_SETMASK, &ss, &oss);
++
++  sem_init (&__helper_tid_semaphore, 0, 0);
++
++  /* Create the helper thread for this timer.  */
++  pthread_t th;
++  int res = pthread_create (&th, &attr, timer_helper_thread, NULL);
++  if (res == 0)
++    /* We managed to start the helper thread.  */
++    sem_wait (&__helper_tid_semaphore);
++
++  /* Restore the signal mask.  */
++  sigprocmask (SIG_SETMASK, &oss, NULL);
++
++  /* No need for the attribute anymore.  */
++  (void) pthread_attr_destroy (&attr);
++
++  /* We have to make sure that after fork()ing a new helper thread can
++     be created.  */
++  pthread_atfork (NULL, NULL, reset_helper_control);
++}
++#endif
++
++#ifndef __ASSUME_POSIX_TIMERS
++# include <linuxthreads/sysdeps/pthread/timer_routines.c>
++#endif
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/timer_settime.c
+@@ -0,0 +1,90 @@
++/* Copyright (C) 2003, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <errno.h>
++#include <stdlib.h>
++#include <time.h>
++#include <sysdep.h>
++#include <kernel-features.h>
++#include "kernel-posix-timers.h"
++
++
++#ifdef SYS_ktimer_settime
++# ifndef __ASSUME_POSIX_TIMERS
++static int compat_timer_settime (timer_t timerid, int flags,
++				 const struct itimerspec *value,
++				 struct itimerspec *ovalue);
++#  define timer_settime static compat_timer_settime
++#  include <linuxthreads/sysdeps/pthread/timer_settime.c>
++#  undef timer_settime
++# endif
++
++# ifdef timer_settime_alias
++#  define timer_settime timer_settime_alias
++# endif
++
++
++int
++timer_settime (timerid, flags, value, ovalue)
++     timer_t timerid;
++     int flags;
++     const struct itimerspec *value;
++     struct itimerspec *ovalue;
++{
++# undef timer_settime
++# ifndef __ASSUME_POSIX_TIMERS
++  if (__no_posix_timers >= 0)
++# endif
++    {
++      struct timer *kt = __kfreebsd_timer_id2ptr (timerid);
++      if (! kt)
++	return -1;
++
++      /* Delete the kernel timer object.  */
++      int res = INLINE_SYSCALL (ktimer_settime, 4, kt->ktimerid, flags,
++				value, ovalue);
++
++# ifndef __ASSUME_POSIX_TIMERS
++      if (res != -1 || errno != ENOSYS)
++	{
++	  /* We know the syscall support is available.  */
++	  __no_posix_timers = 1;
++# endif
++	  return res;
++# ifndef __ASSUME_POSIX_TIMERS
++	}
++# endif
++
++# ifndef __ASSUME_POSIX_TIMERS
++      __no_posix_timers = -1;
++# endif
++    }
++
++# ifndef __ASSUME_POSIX_TIMERS
++  return compat_timer_settime (timerid, flags, value, ovalue);
++# endif
++}
++#else
++# ifdef timer_settime_alias
++#  define timer_settime timer_settime_alias
++# endif
++/* The new system calls are not available.  Use the userlevel
++   implementation.  */
++# include <linuxthreads/sysdeps/pthread/timer_settime.c>
++#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/unregister-atfork.c
 @@ -0,0 +1 @@
@@ -17703,6 +18717,958 @@
 +#define _POSIX_THREAD_PRIO_PROTECT	-1
 +
 +#endif /* bits/posix_opt.h */
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nptl/kernel-posix-timers.h
+@@ -0,0 +1,119 @@
++/* Copyright (C) 2003, 2007, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <pthread.h>
++#include <setjmp.h>
++#include <signal.h>
++#include <sys/types.h>
++#include <sys/_types.h>
++
++
++/* Nonzero if the system calls are not available.  */
++extern int __no_posix_timers attribute_hidden;
++
++/* Callback to start helper thread.  */
++extern void __start_helper_thread (void) attribute_hidden;
++
++/* Control variable for helper thread creation.  */
++extern pthread_once_t __helper_once attribute_hidden;
++
++/* TID of the helper thread.  */
++extern __lwpid_t __helper_tid attribute_hidden;
++
++/* List of active SIGEV_THREAD timers.  */
++extern struct timer *__active_timer_sigev_thread attribute_hidden;
++/* Lock for the __active_timer_sigev_thread.  */
++extern pthread_mutex_t __active_timer_sigev_thread_lock attribute_hidden;
++
++
++/* Type of timers in the kernel.  */
++typedef int kernel_timer_t;
++
++
++/* Internal representation of timer.  */
++struct timer
++{
++  /* Notification mechanism.  */
++  int sigev_notify;
++
++  /* Timer ID returned by the kernel.  */
++  kernel_timer_t ktimerid;
++
++  /* All new elements must be added after ktimerid.  And if the thrfunc
++     element is not the third element anymore the memory allocation in
++     timer_create needs to be changed.  */
++
++  /* Parameters for the thread to be started for SIGEV_THREAD.  */
++  void (*thrfunc) (sigval_t);
++  sigval_t sival;
++  pthread_attr_t attr;
++
++  /* Next element in list of active SIGEV_THREAD timers.  */
++  struct timer *next;
++};
++
++extern struct timer *__all_timers[TIMER_MAX];
++
++static inline struct timer *
++__kfreebsd_timer_alloc ()
++{
++  unsigned int i;
++  struct timer *timer = malloc (sizeof (struct timer));
++
++  /* Find a free slot (and reserve it atomically).  */
++  for (i = 0; i < TIMER_MAX; i++)
++    if (atomic_compare_and_exchange_val_acq (&__all_timers[i],
++					     timer, NULL) == NULL)
++      return timer;
++
++  errno = EAGAIN;
++  return NULL;
++}
++
++static inline struct timer *
++__kfreebsd_timer_id2ptr (timer_t id)
++{
++  void *ret = NULL;
++
++  if (id >= 0 && id < TIMER_MAX)
++    ret = __all_timers[id];
++
++  if (! ret)
++    errno = EINVAL;
++
++  return ret;
++}
++
++static inline timer_t
++__kfreebsd_timer_ptr2id (struct timer *ptr)
++{
++  unsigned int i;
++  for (i = 0; i < TIMER_MAX; i++)
++    if (__all_timers[i] == ptr)
++      return i;
++
++  return -1;
++}
++
++void static inline
++__kfreebsd_timer_free (struct timer *ptr)
++{
++  __all_timers[__kfreebsd_timer_ptr2id (ptr)] = NULL;
++  free (ptr);
++}
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nptl/timer_create.c
+@@ -0,0 +1,229 @@
++/* Copyright (C) 2003,2004, 2007, 2009, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <errno.h>
++#include <pthread.h>
++#include <signal.h>
++#include <stdlib.h>
++#include <string.h>
++#include <time.h>
++#include <sysdep.h>
++#include <kernel-features.h>
++#include <internaltypes.h>
++#include <nptl/pthreadP.h>
++#include "kernel-posix-timers.h"
++#include "kernel-posix-cpu-timers.h"
++
++
++#ifdef SYS_ktimer_create
++# ifndef __ASSUME_POSIX_TIMERS
++static int compat_timer_create (clockid_t clock_id, struct sigevent *evp,
++				timer_t *timerid);
++#  define timer_create static compat_timer_create
++#  include <nptl/sysdeps/pthread/timer_create.c>
++#  undef timer_create
++
++/* Nonzero if the system calls are not available.  */
++int __no_posix_timers attribute_hidden;
++# endif
++
++# ifdef timer_create_alias
++#  define timer_create timer_create_alias
++# endif
++
++
++int
++timer_create (clock_id, evp, timerid)
++     clockid_t clock_id;
++     struct sigevent *evp;
++     timer_t *timerid;
++{
++# undef timer_create
++# ifndef __ASSUME_POSIX_TIMERS
++  if  (__no_posix_timers >= 0)
++# endif
++    {
++      /* If the user wants notification via a thread we need to handle
++	 this special.  */
++      if (evp == NULL
++	  || __builtin_expect (evp->sigev_notify != SIGEV_THREAD, 1))
++	{
++	  struct sigevent local_evp;
++
++	  struct timer *newp = __kfreebsd_timer_alloc ();
++
++	  if (newp == NULL)
++	    /* No more memory.  */
++	    return -1;
++
++	  if (evp == NULL)
++	    {
++	      /* The kernel has to pass up the timer ID which is a
++		 userlevel object.  Therefore we cannot leave it up to
++		 the kernel to determine it.  */
++	      local_evp.sigev_notify = SIGEV_SIGNAL;
++	      local_evp.sigev_signo = SIGALRM;
++	      local_evp.sigev_value.sival_ptr = newp;
++
++	      evp = &local_evp;
++	    }
++
++	  kernel_timer_t ktimerid;
++	  int retval = INLINE_SYSCALL (ktimer_create, 3, clock_id, evp,
++				       &ktimerid);
++
++# ifndef __ASSUME_POSIX_TIMERS
++	  if (retval != -1 || errno != ENOSYS)
++# endif
++	    {
++# ifndef __ASSUME_POSIX_TIMERS
++	      __no_posix_timers = 1;
++# endif
++
++	      if (retval != -1)
++		{
++		  newp->sigev_notify = (evp != NULL
++					? evp->sigev_notify : SIGEV_SIGNAL);
++		  newp->ktimerid = ktimerid;
++
++		  *timerid = __kfreebsd_timer_ptr2id (newp);
++		}
++	      else
++		{
++		  /* Cannot allocate the timer, fail.  */
++		  __kfreebsd_timer_free (newp);
++		  retval = -1;
++		}
++
++	      return retval;
++	    }
++
++	  __kfreebsd_timer_free (newp);
++
++# ifndef __ASSUME_POSIX_TIMERS
++	  /* When we come here the syscall does not exist.  Make sure we
++	     do not try to use it again.  */
++	  __no_posix_timers = -1;
++# endif
++	}
++      else
++	{
++# ifndef __ASSUME_POSIX_TIMERS
++	  /* Make sure we have the necessary kernel support.  */
++	  if (__no_posix_timers == 0)
++	    {
++	      struct timespec ts;
++	      int res;
++	      res = INLINE_SYSCALL (clock_getres, 2,
++				    CLOCK_REALTIME, &ts);
++	      __no_posix_timers = (res == -1 ? -1 : 1);
++	    }
++
++	  if (__no_posix_timers > 0)
++# endif
++	    {
++	      /* Create the helper thread.  */
++	      pthread_once (&__helper_once, __start_helper_thread);
++	      if (__helper_tid == 0)
++		{
++		  /* No resources to start the helper thread.  */
++		  __set_errno (EAGAIN);
++		  return -1;
++		}
++
++	      struct timer *newp;
++	      newp = __kfreebsd_timer_alloc ();
++	      if (newp == NULL)
++		return -1;
++
++	      /* Copy the thread parameters the user provided.  */
++	      newp->sival = evp->sigev_value;
++	      newp->thrfunc = evp->sigev_notify_function;
++	      newp->sigev_notify = SIGEV_THREAD;
++
++	      /* We cannot simply copy the thread attributes since the
++		 implementation might keep internal information for
++		 each instance.  */
++	      (void) pthread_attr_init (&newp->attr);
++	      if (evp->sigev_notify_attributes != NULL)
++		{
++		  struct pthread_attr *nattr;
++		  struct pthread_attr *oattr;
++
++		  nattr = (struct pthread_attr *) &newp->attr;
++		  oattr = (struct pthread_attr *) evp->sigev_notify_attributes;
++
++		  nattr->schedparam = oattr->schedparam;
++		  nattr->schedpolicy = oattr->schedpolicy;
++		  nattr->flags = oattr->flags;
++		  nattr->guardsize = oattr->guardsize;
++		  nattr->stackaddr = oattr->stackaddr;
++		  nattr->stacksize = oattr->stacksize;
++		}
++
++	      /* In any case set the detach flag.  */
++	      (void) pthread_attr_setdetachstate (&newp->attr,
++						  PTHREAD_CREATE_DETACHED);
++
++	      /* Create the event structure for the kernel timer.  */
++	      struct sigevent sev =
++		{ .sigev_value.sival_ptr = newp,
++		  .sigev_signo = SIGTIMER,
++		  .sigev_notify = SIGEV_THREAD_ID,
++		  .sigev_notify_thread_id = __helper_tid,
++		};
++
++	      /* Create the timer.  */
++	      int res;
++	      res = INLINE_SYSCALL (ktimer_create, 3,
++				      clock_id, &sev, &newp->ktimerid);
++	      if (res != -1)
++		{
++		  /* Add to the queue of active timers with thread
++		     delivery.  */
++		  pthread_mutex_lock (&__active_timer_sigev_thread_lock);
++		  newp->next = __active_timer_sigev_thread;
++		  __active_timer_sigev_thread = newp;
++		  pthread_mutex_unlock (&__active_timer_sigev_thread_lock);
++
++		  *timerid = __kfreebsd_timer_ptr2id (newp);
++		  return 0;
++		}
++
++	      /* Free the resources.  */
++	      __kfreebsd_timer_free (newp);
++
++	      return -1;
++	    }
++	}
++    }
++
++# ifndef __ASSUME_POSIX_TIMERS
++  /* Compatibility code.  */
++  return compat_timer_create (clock_id, evp, timerid);
++# endif
++}
++#else
++# ifdef timer_create_alias
++#  define timer_create timer_create_alias
++# endif
++/* The new system calls are not available.  Use the userlevel
++   implementation.  */
++# include <nptl/sysdeps/pthread/timer_create.c>
++#endif
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nptl/timer_delete.c
+@@ -0,0 +1,117 @@
++/* Copyright (C) 2003, 2007, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <errno.h>
++#include <stdlib.h>
++#include <time.h>
++#include <sysdep.h>
++#include <kernel-features.h>
++#include "kernel-posix-timers.h"
++
++
++#ifdef SYS_ktimer_delete
++# ifndef __ASSUME_POSIX_TIMERS
++static int compat_timer_delete (timer_t timerid);
++#  define timer_delete static compat_timer_delete
++#  include <nptl/sysdeps/pthread/timer_delete.c>
++#  undef timer_delete
++# endif
++
++# ifdef timer_delete_alias
++#  define timer_delete timer_delete_alias
++# endif
++
++
++int
++timer_delete (timerid)
++     timer_t timerid;
++{
++# undef timer_delete
++# ifndef __ASSUME_POSIX_TIMERS
++  if (__no_posix_timers >= 0)
++# endif
++    {
++      struct timer *kt = __kfreebsd_timer_id2ptr (timerid);
++      if (! kt)
++	return -1;
++
++      /* Delete the kernel timer object.  */
++      int res = INLINE_SYSCALL (ktimer_delete, 1, kt->ktimerid);
++
++      if (res == 0)
++	{
++	  if (kt->sigev_notify == SIGEV_THREAD)
++	    {
++	      /* Remove the timer from the list.  */
++	      pthread_mutex_lock (&__active_timer_sigev_thread_lock);
++	      if (__active_timer_sigev_thread == kt)
++		__active_timer_sigev_thread = kt->next;
++	      else
++		{
++		  struct timer *prevp = __active_timer_sigev_thread;
++		  while (prevp->next != NULL)
++		    if (prevp->next == kt)
++		      {
++			prevp->next = kt->next;
++			break;
++		      }
++		    else
++		      prevp = prevp->next;
++		}
++	      pthread_mutex_unlock (&__active_timer_sigev_thread_lock);
++	    }
++
++# ifndef __ASSUME_POSIX_TIMERS
++	  /* We know the syscall support is available.  */
++	  __no_posix_timers = 1;
++# endif
++
++	  /* Free the memory.  */
++	  (void) __kfreebsd_timer_free (kt);
++
++	  return 0;
++	}
++
++      /* The kernel timer is not known or something else bad happened.
++	 Return the error.  */
++# ifndef __ASSUME_POSIX_TIMERS
++      if (errno != ENOSYS)
++	{
++	  __no_posix_timers = 1;
++# endif
++	  return -1;
++# ifndef __ASSUME_POSIX_TIMERS
++	}
++
++      __no_posix_timers = -1;
++# endif
++    }
++
++# ifndef __ASSUME_POSIX_TIMERS
++  return compat_timer_delete (timerid);
++# endif
++}
++#else
++# ifdef timer_delete_alias
++#  define timer_delete timer_delete_alias
++# endif
++/* The new system calls are not available.  Use the userlevel
++   implementation.  */
++# include <nptl/sysdeps/pthread/timer_delete.c>
++#endif
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nptl/timer_getoverr.c
+@@ -0,0 +1,83 @@
++/* Copyright (C) 2003, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <errno.h>
++#include <time.h>
++#include <sysdep.h>
++#include <kernel-features.h>
++#include "kernel-posix-timers.h"
++
++
++#ifdef SYS_ktimer_getoverrun
++# ifndef __ASSUME_POSIX_TIMERS
++static int compat_timer_getoverrun (timer_t timerid);
++#  define timer_getoverrun static compat_timer_getoverrun
++#  include <nptl/sysdeps/pthread/timer_getoverr.c>
++#  undef timer_getoverrun
++# endif
++
++# ifdef timer_getoverrun_alias
++#  define timer_getoverrun timer_getoverrun_alias
++# endif
++
++
++int
++timer_getoverrun (timerid)
++     timer_t timerid;
++{
++# undef timer_getoverrun
++# ifndef __ASSUME_POSIX_TIMERS
++  if (__no_posix_timers >= 0)
++# endif
++    {
++      struct timer *kt = __kfreebsd_timer_id2ptr (timerid);
++      if (! kt)
++	return -1;
++
++      /* Get the information from the kernel.  */
++      int res = INLINE_SYSCALL (ktimer_getoverrun, 1, kt->ktimerid);
++
++# ifndef __ASSUME_POSIX_TIMERS
++      if (res != -1 || errno != ENOSYS)
++	{
++	  /* We know the syscall support is available.  */
++	  __no_posix_timers = 1;
++# endif
++	  return res;
++# ifndef __ASSUME_POSIX_TIMERS
++	}
++# endif
++
++# ifndef __ASSUME_POSIX_TIMERS
++      __no_posix_timers = -1;
++# endif
++    }
++
++# ifndef __ASSUME_POSIX_TIMERS
++  return compat_timer_getoverrun (timerid);
++# endif
++}
++#else
++# ifdef timer_getoverrun_alias
++#  define timer_getoverrun timer_getoverrun_alias
++# endif
++/* The new system calls are not available.  Use the userlevel
++   implementation.  */
++# include <nptl/sysdeps/pthread/timer_getoverr.c>
++#endif
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nptl/timer_gettime.c
+@@ -0,0 +1,85 @@
++/* Copyright (C) 2003, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <errno.h>
++#include <stdlib.h>
++#include <time.h>
++#include <sysdep.h>
++#include <kernel-features.h>
++#include "kernel-posix-timers.h"
++
++
++#ifdef SYS_ktimer_gettime
++# ifndef __ASSUME_POSIX_TIMERS
++static int compat_timer_gettime (timer_t timerid, struct itimerspec *value);
++#  define timer_gettime static compat_timer_gettime
++#  include <nptl/sysdeps/pthread/timer_gettime.c>
++#  undef timer_gettime
++# endif
++
++# ifdef timer_gettime_alias
++#  define timer_gettime timer_gettime_alias
++# endif
++
++
++int
++timer_gettime (timerid, value)
++     timer_t timerid;
++     struct itimerspec *value;
++{
++# undef timer_gettime
++# ifndef __ASSUME_POSIX_TIMERS
++  if (__no_posix_timers >= 0)
++# endif
++    {
++      struct timer *kt = __kfreebsd_timer_id2ptr (timerid);
++      if (! kt)
++	return -1;
++
++      /* Delete the kernel timer object.  */
++      int res = INLINE_SYSCALL (ktimer_gettime, 2, kt->ktimerid, value);
++
++# ifndef __ASSUME_POSIX_TIMERS
++      if (res != -1 || errno != ENOSYS)
++	{
++	  /* We know the syscall support is available.  */
++	  __no_posix_timers = 1;
++# endif
++	  return res;
++# ifndef __ASSUME_POSIX_TIMERS
++	}
++# endif
++
++# ifndef __ASSUME_POSIX_TIMERS
++      __no_posix_timers = -1;
++# endif
++    }
++
++# ifndef __ASSUME_POSIX_TIMERS
++  return compat_timer_gettime (timerid, value);
++# endif
++}
++#else
++# ifdef timer_gettime_alias
++#  define timer_gettime timer_gettime_alias
++# endif
++/* The new system calls are not available.  Use the userlevel
++   implementation.  */
++# include <nptl/sysdeps/pthread/timer_gettime.c>
++#endif
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nptl/timer_routines.c
+@@ -0,0 +1,208 @@
++/* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <errno.h>
++#include <setjmp.h>
++#include <signal.h>
++#include <stdbool.h>
++#include <sysdep.h>
++#include <sys/_types.h> /* __lwpid_t */
++#include <atomic.h>
++#include <kernel-features.h>
++#include <nptl/pthreadP.h>
++#include "kernel-posix-timers.h"
++
++/* NPTL/Linux simply casts "timer_t" to "struct timer *", but on
++   kFreeBSD timer_t may not be large enough to hold a pointer.
++   So we store the pointers here... (sigh) */
++struct timer *__all_timers[TIMER_MAX];
++
++/* List of active SIGEV_THREAD timers.  */
++struct timer *__active_timer_sigev_thread;
++/* Lock for the __active_timer_sigev_thread.  */
++pthread_mutex_t __active_timer_sigev_thread_lock = PTHREAD_MUTEX_INITIALIZER;
++
++
++struct thread_start_data
++{
++  void (*thrfunc) (sigval_t);
++  sigval_t sival;
++};
++
++
++#ifdef SYS_ktimer_create
++/* Helper thread to call the user-provided function.  */
++static void *
++timer_sigev_thread (void *arg)
++{
++  /* The parent thread has all signals blocked.  This is a bit
++     surprising for user code, although valid.  We unblock all
++     signals.  */
++  sigset_t ss;
++  sigemptyset (&ss);
++  sigprocmask (SIG_SETMASK, &ss, NULL);
++
++  struct thread_start_data *td = (struct thread_start_data *) arg;
++
++  void (*thrfunc) (sigval_t) = td->thrfunc;
++  sigval_t sival = td->sival;
++
++  /* The TD object was allocated in timer_helper_thread.  */
++  free (td);
++
++  /* Call the user-provided function.  */
++  thrfunc (sival);
++
++  return NULL;
++}
++
++
++/* Helper function to support starting threads for SIGEV_THREAD.  */
++static void *
++timer_helper_thread (void *arg)
++{
++  /* Wait for the SIGTIMER signal, allowing the setXid signal, and
++     none else.  */
++  sigset_t ss;
++  sigemptyset (&ss);
++  __sigaddset (&ss, SIGTIMER);
++
++  /* Endless loop of waiting for signals.  The loop is only ended when
++     the thread is canceled.  */
++  while (1)
++    {
++      siginfo_t si;
++
++      /* sigwaitinfo cannot be used here, since it deletes
++	 SIGCANCEL == SIGTIMER from the set.  */
++
++      int oldtype = LIBC_CANCEL_ASYNC ();
++
++      /* XXX The size argument hopefully will have to be changed to the
++	 real size of the user-level sigset_t.  */
++      int result = sigtimedwait (&ss, &si, NULL);
++
++      LIBC_CANCEL_RESET (oldtype);
++
++      if (result > 0)
++	{
++	  if (si.si_code == SI_TIMER)
++	    {
++	      struct timer *tk = (struct timer *) si.si_value.sival_ptr;
++
++	      /* Check the timer is still used and will not go away
++		 while we are reading the values here.  */
++	      pthread_mutex_lock (&__active_timer_sigev_thread_lock);
++
++	      struct timer *runp = __active_timer_sigev_thread;
++	      while (runp != NULL)
++		if (runp == tk)
++		  break;
++		else
++		  runp = runp->next;
++
++	      if (runp != NULL)
++		{
++		  struct thread_start_data *td = malloc (sizeof (*td));
++
++		  /* There is not much we can do if the allocation fails.  */
++		  if (td != NULL)
++		    {
++		      /* This is the signal we are waiting for.  */
++		      td->thrfunc = tk->thrfunc;
++		      td->sival = tk->sival;
++
++		      pthread_t th;
++		      (void) pthread_create (&th, &tk->attr,
++					     timer_sigev_thread, td);
++		    }
++		}
++
++	      pthread_mutex_unlock (&__active_timer_sigev_thread_lock);
++	    }
++	  else if (si.si_code == SI_LWP
++		   /* Backward compatibility (see rev 211732 in -CURRENT).  */
++		   || si.si_code == SI_USER)
++	    /* The thread is canceled.  */
++	    pthread_exit (NULL);
++	}
++    }
++}
++
++
++/* Control variable for helper thread creation.  */
++pthread_once_t __helper_once attribute_hidden;
++
++
++/* TID of the helper thread.  */
++__lwpid_t __helper_tid attribute_hidden;
++
++
++/* Reset variables so that after a fork a new helper thread gets started.  */
++static void
++reset_helper_control (void)
++{
++  __helper_once = PTHREAD_ONCE_INIT;
++  __helper_tid = 0;
++}
++
++
++void
++attribute_hidden
++__start_helper_thread (void)
++{
++  /* The helper thread needs only very little resources
++     and should go away automatically when canceled.  */
++  pthread_attr_t attr;
++  (void) pthread_attr_init (&attr);
++  (void) pthread_attr_setstacksize (&attr, PTHREAD_STACK_MIN);
++
++  /* Block all signals in the helper thread but SIGSETXID.  To do this
++     thoroughly we temporarily have to block all signals here.  The
++     helper can lose wakeups if SIGCANCEL is not blocked throughout,
++     but sigfillset omits it SIGSETXID.  So, we add SIGCANCEL back
++     explicitly here.  */
++  sigset_t ss;
++  sigset_t oss;
++  sigfillset (&ss);
++  __sigaddset (&ss, SIGCANCEL);
++  sigprocmask (SIG_SETMASK, &ss, &oss);
++
++  /* Create the helper thread for this timer.  */
++  pthread_t th;
++  int res = pthread_create (&th, &attr, timer_helper_thread, NULL);
++  if (res == 0)
++    /* We managed to start the helper thread.  */
++    __helper_tid = ((struct pthread *) th)->tid;
++
++  /* Restore the signal mask.  */
++  sigprocmask (SIG_SETMASK, &oss, NULL);
++
++  /* No need for the attribute anymore.  */
++  (void) pthread_attr_destroy (&attr);
++
++  /* We have to make sure that after fork()ing a new helper thread can
++     be created.  */
++  pthread_atfork (NULL, NULL, reset_helper_control);
++}
++#endif
++
++#ifndef __ASSUME_POSIX_TIMERS
++# include <nptl/sysdeps/pthread/timer_routines.c>
++#endif
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/nptl/timer_settime.c
+@@ -0,0 +1,90 @@
++/* Copyright (C) 2003, 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <errno.h>
++#include <stdlib.h>
++#include <time.h>
++#include <sysdep.h>
++#include <kernel-features.h>
++#include "kernel-posix-timers.h"
++
++
++#ifdef SYS_ktimer_settime
++# ifndef __ASSUME_POSIX_TIMERS
++static int compat_timer_settime (timer_t timerid, int flags,
++				 const struct itimerspec *value,
++				 struct itimerspec *ovalue);
++#  define timer_settime static compat_timer_settime
++#  include <nptl/sysdeps/pthread/timer_settime.c>
++#  undef timer_settime
++# endif
++
++# ifdef timer_settime_alias
++#  define timer_settime timer_settime_alias
++# endif
++
++
++int
++timer_settime (timerid, flags, value, ovalue)
++     timer_t timerid;
++     int flags;
++     const struct itimerspec *value;
++     struct itimerspec *ovalue;
++{
++# undef timer_settime
++# ifndef __ASSUME_POSIX_TIMERS
++  if (__no_posix_timers >= 0)
++# endif
++    {
++      struct timer *kt = __kfreebsd_timer_id2ptr (timerid);
++      if (! kt)
++	return -1;
++
++      /* Delete the kernel timer object.  */
++      int res = INLINE_SYSCALL (ktimer_settime, 4, kt->ktimerid, flags,
++				value, ovalue);
++
++# ifndef __ASSUME_POSIX_TIMERS
++      if (res != -1 || errno != ENOSYS)
++	{
++	  /* We know the syscall support is available.  */
++	  __no_posix_timers = 1;
++# endif
++	  return res;
++# ifndef __ASSUME_POSIX_TIMERS
++	}
++# endif
++
++# ifndef __ASSUME_POSIX_TIMERS
++      __no_posix_timers = -1;
++# endif
++    }
++
++# ifndef __ASSUME_POSIX_TIMERS
++  return compat_timer_settime (timerid, flags, value, ovalue);
++# endif
++}
++#else
++# ifdef timer_settime_alias
++#  define timer_settime timer_settime_alias
++# endif
++/* The new system calls are not available.  Use the userlevel
++   implementation.  */
++# include <nptl/sysdeps/pthread/timer_settime.c>
++#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ntp_gettime.c
 @@ -0,0 +1,62 @@
@@ -22891,7 +24857,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,194 @@
+@@ -0,0 +1,199 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
 +sys_access		-	access			i:si		__syscall_access
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
@@ -22912,6 +24878,11 @@
 +sys_clock_getres	-	clock_getres		i:ip		__syscall_clock_getres
 +sys_clock_gettime	-	clock_gettime		i:ip		__syscall_clock_gettime
 +sys_clock_settime	-	clock_settime		i:ip		__syscall_clock_settime
++sys_ktimer_create	-	ktimer_create		i:iPp		__syscall_ktimer_create
++sys_ktimer_gettime	-	ktimer_gettime		i:ip		__syscall_ktimer_gettime
++sys_ktimer_settime	-	ktimer_settime		i:ip		__syscall_ktimer_settime
++sys_ktimer_getoverrun	-	ktimer_getoverrun	i:i		__syscall_ktimer_getoverrun
++sys_ktimer_delete	-	ktimer_delete		i:i		__syscall_ktimer_delete
 +sys_execve		-	execve			i:ppp		__syscall_execve
 +extattrctl		-	extattrctl		i:sisI		extattrctl
 +extattr_delete_file	-	extattr_delete_file	i:ss		extattr_delete_file
@@ -23298,7 +25269,7 @@
 +#include <sysdeps/unix/telldir.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/testrtsig.h
-@@ -0,0 +1,44 @@
+@@ -0,0 +1,37 @@
 +/* Test whether RT signals are really available.
 +   Copyright (C) 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -23323,6 +25294,7 @@
 +#include <string.h>
 +
 +#include <kernel-features.h>
++#include <getosreldate.h>
 +
 +static int
 +kernel_has_rtsig (void)
@@ -23330,15 +25302,7 @@
 +#if __ASSUME_REALTIME_SIGNALS
 +  return 1;
 +#else
-+
-+  int request[2] = { CTL_KERN, KERN_OSRELDATE};
-+  size_t len;
-+  int val;
-+
-+  len = sizeof (val);
-+  if (__sysctl (request, 2, &val, &len, NULL, 0) < 0)
-+      return 0;
-+  if ( val < 700050) /* FreeBSD 7.0 is 700055 */
++  if (__kernel_getosreldate () < 700050) /* FreeBSD 7.0 is 700055 */
 +      return 0;
 +  return 1;
 +#endif
