@@ -1,4 +1,4 @@
-eglibc (2.13-31) UNRELEASED; urgency=low
+eglibc (2.13-31~0+hurd.1) unreleased; urgency=low
 
   [ Petr Salinger ]
   * alter kfreebsd/local-use-thr-primitives.diff. See: #654783.
@@ -7,8 +7,35 @@ eglibc (2.13-31) UNRELEASED; urgency=low
 
   [ Samuel Thibault ]
   * patches/hurd-i386/tg-hooks.diff: New patch to fix Hurd hooks order.
+  * patches/hurd-i386/libpthread.diff: New patch to import Hurd libpthread as
+    an add-on.
+  * patches/hurd-i386/libpthread_clean.diff: New patch to remove useless parts
+    of Hurd libpthread which come in the way.
+  * patches/hurd-i386/tg-libpthread_depend.diff: New patch to add add-on
+    dependencies on libpthread.
+  * patches/hurd-i386/libpthread_fix.diff: New patch to fix libpthread
+    allocation.
+  * patches/hurd-i386/libpthread_globsigdisp.diff: New patch to implement
+    global signal dispatch.
+  * patches/hurd-i386/libpthread_sigmask.diff: New patch to fix per-thread
+    sigmask.
+  * patches/hurd-i386/libpthread_stubs.diff: New patch to add mark ENOSYS
+    stubs.
+  * patches/hurd-i386/libpthread_librt-link.diff: New patch to fix librt link.
+  * patches/hurd-i386/{tg-pthread_types.diff,local-pthread_stubs.diff,
+    unsubmitted-pthread-unsupported-stubs.diff}: Remove patches, now useless.
+  * patches/hurd-i386/unsubmitted-pthread_posix-option.diff: Remove fake
+    libpthread rules.
+  * sysdeps/hurd.mk: Enable libpthread add-on. Remove useless redefinition of
+    standard-add-ons.
+  * sysdeps/hurd-i386.mk: Use the libpthread add-on for i686 and xen variants.
+  * debhelper.in/libc-udeb.install.hurd-i386: Remove, hurd-i386 now has
+    libpthread too.
+  * debhelper.in/libc-dev.install.hurd-i386: Add libpthread.a and
+    libpthread2.a.
+  * control.in/libc,control: Make libc-dev replace the hurd package.
 
- -- Samuel Thibault <sthibault@debian.org>  Sat, 21 Apr 2012 21:33:38 +0200
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 23 Apr 2012 00:15:44 +0000
 
 eglibc (2.13-30) unstable; urgency=low
 

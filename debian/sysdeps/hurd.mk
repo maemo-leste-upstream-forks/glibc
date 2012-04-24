@@ -2,6 +2,7 @@
 
 EGLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
 
+# do not enable nscd
 threads = no
 libc = libc0.3
 
@@ -18,5 +19,5 @@ endef
 
 libc_extra_config_options := $(extra_config_options)
 
-# Only use libidn as add-on.
-standard-add-ons = libidn
+libc_add-ons = libpthread $(add-ons)
+
