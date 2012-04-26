@@ -1,17 +1,17 @@
 2012-03-05  Michael Hope  <michael.hope@linaro.org>
 
-	* sysdeps/unix/sysv/linux/arm/eabi/getcontext.S: New file.
-	* sysdeps/unix/sysv/linux/arm/eabi/makecontext.c: New file.
-	* sysdeps/unix/sysv/linux/arm/eabi/setcontext.S: New file.
-	* sysdeps/unix/sysv/linux/arm/eabi/swapcontext.S: New file.
-	* sysdeps/unix/sysv/linux/arm/ucontext_i.sym: New file.
-	* sysdeps/unix/sysv/linux/arm/Makefile (gen-as-const-headers): Add
+	* ports/sysdeps/unix/sysv/linux/arm/eabi/getcontext.S: New file.
+	* ports/sysdeps/unix/sysv/linux/arm/eabi/makecontext.c: New file.
+	* ports/sysdeps/unix/sysv/linux/arm/eabi/setcontext.S: New file.
+	* ports/sysdeps/unix/sysv/linux/arm/eabi/swapcontext.S: New file.
+	* ports/sysdeps/unix/sysv/linux/arm/ucontext_i.sym: New file.
+	* ports/sysdeps/unix/sysv/linux/arm/Makefile (gen-as-const-headers): Add
 	ucontext_i.sym.
 
-diff --git a/sysdeps/unix/sysv/linux/arm/Makefile b/sysdeps/unix/sysv/linux/arm/Makefile
+diff --git a/ports/sysdeps/unix/sysv/linux/arm/Makefile b/ports/sysdeps/unix/sysv/linux/arm/Makefile
 index d91b968..a981736 100644
---- a/sysdeps/unix/sysv/linux/arm/Makefile
-+++ b/sysdeps/unix/sysv/linux/arm/Makefile
+--- a/ports/sysdeps/unix/sysv/linux/arm/Makefile
++++ b/ports/sysdeps/unix/sysv/linux/arm/Makefile
 @@ -20,3 +20,7 @@ endif
  ifeq ($(subdir),resource)
  sysdep_routines += oldgetrlimit64
@@ -20,11 +20,11 @@ index d91b968..a981736 100644
 +ifeq ($(subdir),stdlib)
 +gen-as-const-headers += ucontext_i.sym
 +endif
-diff --git a/sysdeps/unix/sysv/linux/arm/eabi/getcontext.S b/sysdeps/unix/sysv/linux/arm/eabi/getcontext.S
+diff --git a/ports/sysdeps/unix/sysv/linux/arm/eabi/getcontext.S b/ports/sysdeps/unix/sysv/linux/arm/eabi/getcontext.S
 new file mode 100644
 index 0000000..435eb12
 --- /dev/null
-+++ b/sysdeps/unix/sysv/linux/arm/eabi/getcontext.S
++++ b/ports/sysdeps/unix/sysv/linux/arm/eabi/getcontext.S
 @@ -0,0 +1,113 @@
 +/* Copyright (C) 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -139,11 +139,11 @@ index 0000000..435eb12
 +
 +
 +weak_alias(__getcontext, getcontext)
-diff --git a/sysdeps/unix/sysv/linux/arm/eabi/makecontext.c b/sysdeps/unix/sysv/linux/arm/eabi/makecontext.c
+diff --git a/ports/sysdeps/unix/sysv/linux/arm/eabi/makecontext.c b/ports/sysdeps/unix/sysv/linux/arm/eabi/makecontext.c
 new file mode 100644
 index 0000000..d6ae6f0
 --- /dev/null
-+++ b/sysdeps/unix/sysv/linux/arm/eabi/makecontext.c
++++ b/ports/sysdeps/unix/sysv/linux/arm/eabi/makecontext.c
 @@ -0,0 +1,73 @@
 +/* Copyright (C) 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -218,11 +218,11 @@ index 0000000..d6ae6f0
 +  va_end (vl);
 +}
 +weak_alias (__makecontext, makecontext)
-diff --git a/sysdeps/unix/sysv/linux/arm/eabi/setcontext.S b/sysdeps/unix/sysv/linux/arm/eabi/setcontext.S
+diff --git a/ports/sysdeps/unix/sysv/linux/arm/eabi/setcontext.S b/ports/sysdeps/unix/sysv/linux/arm/eabi/setcontext.S
 new file mode 100644
 index 0000000..78003f5
 --- /dev/null
-+++ b/sysdeps/unix/sysv/linux/arm/eabi/setcontext.S
++++ b/ports/sysdeps/unix/sysv/linux/arm/eabi/setcontext.S
 @@ -0,0 +1,101 @@
 +/* Copyright (C) 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -325,11 +325,11 @@ index 0000000..78003f5
 +        .long   C_SYMBOL_NAME(_dl_hwcap)
 +#endif
 +
-diff --git a/sysdeps/unix/sysv/linux/arm/eabi/swapcontext.S b/sysdeps/unix/sysv/linux/arm/eabi/swapcontext.S
+diff --git a/ports/sysdeps/unix/sysv/linux/arm/eabi/swapcontext.S b/ports/sysdeps/unix/sysv/linux/arm/eabi/swapcontext.S
 new file mode 100644
 index 0000000..09492d0
 --- /dev/null
-+++ b/sysdeps/unix/sysv/linux/arm/eabi/swapcontext.S
++++ b/ports/sysdeps/unix/sysv/linux/arm/eabi/swapcontext.S
 @@ -0,0 +1,63 @@
 +/* Copyright (C) 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -394,11 +394,11 @@ index 0000000..09492d0
 +	b	__setcontext
 +
 +END(swapcontext)
-diff --git a/sysdeps/unix/sysv/linux/arm/ucontext_i.sym b/sysdeps/unix/sysv/linux/arm/ucontext_i.sym
+diff --git a/ports/sysdeps/unix/sysv/linux/arm/ucontext_i.sym b/ports/sysdeps/unix/sysv/linux/arm/ucontext_i.sym
 new file mode 100644
 index 0000000..306292f
 --- /dev/null
-+++ b/sysdeps/unix/sysv/linux/arm/ucontext_i.sym
++++ b/ports/sysdeps/unix/sysv/linux/arm/ucontext_i.sym
 @@ -0,0 +1,30 @@
 +#include <inttypes.h>
 +#include <signal.h>
