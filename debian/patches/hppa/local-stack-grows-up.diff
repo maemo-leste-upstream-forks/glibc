@@ -1,10 +1,10 @@
 ---
- nptl/allocatestack.c         |   22 +++++++++++++++-------
- nptl/pthread_attr_getstack.c |    6 +++++-
- nptl/pthread_attr_setstack.c |   10 +++++++++-
- nptl/pthread_create.c        |   12 +++++++++---
- nptl/pthread_getattr_np.c    |   15 ++++++++++++++-
- 5 files changed, 52 insertions(+), 13 deletions(-)
+ nptl/allocatestack.c         |   35 +++++++++++++++++++++++++----------
+ nptl/pthread_attr_getstack.c |    4 ++++
+ nptl/pthread_attr_setstack.c |    8 ++++++++
+ nptl/pthread_create.c        |   19 ++++++++++++++++---
+ nptl/pthread_getattr_np.c    |   12 ++++++++++++
+ 5 files changed, 65 insertions(+), 13 deletions(-)
 
 --- a/nptl/allocatestack.c
 +++ b/nptl/allocatestack.c
@@ -69,9 +69,30 @@
  	  char *guard = (char *) (((uintptr_t) pd - guardsize) & ~pagesize_m1);
  #endif
  	  if (mprotect (guard, guardsize, PROT_NONE) != 0)
-@@ -724,7 +733,6 @@
+@@ -678,9 +687,13 @@
+ 			prot) != 0)
+ 	    goto mprot_error;
+ #elif _STACK_GROWS_UP
+-	  if (mprotect ((char *) pd - pd->guardsize,
+-			pd->guardsize - guardsize, prot) != 0)
+-	    goto mprot_error;
++	  char *new_guard = (char *) (((uintptr_t) pd - guardsize) & ~pagesize_m1);
++	  char *old_guard = (char *) (((uintptr_t) pd - pd->guardsize) & ~pagesize_m1);
++	  /* The guard size difference might be > 0, but once rounded
++	     to the nearest page the size difference might be zero.  */
++	  if (old_guard - new_guard > 0)
++	    if (mprotect (old_guard, new_guard - old_guard, prot) != 0)
++	      goto mprot_error;
+ #endif
+ 
+ 	  pd->guardsize = guardsize;
+@@ -723,8 +736,10 @@
+ #elif _STACK_GROWS_DOWN
    *stack = stacktop;
  #elif _STACK_GROWS_UP
++  /* We don't use stacktop. In _STACK_GROWS_UP the start
++     of the stack is simply stackblock (lowest address of
++     the stored block of memory for the stack).  */
    *stack = pd->stackblock;
 -  assert (*stack > 0);
  #endif
@@ -79,12 +100,6 @@
    return 0;
 --- a/nptl/pthread_attr_getstack.c
 +++ b/nptl/pthread_attr_getstack.c
-@@ -1,4 +1,4 @@
--/* Copyright (C) 2002 Free Software Foundation, Inc.
-+/* Copyright (C) 2002, 2010 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
-    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
- 
 @@ -33,7 +33,11 @@
    iattr = (struct pthread_attr *) attr;
  
@@ -99,12 +114,6 @@
    return 0;
 --- a/nptl/pthread_attr_setstack.c
 +++ b/nptl/pthread_attr_setstack.c
-@@ -1,4 +1,4 @@
--/* Copyright (C) 2002, 2003, 2006 Free Software Foundation, Inc.
-+/* Copyright (C) 2002, 2003, 2006, 2010 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
-    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
- 
 @@ -48,7 +48,11 @@
  #endif
  
@@ -131,7 +140,7 @@
    return 0;
 --- a/nptl/pthread_create.c
 +++ b/nptl/pthread_create.c
-@@ -392,12 +392,18 @@
+@@ -392,12 +392,25 @@
  #ifdef _STACK_GROWS_DOWN
    char *sp = CURRENT_STACK_FRAME;
    size_t freesize = (sp - (char *) pd->stackblock) & ~pagesize_m1;
@@ -142,27 +151,27 @@
    if (freesize > PTHREAD_STACK_MIN)
      madvise (pd->stackblock, freesize - PTHREAD_STACK_MIN, MADV_DONTNEED);
 +#else
-+  char *sp = CURRENT_STACK_FRAME;
-+  size_t freesize = ((char *) pd->stackblock + pd->stackblock_size - sp) 
-+		     & ~pagesize_m1;
-+  void *freeblock = (void *) (sp + PTHREAD_STACK_MIN);
-+  assert (freesize < pd->stackblock_size);
-+  if (freesize > PTHREAD_STACK_MIN)
-+    madvise (freeblock, freesize - PTHREAD_STACK_MIN, MADV_DONTNEED);
++  /* Page aligned start of memory to free (higher than or equal 
++     to current sp plus the minimum stack size).  */
++  void *freeblock = (void*)((size_t)(CURRENT_STACK_FRAME 
++				     + PTHREAD_STACK_MIN 
++				     + pagesize_m1) 
++				    & ~pagesize_m1);
++  char *free_end = (char *) (((uintptr_t) pd - pd->guardsize) & ~pagesize_m1);
++  /* Is there any space to free?  */
++  if (free_end > (char *)freeblock)
++    {
++      size_t freesize = (size_t)(free_end - (char *)freeblock);
++      assert (freesize < pd->stackblock_size);
++      madvise (freeblock, freesize, MADV_DONTNEED);
++    }
 +#endif
  
    /* If the thread is detached free the TCB.  */
    if (IS_DETACHED (pd))
 --- a/nptl/pthread_getattr_np.c
 +++ b/nptl/pthread_getattr_np.c
-@@ -1,4 +1,5 @@
--/* Copyright (C) 2002, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
-+/* Copyright (C) 2002, 2003, 2004, 2006, 2007, 
-+   2010 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
-    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
- 
-@@ -61,7 +62,11 @@
+@@ -61,7 +61,11 @@
    if (__builtin_expect (thread->stackblock != NULL, 1))
      {
        iattr->stacksize = thread->stackblock_size;
@@ -174,7 +183,7 @@
      }
    else
      {
-@@ -110,13 +115,21 @@
+@@ -110,13 +114,21 @@
  		    {
  		      /* Found the entry.  Now we have the info we need.  */
  		      iattr->stacksize = rl.rlim_cur;
