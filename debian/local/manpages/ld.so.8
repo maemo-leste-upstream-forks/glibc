@@ -98,7 +98,13 @@ after all others.
 This can be used to selectively override functions in other shared libraries.
 .TP
 .B LD_ASSUME_KERNEL
-This environment variable overrides the kernel version used by the dynamic linker to determine 
+Every DSO (Dynamic Shared Object, aka shared library) can tell the dynamic linker in glibc which
+minimum OS ABI version is needed. The information about the minimum OS ABI version is encoded in
+a ELF note section usually named .note.ABI-tag. This is used to determine which library to load
+when multiple version of the same library is installed on the system.
+The
+.B LD_ASSUME_KERNEL
+environment variable overrides the kernel version used by the dynamic linker to determine 
 which library to load.
 .TP
 .B LD_AUDIT
@@ -171,6 +177,12 @@ the pointers for use in the event of a buffer overrun or
 stack-smashing attack.
 .TP
 .B LD_PROFILE
+Shared object to be profiled.
+.TP
+.B
+LD_PROFILE_OUTPUT
+File where
+.B LD_PROFILE
 output should be written.
 If this variable is not defined, or is defined as an empty string,
 then the default is
@@ -201,19 +213,13 @@ If
 is defined with the value 0,
 neither executables nor PIEs will honor the base addresses.
 This variable is ignored by set-user-ID and set-group-ID programs.
+.TP
 .B LD_VERBOSE
 If set to non-empty string, output symbol versioning information
 about the program if querying information about the program (ie. either
 .TP
 .B LD_WARN
 If set to non-empty string, warn about unresolved symbols.
-.TP
-.B LD_ASSUME_KERNEL
-Every DSO (Dynamic Shared Object, aka shared library) can tell the dynamic linker in glibc which
-minimum OS ABI version is needed. The information about the minimum OS ABI version is encoded in
-a ELF note section usually named .note.ABI-tag. This is used to determine which library to load
-when multiple version of the same library is installed on the system.
-The
 .SH RPATH TOKEN EXPANSION
 The runtime linker provides a number of tokens that can be used in an rpath 
 specification (\fBDT_RPATH\fR or \fBDT_RUNPATH\fR).
