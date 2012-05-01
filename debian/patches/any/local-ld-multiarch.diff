@@ -1,10 +1,16 @@
+2012-05-01  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* elf/Makefile(trusted-dirs.st): Fix DL_DST_LIB computation with
+	two level slibdir directories.
+
 2009-09-08  Aurelien Jarno  <aurelien@aurel32.net>
 
 	* Makeconfig: add support for multiarch compat directories.
 
 ---
- Makeconfig |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ Makeconfig   |    9 +++++++++
+ elf/Makefile |    2 +-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
 --- a/Makeconfig
 +++ b/Makeconfig
@@ -31,3 +37,15 @@
  ifndef link-extra-libs
  link-extra-libs = $(LDLIBS-$(@F))
  link-extra-libs-static = $(link-extra-libs)
+
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -360,7 +360,7 @@ $(objpfx)trusted-dirs.st: Makefile $(..)Makeconfig
+ 	$(make-target-directory)
+ 	echo "$(subst :, ,$(default-rpath) $(user-defined-trusted-dirs))"    \
+ 	| $(AWK) -f gen-trusted-dirs.awk > ${@:st=T};
+-	echo '#define DL_DST_LIB "$(notdir $(slibdir))"' >> ${@:st=T}
++	echo '#define DL_DST_LIB "$(shell echo $(slibdir) | sed 's,/,,')"' >> ${@:st=T}
+ 	$(move-if-change) ${@:st=T} ${@:st=h}
+ 	touch $@
+ CPPFLAGS-dl-load.c = -I$(objpfx). -I$(csu-objpfx).
