@@ -1,0 +1,87 @@
+commit 6f080c2fcffac1bb8626b8d143dba57a37abb071
+Author: Thomas Schwinge <thomas@schwinge.name>
+Date:   Thu May 10 12:43:01 2012 -0700
+
+    Hurd: O_CLOEXEC in rtld
+
+diff --git a/hurd/hurd/fd.h b/hurd/hurd/fd.h
+index 5f3ee6a..5044f97 100644
+--- a/hurd/hurd/fd.h
++++ b/hurd/hurd/fd.h
+@@ -1,6 +1,5 @@
+ /* File descriptors.
+-   Copyright (C) 1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2006,2007
+-   	Free Software Foundation, Inc.
++   Copyright (C) 1993-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -199,7 +198,8 @@ extern void _hurd_port2fd (struct hurd_fd *fd, io_t port, int flags);
+ 
+ /* Allocate a new file descriptor and install PORT in it (doing any
+    appropriate ctty magic); consumes a user reference on PORT.  FLAGS are
+-   as for `open'; only O_IGNORE_CTTY is meaningful, but all are saved.
++   as for `open'; only O_IGNORE_CTTY and O_CLOEXEC are meaningful, but all are
++   saved.
+ 
+    If the descriptor table is full, set errno, and return -1.
+    If DEALLOC is nonzero, deallocate PORT first.  */
+diff --git a/hurd/intern-fd.c b/hurd/intern-fd.c
+index 52e0606..ac89173 100644
+--- a/hurd/intern-fd.c
++++ b/hurd/intern-fd.c
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1994, 1997 Free Software Foundation, Inc.
++/* Copyright (C) 1994-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -19,7 +19,7 @@
+ #include <hurd/fd.h>
+ 
+ /* Allocate a new file descriptor and install PORT in it.  FLAGS are as for
+-   `open'; only O_IGNORE_CTTY is meaningful.
++   `open'; only O_IGNORE_CTTY and O_CLOEXEC are meaningful.
+ 
+    If the descriptor table is full, set errno, and return -1.
+    If DEALLOC is nonzero, deallocate PORT first.  */
+diff --git a/hurd/port2fd.c b/hurd/port2fd.c
+index bef07ad..451d630 100644
+--- a/hurd/port2fd.c
++++ b/hurd/port2fd.c
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1994, 1997, 1999, 2007 Free Software Foundation, Inc.
++/* Copyright (C) 1994-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -22,7 +22,7 @@
+ #include <fcntl.h>
+ 
+ /* Store PORT in file descriptor D, doing appropriate ctty magic.
+-   FLAGS are as for `open'; only O_IGNORE_CTTY is meaningful.
++   FLAGS are as for `open'; only O_IGNORE_CTTY and O_CLOEXEC are meaningful.
+    D should be locked, and will not be unlocked.  */
+ 
+ void
+diff --git a/sysdeps/mach/hurd/dl-sysdep.c b/sysdeps/mach/hurd/dl-sysdep.c
+index d928cd2..26a212e 100644
+--- a/sysdeps/mach/hurd/dl-sysdep.c
++++ b/sysdeps/mach/hurd/dl-sysdep.c
+@@ -1,6 +1,5 @@
+ /* Operating system support for run-time dynamic linker.  Hurd version.
+-   Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2010
+-	Free Software Foundation, Inc.
++   Copyright (C) 1995-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -315,7 +314,7 @@ open_file (const char *file_name, int flags,
+       return MACH_PORT_NULL;
+     }
+ 
+-  assert (!(flags & ~O_READ));
++  assert (!(flags & ~(O_READ | O_CLOEXEC)));
+ 
+   startdir = _dl_hurd_data->portarray[file_name[0] == '/' ?
+ 				      INIT_PORT_CRDIR : INIT_PORT_CWDIR];

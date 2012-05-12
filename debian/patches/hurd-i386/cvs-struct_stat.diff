@@ -1,35 +1,21 @@
-From: Thomas Schwinge <thomas@schwinge.name>
-Subject: [PATCH] struct_stat
+commit 8e41b99fe1ae60276f8db4211d47ed2b1bacebf2
+Author: Thomas Schwinge <thomas@schwinge.name>
+Date:   Thu May 10 15:40:09 2012 -0700
 
-``struct stat'' fixes.
-
-Needed for HEAD and glibc-2_7-branch.
-
-<http://sources.redhat.com/ml/libc-alpha/2002-12/msg00011.html>
-
-Reported on <http://savannah.gnu.org/bugs/?18216>.
-
-
-2007-10-05  Thomas Schwinge  <tschwinge@gnu.org>
-
-	* sysdeps/mach/hurd/bits/stat.h (struct stat): Align to what is done
-	for Linux: use nsec instead of usec, as well as:
-	[__USE_MISC] (st_atim, st_mtim, st_ctim): Provide these ``struct
-	timespec''s.
-	(struct stat64): Likewise.
-	(_STATBUF_ST_NSEC): Define.
-	* sysdeps/mach/hurd/xstatconv.c (xstat64_conv): Adapt to that.
-
----
- sysdeps/mach/hurd/bits/stat.h |   56 +++++++++++++++++++++++++++++++---------
- sysdeps/mach/hurd/xstatconv.c |    9 ++----
- 2 files changed, 46 insertions(+), 19 deletions(-)
+    Hurd: struct timespec members in struct stat
 
 diff --git a/sysdeps/mach/hurd/bits/stat.h b/sysdeps/mach/hurd/bits/stat.h
-index b64a658..50d18c4 100644
+index 15fcda1..e6ffda8 100644
 --- a/sysdeps/mach/hurd/bits/stat.h
 +++ b/sysdeps/mach/hurd/bits/stat.h
-@@ -59,12 +59,27 @@ struct stat
+@@ -1,5 +1,4 @@
+-/* Copyright (C) 1992-1994,1996,1997,1999,2000,2005,2010
+-   Free Software Foundation, Inc.
++/* Copyright (C) 1992-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -58,12 +57,27 @@ struct stat
      __off64_t st_size;		/* Size in bytes.  */
  #endif
  
@@ -39,7 +25,7 @@ index b64a658..50d18c4 100644
 -    unsigned long int st_mtime_usec; /* and microseconds.  */
 -    __time_t st_ctime;		/* Status change time, seconds */
 -    unsigned long int st_ctime_usec; /* and microseconds.  */
-+#if defined(__USE_MISC) || defined(__USE_XOPEN2K8)
++#if defined __USE_MISC || defined __USE_XOPEN2K8
 +    /* Nanosecond resolution timestamps are stored in a format
 +       equivalent to 'struct timespec'.  This is the type used
 +       whenever possible but the Unix namespace rules do not allow the
@@ -63,7 +49,7 @@ index b64a658..50d18c4 100644
  
      __blksize_t st_blksize;	/* Optimal size for I/O.  */
  
-@@ -108,12 +123,24 @@ struct stat64
+@@ -107,12 +121,24 @@ struct stat64
  
      __off64_t st_size;		/* Size in bytes.  */
  
@@ -73,7 +59,7 @@ index b64a658..50d18c4 100644
 -    unsigned long int st_mtime_usec; /* and microseconds.  */
 -    __time_t st_ctime;		/* Status change time, seconds */
 -    unsigned long int st_ctime_usec; /* and microseconds.  */
-+#if defined(__USE_MISC) || defined(__USE_XOPEN2K8)
++#if defined __USE_MISC || defined __USE_XOPEN2K8
 +    /* Nanosecond resolution timestamps are stored in a format
 +       equivalent to 'struct timespec'.  This is the type used
 +       whenever possible but the Unix namespace rules do not allow the
@@ -94,7 +80,7 @@ index b64a658..50d18c4 100644
  
      __blksize_t st_blksize;	/* Optimal size for I/O.  */
  
-@@ -131,7 +158,10 @@ struct stat64
+@@ -130,7 +156,10 @@ struct stat64
    };
  #endif
  
@@ -107,10 +93,17 @@ index b64a658..50d18c4 100644
  /* Encoding of the file mode.  */
  
 diff --git a/sysdeps/mach/hurd/xstatconv.c b/sysdeps/mach/hurd/xstatconv.c
-index e28643c..d320285 100644
+index db704c6..ebe6471 100644
 --- a/sysdeps/mach/hurd/xstatconv.c
 +++ b/sysdeps/mach/hurd/xstatconv.c
-@@ -42,12 +42,9 @@ xstat64_conv (struct stat *buf, const struct stat64 *buf64)
+@@ -1,5 +1,5 @@
+ /* Convert between `struct stat' format, and `struct stat64' format.
+-   Copyright (C) 2000,01,02 Free Software Foundation, Inc.
++   Copyright (C) 2000-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -41,12 +41,9 @@ xstat64_conv (struct stat *buf, const struct stat64 *buf64)
    buf->st_uid = buf64->st_uid;
    buf->st_gid = buf64->st_gid;
    buf->st_size = buf64->st_size;
@@ -126,5 +119,3 @@ index e28643c..d320285 100644
    buf->st_blksize = buf64->st_blksize;
    buf->st_blocks = buf64->st_blocks;
    buf->st_author = buf64->st_author;
--- 
-tg: (0234227..) t/struct_stat (depends on: baseline)

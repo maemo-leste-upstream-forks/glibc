@@ -1,29 +1,14 @@
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: [PATCH] Missing critical region locks.
+commit 802ca5a5efa5d11836b2ffd81c9f6fd42f938ac6
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu May 10 13:00:01 2012 -0700
 
-2009-01-12  Samuel Thibault  <samuel.thibault@ens-lyon.org>
-
-        * hurd/hurd/fd.h (_hurd_fd_get): Call HURD_CRITICAL_BEGIN/
-        HURD_CRITICAL_END around holding _hurd_dtable_lock.
-        * sysdeps/mach/hurd/dirfd (dirfd): Likewise.
-        * sysdeps/mach/hurd/opendir.c (_hurd_fd_opendir): Call
-        HURD_CRITICAL_BEGIN/HURD_CRITICAL_END around holding
-        d->port.lock.
-
----
-
-http://sources.redhat.com/ml/libc-alpha/2009-01/msg00030.html
-
- hurd/hurd/fd.h              |    2 ++
- sysdeps/mach/hurd/dirfd.c   |    3 +++
- sysdeps/mach/hurd/opendir.c |    2 ++
- 3 files changed, 7 insertions(+), 0 deletions(-)
+    Hurd: Missing critical region locks.
 
 diff --git a/hurd/hurd/fd.h b/hurd/hurd/fd.h
-index 2473476..e1b1a5d 100644
+index 5044f97..6a79738 100644
 --- a/hurd/hurd/fd.h
 +++ b/hurd/hurd/fd.h
-@@ -65,6 +65,7 @@ _hurd_fd_get (int fd)
+@@ -63,6 +63,7 @@ _hurd_fd_get (int fd)
  {
    struct hurd_fd *descriptor;
  
@@ -31,7 +16,7 @@ index 2473476..e1b1a5d 100644
    __mutex_lock (&_hurd_dtable_lock);
    if (fd < 0 || fd >= _hurd_dtablesize)
      descriptor = NULL;
-@@ -87,6 +88,7 @@ _hurd_fd_get (int fd)
+@@ -85,6 +86,7 @@ _hurd_fd_get (int fd)
  	}
      }
    __mutex_unlock (&_hurd_dtable_lock);
@@ -40,10 +25,17 @@ index 2473476..e1b1a5d 100644
    return descriptor;
  }
 diff --git a/sysdeps/mach/hurd/dirfd.c b/sysdeps/mach/hurd/dirfd.c
-index fde13fa..be2a6a9 100644
+index 587ae7b..42dbc78 100644
 --- a/sysdeps/mach/hurd/dirfd.c
 +++ b/sysdeps/mach/hurd/dirfd.c
-@@ -26,6 +26,8 @@ int
+@@ -1,5 +1,5 @@
+ /* dirfd -- Return the file descriptor used by a DIR stream.  Hurd version.
+-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
++   Copyright (C) 1995-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -25,6 +25,8 @@ int
  dirfd (DIR *dirp)
  {
    int fd;
@@ -52,7 +44,7 @@ index fde13fa..be2a6a9 100644
    __mutex_lock (&_hurd_dtable_lock);
    for (fd = 0; fd < _hurd_dtablesize; ++fd)
      if (_hurd_dtable[fd] == dirp->__fd)
-@@ -36,6 +38,7 @@ dirfd (DIR *dirp)
+@@ -35,6 +37,7 @@ dirfd (DIR *dirp)
        fd = -1;
      }
    __mutex_unlock (&_hurd_dtable_lock);
@@ -61,10 +53,17 @@ index fde13fa..be2a6a9 100644
    return fd;
  }
 diff --git a/sysdeps/mach/hurd/opendir.c b/sysdeps/mach/hurd/opendir.c
-index 23e04ed..3a1b48e 100644
+index 217d4c8..c71cb18 100644
 --- a/sysdeps/mach/hurd/opendir.c
 +++ b/sysdeps/mach/hurd/opendir.c
-@@ -51,9 +51,11 @@ _hurd_fd_opendir (struct hurd_fd *d)
+@@ -1,5 +1,4 @@
+-/* Copyright (C) 1993,1994,1995,1996,1997,1998,2001,2003,2005,2006
+-	Free Software Foundation, Inc.
++/* Copyright (C) 1993-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -50,9 +49,11 @@ _hurd_fd_opendir (struct hurd_fd *d)
      return NULL;
  
    /* Set the descriptor to close on exec. */
@@ -76,5 +75,3 @@ index 23e04ed..3a1b48e 100644
  
    dirp->__fd = d;
    dirp->__data = dirp->__ptr = NULL;
--- 
-tg: (0234227..) t/critical-sections (depends on: baseline)

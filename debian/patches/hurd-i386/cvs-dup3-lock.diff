@@ -1,24 +1,14 @@
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: [PATCH] Fix __dup3 _hurd_dtable_lock usage.
+commit f34d6f840eaba45a82fa8d20922fc2d678968fb7
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu May 10 15:49:30 2012 -0700
 
-2009-01-12  Samuel Thibault  <samuel.thibault@ens-lyon.org>
-
-        * sysdeps/mach/hurd/dup3.c (__dup2): Lock _hurd_dtable_lock
-        before checking for _hurd_dtablesize.  Unlock it right after
-        having finished _hurd_dtable allocation.
-
----
-
-http://sources.redhat.com/ml/libc-alpha/2009-01/msg00030.html
-
- sysdeps/mach/hurd/dup3.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+    Hurd: Fix __dup3 _hurd_dtable_lock usage.
 
 diff --git a/sysdeps/mach/hurd/dup3.c b/sysdeps/mach/hurd/dup3.c
-index 178ee16..71a0a81 100644
+index 8a38caf..523ca42 100644
 --- a/sysdeps/mach/hurd/dup3.c
 +++ b/sysdeps/mach/hurd/dup3.c
-@@ -71,15 +71,14 @@ dup3 (int fd, int fd2, int flags)
+@@ -71,15 +71,14 @@ __dup3 (int fd, int fd2, int flags)
  	  /* Get a hold of the destination descriptor.  */
  	  struct hurd_fd *d2;
  
@@ -36,7 +26,7 @@ index 178ee16..71a0a81 100644
  	      d2 = _hurd_alloc_fd (NULL, fd2);
  	      if (d2)
  		__spin_unlock (&d2->port.lock);
-@@ -99,6 +98,7 @@ dup3 (int fd, int fd2, int flags)
+@@ -99,6 +98,7 @@ __dup3 (int fd, int fd2, int flags)
  							 MACH_PORT_NULL);
  		}
  	    }
@@ -44,7 +34,7 @@ index 178ee16..71a0a81 100644
  
  	  if (d2 == NULL)
  	    {
-@@ -126,7 +126,6 @@ dup3 (int fd, int fd2, int flags)
+@@ -126,7 +126,6 @@ __dup3 (int fd, int fd2, int flags)
  	      _hurd_port_locked_set (&d2->port, port); /* Unlocks D2.  */
  	    }
  	}
@@ -52,5 +42,3 @@ index 178ee16..71a0a81 100644
  
        _hurd_port_free (&d->port, &ulink, port);
        if (ctty != MACH_PORT_NULL)
--- 
-tg: (d801e4c..) tg/dup3-lock (depends on: t/dup3)

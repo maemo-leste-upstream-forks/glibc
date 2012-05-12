@@ -1,0 +1,30 @@
+commit 63643c85d4c47512decc16f35124160629c39a86
+Author: Pino Toscano <toscano.pino@tiscali.it>
+Date:   Thu May 10 15:35:47 2012 -0700
+
+    Hurd: hurdsock: reject negative domains
+
+diff --git a/hurd/hurdsock.c b/hurd/hurdsock.c
+index f3611ec..4b32ad4 100644
+--- a/hurd/hurdsock.c
++++ b/hurd/hurdsock.c
+@@ -1,5 +1,5 @@
+ /* _hurd_socket_server - Find the server for a socket domain.
+-   Copyright (C) 1991,92,93,94,95,97,99 Free Software Foundation, Inc.
++   Copyright (C) 1991-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -46,6 +46,12 @@ _hurd_socket_server (int domain, int dead)
+ {
+   socket_t server;
+ 
++  if (domain < 0)
++    {
++      errno = EAFNOSUPPORT;
++      return MACH_PORT_NULL;
++    }
++
+   HURD_CRITICAL_BEGIN;
+   __mutex_lock (&lock);
+ 

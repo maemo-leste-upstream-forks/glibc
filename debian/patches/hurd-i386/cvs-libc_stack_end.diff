@@ -1,32 +1,14 @@
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: [PATCH] Fix value of __libc_stack_end
+commit 5d5722e8ac22253bdc819da2d676d9900da0c533
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu May 10 14:51:22 2012 -0700
 
-When using some libthread, we need to update the value of __libc_stack_end
-to what the libthread allocated. This requires making __libc_stack_end
-non-relro to be able to modify it.
-
-2011-08-24  Samuel Thibault  <samuel.thibault@ens-lyon.org>
-
-* sysdeps/generic/ldsodefs.h [LIBC_STACK_END_NOT_RELRO] (__libc_stack_end): Do
-not use attribute_relro.
-* sysdeps/mach/hurd/dl-sysdep.h (LIBC_STACK_END_NOT_RELRO): Define.
-* sysdeps/mach/hurd/i386/init-first.c (init): Update __libc_stack_end to
-libthread-provided value.
-* sysdeps/mach/hurd/dl-sysdep.c (__libc_stack_end): Do not use attribute_relro.
-
----
-http://www.cygwin.com/ml/libc-alpha/2011-08/msg00124.html
-
- sysdeps/generic/ldsodefs.h          |    6 +++++-
- sysdeps/mach/hurd/dl-sysdep.h       |    3 ++-
- sysdeps/mach/hurd/i386/init-first.c |    2 ++
- 3 files changed, 9 insertions(+), 2 deletions(-)
+    Hurd: Fix value of __libc_stack_end
 
 diff --git a/sysdeps/generic/ldsodefs.h b/sysdeps/generic/ldsodefs.h
-index b24bff3..804d9ee 100644
+index 602b429..e071015 100644
 --- a/sysdeps/generic/ldsodefs.h
 +++ b/sysdeps/generic/ldsodefs.h
-@@ -724,7 +724,11 @@ rtld_hidden_proto (_dl_make_stack_executable)
+@@ -717,7 +717,11 @@ rtld_hidden_proto (_dl_make_stack_executable)
     might use the variable which results in copy relocations on some
     platforms.  But this does not matter, ld.so can always use the local
     copy.  */
@@ -40,10 +22,17 @@ index b24bff3..804d9ee 100644
  
  /* Parameters passed to the dynamic linker.  */
 diff --git a/sysdeps/mach/hurd/dl-sysdep.h b/sysdeps/mach/hurd/dl-sysdep.h
-index 4b21b77..5b86fec 100644
+index 671b241..c64a39d 100644
 --- a/sysdeps/mach/hurd/dl-sysdep.h
 +++ b/sysdeps/mach/hurd/dl-sysdep.h
-@@ -25,7 +25,8 @@
+@@ -1,5 +1,5 @@
+ /* System-specific settings for dynamic linker code.  Hurd version.
+-   Copyright (C) 2002, 2005 Free Software Foundation, Inc.
++   Copyright (C) 2002-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -24,7 +24,8 @@
  #define RTLD_PRIVATE_ERRNO 0
  
  #ifdef SHARED
@@ -54,10 +43,10 @@ index 4b21b77..5b86fec 100644
 +# define LIBC_STACK_END_NOT_RELRO 1
  #endif
 diff --git a/sysdeps/mach/hurd/i386/init-first.c b/sysdeps/mach/hurd/i386/init-first.c
-index 60823bd..9e5b723 100644
+index f4bf624..fa4e3d9 100644
 --- a/sysdeps/mach/hurd/i386/init-first.c
 +++ b/sysdeps/mach/hurd/i386/init-first.c
-@@ -212,6 +212,8 @@ init (int *data)
+@@ -214,6 +214,8 @@ init (int *data)
  
        void switch_stacks (void);
  
@@ -66,5 +55,3 @@ index 60823bd..9e5b723 100644
        /* Copy per-thread variables from that temporary
  	 area onto the new cthread stack.  */
        memcpy (__hurd_threadvar_location_from_sp (0, newsp),
--- 
-tg: (0234227..) t/libc_stack_end (depends on: baseline)

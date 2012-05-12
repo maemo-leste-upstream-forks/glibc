@@ -1,24 +1,16 @@
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: [PATCH] readlinkat
+commit b29d4053f0bda40f052cf69019e4198a21c67efb
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu May 10 15:29:55 2012 -0700
 
-2009-09-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
-
-        * sysdeps/mach/hurd/readlinkat.c: New file, heavily inherited from
-        sysdeps/mach/hurd/readlink.c
-
----
-http://cygwin.com/ml/libc-alpha/2009-09/msg00058.html
-
- sysdeps/mach/hurd/readlinkat.c |   67 ++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 67 insertions(+), 0 deletions(-)
+    Hurd: readlinkat
 
 diff --git a/sysdeps/mach/hurd/readlinkat.c b/sysdeps/mach/hurd/readlinkat.c
 new file mode 100644
-index 0000000..59aeede
+index 0000000..b70f9c8
 --- /dev/null
 +++ b/sysdeps/mach/hurd/readlinkat.c
-@@ -0,0 +1,67 @@
-+/* Copyright (C) 1991,92,93,94,95,97,2002,2009 Free Software Foundation, Inc.
+@@ -0,0 +1,64 @@
++/* Copyright (C) 1991-2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -79,11 +71,6 @@ index 0000000..59aeede
 +
 +  __mach_port_deallocate (__mach_task_self (), file);
 +
-+  if (err)
-+    return __hurd_fail (err);
-+  else
-+    return len;
++  return err ? __hurd_fail (err) : len;
 +}
-+libc_hidden_def (readlinkat);
--- 
-tg: (0234227..) t/readlinkat (depends on: baseline)
++libc_hidden_def (readlinkat)

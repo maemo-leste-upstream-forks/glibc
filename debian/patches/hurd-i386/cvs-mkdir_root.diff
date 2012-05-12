@@ -1,22 +1,20 @@
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: [PATCH] Fix mkdir / error value
+commit 6b645f0d702e9285f3d7fe5684258e77051cfa8e
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu May 10 15:16:07 2012 -0700
 
-(needed for busybox's mkdir -p)
-
-In the / case, directory_name_split can't really split that into an
-absolute ROOT file_t and ".", since name is supposed to be a pointer in
-file_name... Changing the interface is being proposed.
-
----
- sysdeps/mach/hurd/mkdir.c   |    6 +++++-
- sysdeps/mach/hurd/mkdirat.c |    6 +++++-
- 2 files changed, 10 insertions(+), 2 deletions(-)
+    Hurd: Fix mkdir / error value
 
 diff --git a/sysdeps/mach/hurd/mkdir.c b/sysdeps/mach/hurd/mkdir.c
-index b7e8074..cf6dda3 100644
+index d3627ee..8ad648e 100644
 --- a/sysdeps/mach/hurd/mkdir.c
 +++ b/sysdeps/mach/hurd/mkdir.c
-@@ -20,6 +20,7 @@
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1991,93,94,95,96,97,2002 Free Software Foundation, Inc.
++/* Copyright (C) 1991-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -19,6 +19,7 @@
  #include <stddef.h>
  #include <sys/stat.h>
  #include <hurd.h>
@@ -24,23 +22,31 @@ index b7e8074..cf6dda3 100644
  
  /* Create a directory named FILE_NAME with protections MODE.  */
  int
-@@ -29,7 +30,10 @@ __mkdir (file_name, mode)
+@@ -28,7 +29,10 @@ __mkdir (file_name, mode)
  {
    error_t err;
    const char *name;
 -  file_t parent = __directory_name_split (file_name, (char **) &name);
 +  file_t parent;
-+  if (!strcmp(file_name, "/"))
-+    return EEXIST;
++  if (!strcmp (file_name, "/"))
++    return __hurd_fail (EEXIST);
 +  parent = __directory_name_split (file_name, (char **) &name);
    if (parent == MACH_PORT_NULL)
      return -1;
    err = __dir_mkdir (parent, name, mode & ~_hurd_umask);
 diff --git a/sysdeps/mach/hurd/mkdirat.c b/sysdeps/mach/hurd/mkdirat.c
-index a300745..8256ef8 100644
+index 9201f7d..d6d672e 100644
 --- a/sysdeps/mach/hurd/mkdirat.c
 +++ b/sysdeps/mach/hurd/mkdirat.c
-@@ -23,6 +23,7 @@
+@@ -1,6 +1,5 @@
+ /* Create a directory named relative to another open directory.  Hurd version.
+-   Copyright (C) 1991,1993,1994,1995,1996,1997,2002,2006
+-	Free Software Foundation, Inc.
++   Copyright (C) 1991-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -22,6 +21,7 @@
  #include <sys/stat.h>
  #include <hurd.h>
  #include <hurd/fd.h>
@@ -48,17 +54,15 @@ index a300745..8256ef8 100644
  
  int
  mkdirat (fd, path, mode)
-@@ -32,7 +33,10 @@ mkdirat (fd, path, mode)
+@@ -31,7 +31,10 @@ mkdirat (fd, path, mode)
  {
    error_t err;
    const char *name;
 -  file_t parent = __directory_name_split_at (fd, path, (char **) &name);
 +  file_t parent;
-+  if (!strcmp(path, "/"))
-+    return EEXIST;
++  if (!strcmp (path, "/"))
++    return __hurd_fail (EEXIST);
 +  parent = __directory_name_split_at (fd, path, (char **) &name);
    if (parent == MACH_PORT_NULL)
      return -1;
    err = __dir_mkdir (parent, name, mode & ~_hurd_umask);
--- 
-tg: (0234227..) t/mkdir_root (depends on: baseline)

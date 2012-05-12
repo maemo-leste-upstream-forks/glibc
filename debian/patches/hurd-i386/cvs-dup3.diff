@@ -1,36 +1,36 @@
-From: Thomas Schwinge <thomas@schwinge.name>
-Subject: [PATCH] dup3
+commit 5aa3a74a59916b489e9cf7c4dce9eb149e106c6c
+Author: Thomas Schwinge <thomas@schwinge.name>
+Date:   Thu May 10 13:15:40 2012 -0700
 
-2008-12-19  Thomas Schwinge  <tschwinge@gnu.org>
+    Hurd: dup3
 
-	dup3 for GNU Hurd.
-	* include/unistd.h (__dup3): New hidden declaration.
-	* sysdeps/mach/hurd/dup3.c: New file, copy from dup2.c.  Evolve it to
-	implement dup3 and do some further code clean-ups.
-	* sysdeps/mach/hurd/dup2.c (__dup2): Reimplement using __dup3.
-	* sysdeps/mach/hurd/kernel-features.h (__ASSUME_DUP3): Define.
-
----
- sysdeps/mach/hurd/dup2.c            |  115 ++--------------------------
- sysdeps/mach/hurd/dup3.c            |  140 +++++++++++++++++++++++++++++++++++
- sysdeps/mach/hurd/kernel-features.h |    3 +-
- 3 files changed, 151 insertions(+), 107 deletions(-)
-
+diff --git a/include/unistd.h b/include/unistd.h
+index 2e6101b..7971a8a 100644
+--- a/include/unistd.h
++++ b/include/unistd.h
+@@ -79,6 +79,8 @@ char *__canonicalize_directory_name_internal (const char *__thisdir,
+ extern int __dup (int __fd);
+ extern int __dup2 (int __fd, int __fd2);
+ libc_hidden_proto (__dup2)
++extern int __dup3 (int __fd, int __fd2, int flags);
++libc_hidden_proto (__dup3)
+ extern int __execve (__const char *__path, char *__const __argv[],
+ 		     char *__const __envp[]);
+ extern long int __pathconf (__const char *__path, int __name);
 diff --git a/sysdeps/mach/hurd/dup2.c b/sysdeps/mach/hurd/dup2.c
-index 3abd30c..c837305 100644
+index d2329c9..b697a90 100644
 --- a/sysdeps/mach/hurd/dup2.c
 +++ b/sysdeps/mach/hurd/dup2.c
-@@ -1,4 +1,6 @@
+@@ -1,4 +1,5 @@
 -/* Copyright (C) 1991, 92, 93, 94, 95, 97, 2002 Free Software Foundation, Inc.
-+/* Copyright (C) 1991, 1992, 1993, 1994, 1995, 1997, 2002, 2008 Free Software
-+   Foundation, Inc.
++/* Copyright (C) 1991-2012 Free Software Foundation, Inc.
 +
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -16,119 +18,20 @@
-    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA.  */
+@@ -15,119 +16,20 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
  
 -#include <errno.h>
 -#include <fcntl.h>
@@ -150,18 +150,18 @@ index 3abd30c..c837305 100644
 +    flags = -1;
  
 -  return fd2;
-+  return dup3 (fd, fd2, flags);
++  return __dup3 (fd, fd2, flags);
  }
  libc_hidden_def (__dup2)
  weak_alias (__dup2, dup2)
 diff --git a/sysdeps/mach/hurd/dup3.c b/sysdeps/mach/hurd/dup3.c
 new file mode 100644
-index 0000000..178ee16
+index 0000000..8a38caf
 --- /dev/null
 +++ b/sysdeps/mach/hurd/dup3.c
-@@ -0,0 +1,140 @@
-+/* Copyright (C) 1991, 1992, 1993, 1994, 1995, 1997, 2002, 2008 Free Software
-+   Foundation, Inc.
+@@ -0,0 +1,141 @@
++/* Duplicate a file descriptor to a given number, with flags.  Hurd version.
++   Copyright (C) 1991-2012 Free Software Foundation, Inc.
 +
 +   This file is part of the GNU C Library.
 +
@@ -190,7 +190,7 @@ index 0000000..178ee16
 +   open on the same file as FD is, and setting FD2's flags according to FLAGS.
 +   Return FD2 or -1.  */
 +int
-+dup3 (int fd, int fd2, int flags)
++__dup3 (int fd, int fd2, int flags)
 +{
 +  struct hurd_fd *d;
 +
@@ -199,7 +199,7 @@ index 0000000..178ee16
 +  if ((flags & ~O_CLOEXEC
 +       || fd2 == fd)
 +      /* ... with the exception in case that dup2 behavior is requested: if FD
-+	 is valid and FD2 is already the same then just return it.  */	 
++	 is valid and FD2 is already the same then just return it.  */
 +      && ! (flags == -1
 +	    && fd2 == fd))
 +    return __hurd_fail (EINVAL);
@@ -299,22 +299,23 @@ index 0000000..178ee16
 +
 +  return fd2;
 +}
-+libc_hidden_def (dup3)
++libc_hidden_def (__dup3)
++weak_alias (__dup3, dup3)
 diff --git a/sysdeps/mach/hurd/kernel-features.h b/sysdeps/mach/hurd/kernel-features.h
-index ad159aa..7eb7ea7 100644
+index a0ffcbe..96a0d56 100644
 --- a/sysdeps/mach/hurd/kernel-features.h
 +++ b/sysdeps/mach/hurd/kernel-features.h
-@@ -1,5 +1,5 @@
- /* Set flags signalling availability of certain operating system features.
--   Copyright (C) 2007 Free Software Foundation, Inc.
-+   Copyright (C) 2007, 2011 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
+@@ -20,11 +20,5 @@
+    Almost none of these are used outside of sysdeps/unix/sysv/linux code.
+    But those referring to POSIX-level features like O_* flags can be.  */
  
-    The GNU C Library is free software; you can redistribute it and/or
-@@ -29,3 +29,4 @@
- #ifdef O_CLOEXEC
- # define __ASSUME_O_CLOEXEC	1
- #endif
+-#include <fcntl.h>
+-
+-/* If a system defines the O_CLOEXEC constant but it is sometimes ignored,
+-   it must override this file to define __ASSUME_O_CLOEXEC conditionally
+-   (or not at all) to indicate when O_CLOEXEC actually works.  */
+-#ifdef O_CLOEXEC
+-# define __ASSUME_O_CLOEXEC	1
+-#endif
++#define __ASSUME_O_CLOEXEC	1
 +#define __ASSUME_DUP3		1
--- 
-tg: (0234227..) t/dup3 (depends on: baseline)

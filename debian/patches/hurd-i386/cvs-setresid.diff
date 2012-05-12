@@ -1,34 +1,21 @@
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: [PATCH] Fix setres[ug]id handling of -1
+commit 3faebe6abc04ea8d632bee4537948ca85479c09a
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu May 10 15:34:53 2012 -0700
 
-When passed -1, setres[ug]id are supposed not to change the existing
-value.  The patch below does this the same way as setre[ug]id.
-
-2011-10-17  Samuel Thibault  <samuel.thibault@ens-lyon.org>
-
-* sysdeps/mach/hurd/setresgid.c (__setresgid): Handle the -1 case, which
-shall preserve existing values.
-* sysdeps/mach/hurd/setresuid.c (__setresuid): Likewise.
-
----
-http://cygwin.com/ml/libc-alpha/2011-10/msg00031.html
-
- sysdeps/mach/hurd/setresgid.c |   73 +++++++++++++++++++++++++++++++++--------
- sysdeps/mach/hurd/setresuid.c |   73 +++++++++++++++++++++++++++++++++--------
- 2 files changed, 118 insertions(+), 28 deletions(-)
+    Hurd: Fix setres[ug]id handling of -1
 
 diff --git a/sysdeps/mach/hurd/setresgid.c b/sysdeps/mach/hurd/setresgid.c
-index 8fcf26e..2a0dd90 100644
+index 9d5885b..eebd364 100644
 --- a/sysdeps/mach/hurd/setresgid.c
 +++ b/sysdeps/mach/hurd/setresgid.c
 @@ -1,5 +1,5 @@
  /* setresgid -- set real group ID, effective group ID, and saved-set group ID
 -   Copyright (C) 2002, 2005, 2006 Free Software Foundation, Inc.
-+   Copyright (C) 2002, 2005, 2006, 2011 Free Software Foundation, Inc.
++   Copyright (C) 2002-2012 Free Software Foundation, Inc.
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -29,7 +29,6 @@ __setresgid (gid_t rgid, gid_t egid, gid_t sgid)
+@@ -28,7 +28,6 @@ __setresgid (gid_t rgid, gid_t egid, gid_t sgid)
  {
    auth_t newauth;
    error_t err;
@@ -36,9 +23,12 @@ index 8fcf26e..2a0dd90 100644
  
    HURD_CRITICAL_BEGIN;
    __mutex_lock (&_hurd_id.lock);
-@@ -40,29 +39,75 @@ __setresgid (gid_t rgid, gid_t egid, gid_t sgid)
+@@ -37,31 +36,78 @@ __setresgid (gid_t rgid, gid_t egid, gid_t sgid)
+   if (!err)
+     {
        /* Make a new auth handle which has EGID as the first element in the
-          list of effective gids.  */
+-         list of effective gids.  */
++	 list of effective gids.  */
  
 -      if (_hurd_id.gen.ngids > 0)
 +      uid_t *newgen, *newaux;
@@ -93,7 +83,8 @@ index 8fcf26e..2a0dd90 100644
 +	      else if (_hurd_id.gen.ngids >= 1)
 +		auxs[0] = _hurd_id.gen.gids[0];
 +	      else
-+		/* Not even an effective gid, fallback to the only UID we have. */
++		/* Not even an effective GID.
++                   Fall back to the only GID we have. */
 +		auxs[0] = sgid;
 +	    }
 +	  if (_hurd_id.aux.ngids <= 1)
@@ -125,17 +116,17 @@ index 8fcf26e..2a0dd90 100644
    HURD_CRITICAL_END;
  
 diff --git a/sysdeps/mach/hurd/setresuid.c b/sysdeps/mach/hurd/setresuid.c
-index ccf8d08..e254437 100644
+index 35aea85..751763f 100644
 --- a/sysdeps/mach/hurd/setresuid.c
 +++ b/sysdeps/mach/hurd/setresuid.c
 @@ -1,5 +1,5 @@
  /* setresuid -- set real user ID, effective user ID, and saved-set user ID
 -   Copyright (C) 2002, 2005, 2006 Free Software Foundation, Inc.
-+   Copyright (C) 2002, 2005, 2006, 2011 Free Software Foundation, Inc.
++   Copyright (C) 2002-2012 Free Software Foundation, Inc.
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -29,7 +29,6 @@ __setresuid (uid_t ruid, uid_t euid, uid_t suid)
+@@ -28,7 +28,6 @@ __setresuid (uid_t ruid, uid_t euid, uid_t suid)
  {
    auth_t newauth;
    error_t err;
@@ -143,9 +134,12 @@ index ccf8d08..e254437 100644
  
    HURD_CRITICAL_BEGIN;
    __mutex_lock (&_hurd_id.lock);
-@@ -40,29 +39,75 @@ __setresuid (uid_t ruid, uid_t euid, uid_t suid)
+@@ -37,26 +36,74 @@ __setresuid (uid_t ruid, uid_t euid, uid_t suid)
+   if (!err)
+     {
        /* Make a new auth handle which has EUID as the first element in the
-          list of effective uids.  */
+-         list of effective uids.  */
++	 list of effective uids.  */
  
 -      if (_hurd_id.gen.nuids > 0)
 +      uid_t *newgen, *newaux;
@@ -155,7 +149,9 @@ index ccf8d08..e254437 100644
 +      newgen = _hurd_id.gen.uids;
 +      ngen = _hurd_id.gen.nuids;
 +      if (euid != -1)
-+	{
+ 	{
+-	  _hurd_id.gen.uids[0] = euid;
+-	  _hurd_id.valid = 0;
 +	  if (_hurd_id.gen.nuids == 0)
 +	    {
 +	      /* No effective uids now.  The new set will be just UID.  */
@@ -167,14 +163,13 @@ index ccf8d08..e254437 100644
 +	      _hurd_id.gen.uids[0] = euid;
 +	      _hurd_id.valid = 0;
 +	    }
-+	}
+ 	}
+-      if (_hurd_id.aux.nuids > 1)
 +
 +      newaux = _hurd_id.aux.uids;
 +      naux = _hurd_id.aux.nuids;
 +      if (ruid != -1)
- 	{
--	  _hurd_id.gen.uids[0] = euid;
--	  _hurd_id.valid = 0;
++	{
 +	  if (_hurd_id.aux.nuids == 0)
 +	    {
 +	      newaux = &ruid;
@@ -185,8 +180,7 @@ index ccf8d08..e254437 100644
 +	      _hurd_id.aux.uids[0] = ruid;
 +	      _hurd_id.valid = 0;
 +	    }
- 	}
--      if (_hurd_id.aux.nuids > 1)
++	}
 +
 +      if (suid != -1)
  	{
@@ -200,7 +194,8 @@ index ccf8d08..e254437 100644
 +	      else if (_hurd_id.gen.nuids >= 1)
 +		auxs[0] = _hurd_id.gen.uids[0];
 +	      else
-+		/* Not even an effective uid, fallback to the only UID we have. */
++		/* Not even an effective UID.
++                   Fall back to the only UID we have. */
 +		auxs[0] = suid;
 +	    }
 +	  if (_hurd_id.aux.nuids <= 1)
@@ -226,10 +221,3 @@ index ccf8d08..e254437 100644
  			_hurd_id.gen.gids, _hurd_id.gen.ngids,
  			_hurd_id.aux.gids, _hurd_id.aux.ngids,
  			&newauth));
-     }
--
-   __mutex_unlock (&_hurd_id.lock);
-   HURD_CRITICAL_END;
- 
--- 
-tg: (0234227..) t/setresid (depends on: baseline)

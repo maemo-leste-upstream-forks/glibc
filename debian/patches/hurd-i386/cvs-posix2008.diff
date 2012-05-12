@@ -1,32 +1,20 @@
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: [PATCH] Fix POSIX 2008 visibility
+commit ee16e894aaf51674058224fe0ece852bd0b3632d
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu May 10 15:27:04 2012 -0700
 
-Here are a few POSIX 2008 visibility updates, to align the core & hurd
-with the Linux headers.
-
-Samuel
-
-
-2011-12-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
-
-        * bits/sigaction.h [__USE_XOPEN2K8]: Define SA_RESTART,
-        SA_NODEFER, SA_RESETHAND.
-        * sysdeps/mach/hurd/bits/fcntl.h [__USE_XOPEN2K8]: Define
-        O_NOFOLLOW, O_DIRECTORY, O_CLOEXEC, F_GETOWN, F_SETOWN,
-        F_DUPFD_CLOEXEC.
-
----
-http://cygwin.com/ml/libc-alpha/2011-12/msg00005.html
-
- bits/sigaction.h               |    2 ++
- sysdeps/mach/hurd/bits/fcntl.h |    8 +++++---
- 2 files changed, 7 insertions(+), 3 deletions(-)
+    Hurd: Fix POSIX 2008 visibility
 
 diff --git a/bits/sigaction.h b/bits/sigaction.h
-index adcc276..97242a6 100644
+index a5e1d18..a737660 100644
 --- a/bits/sigaction.h
 +++ b/bits/sigaction.h
-@@ -55,6 +55,8 @@ struct sigaction
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 1991,92,96,97,98,2001 Free Software Foundation, Inc.
++/* Copyright (C) 1991-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -54,6 +54,8 @@ struct sigaction
  /* Bits in `sa_flags'.  */
  #if defined __USE_UNIX98 || defined __USE_MISC
  # define SA_ONSTACK	0x0001	/* Take signal on signal stack.  */
@@ -36,10 +24,18 @@ index adcc276..97242a6 100644
  # define SA_NODEFER	0x0010	/* Don't automatically block the signal when
  				    its handler is being executed.  */
 diff --git a/sysdeps/mach/hurd/bits/fcntl.h b/sysdeps/mach/hurd/bits/fcntl.h
-index b4147ce..74cf913 100644
+index 4224bf1..1d24c73 100644
 --- a/sysdeps/mach/hurd/bits/fcntl.h
 +++ b/sysdeps/mach/hurd/bits/fcntl.h
-@@ -55,7 +55,9 @@
+@@ -1,6 +1,5 @@
+ /* O_*, F_*, FD_* bit values for GNU.
+-   Copyright (C) 1993,1994,1996,1997,1998,1999,2000,2001,2004,2007
+-	Free Software Foundation, Inc.
++   Copyright (C) 1993-2012 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -54,7 +53,9 @@
  #ifdef __USE_GNU
  # define O_NOLINK	0x0040	/* No name mappings on final component.  */
  # define O_NOTRANS	0x0080	/* No translator on final component. */
@@ -49,7 +45,7 @@ index b4147ce..74cf913 100644
  # define O_NOFOLLOW	0x00100000 /* Produce ENOENT if file is a symlink.  */
  # define O_DIRECTORY	0x00200000 /* Produce ENOTDIR if not a directory.  */
  #endif
-@@ -119,7 +121,7 @@
+@@ -118,7 +119,7 @@
     once the file has been opened.  */
  
  #define	O_TRUNC		0x00010000 /* Truncate file to zero length.  */
@@ -58,7 +54,7 @@ index b4147ce..74cf913 100644
  # define O_CLOEXEC	0x00400000 /* Set FD_CLOEXEC.  */
  #endif
  
-@@ -159,7 +161,7 @@
+@@ -158,7 +159,7 @@
  #define	F_SETFD		2	/* Set file descriptor flags.  */
  #define	F_GETFL		3	/* Get file status flags.  */
  #define	F_SETFL		4	/* Set file status flags.  */
@@ -67,7 +63,7 @@ index b4147ce..74cf913 100644
  # define F_GETOWN	5	/* Get owner (receiver of SIGIO).  */
  # define F_SETOWN	6	/* Set owner (receiver of SIGIO).  */
  #endif
-@@ -167,7 +169,7 @@
+@@ -166,7 +167,7 @@
  #define	F_SETLK		8	/* Set record locking info (non-blocking).  */
  #define	F_SETLKW	9	/* Set record locking info (blocking).  */
  
@@ -76,5 +72,3 @@ index b4147ce..74cf913 100644
  # define F_DUPFD_CLOEXEC 1030	/* Duplicate, set FD_CLOEXEC on new one.  */
  #endif
  
--- 
-tg: (0234227..) t/posix2008 (depends on: baseline)
