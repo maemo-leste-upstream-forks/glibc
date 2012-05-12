@@ -3,17 +3,21 @@ Subject: [PATCH] t/hooks
 
 Add link rules to sort hooks, otherwise they are not properly recorded
 
+2012-04-21  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+        * Makerules (shlib.lds): Add hurd hooks sorting rules.
+
 Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
 ---
- Makerules |   36 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+), 0 deletions(-)
+ Makerules |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
 diff --git a/Makerules b/Makerules
-index cf5fb38..2a1f299 100644
+index cf5fb38..19bd314 100644
 --- a/Makerules
 +++ b/Makerules
-@@ -514,6 +514,42 @@ $(common-objpfx)shlib.lds: $(common-objpfx)config.make $(..)Makerules
+@@ -514,6 +514,45 @@ $(common-objpfx)shlib.lds: $(common-objpfx)config.make $(..)Makerules
  		 PROVIDE(__start___libc_thread_subfreeres = .);\
  		 __libc_thread_subfreeres : { *(__libc_thread_subfreeres) }\
  		 PROVIDE(__stop___libc_thread_subfreeres = .);\
@@ -50,6 +54,9 @@ index cf5fb38..2a1f299 100644
 +		 PROVIDE(__start__hurd_fork_parent_hook = .);\
 +		 _hurd_fork_parent_hook : { *(_hurd_fork_parent_hook) }\
 +		 PROVIDE(__stop__hurd_fork_parent_hook = .);\
++		 PROVIDE(__start__hurd_fork_locks = .);\
++		 _hurd_fork_locks : { *(_hurd_fork_locks) }\
++		 PROVIDE(__stop__hurd_fork_locks = .);\
 +		 PROVIDE(__start___pthread_init = .);\
 +		 __pthread_init : { *(__pthread_init) }\
 +		 PROVIDE(__stop___pthread_init = .);\
@@ -57,4 +64,4 @@ index cf5fb38..2a1f299 100644
  	test -s $@T
  	mv -f $@T $@
 -- 
-tg: (0234227..) t/hooks (depends on: baseline)
+tg: (b013040..) t/hooks (depends on: baseline)
