@@ -26,7 +26,13 @@ eglibc (2.13-33) UNRELEASED; urgency=medium
   * control/{main,libc}: Remove libpthread-stubs-dev dependency on hurd-i386.
   * patches/hurd-i386/libpthread.diff: Add -lrt in libpthread.a to fix static
     linking.
-  * patches/hurd-i386/tg-chflags.diff: Fix and add f?chflags prototype.
+  * patches/hurd-i386/tg-chflags.diff: New patch to fix and add f?chflags
+    prototype.
+  * patches/hurd-i386/submitted-exec_filename.diff: New patch to pass argv[0]
+    through exec, to fix some shell scripts, e.g. glib testsuite.
+  * control.in/main: build-depend on newer hurd package to be able to pass
+    argv[0] through exec.
+  * libc0.3.symbols.hurd-i386: Add symbols for RPCs for argv[0] through exec.
 
   [ Petr Salinger ]
   * kfreebsd/local-sysdeps.diff: update to revision 4286 (from glibc-bsd).
