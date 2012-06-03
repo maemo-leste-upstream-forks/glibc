@@ -4,8 +4,11 @@ Date:   Thu May 10 15:40:09 2012 -0700
 
     Hurd: struct timespec members in struct stat
 
-diff --git a/sysdeps/mach/hurd/bits/stat.h b/sysdeps/mach/hurd/bits/stat.h
-index 15fcda1..e6ffda8 100644
+---
+ sysdeps/mach/hurd/bits/stat.h |   59 +++++++++++++++++++++++++++++++-----------
+ sysdeps/mach/hurd/xstatconv.c |   11 ++-----
+ 2 files changed, 48 insertions(+), 22 deletions(-)
+
 --- a/sysdeps/mach/hurd/bits/stat.h
 +++ b/sysdeps/mach/hurd/bits/stat.h
 @@ -1,5 +1,4 @@
@@ -15,7 +18,7 @@ index 15fcda1..e6ffda8 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -58,12 +57,27 @@ struct stat
+@@ -59,12 +58,27 @@
      __off64_t st_size;		/* Size in bytes.  */
  #endif
  
@@ -49,7 +52,7 @@ index 15fcda1..e6ffda8 100644
  
      __blksize_t st_blksize;	/* Optimal size for I/O.  */
  
-@@ -107,12 +121,24 @@ struct stat64
+@@ -108,12 +122,24 @@
  
      __off64_t st_size;		/* Size in bytes.  */
  
@@ -80,7 +83,7 @@ index 15fcda1..e6ffda8 100644
  
      __blksize_t st_blksize;	/* Optimal size for I/O.  */
  
-@@ -130,7 +156,10 @@ struct stat64
+@@ -131,7 +157,10 @@
    };
  #endif
  
@@ -92,8 +95,6 @@ index 15fcda1..e6ffda8 100644
  
  /* Encoding of the file mode.  */
  
-diff --git a/sysdeps/mach/hurd/xstatconv.c b/sysdeps/mach/hurd/xstatconv.c
-index db704c6..ebe6471 100644
 --- a/sysdeps/mach/hurd/xstatconv.c
 +++ b/sysdeps/mach/hurd/xstatconv.c
 @@ -1,5 +1,5 @@
@@ -103,7 +104,7 @@ index db704c6..ebe6471 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -41,12 +41,9 @@ xstat64_conv (struct stat *buf, const struct stat64 *buf64)
+@@ -42,12 +42,9 @@
    buf->st_uid = buf64->st_uid;
    buf->st_gid = buf64->st_gid;
    buf->st_size = buf64->st_size;

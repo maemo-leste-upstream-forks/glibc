@@ -2,20 +2,20 @@ Add warnings about non-implemented functions.
 ---
  libpthread/sysdeps/generic/pt-atfork.c                   |    2 ++
  libpthread/sysdeps/generic/pt-getcpuclockid.c            |    1 +
- libpthread/sysdeps/generic/pt-getschedparam.c            |    2 ++
+ libpthread/sysdeps/generic/pt-getschedparam.c            |    1 +
  libpthread/sysdeps/generic/pt-key-create.c               |    2 ++
  libpthread/sysdeps/generic/pt-key-delete.c               |    2 ++
  libpthread/sysdeps/generic/pt-mutex-getprioceiling.c     |    2 ++
  libpthread/sysdeps/generic/pt-mutex-setprioceiling.c     |    2 ++
  libpthread/sysdeps/generic/pt-mutexattr-getprioceiling.c |    2 ++
  libpthread/sysdeps/generic/pt-mutexattr-setprioceiling.c |    2 ++
- libpthread/sysdeps/generic/pt-setschedparam.c            |    2 ++
+ libpthread/sysdeps/generic/pt-setschedparam.c            |    1 +
  libpthread/sysdeps/generic/pt-setschedprio.c             |    2 ++
- 14 files changed, 36 insertions(+), 1 deletion(-)
+ 11 files changed, 19 insertions(+)
 
 --- a/libpthread/sysdeps/generic/pt-atfork.c
 +++ b/libpthread/sysdeps/generic/pt-atfork.c
-@@ -27,3 +27,5 @@ pthread_atfork (void (*prepare) (void),
+@@ -27,3 +27,5 @@
  {
    return ENOSYS;
  }
@@ -23,7 +23,7 @@ Add warnings about non-implemented functions.
 +stub_warning (pthread_atfork)
 --- a/libpthread/sysdeps/generic/pt-getcpuclockid.c
 +++ b/libpthread/sysdeps/generic/pt-getcpuclockid.c
-@@ -30,5 +30,6 @@ pthread_getcpuclockid (pthread_t thread,
+@@ -30,5 +30,6 @@
    return 0;
  #else
    return ENOSYS;
@@ -32,14 +32,14 @@ Add warnings about non-implemented functions.
  }
 --- a/libpthread/sysdeps/generic/pt-getschedparam.c
 +++ b/libpthread/sysdeps/generic/pt-getschedparam.c
-@@ -26,3 +26,4 @@ pthread_getschedparam (pthread_t thread,
+@@ -28,3 +28,4 @@
  }
  
  strong_alias (__pthread_getschedparam, pthread_getschedparam);
 +stub_warning (pthread_getschedparam)
 --- a/libpthread/sysdeps/generic/pt-key-create.c
 +++ b/libpthread/sysdeps/generic/pt-key-create.c
-@@ -25,3 +25,5 @@ pthread_key_create (pthread_key_t *key, 
+@@ -25,3 +25,5 @@
  {
    return ENOSYS;
  }
@@ -47,7 +47,7 @@ Add warnings about non-implemented functions.
 +stub_warning (pthread_key_create)
 --- a/libpthread/sysdeps/generic/pt-key-delete.c
 +++ b/libpthread/sysdeps/generic/pt-key-delete.c
-@@ -25,3 +25,5 @@ pthread_key_delete (pthread_key_t key)
+@@ -25,3 +25,5 @@
  {
    return ENOSYS;
  }
@@ -55,7 +55,7 @@ Add warnings about non-implemented functions.
 +stub_warning (pthread_key_delete)
 --- a/libpthread/sysdeps/generic/pt-mutex-getprioceiling.c
 +++ b/libpthread/sysdeps/generic/pt-mutex-getprioceiling.c
-@@ -26,3 +26,5 @@ pthread_mutex_getprioceiling (const pthr
+@@ -26,3 +26,5 @@
  {
    return ENOSYS;
  }
@@ -63,7 +63,7 @@ Add warnings about non-implemented functions.
 +stub_warning (pthread_mutex_getprioceiling)
 --- a/libpthread/sysdeps/generic/pt-mutex-setprioceiling.c
 +++ b/libpthread/sysdeps/generic/pt-mutex-setprioceiling.c
-@@ -26,3 +26,5 @@ pthread_mutex_setprioceiling (pthread_mu
+@@ -26,3 +26,5 @@
  {
    return ENOSYS;
  }
@@ -71,7 +71,7 @@ Add warnings about non-implemented functions.
 +stub_warning (pthread_mutex_setprioceiling)
 --- a/libpthread/sysdeps/generic/pt-mutexattr-getprioceiling.c
 +++ b/libpthread/sysdeps/generic/pt-mutexattr-getprioceiling.c
-@@ -26,3 +26,5 @@ pthread_mutexattr_getprioceiling (const 
+@@ -26,3 +26,5 @@
  {
    return ENOSYS;
  }
@@ -79,7 +79,7 @@ Add warnings about non-implemented functions.
 +stub_warning (pthread_mutexattr_getprioceiling)
 --- a/libpthread/sysdeps/generic/pt-mutexattr-setprioceiling.c
 +++ b/libpthread/sysdeps/generic/pt-mutexattr-setprioceiling.c
-@@ -26,3 +26,5 @@ pthread_mutexattr_setprioceiling (pthrea
+@@ -26,3 +26,5 @@
  {
    return ENOSYS;
  }
@@ -87,14 +87,14 @@ Add warnings about non-implemented functions.
 +stub_warning (pthread_mutexattr_setprioceiling)
 --- a/libpthread/sysdeps/generic/pt-setschedparam.c
 +++ b/libpthread/sysdeps/generic/pt-setschedparam.c
-@@ -26,3 +26,4 @@ pthread_setschedparam (pthread_t thread,
+@@ -28,3 +28,4 @@
  }
  
  strong_alias (__pthread_setschedparam, pthread_setschedparam);
 +stub_warning (pthread_setschedparam)
 --- a/libpthread/sysdeps/generic/pt-setschedprio.c
 +++ b/libpthread/sysdeps/generic/pt-setschedprio.c
-@@ -25,3 +25,5 @@ pthread_setschedprio (pthread_t thread, 
+@@ -25,3 +25,5 @@
  {
    return ENOSYS;
  }

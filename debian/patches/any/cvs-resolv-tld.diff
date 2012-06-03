@@ -8,11 +8,16 @@
 	* resolv/res_query.c (__libc_res_nsearch): Backport changes from
 	modern BIND to search name as TLD unless forbidden.
  
-diff --git a/resolv/res_debug.c b/resolv/res_debug.c
-index f7996a7..3daa44e 100644
+---
+ resolv/res_debug.c |    5 +++--
+ resolv/res_init.c  |    5 +++++
+ resolv/res_query.c |   14 ++++++++------
+ resolv/resolv.h    |    4 +++-
+ 4 files changed, 19 insertions(+), 9 deletions(-)
+
 --- a/resolv/res_debug.c
 +++ b/resolv/res_debug.c
-@@ -189,7 +189,7 @@ do_section(const res_state statp,
+@@ -189,7 +189,7 @@
  						buf = malloc(buflen += 1024);
  					if (buf == NULL) {
  						fprintf(file,
@@ -21,7 +26,7 @@ index f7996a7..3daa44e 100644
  					      return;
  					}
  					continue;
-@@ -356,7 +356,7 @@ const struct res_sym __p_class_syms[] = {
+@@ -356,7 +356,7 @@
  	{C_HS,		"HESIOD"},
  	{C_ANY,		"ANY"},
  	{C_NONE,	"NONE"},
@@ -30,7 +35,7 @@ index f7996a7..3daa44e 100644
  };
  libresolv_hidden_data_def (__p_class_syms)
  
-@@ -588,6 +588,7 @@ p_option(u_long option) {
+@@ -588,6 +588,7 @@
  	case RES_USEBSTRING:	return "ip6-bytstring";
  	case RES_USE_EDNS0:	return "edns0";
  	case RES_USE_DNSSEC:	return "dnssec";
@@ -38,11 +43,9 @@ index f7996a7..3daa44e 100644
  				/* XXX nonreentrant */
  	default:		sprintf(nbuf, "?0x%lx?", (u_long)option);
  				return (nbuf);
-diff --git a/resolv/res_init.c b/resolv/res_init.c
-index 74715f3..7588432 100644
 --- a/resolv/res_init.c
 +++ b/resolv/res_init.c
-@@ -545,6 +545,11 @@ res_setoptions(res_state statp, const char *options, const char *source) {
+@@ -545,6 +545,11 @@
  		} else if (!strncmp(cp, "single-request",
  				    sizeof("single-request") - 1)) {
  			statp->options |= RES_SNGLKUP;
@@ -54,11 +57,9 @@ index 74715f3..7588432 100644
  		} else {
  			/* XXX - print a warning here? */
  		}
-diff --git a/resolv/res_query.c b/resolv/res_query.c
-index 5ff352e..26daf0d 100644
 --- a/resolv/res_query.c
 +++ b/resolv/res_query.c
-@@ -123,7 +123,7 @@ __libc_res_nquery(res_state statp,
+@@ -123,7 +123,7 @@
  {
  	HEADER *hp = (HEADER *) answer;
  	int n, use_malloc = 0;
@@ -67,7 +68,7 @@ index 5ff352e..26daf0d 100644
  
  	size_t bufsize = (type == T_UNSPEC ? 2 : 1) * QUERYSIZE;
  	u_char *buf = alloca (bufsize);
-@@ -210,7 +210,7 @@ __libc_res_nquery(res_state statp,
+@@ -210,7 +210,7 @@
  			if (statp->options & RES_DEBUG)
  				printf(";; res_nquery: retry without EDNS0\n");
  #endif
@@ -76,7 +77,7 @@ index 5ff352e..26daf0d 100644
  		}
  #ifdef DEBUG
  		if (statp->options & RES_DEBUG)
-@@ -344,6 +344,7 @@ __libc_res_nsearch(res_state statp,
+@@ -344,6 +344,7 @@
  	int trailing_dot, ret, saved_herrno;
  	int got_nodata = 0, got_servfail = 0, root_on_list = 0;
  	int tried_as_is = 0;
@@ -84,7 +85,7 @@ index 5ff352e..26daf0d 100644
  
  	__set_errno (0);
  	RES_SET_H_ERRNO(statp, HOST_NOT_FOUND);  /* True if we never query. */
-@@ -406,6 +407,7 @@ __libc_res_nsearch(res_state statp,
+@@ -406,6 +407,7 @@
  		for (domain = (const char * const *)statp->dnsrch;
  		     *domain && !done;
  		     domain++) {
@@ -92,7 +93,7 @@ index 5ff352e..26daf0d 100644
  
  			if (domain[0][0] == '\0' ||
  			    (domain[0][0] == '.' && domain[0][1] == '\0'))
-@@ -477,11 +479,11 @@ __libc_res_nsearch(res_state statp,
+@@ -477,11 +479,11 @@
  	}
  
  	/*
@@ -108,11 +109,9 @@ index 5ff352e..26daf0d 100644
  		ret = __libc_res_nquerydomain(statp, name, NULL, class, type,
  					      answer, anslen, answerp,
  					      answerp2, nanswerp2, resplen2);
-diff --git a/resolv/resolv.h b/resolv/resolv.h
-index e49c29d..ed15a70 100644
 --- a/resolv/resolv.h
 +++ b/resolv/resolv.h
-@@ -102,7 +102,7 @@ typedef res_sendhookact (*res_send_rhook) (const struct sockaddr_in *__ns,
+@@ -102,7 +102,7 @@
  # define RES_MAXTIME		65535	/* Infinity, in milliseconds. */
  
  struct __res_state {
@@ -121,7 +120,7 @@ index e49c29d..ed15a70 100644
  	int	retry;			/* number of times to retransmit */
  	u_long	options;		/* option flags - see below. */
  	int	nscount;		/* number of name servers */
-@@ -219,6 +219,8 @@ struct res_sym {
+@@ -219,6 +219,8 @@
  #define RES_SNGLKUPREOP	0x00400000	/* -"-, but open new socket for each
  					   request */
  #define RES_USE_DNSSEC	0x00800000	/* use DNSSEC using OK bit in OPT */

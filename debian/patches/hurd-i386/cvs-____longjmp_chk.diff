@@ -4,11 +4,15 @@ Date:   Thu May 10 12:47:31 2012 -0700
 
     Hurd: ____longjmp_chk
 
-diff --git a/sysdeps/mach/hurd/i386/Makefile b/sysdeps/mach/hurd/i386/Makefile
-index 0eef17e..5f98809 100644
+---
+ sysdeps/mach/hurd/i386/Makefile           |    4 +
+ sysdeps/mach/hurd/i386/____longjmp_chk.S  |  107 ++++++++++++++++++++++++++++++
+ sysdeps/mach/hurd/i386/signal-defines.sym |   10 ++
+ 3 files changed, 121 insertions(+)
+
 --- a/sysdeps/mach/hurd/i386/Makefile
 +++ b/sysdeps/mach/hurd/i386/Makefile
-@@ -2,3 +2,7 @@ ifeq ($(subdir),misc)
+@@ -2,3 +2,7 @@
  sysdep_routines += ioperm
  sysdep_headers += sys/io.h
  endif
@@ -16,9 +20,6 @@ index 0eef17e..5f98809 100644
 +ifeq ($(subdir),debug)
 +gen-as-const-headers += signal-defines.sym
 +endif
-diff --git a/sysdeps/mach/hurd/i386/____longjmp_chk.S b/sysdeps/mach/hurd/i386/____longjmp_chk.S
-new file mode 100644
-index 0000000..f499fbd
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/____longjmp_chk.S
 @@ -0,0 +1,107 @@
@@ -129,9 +130,6 @@ index 0000000..f499fbd
 +	/* Jump to saved PC.  */
 +	jmp	*%edx
 +END (____longjmp_chk)
-diff --git a/sysdeps/mach/hurd/i386/signal-defines.sym b/sysdeps/mach/hurd/i386/signal-defines.sym
-new file mode 100644
-index 0000000..9521bd7
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/signal-defines.sym
 @@ -0,0 +1,10 @@

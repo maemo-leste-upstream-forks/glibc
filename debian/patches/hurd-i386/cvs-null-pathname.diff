@@ -4,8 +4,11 @@ Date:   Thu May 10 15:21:18 2012 -0700
 
     Hurd: empty file names fail with ENOENT
 
-diff --git a/hurd/hurdchdir.c b/hurd/hurdchdir.c
-index 6881956..1669358 100644
+---
+ hurd/hurdchdir.c           |    5 ++++-
+ sysdeps/mach/hurd/chroot.c |    5 ++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
 --- a/hurd/hurdchdir.c
 +++ b/hurd/hurdchdir.c
 @@ -1,5 +1,5 @@
@@ -15,7 +18,7 @@ index 6881956..1669358 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -37,6 +37,9 @@ _hurd_change_directory_port_from_name (struct hurd_port *portcell,
+@@ -38,6 +38,9 @@
    len = strlen (name);
    if (len >= 2 && name[len - 2] == '/' && name[len - 1] == '.')
      lookup = name;
@@ -25,8 +28,6 @@ index 6881956..1669358 100644
    else
      {
        char *n = alloca (len + 3);
-diff --git a/sysdeps/mach/hurd/chroot.c b/sysdeps/mach/hurd/chroot.c
-index 1a6b1e4..95bee33 100644
 --- a/sysdeps/mach/hurd/chroot.c
 +++ b/sysdeps/mach/hurd/chroot.c
 @@ -1,4 +1,4 @@
@@ -35,7 +36,7 @@ index 1a6b1e4..95bee33 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -37,6 +37,9 @@ chroot (const char *path)
+@@ -38,6 +38,9 @@
    len = strlen (path);
    if (len >= 2 && path[len - 2] == '/' && path[len - 1] == '.')
      lookup = path;

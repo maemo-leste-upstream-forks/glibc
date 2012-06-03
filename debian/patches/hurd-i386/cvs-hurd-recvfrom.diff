@@ -4,8 +4,10 @@ Date:   Thu May 10 15:30:38 2012 -0700
 
     Hurd: recvfrom(): take into account null address ports
 
-diff --git a/sysdeps/mach/hurd/recvfrom.c b/sysdeps/mach/hurd/recvfrom.c
-index f591336..3a094aa 100644
+---
+ sysdeps/mach/hurd/recvfrom.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
 --- a/sysdeps/mach/hurd/recvfrom.c
 +++ b/sysdeps/mach/hurd/recvfrom.c
 @@ -1,4 +1,4 @@
@@ -14,7 +16,7 @@ index f591336..3a094aa 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -54,7 +54,7 @@ __recvfrom (fd, buf, n, flags, addrarg, addr_len)
+@@ -55,7 +55,7 @@
      return __hurd_sockfail (fd, flags, err);
  
    /* Get address data for the returned address port if requested.  */
@@ -23,7 +25,7 @@ index f591336..3a094aa 100644
      {
        char *buf = (char *) addr;
        mach_msg_type_number_t buflen = *addr_len;
-@@ -88,6 +88,8 @@ __recvfrom (fd, buf, n, flags, addrarg, addr_len)
+@@ -89,6 +89,8 @@
        if (buflen > 0)
  	addr->sa_family = type;
      }

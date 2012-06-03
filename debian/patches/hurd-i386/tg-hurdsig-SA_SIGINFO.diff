@@ -7,20 +7,18 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
 
 ---
  hurd/hurd/signal.h                       |    5 +
- hurd/hurdinit.c                          |    2 +-
+ hurd/hurdinit.c                          |    2 
  sysdeps/mach/hurd/bits/sigaction.h       |   81 ++++++++++++++++++++
  sysdeps/mach/hurd/i386/bits/sigcontext.h |    4 +
- sysdeps/mach/hurd/i386/exc2signal.c      |  123 +++++++++++++++++++-----------
- sysdeps/mach/hurd/i386/trampoline.c      |  113 +++++++++++++++++++++++++--
- sysdeps/mach/hurd/kill.c                 |    2 +-
- sysdeps/mach/hurd/setitimer.c            |    2 +-
+ sysdeps/mach/hurd/i386/exc2signal.c      |  123 +++++++++++++++++++------------
+ sysdeps/mach/hurd/i386/trampoline.c      |  113 ++++++++++++++++++++++++++--
+ sysdeps/mach/hurd/kill.c                 |    2 
+ sysdeps/mach/hurd/setitimer.c            |    2 
  8 files changed, 274 insertions(+), 58 deletions(-)
 
-diff --git a/hurd/hurd/signal.h b/hurd/hurd/signal.h
-index 1c4733a..cc96f21 100644
 --- a/hurd/hurd/signal.h
 +++ b/hurd/hurd/signal.h
-@@ -264,6 +264,11 @@ extern void _hurd_raise_signal (struct hurd_sigstate *ss, int signo,
+@@ -274,6 +274,11 @@
  extern void _hurd_exception2signal (struct hurd_signal_detail *detail,
  				    int *signo);
  
@@ -32,11 +30,9 @@ index 1c4733a..cc96f21 100644
  
  /* Make the thread described by SS take the signal described by SIGNO and
     DETAIL.  If the process is traced, this will in fact stop with a SIGNO
-diff --git a/hurd/hurdinit.c b/hurd/hurdinit.c
-index 259f8a3..97d3460 100644
 --- a/hurd/hurdinit.c
 +++ b/hurd/hurdinit.c
-@@ -176,7 +176,7 @@ _hurd_new_proc_init (char **argv,
+@@ -176,7 +176,7 @@
      /* This process is "traced", meaning it should stop on signals or exec.
         We are all set up now to handle signals.  Stop ourselves, to inform
         our parent (presumably a debugger) that the exec has completed.  */
@@ -45,9 +41,6 @@ index 259f8a3..97d3460 100644
  }
  
  #include <shlib-compat.h>
-diff --git a/sysdeps/mach/hurd/bits/sigaction.h b/sysdeps/mach/hurd/bits/sigaction.h
-new file mode 100644
-index 0000000..d3a4220
 --- /dev/null
 +++ b/sysdeps/mach/hurd/bits/sigaction.h
 @@ -0,0 +1,81 @@
@@ -132,11 +125,9 @@ index 0000000..d3a4220
 +#define	SIG_BLOCK	1	/* Block signals.  */
 +#define	SIG_UNBLOCK	2	/* Unblock signals.  */
 +#define	SIG_SETMASK	3	/* Set the set of blocked signals.  */
-diff --git a/sysdeps/mach/hurd/i386/bits/sigcontext.h b/sysdeps/mach/hurd/i386/bits/sigcontext.h
-index a78dd2f..1956d41 100644
 --- a/sysdeps/mach/hurd/i386/bits/sigcontext.h
 +++ b/sysdeps/mach/hurd/i386/bits/sigcontext.h
-@@ -96,6 +96,10 @@ struct sigcontext
+@@ -96,6 +96,10 @@
  #define sc_ps	sc_efl
  
  
@@ -147,8 +138,6 @@ index a78dd2f..1956d41 100644
  /* Codes for SIGFPE.  */
  #define FPE_INTOVF_TRAP		0x1 /* integer overflow */
  #define FPE_INTDIV_FAULT	0x2 /* integer divide by zero */
-diff --git a/sysdeps/mach/hurd/i386/exc2signal.c b/sysdeps/mach/hurd/i386/exc2signal.c
-index a6bf750..7ffeb5f 100644
 --- a/sysdeps/mach/hurd/i386/exc2signal.c
 +++ b/sysdeps/mach/hurd/i386/exc2signal.c
 @@ -24,8 +24,8 @@
@@ -162,7 +151,7 @@ index a6bf750..7ffeb5f 100644
  {
    detail->error = 0;
  
-@@ -37,44 +37,62 @@ _hurd_exception2signal (struct hurd_signal_detail *detail, int *signo)
+@@ -37,44 +37,62 @@
        break;
  
      case EXC_BAD_ACCESS:
@@ -243,7 +232,7 @@ index a6bf750..7ffeb5f 100644
  	  detail->code = 0;
  	  break;
  
-@@ -83,51 +101,43 @@ _hurd_exception2signal (struct hurd_signal_detail *detail, int *signo)
+@@ -83,51 +101,43 @@
  	     Give an error code corresponding to the first bit set.  */
  	  if (detail->exc_subcode & FPS_IE)
  	    {
@@ -306,7 +295,7 @@ index a6bf750..7ffeb5f 100644
  	  break;
  	}
        break;
-@@ -144,7 +154,7 @@ _hurd_exception2signal (struct hurd_signal_detail *detail, int *signo)
+@@ -144,7 +154,7 @@
        if (detail->exc_code == EXC_I386_BOUND)
  	{
  	  *signo = SIGFPE;
@@ -315,7 +304,7 @@ index a6bf750..7ffeb5f 100644
  	}
        else
  	{
-@@ -155,12 +165,33 @@ _hurd_exception2signal (struct hurd_signal_detail *detail, int *signo)
+@@ -155,12 +165,33 @@
  
      case EXC_BREAKPOINT:
        *signo = SIGTRAP;
@@ -355,8 +344,6 @@ index a6bf750..7ffeb5f 100644
 +  exception2signal (detail, signo, 0);
 +}
 +
-diff --git a/sysdeps/mach/hurd/i386/trampoline.c b/sysdeps/mach/hurd/i386/trampoline.c
-index ec52847..5abd33d 100644
 --- a/sysdeps/mach/hurd/i386/trampoline.c
 +++ b/sysdeps/mach/hurd/i386/trampoline.c
 @@ -21,13 +21,66 @@
@@ -426,7 +413,7 @@ index ec52847..5abd33d 100644
  struct sigcontext *
  _hurd_setup_sighandler (struct hurd_sigstate *ss, __sighandler_t handler,
  			int signo, struct hurd_signal_detail *detail,
-@@ -40,18 +93,37 @@ _hurd_setup_sighandler (struct hurd_sigstate *ss, __sighandler_t handler,
+@@ -40,18 +93,37 @@
    extern const void _hurd_intr_rpc_msg_in_trap;
    extern const void _hurd_intr_rpc_msg_cx_sp;
    extern const void _hurd_intr_rpc_msg_sp_restored;
@@ -466,7 +453,7 @@ index ec52847..5abd33d 100644
      } *stackframe;
  
    if (ss->context)
-@@ -143,15 +215,9 @@ _hurd_setup_sighandler (struct hurd_sigstate *ss, __sighandler_t handler,
+@@ -143,15 +215,9 @@
  	  = &stackframe->link.thread.next;
        ss->active_resources = &stackframe->link;
  
@@ -483,7 +470,7 @@ index ec52847..5abd33d 100644
        scp->sc_onstack = ss->sigaltstack.ss_flags & SS_ONSTACK ? 1 : 0;
  
        /* struct sigcontext is laid out so that starting at sc_gs mimics a
-@@ -165,6 +231,35 @@ _hurd_setup_sighandler (struct hurd_sigstate *ss, __sighandler_t handler,
+@@ -165,6 +231,35 @@
  			      &state->fpu, &scp->sc_i386_float_state,
  			      sizeof (state->fpu));
  
@@ -519,11 +506,9 @@ index ec52847..5abd33d 100644
        _hurdsig_end_catch_fault ();
  
        if (! ok)
-diff --git a/sysdeps/mach/hurd/kill.c b/sysdeps/mach/hurd/kill.c
-index a9946e0..ac7ffc7 100644
 --- a/sysdeps/mach/hurd/kill.c
 +++ b/sysdeps/mach/hurd/kill.c
-@@ -65,7 +65,7 @@ __kill (pid_t pid, int sig)
+@@ -65,7 +65,7 @@
  	    {
  	      if (msgport != MACH_PORT_NULL)
  		/* Send a signal message to his message port.  */
@@ -532,11 +517,9 @@ index a9946e0..ac7ffc7 100644
  
  	      /* The process has no message port.  Perhaps try direct
  		 frobnication of the task.  */
-diff --git a/sysdeps/mach/hurd/setitimer.c b/sysdeps/mach/hurd/setitimer.c
-index fec64a8..c82bfcd 100644
 --- a/sysdeps/mach/hurd/setitimer.c
 +++ b/sysdeps/mach/hurd/setitimer.c
-@@ -105,7 +105,7 @@ timer_thread (void)
+@@ -104,7 +104,7 @@
  	  __msg_sig_post_request (_hurd_msgport,
  				  _hurd_itimer_port,
  				  MACH_MSG_TYPE_MAKE_SEND_ONCE,
@@ -545,5 +528,3 @@ index fec64a8..c82bfcd 100644
  	  break;
  
  	case MACH_RCV_INTERRUPTED:
--- 
-tg: (2ec583b..) t/hurdsig-SA_SIGINFO (depends on: t/hurdsig-global-dispositions)

@@ -3,6 +3,10 @@
 	* sysdeps/unix/sysv/linux/alpha/fxstatat.c(__fxstatat): use fstatat64
 	syscall when available.
 
+---
+ ports/sysdeps/unix/sysv/linux/alpha/fxstatat.c |   29 ++++++++++++++++++++++++-
+ 1 file changed, 28 insertions(+), 1 deletion(-)
+
 --- a/ports/sysdeps/unix/sysv/linux/alpha/fxstatat.c
 +++ b/ports/sysdeps/unix/sysv/linux/alpha/fxstatat.c
 @@ -35,6 +35,32 @@
@@ -38,7 +42,7 @@
    if (flag & ~AT_SYMLINK_NOFOLLOW)
      {
        __set_errno (EINVAL);
-@@ -68,7 +94,7 @@ __fxstatat (int vers, int fd, const char *file, struct stat *st, int flag)
+@@ -68,7 +94,7 @@
      }
  
    INTERNAL_SYSCALL_DECL (err);
@@ -47,7 +51,7 @@
    struct kernel_stat kst;
  
  #if __ASSUME_STAT64_SYSCALL > 0
-@@ -114,6 +140,7 @@ __fxstatat (int vers, int fd, const char *file, struct stat *st, int flag)
+@@ -114,6 +140,7 @@
    __atfct_seterrno (errno_out, fd, buf);
  
    return -1;

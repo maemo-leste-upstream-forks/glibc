@@ -1,9 +1,26 @@
 These come from the l4 implementation and come in the way of the glibc
 Makefiles, drop them.
 
-diff --git a/signal/README b/signal/README
-deleted file mode 100644
-index 5487e2e..0000000
+---
+ libpthread/include/libc-symbols.h      |  395 ---------------------------------
+ libpthread/include/set-hooks.h         |   72 ------
+ libpthread/signal/README               |    4 
+ libpthread/signal/TODO                 |   29 --
+ libpthread/signal/kill.c               |   70 -----
+ libpthread/signal/pt-kill-siginfo-np.c |   88 -------
+ libpthread/signal/sig-internal.c       |   26 --
+ libpthread/signal/sig-internal.h       |  177 --------------
+ libpthread/signal/sigaction.c          |   72 ------
+ libpthread/signal/sigaltstack.c        |   69 -----
+ libpthread/signal/signal-dispatch.c    |  117 ---------
+ libpthread/signal/signal.h             |  275 ----------------------
+ libpthread/signal/sigpending.c         |   38 ---
+ libpthread/signal/sigsuspend.c         |   29 --
+ libpthread/signal/sigtimedwait.c       |   30 --
+ libpthread/signal/sigwaiter.c          |   91 -------
+ libpthread/signal/sigwaitinfo.c        |   74 ------
+ 17 files changed, 1656 deletions(-)
+
 --- a/libpthread/signal/README
 +++ /dev/null
 @@ -1,4 +0,0 @@
@@ -11,9 +28,6 @@ index 5487e2e..0000000
 -for operating systems where signals are managed at user-level.  It is
 -up to the run-time to catch the signals and forward them to the
 -implementation via, e.g., the pthread_kill_info_np call.
-diff --git a/signal/TODO b/signal/TODO
-deleted file mode 100644
-index 1148abb..0000000
 --- a/libpthread/signal/TODO
 +++ /dev/null
 @@ -1,29 +0,0 @@
@@ -47,9 +61,6 @@ index 1148abb..0000000
 -
 -Implement sigtimedwait, sigqueue.
 \ No newline at end of file
-diff --git a/signal/kill.c b/signal/kill.c
-deleted file mode 100644
-index 27c9c32..0000000
 --- a/libpthread/signal/kill.c
 +++ /dev/null
 @@ -1,70 +0,0 @@
@@ -123,9 +134,6 @@ index 27c9c32..0000000
 -  return pthread_kill (pthread_self (), signo);
 -}
 -
-diff --git a/signal/pt-kill-siginfo-np.c b/signal/pt-kill-siginfo-np.c
-deleted file mode 100644
-index 9bdf6cc..0000000
 --- a/libpthread/signal/pt-kill-siginfo-np.c
 +++ /dev/null
 @@ -1,88 +0,0 @@
@@ -217,9 +225,6 @@ index 9bdf6cc..0000000
 -  return 0;
 -}
 -
-diff --git a/signal/sig-internal.c b/signal/sig-internal.c
-deleted file mode 100644
-index f73f38b..0000000
 --- a/libpthread/signal/sig-internal.c
 +++ /dev/null
 @@ -1,26 +0,0 @@
@@ -249,9 +254,6 @@ index f73f38b..0000000
 -
 -sigset_t process_pending;
 -siginfo_t process_pending_info[NSIG];
-diff --git a/signal/sig-internal.h b/signal/sig-internal.h
-deleted file mode 100644
-index 6c86c79..0000000
 --- a/libpthread/signal/sig-internal.h
 +++ /dev/null
 @@ -1,177 +0,0 @@
@@ -432,9 +434,6 @@ index 6c86c79..0000000
 -}
 -
 -#endif
-diff --git a/signal/sigaction.c b/signal/sigaction.c
-deleted file mode 100644
-index 0126c99..0000000
 --- a/libpthread/signal/sigaction.c
 +++ /dev/null
 @@ -1,72 +0,0 @@
@@ -510,9 +509,6 @@ index 0126c99..0000000
 -  return 0;
 -}
 -
-diff --git a/signal/sigaltstack.c b/signal/sigaltstack.c
-deleted file mode 100644
-index 8334811..0000000
 --- a/libpthread/signal/sigaltstack.c
 +++ /dev/null
 @@ -1,69 +0,0 @@
@@ -585,9 +581,6 @@ index 8334811..0000000
 -    }
 -  return 0;
 -}
-diff --git a/signal/signal-dispatch.c b/signal/signal-dispatch.c
-deleted file mode 100644
-index 40440b7..0000000
 --- a/libpthread/signal/signal-dispatch.c
 +++ /dev/null
 @@ -1,117 +0,0 @@
@@ -708,9 +701,6 @@ index 40440b7..0000000
 -
 -  SIGNAL_DISPATCH_EXIT;
 -}
-diff --git a/signal/signal.h b/signal/signal.h
-deleted file mode 100644
-index a33d995..0000000
 --- a/libpthread/signal/signal.h
 +++ /dev/null
 @@ -1,275 +0,0 @@
@@ -989,9 +979,6 @@ index a33d995..0000000
 -		  const struct timespec *restrict timespec);
 -
 -#endif
-diff --git a/signal/sigpending.c b/signal/sigpending.c
-deleted file mode 100644
-index 609b55d..0000000
 --- a/libpthread/signal/sigpending.c
 +++ /dev/null
 @@ -1,38 +0,0 @@
@@ -1033,9 +1020,6 @@ index 609b55d..0000000
 -
 -  return 0;
 -}
-diff --git a/signal/sigsuspend.c b/signal/sigsuspend.c
-deleted file mode 100644
-index 73cf12a..0000000
 --- a/libpthread/signal/sigsuspend.c
 +++ /dev/null
 @@ -1,29 +0,0 @@
@@ -1068,9 +1052,6 @@ index 73cf12a..0000000
 -  errno = EOPNOTSUPP;
 -  return -1;
 -}
-diff --git a/signal/sigtimedwait.c b/signal/sigtimedwait.c
-deleted file mode 100644
-index 52cd017..0000000
 --- a/libpthread/signal/sigtimedwait.c
 +++ /dev/null
 @@ -1,30 +0,0 @@
@@ -1104,9 +1085,6 @@ index 52cd017..0000000
 -  return -1;
 -}
 -
-diff --git a/signal/sigwaiter.c b/signal/sigwaiter.c
-deleted file mode 100644
-index 8d041ac..0000000
 --- a/libpthread/signal/sigwaiter.c
 +++ /dev/null
 @@ -1,91 +0,0 @@
@@ -1201,9 +1179,6 @@ index 8d041ac..0000000
 -
 -  futex_wake (&waiter->info.si_signo, 1);
 -}
-diff --git a/signal/sigwaitinfo.c b/signal/sigwaitinfo.c
-deleted file mode 100644
-index 1b47079..0000000
 --- a/libpthread/signal/sigwaitinfo.c
 +++ /dev/null
 @@ -1,74 +0,0 @@
@@ -1281,9 +1256,6 @@ index 1b47079..0000000
 -  return 0;
 -}
 -
-diff --git a/include/libc-symbols.h b/include/libc-symbols.h
-deleted file mode 100644
-index 54dd6e2..0000000
 --- a/libpthread/include/libc-symbols.h
 +++ /dev/null
 @@ -1,395 +0,0 @@
@@ -1682,9 +1654,6 @@ index 54dd6e2..0000000
 -#endif
 -
 -#endif /* libc-symbols.h */
-diff --git a/include/set-hooks.h b/include/set-hooks.h
-deleted file mode 100644
-index 9ed71b3..0000000
 --- a/libpthread/include/set-hooks.h
 +++ /dev/null
 @@ -1,72 +0,0 @@

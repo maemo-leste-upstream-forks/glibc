@@ -31,13 +31,11 @@ I think that's the corresponding error message:
  sysdeps/generic/ldsodefs.h        |    1 +
  sysdeps/mach/hurd/sysdep-cancel.h |    9 +++++++++
  sysdeps/mach/hurd/tls.h           |   13 +++++++++++++
- 4 files changed, 24 insertions(+), 0 deletions(-)
+ 4 files changed, 24 insertions(+)
 
-diff --git a/elf/dl-support.c b/elf/dl-support.c
-index 4226d12..4289755 100644
 --- a/elf/dl-support.c
 +++ b/elf/dl-support.c
-@@ -150,6 +150,7 @@ int (*_dl_make_stack_executable_hook) (void **) internal_function
+@@ -158,6 +158,7 @@
  /* Function in libpthread to wait for termination of lookups.  */
  void (*_dl_wait_lookup_done) (void);
  
@@ -45,11 +43,9 @@ index 4226d12..4289755 100644
  struct dl_scope_free_list *_dl_scope_free_list;
  
  #ifdef NEED_DL_SYSINFO
-diff --git a/sysdeps/generic/ldsodefs.h b/sysdeps/generic/ldsodefs.h
-index b24bff3..fa0dec9 100644
 --- a/sysdeps/generic/ldsodefs.h
 +++ b/sysdeps/generic/ldsodefs.h
-@@ -514,6 +514,7 @@ struct rtld_global
+@@ -515,6 +515,7 @@
      size_t count;
      void *list[50];
    } *_dl_scope_free_list;
@@ -57,9 +53,6 @@ index b24bff3..fa0dec9 100644
  #ifdef SHARED
  };
  # define __rtld_global_attribute__
-diff --git a/sysdeps/mach/hurd/sysdep-cancel.h b/sysdeps/mach/hurd/sysdep-cancel.h
-new file mode 100644
-index 0000000..ec55c73
 --- /dev/null
 +++ b/sysdeps/mach/hurd/sysdep-cancel.h
 @@ -0,0 +1,9 @@
@@ -72,13 +65,11 @@ index 0000000..ec55c73
 +#define LIBC_CANCEL_ASYNC()	0 /* Just a dummy value.  */
 +#define LIBC_CANCEL_RESET(val)	((void)(val)) /* Nothing, but evaluate it.  */
 +#define LIBC_CANCEL_HANDLED()	/* Nothing.  */
-diff --git a/sysdeps/mach/hurd/tls.h b/sysdeps/mach/hurd/tls.h
-index d63045f..55cfe04 100644
 --- a/sysdeps/mach/hurd/tls.h
 +++ b/sysdeps/mach/hurd/tls.h
-@@ -73,5 +73,18 @@ typedef struct
+@@ -77,5 +77,18 @@
  
- #endif /* !ASSEMBLER */
+ #endif /* HAVE_TLS_SUPPORT */
  
 +#ifndef __ASSEMBLER__
 +#include <mach/mach_traps.h>
@@ -95,5 +86,3 @@ index d63045f..55cfe04 100644
 +#endif
  
  #endif /* tls.h */
--- 
-tg: (0234227..) t/gscope (depends on: baseline)

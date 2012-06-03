@@ -11,11 +11,9 @@ Subject: [PATCH] Small signal fixes
  sysdeps/mach/hurd/spawni.c |    2 +-
  3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
-index 67037e8..44e067c 100644
 --- a/hurd/hurdsig.c
 +++ b/hurd/hurdsig.c
-@@ -859,9 +859,7 @@ post_signal (struct hurd_sigstate *ss,
+@@ -859,9 +859,7 @@
      }
  
    /* Handle receipt of a blocked signal, or any signal while stopped.  */
@@ -26,11 +24,9 @@ index 67037e8..44e067c 100644
      {
        mark_pending ();
        act = ignore;
-diff --git a/sysdeps/mach/hurd/fork.c b/sysdeps/mach/hurd/fork.c
-index bae4204..09f4321 100644
 --- a/sysdeps/mach/hurd/fork.c
 +++ b/sysdeps/mach/hurd/fork.c
-@@ -648,8 +648,10 @@ __fork (void)
+@@ -653,8 +653,10 @@
        err = __USEPORT (PROC, __proc_getpids (port, &_hurd_pid, &_hurd_ppid,
  					     &_hurd_orphaned));
  
@@ -42,11 +38,9 @@ index bae4204..09f4321 100644
  
        /* Run things that want to run in the child task to set up.  */
        RUN_HOOK (_hurd_fork_child_hook, ());
-diff --git a/sysdeps/mach/hurd/spawni.c b/sysdeps/mach/hurd/spawni.c
-index c12f448..62e39eb 100644
 --- a/sysdeps/mach/hurd/spawni.c
 +++ b/sysdeps/mach/hurd/spawni.c
-@@ -241,7 +241,7 @@ __spawni (pid_t *pid, const char *file,
+@@ -241,7 +241,7 @@
  
    _hurd_sigstate_lock (ss);
    ints[INIT_SIGMASK] = ss->blocked;
@@ -55,5 +49,3 @@ index c12f448..62e39eb 100644
    ints[INIT_SIGIGN] = 0;
    /* Unless we were asked to reset all handlers to SIG_DFL,
       pass down the set of signals that were set to SIG_IGN.  */
--- 
-tg: (e19a2fa..) t/hurdsig-fixes-2 (depends on: t/hurdsig-SA_SIGINFO)

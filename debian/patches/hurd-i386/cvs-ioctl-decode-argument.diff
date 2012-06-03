@@ -4,8 +4,11 @@ Date:   Thu May 10 13:26:40 2012 -0700
 
     Hurd: ioctl() incorrectly decodes argument
 
-diff --git a/sysdeps/mach/hurd/bits/ioctls.h b/sysdeps/mach/hurd/bits/ioctls.h
-index 65f2ec1..c4cfce6 100644
+---
+ sysdeps/mach/hurd/bits/ioctls.h |    3 ++-
+ sysdeps/mach/hurd/ioctl.c       |   21 ++++++++++++---------
+ 2 files changed, 14 insertions(+), 10 deletions(-)
+
 --- a/sysdeps/mach/hurd/bits/ioctls.h
 +++ b/sysdeps/mach/hurd/bits/ioctls.h
 @@ -1,4 +1,4 @@
@@ -14,7 +17,7 @@ index 65f2ec1..c4cfce6 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -157,6 +157,7 @@ enum __ioctl_datum { IOC_8, IOC_16, IOC_32, IOC_64 };
+@@ -158,6 +158,7 @@
     _IOT_foobar is defined either in this file,
     or where struct foobar is defined.  */
  #define	_IO(g, n)	_IOC (IOC_VOID, (g), (n), 0)
@@ -22,8 +25,6 @@ index 65f2ec1..c4cfce6 100644
  #define	_IOR(g, n, t)	_IOC (IOC_OUT, (g), (n), _IOC_ENCODE_TYPE (t))
  #define	_IOW(g, n, t)	_IOC (IOC_IN, (g), (n), _IOC_ENCODE_TYPE (t))
  #define	_IOWR(g, n, t)	_IOC (IOC_INOUT, (g), (n), _IOC_ENCODE_TYPE (t))
-diff --git a/sysdeps/mach/hurd/ioctl.c b/sysdeps/mach/hurd/ioctl.c
-index beffe43..543d437 100644
 --- a/sysdeps/mach/hurd/ioctl.c
 +++ b/sysdeps/mach/hurd/ioctl.c
 @@ -1,5 +1,4 @@
@@ -33,7 +34,7 @@ index beffe43..543d437 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -88,7 +87,7 @@ __ioctl (int fd, unsigned long int request, ...)
+@@ -89,7 +88,7 @@
    void *p;
  #endif
  
@@ -42,7 +43,7 @@ index beffe43..543d437 100644
  
    error_t err;
  
-@@ -111,7 +110,7 @@ __ioctl (int fd, unsigned long int request, ...)
+@@ -112,7 +111,7 @@
        if (_IOC_INOUT (request) & IOC_IN)
  	{
  	  /* We don't want to advance ARG since it will be used to copy out
@@ -51,7 +52,7 @@ index beffe43..543d437 100644
  	  void *argptr = arg;
  
  	  /* Pack an argument into the message buffer.  */
-@@ -139,7 +138,7 @@ __ioctl (int fd, unsigned long int request, ...)
+@@ -140,7 +139,7 @@
  	  in (_IOT_COUNT1 (type), _IOT_TYPE1 (type));
  	  in (_IOT_COUNT2 (type), _IOT_TYPE2 (type));
  	}
@@ -60,7 +61,7 @@ index beffe43..543d437 100644
  	{
  	  /* The RPC takes a single integer_t argument.
  	     Rather than pointing to the value, ARG is the value itself.  */
-@@ -208,11 +207,15 @@ __ioctl (int fd, unsigned long int request, ...)
+@@ -209,11 +208,15 @@
        return msg.header.RetCode;
      }
  

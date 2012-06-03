@@ -1,6 +1,10 @@
---- eglibc-2.13.old/elf/dl-load.c	2011-02-04 22:13:20.000000000 +0000
-+++ eglibc-2.13/elf/dl-load.c	2011-11-23 16:21:27.000000000 +0000
-@@ -1547,6 +1551,208 @@
+---
+ elf/dl-load.c |  218 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 218 insertions(+)
+
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -1547,6 +1547,208 @@
      _dl_debug_printf_c ("\t\t(%s)\n", what);
  }
  
@@ -209,7 +213,7 @@
  /* Open a file and verify it is an ELF file for this architecture.  We
     ignore only ELF files for other architectures.  Non-ELF files and
     ELF files with different header information cause fatal errors since
-@@ -1745,6 +1951,7 @@
+@@ -1745,6 +1947,7 @@
  
        /* Check .note.ABI-tag if present.  */
        for (ph = phdr; ph < &phdr[ehdr->e_phnum]; ++ph)
@@ -217,7 +221,7 @@
  	if (ph->p_type == PT_NOTE && ph->p_filesz >= 32 && ph->p_align >= 4)
  	  {
  	    ElfW(Addr) size = ph->p_filesz;
-@@ -1793,6 +2000,21 @@
+@@ -1793,6 +1996,21 @@
  	    break;
  	  }
      }

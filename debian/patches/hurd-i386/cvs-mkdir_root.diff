@@ -4,8 +4,11 @@ Date:   Thu May 10 15:16:07 2012 -0700
 
     Hurd: Fix mkdir / error value
 
-diff --git a/sysdeps/mach/hurd/mkdir.c b/sysdeps/mach/hurd/mkdir.c
-index d3627ee..8ad648e 100644
+---
+ sysdeps/mach/hurd/mkdir.c   |    8 ++++++--
+ sysdeps/mach/hurd/mkdirat.c |    9 ++++++---
+ 2 files changed, 12 insertions(+), 5 deletions(-)
+
 --- a/sysdeps/mach/hurd/mkdir.c
 +++ b/sysdeps/mach/hurd/mkdir.c
 @@ -1,4 +1,4 @@
@@ -14,7 +17,7 @@ index d3627ee..8ad648e 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -19,6 +19,7 @@
+@@ -20,6 +20,7 @@
  #include <stddef.h>
  #include <sys/stat.h>
  #include <hurd.h>
@@ -22,7 +25,7 @@ index d3627ee..8ad648e 100644
  
  /* Create a directory named FILE_NAME with protections MODE.  */
  int
-@@ -28,7 +29,10 @@ __mkdir (file_name, mode)
+@@ -29,7 +30,10 @@
  {
    error_t err;
    const char *name;
@@ -34,8 +37,6 @@ index d3627ee..8ad648e 100644
    if (parent == MACH_PORT_NULL)
      return -1;
    err = __dir_mkdir (parent, name, mode & ~_hurd_umask);
-diff --git a/sysdeps/mach/hurd/mkdirat.c b/sysdeps/mach/hurd/mkdirat.c
-index 9201f7d..d6d672e 100644
 --- a/sysdeps/mach/hurd/mkdirat.c
 +++ b/sysdeps/mach/hurd/mkdirat.c
 @@ -1,6 +1,5 @@
@@ -46,7 +47,7 @@ index 9201f7d..d6d672e 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -22,6 +21,7 @@
+@@ -23,6 +22,7 @@
  #include <sys/stat.h>
  #include <hurd.h>
  #include <hurd/fd.h>
@@ -54,7 +55,7 @@ index 9201f7d..d6d672e 100644
  
  int
  mkdirat (fd, path, mode)
-@@ -31,7 +31,10 @@ mkdirat (fd, path, mode)
+@@ -32,7 +32,10 @@
  {
    error_t err;
    const char *name;

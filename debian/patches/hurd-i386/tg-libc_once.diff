@@ -40,14 +40,12 @@ New Revision: 2630
 glibc-2.8/debian/patches/hurd-i386/submitted-libc_once.diff 3151
 
 ---
- bits/libc-lock.h                              |    3 +++
- nptl/sysdeps/pthread/bits/libc-lock.h         |    3 +++
- sysdeps/mach/hurd/bits/libc-lock.h            |    4 ++++
- sysdeps/posix/getaddrinfo.c                   |    2 +-
- 4 files changed, 11 insertions(+), 1 deletions(-)
+ bits/libc-lock.h                      |    3 +++
+ nptl/sysdeps/pthread/bits/libc-lock.h |    3 +++
+ sysdeps/mach/hurd/bits/libc-lock.h    |    4 ++++
+ sysdeps/posix/getaddrinfo.c           |    2 +-
+ 4 files changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/bits/libc-lock.h b/bits/libc-lock.h
-index 3f9c211..a307f8c 100644
 --- a/bits/libc-lock.h
 +++ b/bits/libc-lock.h
 @@ -98,6 +98,9 @@
@@ -60,11 +58,9 @@ index 3f9c211..a307f8c 100644
  
  /* Start a critical region with a cleanup function */
  #define __libc_cleanup_region_start(DOIT, FCT, ARG)			    \
-diff --git a/nptl/sysdeps/pthread/bits/libc-lock.h b/nptl/sysdeps/pthread/bits/libc-lock.h
-index 0cad8aa..6e27427 100644
 --- a/nptl/sysdeps/pthread/bits/libc-lock.h
 +++ b/nptl/sysdeps/pthread/bits/libc-lock.h
-@@ -377,6 +377,9 @@ typedef pthread_key_t __libc_key_t;
+@@ -451,6 +451,9 @@
      }									      \
    } while (0)
  
@@ -74,11 +70,9 @@ index 0cad8aa..6e27427 100644
  
  /* Note that for I/O cleanup handling we are using the old-style
     cancel handling.  It does not have to be integrated with C++ snce
-diff --git a/sysdeps/mach/hurd/bits/libc-lock.h b/sysdeps/mach/hurd/bits/libc-lock.h
-index 90e46e0..85336d6 100644
 --- a/sysdeps/mach/hurd/bits/libc-lock.h
 +++ b/sysdeps/mach/hurd/bits/libc-lock.h
-@@ -188,6 +188,10 @@ struct __libc_once
+@@ -191,6 +191,10 @@
      __libc_lock_unlock (ONCE_CONTROL.lock);				      \
    } while (0)
  
@@ -89,11 +83,9 @@ index 90e46e0..85336d6 100644
  #ifdef _LIBC
  /* We need portable names for some functions.  E.g., when they are
     used as argument to __libc_cleanup_region_start.  */
-diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
-index a5aafe9..00b3755 100644
 --- a/sysdeps/posix/getaddrinfo.c
 +++ b/sysdeps/posix/getaddrinfo.c
-@@ -2604,7 +2604,7 @@ getaddrinfo (const char *name, const char *service,
+@@ -2338,7 +2338,7 @@
  	  __libc_lock_define_initialized (static, lock);
  
  	  __libc_lock_lock (lock);
@@ -102,5 +94,3 @@ index a5aafe9..00b3755 100644
  	    gaiconf_reload ();
  	  qsort_r (order, nresults, sizeof (order[0]), rfc3484_sort, &src);
  	  __libc_lock_unlock (lock);
--- 
-tg: (0234227..) t/libc_once (depends on: baseline)

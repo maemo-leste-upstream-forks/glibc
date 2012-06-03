@@ -1,7 +1,60 @@
 SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
 
---- a/ChangeLog	(revision 12776)
-+++ b/ChangeLog	(revision 16174)
+---
+ ChangeLog                                                   |   43 ++++
+ ChangeLog.eglibc                                            |   34 +++
+ NEWS                                                        |    4 
+ elf/Makefile                                                |    1 
+ elf/dl-deps.c                                               |   93 +++++-----
+ elf/dl-fini.c                                               |   10 -
+ elf/dl-lookup.c                                             |    2 
+ elf/dl-support.c                                            |    1 
+ elf/rtld.c                                                  |   12 -
+ ports/ChangeLog.arm                                         |   30 +++
+ ports/ChangeLog.eglibc                                      |   10 +
+ ports/ChangeLog.mips                                        |   18 ++
+ ports/sysdeps/arm/eabi/__longjmp.S                          |    8 
+ ports/sysdeps/arm/eabi/bits/fenv.h                          |    8 
+ ports/sysdeps/arm/eabi/bits/predefs.h                       |    8 
+ ports/sysdeps/arm/eabi/fclrexcpt.c                          |    8 
+ ports/sysdeps/arm/eabi/fedisblxcpt.c                        |    8 
+ ports/sysdeps/arm/eabi/feenablxcpt.c                        |    8 
+ ports/sysdeps/arm/eabi/fegetenv.c                           |    8 
+ ports/sysdeps/arm/eabi/fegetexcept.c                        |    8 
+ ports/sysdeps/arm/eabi/fegetround.c                         |    8 
+ ports/sysdeps/arm/eabi/feholdexcpt.c                        |    8 
+ ports/sysdeps/arm/eabi/fesetenv.c                           |    8 
+ ports/sysdeps/arm/eabi/fesetround.c                         |    8 
+ ports/sysdeps/arm/eabi/fpu_control.h                        |    8 
+ ports/sysdeps/arm/eabi/fraiseexcpt.c                        |    8 
+ ports/sysdeps/arm/eabi/fsetexcptflg.c                       |    8 
+ ports/sysdeps/arm/eabi/ftestexcept.c                        |    8 
+ ports/sysdeps/arm/eabi/setjmp.S                             |    8 
+ ports/sysdeps/arm/elf/start.S                               |    1 
+ ports/sysdeps/arm/sysdep.h                                  |   16 +
+ ports/sysdeps/powerpc/powerpc32/e500/fpu/s_fma.c            |    1 
+ ports/sysdeps/powerpc/powerpc32/e500/fpu/s_fmaf.c           |    1 
+ ports/sysdeps/unix/sysv/linux/arm/____longjmp_chk.S         |    8 
+ ports/sysdeps/unix/sysv/linux/arm/eabi/____longjmp_chk.S    |   21 +-
+ ports/sysdeps/unix/sysv/linux/mips/mips64/n64/fstatfs64.c   |    1 
+ ports/sysdeps/unix/sysv/linux/mips/mips64/n64/ftw.c         |    1 
+ ports/sysdeps/unix/sysv/linux/mips/mips64/n64/ftw64.c       |    1 
+ ports/sysdeps/unix/sysv/linux/mips/mips64/n64/statfs64.c    |    1 
+ ports/sysdeps/unix/sysv/linux/mips/mips64/n64/syscalls.list |    5 
+ resolv/res_libc.c                                           |    6 
+ sysdeps/i386/i686/multiarch/memcpy-ssse3-rep.S              |    2 
+ sysdeps/i386/i686/multiarch/memcpy-ssse3.S                  |    2 
+ sysdeps/powerpc/powerpc32/dl-trampoline.S                   |    4 
+ sysdeps/powerpc/powerpc64/power7/Makefile                   |    5 
+ sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h          |    4 
+ sysdeps/wordsize-64/Makefile                                |    6 
+ sysdeps/wordsize-64/tst-writev.c                            |  107 ++++++++++++
+ sysdeps/x86_64/multiarch/memcpy-ssse3-back.S                |    2 
+ sysdeps/x86_64/multiarch/memcpy-ssse3.S                     |    2 
+ 50 files changed, 447 insertions(+), 144 deletions(-)
+
+--- a/ChangeLog
++++ b/ChangeLog
 @@ -1,3 +1,46 @@
 +2011-05-30  Ulrich Drepper  <drepper@gmail.com>
 +
@@ -49,8 +102,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  2011-02-02  Ulrich Drepper  <drepper@gmail.com>
  
  	* elf/dl-runtime.c (_dl_call_pltexit): Pass correct address of the
---- a/sysdeps/powerpc/powerpc32/dl-trampoline.S	(revision 12776)
-+++ b/sysdeps/powerpc/powerpc32/dl-trampoline.S	(revision 16174)
+--- a/sysdeps/powerpc/powerpc32/dl-trampoline.S
++++ b/sysdeps/powerpc/powerpc32/dl-trampoline.S
 @@ -137,6 +137,7 @@
  	stw r9,40(r1)
  	stw r10,44(r1)
@@ -83,16 +136,16 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
   # ...unwind the stack frame, and jump to the PLT entry we updated.
  	addi r1,r1,320
  	bctr
---- a/sysdeps/powerpc/powerpc64/power7/Makefile	(revision 0)
-+++ b/sysdeps/powerpc/powerpc64/power7/Makefile	(revision 16174)
+--- /dev/null
++++ b/sysdeps/powerpc/powerpc64/power7/Makefile
 @@ -0,0 +1,5 @@
 +ifeq ($(subdir),elf)
 +# Prevent the use of VSX registers and insns in _dl_start, which under -O3
 +# optimization may require a TOC reference before relocations are resolved.
 +CFLAGS-rtld.c += -mno-vsx
 +endif
---- a/sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h	(revision 12776)
-+++ b/sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h	(revision 16174)
+--- a/sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h
++++ b/sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h
 @@ -172,7 +172,7 @@
         : "r9", "r10", "r11", "r12",					\
           "cr0", "ctr", "lr", "memory");					\
@@ -111,8 +164,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
    })
  #define INTERNAL_SYSCALL(name, err, nr, args...)			\
    INTERNAL_SYSCALL_NCS (__NR_##name, err, nr, args)
---- a/sysdeps/i386/i686/multiarch/memcpy-ssse3.S	(revision 12776)
-+++ b/sysdeps/i386/i686/multiarch/memcpy-ssse3.S	(revision 16174)
+--- a/sysdeps/i386/i686/multiarch/memcpy-ssse3.S
++++ b/sysdeps/i386/i686/multiarch/memcpy-ssse3.S
 @@ -110,7 +110,7 @@
  #endif
  
@@ -122,8 +175,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  ENTRY (MEMCPY_CHK)
  	movl	12(%esp), %eax
  	cmpl	%eax, 16(%esp)
---- a/sysdeps/i386/i686/multiarch/memcpy-ssse3-rep.S	(revision 12776)
-+++ b/sysdeps/i386/i686/multiarch/memcpy-ssse3-rep.S	(revision 16174)
+--- a/sysdeps/i386/i686/multiarch/memcpy-ssse3-rep.S
++++ b/sysdeps/i386/i686/multiarch/memcpy-ssse3-rep.S
 @@ -110,7 +110,7 @@
  #endif
  
@@ -133,8 +186,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  ENTRY (MEMCPY_CHK)
  	movl	12(%esp), %eax
  	cmpl	%eax, 16(%esp)
---- a/sysdeps/wordsize-64/tst-writev.c	(revision 0)
-+++ b/sysdeps/wordsize-64/tst-writev.c	(revision 16174)
+--- /dev/null
++++ b/sysdeps/wordsize-64/tst-writev.c
 @@ -0,0 +1,107 @@
 +/* Copyright (C) 2011 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -243,8 +296,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
 +
 +#define TEST_FUNCTION do_test ()
 +#include "../test-skeleton.c"
---- a/sysdeps/wordsize-64/Makefile	(revision 0)
-+++ b/sysdeps/wordsize-64/Makefile	(revision 16174)
+--- /dev/null
++++ b/sysdeps/wordsize-64/Makefile
 @@ -0,0 +1,6 @@
 +ifeq ($(subdir),misc)
 +tests += tst-writev
@@ -252,8 +305,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
 +# Time enough for a large writev syscall to complete.
 +tst-writev-ENV = TIMEOUTFACTOR="10"
 +endif
---- a/sysdeps/x86_64/multiarch/memcpy-ssse3-back.S	(revision 12776)
-+++ b/sysdeps/x86_64/multiarch/memcpy-ssse3-back.S	(revision 16174)
+--- a/sysdeps/x86_64/multiarch/memcpy-ssse3-back.S
++++ b/sysdeps/x86_64/multiarch/memcpy-ssse3-back.S
 @@ -49,7 +49,7 @@
    ud2
  
@@ -263,8 +316,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  ENTRY (MEMCPY_CHK)
  	cmpq	%rdx, %rcx
  	jb	HIDDEN_JUMPTARGET (__chk_fail)
---- a/sysdeps/x86_64/multiarch/memcpy-ssse3.S	(revision 12776)
-+++ b/sysdeps/x86_64/multiarch/memcpy-ssse3.S	(revision 16174)
+--- a/sysdeps/x86_64/multiarch/memcpy-ssse3.S
++++ b/sysdeps/x86_64/multiarch/memcpy-ssse3.S
 @@ -49,7 +49,7 @@
    ud2
  
@@ -274,8 +327,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  ENTRY (MEMCPY_CHK)
  	cmpq	%rdx, %rcx
  	jb	HIDDEN_JUMPTARGET (__chk_fail)
---- a/NEWS	(revision 12776)
-+++ b/NEWS	(revision 16174)
+--- a/NEWS
++++ b/NEWS
 @@ -1,4 +1,4 @@
 -GNU C Library NEWS -- history of user-visible changes.  2011-1-19
 +GNU C Library NEWS -- history of user-visible changes.  2011-5-30
@@ -291,8 +344,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  * New Linux interfaces: prlimit, prlimit64, fanotify_init, fanotify_mark
  
---- a/resolv/res_libc.c	(revision 12776)
-+++ b/resolv/res_libc.c	(revision 16174)
+--- a/resolv/res_libc.c
++++ b/resolv/res_libc.c
 @@ -28,6 +28,7 @@
     out) since res_init() should go into libc.so but the rest of that
     file should not.  */
@@ -324,8 +377,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  		if (__res_initstamp != resp->_u._ext.initstamp) {
  			if (resp->nscount > 0)
  				__res_iclose (resp, true);
---- a/ChangeLog.eglibc	(revision 12776)
-+++ b/ChangeLog.eglibc	(revision 16174)
+--- a/ChangeLog.eglibc
++++ b/ChangeLog.eglibc
 @@ -1,3 +1,37 @@
 +2011-10-11  Maxim Kuvyrkov  <maxim@codesourcery.com>
 +
@@ -364,8 +417,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  2010-12-19  Gordon Schumacher  <whiplash@pobox.com>
  
  	* locale/xlocale.x (DEFINE_CATEGORY): Fix merge issue.
---- a/elf/dl-support.c	(revision 12776)
-+++ b/elf/dl-support.c	(revision 16174)
+--- a/elf/dl-support.c
++++ b/elf/dl-support.c
 @@ -20,6 +20,7 @@
  /* This file defines some things that for the dynamic linker are defined in
     rtld.c and dl-sysdep.c in ways appropriate to bootstrap dynamic linking.  */
@@ -374,8 +427,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  #include <errno.h>
  #include <libintl.h>
  #include <stdlib.h>
---- a/elf/Makefile	(revision 12776)
-+++ b/elf/Makefile	(revision 16174)
+--- a/elf/Makefile
++++ b/elf/Makefile
 @@ -1191,6 +1191,7 @@
  $(objpfx)tst-unique2.out: $(objpfx)tst-unique2mod2.so
  
@@ -384,8 +437,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  	$(elf-objpfx)${rtld-installed-name} \
  	  --library-path $(rpath-link)$(patsubst %,:%,$(sysdep-library-path)) \
  	  $< > $@
---- a/elf/rtld.c	(revision 12776)
-+++ b/elf/rtld.c	(revision 16174)
+--- a/elf/rtld.c
++++ b/elf/rtld.c
 @@ -1,5 +1,5 @@
  /* Run time dynamic linker.
 -   Copyright (C) 1995-2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
@@ -424,8 +477,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
    if (! prelinked && rtld_multiple_ref)
      {
---- a/elf/dl-fini.c	(revision 12776)
-+++ b/elf/dl-fini.c	(revision 16174)
+--- a/elf/dl-fini.c
++++ b/elf/dl-fini.c
 @@ -33,9 +33,12 @@
  _dl_sort_fini (struct link_map *l, struct link_map **maps, size_t nmaps,
  	       char *used, Lmid_t ns)
@@ -452,8 +505,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
        /* We do not rely on the linked list of loaded object anymore from
  	 this point on.  We have our own list here (maps).  The various
---- a/elf/dl-deps.c	(revision 12776)
-+++ b/elf/dl-deps.c	(revision 16174)
+--- a/elf/dl-deps.c
++++ b/elf/dl-deps.c
 @@ -613,61 +613,64 @@
  	map->l_searchlist.r_list[i]->l_reserved = 0;
      }
@@ -500,11 +553,12 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
 -		  memmove (&l_initfini[i], &l_initfini[i + 1],
 -			   (k - i) * sizeof (l_initfini[0]));
 -		  l_initfini[k] = thisp;
+-
+-		  if (seen[i + 1])
 +	  /* Keep track of which object we looked at this round.  */
 +	  seen[i] = true;
 +	  struct link_map *thisp = l_initfini[i];
- 
--		  if (seen[i + 1])
++
 +	  /* Find the last object in the list for which the current one is
 +	     a dependency and move the current object behind the object
 +	     with the dependency.  */
@@ -563,8 +617,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
      }
  
    /* Terminate the list of dependencies.  */
---- a/elf/dl-lookup.c	(revision 12776)
-+++ b/elf/dl-lookup.c	(revision 16174)
+--- a/elf/dl-lookup.c
++++ b/elf/dl-lookup.c
 @@ -423,7 +423,7 @@
  		     hash table.  */
  		  if (__builtin_expect (tab->size, 0))
@@ -574,8 +628,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  		      __rtld_lock_unlock_recursive (tab->lock);
  		      goto success;
  		    }
---- a/ports/sysdeps/arm/sysdep.h	(revision 12776)
-+++ b/ports/sysdeps/arm/sysdep.h	(revision 16174)
+--- a/ports/sysdeps/arm/sysdep.h
++++ b/ports/sysdeps/arm/sysdep.h
 @@ -18,6 +18,7 @@
     02111-1307 USA.  */
  
@@ -584,25 +638,24 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #if (!defined (__ARM_ARCH_2__) && !defined (__ARM_ARCH_3__) \
       && !defined (__ARM_ARCH_3M__) && !defined (__ARM_ARCH_4__))
-@@ -92,14 +93,25 @@
+@@ -92,6 +93,16 @@
  
  /* If compiled for profiling, call `mcount' at the start of each function.  */
  #ifdef	PROF
 +/* Call __gnu_mcount_nc if GCC >= 4.4 and abi = EABI.  */
 +#if __GNUC_PREREQ(4,4) && defined(__ARM_EABI__)
- #define CALL_MCOUNT \
-   str	lr,[sp, #-4]!; \
-   cfi_adjust_cfa_offset (4); \
-   cfi_rel_offset (lr, 0); \
-   bl PLTJMP(mcount); \
-+  cfi_adjust_cfa_offset (-4); \
-+  cfi_restore (lr)
-+#else /* else call _mcount */
 +#define CALL_MCOUNT \
 +  str	lr,[sp, #-4]!; \
 +  cfi_adjust_cfa_offset (4); \
 +  cfi_rel_offset (lr, 0); \
 +  bl PLTJMP(mcount); \
++  cfi_adjust_cfa_offset (-4); \
++  cfi_restore (lr)
++#else /* else call _mcount */
+ #define CALL_MCOUNT \
+   str	lr,[sp, #-4]!; \
+   cfi_adjust_cfa_offset (4); \
+@@ -100,6 +111,7 @@
    ldr lr, [sp], #4; \
    cfi_adjust_cfa_offset (-4); \
    cfi_restore (lr)
@@ -623,8 +676,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #if defined(__ARM_EABI__)
  /* Tag_ABI_align8_preserved: This code preserves 8-byte
---- a/ports/sysdeps/arm/eabi/fsetexcptflg.c	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/fsetexcptflg.c	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/fsetexcptflg.c
++++ b/ports/sysdeps/arm/eabi/fsetexcptflg.c
 @@ -12,10 +12,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -640,8 +693,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <fenv.h>
  #include <math.h>
---- a/ports/sysdeps/arm/eabi/fegetround.c	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/fegetround.c	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/fegetround.c
++++ b/ports/sysdeps/arm/eabi/fegetround.c
 @@ -12,10 +12,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -657,8 +710,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <fenv.h>
  #include <fpu_control.h>
---- a/ports/sysdeps/arm/eabi/fegetenv.c	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/fegetenv.c	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/fegetenv.c
++++ b/ports/sysdeps/arm/eabi/fegetenv.c
 @@ -12,10 +12,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -674,8 +727,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <fenv.h>
  #include <fpu_control.h>
---- a/ports/sysdeps/arm/eabi/fesetround.c	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/fesetround.c	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/fesetround.c
++++ b/ports/sysdeps/arm/eabi/fesetround.c
 @@ -12,10 +12,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -691,8 +744,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <fenv.h>
  #include <fpu_control.h>
---- a/ports/sysdeps/arm/eabi/fesetenv.c	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/fesetenv.c	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/fesetenv.c
++++ b/ports/sysdeps/arm/eabi/fesetenv.c
 @@ -12,10 +12,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -708,8 +761,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <fenv.h>
  #include <fpu_control.h>
---- a/ports/sysdeps/arm/eabi/setjmp.S	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/setjmp.S	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/setjmp.S
++++ b/ports/sysdeps/arm/eabi/setjmp.S
 @@ -12,10 +12,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -725,8 +778,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <sysdep.h>
  #define _SETJMP_H
---- a/ports/sysdeps/arm/eabi/ftestexcept.c	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/ftestexcept.c	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/ftestexcept.c
++++ b/ports/sysdeps/arm/eabi/ftestexcept.c
 @@ -12,10 +12,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -742,8 +795,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <fenv.h>
  #include <fpu_control.h>
---- a/ports/sysdeps/arm/eabi/fpu_control.h	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/fpu_control.h	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/fpu_control.h
++++ b/ports/sysdeps/arm/eabi/fpu_control.h
 @@ -12,10 +12,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -759,8 +812,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #ifndef _FPU_CONTROL_H
  #define _FPU_CONTROL_H
---- a/ports/sysdeps/arm/eabi/fegetexcept.c	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/fegetexcept.c	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/fegetexcept.c
++++ b/ports/sysdeps/arm/eabi/fegetexcept.c
 @@ -13,10 +13,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -776,8 +829,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <fenv.h>
  #include <fpu_control.h>
---- a/ports/sysdeps/arm/eabi/feholdexcpt.c	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/feholdexcpt.c	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/feholdexcpt.c
++++ b/ports/sysdeps/arm/eabi/feholdexcpt.c
 @@ -12,10 +12,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -793,8 +846,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <fenv.h>
  #include <fpu_control.h>
---- a/ports/sysdeps/arm/eabi/fedisblxcpt.c	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/fedisblxcpt.c	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/fedisblxcpt.c
++++ b/ports/sysdeps/arm/eabi/fedisblxcpt.c
 @@ -13,10 +13,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -810,8 +863,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <fenv.h>
  #include <fpu_control.h>
---- a/ports/sysdeps/arm/eabi/fraiseexcpt.c	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/fraiseexcpt.c	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/fraiseexcpt.c
++++ b/ports/sysdeps/arm/eabi/fraiseexcpt.c
 @@ -12,10 +12,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -827,8 +880,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <fpu_control.h>
  #include <fenv.h>
---- a/ports/sysdeps/arm/eabi/bits/fenv.h	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/bits/fenv.h	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/bits/fenv.h
++++ b/ports/sysdeps/arm/eabi/bits/fenv.h
 @@ -11,10 +11,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -844,8 +897,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #ifndef _FENV_H
  # error "Never use <bits/fenv.h> directly; include <fenv.h> instead."
---- a/ports/sysdeps/arm/eabi/bits/predefs.h	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/bits/predefs.h	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/bits/predefs.h
++++ b/ports/sysdeps/arm/eabi/bits/predefs.h
 @@ -11,10 +11,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -861,8 +914,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #ifndef _FEATURES_H
  # error "Never use <bits/predefs.h> directly; include <features.h> instead."
---- a/ports/sysdeps/arm/eabi/__longjmp.S	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/__longjmp.S	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/__longjmp.S
++++ b/ports/sysdeps/arm/eabi/__longjmp.S
 @@ -13,10 +13,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -878,8 +931,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <sysdep.h>
  #define _SETJMP_H
---- a/ports/sysdeps/arm/eabi/fclrexcpt.c	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/fclrexcpt.c	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/fclrexcpt.c
++++ b/ports/sysdeps/arm/eabi/fclrexcpt.c
 @@ -12,10 +12,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -895,8 +948,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <fenv.h>
  #include <fpu_control.h>
---- a/ports/sysdeps/arm/eabi/feenablxcpt.c	(revision 12776)
-+++ b/ports/sysdeps/arm/eabi/feenablxcpt.c	(revision 16174)
+--- a/ports/sysdeps/arm/eabi/feenablxcpt.c
++++ b/ports/sysdeps/arm/eabi/feenablxcpt.c
 @@ -13,10 +13,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -912,8 +965,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <fenv.h>
  #include <fpu_control.h>
---- a/ports/sysdeps/arm/elf/start.S	(revision 12776)
-+++ b/ports/sysdeps/arm/elf/start.S	(revision 16174)
+--- a/ports/sysdeps/arm/elf/start.S
++++ b/ports/sysdeps/arm/elf/start.S
 @@ -134,6 +134,7 @@
  	bl abort
  
@@ -922,16 +975,16 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  .L_GOT:
  	.word _GLOBAL_OFFSET_TABLE_ - .L_GOT
  	.word __libc_csu_fini(GOT)
---- a/ports/sysdeps/powerpc/powerpc32/e500/fpu/s_fma.c	(revision 0)
-+++ b/ports/sysdeps/powerpc/powerpc32/e500/fpu/s_fma.c	(revision 16174)
+--- /dev/null
++++ b/ports/sysdeps/powerpc/powerpc32/e500/fpu/s_fma.c
 @@ -0,0 +1 @@
 +#include <math/s_fma.c>
---- a/ports/sysdeps/powerpc/powerpc32/e500/fpu/s_fmaf.c	(revision 0)
-+++ b/ports/sysdeps/powerpc/powerpc32/e500/fpu/s_fmaf.c	(revision 16174)
+--- /dev/null
++++ b/ports/sysdeps/powerpc/powerpc32/e500/fpu/s_fmaf.c
 @@ -0,0 +1 @@
 +#include <math/s_fmaf.c>
---- a/ports/sysdeps/unix/sysv/linux/arm/____longjmp_chk.S	(revision 12776)
-+++ b/ports/sysdeps/unix/sysv/linux/arm/____longjmp_chk.S	(revision 16174)
+--- a/ports/sysdeps/unix/sysv/linux/arm/____longjmp_chk.S
++++ b/ports/sysdeps/unix/sysv/linux/arm/____longjmp_chk.S
 @@ -11,10 +11,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -947,8 +1000,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  
  #include <sysdep.h>
  
---- a/ports/sysdeps/unix/sysv/linux/arm/eabi/____longjmp_chk.S	(revision 12776)
-+++ b/ports/sysdeps/unix/sysv/linux/arm/eabi/____longjmp_chk.S	(revision 16174)
+--- a/ports/sysdeps/unix/sysv/linux/arm/eabi/____longjmp_chk.S
++++ b/ports/sysdeps/unix/sysv/linux/arm/eabi/____longjmp_chk.S
 @@ -11,10 +11,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
@@ -995,24 +1048,24 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  	CALL_FAIL				\
  	cfi_restore_state;			\
  .Lok2:						\
---- a/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/ftw.c	(revision 0)
-+++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/ftw.c	(revision 16174)
+--- /dev/null
++++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/ftw.c
 @@ -0,0 +1 @@
 +#include <io/ftw.c>
---- a/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/ftw64.c	(revision 0)
-+++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/ftw64.c	(revision 16174)
+--- /dev/null
++++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/ftw64.c
 @@ -0,0 +1 @@
 +#include <io/ftw64.c>
---- a/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/statfs64.c	(revision 0)
-+++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/statfs64.c	(revision 16174)
+--- /dev/null
++++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/statfs64.c
 @@ -0,0 +1 @@
 +/* Empty.  */
---- a/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/fstatfs64.c	(revision 0)
-+++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/fstatfs64.c	(revision 16174)
+--- /dev/null
++++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/fstatfs64.c
 @@ -0,0 +1 @@
 +/* Empty.  */
---- a/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/syscalls.list	(revision 12776)
-+++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/syscalls.list	(revision 16174)
+--- a/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/syscalls.list
++++ b/ports/sysdeps/unix/sysv/linux/mips/mips64/n64/syscalls.list
 @@ -1,5 +1,10 @@
  # File name	Caller	Syscall name	# args	Strong name	Weak names
  
@@ -1024,8 +1077,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
 +
 +fstatfs		-	fstatfs		i:ip	__fstatfs	fstatfs fstatfs64 __fstatfs64
 +statfs		-	statfs		i:sp	__statfs	statfs statfs64 __statfs64
---- a/ports/ChangeLog.mips	(revision 12776)
-+++ b/ports/ChangeLog.mips	(revision 16174)
+--- a/ports/ChangeLog.mips
++++ b/ports/ChangeLog.mips
 @@ -1,3 +1,21 @@
 +2011-11-17  Joseph Myers  <joseph@codesourcery.com>
 +
@@ -1048,8 +1101,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  2011-01-25  Joseph Myers  <joseph@codesourcery.com>
  
  	* sysdeps/unix/sysv/linux/mips/bits/mman.h (MADV_HUGEPAGE,
---- a/ports/ChangeLog.arm	(revision 12776)
-+++ b/ports/ChangeLog.arm	(revision 16174)
+--- a/ports/ChangeLog.arm
++++ b/ports/ChangeLog.arm
 @@ -1,3 +1,33 @@
 +2011-06-30  Richard Sandiford  <richard.sandiford@linaro.org>
 +
@@ -1084,8 +1137,8 @@ SVN update of svn://svn.eglibc.org/branches/eglibc-2_13 from revision 12776
  2011-01-25  Joseph Myers  <joseph@codesourcery.com>
  
  	* sysdeps/unix/sysv/linux/arm/bits/mman.h (MADV_HUGEPAGE,
---- a/ports/ChangeLog.eglibc	(revision 12776)
-+++ b/ports/ChangeLog.eglibc	(revision 16174)
+--- a/ports/ChangeLog.eglibc
++++ b/ports/ChangeLog.eglibc
 @@ -1,3 +1,13 @@
 +2011-07-06  David Kuehling  <dvdkhlng@gmx.de>
 +

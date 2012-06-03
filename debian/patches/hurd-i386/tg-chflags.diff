@@ -20,16 +20,14 @@ SF_APPEND, SF_NOUNLINK, SF_SNAPSHOT): Declare macros.
 ---
  misc/chflags.c                |    4 ++--
  misc/fchflags.c               |    4 ++--
- sysdeps/mach/hurd/bits/stat.h |   35 +++++++++++++++++++++++++++++++++--
+ sysdeps/mach/hurd/bits/stat.h |   33 ++++++++++++++++++++++++++++++++-
  sysdeps/mach/hurd/chflags.c   |    2 +-
  sysdeps/mach/hurd/fchflags.c  |    2 +-
- 5 files changed, 39 insertions(+), 8 deletions(-)
+ 5 files changed, 38 insertions(+), 7 deletions(-)
 
-diff --git a/misc/chflags.c b/misc/chflags.c
-index ea6e742..3b56fe3 100644
 --- a/misc/chflags.c
 +++ b/misc/chflags.c
-@@ -21,12 +21,12 @@
+@@ -22,12 +22,12 @@
  
  /* Change the flags of FILE to FLAGS.  */
  
@@ -44,11 +42,9 @@ index ea6e742..3b56fe3 100644
  {
    if (file == NULL)
      {
-diff --git a/misc/fchflags.c b/misc/fchflags.c
-index ebb50db..12c7da3 100644
 --- a/misc/fchflags.c
 +++ b/misc/fchflags.c
-@@ -21,12 +21,12 @@
+@@ -22,12 +22,12 @@
  
  /* Change the flags of the file FD refers to to FLAGS.  */
  
@@ -63,11 +59,9 @@ index ebb50db..12c7da3 100644
  {
    if (fd < 0)
      {
-diff --git a/sysdeps/mach/hurd/bits/stat.h b/sysdeps/mach/hurd/bits/stat.h
-index 15fcda1..16293d0 100644
 --- a/sysdeps/mach/hurd/bits/stat.h
 +++ b/sysdeps/mach/hurd/bits/stat.h
-@@ -193,9 +193,40 @@ struct stat64
+@@ -223,9 +223,40 @@
  			   S_IUSEUNK|S_IUNKNOWN|07777))
  #endif
  
@@ -109,11 +103,9 @@ index 15fcda1..16293d0 100644
  #endif
  
  #endif	/* bits/stat.h */
-diff --git a/sysdeps/mach/hurd/chflags.c b/sysdeps/mach/hurd/chflags.c
-index 70e5c83..4d7a381 100644
 --- a/sysdeps/mach/hurd/chflags.c
 +++ b/sysdeps/mach/hurd/chflags.c
-@@ -24,7 +24,7 @@
+@@ -25,7 +25,7 @@
  
  /* XXX shouldn't this be __chflags? */
  int
@@ -122,11 +114,9 @@ index 70e5c83..4d7a381 100644
  {
    error_t err;
    file_t port = __file_name_lookup (file, 0, 0);
-diff --git a/sysdeps/mach/hurd/fchflags.c b/sysdeps/mach/hurd/fchflags.c
-index a3ea084..6af735a 100644
 --- a/sysdeps/mach/hurd/fchflags.c
 +++ b/sysdeps/mach/hurd/fchflags.c
-@@ -25,7 +25,7 @@
+@@ -26,7 +26,7 @@
  
  /* XXX should be __fchflags? */
  int
@@ -135,5 +125,3 @@ index a3ea084..6af735a 100644
  {
    error_t err;
  
--- 
-tg: (6a9c587..) t/chflags (depends on: baseline)

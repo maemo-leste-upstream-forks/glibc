@@ -2,9 +2,13 @@ For backward compatibility with armhf binaries built with the
 old linker SONAME, we need to fake out the linker to believe
 the new is the old, until such a point as everything is rebuilt
 
---- eglibc-2.15.orig/elf/dl-load.c	2012-04-14 12:11:37.000000000 +0000
-+++ eglibc-2.15/elf/dl-load.c	2012-04-15 00:39:36.558765502 +0000
-@@ -2303,10 +2303,13 @@
+---
+ elf/dl-load.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -2206,10 +2206,13 @@
  	  soname = ((const char *) D_PTR (l, l_info[DT_STRTAB])
  		    + l->l_info[DT_SONAME]->d_un.d_val);
  	  if (strcmp (name, soname) != 0)

@@ -5,11 +5,13 @@
 	mode string.
 	Patch by Eric Blake <eblake@redhat.com>.
 
-diff --git a/libio/fileops.c b/libio/fileops.c
-index eba2768..ea730ac 100644
+---
+ libio/fileops.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
+
 --- a/libio/fileops.c
 +++ b/libio/fileops.c
-@@ -290,7 +290,7 @@ _IO_new_file_fopen (fp, filename, mode, is32not64)
+@@ -291,7 +291,7 @@
  #ifdef _LIBC
    last_recognized = mode;
  #endif
@@ -18,7 +20,7 @@ index eba2768..ea730ac 100644
      {
        switch (*++mode)
  	{
-@@ -997,18 +997,18 @@ _IO_new_file_seekoff (fp, offset, dir, mode)
+@@ -1005,18 +1005,18 @@
        /* Adjust for read-ahead (bytes is buffer). */
        offset -= fp->_IO_read_end - fp->_IO_read_ptr;
        if (fp->_offset == _IO_pos_BAD)
@@ -49,7 +51,7 @@ index eba2768..ea730ac 100644
        /* Make offset absolute, assuming current pointer is file_ptr(). */
        offset += fp->_offset;
        if (offset < 0)
-@@ -1270,7 +1270,7 @@ _IO_new_file_write (f, data, n)
+@@ -1278,7 +1278,7 @@
  	{
  	  f->_flags |= _IO_ERR_SEEN;
  	  break;
@@ -58,7 +60,7 @@ index eba2768..ea730ac 100644
        to_do -= count;
        data = (void *) ((char *) data + count);
      }
-@@ -1358,12 +1358,12 @@ _IO_new_file_xsputn (f, data, n)
+@@ -1366,12 +1366,12 @@
        do_write = to_do - (block_size >= 128 ? to_do % block_size : 0);
  
        if (do_write)

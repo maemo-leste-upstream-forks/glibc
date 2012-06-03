@@ -12,25 +12,23 @@ POSIX-conforming behavior of signals on a per-thread basis.
     fb055f2 Hurd signals: fix global untraced signals.
 
 ---
- hurd/ctty-input.c                   |   18 ++-
- hurd/ctty-output.c                  |   18 ++-
- hurd/hurd/signal.h                  |   40 ++++--
- hurd/hurdexec.c                     |   11 +-
- hurd/hurdmsg.c                      |   27 +---
- hurd/hurdsig.c                      |  272 +++++++++++++++++++++++++++--------
- sysdeps/mach/hurd/fork.c            |    9 +-
- sysdeps/mach/hurd/i386/sigreturn.c  |   13 +-
- sysdeps/mach/hurd/i386/trampoline.c |    8 +-
- sysdeps/mach/hurd/sigaction.c       |   18 ++--
- sysdeps/mach/hurd/sigpending.c      |    9 +-
- sysdeps/mach/hurd/sigprocmask.c     |   11 +-
- sysdeps/mach/hurd/sigsuspend.c      |   19 ++--
- sysdeps/mach/hurd/sigwait.c         |   23 ++--
- sysdeps/mach/hurd/spawni.c          |   23 ++--
+ hurd/ctty-input.c                   |   18 +-
+ hurd/ctty-output.c                  |   18 +-
+ hurd/hurd/signal.h                  |   40 +++--
+ hurd/hurdexec.c                     |   11 -
+ hurd/hurdmsg.c                      |   27 ---
+ hurd/hurdsig.c                      |  272 +++++++++++++++++++++++++++---------
+ sysdeps/mach/hurd/fork.c            |    9 -
+ sysdeps/mach/hurd/i386/sigreturn.c  |   13 -
+ sysdeps/mach/hurd/i386/trampoline.c |    8 -
+ sysdeps/mach/hurd/sigaction.c       |   18 +-
+ sysdeps/mach/hurd/sigpending.c      |    9 -
+ sysdeps/mach/hurd/sigprocmask.c     |   11 -
+ sysdeps/mach/hurd/sigsuspend.c      |   19 +-
+ sysdeps/mach/hurd/sigwait.c         |   23 +--
+ sysdeps/mach/hurd/spawni.c          |   23 +--
  15 files changed, 350 insertions(+), 169 deletions(-)
 
-diff --git a/hurd/ctty-input.c b/hurd/ctty-input.c
-index ef8395a..4da33c7 100644
 --- a/hurd/ctty-input.c
 +++ b/hurd/ctty-input.c
 @@ -1,5 +1,5 @@
@@ -40,7 +38,7 @@ index ef8395a..4da33c7 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -44,12 +44,15 @@ _hurd_ctty_input (io_t port, io_t ctty, error_t (*rpc) (io_t))
+@@ -44,12 +44,15 @@
  	  else
  	    {
  	      struct hurd_sigstate *ss = _hurd_self_sigstate ();
@@ -59,7 +57,7 @@ index ef8395a..4da33c7 100644
  
  	      if (err == EBACKGROUND)
  		{
-@@ -66,10 +69,11 @@ _hurd_ctty_input (io_t port, io_t ctty, error_t (*rpc) (io_t))
+@@ -66,10 +69,11 @@
  		     SIGTTIN or resumed after being stopped.  Now this is
  		     still a "system call", so check to see if we should
  		  restart it.  */
@@ -74,8 +72,6 @@ index ef8395a..4da33c7 100644
  		}
  	    }
  	}
-diff --git a/hurd/ctty-output.c b/hurd/ctty-output.c
-index 92ab95a..6e4bd74 100644
 --- a/hurd/ctty-output.c
 +++ b/hurd/ctty-output.c
 @@ -1,5 +1,5 @@
@@ -85,7 +81,7 @@ index 92ab95a..6e4bd74 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -35,16 +35,19 @@ _hurd_ctty_output (io_t port, io_t ctty, error_t (*rpc) (io_t))
+@@ -35,16 +35,19 @@
  
        do
  	{
@@ -108,7 +104,7 @@ index 92ab95a..6e4bd74 100644
  
  	  if (err)
  	    return (*rpc) (port);
-@@ -71,10 +74,11 @@ _hurd_ctty_output (io_t port, io_t ctty, error_t (*rpc) (io_t))
+@@ -71,10 +74,11 @@
  		     SIGTTOU or resumed after being stopped.  Now this is
  		     still a "system call", so check to see if we should
  		  restart it.  */
@@ -123,8 +119,6 @@ index 92ab95a..6e4bd74 100644
  		}
  	    }
  	  /* If the last RPC generated a SIGTTOU, loop to try it again.  */
-diff --git a/hurd/hurd/signal.h b/hurd/hurd/signal.h
-index 21e30c5..1c4733a 100644
 --- a/hurd/hurd/signal.h
 +++ b/hurd/hurd/signal.h
 @@ -1,5 +1,5 @@
@@ -134,7 +128,7 @@ index 21e30c5..1c4733a 100644
  	Free Software Foundation, Inc.
     This file is part of the GNU C Library.
  
-@@ -71,7 +71,13 @@ struct hurd_sigstate
+@@ -71,7 +71,13 @@
  
      sigset_t blocked;		/* What signals are blocked.  */
      sigset_t pending;		/* Pending signals, possibly blocked.  */
@@ -148,7 +142,7 @@ index 21e30c5..1c4733a 100644
      struct sigaltstack sigaltstack;
  
      /* Chain of thread-local signal preemptors; see <hurd/sigpreempt.h>.
-@@ -127,6 +133,26 @@ extern struct hurd_sigstate *_hurd_self_sigstate (void)
+@@ -127,6 +133,26 @@
  	by different threads.  */
       __attribute__ ((__const__));
  
@@ -175,7 +169,7 @@ index 21e30c5..1c4733a 100644
  #ifndef _HURD_SIGNAL_H_EXTERN_INLINE
  #define _HURD_SIGNAL_H_EXTERN_INLINE __extern_inline
  #endif
-@@ -150,12 +176,6 @@ extern thread_t _hurd_msgport_thread;
+@@ -152,12 +178,6 @@
  
  extern mach_port_t _hurd_msgport;
  
@@ -188,9 +182,9 @@ index 21e30c5..1c4733a 100644
  /* Resource limit on core file size.  Enforced by hurdsig.c.  */
  extern int _hurd_core_limit;
  
-@@ -203,10 +223,10 @@ _hurd_critical_section_unlock (void *our_lock)
+@@ -212,10 +232,10 @@
        /* It was us who acquired the critical section lock.  Unlock it.  */
-       struct hurd_sigstate *ss = our_lock;
+       struct hurd_sigstate *ss = (struct hurd_sigstate *) our_lock;
        sigset_t pending;
 -      __spin_lock (&ss->lock);
 +      _hurd_sigstate_lock (ss);
@@ -202,8 +196,6 @@ index 21e30c5..1c4733a 100644
        if (! __sigisemptyset (&pending))
  	/* There are unblocked signals pending, which weren't
  	   delivered because we were in the critical section.
-diff --git a/hurd/hurdexec.c b/hurd/hurdexec.c
-index beae869..ee3162f 100644
 --- a/hurd/hurdexec.c
 +++ b/hurd/hurdexec.c
 @@ -1,4 +1,4 @@
@@ -212,7 +204,7 @@ index beae869..ee3162f 100644
     	Free Software Foundation, Inc.
     This file is part of the GNU C Library.
  
-@@ -109,12 +109,13 @@ _hurd_exec (task_t task, file_t file,
+@@ -109,12 +109,13 @@
    assert (! __spin_lock_locked (&ss->critical_section_lock));
    __spin_lock (&ss->critical_section_lock);
  
@@ -229,7 +221,7 @@ index beae869..ee3162f 100644
        ints[INIT_SIGIGN] |= __sigmask (i);
  
    /* We hold the sigstate lock until the exec has failed so that no signal
-@@ -125,7 +126,7 @@ _hurd_exec (task_t task, file_t file,
+@@ -125,7 +126,7 @@
       critical section flag avoids anything we call trying to acquire the
       sigstate lock.  */
  
@@ -238,8 +230,6 @@ index beae869..ee3162f 100644
  
    /* Pack up the descriptor table to give the new program.  */
    __mutex_lock (&_hurd_dtable_lock);
-diff --git a/hurd/hurdmsg.c b/hurd/hurdmsg.c
-index ffcce61..fdc7551 100644
 --- a/hurd/hurdmsg.c
 +++ b/hurd/hurdmsg.c
 @@ -1,4 +1,5 @@
@@ -249,7 +239,7 @@ index ffcce61..fdc7551 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -122,17 +123,9 @@ get_int (int which, int *value)
+@@ -122,17 +123,9 @@
      case INIT_UMASK:
        *value = _hurd_umask;
        return 0;
@@ -268,7 +258,7 @@ index ffcce61..fdc7551 100644
  	__spin_lock (&ss->lock);
  	*value = ss->pending;
  	__spin_unlock (&ss->lock);
-@@ -140,7 +133,7 @@ get_int (int which, int *value)
+@@ -140,7 +133,7 @@
        }
      case INIT_SIGIGN:
        {
@@ -277,7 +267,7 @@ index ffcce61..fdc7551 100644
  	sigset_t ign;
  	int sig;
  	__spin_lock (&ss->lock);
-@@ -208,17 +201,9 @@ set_int (int which, int value)
+@@ -208,17 +201,9 @@
        return 0;
  
        /* These are pretty odd things to do.  But you asked for it.  */
@@ -296,7 +286,7 @@ index ffcce61..fdc7551 100644
  	__spin_lock (&ss->lock);
  	ss->pending = value;
  	__spin_unlock (&ss->lock);
-@@ -226,7 +211,7 @@ set_int (int which, int value)
+@@ -226,7 +211,7 @@
        }
      case INIT_SIGIGN:
        {
@@ -305,11 +295,9 @@ index ffcce61..fdc7551 100644
  	int sig;
  	const sigset_t ign = value;
  	__spin_lock (&ss->lock);
-diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
-index 74a01a6..67037e8 100644
 --- a/hurd/hurdsig.c
 +++ b/hurd/hurdsig.c
-@@ -44,9 +44,6 @@ mach_port_t _hurd_msgport;
+@@ -44,9 +44,6 @@
  /* Thread listening on it.  */
  thread_t _hurd_msgport_thread;
  
@@ -319,7 +307,7 @@ index 74a01a6..67037e8 100644
  /* These are set up by _hurdsig_init.  */
  unsigned long int __hurd_sigthread_stack_base;
  unsigned long int __hurd_sigthread_stack_end;
-@@ -55,6 +52,9 @@ unsigned long int *__hurd_sigthread_variables;
+@@ -55,6 +52,9 @@
  /* Linked-list of per-thread signal state.  */
  struct hurd_sigstate *_hurd_sigstates;
  
@@ -329,7 +317,7 @@ index 74a01a6..67037e8 100644
  /* Timeout for RPC's after interrupt_operation. */
  mach_msg_timeout_t _hurd_interrupted_rpc_timeout = 3000;
  
-@@ -83,7 +83,7 @@ _hurd_thread_sigstate (thread_t thread)
+@@ -83,7 +83,7 @@
      {
        ss = malloc (sizeof (*ss));
        if (ss == NULL)
@@ -338,7 +326,7 @@ index 74a01a6..67037e8 100644
        ss->thread = thread;
        __spin_lock_init (&ss->lock);
  
-@@ -96,16 +96,19 @@ _hurd_thread_sigstate (thread_t thread)
+@@ -96,16 +96,19 @@
        ss->intr_port = MACH_PORT_NULL;
        ss->context = NULL;
  
@@ -366,7 +354,7 @@ index 74a01a6..67037e8 100644
  	  if (s)
  	    {
  	      __spin_lock (&s->lock);
-@@ -114,14 +117,108 @@ _hurd_thread_sigstate (thread_t thread)
+@@ -114,14 +117,108 @@
  	    }
  	  else
  	    default_sigaction (ss->actions);
@@ -478,7 +466,7 @@ index 74a01a6..67037e8 100644
  
  /* Signal delivery itself is on this page.  */
  
-@@ -216,6 +313,8 @@ static void
+@@ -216,6 +313,8 @@
  abort_thread (struct hurd_sigstate *ss, struct machine_thread_all_state *state,
  	      void (*reply) (void))
  {
@@ -487,7 +475,7 @@ index 74a01a6..67037e8 100644
    if (!(state->set & THREAD_ABORTED))
      {
        error_t err = __thread_abort (ss->thread);
-@@ -355,7 +454,7 @@ _hurdsig_abort_rpcs (struct hurd_sigstate *ss, int signo, int sigthread,
+@@ -355,7 +454,7 @@
  	   call above will retry their RPCs unless we clear SS->intr_port.
  	   So we clear it for the thread taking a signal when SA_RESTART is
  	   clear, so that its call returns EINTR.  */
@@ -496,7 +484,7 @@ index 74a01a6..67037e8 100644
  	  ss->intr_port = MACH_PORT_NULL;
        }
  
-@@ -478,9 +577,11 @@ weak_alias (_hurdsig_preemptors, _hurdsig_preempters)
+@@ -478,9 +577,11 @@
  		  sigmask (SIGSTOP) | sigmask (SIGTSTP))
  
  /* Actual delivery of a single signal.  Called with SS unlocked.  When
@@ -511,7 +499,7 @@ index 74a01a6..67037e8 100644
  post_signal (struct hurd_sigstate *ss,
  	     int signo, struct hurd_signal_detail *detail,
  	     int untraced, void (*reply) (void))
-@@ -533,8 +634,12 @@ post_signal (struct hurd_sigstate *ss,
+@@ -533,8 +634,12 @@
        assert_perror (err);
        for (i = 0; i < nthreads; ++i)
  	{
@@ -526,7 +514,7 @@ index 74a01a6..67037e8 100644
  	    {
  	      err = __thread_resume (threads[i]);
  	      assert_perror (err);
-@@ -547,9 +652,6 @@ post_signal (struct hurd_sigstate *ss,
+@@ -547,9 +652,6 @@
  		       (vm_address_t) threads,
  		       nthreads * sizeof *threads);
        _hurd_stopped = 0;
@@ -536,7 +524,7 @@ index 74a01a6..67037e8 100644
      }
  
    error_t err;
-@@ -565,13 +667,43 @@ post_signal (struct hurd_sigstate *ss,
+@@ -565,13 +667,43 @@
  	}
  
        /* This call is just to check for pending signals.  */
@@ -583,7 +571,7 @@ index 74a01a6..67037e8 100644
  
    /* Check for a preempted signal.  Preempted signals can arrive during
       critical sections.  */
-@@ -629,12 +761,12 @@ post_signal (struct hurd_sigstate *ss,
+@@ -629,12 +761,12 @@
  	    mark_pending ();
  	  else
  	    suspend ();
@@ -599,7 +587,7 @@ index 74a01a6..67037e8 100644
  
        if (handler == SIG_DFL)
  	/* Figure out the default action for this signal.  */
-@@ -728,7 +860,7 @@ post_signal (struct hurd_sigstate *ss,
+@@ -728,7 +860,7 @@
  
    /* Handle receipt of a blocked signal, or any signal while stopped.  */
    if (act != ignore &&		/* Signals ignored now are forgotten now.  */
@@ -608,7 +596,7 @@ index 74a01a6..67037e8 100644
        (signo != SIGKILL && _hurd_stopped))
      {
        mark_pending ();
-@@ -764,6 +896,7 @@ post_signal (struct hurd_sigstate *ss,
+@@ -764,6 +896,7 @@
  	 now's the time to set it going. */
        if (ss_suspended)
  	{
@@ -616,7 +604,7 @@ index 74a01a6..67037e8 100644
  	  err = __thread_resume (ss->thread);
  	  assert_perror (err);
  	  ss_suspended = 0;
-@@ -808,6 +941,8 @@ post_signal (struct hurd_sigstate *ss,
+@@ -808,6 +941,8 @@
  	struct sigcontext *scp, ocontext;
  	int wait_for_reply, state_changed;
  
@@ -625,7 +613,7 @@ index 74a01a6..67037e8 100644
  	/* Stop the thread and abort its pending RPC operations.  */
  	if (! ss_suspended)
  	  {
-@@ -942,23 +1077,25 @@ post_signal (struct hurd_sigstate *ss,
+@@ -942,23 +1077,25 @@
  	    }
  	}
  
@@ -655,7 +643,7 @@ index 74a01a6..67037e8 100644
  
  	/* Any sigsuspend call must return after the handler does.  */
  	wake_sigsuspend (ss);
-@@ -976,7 +1113,7 @@ post_signal (struct hurd_sigstate *ss,
+@@ -976,7 +1113,7 @@
        }
      }
  
@@ -664,7 +652,7 @@ index 74a01a6..67037e8 100644
  }
  
  /* Return the set of pending signals in SS which should be delivered. */
-@@ -991,7 +1128,7 @@ pending_signals (struct hurd_sigstate *ss)
+@@ -991,7 +1128,7 @@
    if (_hurd_stopped || __spin_lock_locked (&ss->critical_section_lock))
      return 0;
  
@@ -673,7 +661,7 @@ index 74a01a6..67037e8 100644
  }
  
  /* Post the specified pending signals in SS and return 1.  If one of
-@@ -1003,12 +1140,15 @@ post_pending (struct hurd_sigstate *ss, sigset_t pending, void (*reply) (void))
+@@ -1003,12 +1140,15 @@
    int signo;
    struct hurd_signal_detail detail;
  
@@ -692,7 +680,7 @@ index 74a01a6..67037e8 100644
  
  	/* Will reacquire the lock, except if the signal is traced.  */
  	if (! post_signal (ss, signo, &detail, 0, reply))
-@@ -1016,7 +1156,7 @@ post_pending (struct hurd_sigstate *ss, sigset_t pending, void (*reply) (void))
+@@ -1016,7 +1156,7 @@
        }
  
    /* No more signals pending; SS->lock is still locked.  */
@@ -701,7 +689,7 @@ index 74a01a6..67037e8 100644
  
    return 1;
  }
-@@ -1034,14 +1174,14 @@ post_all_pending_signals (void (*reply) (void))
+@@ -1034,14 +1174,14 @@
        __mutex_lock (&_hurd_siglock);
        for (ss = _hurd_sigstates; ss != NULL; ss = ss->next)
          {
@@ -718,7 +706,7 @@ index 74a01a6..67037e8 100644
  	}
        __mutex_unlock (&_hurd_siglock);
  
-@@ -1074,11 +1214,12 @@ _hurd_internal_post_signal (struct hurd_sigstate *ss,
+@@ -1074,11 +1214,12 @@
  	assert_perror (err);
      }
  
@@ -733,7 +721,7 @@ index 74a01a6..67037e8 100644
      {
        /* The signal has either been ignored or is now being handled.  We can
  	 consider it delivered and reply to the killer.  */
-@@ -1090,8 +1231,9 @@ _hurd_internal_post_signal (struct hurd_sigstate *ss,
+@@ -1090,8 +1231,9 @@
      }
    else
      {
@@ -745,7 +733,7 @@ index 74a01a6..67037e8 100644
        if (! post_all_pending_signals (reply))
  	return;
  
-@@ -1217,9 +1359,10 @@ _S_msg_sig_post (mach_port_t me,
+@@ -1217,9 +1359,10 @@
    d.code = sigcode;
    d.exc = 0;
  
@@ -759,7 +747,7 @@ index 74a01a6..67037e8 100644
  			      signo, &d, reply_port, reply_port_type,
  			      0); /* Stop if traced.  */
  
-@@ -1247,7 +1390,7 @@ _S_msg_sig_post_untraced (mach_port_t me,
+@@ -1247,7 +1390,7 @@
  
    /* Post the signal to the designated signal-receiving thread.  This will
       reply when the signal can be considered delivered.  */
@@ -768,7 +756,7 @@ index 74a01a6..67037e8 100644
  			      signo, &d, reply_port, reply_port_type,
  			      1); /* Untraced flag. */
  
-@@ -1258,8 +1401,8 @@ extern void __mig_init (void *);
+@@ -1258,8 +1401,8 @@
  
  #include <mach/task_special_ports.h>
  
@@ -779,7 +767,7 @@ index 74a01a6..67037e8 100644
  
  void
  _hurdsig_init (const int *intarray, size_t intarraysize)
-@@ -1282,27 +1425,34 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
+@@ -1282,27 +1425,34 @@
  				  MACH_MSG_TYPE_MAKE_SEND);
    assert_perror (err);
  
@@ -822,11 +810,9 @@ index 74a01a6..67037e8 100644
    /* Start the signal thread listening on the message port.  */
  
    if (__hurd_threadvar_stack_mask == 0)
-diff --git a/sysdeps/mach/hurd/fork.c b/sysdeps/mach/hurd/fork.c
-index 66fa7e2..bae4204 100644
 --- a/sysdeps/mach/hurd/fork.c
 +++ b/sysdeps/mach/hurd/fork.c
-@@ -459,6 +459,7 @@ __fork (void)
+@@ -459,6 +459,7 @@
  	 function, accounted for by mach_port_names (and which will thus be
  	 accounted for in the child below).  This extra right gets consumed
  	 in the child by the store into _hurd_sigthread in the child fork.  */
@@ -834,7 +820,7 @@ index 66fa7e2..bae4204 100644
        if (thread_refs > 1 &&
  	  (err = __mach_port_mod_refs (newtask, ss->thread,
  				       MACH_PORT_RIGHT_SEND,
-@@ -616,10 +617,6 @@ __fork (void)
+@@ -621,10 +622,6 @@
        for (i = 0; i < _hurd_nports; ++i)
  	__spin_unlock (&_hurd_ports[i].lock);
  
@@ -845,7 +831,7 @@ index 66fa7e2..bae4204 100644
        /* Claim our sigstate structure and unchain the rest: the
  	 threads existed in the parent task but don't exist in this
  	 task (the child process).  Delay freeing them until later
-@@ -640,6 +637,10 @@ __fork (void)
+@@ -645,6 +642,10 @@
        _hurd_sigstates = ss;
        __mutex_unlock (&_hurd_siglock);
  
@@ -856,8 +842,6 @@ index 66fa7e2..bae4204 100644
        /* Fetch our new process IDs from the proc server.  No need to
  	 refetch our pgrp; it is always inherited from the parent (so
  	 _hurd_pgrp is already correct), and the proc server will send us a
-diff --git a/sysdeps/mach/hurd/i386/sigreturn.c b/sysdeps/mach/hurd/i386/sigreturn.c
-index 60b0d00..8cb92ef 100644
 --- a/sysdeps/mach/hurd/i386/sigreturn.c
 +++ b/sysdeps/mach/hurd/i386/sigreturn.c
 @@ -1,4 +1,5 @@
@@ -867,7 +851,7 @@ index 60b0d00..8cb92ef 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -39,7 +40,7 @@ __sigreturn (struct sigcontext *scp)
+@@ -39,7 +40,7 @@
      }
  
    ss = _hurd_self_sigstate ();
@@ -876,7 +860,7 @@ index 60b0d00..8cb92ef 100644
  
    /* Remove the link on the `active resources' chain added by
       _hurd_setup_sighandler.  Its purpose was to make sure
-@@ -51,19 +52,19 @@ __sigreturn (struct sigcontext *scp)
+@@ -51,19 +52,19 @@
    ss->intr_port = scp->sc_intr_port;
  
    /* Check for pending signals that were blocked by the old set.  */
@@ -899,7 +883,7 @@ index 60b0d00..8cb92ef 100644
        ss->context = NULL;
      }
  
-@@ -74,7 +75,7 @@ __sigreturn (struct sigcontext *scp)
+@@ -74,7 +75,7 @@
        abort ();
      }
    else
@@ -908,8 +892,6 @@ index 60b0d00..8cb92ef 100644
  
    /* Destroy the MiG reply port used by the signal handler, and restore the
       reply port in use by the thread when interrupted.  */
-diff --git a/sysdeps/mach/hurd/i386/trampoline.c b/sysdeps/mach/hurd/i386/trampoline.c
-index 99d9308..ec52847 100644
 --- a/sysdeps/mach/hurd/i386/trampoline.c
 +++ b/sysdeps/mach/hurd/i386/trampoline.c
 @@ -1,5 +1,5 @@
@@ -919,7 +901,7 @@ index 99d9308..ec52847 100644
  	Free Software Foundation, Inc.
     This file is part of the GNU C Library.
  
-@@ -77,7 +77,11 @@ _hurd_setup_sighandler (struct hurd_sigstate *ss, __sighandler_t handler,
+@@ -77,7 +77,11 @@
       interrupted RPC frame.  */
    state->basic.esp = state->basic.uesp;
  
@@ -932,8 +914,6 @@ index 99d9308..ec52847 100644
        !(ss->sigaltstack.ss_flags & (SS_DISABLE|SS_ONSTACK)))
      {
        sigsp = ss->sigaltstack.ss_sp + ss->sigaltstack.ss_size;
-diff --git a/sysdeps/mach/hurd/sigaction.c b/sysdeps/mach/hurd/sigaction.c
-index fe452e8..bedf14c 100644
 --- a/sysdeps/mach/hurd/sigaction.c
 +++ b/sysdeps/mach/hurd/sigaction.c
 @@ -1,4 +1,4 @@
@@ -942,7 +922,7 @@ index fe452e8..bedf14c 100644
       Free Software Foundation, Inc.
  
     This file is part of the GNU C Library.
-@@ -51,15 +51,15 @@ __sigaction (sig, act, oact)
+@@ -51,15 +51,15 @@
    ss = _hurd_self_sigstate ();
  
    __spin_lock (&ss->critical_section_lock);
@@ -962,7 +942,7 @@ index fe452e8..bedf14c 100644
  
        /* Inform the proc server whether or not it should send us SIGCHLD for
  	 stopped children.  We do this in a critical section so that no
-@@ -67,8 +67,8 @@ __sigaction (sig, act, oact)
+@@ -67,8 +67,8 @@
        __USEPORT (PROC,
  		 __proc_mod_stopchild (port, !(a.sa_flags & SA_NOCLDSTOP)));
  
@@ -973,7 +953,7 @@ index fe452e8..bedf14c 100644
      }
    else if (act != NULL && (a.sa_handler == SIG_IGN || a.sa_handler == SIG_DFL))
      /* We are changing to an action that might be to ignore SIG signals.
-@@ -77,11 +77,11 @@ __sigaction (sig, act, oact)
+@@ -77,11 +77,11 @@
         back and then SIG is unblocked, the signal pending now should not
         arrive.  So wake up the signal thread to check the new state and do
         the right thing.  */
@@ -987,8 +967,6 @@ index fe452e8..bedf14c 100644
    __spin_unlock (&ss->critical_section_lock);
  
    if (pending)
-diff --git a/sysdeps/mach/hurd/sigpending.c b/sysdeps/mach/hurd/sigpending.c
-index 84ac927..f582d45 100644
 --- a/sysdeps/mach/hurd/sigpending.c
 +++ b/sysdeps/mach/hurd/sigpending.c
 @@ -1,4 +1,5 @@
@@ -998,7 +976,7 @@ index 84ac927..f582d45 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -38,9 +39,9 @@ sigpending (set)
+@@ -38,9 +39,9 @@
      }
  
    ss = _hurd_self_sigstate ();
@@ -1011,8 +989,6 @@ index 84ac927..f582d45 100644
  
    *set = pending;
    return 0;
-diff --git a/sysdeps/mach/hurd/sigprocmask.c b/sysdeps/mach/hurd/sigprocmask.c
-index cbb5ecc..b12dc19 100644
 --- a/sysdeps/mach/hurd/sigprocmask.c
 +++ b/sysdeps/mach/hurd/sigprocmask.c
 @@ -1,4 +1,5 @@
@@ -1022,7 +998,7 @@ index cbb5ecc..b12dc19 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -40,7 +41,7 @@ __sigprocmask (how, set, oset)
+@@ -40,7 +41,7 @@
  
    ss = _hurd_self_sigstate ();
  
@@ -1031,7 +1007,7 @@ index cbb5ecc..b12dc19 100644
  
    old = ss->blocked;
  
-@@ -61,7 +62,7 @@ __sigprocmask (how, set, oset)
+@@ -61,7 +62,7 @@
  	  break;
  
  	default:
@@ -1040,7 +1016,7 @@ index cbb5ecc..b12dc19 100644
  	  errno = EINVAL;
  	  return -1;
  	}
-@@ -69,9 +70,9 @@ __sigprocmask (how, set, oset)
+@@ -69,9 +70,9 @@
        ss->blocked &= ~_SIG_CANT_MASK;
      }
  
@@ -1052,8 +1028,6 @@ index cbb5ecc..b12dc19 100644
  
    if (oset != NULL)
      *oset = old;
-diff --git a/sysdeps/mach/hurd/sigsuspend.c b/sysdeps/mach/hurd/sigsuspend.c
-index 7e32472..2e55e30 100644
 --- a/sysdeps/mach/hurd/sigsuspend.c
 +++ b/sysdeps/mach/hurd/sigsuspend.c
 @@ -1,5 +1,5 @@
@@ -1064,7 +1038,7 @@ index 7e32472..2e55e30 100644
  
     This file is part of the GNU C Library.
  
-@@ -43,7 +43,7 @@ __sigsuspend (set)
+@@ -43,7 +43,7 @@
  
    ss = _hurd_self_sigstate ();
  
@@ -1073,7 +1047,7 @@ index 7e32472..2e55e30 100644
  
    oldmask = ss->blocked;
    if (set != NULL)
-@@ -51,11 +51,11 @@ __sigsuspend (set)
+@@ -51,11 +51,11 @@
      ss->blocked = newmask & ~_SIG_CANT_MASK;
  
    /* Notice if any pending signals just became unblocked.  */
@@ -1087,7 +1061,7 @@ index 7e32472..2e55e30 100644
  
    if (pending)
      /* Tell the signal thread to check for pending signals.  */
-@@ -66,10 +66,11 @@ __sigsuspend (set)
+@@ -66,10 +66,11 @@
  	      MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
    __mach_port_destroy (__mach_task_self (), wait);
  
@@ -1103,8 +1077,6 @@ index 7e32472..2e55e30 100644
  
    if (pending)
      /* Tell the signal thread to check for pending signals.  */
-diff --git a/sysdeps/mach/hurd/sigwait.c b/sysdeps/mach/hurd/sigwait.c
-index 9794076..af50f74 100644
 --- a/sysdeps/mach/hurd/sigwait.c
 +++ b/sysdeps/mach/hurd/sigwait.c
 @@ -1,4 +1,4 @@
@@ -1113,7 +1085,7 @@ index 9794076..af50f74 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -28,7 +28,7 @@ int
+@@ -28,7 +28,7 @@
  __sigwait (const sigset_t *set, int *sig)
  {
    struct hurd_sigstate *ss;
@@ -1122,7 +1094,7 @@ index 9794076..af50f74 100644
    int signo = 0;
    struct hurd_signal_preemptor preemptor;
    jmp_buf buf;
-@@ -50,8 +50,8 @@ __sigwait (const sigset_t *set, int *sig)
+@@ -50,8 +50,8 @@
        /* Make sure this is all kosher */
        assert (__sigismember (&mask, signo));
  
@@ -1133,7 +1105,7 @@ index 9794076..af50f74 100644
  
        return pe->handler;
      }
-@@ -72,10 +72,11 @@ __sigwait (const sigset_t *set, int *sig)
+@@ -72,10 +72,11 @@
      __sigemptyset (&mask);
  
    ss = _hurd_self_sigstate ();
@@ -1147,7 +1119,7 @@ index 9794076..af50f74 100644
    if (! __sigisemptyset (&ready))
      {
        for (signo = 1; signo < NSIG; signo++)
-@@ -103,7 +104,11 @@ __sigwait (const sigset_t *set, int *sig)
+@@ -103,7 +104,11 @@
        preemptor.next = ss->preemptors;
        ss->preemptors = &preemptor;
  
@@ -1160,7 +1132,7 @@ index 9794076..af50f74 100644
  
        /* Wait. */
        __mach_msg (&msg, MACH_RCV_MSG, 0, sizeof (msg), wait,
-@@ -114,7 +119,7 @@ __sigwait (const sigset_t *set, int *sig)
+@@ -114,7 +119,7 @@
      {
        assert (signo);
  
@@ -1169,7 +1141,7 @@ index 9794076..af50f74 100644
  
        /* Delete our preemptor. */
        assert (ss->preemptors == &preemptor);
-@@ -123,7 +128,7 @@ __sigwait (const sigset_t *set, int *sig)
+@@ -123,7 +128,7 @@
  
  
  all_done:
@@ -1178,11 +1150,9 @@ index 9794076..af50f74 100644
  
    __mach_port_destroy (__mach_task_self (), wait);
    *sig = signo;
-diff --git a/sysdeps/mach/hurd/spawni.c b/sysdeps/mach/hurd/spawni.c
-index 3d2b591..c12f448 100644
 --- a/sysdeps/mach/hurd/spawni.c
 +++ b/sysdeps/mach/hurd/spawni.c
-@@ -239,26 +239,29 @@ __spawni (pid_t *pid, const char *file,
+@@ -239,26 +239,29 @@
    assert (! __spin_lock_locked (&ss->critical_section_lock));
    __spin_lock (&ss->critical_section_lock);
  
@@ -1222,5 +1192,3 @@ index 3d2b591..c12f448 100644
  
    /* Set signal mask.  */
    if ((flags & POSIX_SPAWN_SETSIGMASK) != 0)
--- 
-tg: (c2fb0b6..) t/hurdsig-global-dispositions (depends on: t/hurdsig-fixes)

@@ -22,8 +22,10 @@
 	(struct _libc_fpstate): New.
 	(fpregset_t): Define using struct _libc_fpstate.
 
-diff --git a/ports/sysdeps/unix/sysv/linux/arm/sys/ucontext.h b/ports/sysdeps/unix/sysv/linux/arm/sys/ucontext.h
-index 9ecff7b..58f438c 100644
+---
+ ports/sysdeps/unix/sysv/linux/arm/sys/ucontext.h |   86 +++++++++++++----------
+ 1 file changed, 51 insertions(+), 35 deletions(-)
+
 --- a/ports/sysdeps/unix/sysv/linux/arm/sys/ucontext.h
 +++ b/ports/sysdeps/unix/sysv/linux/arm/sys/ucontext.h
 @@ -23,7 +23,6 @@
@@ -34,7 +36,7 @@ index 9ecff7b..58f438c 100644
  
  /* We need the signal context definitions even if they are not used
     included in <signal.h>.  */
-@@ -35,47 +34,64 @@ typedef int greg_t;
+@@ -35,47 +34,64 @@
  #define NGREG	18
  
  /* Container for all general registers.  */

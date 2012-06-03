@@ -4,11 +4,13 @@ Date:   Thu May 10 15:49:30 2012 -0700
 
     Hurd: Fix __dup3 _hurd_dtable_lock usage.
 
-diff --git a/sysdeps/mach/hurd/dup3.c b/sysdeps/mach/hurd/dup3.c
-index 8a38caf..523ca42 100644
+---
+ sysdeps/mach/hurd/dup3.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
 --- a/sysdeps/mach/hurd/dup3.c
 +++ b/sysdeps/mach/hurd/dup3.c
-@@ -71,15 +71,14 @@ __dup3 (int fd, int fd2, int flags)
+@@ -71,15 +71,14 @@
  	  /* Get a hold of the destination descriptor.  */
  	  struct hurd_fd *d2;
  
@@ -26,7 +28,7 @@ index 8a38caf..523ca42 100644
  	      d2 = _hurd_alloc_fd (NULL, fd2);
  	      if (d2)
  		__spin_unlock (&d2->port.lock);
-@@ -99,6 +98,7 @@ __dup3 (int fd, int fd2, int flags)
+@@ -99,6 +98,7 @@
  							 MACH_PORT_NULL);
  		}
  	    }
@@ -34,7 +36,7 @@ index 8a38caf..523ca42 100644
  
  	  if (d2 == NULL)
  	    {
-@@ -126,7 +126,6 @@ __dup3 (int fd, int fd2, int flags)
+@@ -126,7 +126,6 @@
  	      _hurd_port_locked_set (&d2->port, port); /* Unlocks D2.  */
  	    }
  	}

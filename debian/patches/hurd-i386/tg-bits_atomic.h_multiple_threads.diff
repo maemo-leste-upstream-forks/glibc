@@ -12,14 +12,12 @@ the file (which would mean having to maintain it).
 Need to override sysdeps/i386/i486/bits/atomic.h to remove Linuxisms.
 
 ---
- sysdeps/i386/i486/bits/atomic.h |  107 +++++++++++++-------------------------
- 1 files changed, 37 insertions(+), 70 deletions(-)
+ sysdeps/i386/i486/bits/atomic.h |  107 +++++++++++++---------------------------
+ 1 file changed, 37 insertions(+), 70 deletions(-)
 
-diff --git a/sysdeps/i386/i486/bits/atomic.h b/sysdeps/i386/i486/bits/atomic.h
-index 72986ca..ec94ff8 100644
 --- a/sysdeps/i386/i486/bits/atomic.h
 +++ b/sysdeps/i386/i486/bits/atomic.h
-@@ -87,35 +87,26 @@ typedef uintmax_t uatomic_max_t;
+@@ -87,35 +87,26 @@
  
  #define __arch_c_compare_and_exchange_val_8_acq(mem, newval, oldval) \
    ({ __typeof (*mem) ret;						      \
@@ -64,7 +62,7 @@ index 72986ca..ec94ff8 100644
       ret; })
  
  /* XXX We do not really need 64-bit compare-and-exchange.  At least
-@@ -156,10 +147,8 @@ typedef uintmax_t uatomic_max_t;
+@@ -148,10 +139,8 @@
  #  define __arch_c_compare_and_exchange_val_64_acq(mem, newval, oldval) \
    ({ __typeof (*mem) ret;						      \
       __asm __volatile ("xchgl %2, %%ebx\n\t"				      \
@@ -76,7 +74,7 @@ index 72986ca..ec94ff8 100644
  		       "xchgl %2, %%ebx"				      \
  		       : "=A" (ret), "=m" (*mem)			      \
  		       : "DS" (((unsigned long long int) (newval))	      \
-@@ -167,8 +156,7 @@ typedef uintmax_t uatomic_max_t;
+@@ -159,8 +148,7 @@
  			 "c" (((unsigned long long int) (newval)) >> 32),     \
  			 "m" (*mem), "a" (((unsigned long long int) (oldval)) \
  					  & 0xffffffff),		      \
@@ -86,7 +84,7 @@ index 72986ca..ec94ff8 100644
       ret; })
  # else
  #  define __arch_compare_and_exchange_val_64_acq(mem, newval, oldval) \
-@@ -185,18 +173,15 @@ typedef uintmax_t uatomic_max_t;
+@@ -177,18 +165,15 @@
  
  #  define __arch_c_compare_and_exchange_val_64_acq(mem, newval, oldval) \
    ({ __typeof (*mem) ret;						      \
@@ -108,7 +106,7 @@ index 72986ca..ec94ff8 100644
       ret; })
  # endif
  #endif
-@@ -231,18 +216,15 @@ typedef uintmax_t uatomic_max_t;
+@@ -223,18 +208,15 @@
       if (sizeof (*mem) == 1)						      \
         __asm __volatile (lock "xaddb %b0, %1"				      \
  			 : "=q" (__result), "=m" (*mem)			      \
@@ -130,7 +128,7 @@ index 72986ca..ec94ff8 100644
       else								      \
         {								      \
  	 __typeof (mem) __memp = (mem);					      \
-@@ -264,7 +246,7 @@ typedef uintmax_t uatomic_max_t;
+@@ -256,7 +238,7 @@
  #endif
  
  #define __arch_exchange_and_add_cprefix \
@@ -139,7 +137,7 @@ index 72986ca..ec94ff8 100644
  
  #define catomic_exchange_and_add(mem, value) \
    __arch_exchange_and_add_body (__arch_exchange_and_add_cprefix, __arch_c,    \
-@@ -280,18 +262,15 @@ typedef uintmax_t uatomic_max_t;
+@@ -272,18 +254,15 @@
      else if (sizeof (*mem) == 1)					      \
        __asm __volatile (lock "addb %b1, %0"				      \
  			: "=m" (*mem)					      \
@@ -161,7 +159,7 @@ index 72986ca..ec94ff8 100644
      else								      \
        {									      \
  	__typeof (value) __addval = (value);				      \
-@@ -309,7 +288,7 @@ typedef uintmax_t uatomic_max_t;
+@@ -301,7 +280,7 @@
    __arch_add_body (LOCK_PREFIX, __arch, mem, value)
  
  #define __arch_add_cprefix \
@@ -170,7 +168,7 @@ index 72986ca..ec94ff8 100644
  
  #define catomic_add(mem, value) \
    __arch_add_body (__arch_add_cprefix, __arch_c, mem, value)
-@@ -358,18 +337,15 @@ typedef uintmax_t uatomic_max_t;
+@@ -350,18 +329,15 @@
      if (sizeof (*mem) == 1)						      \
        __asm __volatile (lock "incb %b0"					      \
  			: "=m" (*mem)					      \
@@ -192,7 +190,7 @@ index 72986ca..ec94ff8 100644
      else								      \
        {									      \
  	__typeof (mem) __memp = (mem);					      \
-@@ -385,7 +361,7 @@ typedef uintmax_t uatomic_max_t;
+@@ -377,7 +353,7 @@
  #define atomic_increment(mem) __arch_increment_body (LOCK_PREFIX, __arch, mem)
  
  #define __arch_increment_cprefix \
@@ -201,7 +199,7 @@ index 72986ca..ec94ff8 100644
  
  #define catomic_increment(mem) \
    __arch_increment_body (__arch_increment_cprefix, __arch_c, mem)
-@@ -415,18 +391,15 @@ typedef uintmax_t uatomic_max_t;
+@@ -407,18 +383,15 @@
      if (sizeof (*mem) == 1)						      \
        __asm __volatile (lock "decb %b0"					      \
  			: "=m" (*mem)					      \
@@ -223,7 +221,7 @@ index 72986ca..ec94ff8 100644
      else								      \
        {									      \
  	__typeof (mem) __memp = (mem);					      \
-@@ -442,7 +415,7 @@ typedef uintmax_t uatomic_max_t;
+@@ -434,7 +407,7 @@
  #define atomic_decrement(mem) __arch_decrement_body (LOCK_PREFIX, __arch, mem)
  
  #define __arch_decrement_cprefix \
@@ -232,7 +230,7 @@ index 72986ca..ec94ff8 100644
  
  #define catomic_decrement(mem) \
    __arch_decrement_body (__arch_decrement_cprefix, __arch_c, mem)
-@@ -513,24 +486,21 @@ typedef uintmax_t uatomic_max_t;
+@@ -505,24 +478,21 @@
      if (sizeof (*mem) == 1)						      \
        __asm __volatile (lock "andb %b1, %0"				      \
  			: "=m" (*mem)					      \
@@ -261,7 +259,7 @@ index 72986ca..ec94ff8 100644
  
  #define atomic_and(mem, mask) __arch_and_body (LOCK_PREFIX, mem, mask)
  
-@@ -542,18 +512,15 @@ typedef uintmax_t uatomic_max_t;
+@@ -534,18 +504,15 @@
      if (sizeof (*mem) == 1)						      \
        __asm __volatile (lock "orb %b1, %0"				      \
  			: "=m" (*mem)					      \
@@ -283,5 +281,3 @@ index 72986ca..ec94ff8 100644
      else								      \
        abort ();								      \
    } while (0)
--- 
-tg: (0234227..) t/bits_atomic.h_multiple_threads (depends on: baseline)

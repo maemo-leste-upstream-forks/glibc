@@ -3,8 +3,10 @@
 	[BZ #13506]
 	* time/tzfile.c (__tzfile_read): Check values from file header.
 
-diff --git a/time/tzfile.c b/time/tzfile.c
-index 144e20b..402389c 100644
+---
+ time/tzfile.c |   54 +++++++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 45 insertions(+), 9 deletions(-)
+
 --- a/time/tzfile.c
 +++ b/time/tzfile.c
 @@ -26,6 +26,7 @@
@@ -15,7 +17,7 @@ index 144e20b..402389c 100644
  
  #define	NOID
  #include <timezone/tzfile.h>
-@@ -234,23 +234,58 @@ __tzfile_read (const char *file, size_t extra, char **extrap)
+@@ -234,23 +235,58 @@
        goto read_again;
      }
  

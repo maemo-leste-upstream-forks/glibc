@@ -7,13 +7,11 @@ Take addr parameter of mmap as suggestion even without MAP_FIXED.
         `anywhere' set to 1 only on KERN_NO_SPACE error.
 
 ---
- mmap.c |   44 ++++++++++++++++++++++++++++++--------------
+ sysdeps/mach/hurd/mmap.c |   44 ++++++++++++++++++++++++++++++--------------
  1 file changed, 30 insertions(+), 14 deletions(-)
-diff --git a/sysdeps/mach/hurd/mmap.c b/sysdeps/mach/hurd/mmap.c
-index 1d1460c..96d7661 100644
 --- a/sysdeps/mach/hurd/mmap.c
 +++ b/sysdeps/mach/hurd/mmap.c
-@@ -51,15 +51,20 @@ __mmap (__ptr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
+@@ -51,15 +51,20 @@
      {
        /* vm_allocate has (a little) less overhead in the kernel too.  */
        err = __vm_allocate (__mach_task_self (), &mapaddr, len,
@@ -41,7 +39,7 @@ index 1d1460c..96d7661 100644
  	}
  
        return err ? (__ptr_t) (long int) __hurd_fail (err) : (__ptr_t) mapaddr;
-@@ -135,21 +140,32 @@ __mmap (__ptr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
+@@ -135,21 +140,32 @@
  
    err = __vm_map (__mach_task_self (),
  		  &mapaddr, (vm_size_t) len, (vm_address_t) 0,

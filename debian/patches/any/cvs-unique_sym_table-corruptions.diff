@@ -6,11 +6,13 @@
 	(do_lookup_x): When entering new entry test for copy relocation
 	and if necessary set DF_1_NODELETE flag.
 
-diff --git a/elf/dl-lookup.c b/elf/dl-lookup.c
-index 19b27d7..affb53f 100644
+---
+ elf/dl-lookup.c |   47 ++++++++++++++++++++---------------------------
+ 1 file changed, 20 insertions(+), 27 deletions(-)
+
 --- a/elf/dl-lookup.c
 +++ b/elf/dl-lookup.c
-@@ -312,39 +312,21 @@ do_lookup_x (const char *undef_name, uint_fast32_t new_hash,
+@@ -313,39 +313,21 @@
  		 definition we have to use it.  */
  	      void enter (struct unique_sym *table, size_t size,
  			  unsigned int hash, const char *name,
@@ -57,7 +59,7 @@ index 19b27d7..affb53f 100644
  	      }
  
  	      struct unique_sym_table *tab
-@@ -450,8 +432,19 @@ do_lookup_x (const char *undef_name, uint_fast32_t new_hash,
+@@ -440,8 +422,19 @@
  		  tab->free = free;
  		}
  

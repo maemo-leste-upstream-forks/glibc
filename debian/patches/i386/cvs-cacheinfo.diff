@@ -16,11 +16,14 @@
 	Handle cache information in CPU leaf 4.
 	* sysdeps/x86_64/cacheinfo.c (intel_check_word): Likewise.
 
-diff --git a/sysdeps/unix/sysv/linux/i386/sysconf.c b/sysdeps/unix/sysv/linux/i386/sysconf.c
-index ff3cf9f..1f5d3b0 100644
+---
+ sysdeps/unix/sysv/linux/i386/sysconf.c |   53 ++++++++++++++++++++++++++++++++-
+ sysdeps/x86_64/cacheinfo.c             |   53 ++++++++++++++++++++++++++++++++-
+ 2 files changed, 104 insertions(+), 2 deletions(-)
+
 --- a/sysdeps/unix/sysv/linux/i386/sysconf.c
 +++ b/sysdeps/unix/sysv/linux/i386/sysconf.c
-@@ -135,7 +135,7 @@ static const struct intel_02_cache_info
+@@ -135,7 +135,7 @@
      { 0xdc, 12, 64, M(_SC_LEVEL3_CACHE_SIZE),  2097152 },
      { 0xdd, 12, 64, M(_SC_LEVEL3_CACHE_SIZE),  4194304 },
      { 0xde, 12, 64, M(_SC_LEVEL3_CACHE_SIZE),  8388608 },
@@ -29,7 +32,7 @@ index ff3cf9f..1f5d3b0 100644
      { 0xe3, 16, 64, M(_SC_LEVEL3_CACHE_SIZE),  4194304 },
      { 0xe4, 16, 64, M(_SC_LEVEL3_CACHE_SIZE),  8388608 },
      { 0xea, 24, 64, M(_SC_LEVEL3_CACHE_SIZE), 12582912 },
-@@ -186,6 +186,57 @@ intel_check_word (int name, unsigned int value, bool *has_level_2,
+@@ -186,6 +186,57 @@
  	    /* No need to look further.  */
  	    break;
  	}
@@ -87,11 +90,9 @@ index ff3cf9f..1f5d3b0 100644
        else
  	{
  	  if (byte == 0x49 && folded_rel_name == M(_SC_LEVEL3_CACHE_SIZE))
-diff --git a/sysdeps/x86_64/cacheinfo.c b/sysdeps/x86_64/cacheinfo.c
-index 337444d..bd4be3d 100644
 --- a/sysdeps/x86_64/cacheinfo.c
 +++ b/sysdeps/x86_64/cacheinfo.c
-@@ -130,7 +130,7 @@ static const struct intel_02_cache_info
+@@ -130,7 +130,7 @@
      { 0xdc, 12, 64, M(_SC_LEVEL3_CACHE_SIZE),  2097152 },
      { 0xdd, 12, 64, M(_SC_LEVEL3_CACHE_SIZE),  4194304 },
      { 0xde, 12, 64, M(_SC_LEVEL3_CACHE_SIZE),  8388608 },
@@ -100,7 +101,7 @@ index 337444d..bd4be3d 100644
      { 0xe3, 16, 64, M(_SC_LEVEL3_CACHE_SIZE),  4194304 },
      { 0xe4, 16, 64, M(_SC_LEVEL3_CACHE_SIZE),  8388608 },
      { 0xea, 24, 64, M(_SC_LEVEL3_CACHE_SIZE), 12582912 },
-@@ -181,6 +181,57 @@ intel_check_word (int name, unsigned int value, bool *has_level_2,
+@@ -181,6 +181,57 @@
  	    /* No need to look further.  */
  	    break;
  	}

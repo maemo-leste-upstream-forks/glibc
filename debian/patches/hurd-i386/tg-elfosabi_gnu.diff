@@ -30,17 +30,15 @@ This is Debian glibc svn r4778 of patches/hurd-i386/submitted-ldsodefs.h.diff.
 TODO.  Can unify GNU/Linux and GNU/Hurd files and put them into sysdeps/gnu/?
 TODO.  Correct some comment strings, s%Linux%GNU.
 
- sysdeps/mach/hurd/i386/init-first.c    |    3 --
- sysdeps/mach/hurd/ldsodefs.h           |   52 ++++++++++++++++++++++++++++++++
- sysdeps/mach/hurd/powerpc/init-first.c |    3 --
- sysdeps/unix/sysv/linux/ldsodefs.h     |    6 ++--
+ sysdeps/mach/hurd/i386/init-first.c    |    3 -
+ sysdeps/mach/hurd/ldsodefs.h           |   52 +++++++++++++++++++++++++++++++++
+ sysdeps/mach/hurd/powerpc/init-first.c |    3 -
+ sysdeps/unix/sysv/linux/ldsodefs.h     |    6 +--
  4 files changed, 55 insertions(+), 9 deletions(-)
 
-diff --git a/sysdeps/mach/hurd/i386/init-first.c b/sysdeps/mach/hurd/i386/init-first.c
-index 60823bd..a55d8c4 100644
 --- a/sysdeps/mach/hurd/i386/init-first.c
 +++ b/sysdeps/mach/hurd/i386/init-first.c
-@@ -37,9 +37,6 @@ extern void __init_misc (int, char **, char **);
+@@ -37,9 +37,6 @@
  #ifdef USE_NONOPTION_FLAGS
  extern void __getopt_clean_environment (char **);
  #endif
@@ -50,9 +48,6 @@ index 60823bd..a55d8c4 100644
  extern void __libc_global_ctors (void);
  
  unsigned int __hurd_threadvar_max;
-diff --git a/sysdeps/mach/hurd/ldsodefs.h b/sysdeps/mach/hurd/ldsodefs.h
-new file mode 100644
-index 0000000..1f6d64f
 --- /dev/null
 +++ b/sysdeps/mach/hurd/ldsodefs.h
 @@ -0,0 +1,52 @@
@@ -108,11 +103,9 @@ index 0000000..1f6d64f
 +  }
 +
 +#endif /* ldsodefs.h */
-diff --git a/sysdeps/mach/hurd/powerpc/init-first.c b/sysdeps/mach/hurd/powerpc/init-first.c
-index 21b5054..2047cac 100644
 --- a/sysdeps/mach/hurd/powerpc/init-first.c
 +++ b/sysdeps/mach/hurd/powerpc/init-first.c
-@@ -32,9 +32,6 @@ extern void __init_misc (int, char **, char **);
+@@ -32,9 +32,6 @@
  #ifdef USE_NONOPTION_FLAGS
  extern void __getopt_clean_environment (char **);
  #endif
@@ -122,11 +115,9 @@ index 21b5054..2047cac 100644
  extern void __libc_global_ctors (void);
  
  unsigned int __hurd_threadvar_max;
-diff --git a/sysdeps/unix/sysv/linux/ldsodefs.h b/sysdeps/unix/sysv/linux/ldsodefs.h
-index 5d5b1b4..cf20217 100644
 --- a/sysdeps/unix/sysv/linux/ldsodefs.h
 +++ b/sysdeps/unix/sysv/linux/ldsodefs.h
-@@ -58,9 +58,9 @@ extern void _dl_non_dynamic_init (void) internal_function;
+@@ -58,9 +58,9 @@
  #define VALID_ELF_HEADER(hdr,exp,size)	(memcmp (hdr, exp, size) == 0	\
  					 || memcmp (hdr, expected2, size) == 0)
  #define VALID_ELF_OSABI(osabi)		(osabi == ELFOSABI_SYSV \
@@ -138,7 +129,7 @@ index 5d5b1b4..cf20217 100644
  #define MORE_ELF_HEADER_DATA \
    static const unsigned char expected2[EI_PAD] =	\
    {							\
-@@ -71,7 +71,7 @@ extern void _dl_non_dynamic_init (void) internal_function;
+@@ -71,7 +71,7 @@
      [EI_CLASS] = ELFW(CLASS),				\
      [EI_DATA] = byteorder,				\
      [EI_VERSION] = EV_CURRENT,				\
@@ -147,5 +138,3 @@ index 5d5b1b4..cf20217 100644
    }
  
  #endif /* ldsodefs.h */
--- 
-tg: (0234227..) t/elfosabi_gnu (depends on: baseline)

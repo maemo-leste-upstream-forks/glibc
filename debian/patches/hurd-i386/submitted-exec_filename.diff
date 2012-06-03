@@ -19,17 +19,19 @@ Pass the file name of executable to the exec server, which it needs to
 execute #!-scripts.  Currently, the exec server tries to guess the name
 from argv[0] but argv[0] only contains the executable name by convention.
 ---
- hurd/Versions               |    4 +++
+ Versions.def                |    1 
+ hurd/Makefile               |    4 +-
+ hurd/Versions               |    4 ++
  hurd/hurd.h                 |   14 ++++++++--
- hurd/hurdexec.c             |   52 ++++++++++++++++++++++++++++++-------
- sysdeps/mach/hurd/execve.c  |    6 +++-
- sysdeps/mach/hurd/fexecve.c |    7 +++--
- sysdeps/mach/hurd/spawni.c  |   59 +++++++++++++++++++++++++-----------------
- 6 files changed, 100 insertions(+), 42 deletions(-)
+ hurd/hurdexec.c             |   50 ++++++++++++++++++++++++++++++-------
+ sysdeps/mach/hurd/execve.c  |    6 ++--
+ sysdeps/mach/hurd/fexecve.c |    7 ++---
+ sysdeps/mach/hurd/spawni.c  |   59 ++++++++++++++++++++++++++------------------
+ 8 files changed, 102 insertions(+), 43 deletions(-)
 
---- a/Versions.def.orig	2012-04-25 15:45:24.000000000 +0000
-+++ b/Versions.def	2012-04-25 15:45:31.000000000 +0000
-@@ -38,6 +38,7 @@
+--- a/Versions.def
++++ b/Versions.def
+@@ -39,6 +39,7 @@
    GLIBC_PRIVATE
    GLIBC_2.13_DEBIAN_19
    GLIBC_2.13_DEBIAN_31
@@ -37,13 +39,11 @@ from argv[0] but argv[0] only contains the executable name by convention.
  }
  libcrypt {
    GLIBC_2.0
-diff --git a/hurd/Versions b/hurd/Versions
-index 83c8ab1..f760e49 100644
 --- a/hurd/Versions
 +++ b/hurd/Versions
-@@ -156,6 +156,10 @@ libc {
-     # functions used in macros & inline functions
-     __errno_location;
+@@ -164,6 +164,10 @@
+     _hurd_sigstate_unlock;
+     _hurd_sigstate_delete;
    }
 +  GLIBC_2.13_DEBIAN_33 {
 +    # "quasi-internal" functions
@@ -52,11 +52,9 @@ index 83c8ab1..f760e49 100644
  
  %if !SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_2)
    HURD_CTHREADS_0.3 {
-diff --git a/hurd/Makefile b/hurd/Makefile
-index 321e04e..bdb8bd9 100644
 --- a/hurd/Makefile
 +++ b/hurd/Makefile
-@@ -37,8 +37,8 @@ user-interfaces		:= $(addprefix hurd/,\
+@@ -38,8 +38,8 @@
  				       auth startup \
  				       process process_request \
  				       msg msg_reply msg_request \
@@ -67,8 +65,6 @@ index 321e04e..bdb8bd9 100644
  				       login password pfinet \
  				       )
  server-interfaces	:= hurd/msg faultexc
-diff --git a/hurd/hurd.h b/hurd/hurd.h
-index 642ea43..3429f66 100644
 --- a/hurd/hurd.h
 +++ b/hurd/hurd.h
 @@ -1,4 +1,4 @@
@@ -77,7 +73,7 @@ index 642ea43..3429f66 100644
     Free Software Foundation, Inc.
     This file is part of the GNU C Library.
  
-@@ -243,12 +243,20 @@ extern FILE *fopenport (io_t port, const char *mode);
+@@ -247,12 +247,20 @@
  extern FILE *__fopenport (io_t port, const char *mode);
  
  
@@ -100,8 +96,6 @@ index 642ea43..3429f66 100644
  
  
  /* Inform the proc server we have exited with STATUS, and kill the
-diff --git a/hurd/hurdexec.c b/hurd/hurdexec.c
-index beae869..1283634 100644
 --- a/hurd/hurdexec.c
 +++ b/hurd/hurdexec.c
 @@ -32,11 +32,29 @@
@@ -135,7 +129,7 @@ index beae869..1283634 100644
    error_t err;
    char *args, *env;
    size_t argslen, envlen;
-@@ -218,7 +236,7 @@ _hurd_exec (task_t task, file_t file,
+@@ -219,7 +237,7 @@
        /* We have euid != svuid or egid != svgid.  POSIX.1 says that exec
  	 sets svuid = euid and svgid = egid.  So we must get a new auth
  	 port and reauthenticate everything with it.  We'll pass the new
@@ -144,7 +138,7 @@ index beae869..1283634 100644
  
        auth_t newauth;
  
-@@ -362,13 +380,27 @@ _hurd_exec (task_t task, file_t file,
+@@ -363,13 +381,27 @@
        if (__sigismember (&_hurdsig_traced, SIGKILL))
  	flags |= EXEC_SIGTRAP;
  #endif
@@ -179,8 +173,6 @@ index beae869..1283634 100644
      }
  
    /* Release references to the standard ports.  */
-diff --git a/sysdeps/mach/hurd/execve.c b/sysdeps/mach/hurd/execve.c
-index 8af8b33..ba5f5a9 100644
 --- a/sysdeps/mach/hurd/execve.c
 +++ b/sysdeps/mach/hurd/execve.c
 @@ -1,4 +1,5 @@
@@ -190,7 +182,7 @@ index 8af8b33..ba5f5a9 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -35,7 +36,8 @@ __execve (file_name, argv, envp)
+@@ -35,7 +36,8 @@
      return -1;
  
    /* Hopefully this will not return.  */
@@ -200,8 +192,6 @@ index 8af8b33..ba5f5a9 100644
  
    /* Oh well.  Might as well be tidy.  */
    __mach_port_deallocate (__mach_task_self (), file);
-diff --git a/sysdeps/mach/hurd/fexecve.c b/sysdeps/mach/hurd/fexecve.c
-index d6eb7c0..e925d68 100644
 --- a/sysdeps/mach/hurd/fexecve.c
 +++ b/sysdeps/mach/hurd/fexecve.c
 @@ -1,4 +1,4 @@
@@ -222,8 +212,6 @@ index d6eb7c0..e925d68 100644
    if (! err)
      err = EGRATUITOUS;
    return __hurd_fail (err);
-diff --git a/sysdeps/mach/hurd/spawni.c b/sysdeps/mach/hurd/spawni.c
-index 244ca2d..12ea83f 100644
 --- a/sysdeps/mach/hurd/spawni.c
 +++ b/sysdeps/mach/hurd/spawni.c
 @@ -1,5 +1,5 @@
@@ -233,7 +221,7 @@ index 244ca2d..12ea83f 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -44,7 +44,7 @@ __spawni (pid_t *pid, const char *file,
+@@ -44,7 +44,7 @@
  	  int use_path)
  {
    pid_t new_pid;
@@ -242,7 +230,7 @@ index 244ca2d..12ea83f 100644
    size_t len;
    size_t pathlen;
    short int flags;
-@@ -60,14 +60,14 @@ __spawni (pid_t *pid, const char *file,
+@@ -60,14 +60,14 @@
       that remains visible after an exec is registration with the proc
       server, and the inheritance of various values and ports.  All those
       inherited values and ports are what get collected up and passed in the
@@ -265,7 +253,7 @@ index 244ca2d..12ea83f 100644
       except that all errors will be detected here (in the parent process)
       and return proper errno codes rather than the child dying with 127.
  
-@@ -545,7 +545,7 @@ __spawni (pid_t *pid, const char *file,
+@@ -548,7 +548,7 @@
  
    if (! use_path || strchr (file, '/') != NULL)
      /* The FILE parameter is actually a path.  */
@@ -274,7 +262,7 @@ index 244ca2d..12ea83f 100644
    else
      {
        /* We have to search for FILE on the path.  */
-@@ -572,20 +572,18 @@ __spawni (pid_t *pid, const char *file,
+@@ -575,20 +575,18 @@
        p = path;
        do
  	{
@@ -298,7 +286,7 @@ index 244ca2d..12ea83f 100644
  	  switch (err)
  	    {
  	    case EACCES:
-@@ -622,14 +620,27 @@ __spawni (pid_t *pid, const char *file,
+@@ -625,14 +623,27 @@
  
      inline error_t exec (file_t file)
        {
@@ -334,5 +322,3 @@ index 244ca2d..12ea83f 100644
        }
  
      /* Now we are out of things that can fail before the file_exec RPC,
--- 
-1.7.1

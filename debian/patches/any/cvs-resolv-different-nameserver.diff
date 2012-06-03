@@ -10,11 +10,13 @@
 	if both request failed.
 	(send_dg): In case of server errors clear resplen or *resplen2.
 
-diff --git a/resolv/res_send.c b/resolv/res_send.c
-index 845b658..97142b7 100644
+---
+ resolv/res_send.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
 --- a/resolv/res_send.c
 +++ b/resolv/res_send.c
-@@ -549,7 +549,7 @@ __libc_res_nsend(res_state statp, const u_char *buf, int buflen,
+@@ -549,7 +549,7 @@
  				    ns, ansp, ansp2, nansp2, resplen2);
  			if (n < 0)
  				return (-1);
@@ -23,7 +25,7 @@ index 845b658..97142b7 100644
  				goto next_ns;
  		} else {
  			/* Use datagrams. */
-@@ -559,7 +559,7 @@ __libc_res_nsend(res_state statp, const u_char *buf, int buflen,
+@@ -559,7 +559,7 @@
  				    ansp2, nansp2, resplen2);
  			if (n < 0)
  				return (-1);
@@ -32,7 +34,7 @@ index 845b658..97142b7 100644
  				goto next_ns;
  			if (v_circuit)
  			  // XXX Check whether both requests failed or
-@@ -1275,10 +1275,14 @@ send_dg(res_state statp,
+@@ -1283,10 +1283,14 @@
  				(*thisresplenp > *thisanssizp)
  				? *thisanssizp : *thisresplenp);
  
@@ -48,7 +50,7 @@ index 845b658..97142b7 100644
  			    /* We are waiting for a possible second reply.  */
  			    if (hp->id == anhp->id)
  			      recvresp1 = 1;
-@@ -1344,7 +1348,7 @@ send_dg(res_state statp,
+@@ -1352,7 +1356,7 @@
  		goto err_out;
  	}
  	else {

@@ -8,11 +8,18 @@
 	* ports/sysdeps/unix/sysv/linux/arm/Makefile (gen-as-const-headers): Add
 	ucontext_i.sym.
 
-diff --git a/ports/sysdeps/unix/sysv/linux/arm/Makefile b/ports/sysdeps/unix/sysv/linux/arm/Makefile
-index d91b968..a981736 100644
+---
+ ports/sysdeps/unix/sysv/linux/arm/Makefile           |    4 
+ ports/sysdeps/unix/sysv/linux/arm/eabi/getcontext.S  |  113 +++++++++++++++++++
+ ports/sysdeps/unix/sysv/linux/arm/eabi/makecontext.c |   73 ++++++++++++
+ ports/sysdeps/unix/sysv/linux/arm/eabi/setcontext.S  |  101 ++++++++++++++++
+ ports/sysdeps/unix/sysv/linux/arm/eabi/swapcontext.S |   63 ++++++++++
+ ports/sysdeps/unix/sysv/linux/arm/ucontext_i.sym     |   30 +++++
+ 6 files changed, 384 insertions(+)
+
 --- a/ports/sysdeps/unix/sysv/linux/arm/Makefile
 +++ b/ports/sysdeps/unix/sysv/linux/arm/Makefile
-@@ -20,3 +20,7 @@ endif
+@@ -20,3 +20,7 @@
  ifeq ($(subdir),resource)
  sysdep_routines += oldgetrlimit64
  endif
@@ -20,9 +27,6 @@ index d91b968..a981736 100644
 +ifeq ($(subdir),stdlib)
 +gen-as-const-headers += ucontext_i.sym
 +endif
-diff --git a/ports/sysdeps/unix/sysv/linux/arm/eabi/getcontext.S b/ports/sysdeps/unix/sysv/linux/arm/eabi/getcontext.S
-new file mode 100644
-index 0000000..435eb12
 --- /dev/null
 +++ b/ports/sysdeps/unix/sysv/linux/arm/eabi/getcontext.S
 @@ -0,0 +1,113 @@
@@ -139,9 +143,6 @@ index 0000000..435eb12
 +
 +
 +weak_alias(__getcontext, getcontext)
-diff --git a/ports/sysdeps/unix/sysv/linux/arm/eabi/makecontext.c b/ports/sysdeps/unix/sysv/linux/arm/eabi/makecontext.c
-new file mode 100644
-index 0000000..d6ae6f0
 --- /dev/null
 +++ b/ports/sysdeps/unix/sysv/linux/arm/eabi/makecontext.c
 @@ -0,0 +1,73 @@
@@ -218,9 +219,6 @@ index 0000000..d6ae6f0
 +  va_end (vl);
 +}
 +weak_alias (__makecontext, makecontext)
-diff --git a/ports/sysdeps/unix/sysv/linux/arm/eabi/setcontext.S b/ports/sysdeps/unix/sysv/linux/arm/eabi/setcontext.S
-new file mode 100644
-index 0000000..78003f5
 --- /dev/null
 +++ b/ports/sysdeps/unix/sysv/linux/arm/eabi/setcontext.S
 @@ -0,0 +1,101 @@
@@ -325,9 +323,6 @@ index 0000000..78003f5
 +        .long   C_SYMBOL_NAME(_dl_hwcap)
 +#endif
 +
-diff --git a/ports/sysdeps/unix/sysv/linux/arm/eabi/swapcontext.S b/ports/sysdeps/unix/sysv/linux/arm/eabi/swapcontext.S
-new file mode 100644
-index 0000000..09492d0
 --- /dev/null
 +++ b/ports/sysdeps/unix/sysv/linux/arm/eabi/swapcontext.S
 @@ -0,0 +1,63 @@
@@ -394,9 +389,6 @@ index 0000000..09492d0
 +	b	__setcontext
 +
 +END(swapcontext)
-diff --git a/ports/sysdeps/unix/sysv/linux/arm/ucontext_i.sym b/ports/sysdeps/unix/sysv/linux/arm/ucontext_i.sym
-new file mode 100644
-index 0000000..306292f
 --- /dev/null
 +++ b/ports/sysdeps/unix/sysv/linux/arm/ucontext_i.sym
 @@ -0,0 +1,30 @@

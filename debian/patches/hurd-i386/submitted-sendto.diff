@@ -5,9 +5,13 @@ Work also when the specified addr is NULL; simplify also the usage of err.
 2012-05-20  Pino Toscano  <toscano.pino@tiscali.it>
 
 	* sysdeps/mach/hurd/sendto.c: Consider also when addr is NULL.
+---
+ sysdeps/mach/hurd/sendto.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
 --- a/sysdeps/mach/hurd/sendto.c
 +++ b/sysdeps/mach/hurd/sendto.c
-@@ -33,11 +33,11 @@ __sendto (int fd,
+@@ -34,11 +34,11 @@
  	  const struct sockaddr_un *addr,
  	  socklen_t addr_len)
  {
@@ -22,7 +26,7 @@ Work also when the specified addr is NULL; simplify also the usage of err.
      {
        /* For the local domain, we must look up the name as a file and talk
  	 to it with the ifsock protocol.  */
-@@ -52,13 +52,11 @@ __sendto (int fd,
+@@ -53,13 +53,11 @@
        if (err)
  	return __hurd_fail (err);
      }

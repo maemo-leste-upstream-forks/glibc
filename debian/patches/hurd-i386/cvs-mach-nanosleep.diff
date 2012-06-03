@@ -4,8 +4,10 @@ Date:   Thu May 10 14:53:21 2012 -0700
 
     Hurd: mach: compliance fixes for nanosleep
 
-diff --git a/sysdeps/mach/nanosleep.c b/sysdeps/mach/nanosleep.c
-index 0192ff0..a1ba19c 100644
+---
+ sysdeps/mach/nanosleep.c |   33 ++++++++++++++++++++++++---------
+ 1 file changed, 24 insertions(+), 9 deletions(-)
+
 --- a/sysdeps/mach/nanosleep.c
 +++ b/sysdeps/mach/nanosleep.c
 @@ -1,5 +1,5 @@
@@ -15,7 +17,7 @@ index 0192ff0..a1ba19c 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -27,6 +27,15 @@ __nanosleep (const struct timespec *requested_time,
+@@ -28,6 +28,15 @@
  {
    mach_port_t recv;
    struct timeval before, after;
@@ -31,7 +33,7 @@ index 0192ff0..a1ba19c 100644
    const mach_msg_timeout_t ms
      = requested_time->tv_sec * 1000
      + (requested_time->tv_nsec + 999999) / 1000000;
-@@ -35,16 +44,22 @@ __nanosleep (const struct timespec *requested_time,
+@@ -36,16 +45,22 @@
  
    if (remaining && __gettimeofday (&before, NULL) < 0)
      return -1;

@@ -16,22 +16,20 @@ Subject: [PATCH] Implement SysV shared memory for GNU/Hurd.
         * sysdeps/mach/hurd/bits/posix_opt.h: Define _XOPEN_SHM to 1.
 
 ---
- hurd/Makefile                      |    3 +-
+ hurd/Makefile                      |    3 
  hurd/sysvshm.c                     |   96 ++++++++++++++
  hurd/sysvshm.h                     |   47 +++++++
- sysdeps/mach/hurd/bits/posix_opt.h |    4 +--
- sysdeps/mach/hurd/ftok.c           |   43 +++++++
- sysdeps/mach/hurd/shmat.c          |   78 ++++++++++++
+ sysdeps/mach/hurd/bits/posix_opt.h |    4 
+ sysdeps/mach/hurd/ftok.c           |   43 ++++++
+ sysdeps/mach/hurd/shmat.c          |   78 +++++++++++
  sysdeps/mach/hurd/shmctl.c         |  132 ++++++++++++++++++++
- sysdeps/mach/hurd/shmdt.c          |   51 ++++++++
- sysdeps/mach/hurd/shmget.c         |  242 ++++++++++++++++++++++++++++++++++++
+ sysdeps/mach/hurd/shmdt.c          |   51 +++++++
+ sysdeps/mach/hurd/shmget.c         |  242 +++++++++++++++++++++++++++++++++++++
  9 files changed, 693 insertions(+), 3 deletions(-)
 
-diff --git a/hurd/Makefile b/hurd/Makefile
-index ab5a848..ff6b7cb 100644
 --- a/hurd/Makefile
 +++ b/hurd/Makefile
-@@ -60,6 +60,7 @@ routines = hurdstartup hurdinit \
+@@ -60,6 +60,7 @@
  	   vpprintf \
  	   ports-get ports-set hurdports hurdmsg \
  	   errno-loc \
@@ -39,7 +37,7 @@ index ab5a848..ff6b7cb 100644
  	   $(sig) $(dtable) $(inlines) port-cleanup report-wait xattr
  sig	= hurdsig hurdfault siginfo hurd-raise preempt-sig \
  	  trampoline longjmp-ts catch-exc exc2signal hurdkill sigunwind \
-@@ -68,7 +69,7 @@ dtable	= dtable port2fd new-fd alloc-fd intern-fd \
+@@ -68,7 +69,7 @@
  	  getdport openport \
  	  fd-close fd-read fd-write hurdioctl ctty-input ctty-output
  inlines = $(inline-headers:%.h=%-inlines)
@@ -48,9 +46,6 @@ index ab5a848..ff6b7cb 100644
  	     faultexc.defs intr-rpc.defs intr-rpc.h intr-msg.h Notes
  
  # XXX this is a temporary hack; see hurdmalloc.h
-diff --git a/hurd/sysvshm.c b/hurd/sysvshm.c
-new file mode 100644
-index 0000000..292cc01
 --- /dev/null
 +++ b/hurd/sysvshm.c
 @@ -0,0 +1,96 @@
@@ -150,9 +145,6 @@ index 0000000..292cc01
 +  __mutex_unlock (&sysvshm_lock);
 +  return EINVAL;
 +}
-diff --git a/hurd/sysvshm.h b/hurd/sysvshm.h
-new file mode 100644
-index 0000000..0c561c8
 --- /dev/null
 +++ b/hurd/sysvshm.h
 @@ -0,0 +1,47 @@
@@ -203,9 +195,6 @@ index 0000000..0c561c8
 +/* Removes a segment attachment.  Returns its size if found, or EINVAL
 +   otherwise.  */
 +error_t __sysvshm_remove (void *addr, size_t *size);
-diff --git a/sysdeps/mach/hurd/ftok.c b/sysdeps/mach/hurd/ftok.c
-new file mode 100644
-index 0000000..8d8b5cb
 --- /dev/null
 +++ b/sysdeps/mach/hurd/ftok.c
 @@ -0,0 +1,43 @@
@@ -252,9 +241,6 @@ index 0000000..8d8b5cb
 +
 +  return key;
 +}
-diff --git a/sysdeps/mach/hurd/shmat.c b/sysdeps/mach/hurd/shmat.c
-new file mode 100644
-index 0000000..148a60c
 --- /dev/null
 +++ b/sysdeps/mach/hurd/shmat.c
 @@ -0,0 +1,78 @@
@@ -336,9 +322,6 @@ index 0000000..148a60c
 +}
 +
 +weak_alias(__shmat, shmat)
-diff --git a/sysdeps/mach/hurd/shmctl.c b/sysdeps/mach/hurd/shmctl.c
-new file mode 100644
-index 0000000..0d8eea6
 --- /dev/null
 +++ b/sysdeps/mach/hurd/shmctl.c
 @@ -0,0 +1,132 @@
@@ -474,9 +457,6 @@ index 0000000..0d8eea6
 +}
 +
 +weak_alias(__shmctl, shmctl)
-diff --git a/sysdeps/mach/hurd/shmdt.c b/sysdeps/mach/hurd/shmdt.c
-new file mode 100644
-index 0000000..cdafef0
 --- /dev/null
 +++ b/sysdeps/mach/hurd/shmdt.c
 @@ -0,0 +1,51 @@
@@ -531,9 +511,6 @@ index 0000000..cdafef0
 +}
 +
 +weak_alias(__shmdt, shmdt)
-diff --git a/sysdeps/mach/hurd/shmget.c b/sysdeps/mach/hurd/shmget.c
-new file mode 100644
-index 0000000..6620472
 --- /dev/null
 +++ b/sysdeps/mach/hurd/shmget.c
 @@ -0,0 +1,242 @@
@@ -779,11 +756,9 @@ index 0000000..6620472
 +}
 +
 +weak_alias(__shmget, shmget)
-diff --git a/sysdeps/mach/hurd/bits/posix_opt.h b/sysdeps/mach/hurd/bits/posix_opt.h
-index 775c921..e25ceb5 100644
 --- a/sysdeps/mach/hurd/bits/posix_opt.h
 +++ b/sysdeps/mach/hurd/bits/posix_opt.h
-@@ -60,8 +60,8 @@
+@@ -69,8 +69,8 @@
  /* X/Open thread realtime support is not supported.  */
  #undef _XOPEN_REALTIME_THREADS
  
@@ -794,5 +769,3 @@ index 775c921..e25ceb5 100644
  
  /* We do not have the POSIX threads interface.  */
  #define _POSIX_THREADS	-1
--- 
-tg: (0234227..) t/sysvshm (depends on: baseline)

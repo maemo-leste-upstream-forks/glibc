@@ -4,8 +4,13 @@ Date:   Thu May 10 12:43:01 2012 -0700
 
     Hurd: O_CLOEXEC in rtld
 
-diff --git a/hurd/hurd/fd.h b/hurd/hurd/fd.h
-index 5f3ee6a..5044f97 100644
+---
+ hurd/hurd/fd.h                |    6 +++---
+ hurd/intern-fd.c              |    4 ++--
+ hurd/port2fd.c                |    4 ++--
+ sysdeps/mach/hurd/dl-sysdep.c |    5 ++---
+ 4 files changed, 9 insertions(+), 10 deletions(-)
+
 --- a/hurd/hurd/fd.h
 +++ b/hurd/hurd/fd.h
 @@ -1,6 +1,5 @@
@@ -16,7 +21,7 @@ index 5f3ee6a..5044f97 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -199,7 +198,8 @@ extern void _hurd_port2fd (struct hurd_fd *fd, io_t port, int flags);
+@@ -222,7 +221,8 @@
  
  /* Allocate a new file descriptor and install PORT in it (doing any
     appropriate ctty magic); consumes a user reference on PORT.  FLAGS are
@@ -26,8 +31,6 @@ index 5f3ee6a..5044f97 100644
  
     If the descriptor table is full, set errno, and return -1.
     If DEALLOC is nonzero, deallocate PORT first.  */
-diff --git a/hurd/intern-fd.c b/hurd/intern-fd.c
-index 52e0606..ac89173 100644
 --- a/hurd/intern-fd.c
 +++ b/hurd/intern-fd.c
 @@ -1,4 +1,4 @@
@@ -36,7 +39,7 @@ index 52e0606..ac89173 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -19,7 +19,7 @@
+@@ -20,7 +20,7 @@
  #include <hurd/fd.h>
  
  /* Allocate a new file descriptor and install PORT in it.  FLAGS are as for
@@ -45,8 +48,6 @@ index 52e0606..ac89173 100644
  
     If the descriptor table is full, set errno, and return -1.
     If DEALLOC is nonzero, deallocate PORT first.  */
-diff --git a/hurd/port2fd.c b/hurd/port2fd.c
-index bef07ad..451d630 100644
 --- a/hurd/port2fd.c
 +++ b/hurd/port2fd.c
 @@ -1,4 +1,4 @@
@@ -55,7 +56,7 @@ index bef07ad..451d630 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -22,7 +22,7 @@
+@@ -23,7 +23,7 @@
  #include <fcntl.h>
  
  /* Store PORT in file descriptor D, doing appropriate ctty magic.
@@ -64,8 +65,6 @@ index bef07ad..451d630 100644
     D should be locked, and will not be unlocked.  */
  
  void
-diff --git a/sysdeps/mach/hurd/dl-sysdep.c b/sysdeps/mach/hurd/dl-sysdep.c
-index d928cd2..26a212e 100644
 --- a/sysdeps/mach/hurd/dl-sysdep.c
 +++ b/sysdeps/mach/hurd/dl-sysdep.c
 @@ -1,6 +1,5 @@
@@ -76,7 +75,7 @@ index d928cd2..26a212e 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -315,7 +314,7 @@ open_file (const char *file_name, int flags,
+@@ -336,7 +335,7 @@
        return MACH_PORT_NULL;
      }
  

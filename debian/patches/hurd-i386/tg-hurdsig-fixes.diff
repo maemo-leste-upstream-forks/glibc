@@ -15,11 +15,9 @@ earlier this month.
     26d091a Hurd signals: fix uninitialized value.
 
 ---
- hurd/hurdsig.c |  274 +++++++++++++++++++++++++++++++++-----------------------
- 1 files changed, 161 insertions(+), 113 deletions(-)
+ hurd/hurdsig.c |  274 +++++++++++++++++++++++++++++++++------------------------
+ 1 file changed, 161 insertions(+), 113 deletions(-)
 
-diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
-index 7a6b1d5..74a01a6 100644
 --- a/hurd/hurdsig.c
 +++ b/hurd/hurdsig.c
 @@ -1,4 +1,4 @@
@@ -28,7 +26,7 @@ index 7a6b1d5..74a01a6 100644
     	Free Software Foundation, Inc.
     This file is part of the GNU C Library.
  
-@@ -443,6 +443,30 @@ abort_all_rpcs (int signo, struct machine_thread_all_state *state, int live)
+@@ -443,6 +443,30 @@
        }
  }
  
@@ -59,7 +57,7 @@ index 7a6b1d5..74a01a6 100644
  struct hurd_signal_preemptor *_hurdsig_preemptors = 0;
  sigset_t _hurdsig_preempted_set;
  
-@@ -453,35 +477,18 @@ weak_alias (_hurdsig_preemptors, _hurdsig_preempters)
+@@ -453,35 +477,18 @@
  #define STOPSIGS (sigmask (SIGTTIN) | sigmask (SIGTTOU) | \
  		  sigmask (SIGSTOP) | sigmask (SIGTSTP))
  
@@ -102,7 +100,7 @@ index 7a6b1d5..74a01a6 100644
    /* Mark the signal as pending.  */
    void mark_pending (void)
      {
-@@ -545,19 +552,23 @@ _hurd_internal_post_signal (struct hurd_sigstate *ss,
+@@ -545,19 +552,23 @@
  	ss_suspended = 1;
      }
  
@@ -131,7 +129,7 @@ index 7a6b1d5..74a01a6 100644
    thread_state.set = 0;		/* We know nothing.  */
  
    __spin_lock (&ss->lock);
-@@ -620,7 +631,7 @@ _hurd_internal_post_signal (struct hurd_sigstate *ss,
+@@ -620,7 +631,7 @@
  	    suspend ();
  	  __spin_unlock (&ss->lock);
  	  reply ();
@@ -140,7 +138,7 @@ index 7a6b1d5..74a01a6 100644
  	}
  
        handler = ss->actions[signo].sa_handler;
-@@ -863,7 +874,7 @@ _hurd_internal_post_signal (struct hurd_sigstate *ss,
+@@ -863,7 +874,7 @@
  					 as a unit.  */
  				      crit ? 0 : signo, 1,
  				      &thread_state, &state_changed,
@@ -149,7 +147,7 @@ index 7a6b1d5..74a01a6 100644
  		 != MACH_PORT_NULL);
  
  	    if (crit)
-@@ -949,6 +960,9 @@ _hurd_internal_post_signal (struct hurd_sigstate *ss,
+@@ -949,6 +960,9 @@
  	    && signo != SIGILL && signo != SIGTRAP)
  	  ss->actions[signo].sa_handler = SIG_DFL;
  
@@ -159,7 +157,7 @@ index 7a6b1d5..74a01a6 100644
  	/* Start the thread running the handler (or possibly waiting for an
  	   RPC reply before running the handler).  */
  	err = __thread_set_state (ss->thread, MACHINE_THREAD_STATE_FLAVOR,
-@@ -962,95 +976,129 @@ _hurd_internal_post_signal (struct hurd_sigstate *ss,
+@@ -962,95 +976,129 @@
        }
      }
  
@@ -370,5 +368,3 @@ index 7a6b1d5..74a01a6 100644
  }
  
  /* Decide whether REFPORT enables the sender to send us a SIGNO signal.
--- 
-tg: (0234227..) t/hurdsig-fixes (depends on: baseline)

@@ -13,11 +13,9 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
  Makerules |   39 +++++++++++++++++++++++++++++++++++++++
  1 file changed, 39 insertions(+)
 
-diff --git a/Makerules b/Makerules
-index cf5fb38..19bd314 100644
 --- a/Makerules
 +++ b/Makerules
-@@ -514,6 +514,45 @@ $(common-objpfx)shlib.lds: $(common-objpfx)config.make $(..)Makerules
+@@ -531,6 +531,45 @@
  		 PROVIDE(__start___libc_thread_subfreeres = .);\
  		 __libc_thread_subfreeres : { *(__libc_thread_subfreeres) }\
  		 PROVIDE(__stop___libc_thread_subfreeres = .);\
@@ -61,7 +59,5 @@ index cf5fb38..19bd314 100644
 +		 __pthread_init : { *(__pthread_init) }\
 +		 PROVIDE(__stop___pthread_init = .);\
  		 /DISCARD/ : { *(.gnu.glibc-stub.*) }@'
- 	test -s $@T
  	mv -f $@T $@
--- 
-tg: (b013040..) t/hooks (depends on: baseline)
+ common-generated += shlib.lds

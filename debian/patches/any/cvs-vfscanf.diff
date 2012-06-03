@@ -11,11 +11,13 @@
 	(_IO_vfscanf_internal): Remove reteof.  Use errout after setting done.
 	Free memory block if necessary.
 
-diff --git a/stdio-common/vfscanf.c b/stdio-common/vfscanf.c
-index 9d312d5..0e71deb 100644
+---
+ stdio-common/vfscanf.c |  124 ++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 97 insertions(+), 27 deletions(-)
+
 --- a/stdio-common/vfscanf.c
 +++ b/stdio-common/vfscanf.c
-@@ -265,16 +265,39 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -272,16 +272,39 @@
    CHAR_T *wp = NULL;		/* Workspace.  */
    size_t wpmax = 0;		/* Maximal size of workspace.  */
    size_t wpsize;		/* Currently used bytes in workspace.  */
@@ -60,7 +62,7 @@ index 9d312d5..0e71deb 100644
  	}								    \
        wp[wpsize++] = (Ch);						    \
      }									    \
-@@ -670,7 +693,10 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -690,7 +713,10 @@
  		      if (Str != NULL)					      \
  			add_ptr_to_free (strptr);			      \
  		      else if (flags & POSIX_MALLOC)			      \
@@ -72,7 +74,7 @@ index 9d312d5..0e71deb 100644
  		    }							      \
  		  else							      \
  		    Str = ARG (Type *);					      \
-@@ -711,8 +737,11 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -731,8 +757,11 @@
  			  newstr = (char *) realloc (*strptr,
  						     strleng + MB_CUR_MAX);
  			  if (newstr == NULL)
@@ -86,7 +88,7 @@ index 9d312d5..0e71deb 100644
  			  else
  			    {
  			      *strptr = newstr;
-@@ -758,8 +787,11 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -778,8 +807,11 @@
  				 effort.  */
  			      str = (char *) realloc (*strptr, strsize + 1);
  			      if (str == NULL)
@@ -100,7 +102,7 @@ index 9d312d5..0e71deb 100644
  			      else
  				{
  				  *strptr = (char *) str;
-@@ -828,8 +860,12 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -850,8 +882,12 @@
  						      (strsize + 1)
  						      * sizeof (wchar_t));
  			  if (wstr == NULL)
@@ -115,7 +117,7 @@ index 9d312d5..0e71deb 100644
  			  else
  			    {
  			      *strptr = (char *) wstr;
-@@ -879,8 +915,11 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -901,8 +937,11 @@
  						    ((strsize + 1)
  						     * sizeof (wchar_t)));
  			if (wstr == NULL)
@@ -129,7 +131,7 @@ index 9d312d5..0e71deb 100644
  			else
  			  {
  			    *strptr = (char *) wstr;
-@@ -992,7 +1031,10 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -1014,7 +1053,10 @@
  			    if (newstr == NULL)
  			      {
  				if (flags & POSIX_MALLOC)
@@ -141,7 +143,7 @@ index 9d312d5..0e71deb 100644
  				/* We lose.  Oh well.  Terminate the
  				   string and stop converting,
  				   so at least we don't skip any input.  */
-@@ -1042,7 +1084,10 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -1064,7 +1106,10 @@
  			      if (str == NULL)
  				{
  				  if (flags & POSIX_MALLOC)
@@ -153,7 +155,7 @@ index 9d312d5..0e71deb 100644
  				  /* We lose.  Oh well.  Terminate the
  				     string and stop converting,
  				     so at least we don't skip any input.  */
-@@ -1088,7 +1133,10 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -1110,7 +1155,10 @@
  		      if (newstr == NULL)
  			{
  			  if (flags & POSIX_MALLOC)
@@ -165,7 +167,7 @@ index 9d312d5..0e71deb 100644
  			  /* We lose.  Oh well.  Terminate the string
  			     and stop converting, so at least we don't
  			     skip any input.  */
-@@ -1170,7 +1218,10 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -1194,7 +1242,10 @@
  			    if (wstr == NULL)
  			      {
  				if (flags & POSIX_MALLOC)
@@ -177,7 +179,7 @@ index 9d312d5..0e71deb 100644
  				/* We lose.  Oh well.  Terminate the string
  				   and stop converting, so at least we don't
  				   skip any input.  */
-@@ -1242,7 +1293,10 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -1266,7 +1317,10 @@
  			  if (wstr == NULL)
  			    {
  			      if (flags & POSIX_MALLOC)
@@ -189,7 +191,7 @@ index 9d312d5..0e71deb 100644
  			      /* We lose.  Oh well.  Terminate the
  				 string and stop converting, so at
  				 least we don't skip any input.  */
-@@ -2433,7 +2487,10 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -2470,7 +2524,10 @@
  			      if (wstr == NULL)
  				{
  				  if (flags & POSIX_MALLOC)
@@ -201,7 +203,7 @@ index 9d312d5..0e71deb 100644
  				  /* We lose.  Oh well.  Terminate the string
  				     and stop converting, so at least we don't
  				     skip any input.  */
-@@ -2515,7 +2572,10 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -2552,7 +2609,10 @@
  			      if (wstr == NULL)
  				{
  				  if (flags & POSIX_MALLOC)
@@ -213,7 +215,7 @@ index 9d312d5..0e71deb 100644
  				  /* We lose.  Oh well.  Terminate the
  				     string and stop converting,
  				     so at least we don't skip any input.  */
-@@ -2657,7 +2717,10 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -2694,7 +2754,10 @@
  			      if (newstr == NULL)
  				{
  				  if (flags & POSIX_MALLOC)
@@ -225,7 +227,7 @@ index 9d312d5..0e71deb 100644
  				  /* We lose.  Oh well.  Terminate the string
  				     and stop converting, so at least we don't
  				     skip any input.  */
-@@ -2722,7 +2785,10 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -2759,7 +2822,10 @@
  				  goto allocagain;
  				}
  			      if (flags & POSIX_MALLOC)
@@ -237,7 +239,7 @@ index 9d312d5..0e71deb 100644
  			      /* We lose.  Oh well.  Terminate the
  				 string and stop converting,
  				 so at least we don't skip any input.  */
-@@ -2765,7 +2831,10 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -2802,7 +2868,10 @@
  		      if (newstr == NULL)
  			{
  			  if (flags & POSIX_MALLOC)
@@ -249,7 +251,7 @@ index 9d312d5..0e71deb 100644
  			  /* We lose.  Oh well.  Terminate the string
  			     and stop converting, so at least we don't
  			     skip any input.  */
-@@ -2828,12 +2897,14 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -2865,12 +2934,14 @@
    /* Unlock stream.  */
    UNLOCK_STREAM (s);
  
@@ -266,7 +268,7 @@ index 9d312d5..0e71deb 100644
        if (__builtin_expect (ptrs_to_free != NULL, 0))
  	{
  	  struct ptrs_to_free *p = ptrs_to_free;
-@@ -2848,7 +2919,6 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+@@ -2885,7 +2956,6 @@
  	      ptrs_to_free = p;
  	    }
  	}

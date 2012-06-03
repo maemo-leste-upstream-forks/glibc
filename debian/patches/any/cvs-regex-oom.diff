@@ -10,11 +10,14 @@
 	buffer.
 	Patches mostly by Emil Wojak <emil@wojak.eu>.
 
-diff --git a/posix/regex_internal.c b/posix/regex_internal.c
-index 8183a29..285ae3b 100644
+---
+ posix/regex_internal.c |   24 ++++++++++++++----------
+ posix/regexec.c        |    8 +++++---
+ 2 files changed, 19 insertions(+), 13 deletions(-)
+
 --- a/posix/regex_internal.c
 +++ b/posix/regex_internal.c
-@@ -237,13 +237,8 @@ build_wcs_buffer (re_string_t *pstr)
+@@ -237,13 +237,8 @@
        else
  	p = (const char *) pstr->raw_mbs + pstr->raw_mbs_idx + byte_idx;
        mbclen = __mbrtowc (&wc, p, remain_len, &pstr->cur_state);
@@ -30,7 +33,7 @@ index 8183a29..285ae3b 100644
  	{
  	  /* We treat these cases as a singlebyte character.  */
  	  mbclen = 1;
-@@ -252,6 +247,12 @@ build_wcs_buffer (re_string_t *pstr)
+@@ -252,6 +247,12 @@
  	    wc = pstr->trans[wc];
  	  pstr->cur_state = prev_st;
  	}
@@ -43,7 +46,7 @@ index 8183a29..285ae3b 100644
  
        /* Write wide character and padding.  */
        pstr->wcs[byte_idx++] = wc;
-@@ -334,9 +335,11 @@ build_wcs_upper_buffer (re_string_t *pstr)
+@@ -334,9 +335,11 @@
  	      for (remain_len = byte_idx + mbclen - 1; byte_idx < remain_len ;)
  		pstr->wcs[byte_idx++] = WEOF;
  	    }
@@ -57,7 +60,7 @@ index 8183a29..285ae3b 100644
  	      int ch = pstr->raw_mbs[pstr->raw_mbs_idx + byte_idx];
  	      pstr->mbs[byte_idx] = ch;
  	      /* And also cast it to wide char.  */
-@@ -449,7 +452,8 @@ build_wcs_upper_buffer (re_string_t *pstr)
+@@ -449,7 +452,8 @@
  	    for (remain_len = byte_idx + mbclen - 1; byte_idx < remain_len ;)
  	      pstr->wcs[byte_idx++] = WEOF;
  	  }
@@ -67,11 +70,9 @@ index 8183a29..285ae3b 100644
  	  {
  	    /* It is an invalid character or '\0'.  Just use the byte.  */
  	    int ch = pstr->raw_mbs[pstr->raw_mbs_idx + src_idx];
-diff --git a/posix/regexec.c b/posix/regexec.c
-index 8d4475c..9e0c565 100644
 --- a/posix/regexec.c
 +++ b/posix/regexec.c
-@@ -1156,7 +1156,8 @@ check_matching (re_match_context_t *mctx, int fl_longest_match,
+@@ -1142,7 +1142,8 @@
        re_dfastate_t *old_state = cur_state;
        int next_char_idx = re_string_cur_idx (&mctx->input) + 1;
  
@@ -81,7 +82,7 @@ index 8d4475c..9e0c565 100644
  	  || (BE (next_char_idx >= mctx->input.valid_len, 0)
  	      && mctx->input.valid_len < mctx->input.len))
  	{
-@@ -1732,7 +1733,8 @@ clean_state_log_if_needed (re_match_context_t *mctx, int next_state_log_idx)
+@@ -1718,7 +1719,8 @@
  {
    int top = mctx->state_log_top;
  
@@ -91,7 +92,7 @@ index 8d4475c..9e0c565 100644
        || (next_state_log_idx >= mctx->input.valid_len
  	  && mctx->input.valid_len < mctx->input.len))
      {
-@@ -4111,7 +4113,7 @@ extend_buffers (re_match_context_t *mctx)
+@@ -4105,7 +4107,7 @@
      return REG_ESPACE;
  
    /* Double the lengthes of the buffers.  */

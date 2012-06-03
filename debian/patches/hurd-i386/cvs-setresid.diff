@@ -4,8 +4,11 @@ Date:   Thu May 10 15:34:53 2012 -0700
 
     Hurd: Fix setres[ug]id handling of -1
 
-diff --git a/sysdeps/mach/hurd/setresgid.c b/sysdeps/mach/hurd/setresgid.c
-index 9d5885b..eebd364 100644
+---
+ sysdeps/mach/hurd/setresgid.c |   76 +++++++++++++++++++++++++++++++++---------
+ sysdeps/mach/hurd/setresuid.c |   75 +++++++++++++++++++++++++++++++++--------
+ 2 files changed, 122 insertions(+), 29 deletions(-)
+
 --- a/sysdeps/mach/hurd/setresgid.c
 +++ b/sysdeps/mach/hurd/setresgid.c
 @@ -1,5 +1,5 @@
@@ -15,7 +18,7 @@ index 9d5885b..eebd364 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -28,7 +28,6 @@ __setresgid (gid_t rgid, gid_t egid, gid_t sgid)
+@@ -29,7 +29,6 @@
  {
    auth_t newauth;
    error_t err;
@@ -23,7 +26,7 @@ index 9d5885b..eebd364 100644
  
    HURD_CRITICAL_BEGIN;
    __mutex_lock (&_hurd_id.lock);
-@@ -37,31 +36,78 @@ __setresgid (gid_t rgid, gid_t egid, gid_t sgid)
+@@ -38,31 +37,78 @@
    if (!err)
      {
        /* Make a new auth handle which has EGID as the first element in the
@@ -38,7 +41,9 @@ index 9d5885b..eebd364 100644
 +      newgen = _hurd_id.gen.gids;
 +      ngen = _hurd_id.gen.ngids;
 +      if (egid != -1)
-+	{
+ 	{
+-	  _hurd_id.gen.gids[0] = egid;
+-	  _hurd_id.valid = 0;
 +	  if (_hurd_id.gen.ngids == 0)
 +	    {
 +	      /* No effective gids now.  The new set will be just UID.  */
@@ -50,13 +55,15 @@ index 9d5885b..eebd364 100644
 +	      _hurd_id.gen.gids[0] = egid;
 +	      _hurd_id.valid = 0;
 +	    }
-+	}
+ 	}
+-      if (_hurd_id.aux.ngids > 1)
 +
 +      newaux = _hurd_id.aux.gids;
 +      naux = _hurd_id.aux.ngids;
 +      if (rgid != -1)
  	{
--	  _hurd_id.gen.gids[0] = egid;
+-	  _hurd_id.aux.gids[0] = rgid;
+-	  _hurd_id.aux.gids[1] = sgid;
 -	  _hurd_id.valid = 0;
 +	  if (_hurd_id.aux.ngids == 0)
 +	    {
@@ -68,14 +75,10 @@ index 9d5885b..eebd364 100644
 +	      _hurd_id.aux.gids[0] = rgid;
 +	      _hurd_id.valid = 0;
 +	    }
- 	}
--      if (_hurd_id.aux.ngids > 1)
++	}
 +
 +      if (sgid != -1)
- 	{
--	  _hurd_id.aux.gids[0] = rgid;
--	  _hurd_id.aux.gids[1] = sgid;
--	  _hurd_id.valid = 0;
++	{
 +	  if (rgid == -1)
 +	    {
 +	      if (_hurd_id.aux.ngids >= 1)
@@ -115,8 +118,6 @@ index 9d5885b..eebd364 100644
    __mutex_unlock (&_hurd_id.lock);
    HURD_CRITICAL_END;
  
-diff --git a/sysdeps/mach/hurd/setresuid.c b/sysdeps/mach/hurd/setresuid.c
-index 35aea85..751763f 100644
 --- a/sysdeps/mach/hurd/setresuid.c
 +++ b/sysdeps/mach/hurd/setresuid.c
 @@ -1,5 +1,5 @@
@@ -126,7 +127,7 @@ index 35aea85..751763f 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -28,7 +28,6 @@ __setresuid (uid_t ruid, uid_t euid, uid_t suid)
+@@ -29,7 +29,6 @@
  {
    auth_t newauth;
    error_t err;
@@ -134,7 +135,7 @@ index 35aea85..751763f 100644
  
    HURD_CRITICAL_BEGIN;
    __mutex_lock (&_hurd_id.lock);
-@@ -37,26 +36,74 @@ __setresuid (uid_t ruid, uid_t euid, uid_t suid)
+@@ -38,26 +37,74 @@
    if (!err)
      {
        /* Make a new auth handle which has EUID as the first element in the

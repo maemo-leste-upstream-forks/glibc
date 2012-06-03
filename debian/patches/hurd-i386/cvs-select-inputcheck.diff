@@ -4,8 +4,10 @@ Date:   Thu May 10 15:32:53 2012 -0700
 
     Hurd: _hurd_select: check for invalid parameter values
 
-diff --git a/hurd/hurdselect.c b/hurd/hurdselect.c
-index 25d9d9f..21ba5f4 100644
+---
+ hurd/hurdselect.c |   28 +++++++++++++++++++++-------
+ 1 file changed, 21 insertions(+), 7 deletions(-)
+
 --- a/hurd/hurdselect.c
 +++ b/hurd/hurdselect.c
 @@ -1,6 +1,5 @@
@@ -16,7 +18,7 @@ index 25d9d9f..21ba5f4 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -49,10 +48,7 @@ _hurd_select (int nfds,
+@@ -50,10 +49,7 @@
    error_t err;
    fd_set rfds, wfds, xfds;
    int firstfd, lastfd;
@@ -28,7 +30,7 @@ index 25d9d9f..21ba5f4 100644
    struct
      {
        struct hurd_userlink ulink;
-@@ -71,6 +67,24 @@ _hurd_select (int nfds,
+@@ -72,6 +68,24 @@
    assert (sizeof (union typeword) == sizeof (mach_msg_type_t));
    assert (sizeof (uint32_t) == sizeof (mach_msg_type_t));
  
@@ -53,7 +55,7 @@ index 25d9d9f..21ba5f4 100644
    if (sigmask && __sigprocmask (SIG_SETMASK, sigmask, &oset))
      return -1;
  
-@@ -364,7 +378,7 @@ _hurd_select (int nfds,
+@@ -365,7 +379,7 @@
  		}
  
  	      /* Look up the respondent's reply port and record its

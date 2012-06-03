@@ -15,6 +15,10 @@ In ptsname do not set errno manually, since ptsname_r has set it already.
 	(__ptsname_r): Set errno and return it on __term_get_peername failure.
 	Set errno if the buffer is too short.  Make PEERNAME a string_t,
 	and check its length with __strnlen.
+---
+ sysdeps/mach/hurd/ptsname.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
 --- a/sysdeps/mach/hurd/ptsname.c
 +++ b/sysdeps/mach/hurd/ptsname.c
 @@ -35,8 +35,6 @@

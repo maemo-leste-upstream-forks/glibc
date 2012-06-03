@@ -1,5 +1,12 @@
---- eglibc-2.13.old/elf/cache.c	2007-10-15 21:14:17.000000000 +0100
-+++ eglibc-2.13/elf/cache.c	2011-11-03 21:56:14.000000000 +0000
+---
+ elf/cache.c                                    |    2 
+ ports/sysdeps/unix/sysv/linux/arm/dl-cache.h   |   34 ++++
+ ports/sysdeps/unix/sysv/linux/arm/readelflib.c |  186 +++++++++++++++++++++++++
+ sysdeps/generic/ldconfig.h                     |    1 
+ 4 files changed, 223 insertions(+)
+
+--- a/elf/cache.c
++++ b/elf/cache.c
 @@ -91,6 +91,8 @@
        break;
      case FLAG_MIPS64_LIBN64:
@@ -9,8 +16,8 @@
      case 0:
        break;
      default:
---- eglibc-2.13.old/sysdeps/generic/ldconfig.h	2007-09-12 17:26:54.000000000 +0100
-+++ eglibc-2.13/sysdeps/generic/ldconfig.h	2011-11-09 14:48:44.481643107 +0000
+--- a/sysdeps/generic/ldconfig.h
++++ b/sysdeps/generic/ldconfig.h
 @@ -34,6 +34,7 @@
  #define FLAG_POWERPC_LIB64	0x0500
  #define FLAG_MIPS64_LIBN32	0x0600
@@ -19,8 +26,8 @@
  
  /* Name of auxiliary cache.  */
  #define _PATH_LDCONFIG_AUX_CACHE "/var/cache/ldconfig/aux-cache"
---- eglibc-2.13.old/ports/sysdeps/unix/sysv/linux/arm/dl-cache.h	1970-01-01 01:00:00.000000000 +0100
-+++ eglibc-2.13/ports/sysdeps/unix/sysv/linux/arm/dl-cache.h	2011-11-09 16:14:19.939065832 +0000
+--- /dev/null
++++ b/ports/sysdeps/unix/sysv/linux/arm/dl-cache.h
 @@ -0,0 +1,34 @@
 +/* Support for reading /etc/ld.so.cache files written by Linux ldconfig.
 +   Copyright (C) 2011 Free Software Foundation, Inc.
@@ -56,8 +63,8 @@
 +#endif
 +
 +#include_next <dl-cache.h>
---- eglibc-2.13.old/ports/sysdeps/unix/sysv/linux/arm/readelflib.c	1970-01-01 01:00:00.000000000 +0100
-+++ eglibc-2.13/ports/sysdeps/unix/sysv/linux/arm/readelflib.c	2011-11-09 16:14:25.797641640 +0000
+--- /dev/null
++++ b/ports/sysdeps/unix/sysv/linux/arm/readelflib.c
 @@ -0,0 +1,186 @@
 +/* Copyright (C) 2011 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.

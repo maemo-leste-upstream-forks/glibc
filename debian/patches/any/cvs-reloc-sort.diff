@@ -4,11 +4,13 @@
 	* elf/dl-open.c (dl_open_worker): Sort objects by dependency before
 	relocation.
 
-diff --git a/elf/dl-open.c b/elf/dl-open.c
-index a0b5c50..a56bdc1 100644
+---
+ elf/dl-open.c |  126 +++++++++++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 95 insertions(+), 31 deletions(-)
+
 --- a/elf/dl-open.c
 +++ b/elf/dl-open.c
-@@ -302,45 +302,109 @@ dl_open_worker (void *a)
+@@ -303,45 +303,109 @@
    if (GLRO(dl_lazy))
      reloc_mode |= mode & RTLD_LAZY;
  
@@ -64,6 +66,17 @@ index a0b5c50..a56bdc1 100644
 -		 variable.  If was NULL but is not NULL afterwars we must
 -		 start the profiling.  */
 -	      struct link_map *old_profile_map = GL(dl_profile_map);
+-
+-	      _dl_relocate_object (l, l->l_scope, reloc_mode | RTLD_LAZY, 1);
+-
+-	      if (old_profile_map == NULL && GL(dl_profile_map) != NULL)
+-		{
+-		  /* We must prepare the profiling.  */
+-		  _dl_start_profile ();
+-
+-		  /* Prevent unloading the object.  */
+-		  GL(dl_profile_map)->l_flags_1 |= DF_1_NODELETE;
+-		}
 +	      struct link_map **runp = maps[k]->l_initfini;
 +	      if (runp != NULL)
 +		/* Look through the dependencies of the object.  */
@@ -91,28 +104,23 @@ index a0b5c50..a56bdc1 100644
 +		    }
 +
 +	      --k;
-+	    }
- 
--	      _dl_relocate_object (l, l->l_scope, reloc_mode | RTLD_LAZY, 1);
+ 	    }
+-	  else
+-#endif
+-	    _dl_relocate_object (l, l->l_scope, reloc_mode, 0);
++
 +	  if (++i == nmaps)
 +	    break;
 +	next_clear:
 +	  memset (&seen[i], 0, (nmaps - i) * sizeof (seen[0]));
 +	next:;
-+	}
+ 	}
 +    }
- 
--	      if (old_profile_map == NULL && GL(dl_profile_map) != NULL)
--		{
--		  /* We must prepare the profiling.  */
--		  _dl_start_profile ();
++
 +  for (size_t i = nmaps; i-- > 0; )
 +    {
 +      l = maps[i];
- 
--		  /* Prevent unloading the object.  */
--		  GL(dl_profile_map)->l_flags_1 |= DF_1_NODELETE;
--		}
++
 +#ifdef SHARED
 +      if (__builtin_expect (GLRO(dl_profile) != NULL, 0))
 +	{
@@ -122,7 +130,10 @@ index a0b5c50..a56bdc1 100644
 +	     variable.  If it was NULL but is not NULL afterwars we must
 +	     start the profiling.  */
 +	  struct link_map *old_profile_map = GL(dl_profile_map);
-+
+ 
+-      if (l == new)
+-	break;
+-      l = l->l_prev;
 +	  _dl_relocate_object (l, l->l_scope, reloc_mode | RTLD_LAZY, 1);
 +
 +	  if (old_profile_map == NULL && GL(dl_profile_map) != NULL)
@@ -132,15 +143,8 @@ index a0b5c50..a56bdc1 100644
 +
 +	      /* Prevent unloading the object.  */
 +	      GL(dl_profile_map)->l_flags_1 |= DF_1_NODELETE;
- 	    }
--	  else
--#endif
--	    _dl_relocate_object (l, l->l_scope, reloc_mode, 0);
- 	}
--
--      if (l == new)
--	break;
--      l = l->l_prev;
++	    }
++	}
 +      else
 +#endif
 +	_dl_relocate_object (l, l->l_scope, reloc_mode, 0);

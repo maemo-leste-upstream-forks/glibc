@@ -1,8 +1,14 @@
 http://sources.redhat.com/bugzilla/show_bug.cgi?id=12193
 
+---
+ ports/sysdeps/mips/dl-machine.h  |   12 ++++++
+ ports/sysdeps/mips/dl-procinfo.c |   64 ++++++++++++++++++++++++++++++++++++
+ ports/sysdeps/mips/dl-procinfo.h |   68 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 144 insertions(+)
+
 --- a/ports/sysdeps/mips/dl-machine.h
 +++ b/ports/sysdeps/mips/dl-machine.h
-@@ -305,6 +305,18 @@
+@@ -297,6 +297,18 @@
  #  define ARCH_LA_PLTEXIT mips_n64_gnu_pltexit
  # endif
  
@@ -21,7 +27,7 @@ http://sources.redhat.com/bugzilla/show_bug.cgi?id=12193
  /* For a non-writable PLT, rewrite the .got.plt entry at RELOC_ADDR to
     point at the symbol with address VALUE.  For a writable PLT, rewrite
     the corresponding PLT entry instead.  */
---- a/ports/sysdeps/mips/dl-procinfo.c
+--- /dev/null
 +++ b/ports/sysdeps/mips/dl-procinfo.c
 @@ -0,0 +1,64 @@
 +/* Data for Mips version of processor capability information.
@@ -88,9 +94,8 @@ http://sources.redhat.com/bugzilla/show_bug.cgi?id=12193
 +
 +#undef PROCINFO_DECL
 +#undef PROCINFO_CLASS
-diff -Nur eglibc-2.11.2/ports/sysdeps/mips/dl-procinfo.h eglibc-2.11.2.new/ports/sysdeps/mips/dl-procinfo.h
---- eglibc-2.11.2/ports/sysdeps/mips/dl-procinfo.h	1970-01-01 01:00:00.000000000 +0100
-+++ eglibc-2.11.2.new/ports/sysdeps/mips/dl-procinfo.h	2010-11-03 19:16:37.000000000 +0100
+--- /dev/null
++++ b/ports/sysdeps/mips/dl-procinfo.h
 @@ -0,0 +1,68 @@
 +/* Mips version of processor capability information handling macros.
 +   Copyright (C) 2007 Free Software Foundation, Inc.

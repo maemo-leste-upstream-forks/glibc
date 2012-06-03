@@ -8,24 +8,22 @@ glibc-2.8/debian/patches/hurd-i386/submitted-extern_inline.diff 3057
 Probably all done by Samuel Thibault.
 
 ---
- hurd/hurd.h                             |    4 ++++
- hurd/hurd/fd.h                          |   20 ++++++++++++++++++++
- hurd/hurd/port.h                        |   31 +++++++++++++++++++++++++++++++
- hurd/hurd/signal.h                      |   16 +++++++++++++---
- hurd/hurd/threadvar.h                   |    5 +++++
- hurd/hurd/userlink.h                    |   14 ++++++++++++++
- mach/lock-intern.h                      |   20 ++++++++++++++++++++
- mach/mach/mig_support.h                 |    3 +++
- mach/spin-lock.c                        |    1 +
- sysdeps/generic/machine-lock.h          |   12 ++++++++++++
- sysdeps/generic/machine-sp.h            |    4 ++++
- sysdeps/mach/i386/machine-lock.h        |   12 ++++++++++++
- sysdeps/mach/powerpc/machine-lock.h     |   12 ++++++++++++
- sysdeps/mach/powerpc/machine-sp.h       |    4 ++++
+ hurd/hurd.h                         |    4 ++++
+ hurd/hurd/fd.h                      |   20 ++++++++++++++++++++
+ hurd/hurd/port.h                    |   31 +++++++++++++++++++++++++++++++
+ hurd/hurd/signal.h                  |   16 +++++++++++++---
+ hurd/hurd/threadvar.h               |    5 +++++
+ hurd/hurd/userlink.h                |   14 ++++++++++++++
+ mach/lock-intern.h                  |   20 ++++++++++++++++++++
+ mach/mach/mig_support.h             |    3 +++
+ mach/spin-lock.c                    |    1 +
+ sysdeps/generic/machine-lock.h      |   12 ++++++++++++
+ sysdeps/generic/machine-sp.h        |    4 ++++
+ sysdeps/mach/i386/machine-lock.h    |   12 ++++++++++++
+ sysdeps/mach/powerpc/machine-lock.h |   12 ++++++++++++
+ sysdeps/mach/powerpc/machine-sp.h   |    4 ++++
  14 files changed, 155 insertions(+), 3 deletions(-)
 
-diff --git a/hurd/hurd.h b/hurd/hurd.h
-index 642ea43..2ce1da0 100644
 --- a/hurd/hurd.h
 +++ b/hurd/hurd.h
 @@ -48,6 +48,9 @@
@@ -38,7 +36,7 @@ index 642ea43..2ce1da0 100644
  _HURD_H_EXTERN_INLINE int
  __hurd_fail (error_t err)
  {
-@@ -77,6 +80,7 @@ __hurd_fail (error_t err)
+@@ -77,6 +80,7 @@
    errno = err;
    return -1;
  }
@@ -46,11 +44,9 @@ index 642ea43..2ce1da0 100644
  
  /* Basic ports and info, initialized by startup.  */
  
-diff --git a/hurd/hurd/fd.h b/hurd/hurd/fd.h
-index 2473476..034e7ca 100644
 --- a/hurd/hurd/fd.h
 +++ b/hurd/hurd/fd.h
-@@ -60,6 +60,9 @@ extern struct mutex _hurd_dtable_lock; /* Locks those two variables.  */
+@@ -60,6 +60,9 @@
     NULL.  The cell is unlocked; when ready to use it, lock it and check for
     it being unused.  */
  
@@ -60,7 +56,7 @@ index 2473476..034e7ca 100644
  _HURD_FD_H_EXTERN_INLINE struct hurd_fd *
  _hurd_fd_get (int fd)
  {
-@@ -90,6 +93,7 @@ _hurd_fd_get (int fd)
+@@ -90,6 +93,7 @@
  
    return descriptor;
  }
@@ -68,7 +64,7 @@ index 2473476..034e7ca 100644
  
  
  /* Evaluate EXPR with the variable `descriptor' bound to a pointer to the
-@@ -137,6 +141,9 @@ _hurd_fd_get (int fd)
+@@ -137,6 +141,9 @@
  /* Check if ERR should generate a signal.
     Returns the signal to take, or zero if none.  */
  
@@ -78,7 +74,7 @@ index 2473476..034e7ca 100644
  _HURD_FD_H_EXTERN_INLINE int
  _hurd_fd_error_signal (error_t err)
  {
-@@ -153,11 +160,15 @@ _hurd_fd_error_signal (error_t err)
+@@ -153,11 +160,15 @@
        return 0;
      }
  }
@@ -94,7 +90,7 @@ index 2473476..034e7ca 100644
  _HURD_FD_H_EXTERN_INLINE error_t
  _hurd_fd_error (int fd, error_t err)
  {
-@@ -170,20 +181,28 @@ _hurd_fd_error (int fd, error_t err)
+@@ -170,20 +181,28 @@
      }
    return err;
  }
@@ -123,7 +119,7 @@ index 2473476..034e7ca 100644
  _HURD_FD_H_EXTERN_INLINE int
  __hurd_sockfail (int fd, int flags, error_t err)
  {
-@@ -192,6 +211,7 @@ __hurd_sockfail (int fd, int flags, error_t err)
+@@ -192,6 +211,7 @@
    errno = err;
    return -1;
  }
@@ -131,11 +127,9 @@ index 2473476..034e7ca 100644
  
  /* Set up *FD to have PORT its server port, doing appropriate ctty magic.
     Does no locking or unlocking.  */
-diff --git a/hurd/hurd/port.h b/hurd/hurd/port.h
-index a1803c3..30769c9 100644
 --- a/hurd/hurd/port.h
 +++ b/hurd/hurd/port.h
-@@ -62,6 +62,9 @@ struct hurd_port
+@@ -62,6 +62,9 @@
  
  /* Initialize *PORT to INIT.  */
  
@@ -145,7 +139,7 @@ index a1803c3..30769c9 100644
  _HURD_PORT_H_EXTERN_INLINE void
  _hurd_port_init (struct hurd_port *port, mach_port_t init)
  {
-@@ -69,6 +72,7 @@ _hurd_port_init (struct hurd_port *port, mach_port_t init)
+@@ -69,6 +72,7 @@
    port->users = NULL;
    port->port = init;
  }
@@ -153,7 +147,7 @@ index a1803c3..30769c9 100644
  
  
  /* Cleanup function for non-local exits.  */
-@@ -77,6 +81,11 @@ extern void _hurd_port_cleanup (void *, jmp_buf, int);
+@@ -77,6 +81,11 @@
  /* Get a reference to *PORT, which is locked.
     Pass return value and LINK to _hurd_port_free when done.  */
  
@@ -165,7 +159,7 @@ index a1803c3..30769c9 100644
  _HURD_PORT_H_EXTERN_INLINE mach_port_t
  _hurd_port_locked_get (struct hurd_port *port,
  		       struct hurd_userlink *link)
-@@ -92,9 +101,15 @@ _hurd_port_locked_get (struct hurd_port *port,
+@@ -92,9 +101,15 @@
    __spin_unlock (&port->lock);
    return result;
  }
@@ -181,7 +175,7 @@ index a1803c3..30769c9 100644
  _HURD_PORT_H_EXTERN_INLINE mach_port_t
  _hurd_port_get (struct hurd_port *port,
  		struct hurd_userlink *link)
-@@ -106,10 +121,17 @@ _hurd_port_get (struct hurd_port *port,
+@@ -106,10 +121,17 @@
    HURD_CRITICAL_END;
    return result;
  }
@@ -199,7 +193,7 @@ index a1803c3..30769c9 100644
  _HURD_PORT_H_EXTERN_INLINE void
  _hurd_port_free (struct hurd_port *port,
  		 struct hurd_userlink *link,
-@@ -129,11 +151,15 @@ _hurd_port_free (struct hurd_port *port,
+@@ -129,11 +151,15 @@
    if (dealloc)
      __mach_port_deallocate (__mach_task_self (), used_port);
  }
@@ -215,7 +209,7 @@ index a1803c3..30769c9 100644
  _HURD_PORT_H_EXTERN_INLINE void
  _hurd_port_locked_set (struct hurd_port *port, mach_port_t newport)
  {
-@@ -144,9 +170,13 @@ _hurd_port_locked_set (struct hurd_port *port, mach_port_t newport)
+@@ -144,9 +170,13 @@
    if (old != MACH_PORT_NULL)
      __mach_port_deallocate (__mach_task_self (), old);
  }
@@ -229,7 +223,7 @@ index a1803c3..30769c9 100644
  _HURD_PORT_H_EXTERN_INLINE void
  _hurd_port_set (struct hurd_port *port, mach_port_t newport)
  {
-@@ -155,6 +185,7 @@ _hurd_port_set (struct hurd_port *port, mach_port_t newport)
+@@ -155,6 +185,7 @@
    _hurd_port_locked_set (port, newport);
    HURD_CRITICAL_END;
  }
@@ -237,11 +231,9 @@ index a1803c3..30769c9 100644
  
  
  #endif	/* hurd/port.h */
-diff --git a/hurd/hurd/signal.h b/hurd/hurd/signal.h
-index 21e30c5..46c1fe1 100644
 --- a/hurd/hurd/signal.h
 +++ b/hurd/hurd/signal.h
-@@ -131,15 +131,17 @@ extern struct hurd_sigstate *_hurd_self_sigstate (void)
+@@ -131,15 +131,17 @@
  #define _HURD_SIGNAL_H_EXTERN_INLINE __extern_inline
  #endif
  
@@ -260,7 +252,7 @@ index 21e30c5..46c1fe1 100644
  
  /* Thread listening on our message port; also called the "signal thread".  */
  
-@@ -166,10 +168,13 @@ extern int _hurd_core_limit;
+@@ -166,10 +168,13 @@
     interrupted lest the signal handler try to take the same lock and
     deadlock result.  */
  
@@ -275,7 +267,7 @@ index 21e30c5..46c1fe1 100644
      (void *) __hurd_threadvar_location (_HURD_THREADVAR_SIGSTATE);
    struct hurd_sigstate *ss = *location;
    if (ss == NULL)
-@@ -191,7 +196,11 @@ _hurd_critical_section_lock (void)
+@@ -191,7 +196,11 @@
       _hurd_critical_section_unlock to unlock it.  */
    return ss;
  }
@@ -287,7 +279,7 @@ index 21e30c5..46c1fe1 100644
  _HURD_SIGNAL_H_EXTERN_INLINE void
  _hurd_critical_section_unlock (void *our_lock)
  {
-@@ -201,7 +210,7 @@ _hurd_critical_section_unlock (void *our_lock)
+@@ -201,7 +210,7 @@
    else
      {
        /* It was us who acquired the critical section lock.  Unlock it.  */
@@ -296,7 +288,7 @@ index 21e30c5..46c1fe1 100644
        sigset_t pending;
        __spin_lock (&ss->lock);
        __spin_unlock (&ss->critical_section_lock);
-@@ -214,6 +223,7 @@ _hurd_critical_section_unlock (void *our_lock)
+@@ -214,6 +223,7 @@
  	__msg_sig_post (_hurd_msgport, 0, 0, __mach_task_self ());
      }
  }
@@ -304,11 +296,9 @@ index 21e30c5..46c1fe1 100644
  
  /* Convenient macros for simple uses of critical sections.
     These two must be used as a pair at the same C scoping level.  */
-diff --git a/hurd/hurd/threadvar.h b/hurd/hurd/threadvar.h
-index a0535f7..dd4a59c 100644
 --- a/hurd/hurd/threadvar.h
 +++ b/hurd/hurd/threadvar.h
-@@ -82,6 +82,8 @@ enum __hurd_threadvar_index
+@@ -82,6 +82,8 @@
  
  extern unsigned long int *__hurd_threadvar_location_from_sp
    (enum __hurd_threadvar_index __index, void *__sp);
@@ -317,7 +307,7 @@ index a0535f7..dd4a59c 100644
  _HURD_THREADVAR_H_EXTERN_INLINE unsigned long int *
  __hurd_threadvar_location_from_sp (enum __hurd_threadvar_index __index,
  				   void *__sp)
-@@ -93,6 +95,7 @@ __hurd_threadvar_location_from_sp (enum __hurd_threadvar_index __index,
+@@ -93,6 +95,7 @@
  	   : (unsigned long int *) ((__stack & __hurd_threadvar_stack_mask) +
  				    __hurd_threadvar_stack_offset))[__index];
  }
@@ -325,7 +315,7 @@ index a0535f7..dd4a59c 100644
  
  #include <machine-sp.h>		/* Define __thread_stack_pointer.  */
  
-@@ -106,12 +109,14 @@ __hurd_threadvar_location (enum __hurd_threadvar_index __index) __THROW
+@@ -106,12 +109,14 @@
  	the same stack frame by different threads.  */
       __attribute__ ((__const__));
  
@@ -340,11 +330,9 @@ index a0535f7..dd4a59c 100644
  
  
  #endif	/* hurd/threadvar.h */
-diff --git a/hurd/hurd/userlink.h b/hurd/hurd/userlink.h
-index 34457e7..90045a9 100644
 --- a/hurd/hurd/userlink.h
 +++ b/hurd/hurd/userlink.h
-@@ -77,6 +77,11 @@ struct hurd_userlink
+@@ -77,6 +77,11 @@
  
  /* Attach LINK to the chain of users at *CHAINP.  */
  
@@ -356,7 +344,7 @@ index 34457e7..90045a9 100644
  _HURD_USERLINK_H_EXTERN_INLINE void
  _hurd_userlink_link (struct hurd_userlink **chainp,
  		     struct hurd_userlink *link)
-@@ -97,11 +102,15 @@ _hurd_userlink_link (struct hurd_userlink **chainp,
+@@ -97,11 +102,15 @@
    link->thread.prevp = thread_chainp;
    *thread_chainp = link;
  }
@@ -372,7 +360,7 @@ index 34457e7..90045a9 100644
  _HURD_USERLINK_H_EXTERN_INLINE int
  _hurd_userlink_unlink (struct hurd_userlink *link)
  {
-@@ -124,6 +133,7 @@ _hurd_userlink_unlink (struct hurd_userlink *link)
+@@ -124,6 +133,7 @@
  
    return dealloc;
  }
@@ -380,7 +368,7 @@ index 34457e7..90045a9 100644
  
  
  /* Clear all users from *CHAINP.  Call this when the resource *CHAINP
-@@ -132,6 +142,9 @@ _hurd_userlink_unlink (struct hurd_userlink *link)
+@@ -132,6 +142,9 @@
     value is zero, someone is still using the resource and they will
     deallocate it when they are finished.  */
  
@@ -390,15 +378,13 @@ index 34457e7..90045a9 100644
  _HURD_USERLINK_H_EXTERN_INLINE int
  _hurd_userlink_clear (struct hurd_userlink **chainp)
  {
-@@ -144,5 +157,6 @@ _hurd_userlink_clear (struct hurd_userlink **chainp)
+@@ -144,5 +157,6 @@
    *chainp = NULL;
    return 0;
  }
 +#endif
  
  #endif	/* hurd/userlink.h */
-diff --git a/mach/lock-intern.h b/mach/lock-intern.h
-index 4aaaedc..a854ddc 100644
 --- a/mach/lock-intern.h
 +++ b/mach/lock-intern.h
 @@ -29,11 +29,15 @@
@@ -417,7 +403,7 @@ index 4aaaedc..a854ddc 100644
  
  
  /* Lock LOCK, blocking if we can't get it.  */
-@@ -41,12 +45,16 @@ extern void __spin_lock_solid (__spin_lock_t *__lock);
+@@ -41,12 +45,16 @@
  
  /* Lock the spin lock LOCK.  */
  
@@ -434,7 +420,7 @@ index 4aaaedc..a854ddc 100644
  
  /* Name space-clean internal interface to mutex locks.
  
-@@ -71,27 +79,39 @@ extern void __mutex_unlock_solid (void *__lock);
+@@ -71,27 +79,39 @@
  
  /* Lock the mutex lock LOCK.  */
  
@@ -461,10 +447,10 @@ index 4aaaedc..a854ddc 100644
    __mutex_unlock_solid (__lock);
  }
 +#endif
- 
++
  
 +int __mutex_trylock (void *__lock);
-+
+ 
 +#ifdef __USE_EXTERN_INLINES
  _EXTERN_INLINE int
  __mutex_trylock (void *__lock)
@@ -474,11 +460,9 @@ index 4aaaedc..a854ddc 100644
 +#endif
  
  #endif /* lock-intern.h */
-diff --git a/mach/mach/mig_support.h b/mach/mach/mig_support.h
-index f02e8d4..fdd43a6 100644
 --- a/mach/mach/mig_support.h
 +++ b/mach/mach/mig_support.h
-@@ -67,6 +67,8 @@ extern void mig_reply_setup (const mach_msg_header_t *__request,
+@@ -67,6 +67,8 @@
  /* Idiocy support function.  */
  extern vm_size_t mig_strncpy (char *__dst, const char *__src, vm_size_t __len);
  extern vm_size_t __mig_strncpy (char *__dst, const char *__src, vm_size_t);
@@ -487,7 +471,7 @@ index f02e8d4..fdd43a6 100644
  __extern_inline vm_size_t
  __mig_strncpy (char *__dst, const char *__src, vm_size_t __len)
  {
-@@ -77,6 +79,7 @@ mig_strncpy (char *__dst, const char *__src, vm_size_t __len)
+@@ -77,6 +79,7 @@
  {
    return __mig_strncpy (__dst, __src, __len);
  }
@@ -495,8 +479,6 @@ index f02e8d4..fdd43a6 100644
  
  
  
-diff --git a/mach/spin-lock.c b/mach/spin-lock.c
-index aaebc55..1b1e69c 100644
 --- a/mach/spin-lock.c
 +++ b/mach/spin-lock.c
 @@ -1,3 +1,4 @@
@@ -504,11 +486,9 @@ index aaebc55..1b1e69c 100644
  #define _EXTERN_INLINE /* Empty to define the real functions.  */
  #include "spin-lock.h"
  
-diff --git a/sysdeps/generic/machine-lock.h b/sysdeps/generic/machine-lock.h
-index db9f444..5ecb265 100644
 --- a/sysdeps/generic/machine-lock.h
 +++ b/sysdeps/generic/machine-lock.h
-@@ -35,14 +35,21 @@ typedef volatile int __spin_lock_t;
+@@ -35,14 +35,21 @@
  
  /* Unlock LOCK.  */
  
@@ -530,7 +510,7 @@ index db9f444..5ecb265 100644
  _EXTERN_INLINE int
  __spin_try_lock (__spin_lock_t *__lock)
  {
-@@ -51,14 +58,19 @@ __spin_try_lock (__spin_lock_t *__lock)
+@@ -51,14 +58,19 @@
    *__lock = 1;
    return 1;
  }
@@ -550,8 +530,6 @@ index db9f444..5ecb265 100644
  
  
  #endif /* machine-lock.h */
-diff --git a/sysdeps/generic/machine-sp.h b/sysdeps/generic/machine-sp.h
-index 25e423e..4769bc5 100644
 --- a/sysdeps/generic/machine-sp.h
 +++ b/sysdeps/generic/machine-sp.h
 @@ -26,11 +26,15 @@
@@ -570,11 +548,9 @@ index 25e423e..4769bc5 100644
 +#endif
  
  #endif	/* machine-sp.h */
-diff --git a/sysdeps/mach/i386/machine-lock.h b/sysdeps/mach/i386/machine-lock.h
-index 33602f4..b0700d9 100644
 --- a/sysdeps/mach/i386/machine-lock.h
 +++ b/sysdeps/mach/i386/machine-lock.h
-@@ -35,6 +35,9 @@ typedef __volatile int __spin_lock_t;
+@@ -35,6 +35,9 @@
  
  /* Unlock LOCK.  */
  
@@ -584,7 +560,7 @@ index 33602f4..b0700d9 100644
  _EXTERN_INLINE void
  __spin_unlock (__spin_lock_t *__lock)
  {
-@@ -43,9 +46,13 @@ __spin_unlock (__spin_lock_t *__lock)
+@@ -43,9 +46,13 @@
  		       : "=&r" (__unlocked), "=m" (*__lock) : "0" (0)
  		       : "memory");
  }
@@ -598,7 +574,7 @@ index 33602f4..b0700d9 100644
  _EXTERN_INLINE int
  __spin_try_lock (__spin_lock_t *__lock)
  {
-@@ -55,14 +62,19 @@ __spin_try_lock (__spin_lock_t *__lock)
+@@ -55,14 +62,19 @@
  		      : "memory");
    return !__locked;
  }
@@ -618,11 +594,9 @@ index 33602f4..b0700d9 100644
  
  
  #endif /* machine-lock.h */
-diff --git a/sysdeps/mach/powerpc/machine-lock.h b/sysdeps/mach/powerpc/machine-lock.h
-index 96af221..b0e228b 100644
 --- a/sysdeps/mach/powerpc/machine-lock.h
 +++ b/sysdeps/mach/powerpc/machine-lock.h
-@@ -35,6 +35,9 @@ typedef __volatile long int __spin_lock_t;
+@@ -35,6 +35,9 @@
  
  /* Unlock LOCK.  */
  
@@ -632,7 +606,7 @@ index 96af221..b0e228b 100644
  _EXTERN_INLINE void
  __spin_unlock (__spin_lock_t *__lock)
  {
-@@ -45,9 +48,13 @@ __spin_unlock (__spin_lock_t *__lock)
+@@ -45,9 +48,13 @@
  	bne-	0b\n\
  " : "=&r" (__locked) : "r" (__lock), "r" (0) : "cr0");
  }
@@ -646,7 +620,7 @@ index 96af221..b0e228b 100644
  _EXTERN_INLINE int
  __spin_try_lock (register __spin_lock_t *__lock)
  {
-@@ -59,9 +66,13 @@ __spin_try_lock (register __spin_lock_t *__lock)
+@@ -59,9 +66,13 @@
  " : "=&r" (__rtn) : "r" (__lock), "r" (1) : "cr0");
    return !__rtn;
  }
@@ -660,7 +634,7 @@ index 96af221..b0e228b 100644
  _EXTERN_INLINE int
  __spin_lock_locked (__spin_lock_t *__lock)
  {
-@@ -73,6 +84,7 @@ __spin_lock_locked (__spin_lock_t *__lock)
+@@ -73,6 +84,7 @@
  " : "=&r" (__rtn) : "r" (__lock) : "cr0");
    return __rtn;
  }
@@ -668,8 +642,6 @@ index 96af221..b0e228b 100644
  
  
  #endif /* machine-lock.h */
-diff --git a/sysdeps/mach/powerpc/machine-sp.h b/sysdeps/mach/powerpc/machine-sp.h
-index 267707b..5885b2a 100644
 --- a/sysdeps/mach/powerpc/machine-sp.h
 +++ b/sysdeps/mach/powerpc/machine-sp.h
 @@ -31,6 +31,9 @@
@@ -682,12 +654,10 @@ index 267707b..5885b2a 100644
  _EXTERN_INLINE void *
  __thread_stack_pointer (void)
  {
-@@ -38,5 +41,6 @@ __thread_stack_pointer (void)
+@@ -38,5 +41,6 @@
    __asm__ ("mr %0, 1" : "=r" (__sp__));
    return __sp__;
  }
 +#endif
  
  #endif	/* machine-sp.h */
--- 
-tg: (0234227..) t/extern_inline (depends on: baseline)

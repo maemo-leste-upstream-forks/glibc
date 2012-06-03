@@ -3,6 +3,10 @@
 	* ports/sysdeps/mips/dl-trampoline.c (__dl_runtime_resolve): Use locking
 	around calls to _dl_lookup_symbol_x.
 
+---
+ ports/sysdeps/mips/dl-trampoline.c |   30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
+
 --- a/ports/sysdeps/mips/dl-trampoline.c
 +++ b/ports/sysdeps/mips/dl-trampoline.c
 @@ -26,6 +26,7 @@
@@ -13,7 +17,7 @@
  
  /* Get link map for callers object containing STUB_PC.  */
  static inline struct link_map *
-@@ -153,17 +154,44 @@ __dl_runtime_resolve (ElfW(Word) sym_index,
+@@ -153,17 +154,44 @@
  
  	    if (version->hash != 0)
  	      {

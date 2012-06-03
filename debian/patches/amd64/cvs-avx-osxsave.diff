@@ -5,11 +5,14 @@
 	* sysdeps/x86_64/multiarch/init-arch.c (__init_cpu_features): If
 	bit_AVX is set also check OSXAVE/XCR0 and reset bit_AVX if necessary.
 
-diff --git a/sysdeps/x86_64/multiarch/init-arch.c b/sysdeps/x86_64/multiarch/init-arch.c
-index 65b0ee9..4fabbee 100644
+---
+ sysdeps/x86_64/multiarch/init-arch.c |   12 ++++++++++++
+ sysdeps/x86_64/multiarch/init-arch.h |    2 ++
+ 2 files changed, 14 insertions(+)
+
 --- a/sysdeps/x86_64/multiarch/init-arch.c
 +++ b/sysdeps/x86_64/multiarch/init-arch.c
-@@ -144,6 +144,18 @@ __init_cpu_features (void)
+@@ -111,6 +111,18 @@
    else
      kind = arch_kind_other;
  
@@ -28,8 +31,6 @@ index 65b0ee9..4fabbee 100644
    __cpu_features.family = family;
    __cpu_features.model = model;
    atomic_write_barrier ();
-diff --git a/sysdeps/x86_64/multiarch/init-arch.h b/sysdeps/x86_64/multiarch/init-arch.h
-index 2a1df39..408e5ae 100644
 --- a/sysdeps/x86_64/multiarch/init-arch.h
 +++ b/sysdeps/x86_64/multiarch/init-arch.h
 @@ -29,6 +29,8 @@

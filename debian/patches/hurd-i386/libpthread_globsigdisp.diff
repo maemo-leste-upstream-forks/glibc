@@ -9,8 +9,11 @@ Date:   Fri Jun 10 05:46:39 2011 +0000
     * sysdeps/mach/pt-thread-halt.c (__pthread_thread_halt):
     Call _hurd_sigstate_delete on terminated threads.
 
-diff --git a/libpthread/sysdeps/mach/hurd/pt-sigstate-init.c b/libpthread/sysdeps/mach/hurd/pt-sigstate-init.c
-index da5a945..f8398f4 100644
+---
+ libpthread/sysdeps/mach/hurd/pt-sigstate-init.c |   16 +++++++++++++++-
+ libpthread/sysdeps/mach/pt-thread-halt.c        |    2 ++
+ 2 files changed, 17 insertions(+), 1 deletion(-)
+
 --- a/libpthread/sysdeps/mach/hurd/pt-sigstate-init.c
 +++ b/libpthread/sysdeps/mach/hurd/pt-sigstate-init.c
 @@ -19,6 +19,7 @@
@@ -21,7 +24,7 @@ index da5a945..f8398f4 100644
  
  #include <pt-internal.h>
  
-@@ -30,8 +31,21 @@ __pthread_sigstate_init (struct __pthread *thread)
+@@ -30,8 +31,21 @@
  						thread->stackaddr);
  
    /* The real initialization happens internally in glibc the first
@@ -44,11 +47,9 @@ index da5a945..f8398f4 100644
 +
    return 0;
  }
-diff --git a/libpthread/sysdeps/mach/pt-thread-halt.c b/libpthread/sysdeps/mach/pt-thread-halt.c
-index a9c3858..808043d 100644
 --- a/libpthread/sysdeps/mach/pt-thread-halt.c
 +++ b/libpthread/sysdeps/mach/pt-thread-halt.c
-@@ -34,6 +34,8 @@ __pthread_thread_halt (struct __pthread *thread)
+@@ -34,6 +34,8 @@
  {
    if (thread->have_kernel_resources)
      {

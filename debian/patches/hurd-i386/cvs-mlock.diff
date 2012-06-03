@@ -4,8 +4,10 @@ Date:   Thu May 10 15:17:03 2012 -0700
 
     Hurd: Fix mlock in all cases except non-readable pages.
 
-diff --git a/sysdeps/mach/hurd/mlock.c b/sysdeps/mach/hurd/mlock.c
-index 2cb3e56..47bafaa 100644
+---
+ sysdeps/mach/hurd/mlock.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
 --- a/sysdeps/mach/hurd/mlock.c
 +++ b/sysdeps/mach/hurd/mlock.c
 @@ -1,5 +1,5 @@
@@ -15,7 +17,7 @@ index 2cb3e56..47bafaa 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -39,7 +39,7 @@ mlock (const void *addr, size_t len)
+@@ -40,7 +40,7 @@
    page = trunc_page ((vm_address_t) addr);
    len = round_page ((vm_address_t) addr + len) - page;
    err = __vm_wire (hostpriv, __mach_task_self (), page, len,

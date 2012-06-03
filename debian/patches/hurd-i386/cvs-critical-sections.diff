@@ -4,11 +4,15 @@ Date:   Thu May 10 13:00:01 2012 -0700
 
     Hurd: Missing critical region locks.
 
-diff --git a/hurd/hurd/fd.h b/hurd/hurd/fd.h
-index 5044f97..6a79738 100644
+---
+ hurd/hurd/fd.h              |    2 ++
+ sysdeps/mach/hurd/dirfd.c   |    5 ++++-
+ sysdeps/mach/hurd/opendir.c |    5 +++--
+ 3 files changed, 9 insertions(+), 3 deletions(-)
+
 --- a/hurd/hurd/fd.h
 +++ b/hurd/hurd/fd.h
-@@ -63,6 +63,7 @@ _hurd_fd_get (int fd)
+@@ -68,6 +68,7 @@
  {
    struct hurd_fd *descriptor;
  
@@ -16,7 +20,7 @@ index 5044f97..6a79738 100644
    __mutex_lock (&_hurd_dtable_lock);
    if (fd < 0 || fd >= _hurd_dtablesize)
      descriptor = NULL;
-@@ -85,6 +86,7 @@ _hurd_fd_get (int fd)
+@@ -90,6 +91,7 @@
  	}
      }
    __mutex_unlock (&_hurd_dtable_lock);
@@ -24,8 +28,6 @@ index 5044f97..6a79738 100644
  
    return descriptor;
  }
-diff --git a/sysdeps/mach/hurd/dirfd.c b/sysdeps/mach/hurd/dirfd.c
-index 587ae7b..42dbc78 100644
 --- a/sysdeps/mach/hurd/dirfd.c
 +++ b/sysdeps/mach/hurd/dirfd.c
 @@ -1,5 +1,5 @@
@@ -35,7 +37,7 @@ index 587ae7b..42dbc78 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -25,6 +25,8 @@ int
+@@ -26,6 +26,8 @@
  dirfd (DIR *dirp)
  {
    int fd;
@@ -44,7 +46,7 @@ index 587ae7b..42dbc78 100644
    __mutex_lock (&_hurd_dtable_lock);
    for (fd = 0; fd < _hurd_dtablesize; ++fd)
      if (_hurd_dtable[fd] == dirp->__fd)
-@@ -35,6 +37,7 @@ dirfd (DIR *dirp)
+@@ -36,6 +38,7 @@
        fd = -1;
      }
    __mutex_unlock (&_hurd_dtable_lock);
@@ -52,8 +54,6 @@ index 587ae7b..42dbc78 100644
  
    return fd;
  }
-diff --git a/sysdeps/mach/hurd/opendir.c b/sysdeps/mach/hurd/opendir.c
-index 217d4c8..c71cb18 100644
 --- a/sysdeps/mach/hurd/opendir.c
 +++ b/sysdeps/mach/hurd/opendir.c
 @@ -1,5 +1,4 @@
@@ -63,7 +63,7 @@ index 217d4c8..c71cb18 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -50,9 +49,11 @@ _hurd_fd_opendir (struct hurd_fd *d)
+@@ -51,9 +50,11 @@
      return NULL;
  
    /* Set the descriptor to close on exec. */

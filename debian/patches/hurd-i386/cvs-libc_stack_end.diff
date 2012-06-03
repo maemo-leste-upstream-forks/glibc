@@ -4,11 +4,15 @@ Date:   Thu May 10 14:51:22 2012 -0700
 
     Hurd: Fix value of __libc_stack_end
 
-diff --git a/sysdeps/generic/ldsodefs.h b/sysdeps/generic/ldsodefs.h
-index 602b429..e071015 100644
+---
+ sysdeps/generic/ldsodefs.h          |    6 +++++-
+ sysdeps/mach/hurd/dl-sysdep.h       |    5 +++--
+ sysdeps/mach/hurd/i386/init-first.c |    2 ++
+ 3 files changed, 10 insertions(+), 3 deletions(-)
+
 --- a/sysdeps/generic/ldsodefs.h
 +++ b/sysdeps/generic/ldsodefs.h
-@@ -717,7 +717,11 @@ rtld_hidden_proto (_dl_make_stack_executable)
+@@ -731,7 +731,11 @@
     might use the variable which results in copy relocations on some
     platforms.  But this does not matter, ld.so can always use the local
     copy.  */
@@ -21,8 +25,6 @@ index 602b429..e071015 100644
  rtld_hidden_proto (__libc_stack_end)
  
  /* Parameters passed to the dynamic linker.  */
-diff --git a/sysdeps/mach/hurd/dl-sysdep.h b/sysdeps/mach/hurd/dl-sysdep.h
-index 671b241..c64a39d 100644
 --- a/sysdeps/mach/hurd/dl-sysdep.h
 +++ b/sysdeps/mach/hurd/dl-sysdep.h
 @@ -1,5 +1,5 @@
@@ -32,7 +34,7 @@ index 671b241..c64a39d 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -24,7 +24,8 @@
+@@ -25,7 +25,8 @@
  #define RTLD_PRIVATE_ERRNO 0
  
  #ifdef SHARED
@@ -42,11 +44,9 @@ index 671b241..c64a39d 100644
  # define DL_ARGV_NOT_RELRO 1
 +# define LIBC_STACK_END_NOT_RELRO 1
  #endif
-diff --git a/sysdeps/mach/hurd/i386/init-first.c b/sysdeps/mach/hurd/i386/init-first.c
-index f4bf624..fa4e3d9 100644
 --- a/sysdeps/mach/hurd/i386/init-first.c
 +++ b/sysdeps/mach/hurd/i386/init-first.c
-@@ -214,6 +214,8 @@ init (int *data)
+@@ -223,6 +223,8 @@
  
        void switch_stacks (void);
  

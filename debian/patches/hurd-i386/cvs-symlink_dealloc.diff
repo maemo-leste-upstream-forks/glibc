@@ -4,8 +4,11 @@ Date:   Tue Apr 24 13:12:12 2012 -0700
 
     Hurd: fix symlink/symlinkat error case not to do an extraneous __mach_port_deallocate.
 
-diff --git a/sysdeps/mach/hurd/symlink.c b/sysdeps/mach/hurd/symlink.c
-index 8bca405..0754b18 100644
+---
+ sysdeps/mach/hurd/symlink.c   |   25 ++++++++++++++-----------
+ sysdeps/mach/hurd/symlinkat.c |   26 ++++++++++++++------------
+ 2 files changed, 28 insertions(+), 23 deletions(-)
+
 --- a/sysdeps/mach/hurd/symlink.c
 +++ b/sysdeps/mach/hurd/symlink.c
 @@ -1,4 +1,4 @@
@@ -14,7 +17,7 @@ index 8bca405..0754b18 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -46,19 +46,22 @@ __symlink (from, to)
+@@ -47,19 +47,22 @@
    err = __dir_mkfile (dir, O_WRITE, 0777 & ~_hurd_umask, &node);
  
    if (! err)
@@ -31,14 +34,14 @@ index 8bca405..0754b18 100644
 +                                   FS_TRANS_EXCL|FS_TRANS_SET, 0,
 +                                   buf, sizeof (_HURD_SYMLINK) + len,
 +                                   MACH_PORT_NULL, MACH_MSG_TYPE_COPY_SEND);
++
++      if (! err)
++        /* Link the node, now a valid symlink, into the target directory.  */
++        err = __dir_link (dir, node, name, 1);
  
 -  if (! err)
 -    /* Link the node, now a valid symlink, into the target directory.  */
 -    err = __dir_link (dir, node, name, 1);
-+      if (! err)
-+        /* Link the node, now a valid symlink, into the target directory.  */
-+        err = __dir_link (dir, node, name, 1);
-+
 +      __mach_port_deallocate (__mach_task_self (), node);
 +    }
  
@@ -47,8 +50,6 @@ index 8bca405..0754b18 100644
  
    if (err)
      return __hurd_fail (err);
-diff --git a/sysdeps/mach/hurd/symlinkat.c b/sysdeps/mach/hurd/symlinkat.c
-index 0fa667d..ff11ecd 100644
 --- a/sysdeps/mach/hurd/symlinkat.c
 +++ b/sysdeps/mach/hurd/symlinkat.c
 @@ -1,6 +1,5 @@
@@ -59,7 +60,7 @@ index 0fa667d..ff11ecd 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
-@@ -53,19 +52,22 @@ symlinkat (from, fd, to)
+@@ -54,19 +53,22 @@
    err = __dir_mkfile (dir, O_WRITE, 0777 & ~_hurd_umask, &node);
  
    if (! err)
@@ -76,14 +77,14 @@ index 0fa667d..ff11ecd 100644
 +                                   FS_TRANS_EXCL|FS_TRANS_SET, 0,
 +                                   buf, sizeof (_HURD_SYMLINK) + len,
 +                                   MACH_PORT_NULL, MACH_MSG_TYPE_COPY_SEND);
++
++      if (! err)
++        /* Link the node, now a valid symlink, into the target directory.  */
++        err = __dir_link (dir, node, name, 1);
  
 -  if (! err)
 -    /* Link the node, now a valid symlink, into the target directory.  */
 -    err = __dir_link (dir, node, name, 1);
-+      if (! err)
-+        /* Link the node, now a valid symlink, into the target directory.  */
-+        err = __dir_link (dir, node, name, 1);
-+
 +      __mach_port_deallocate (__mach_task_self (), node);
 +    }
  

@@ -14,10 +14,8 @@ Implement close_all_fds as in 139ee080b6b428240bf49f3e6361f3ac729f891a?
 
 ---
  sysdeps/mach/hurd/ptsname.c |   18 ++++++++++++++----
- 1 files changed, 14 insertions(+), 4 deletions(-)
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/sysdeps/mach/hurd/ptsname.c b/sysdeps/mach/hurd/ptsname.c
-index b68cd9c..897b353 100644
 --- a/sysdeps/mach/hurd/ptsname.c
 +++ b/sysdeps/mach/hurd/ptsname.c
 @@ -19,6 +19,7 @@
@@ -28,7 +26,7 @@ index b68cd9c..897b353 100644
  #include <hurd.h>
  #include <hurd/fd.h>
  #include <hurd/term.h>
-@@ -41,11 +42,10 @@ ptsname (int fd)
+@@ -41,11 +42,10 @@
  }
  
  
@@ -43,7 +41,7 @@ index b68cd9c..897b353 100644
  {
    char peername[1024];  /* XXX */
    size_t len;
-@@ -62,4 +62,14 @@ __ptsname_r (int fd, char *buf, size_t buflen)
+@@ -62,4 +62,14 @@
    memcpy (buf, peername, len);
    return 0;
  }
@@ -58,5 +56,3 @@ index b68cd9c..897b353 100644
 +  return __ptsname_internal (fd, buf, buflen, NULL);
 +}
  weak_alias (__ptsname_r, ptsname_r)
--- 
-tg: (0234227..) t/grantpt (depends on: baseline)

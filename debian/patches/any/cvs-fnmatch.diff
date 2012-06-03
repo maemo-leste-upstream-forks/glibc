@@ -4,11 +4,13 @@
 	character representation.
 	Partly based on a patch by Tomas Hoger <thoger@redhat.com>.
 
-diff --git a/posix/fnmatch.c b/posix/fnmatch.c
-index 0af5ee6..819a6a7 100644
+---
+ posix/fnmatch.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
 --- a/posix/fnmatch.c
 +++ b/posix/fnmatch.c
-@@ -375,6 +375,11 @@ fnmatch (pattern, string, flags)
+@@ -379,6 +379,11 @@
  	       XXX Do we have to set `errno' to something which mbsrtows hasn't
  	       already done?  */
  	    return -1;
@@ -20,7 +22,7 @@ index 0af5ee6..819a6a7 100644
  	  wpattern_malloc = wpattern
  	    = (wchar_t *) malloc ((n + 1) * sizeof (wchar_t));
  	  assert (mbsinit (&ps));
-@@ -419,6 +424,12 @@ fnmatch (pattern, string, flags)
+@@ -423,6 +428,12 @@
  	       XXX Do we have to set `errno' to something which mbsrtows hasn't
  	       already done?  */
  	    goto free_return;
