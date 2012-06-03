@@ -8,11 +8,12 @@ control_deps := $(wildcard debian/control.in/*) $(addprefix debian/control.in/, 
 
 $(patsubst %,debian/control.in/%,$(libc_packages)) :: debian/control.in/% : debian/control.in/libc debian/rules.d/control.mk
 	sed -e "s%@libc@%$*%g" \
-	    -e "s%@archs@%$($(subst .,_,$*)_archs)%g" < $< > $@
+	    -e "s%@archs@%$($(subst .,_,$*)_archs)%g" \
+	    -e "s%@libc-dev-conflict@%$(foreach arch,$(filter-out $*,$(libc_packages)),$(arch)-dev)%g" \
+	    < $< > $@
 
 debian/control: $(stamp)control
-$(stamp)control: debian/control.in/main $(control_deps) \
-		   debian/rules.d/control.mk
+$(stamp)control: debian/rules.d/control.mk $(control_deps)
 
 	# Check that all files end with a new line
 	set -e ; for i in debian/control.in/* ; do \

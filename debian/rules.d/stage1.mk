@@ -65,6 +65,8 @@ $(stamp)install_libc: $(stamp)check_libc
 	mv $(DESTDIR)/usr/include/gnu           $(DESTDIR)/usr/include/$(DEB_HOST_MULTIARCH)
 	mv $(DESTDIR)/usr/include/sys           $(DESTDIR)/usr/include/$(DEB_HOST_MULTIARCH)
 	mv $(DESTDIR)/usr/include/fpu_control.h $(DESTDIR)/usr/include/$(DEB_HOST_MULTIARCH)
+	mv $(DESTDIR)/usr/include/a.out.h	$(DESTDIR)/usr/include/$(DEB_HOST_MULTIARCH)
+	mv $(DESTDIR)/usr/include/ieee754.h	$(DESTDIR)/usr/include/$(DEB_HOST_MULTIARCH)
 	$(call xx,extra_install)
 	touch $@
 
