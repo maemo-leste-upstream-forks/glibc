@@ -616,7 +616,7 @@
  #endif
  	/* Since all threads have been asynchronously terminated
             (possibly holding locks), free cannot be used any more.
-@@ -1128,9 +1135,11 @@
+@@ -1128,11 +1135,19 @@
         children, so that timings for main thread account for all threads. */
      if (self == __pthread_main_thread) {
  #ifdef USE_TLS
@@ -629,8 +629,16 @@
 +#error TLS required
  #endif
      }
++    else
++    {
++       __thr_kill(__manager_thread->p_ktid, __pthread_sig_cancel);
++       __thr_exit(&(self->p_ktid));
++       /* should not return */
++    }
      _exit(__pthread_exit_code);
-@@ -1170,6 +1179,7 @@
+   }
+   if (__builtin_expect (THREAD_GETMEM(self, p_canceled), 0)
+@@ -1170,6 +1185,7 @@
  
  void __pthread_reset_main_thread(void)
  {
@@ -638,7 +646,7 @@
    pthread_descr self = thread_self();
  
    if (__pthread_manager_request != -1) {
-@@ -1183,7 +1193,8 @@
+@@ -1183,7 +1199,8 @@
    }
  
    /* Update the pid of the main thread */
@@ -648,7 +656,7 @@
    /* Make the forked thread the main thread */
    __pthread_main_thread = self;
    THREAD_SETMEM(self, p_nextlive, self);
-@@ -1289,7 +1300,7 @@
+@@ -1289,7 +1306,7 @@
  void __pthread_restart_old(pthread_descr th)
  {
    if (pthread_atomic_increment(&th->p_resume_count) == -1)
@@ -657,7 +665,7 @@
  }
  
  void __pthread_suspend_old(pthread_descr self)
-@@ -1383,7 +1394,7 @@
+@@ -1384,7 +1401,7 @@
       memory so the woken thread will have a consistent view.  Complementary
       read barriers are present to the suspend functions. */
    WRITE_MEMORY_BARRIER();
