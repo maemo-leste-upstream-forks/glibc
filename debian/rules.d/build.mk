@@ -22,37 +22,36 @@ $(patsubst %,configure_%,$(EGLIBC_PASSES)) :: configure_% : $(stamp)configure_%
 $(stamp)configure_%: $(stamp)mkbuilddir_%
 	@echo Configuring $(curpass)
 	rm -f $(DEB_BUILDDIR)/configparms
-	echo "CC = $(call xx,CC)"		>> $(DEB_BUILDDIR)/configparms
-	echo "CXX = $(call xx,CXX)"		>> $(DEB_BUILDDIR)/configparms
-	echo "BUILD_CC = $(BUILD_CC)"		>> $(DEB_BUILDDIR)/configparms
-	echo "BUILD_CXX = $(BUILD_CXX)"		>> $(DEB_BUILDDIR)/configparms
-	echo "CFLAGS = $(HOST_CFLAGS)"		>> $(DEB_BUILDDIR)/configparms
-	echo "ASFLAGS = $(HOST_CFLAGS)"		>> $(DEB_BUILDDIR)/configparms
-	echo "BUILD_CFLAGS = $(BUILD_CFLAGS)" 	>> $(DEB_BUILDDIR)/configparms
-	echo "LDFLAGS = "		 	>> $(DEB_BUILDDIR)/configparms
-	echo "BASH := /bin/bash"		>> $(DEB_BUILDDIR)/configparms
-	echo "KSH := /bin/bash"			>> $(DEB_BUILDDIR)/configparms
-	echo "SHELL := /bin/bash"		>> $(DEB_BUILDDIR)/configparms
-	echo "LIBGD = no"			>> $(DEB_BUILDDIR)/configparms
-	echo "have-fpie = $(fpie)"              >> $(DEB_BUILDDIR)/configparms
-	echo "bindir = $(bindir)"		>> $(DEB_BUILDDIR)/configparms
-	echo "datadir = $(datadir)"		>> $(DEB_BUILDDIR)/configparms
-	echo "localedir = $(localedir)" 	>> $(DEB_BUILDDIR)/configparms
-	echo "sysconfdir = $(sysconfdir)" 	>> $(DEB_BUILDDIR)/configparms
-	echo "libexecdir = $(libexecdir)" 	>> $(DEB_BUILDDIR)/configparms
-	echo "rootsbindir = $(rootsbindir)" 	>> $(DEB_BUILDDIR)/configparms
+	echo "CC = $(call xx,CC)"                 >> $(DEB_BUILDDIR)/configparms
+	echo "CXX = $(call xx,CXX)"               >> $(DEB_BUILDDIR)/configparms
+	echo "BUILD_CC = $(BUILD_CC)"             >> $(DEB_BUILDDIR)/configparms
+	echo "BUILD_CXX = $(BUILD_CXX)"           >> $(DEB_BUILDDIR)/configparms
+	echo "CFLAGS = $(HOST_CFLAGS)"            >> $(DEB_BUILDDIR)/configparms
+	echo "ASFLAGS = $(HOST_CFLAGS)"           >> $(DEB_BUILDDIR)/configparms
+	echo "BUILD_CFLAGS = $(BUILD_CFLAGS)"     >> $(DEB_BUILDDIR)/configparms
+	echo "LDFLAGS = "                         >> $(DEB_BUILDDIR)/configparms
+	echo "BASH := /bin/bash"                  >> $(DEB_BUILDDIR)/configparms
+	echo "KSH := /bin/bash"                   >> $(DEB_BUILDDIR)/configparms
+	echo "SHELL := /bin/bash"                 >> $(DEB_BUILDDIR)/configparms
+	echo "LIBGD = no"                         >> $(DEB_BUILDDIR)/configparms
+	echo "bindir = $(bindir)"                 >> $(DEB_BUILDDIR)/configparms
+	echo "datadir = $(datadir)"               >> $(DEB_BUILDDIR)/configparms
+	echo "localedir = $(localedir)"           >> $(DEB_BUILDDIR)/configparms
+	echo "sysconfdir = $(sysconfdir)"         >> $(DEB_BUILDDIR)/configparms
+	echo "libexecdir = $(libexecdir)"         >> $(DEB_BUILDDIR)/configparms
+	echo "rootsbindir = $(rootsbindir)"       >> $(DEB_BUILDDIR)/configparms
 	echo "includedir = $(call xx,includedir)" >> $(DEB_BUILDDIR)/configparms
-	echo "docdir = $(docdir)"		>> $(DEB_BUILDDIR)/configparms
-	echo "mandir = $(mandir)"		>> $(DEB_BUILDDIR)/configparms
-	echo "sbindir = $(sbindir)"		>> $(DEB_BUILDDIR)/configparms
-	echo "libdir = $(call xx,libdir)"	>> $(DEB_BUILDDIR)/configparms
-	echo "slibdir = $(call xx,slibdir)"	>> $(DEB_BUILDDIR)/configparms
-	echo "rtlddir = $(call xx,rtlddir)"	>> $(DEB_BUILDDIR)/configparms
+	echo "docdir = $(docdir)"                 >> $(DEB_BUILDDIR)/configparms
+	echo "mandir = $(mandir)"                 >> $(DEB_BUILDDIR)/configparms
+	echo "sbindir = $(sbindir)"               >> $(DEB_BUILDDIR)/configparms
+	echo "vardbdir = $(vardbdir)"             >> $(DEB_BUILDDIR)/configparms
+	echo "libdir = $(call xx,libdir)"         >> $(DEB_BUILDDIR)/configparms
+	echo "slibdir = $(call xx,slibdir)"       >> $(DEB_BUILDDIR)/configparms
+	echo "rtlddir = $(call xx,rtlddir)"       >> $(DEB_BUILDDIR)/configparms
 
 	# Prevent autoconf from running unexpectedly by setting it to false.
 	# Also explicitly pass CC down - this is needed to get -m64 on
 	# Sparc, et cetera.
-
 	configure_build=$(call xx,configure_build); \
 	if [ $(call xx,configure_target) = $$configure_build ]; then \
 	  echo "Checking that we're running at least kernel version: $(call xx,MIN_KERNEL_SUPPORTED)"; \
@@ -75,6 +74,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		--enable-profile \
 		--without-selinux \
 		--enable-stackguard-randomization \
+		--enable-obsolete-rpc \
 		--with-pkgversion="Debian EGLIBC $(DEB_VERSION)" \
 		--with-bugurl="http://www.debian.org/Bugs/" \
 		$(call xx,with_headers) $(call xx,extra_config_options))

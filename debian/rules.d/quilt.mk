@@ -9,10 +9,6 @@ QUILT      = quilt $(QUILTOPT)
 
 patch: $(stamp)patch
 $(stamp)patch:
-	@if $(QUILT) next >/dev/null 2>&1; then \
-	  echo "Applying patches... "; \
-	  $(QUILT) push -a -v ; \
-	fi
 	@if test -r debian/patches/series.$(DEB_HOST_ARCH); then \
 	  pc=".pc.$(DEB_HOST_ARCH)"; \
 	  mkdir -p "$$pc"; \
@@ -35,11 +31,6 @@ unpatch:
 	  fi ; \
 	  rm -rf $$pc ; \
 	fi
-	@if $(QUILT) previous >/dev/null 2>&1; then \
-	  echo "Unapplying patches..." ; \
-	  $(QUILT) pop -a -v ; \
-	fi ; \
-	rm -rf .pc
 	rm -f $(stamp)patch
 
 refresh: unpatch
@@ -48,4 +39,3 @@ refresh: unpatch
 	  $(QUILT) refresh ; \
 	done ; \
 	$(QUILT) pop -a
-

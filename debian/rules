@@ -90,6 +90,7 @@ includedir=$(prefix)/include
 docdir=$(prefix)/share/doc
 mandir=$(prefix)/share/man
 sbindir=$(prefix)/sbin
+vardbdir=/var/lib/misc
 rtlddir=/lib
 slibdir=/lib/$(DEB_HOST_MULTIARCH)
 libdir=/usr/lib/$(DEB_HOST_MULTIARCH)
@@ -104,7 +105,7 @@ ifneq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
 CC     = $(DEB_HOST_GNU_TYPE)-gcc$(DEB_GCC_VERSION)
 CXX    = $(DEB_HOST_GNU_TYPE)-g++$(DEB_GCC_VERSION)
 else
-DEB_GCC_VERSION ?= -4.4
+DEB_GCC_VERSION ?= -4.6
 CC     = gcc$(DEB_GCC_VERSION)
 CXX    = g++$(DEB_GCC_VERSION)
 endif
@@ -178,7 +179,6 @@ include debian/rules.d/*.mk
 
 clean:: unpatch
 	make -C $(CURDIR)/linuxthreads/man clean
-	make -C $(CURDIR)/debian/local/memcpy-wrapper clean
 	rm -f $(CURDIR)/po/*.mo
 	rm -rf $(patsubst %,debian/tmp-%,$(EGLIBC_PASSES))
 	rm -rf $(build-tree)

@@ -1,21 +1,3 @@
-# This is so horribly wrong.  libc-pic does a whole pile of gratuitous
-# renames.  There's very little we can do for now.  Maybe after
-# Sarge releases we can consider breaking packages, but certainly not now.
-
-$(stamp)binaryinst_$(libc)-pic:: debhelper
-	@echo Running special kludge for $(libc)-pic
-	dh_testroot
-	dh_installdirs -p$(curpass)
-	install --mode=0644 build-tree/$(DEB_HOST_ARCH)-libc/libc_pic.a debian/$(libc)-pic/$(libdir)/.
-	install --mode=0644 build-tree/$(DEB_HOST_ARCH)-libc/libc.map debian/$(libc)-pic/$(libdir)/libc_pic.map
-	install --mode=0644 build-tree/$(DEB_HOST_ARCH)-libc/elf/soinit.os debian/$(libc)-pic/$(libdir)/libc_pic/soinit.o
-	install --mode=0644 build-tree/$(DEB_HOST_ARCH)-libc/elf/sofini.os debian/$(libc)-pic/$(libdir)/libc_pic/sofini.o
-
-	install --mode=0644 build-tree/$(DEB_HOST_ARCH)-libc/math/libm_pic.a debian/$(libc)-pic/$(libdir)/.
-	install --mode=0644 build-tree/$(DEB_HOST_ARCH)-libc/libm.map debian/$(libc)-pic/$(libdir)/libm_pic.map
-	install --mode=0644 build-tree/$(DEB_HOST_ARCH)-libc/resolv/libresolv_pic.a debian/$(libc)-pic/$(libdir)/.
-	install --mode=0644 build-tree/$(DEB_HOST_ARCH)-libc/libresolv.map debian/$(libc)-pic/$(libdir)/libresolv_pic.map
-
 # Some per-package extra files to install.
 define libc-bin_extra_debhelper_pkg_install
   	# dh_installmanpages thinks that .so is a language.
@@ -118,10 +100,12 @@ endif
 	dh_md5sums -p$(curpass)
 
 	# We adjust the compression format depending on the package:
-	# - libc*-dbg and locales-all contains highly compressible data
+	# - libc* contains highly compressible data, but packages needed during
+	#   debootstrap have to be compressed with gzip
+	# - locales-all and locales contains highly compressible data
 	# - other packages use the default gzip format
 	case $(curpass) in \
-	libc*-dbg | locales-all) \
+	libc*-dbg | libc*-pic | libc*-prof | locales-all | locales) \
 		dh_builddeb -p$(curpass) -- -Zxz -z7 ;; \
 	*) \
 		dh_builddeb -p$(curpass) ;; \
@@ -230,7 +214,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 clean::
 	dh_clean 
 
-	rm -f debian/*.install*
+	rm -f debian/*.install
 	rm -f debian/*.install.*
 	rm -f debian/*.manpages
 	rm -f debian/*.links

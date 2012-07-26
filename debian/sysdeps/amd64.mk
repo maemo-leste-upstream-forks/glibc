@@ -1,18 +1,6 @@
 libc_rtlddir = /lib64
 extra_config_options = --enable-multi-arch
 
-define libc6_extra_pkg_install
-
-make -C debian/local/memcpy-wrapper
-install -m 755 -o root -g root -d debian/libc6/$(libdir)/libc
-install -m 755 -o root -g root \
-	debian/local/memcpy-wrapper/memcpy-preload.so \
-	debian/libc6/$(libdir)/libc
-install -m 755 -o root -g root \
-	debian/local/memcpy-wrapper/memcpy-syslog-preload.so \
-	debian/libc6/$(libdir)/libc
-endef
-
 # build 32-bit (i386) alternative library
 EGLIBC_PASSES += i386
 DEB_ARCH_REGULAR_PACKAGES += libc6-i386 libc6-dev-i386
@@ -41,11 +29,6 @@ mkdir -p debian/libc6-dev-i386/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/x86_64-linux-gnu/sys` ; do \
 	ln -s ../x86_64-linux-gnu/sys/$$i debian/libc6-dev-i386/usr/include/sys/$$i ; \
 done
-
-cp -a debian/tmp-i386/usr/include/sys/elf.h \
-	debian/libc6-dev-i386/usr/include/sys
-cp -a debian/tmp-i386/usr/include/sys/vm86.h \
-	debian/libc6-dev-i386/usr/include/sys
 
 endef
 

@@ -53,18 +53,21 @@
           is not existed.
 
 ---
- elf/ldconfig.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ elf/ldconfig.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 --- a/elf/ldconfig.c
 +++ b/elf/ldconfig.c
-@@ -1066,7 +1066,8 @@
+@@ -1064,9 +1064,10 @@
  
    if (file == NULL)
      {
--      error (0, errno, _("Can't open configuration file %s"), canon);
+-      error (0, errno, _("\
 +      if (strcmp(canon, LD_SO_CONF) != 0 || opt_verbose)
-+	error (0, errno, _("Can't open configuration file %s"), canon);
++       error (0, errno, _("\
+ Warning: ignoring configuration file that cannot be opened: %s"),
+-	     canon);
++	      canon);
        if (canon != filename)
  	free ((char *) canon);
        return;

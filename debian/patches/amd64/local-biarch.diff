@@ -7,28 +7,21 @@
 
 --- a/sysdeps/unix/sysv/linux/x86_64/dl-cache.h
 +++ b/sysdeps/unix/sysv/linux/x86_64/dl-cache.h
-@@ -22,4 +22,23 @@
- #define _dl_cache_check_flags(flags)			\
-   ((flags) == _DL_CACHE_DEFAULT_ID)
- 
--#include <sysdeps/unix/sysv/linux/sparc/dl-cache.h>
-+#define add_system_dir(dir) \
-+  do								\
-+    {								\
-+      size_t len = strlen (dir);				\
-+      char path[len + 3];					\
-+      memcpy (path, dir, len + 1);				\
+@@ -27,7 +27,7 @@
+       size_t len = strlen (dir);				\
+       char path[len + 4];					\
+       memcpy (path, dir, len + 1);				\
+-      if (len >= 6 && ! memcmp (path + len - 6, "/lib64", 6))	\
 +      if (len >= 6 && ! memcmp (path + len - 6, "/lib32", 6))	\
-+	{							\
-+	  len -= 2;						\
-+	  path[len] = '\0';					\
-+	}							\
-+      add_dir (path);						\
-+      if (len >= 4 && ! memcmp (path + len - 4, "/lib", 4))	\
-+	{							\
+ 	{							\
+ 	  len -= 2;						\
+ 	  path[len] = '\0';					\
+@@ -41,7 +41,7 @@
+       add_dir (path);						\
+       if (len >= 4 && ! memcmp (path + len - 4, "/lib", 4))	\
+ 	{							\
+-	  memcpy (path + len, "64", 3);				\
 +	  memcpy (path + len, "32", 3);				\
-+	  add_dir (path);					\
-+	}							\
-+    } while (0)
-+
-+#include <sysdeps/generic/dl-cache.h>
+ 	  add_dir (path);					\
+ 	  memcpy (path + len, "x32", 4);				\
+ 	  add_dir (path);					\
