@@ -1,3 +1,7 @@
+2012-10-08  Wookey  <wookey@wookware.org>
+
+        * include AT_* defines in sysdeps/unix/sysv/linux/aarch64/bits/fcntl.h
+
 2009-11-19  Aurelien Jarno  <aurelien@aurel32.net>
     
 	* io/fcntl.h: Move AT_* defines to...
@@ -411,6 +415,34 @@
 +# define AT_EACCESS		0x200	/* Test access permitted for
 +					   effective IDs, not real IDs.  */
 +#endif
++
+ __BEGIN_DECLS
+ 
+ #ifdef __USE_GNU
+--- a/sysdeps/unix/sysv/linux/aarch64/bits/fcntl.h	2012-10-08 13:15:20.000000000 +0100
++++ b/sysdeps/unix/sysv/linux/aarch64/bits/fcntl.h	2012-10-08 13:17:09.000000000 +0100
+@@ -262,6 +262,25 @@
+ # define MAX_HANDLE_SZ	128
+ #endif
+ 
++/* Values for `*at' functions.  */
++#ifdef __USE_ATFILE
++# define AT_FDCWD		-100	/* Special value used to indicate
++					   the *at functions should use the
++					   current working directory. */
++# define AT_SYMLINK_NOFOLLOW	0x100	/* Do not follow symbolic links.  */
++# define AT_REMOVEDIR		0x200	/* Remove directory instead of
++					   unlinking file.  */
++# define AT_SYMLINK_FOLLOW	0x400	/* Follow symbolic links.  */
++# ifdef __USE_GNU
++#  define AT_NO_AUTOMOUNT	0x800	/* Suppress terminal automount
++					   traversal.  */
++#  define AT_EMPTY_PATH		0x1000	/* Allow empty relative pathname.  */
++# endif
++# define AT_EACCESS		0x200	/* Test access permitted for
++					   effective IDs, not real IDs.  */
++#endif
++
 +
  __BEGIN_DECLS
  

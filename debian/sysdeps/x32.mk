@@ -1,10 +1,9 @@
 libc_rtlddir = /libx32
 extra_config_options = --enable-multi-arch
 
-ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
-CC	= gcc-4.7
-CXX	= g++-4.7
-endif
+# There is no gcc-4.6 for x32, so use 4.7
+CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)-4.7
+CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)-4.7
 
 # build 64-bit (amd64) alternative library
 EGLIBC_PASSES += amd64
@@ -44,7 +43,7 @@ libc6-i386_shlib_dep = libc6-i386 (>= $(shlib_dep_ver))
 i386_add-ons = nptl $(add-ons)
 i386_configure_target = i686-linux-gnu
 i386_CC = $(CC) -m32
-i386_CXX = $(CC) -m32
+i386_CXX = $(CXX) -m32
 i386_extra_cflags = -march=pentium4 -mtune=generic
 i386_extra_config_options = $(extra_config_options) --disable-profile
 i386_slibdir = /lib32

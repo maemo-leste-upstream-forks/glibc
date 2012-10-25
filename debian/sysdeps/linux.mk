@@ -5,7 +5,12 @@ libc = libc6
 # NPTL Config
 threads = yes
 libc_add-ons = nptl $(add-ons)
-libc_extra_config_options = --with-selinux $(extra_config_options)
+
+ifeq ($(DEB_BUILD_PROFILE),bootstrap)
+  libc_extra_config_options = $(extra_config_options)
+else
+  libc_extra_config_options = --with-selinux $(extra_config_options)
+endif
 
 ifndef LINUX_SOURCE
   ifeq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))

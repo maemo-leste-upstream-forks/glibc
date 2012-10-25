@@ -95,20 +95,18 @@ rtlddir=/lib
 slibdir=/lib/$(DEB_HOST_MULTIARCH)
 libdir=/usr/lib/$(DEB_HOST_MULTIARCH)
 
-BUILD_CC = gcc
-BUILD_CXX = g++
+
+BASE_CC = gcc
+BASE_CXX = g++
+DEB_GCC_VERSION ?= -4.6
 
 RUN_TESTSUITE = yes
 
-# Set CC and CXX for cross-compiling
-ifneq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
-CC     = $(DEB_HOST_GNU_TYPE)-gcc$(DEB_GCC_VERSION)
-CXX    = $(DEB_HOST_GNU_TYPE)-g++$(DEB_GCC_VERSION)
-else
-DEB_GCC_VERSION ?= -4.6
-CC     = gcc$(DEB_GCC_VERSION)
-CXX    = g++$(DEB_GCC_VERSION)
-endif
+# Set cross and native compiler names, including version
+CC     = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)$(DEB_GCC_VERSION)
+CXX    = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)$(DEB_GCC_VERSION)
+BUILD_CC = $(DEB_BUILD_GNU_TYPE)-$(BASE_CC)$(DEB_GCC_VERSION)
+BUILD_CXX = $(DEB_BUILD_GNU_TYPE)-$(BASE_CXX)$(DEB_GCC_VERSION)
 
 BUILD_CFLAGS = -O2 -g
 HOST_CFLAGS = -pipe -O2 -fstrict-aliasing -g $(call xx,extra_cflags)
@@ -129,9 +127,15 @@ log_expected = debian/testsuite-checking/expected-results-$(call xx,configure_ta
 # Which build pass are we on?
 curpass = $(filter-out %_,$(subst _,_ ,$@))
 
+ifeq ($(DEB_BUILD_PROFILE),bootstrap)
+DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev libc-bin libc-dev-bin multiarch-support
+DEB_INDEP_REGULAR_PACKAGES = eglibc-source 
+DEB_UDEB_PACKAGES = 
+else
 DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg $(libc)-prof $(libc)-pic libc-bin libc-dev-bin multiarch-support
 DEB_INDEP_REGULAR_PACKAGES = glibc-doc eglibc-source locales
 DEB_UDEB_PACKAGES = $(libc)-udeb libnss-dns-udeb libnss-files-udeb
+endif
 
 ## Locales can only be pre-generated during native compiles
 ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))

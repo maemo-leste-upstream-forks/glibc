@@ -8,8 +8,8 @@ Build-Depends: gettext, make (>= 3.80), dpkg-dev (>= 1.16.0), bzip2, xz-utils, f
  mig (>= 1.3-2) [hurd-i386], hurd-dev (>= 20120520-2~) [hurd-i386], gnumach-dev [hurd-i386],
  kfreebsd-kernel-headers [kfreebsd-any],
  binutils (>= 2.21),
- g++-4.6 [!x32], g++-4.6-multilib [amd64 i386 kfreebsd-amd64 mips mipsel powerpc ppc64 s390 s390x sparc],
- g++-4.7 [amd64 i386 x32], g++-4.7-multilib [amd64 i386 x32]
+ g++-4.6 [!x32 !arm64], g++-4.6-multilib [amd64 i386 kfreebsd-amd64 mips mipsel powerpc ppc64 s390 s390x sparc],
+ g++-4.7 (>= 4.7.2-3) [amd64 arm64 i386 x32], g++-4.7-multilib (>= 4.7.2-3) [amd64 i386 x32]
 Build-Depends-Indep: perl, po-debconf (>= 1.0)
 Build-Conflicts: binutils-gold
 Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
@@ -136,7 +136,7 @@ Description: Transitional package to ensure multiarch compatibility
  be removed once nothing on the system depends on it.
 
 Package: libc6
-Architecture: amd64 arm armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 sparc sparc64 s390 s390x sh4 x32
+Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 sparc sparc64 s390 s390x sh4 x32
 Section: libs
 Priority: required
 Multi-Arch: same
@@ -161,7 +161,7 @@ Description: Embedded GNU C Library: Shared libraries
  and the standard math library, as well as many others.
 
 Package: libc6-dev
-Architecture: amd64 arm armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 sparc sparc64 s390 s390x sh4 x32
+Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 sparc sparc64 s390 s390x sh4 x32
 Section: libdevel
 Priority: optional
 Multi-Arch: same
@@ -177,7 +177,7 @@ Description: Embedded GNU C Library: Development Libraries and Header Files
  and link programs which use the standard C library.
 
 Package: libc6-dbg
-Architecture: amd64 arm armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 sparc sparc64 s390 s390x sh4 x32
+Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 sparc sparc64 s390 s390x sh4 x32
 Section: debug
 Priority: extra
 Multi-Arch: same
@@ -188,7 +188,7 @@ Description: Embedded GNU C Library: detached debugging symbols
  library.
 
 Package: libc6-prof
-Architecture: amd64 arm armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 sparc sparc64 s390 s390x sh4 x32
+Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 sparc sparc64 s390 s390x sh4 x32
 Section: libdevel
 Priority: extra
 Multi-Arch: same
@@ -198,7 +198,7 @@ Description: Embedded GNU C Library: Profiling Libraries
  with gprof.
 
 Package: libc6-pic
-Architecture: amd64 arm armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 sparc sparc64 s390 s390x sh4 x32
+Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 sparc sparc64 s390 s390x sh4 x32
 Section: libdevel
 Priority: optional
 Multi-Arch: same
@@ -213,7 +213,7 @@ Description: Embedded GNU C Library: PIC archive library
 
 Package: libc6-udeb
 XC-Package-Type: udeb
-Architecture: amd64 arm armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 sparc sparc64 s390 s390x sh4 x32
+Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 sparc sparc64 s390 s390x sh4 x32
 Section: debian-installer
 Priority: extra
 Provides: libc6, libc-udeb, ${locale-compat:Depends}

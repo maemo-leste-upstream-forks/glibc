@@ -81,8 +81,8 @@ endef
 #libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
 #x32_add-ons = nptl $(add-ons)
 #x32_configure_target = x86_64-linux-gnux32
-#x32_CC = gcc-4.7 -mx32
-#x32_CXX = g++-4.7 -mx32
+#x32_CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)-4.7
+#x32_CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)-4.7
 #x32_extra_config_options = $(extra_config_options) --disable-profile
 #x32_slibdir = /libx32
 #x32_libdir = /usr/libx32

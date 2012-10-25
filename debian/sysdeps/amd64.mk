@@ -8,7 +8,7 @@ libc6-i386_shlib_dep = libc6-i386 (>= $(shlib_dep_ver))
 i386_add-ons = nptl $(add-ons)
 i386_configure_target = i686-linux-gnu
 i386_CC = $(CC) -m32
-i386_CXX = $(CC) -m32
+i386_CXX = $(CXX) -m32
 i386_extra_cflags = -march=pentium4 -mtune=generic
 i386_extra_config_options = $(extra_config_options) --disable-profile
 i386_slibdir = /lib32
@@ -43,8 +43,8 @@ endef
 #libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
 #x32_add-ons = nptl $(add-ons)
 #x32_configure_target = x86_64-linux-gnux32
-#x32_CC = gcc-4.7 -mx32
-#x32_CXX = g++-4.7 -mx32
+#x32_CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)-4.7
+#x32_CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)-4.7
 #x32_extra_config_options = $(extra_config_options) --disable-profile
 #x32_slibdir = /libx32
 #x32_libdir = /usr/libx32
