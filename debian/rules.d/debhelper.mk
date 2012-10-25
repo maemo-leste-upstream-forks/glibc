@@ -183,7 +183,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	    pass="" \
 	    suffix="" \
 	    ;; \
-	  *:/lib32 | *:/lib64) \
+	  *:/lib32 | *:/lib64 | *:/libx32) \
 	    templates="libc libc-dev" \
 	    pass="-alt" \
 	    suffix="-$(curpass)" \

@@ -34,6 +34,10 @@ unpatch:
 	rm -f $(stamp)patch
 
 refresh: unpatch
+	@if $(QUILT) previous >/dev/null 2>&1; then \
+	  echo "Unapplying Debian patches..." ; \
+	  $(QUILT) pop -a -v ; \
+	fi
 	@while $(QUILT) next ; do \
 	  $(QUILT) push ; \
 	  $(QUILT) refresh ; \

@@ -1,6 +1,7 @@
 EGLIBC_SVN = svn://svn.eglibc.org
 EGLIBC_BRANCH = branches/eglibc-$(shell echo $(EGLIBC_VERSION) | sed -e 's/\([0-9]\+\)\.\([0-9]\+\).*/\1_\2/')
 EGLIBC_CHECKOUT = eglibc-checkout
+EGLIBC_CHECKOUT_REV = -r19383
 EGLIBC_DIR = eglibc-$(EGLIBC_VERSION)
 DEB_ORIG = ../eglibc_$(EGLIBC_VERSION).orig.tar.xz
 DEB_ORIG_REVISION = $(shell cat .svn-revision 2> /dev/null)
@@ -9,7 +10,8 @@ SVN_UPDATES_DIFF = debian/patches/svn-updates.diff
 get-orig-source: $(DEB_ORIG)
 $(DEB_ORIG):
 	dh_testdir
-	svn co $(EGLIBC_SVN)/$(EGLIBC_BRANCH) $(EGLIBC_CHECKOUT)
+	svn co $(EGLIBC_CHECKOUT_REV) \
+		$(EGLIBC_SVN)/$(EGLIBC_BRANCH) $(EGLIBC_CHECKOUT)
 	svn export $(EGLIBC_CHECKOUT)/libc $(EGLIBC_DIR)
 	svn export $(EGLIBC_CHECKOUT)/linuxthreads/linuxthreads $(EGLIBC_DIR)/linuxthreads
 	svn export $(EGLIBC_CHECKOUT)/linuxthreads/linuxthreads_db $(EGLIBC_DIR)/linuxthreads_db

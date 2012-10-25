@@ -147,7 +147,7 @@ $(stamp)install_%: $(stamp)check_%
 	  install_root=$(CURDIR)/debian/tmp-$(curpass) install
 
 	# Generate gconv-modules.cache
-	case $(curpass)-$(call xx,slibdir) in libc-* | *-/lib32 | *-/lib64) \
+	case $(curpass)-$(call xx,slibdir) in libc-* | *-/lib32 | *-/lib64 | *-/libx32) \
 	  /usr/sbin/iconvconfig --nostdlib --prefix=$(CURDIR)/debian/tmp-$(curpass) \
 				-o $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)/gconv/gconv-modules.cache \
 				$(call xx,libdir)/gconv \
@@ -185,7 +185,7 @@ $(stamp)install_%: $(stamp)check_%
 	# the multiarch ld.so doesn't look at the (non-standard) /lib32, so we
 	# need path compatibility when biarch and multiarch packages are both
 	# installed.
-	case $(call xx,slibdir) in /lib32 | /lib64) \
+	case $(call xx,slibdir) in /lib32 | /lib64 | /libx32) \
 	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \
 	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/zz_$(curpass)-biarch-compat.conf"; \
 	  echo "# Legacy biarch compatibility support" > $$conffile; \
