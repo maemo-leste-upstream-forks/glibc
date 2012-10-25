@@ -1,4 +1,3 @@
-libc_MIN_KERNEL_SUPPORTED = 3.4.0
 libc_rtlddir = /libx32
 extra_config_options = --enable-multi-arch
 

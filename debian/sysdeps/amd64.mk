@@ -1,4 +1,3 @@
-libc_MIN_KERNEL_SUPPORTED = 3.4.0
 libc_rtlddir = /lib64
 extra_config_options = --enable-multi-arch
 
@@ -38,23 +37,23 @@ mkdir -p debian/libc6-i386/lib
 ln -sf /lib32/ld-linux.so.2 debian/libc6-i386/lib
 endef
 
-# build x32 ABI alternative library
-EGLIBC_PASSES += x32
-DEB_ARCH_REGULAR_PACKAGES += libc6-x32 libc6-dev-x32
-libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
-x32_add-ons = nptl $(add-ons)
-x32_configure_target = x86_64-linux-gnux32
-x32_CC = gcc-4.7 -mx32
-x32_CXX = g++-4.7 -mx32
-x32_extra_config_options = $(extra_config_options) --disable-profile
-x32_slibdir = /libx32
-x32_libdir = /usr/libx32
-
-define libc6-dev-x32_extra_pkg_install
-
-mkdir -p debian/libc6-dev-x32/usr/include/x86_64-linux-gnu/gnu
-cp -a debian/tmp-x32/usr/include/gnu/stubs-x32.h \
-	debian/libc6-dev-x32/usr/include/x86_64-linux-gnu/gnu
-
-endef
+## build x32 ABI alternative library
+#EGLIBC_PASSES += x32
+#DEB_ARCH_REGULAR_PACKAGES += libc6-x32 libc6-dev-x32
+#libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
+#x32_add-ons = nptl $(add-ons)
+#x32_configure_target = x86_64-linux-gnux32
+#x32_CC = gcc-4.7 -mx32
+#x32_CXX = g++-4.7 -mx32
+#x32_extra_config_options = $(extra_config_options) --disable-profile
+#x32_slibdir = /libx32
+#x32_libdir = /usr/libx32
+#
+#define libc6-dev-x32_extra_pkg_install
+#
+#mkdir -p debian/libc6-dev-x32/usr/include/x86_64-linux-gnu/gnu
+#cp -a debian/tmp-x32/usr/include/gnu/stubs-x32.h \
+#	debian/libc6-dev-x32/usr/include/x86_64-linux-gnu/gnu
+#
+#endef
 
