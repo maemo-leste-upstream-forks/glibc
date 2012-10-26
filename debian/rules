@@ -181,8 +181,10 @@ NODEBUG_libc6-sparc64 = 1
 NODEBUG_libc6-mips64 = 1
 NODEBUG_nscd = 1
 
-ifeq ($(threads),yes)
-DEB_ARCH_REGULAR_PACKAGES += nscd
+ifneq ($(DEB_BUILD_PROFILE),bootstrap)
+  ifeq ($(threads),yes)
+  DEB_ARCH_REGULAR_PACKAGES += nscd
+  endif
 endif
 
 # And now the rules...
