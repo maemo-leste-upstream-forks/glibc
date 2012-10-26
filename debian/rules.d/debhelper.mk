@@ -177,6 +177,32 @@ $(stamp)debhelper-common:
 
 	touch $@
 
+ifeq ($(DEB_BUILD_PROFILE),bootstrap)
+$(patsubst %,debhelper_%,$(EGLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
+$(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
+	libdir=$(call xx,libdir) ; \
+	slibdir=$(call xx,slibdir) ; \
+	rtlddir=$(call xx,rtlddir) ; \
+	curpass=$(curpass) ; \
+	templates="libc-dev" ;\
+	pass="" ; \
+	suffix="" ;\
+	for t in $$templates ; do \
+	  for s in debian/$$t$$pass.* ; do \
+	    t=`echo $$s | sed -e "s#libc\(.*\)$$pass#$(libc)\1$$suffix#"` ; \
+	    if [ "$$s" != "$$t" ] ; then \
+	      cp $$s $$t ; \
+	    fi ; \
+	    sed -e "s#TMPDIR#debian/tmp-$$curpass#g" -i $$t; \
+	    sed -e "s#RTLDDIR#$$rtlddir#g" -i $$t; \
+	    sed -e "s#SLIBDIR#$$slibdir#g" -i $$t; \
+	  done ; \
+	done
+
+	egrep -v "LIBDIR.*.a " debian/$(libc)-dev.install >debian/$(libc)-dev.install-
+	mv debian/$(libc)-dev.install- debian/$(libc)-dev.install
+	sed -e "s#LIBDIR#lib#g" -i debian/$(libc)-dev.install
+else
 $(patsubst %,debhelper_%,$(EGLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
 $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	libdir=$(call xx,libdir) ; \
@@ -215,6 +241,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	    sed -e "s#RTLD_SO#$$rtld_so#g" -i $$t ; \
 	  done ; \
 	done
+endif
 
 	touch $@
 
