@@ -135,7 +135,7 @@ $(stamp)check_%: $(stamp)build_%
 	  echo "Testsuite disabled for $(curpass), skipping tests."; \
 	  echo "Tests have been disabled." > $(log_results) ; \
 	else \
-	  echo Testing $(curpass); \
+	  echo Testing $(curpass) / $(log_results); \
 	  find $(DEB_BUILDDIR) -name '*.out' -exec rm {} ';' ; \
 	  LANG="" TIMEOUTFACTOR="50" $(MAKE) -C $(DEB_BUILDDIR) -k check 2>&1 | tee $(log_test); \
 	  chmod +x debian/testsuite-checking/convertlog.sh ; \
@@ -147,10 +147,14 @@ $(stamp)check_%: $(stamp)build_%
 	    echo "***************" ; \
 	  else \
 	    echo "*** WARNING ***" ; \
-	    echo "Please generate expected testsuite results for this arch!" ; \
+	    echo "Please generate expected testsuite results for this arch ($(log_expected))!" ; \
 	    echo "*** WARNING ***" ; \
 	  fi ; \
 	fi
+	@n=$$(grep '^make.* Error' $(log_test) | wc -l || true); \
+	  echo "TEST SUMMARY $(log_test) ($$n matching lines)"; \
+	  grep '^make.* Error' $(log_test) || true; \
+	  echo "END TEST SUMMARY $(log_test)"
 	touch $@
 
 $(patsubst %,install_%,$(EGLIBC_PASSES)) :: install_% : $(stamp)install_%
