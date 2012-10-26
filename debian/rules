@@ -76,6 +76,13 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 NJOBS := -j $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 endif
 
+# use the package settings, not the settings from the environment
+define unsetenv
+  unexport $(1)
+  $(1) =
+endef
+$(foreach v, CPPFLAGS CFLAGS CXXFLAGS LDFLAGS, $(if $(filter environment,$(origin $(v))),$(eval $(call unsetenv, $(v)))))
+
 # Default setup
 EGLIBC_PASSES ?= libc
 
