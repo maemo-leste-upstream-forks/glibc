@@ -16,6 +16,10 @@ ifeq ($(DEB_BUILD_PROFILE),bootstrap)
                                --enable-hacker-mode
 endif
 
+ifdef WITH_SYSROOT
+    libc_extra_config_options += --with-headers=$(WITH_SYSROOT)/$(includedir)
+endif
+
 $(patsubst %,mkbuilddir_%,$(EGLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
 $(stamp)mkbuilddir_%: $(stamp)patch $(KERNEL_HEADER_DIR)
 	@echo Making builddir for $(curpass)
