@@ -81,6 +81,18 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	    dh_strip -p$(curpass) -Xlibpthread;					\
 	  fi									\
 	fi
+
+	# ARM archs always use multiarch locations, don't let libc6-dbg conflict
+	if test "$(curpass)" = "$(libc)-dbg"; then				\
+	  if test "$(DEB_HOST_ARCH)" = "armel"; then				\
+	    rm -rf debian/$(curpass)/usr/lib/debug/lib/arm-linux-gnueabihf;	\
+	    rm -rf debian/$(curpass)/usr/lib/debug/usr/lib/arm-linux-gnueabihf;	\
+	  fi;									\
+	  if test "$(DEB_HOST_ARCH)" = "armhf"; then				\
+	    rm -rf debian/$(curpass)/usr/lib/debug/lib/arm-linux-gnueabi;	\
+	    rm -rf debian/$(curpass)/usr/lib/debug/usr/lib/arm-linux-gnueabi;	\
+	  fi;									\
+	fi
 endif
 
 	dh_compress -p$(curpass)
@@ -216,7 +228,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	    pass="" \
 	    suffix="" \
 	    ;; \
-	  *:/lib32 | *:/lib64 | *:/libx32) \
+	  *:/lib32 | *:/lib64 | *:/libx32 | *:/lib/arm-linux-gnueabi*) \
 	    templates="libc libc-dev" \
 	    pass="-alt" \
 	    suffix="-$(curpass)" \
