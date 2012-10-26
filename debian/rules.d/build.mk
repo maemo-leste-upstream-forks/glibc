@@ -11,6 +11,10 @@ define logme
 (exec 3>&1; exit `( ( ( $(2) ) 2>&1 3>&-; echo $$? >&4) | tee $(1) >&3) 4>&1`)
 endef
 
+ifeq ($(DEB_BUILD_PROFILE),bootstrap)
+    libc_extra_config_options = $(extra_config_options) --disable-sanity-checks \
+                               --enable-hacker-mode
+endif
 
 $(patsubst %,mkbuilddir_%,$(EGLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
 $(stamp)mkbuilddir_%: $(stamp)patch $(KERNEL_HEADER_DIR)
@@ -83,6 +87,10 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 $(patsubst %,build_%,$(EGLIBC_PASSES)) :: build_% : $(stamp)build_%
 $(stamp)build_%: $(stamp)configure_%
 	@echo Building $(curpass)
+
+ifeq ($(DEB_BUILD_PROFILE),bootstrap)
+	$(MAKE) cross-compiling=yes -C $(DEB_BUILDDIR) $(NJOBS) csu/subdir_lib
+else
 	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS))
 	$(call logme, -a $(log_build), echo "---------------" ; echo -n "Build ended: " ; date --rfc-2822)
 	if [ $(curpass) = libc ]; then \
@@ -92,6 +100,7 @@ $(stamp)build_%: $(stamp)configure_%
 	  $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) \
 	    objdir=$(DEB_BUILDDIR) install_root=$(CURDIR)/build-tree/locales-all \
 	    localedata/install-locales; \
+	  sync; \
 	  cd $(CURDIR)/build-tree/locales-all/usr/lib/locale ; \
 	  fdupes -1 -H -q -R . | while read line ; do \
 	    set -- $${line} ; \
@@ -105,6 +114,7 @@ $(stamp)build_%: $(stamp)configure_%
 	    done ; \
 	  done ; \
 	fi
+endif
 	touch $@
 
 $(patsubst %,check_%,$(EGLIBC_PASSES)) :: check_% : $(stamp)check_%
@@ -143,6 +153,22 @@ $(patsubst %,install_%,$(EGLIBC_PASSES)) :: install_% : $(stamp)install_%
 $(stamp)install_%: $(stamp)check_%
 	@echo Installing $(curpass)
 	rm -rf $(CURDIR)/debian/tmp-$(curpass)
+ifeq ($(DEB_BUILD_PROFILE),bootstrap)
+	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS)	\
+	    cross-compiling=yes install_root=$(CURDIR)/debian/tmp-$(curpass)	\
+	    install-bootstrap-headers=yes install-headers )
+
+	install -d $(CURDIR)/debian/tmp-$(curpass)/lib
+	install -m 644 $(DEB_BUILDDIR)/csu/crt[1in].o $(CURDIR)/debian/tmp-$(curpass)/lib
+	${CC} -nostdlib -nostartfiles -shared -x c /dev/null \
+	        -o $(CURDIR)/debian/tmp-$(curpass)/lib/libc.so
+else
+	case "$(curpass)" in \
+	        armhf) \
+	                cp -p /lib/arm-linux-gnueabihf/libgcc_s.so.1 $(DEB_BUILDDIR)/ ;; \
+	        armel) \
+	                cp -p /lib/arm-linux-gnueabi/libgcc_s.so.1 $(DEB_BUILDDIR)/ ;; \
+	esac
 	$(MAKE) -C $(DEB_BUILDDIR) \
 	  install_root=$(CURDIR)/debian/tmp-$(curpass) install
 
@@ -223,6 +249,7 @@ $(stamp)install_%: $(stamp)check_%
 	fi
 	
 	$(call xx,extra_install)
+endif
 	touch $@
 
 $(stamp)doc: $(stamp)patch

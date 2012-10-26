@@ -135,18 +135,17 @@ log_expected = debian/testsuite-checking/expected-results-$(call xx,configure_ta
 curpass = $(filter-out %_,$(subst _,_ ,$@))
 
 ifeq ($(DEB_BUILD_PROFILE),bootstrap)
-DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev libc-bin libc-dev-bin multiarch-support
-DEB_INDEP_REGULAR_PACKAGES = eglibc-source 
-DEB_UDEB_PACKAGES = 
+  DEB_ARCH_REGULAR_PACKAGES = $(libc)-dev
+  DEB_INDEP_REGULAR_PACKAGES = 
+  DEB_UDEB_PACKAGES = 
 else
-DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg $(libc)-prof $(libc)-pic libc-bin libc-dev-bin multiarch-support
-DEB_INDEP_REGULAR_PACKAGES = glibc-doc eglibc-source locales
-DEB_UDEB_PACKAGES = $(libc)-udeb libnss-dns-udeb libnss-files-udeb
-endif
-
-## Locales can only be pre-generated during native compiles
-ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
-DEB_ARCH_REGULAR_PACKAGES += locales-all
+  DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg $(libc)-prof $(libc)-pic libc-bin libc-dev-bin multiarch-support
+  DEB_INDEP_REGULAR_PACKAGES = glibc-doc eglibc-source locales
+  DEB_UDEB_PACKAGES = $(libc)-udeb libnss-dns-udeb libnss-files-udeb
+  ## Locales can only be pre-generated during native compiles
+  ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
+    DEB_ARCH_REGULAR_PACKAGES += locales-all
+  endif
 endif
 
 # Generic kernel version check
