@@ -134,6 +134,10 @@ log_expected = debian/testsuite-checking/expected-results-$(call xx,configure_ta
 # Which build pass are we on?
 curpass = $(filter-out %_,$(subst _,_ ,$@))
 
+# Provide backward compatibility for the old DEB_STAGE for now
+ifeq ($(DEB_STAGE),stage1)
+  DEB_BUILD_PROFILE = bootstrap
+endif
 ifeq ($(DEB_BUILD_PROFILE),bootstrap)
   DEB_ARCH_REGULAR_PACKAGES = $(libc)-dev
   DEB_INDEP_REGULAR_PACKAGES = 
