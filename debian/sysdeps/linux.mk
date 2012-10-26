@@ -62,8 +62,8 @@ export CPPFLAGS = -isystem $(shell pwd)/debian/include
 # into an integer so it can be easily compared and then does so.
 CURRENT_KERNEL_VERSION=$(shell uname -r)
 define kernel_check
-(minimum=$$((`echo $(1) | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 65536 + \2 \* 256 + \3/'`)); \
-current=$$((`echo $(CURRENT_KERNEL_VERSION) | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 65536 + \2 \* 256 + \3/'`)); \
+(minimum=$$((`echo $(1) | sed 's/^\([0-9]*\.[0-9]*\)\([^.0-9]\|$$\)/\1.0\2/; s/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 10000 + \2 \* 100 + \3/'`)); \
+current=$$((`echo $(CURRENT_KERNEL_VERSION) | sed 's/^\([0-9]*\.[0-9]*\)\([^.0-9]\|$$\)/\1.0\2/; s/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 10000 + \2 \* 100 + \3/'`)); \
 if [ $$current -lt $$minimum ]; then \
   false; \
 fi)
