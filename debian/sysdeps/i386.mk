@@ -60,9 +60,9 @@ endef
 define libc6-dev-amd64_extra_pkg_install
 
 mkdir -p debian/libc6-dev-amd64/usr/include
-ln -s i386-linux-gnu/bits debian/libc6-dev-amd64/usr/include/
-ln -s i386-linux-gnu/gnu debian/libc6-dev-amd64/usr/include/
-ln -s i386-linux-gnu/fpu_control.h debian/libc6-dev-amd64/usr/include/
+ln -sf i386-linux-gnu/bits debian/libc6-dev-amd64/usr/include/
+ln -sf i386-linux-gnu/gnu debian/libc6-dev-amd64/usr/include/
+ln -sf i386-linux-gnu/fpu_control.h debian/libc6-dev-amd64/usr/include/
 
 mkdir -p debian/libc6-dev-amd64/usr/include/i386-linux-gnu/gnu
 cp -a debian/tmp-amd64/usr/include/gnu/stubs-64.h \
@@ -70,7 +70,7 @@ cp -a debian/tmp-amd64/usr/include/gnu/stubs-64.h \
 
 mkdir -p debian/libc6-dev-amd64/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/i386-linux-gnu/sys` ; do \
-	ln -s ../i386-linux-gnu/sys/$$i debian/libc6-dev-amd64/usr/include/sys/$$i ; \
+	ln -sf ../i386-linux-gnu/sys/$$i debian/libc6-dev-amd64/usr/include/sys/$$i ; \
 done
 
 endef
@@ -81,11 +81,12 @@ endef
 #libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
 #x32_add-ons = nptl $(add-ons)
 #x32_configure_target = x86_64-linux-gnux32
-#x32_CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)-4.7
-#x32_CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)-4.7
+#x32_CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)-4.7 -mx32
+#x32_CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)-4.7 -mx32
 #x32_extra_config_options = $(extra_config_options) --disable-profile
 #x32_slibdir = /libx32
 #x32_libdir = /usr/libx32
+#x32_RUN_TESTSUITE = no
 #
 #define libc6-dev-x32_extra_pkg_install
 #

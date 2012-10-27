@@ -366,6 +366,14 @@ eglibc (2.16-0experimental0) EXPERIMENTAL; urgency=low
   * Merge regression/progression test suite improvements from Ubuntu.
   * Provide backward compatibility for DEB_STAGE->DEB_BUILD_PROFILE.
 
+  [ Matthias Klose ]
+  * Add patches/any/local-revert-bz13979.diff: revert a commit that made
+    attempts to build with FORTIFIED_SOURCE issue warnings if GCC didn't
+    have optimisations turned on.  This breaks some unclever AC macros.
+  * Fix building x32 multilib libraries, by correctly passing -mx32.
+  * Don't run the x32 testsuite on i386/amd64, buildds may lack support.
+  * Fix some ln calls in sysdeps/{amd64,i386} for binary-arch idempotence.
+
  -- Aurelien Jarno <aurel32@debian.org>  Wed, 25 Jul 2012 23:45:58 +0200
 
 eglibc (2.13-36) unstable; urgency=low
