@@ -4,6 +4,7 @@ eglibc (2.16-0experimental0) EXPERIMENTAL; urgency=low
   * New upstream version.  Closes: #672934.
     - Provide a compatibility symbol for the old memcpy() behaviour.  Remove
       the memcpy-wrapper.  Closes: #625522.
+    - Fix printing of incomplete multibyte characters.  Closes: #208308.
     - Disable patches/svn-updates.diff.
     - Update patches/localedata/sort-UTF8-first.diff.
     - Update patches/localedata/supported.diff.
@@ -369,11 +370,6 @@ eglibc (2.16-0experimental0) EXPERIMENTAL; urgency=low
     have optimisations turned on.  This breaks some unclever AC macros.
   * Fix building x32 multilib libraries, by correctly passing -mx32.
   * Fix some ln calls in sysdeps/{amd64,i386} for binary-arch idempotence.
-
-  [ Jonathan Nieder ]
-  * patches/any/cvs-vfprintf-binary.diff: new patch from upstream to
-    print incomplete multibyte characters without complaint with %.<num>s.
-    Closes: #208308.
  
  -- Aurelien Jarno <aurel32@debian.org>  Wed, 25 Jul 2012 23:45:58 +0200
 
