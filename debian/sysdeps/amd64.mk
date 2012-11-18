@@ -48,7 +48,6 @@ endef
 #x32_extra_config_options = $(extra_config_options) --disable-profile
 #x32_slibdir = /libx32
 #x32_libdir = /usr/libx32
-#x32_RUN_TESTSUITE = no
 #
 #define libc6-dev-x32_extra_pkg_install
 #
