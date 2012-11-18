@@ -1,4 +1,4 @@
-eglibc (2.16-0experimental0) EXPERIMENTAL; urgency=low
+eglibc (2.16-0experimental0) experimental; urgency=low
 
   [ Aurelien Jarno ]
   * New upstream version.  Closes: #672934.
@@ -374,7 +374,29 @@ eglibc (2.16-0experimental0) EXPERIMENTAL; urgency=low
   * Fix building x32 multilib libraries, by correctly passing -mx32.
   * Fix some ln calls in sysdeps/{amd64,i386} for binary-arch idempotence.
  
- -- Aurelien Jarno <aurel32@debian.org>  Wed, 25 Jul 2012 23:45:58 +0200
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 18 Nov 2012 21:19:10 +0100
+
+eglibc (2.13-37) unstable; urgency=low
+
+  [ Aurelien Jarno ]
+  * debhelper.in/locales.postinst: correctly lookup for the locales-all
+    package.  Closes: #692777.
+  * patches/kfreebsd/local-getaddrinfo-freebsd-kernel.diff: update to 
+    fix uninitialised bytes access in getaddrinfo().  Closes: #692433.
+  * patches/localedata/locale-C.diff: update to fix strftime('%X') return
+    a 24-hour time format.  Closes: #693446.
+
+  [ Jonathan Nieder ]
+  * control.in/opt: remove outdated reference to 2.6 kernel from
+    description of i686 variant.  Thanks to Regid Ichira.  Closes:
+    #692154.
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/tg-tls-support.diff: Re-fix port leak in fork(). The
+    change was lost while synchronizing with the topgit repository.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 18 Nov 2012 22:53:04 +0100
 
 eglibc (2.13-36) unstable; urgency=low
 
