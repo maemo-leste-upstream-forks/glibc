@@ -1,7 +1,6 @@
 # ldconfig must be executable even when the libc is not configured, and
 # thus must be linked statically
-libc-bin: statically-linked-binary ./sbin/ldconfig
-libc-bin: statically-linked-binary ./sbin/ldconfig.real
+libc-bin: statically-linked-binary sbin/ldconfig.real
 
 # pt_chown must be setuid root and in /usr/lib, otherwise non-root users
 # won't be able to login
@@ -13,3 +12,6 @@ libc-bin: missing-depends-line
 
 # ldconfig.real doesn't have a manpage, since it's just ldconfig renamed
 libc-bin: binary-without-manpage sbin/ldconfig.real
+
+# ldconfig is called in the postinst for trigger support
+libc-bin: postinst-has-useless-call-to-ldconfig
