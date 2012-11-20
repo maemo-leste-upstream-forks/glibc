@@ -1,32 +1,8 @@
 ---
- elf/cache.c                                    |    2 
  ports/sysdeps/unix/sysv/linux/arm/dl-cache.h   |   34 ++++
  ports/sysdeps/unix/sysv/linux/arm/readelflib.c |  186 +++++++++++++++++++++++++
- sysdeps/generic/ldconfig.h                     |    1 
  4 files changed, 223 insertions(+)
 
---- a/elf/cache.c
-+++ b/elf/cache.c
-@@ -94,6 +94,9 @@
-     case FLAG_X8664_LIBX32:
-       fputs (",x32", stdout);
-       break;
-+    case FLAG_ARM_HFABI:
-+      fputs (",hard-float", stdout);
-+      break;
-     case 0:
-       break;
-     default:
---- a/sysdeps/generic/ldconfig.h
-+++ b/sysdeps/generic/ldconfig.h
-@@ -34,6 +34,7 @@
- #define FLAG_MIPS64_LIBN32	0x0600
- #define FLAG_MIPS64_LIBN64	0x0700
- #define FLAG_X8664_LIBX32	0x0800
-+#define FLAG_ARM_HFABI		0x0900
- 
- /* Name of auxiliary cache.  */
- #define _PATH_LDCONFIG_AUX_CACHE "/var/cache/ldconfig/aux-cache"
 --- /dev/null
 +++ b/ports/sysdeps/unix/sysv/linux/arm/dl-cache.h
 @@ -0,0 +1,34 @@
@@ -53,7 +29,7 @@
 +#include <ldconfig.h>
 +
 +/* Redefine the cache ID for the new hf ABI; the sf ABI inverts the check.  */
-+#define _DL_CACHE_ARMHF_ID  (FLAG_ARM_HFABI | FLAG_ELF_LIBC6)
++#define _DL_CACHE_ARMHF_ID  (FLAG_ARM_LIBHF | FLAG_ELF_LIBC6)
 +
 +#ifdef __ARM_PCS_VFP
 +#define _dl_cache_check_flags(flags) \
@@ -244,7 +220,7 @@
 +  if (!ret)
 +    /* Do we have a hard-float ABI library? */
 +    if (is_library_hf(file_name, file_contents, file_length))
-+      *flag = FLAG_ARM_HFABI|FLAG_ELF_LIBC6;
++      *flag = FLAG_ARM_LIBHF|FLAG_ELF_LIBC6;
 +  return ret;
 +}
 +
