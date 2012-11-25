@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ $# -ne '2' ]; then
+if [ $# -lt '2' -o $# -gt '3' ]; then
   echo -e "\nUsage: Compare a test-expected-* file and a test-results-* file."
-  echo -e "$0 : < Expected testsuite results > < Testsuite results >\n";
+  echo -e "$0 : < Expected testsuite results > < Testsuite results > < (optional) build directory >\n";
   exit 1
 fi;
 
@@ -10,6 +10,8 @@ expected=$(tempfile)
 results=$(tempfile)
 grep -Ev '^ *$|^#' $1 | sort > $expected 
 grep -Ev '^ *$|^#' $2 | sort > $results 
+
+builddir=${3:-.}
 
 REGRESSIONS=$(diff -wBI '^#.*' $expected $results | sed -e '/^>/!d;s/^> //g')
 PROGRESSIONS=$(diff -wBI '^#.*' $expected $results | sed -e '/^</!d;s/^< //g')
@@ -19,7 +21,7 @@ if [ -n "$REGRESSIONS" ] ; then
   for test in $(echo "$REGRESSIONS" | sed -e's/, Error.*//')
   do
     echo TEST $test:
-    find . -name "$test" | xargs -r cat
+    find $builddir -name "$test" | xargs -r cat
   done
   rv=1
 else
@@ -27,7 +29,7 @@ else
   for test in $(sed -n '/^[^#]/s/, Error.*//p' $results)
   do
     echo TEST $test:
-    find . -name "$test" | xargs -r cat
+    find $builddir -name "$test" | xargs -r cat
   done
   rv=0
 fi

@@ -143,7 +143,7 @@ $(stamp)check_%: $(stamp)build_%
 	  if test -f $(log_expected) ; then \
 	    echo "***************" ; \
 	    chmod +x debian/testsuite-checking/compare.sh ; \
-	    debian/testsuite-checking/compare.sh $(log_expected) $(log_results) ; \
+	    debian/testsuite-checking/compare.sh $(log_expected) $(log_results) $(DEB_BUILDDIR) ; \
 	    echo "***************" ; \
 	  else \
 	    echo "*** WARNING ***" ; \
