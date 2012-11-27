@@ -84,6 +84,7 @@ x32_configure_target = x86_64-linux-gnux32
 x32_CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)-4.7 -mx32
 x32_CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)-4.7 -mx32
 x32_extra_config_options = $(extra_config_options) --disable-profile
+x32_rtlddir = /libx32
 x32_slibdir = /libx32
 x32_libdir = /usr/libx32
 
