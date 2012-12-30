@@ -1,4 +1,3 @@
-From: Jeremie Koenig <jk@jk.fr.eu.org>
 Subject: [PATCH] Global signal dispositions.
 
 Although they should not change the
@@ -6,10 +5,69 @@ default behaviors of signals for cthread programs, these patches add
 new functions which can be used by libpthread to enable
 POSIX-conforming behavior of signals on a per-thread basis.
 
+YYYY-MM-DD  Jeremie Koenig  <jk@jk.fr.eu.org>
+
     e407ae3 Hurd signals: implement global signal dispositions
     38eb4b3 Hurd signals: provide a sigstate destructor
     344dfd6 Hurd signals: fix sigwait() for global signals
     fb055f2 Hurd signals: fix global untraced signals.
+
+YYYY-MM-DD  Thomas Schwinge  <thomas@codesourcery.com>
+
+	* sysdeps/mach/hurd/fork.c (__fork): In the child, reinitialize
+	the global sigstate's lock.
+
+This is work in progress.
+
+This cures an issue that would very rarely cause a deadlock in the child
+in fork, tries to unlock ss' critical section lock at the end of fork.
+This will typically (always?) be observed in /bin/sh, which is not
+surprising as that is the foremost caller of fork.
+
+To reproduce an intermediate state, add an endless loop if
+_hurd_global_sigstate is locked after __proc_dostop (cast through
+volatile); that is, while still being in the fork's parent process.
+
+When that triggers (use the libtool testsuite), the signal thread has
+already locked ss (which is _hurd_global_sigstate), and is stuck at
+hurdsig.c:685 in post_signal, trying to lock _hurd_siglock (which the
+main thread already has locked and keeps locked until after
+__task_create).  This is the case that ss->thread == MACH_PORT_NULL, that
+is, a global signal.  In the main thread, between __proc_dostop and
+__task_create is the __thread_abort call on the signal thread which would
+abort any current kernel operation (but leave ss locked).  Later in fork,
+in the parent, when _hurd_siglock is unlocked in fork, the parent's
+signal thread can proceed and will unlock eventually the global sigstate.
+In the client, _hurd_siglock will likewise be unlocked, but the global
+sigstate never will be, as the client's signal thread has been configured
+to restart execution from _hurd_msgport_receive.  Thus, when the child
+tries to unlock ss' critical section lock at the end of fork, it will
+first lock the global sigstate, will spin trying to lock it, which can
+never be successful, and we get our deadlock.
+
+Options seem to be:
+
+  * Move the locking of _hurd_siglock earlier in post_signal -- but that
+    may generally impact performance, if this locking isn't generally
+    needed anyway?
+
+    On the other hand, would it actually make sense to wait here until we
+    are not any longer in a critical section (which is meant to disable
+    signal delivery anway (but not for preempted signals?))?
+
+  * Clear the global sigstate in the fork's child with the rationale that
+    we're anyway restarting the signal thread from a clean state.  This
+    has now been implemented.
+
+Why has this problem not been observed before Jérémie's patches?  (Or has
+it?  Perhaps even more rarely?)  In _S_msg_sig_post, the signal is now
+posted to a *global receiver thread*, whereas previously it was posted to
+the *designated signal-receiving thread*.  The latter one was in a
+critical section in fork, so didn't try to handle the signal until after
+leaving the critical section?  (Not completely analyzed and verified.)
+
+Another question is what the signal is that is being received
+during/around the time __proc_dostop executes.
 
 ---
  hurd/ctty-input.c                   |   18 +-
@@ -831,17 +889,32 @@ POSIX-conforming behavior of signals on a per-thread basis.
        /* Claim our sigstate structure and unchain the rest: the
  	 threads existed in the parent task but don't exist in this
  	 task (the child process).  Delay freeing them until later
-@@ -644,6 +641,10 @@
+@@ -638,6 +635,25 @@ __fork (void)
+       ss->next = NULL;
        _hurd_sigstates = ss;
        __mutex_unlock (&_hurd_siglock);
- 
++      /* Earlier on, the global sigstate may have been tainted and now needs to
++         be reinitialized.  Nobody is interested in its present state anymore:
++         we're not, the signal thread will be restarted, and there are no other
++         threads.
++
++         We can't simply allocate a fresh global sigstate here, as
++         _hurd_thread_sigstate will call malloc and that will deadlock trying
++         to determine the current thread's sigstate.  */
++#if 0
++      _hurd_thread_sigstate_init (_hurd_global_sigstate, MACH_PORT_NULL);
++#else
++      /* Only reinitialize the lock -- otherwise we might have to do additional
++         setup as done in hurdsig.c:_hurdsig_init.  */
++      __spin_lock_init (&_hurd_global_sigstate->lock);
++#endif
++
 +      /* We are one of the (exactly) two threads in this new task, we
 +	 will take the task-global signals.  */
 +      _hurd_sigstate_set_global_rcv (ss);
-+
+ 
        /* Fetch our new process IDs from the proc server.  No need to
  	 refetch our pgrp; it is always inherited from the parent (so
- 	 _hurd_pgrp is already correct), and the proc server will send us a
 --- a/sysdeps/mach/hurd/i386/sigreturn.c
 +++ b/sysdeps/mach/hurd/i386/sigreturn.c
 @@ -1,4 +1,5 @@

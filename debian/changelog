@@ -450,7 +450,7 @@ eglibc (2.16-0experimental0) experimental; urgency=low
 
  -- Aurelien Jarno <aurel32@debian.org>  Tue, 20 Nov 2012 08:48:56 +0100
 
-eglibc (2.13-38) UNRELEASED; urgency=low
+eglibc (2.13-38) unstable; urgency=low
 
   [ Adam Conrad ]
   * debian/patches/arm/cvs-ldconfig-cache-abi.diff: Backport upstream
@@ -463,6 +463,9 @@ eglibc (2.13-38) UNRELEASED; urgency=low
   [ Jonathan Nieder ]
   * control.in/opt: correct misspelling of "Ezra" in descriptions of
     *-i686 variants.  Thanks to Thorsten Glaser.
+  * patches/any/local-tst-eintr1-eagain.diff: new patch to work around
+    a race that lets pthread_create hit resource limits when the kernel
+    takes too long to clean up after joined threads.  (closes: #673596)
 
   [ Samuel Thibault ]
   * patches/any/local-fhs-linux-paths.diff: Patch vardb path on !linux too.
@@ -473,8 +476,14 @@ eglibc (2.13-38) UNRELEASED; urgency=low
   * libc0.3.symbols.hurd-i386: Add libpthread.so.0.3 symbols.
   * Add patches/hurd-i386/tg-hurdsig-boot-fix.diff to fix
     sigstate_is_global_rcv at boot in libpthread-based translators.
+  * patches/hurd-i386/tg-hurdsig-global-dispositions.diff: Update with Thomas'
+    fork deadlock fix.
+  * patches/hurd-i386/unsubmitted-single-hurdselect-timeout.diff: Temporarily
+    fix double select timeout on single fd.
+  * patches/hurd-i386/unsubmitted-setitimer_fix.diff: Fix Hurd implementation
+    of setitimer.
 
- -- Adam Conrad <adconrad@0c3.net>  Mon, 19 Nov 2012 14:23:26 -0700
+ -- Adam Conrad <adconrad@0c3.net>  Sun, 30 Dec 2012 06:06:32 -0700
 
 eglibc (2.13-37) unstable; urgency=low
 
