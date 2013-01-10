@@ -20,8 +20,6 @@ Probably all done by Samuel Thibault.
  sysdeps/generic/machine-lock.h      |   12 ++++++++++++
  sysdeps/generic/machine-sp.h        |    4 ++++
  sysdeps/mach/i386/machine-lock.h    |   12 ++++++++++++
- sysdeps/mach/powerpc/machine-lock.h |   12 ++++++++++++
- sysdeps/mach/powerpc/machine-sp.h   |    4 ++++
  14 files changed, 155 insertions(+), 3 deletions(-)
 
 --- a/hurd/hurd.h
@@ -594,70 +592,3 @@ Probably all done by Samuel Thibault.
  
  
  #endif /* machine-lock.h */
---- a/sysdeps/mach/powerpc/machine-lock.h
-+++ b/sysdeps/mach/powerpc/machine-lock.h
-@@ -34,6 +34,9 @@
- 
- /* Unlock LOCK.  */
- 
-+void __spin_unlock (__spin_lock_t *__lock);
-+
-+#ifdef __USE_EXTERN_INLINES
- _EXTERN_INLINE void
- __spin_unlock (__spin_lock_t *__lock)
- {
-@@ -44,9 +47,13 @@
- 	bne-	0b\n\
- " : "=&r" (__locked) : "r" (__lock), "r" (0) : "cr0");
- }
-+#endif
- 
- /* Try to lock LOCK; return nonzero if we locked it, zero if another has.  */
- 
-+int __spin_try_lock (register __spin_lock_t *__lock);
-+
-+#ifdef __USE_EXTERN_INLINES
- _EXTERN_INLINE int
- __spin_try_lock (register __spin_lock_t *__lock)
- {
-@@ -58,9 +65,13 @@
- " : "=&r" (__rtn) : "r" (__lock), "r" (1) : "cr0");
-   return !__rtn;
- }
-+#endif
- 
- /* Return nonzero if LOCK is locked.  */
- 
-+int __spin_lock_locked (__spin_lock_t *__lock);
-+
-+#ifdef __USE_EXTERN_INLINES
- _EXTERN_INLINE int
- __spin_lock_locked (__spin_lock_t *__lock)
- {
-@@ -72,6 +83,7 @@
- " : "=&r" (__rtn) : "r" (__lock) : "cr0");
-   return __rtn;
- }
-+#endif
- 
- 
- #endif /* machine-lock.h */
---- a/sysdeps/mach/powerpc/machine-sp.h
-+++ b/sysdeps/mach/powerpc/machine-sp.h
-@@ -30,6 +30,9 @@
- # endif
- #endif
- 
-+void * __thread_stack_pointer (void);
-+
-+#ifdef __USE_EXTERN_INLINES
- _EXTERN_INLINE void *
- __thread_stack_pointer (void)
- {
-@@ -37,5 +40,6 @@
-   __asm__ ("mr %0, 1" : "=r" (__sp__));
-   return __sp__;
- }
-+#endif
- 
- #endif	/* machine-sp.h */

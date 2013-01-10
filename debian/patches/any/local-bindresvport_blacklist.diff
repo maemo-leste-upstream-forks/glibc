@@ -6,7 +6,7 @@ Patch from the OpenSUSE glibc
 
 --- a/sunrpc/bindrsvprt.c
 +++ b/sunrpc/bindrsvprt.c
-@@ -29,28 +29,108 @@
+@@ -29,34 +29,114 @@
   *   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   */
  
@@ -19,6 +19,7 @@ Patch from the OpenSUSE glibc
  #include <sys/types.h>
  #include <sys/socket.h>
  #include <netinet/in.h>
+ #include <bits/libc-lock.h>
  
 +#define STARTPORT 600
 +#define LOWPORT 512
@@ -99,6 +100,11 @@ Patch from the OpenSUSE glibc
 +  list_size = ptr;
 +}
 +
+ /*
+  * Locks the static variables in this file.
+  */
+ __libc_lock_define_initialized (static, lock);
+ 
  /*
   * Bind a socket to a privileged IP port
   */

@@ -149,7 +149,7 @@
 -#endif
    assert (freesize < pd->stackblock_size);
    if (freesize > PTHREAD_STACK_MIN)
-     madvise (pd->stackblock, freesize - PTHREAD_STACK_MIN, MADV_DONTNEED);
+     __madvise (pd->stackblock, freesize - PTHREAD_STACK_MIN, MADV_DONTNEED);
 +#else
 +  /* Page aligned start of memory to free (higher than or equal 
 +     to current sp plus the minimum stack size).  */
@@ -163,7 +163,7 @@
 +    {
 +      size_t freesize = (size_t)(free_end - (char *)freeblock);
 +      assert (freesize < pd->stackblock_size);
-+      madvise (freeblock, freesize, MADV_DONTNEED);
++      __madvise (freeblock, freesize, MADV_DONTNEED);
 +    }
 +#endif
  

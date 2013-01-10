@@ -39,7 +39,7 @@ Implement close_all_fds as in 139ee080b6b428240bf49f3e6361f3ac729f891a?
 -__ptsname_r (int fd, char *buf, size_t buflen)
 +__ptsname_internal (int fd, char *buf, size_t buflen, struct stat64 *stp)
  {
-   char peername[1024];  /* XXX */
+   string_t peername;
    size_t len;
 @@ -61,4 +61,14 @@
    memcpy (buf, peername, len);

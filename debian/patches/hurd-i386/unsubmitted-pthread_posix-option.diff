@@ -101,8 +101,8 @@ No topgit branch, TODO?
 +CFLAGS-confstr.c += -DLIBPTHREAD_VERSION='"libpthread 0.3"'
 +endif
 +
- # We need these libs to link static programs in the libc source tree, too.
- link-libc-static := -Wl,-\( \
+ # Override the generic Makeconfig values so we link against the RPC libs.
+ link-libc-static := -Wl,--start-group \
  		    $(patsubst %,$(common-objpfx)%.a,\
 --- /dev/null
 +++ b/sysdeps/mach/hurd/gai_misc.h

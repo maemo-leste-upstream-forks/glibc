@@ -1,5 +1,57 @@
-eglibc (2.16-0experimental2) UNRELEASED; urgency=low
+eglibc (2.17-0experimental0) UNRELEASED; urgency=low
 
+  * New upstream release: version 2.17, orig tarball built at SVN r22169:
+    - debian/rules.d/tarball.mk: ports is no longer external to libc.
+    - debian/*: Update all 2.16 occurences to 2.17 for upgrades/deps.
+    - patches/localedata/supported.diff: Rebased against new upstream.
+    - patches/localedata/locale-ia.diff: Dropped, merged upstream.
+    - patches/localedata/submitted-es_MX-decimal_point.diff: Rebased.
+    - patches/amd64/local-pthread_cond_wait.diff: Dropped, fixed upstream.
+    - patches/i386/local-pthread_cond_wait.diff: Dropped (closes: #694962)
+    - patches/arm64/cvs-ldconfig-cache-abi.diff: Dropped, merged upstream.
+    - patches/arm64/submitted-aarch64-support.diff: Merged upstream.
+    - patches/arm/cvs-ldconfig-cache-abi.diff: Dropped, merged upstream.
+    - patches/arm/local-atomic.diff: Dropped, fixed differently upstream.
+    - patches/arm/unsubmitted-armhf-linker.diff: Dropped, not needed.
+    - patches/hppa/submitted-nptl-carlos.diff: Rebased against upstream.
+    - patches/hppa/local-stack-grows-up.diff: Rebased against upstream.
+    - patches/hurd-i386/local-enable-ldconfig.diff: dl-cache.c dropped.
+    - patches/hurd-i386/tg-tls.diff: Rebase and drop powerpc support.
+    - patches/hurd-i386/tg-regenerate_errno.h.diff: Merged upstream.
+    - patches/hurd-i386/tg-extern_inline.diff: Drop powerpc support.
+    - patches/hurd-i386/tg-elfosabi_gnu.diff: Drop powerpc support.
+    - patches/hurd-i386/tg-grantpt.diff: Rebased against new upstream.
+    - patches/hurd-i386/unsubmitted-pthread_posix-option.diff: Rebased.
+    - patches/hurd-i386/local-madvise_warn.diff: Dropped, fixed upstream.
+    - patches/hurd-i386/submitted-getgroups.diff: Dropped, merged upstream.
+    - patches/hurd-i386/submitted-getlogin_r.diff: Dropped, fixed upstream.
+    - patches/hurd-i386/submitted-ptsname.diff: Dropped, merged upstream.
+    - patches/hurd-i386/submitted-sendto.diff: Dropped, fixed upstream.
+    - patches/hurd-i386/cvs-add-missing-includes.diff: Merged upstream.
+    - patches/hurd-i386/cvs-mach-check-local-headers.sh.diff: Merged.
+    - patches/hurd-i386/cvs-lremovexattr.diff: Dropped, merged upstream.
+    - patches/hurd-i386/cvs-renameat.diff: Dropped, merged upstream.
+    - patches/hurd-i386/cvs-mknodat.diff: Dropped, merged upstream.
+    - patches/hurd-i386/cvs-llistxattr.diff: Dropped, merged upstream.
+    - patches/i386/submitted-i686-timing.diff: Rebase, and fix a bug that
+      was excluding dl-caller.c from shared-only-routines for rtld builds.
+    - patches/m68k/cvs-syscall-arguments.diff: Dropped, merged upstream.
+    - patches/powerpc/local-math-logb.diff: Rebased against new upstream.
+    - patches/all/unsubmitted-autoconfupdate.diff: Dropped, not needed.
+    - patches/any/local-bindresvport_blacklist.diff: Rebase with upstream.
+    - patches/any/local-ldso-disable-hwcap.diff: Rebased against upstream.
+    - patches/any/local-libgcc-compat-ports.diff: Rebased against upstream.
+    - patches/any/local-nss-upgrade.diff: Rebased against new upstream.
+    - patches/any/local-o_cloexec.diff: Rebased against new upstream.
+    - patches/any/local-rtld.diff: Rebased against new upstream.
+    - patches/any/submitted-popen.diff: Dropped, finally merged upstream.
+    - patches/any/submitted-accept4-hidden.diff: Dropped, merged upstream.
+    - patches/any/submitted-bits-fcntl_h-at.diff: Rebased against upstream.
+    - patches/any/local-gai-rfc1918-scope-global.patch: Merged upstream.
+    - patches/any/submitted-resolv-assert.diff: Dropped, merged upstream.
+    - patches/any/local-revert-fclose-posix2008.diff: Reverted upstream.
+    - patches/any/local-sunrpc-dos.diff: Dropped, different fix upstream.
+    - patches/any/cvs-cxxheaders-detection[123].diff: Merged upstream.
   * debian/sysdeps/{amd64,i386}.mk: Fix rtlddir for x32 alternate builds.
   * debian/sysdeps/{armel,armhf}.mk: Merge multilib configs from Ubuntu.
 
@@ -449,6 +501,18 @@ eglibc (2.16-0experimental0) experimental; urgency=low
     testsuite-checking/expected-results-i686-gnu-i686.
 
  -- Aurelien Jarno <aurel32@debian.org>  Tue, 20 Nov 2012 08:48:56 +0100
+
+eglibc (2.13-39) UNRELEASED; urgency=low
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/unsubmitted-setitimer_fix.diff: Finish fixing setitimer.
+  * patches/hurd-i386/unsubmitted-select-EINTR.diff: Fix select vs signals.
+
+  [ Adam Conrad ]
+  * debian/testsuite-checking/compare.sh: Disable failing the build on test
+    regressions to ease the pain of ongoing stable/security maintenance.
+
+ -- Adam Conrad <adconrad@0c3.net>  Sun, 30 Dec 2012 10:22:43 -0700
 
 eglibc (2.13-38) unstable; urgency=low
 

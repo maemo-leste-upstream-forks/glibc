@@ -13,7 +13,6 @@ $(DEB_ORIG):
 	svn export $(EGLIBC_CHECKOUT)/libc $(EGLIBC_DIR)
 	svn export $(EGLIBC_CHECKOUT)/linuxthreads/linuxthreads $(EGLIBC_DIR)/linuxthreads
 	svn export $(EGLIBC_CHECKOUT)/linuxthreads/linuxthreads_db $(EGLIBC_DIR)/linuxthreads_db
-	svn export $(EGLIBC_CHECKOUT)/ports $(EGLIBC_DIR)/ports
 	svn status -v $(EGLIBC_CHECKOUT)/libc/ChangeLog | sed '1,1s/^ \+\([0-9]\+\).*/\1/g' > $(EGLIBC_DIR)/.svn-revision
 	rm -fr $(EGLIBC_DIR)/manual
 	tar -Jcf $(DEB_ORIG) $(EGLIBC_DIR)
