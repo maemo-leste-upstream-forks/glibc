@@ -1,72 +1,11 @@
----
- ports/sysdeps/unix/sysv/linux/arm/dl-cache.h   |   34 ++++
- ports/sysdeps/unix/sysv/linux/arm/readelflib.c |  186 +++++++++++++++++++++++++
- 4 files changed, 223 insertions(+)
-
---- /dev/null
-+++ b/ports/sysdeps/unix/sysv/linux/arm/dl-cache.h
-@@ -0,0 +1,34 @@
-+/* Support for reading /etc/ld.so.cache files written by Linux ldconfig.
-+   Copyright (C) 2011 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+   Contributed by Steve McIntyre <steve.mcintyre@linaro.org>
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
-+
-+#include <ldconfig.h>
-+
-+/* Redefine the cache ID for the new hf ABI; the sf ABI inverts the check.  */
-+#define _DL_CACHE_ARMHF_ID  (FLAG_ARM_LIBHF | FLAG_ELF_LIBC6)
-+
-+#ifdef __ARM_PCS_VFP
-+#define _dl_cache_check_flags(flags) \
-+  ((flags) == _DL_CACHE_ARMHF_ID)
-+#else
-+#define _dl_cache_check_flags(flags) \
-+  ((flags) != _DL_CACHE_ARMHF_ID)
-+#endif
-+
-+#include_next <dl-cache.h>
---- /dev/null
+diff --git a/ports/sysdeps/unix/sysv/linux/arm/readelflib.c b/ports/sysdeps/unix/sysv/linux/arm/readelflib.c
+index e767f9e..37483fc 100644
+--- a/ports/sysdeps/unix/sysv/linux/arm/readelflib.c
 +++ b/ports/sysdeps/unix/sysv/linux/arm/readelflib.c
-@@ -0,0 +1,186 @@
-+/* Copyright (C) 2011 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+   Contributed by Steve McIntyre <steve.mcintyre@linaro.org>
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
-+
-+
-+int process_elf32_file (const char *file_name, const char *lib, int *flag,
-+			unsigned int *osversion, char **soname,
-+			void *file_contents, size_t file_length);
-+
+@@ -25,6 +25,130 @@ int process_elf64_file (const char *file_name, const char *lib, int *flag,
+ 			unsigned int *osversion, char **soname,
+ 			void *file_contents, size_t file_length);
+ 
 +/* Read an unsigned leb128 value from P, store the value in VAL, return
 +   P incremented past the value.  We assume that a word is large enough to
 +   hold any value so encoded; if it is smaller than a pointer on some target,
@@ -91,7 +30,6 @@
 +  return p;
 +}
 +
-+
 +#define ATTR_TAG_FILE          1
 +#define ABI_VFP_args          28
 +#define VFP_ARGS_IN_VFP_REGS   1
@@ -192,40 +130,17 @@
 +  return 0;
 +}
 +
-+/* Returns 0 if everything is ok, != 0 in case of error.  */
-+int
-+process_elf_file (const char *file_name, const char *lib, int *flag,
-+		  unsigned int *osversion, char **soname, void *file_contents,
-+		  size_t file_length)
-+{
-+  ElfW(Ehdr) *elf_header = (ElfW(Ehdr) *) file_contents;
-+  int ret;
-+
-+  if (elf_header->e_machine != EM_ARM)
-+    {
-+      error (0, 0, _("%s is for unknown machine %d.\n"),
-+	     file_name, elf_header->e_machine);
-+      return 1;
-+    }
-+
-+  /* Explicitly not coping with 64-bit yet... */
-+  if (elf_header->e_ident [EI_CLASS] != ELFCLASS32)
-+    {
-+      error (0, 0, _("%s is not 32-bit.\n"), file_name);
-+      return 1;
-+    }
-+  ret = process_elf32_file (file_name, lib, flag, osversion, soname,
-+			    file_contents, file_length);
-+
-+  if (!ret)
-+    /* Do we have a hard-float ABI library? */
-+    if (is_library_hf(file_name, file_contents, file_length))
-+      *flag = FLAG_ARM_LIBHF|FLAG_ELF_LIBC6;
-+  return ret;
-+}
-+
-+#undef __ELF_NATIVE_CLASS
-+#undef process_elf_file
-+#define process_elf_file process_elf32_file
-+#define __ELF_NATIVE_CLASS 32
-+#include "elf/readelflib.c"
+ /* Returns 0 if everything is ok, != 0 in case of error.  */
+ int
+ process_elf_file (const char *file_name, const char *lib, int *flag,
+@@ -47,6 +171,10 @@ process_elf_file (const char *file_name, const char *lib, int *flag,
+ 	    *flag = FLAG_ARM_LIBHF|FLAG_ELF_LIBC6;
+ 	  else if (elf32_header->e_flags & EF_ARM_ABI_FLOAT_SOFT)
+ 	    *flag = FLAG_ELF_LIBC6;
++	  else if (is_library_hf(file_name, file_contents, file_length))
++	    *flag = FLAG_ARM_LIBHF|FLAG_ELF_LIBC6;
++	  else /* Assume all untagged EF_ARM_EABI_VER5 is armel */
++	    *flag = FLAG_ELF_LIBC6;
+ 	}
+     }
+   else
