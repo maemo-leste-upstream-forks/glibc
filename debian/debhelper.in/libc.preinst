@@ -371,18 +371,11 @@ then
             mips*) realarch="mips";;
         esac
 
-        # The GNU libc requires a >= 2.6.26 kernel, except on m68k where a
-        # 2.6.32 kernel is needed.
-        if [ "$realarch" != m68k ]
-        then
-            vmin=2.6.26
-        else
-            vmin=2.6.32
-        fi
-        if linux_compare_versions "$kernel_ver" lt ${vmin}
+        # The GNU libc requires a >= 2.6.32 kernel, found in squeeze/lucid/RHEL6
+        if linux_compare_versions "$kernel_ver" lt 2.6.32
         then
             echo WARNING: this version of the GNU libc requires kernel version
-            echo ${vmin} or later.  Please upgrade your kernel before installing
+            echo 2.6.32 or later.  Please upgrade your kernel before installing
             echo glibc.
             kernel26_help
 
