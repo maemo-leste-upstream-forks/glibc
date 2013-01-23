@@ -171,12 +171,29 @@ ifeq ($(DEB_BUILD_PROFILE),bootstrap)
 	${CC} -nostdlib -nostartfiles -shared -x c /dev/null \
 	        -o $(CURDIR)/debian/tmp-$(curpass)/lib/libc.so
 else
+	: # FIXME: why just needed for ARM multilib?
 	case "$(curpass)" in \
 	        armhf) \
-	                cp -p /lib/arm-linux-gnueabihf/libgcc_s.so.1 $(DEB_BUILDDIR)/ ;; \
+			libgcc_dirs=/lib/arm-linux-gnueabihf; \
+			if [ -n "$$WITH_BUILD_SYSROOT" ]; then \
+			  libgcc_dirs="$$WITH_BUILD_SYSROOT/usr/arm-linux-gnueabi/lib/arm-linux-gnueabihf $$WITH_BUILD_SYSROOT/usr/lib/gcc-cross/arm-linux-gnueabi/4.7/hf"; \
+			fi; \
+			;; \
 	        armel) \
-	                cp -p /lib/arm-linux-gnueabi/libgcc_s.so.1 $(DEB_BUILDDIR)/ ;; \
-	esac
+			libgcc_dirs=/lib/arm-linux-gnueabi; \
+			if [ -n "$$WITH_BUILD_SYSROOT" ]; then \
+			  libgcc_dirs="$$WITH_BUILD_SYSROOT/usr/arm-linux-gnueabihf/lib/arm-linux-gnueabi $$WITH_BUILD_SYSROOT/usr/lib/gcc-cross/arm-linux-gnueabihf/4.7/sf"; \
+			fi; \
+			;; \
+	esac; \
+	if [ -n "$$libgcc_dirs" ]; then \
+	  for d in $$libgcc_dirs; do \
+	    if [ -f $$d/libgcc_s.so.1 ]; then \
+	      cp -p $$d/libgcc_s.so.1 $(DEB_BUILDDIR)/; \
+	      break; \
+	    fi; \
+	  done; \
+	fi
 	$(MAKE) -C $(DEB_BUILDDIR) \
 	  install_root=$(CURDIR)/debian/tmp-$(curpass) install
 
