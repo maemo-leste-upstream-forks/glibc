@@ -9,6 +9,7 @@ control_deps := $(wildcard debian/control.in/*) $(addprefix debian/control.in/, 
 $(patsubst %,debian/control.in/%,$(libc_packages)) :: debian/control.in/% : debian/control.in/libc debian/rules.d/control.mk
 	sed -e "s%@libc@%$*%g" \
 	    -e "s%@archs@%$($(subst .,_,$*)_archs)%g" \
+	    -e "s%@parchs@%$(filter-out $(no_libc_profile),$($(subst .,_,$*)_archs))%g" \
 	    -e "s%@libc-dev-conflict@%$(foreach arch,$(filter-out $*,$(libc_packages)),$(arch)-dev,)%g" \
 	    < $< > $@
 

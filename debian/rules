@@ -134,6 +134,9 @@ log_expected = debian/testsuite-checking/expected-results-$(call xx,configure_ta
 # Which build pass are we on?
 curpass = $(filter-out %_,$(subst _,_ ,$@))
 
+# Some architectures don't get libc-profile ported right away:
+no_libc_profile := arm64
+
 # Provide backward compatibility for the old DEB_STAGE for now
 ifeq ($(DEB_STAGE),stage1)
   DEB_BUILD_PROFILE = bootstrap
@@ -143,7 +146,10 @@ ifeq ($(DEB_BUILD_PROFILE),bootstrap)
   DEB_INDEP_REGULAR_PACKAGES = 
   DEB_UDEB_PACKAGES = 
 else
-  DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg $(libc)-prof $(libc)-pic libc-bin libc-dev-bin multiarch-support
+  DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg $(libc)-pic libc-bin libc-dev-bin multiarch-support
+  ifeq (,$(filter $(DEB_HOST_ARCH),$(no_libc_profile)))
+    DEB_ARCH_REGULAR_PACKAGES += $(libc)-prof
+  endif
   DEB_INDEP_REGULAR_PACKAGES = glibc-doc eglibc-source locales
   DEB_UDEB_PACKAGES = $(libc)-udeb libnss-dns-udeb libnss-files-udeb
   ## Locales can only be pre-generated during native compiles
