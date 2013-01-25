@@ -67,6 +67,8 @@ eglibc (2.17-0experimental0) UNRELEASED; urgency=low
     libraries that are built for other machines, rather than erroring.
   * debian/patches/i386/unsubmitted-quiet-ldconfig.diff: Fix ldconfig on
     x86 to stop complaining so loudly about wrong-arch libraries on path.
+  * debian/{rules.d/build.mk,sysdeps/hurd*}: When the threads variable is
+    not set to "yes", add --disable-nscd to the main configure options.
 
   [ Matthias Klose ]
   * debian/{rules,rules.d/control.mk,control.in/libc}: Allow turning off
@@ -84,8 +86,6 @@ eglibc (2.17-0experimental0) UNRELEASED; urgency=low
     upstream.
   * debian/patches/hurd-i386/local-disable-sendmmsg.diff: Drop, fixed
     upstream.
-  * debian/sysdeps/hurd.mk, debian/sysdeps/hurd-i386.mk: Disable nscd through
-    configure option.
   * debian/patches/hurd-i386/unsubmitted-pthread.diff: Drop, obsolete.
   * Update expected-results-i486-gnu-libc, expected-results-i686-gnu-i386,
     expected-results-i686-gnu-i686, expected-results-i686-gnu-xen.

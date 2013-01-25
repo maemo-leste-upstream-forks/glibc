@@ -17,7 +17,7 @@ define kernel_check
 true
 endef
 
-libc_extra_config_options := $(extra_config_options) --disable-nscd
+libc_extra_config_options := $(extra_config_options)
 
 libc_add-ons = libpthread $(add-ons)
 
