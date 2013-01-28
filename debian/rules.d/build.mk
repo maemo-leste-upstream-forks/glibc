@@ -20,10 +20,6 @@ ifdef WITH_SYSROOT
     libc_extra_config_options += --with-headers=$(WITH_SYSROOT)/$(includedir)
 endif
 
-ifneq ($(threads),yes)
-    libc_extra_config_options += --disable-nscd
-endif
-
 $(patsubst %,mkbuilddir_%,$(EGLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
 $(stamp)mkbuilddir_%: $(stamp)patch $(KERNEL_HEADER_DIR)
 	@echo Making builddir for $(curpass)
@@ -89,6 +85,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		--enable-obsolete-rpc \
 		--with-pkgversion="Debian EGLIBC $(DEB_VERSION)" \
 		--with-bugurl="http://www.debian.org/Bugs/" \
+		$(if $(filter $(threads),no),--disable-nscd) \
 		$(call xx,with_headers) $(call xx,extra_config_options))
 	touch $@
 
