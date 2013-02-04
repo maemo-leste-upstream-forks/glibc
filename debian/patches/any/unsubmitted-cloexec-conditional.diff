@@ -1,3 +1,39 @@
+diff --git a/libio/fileops.c b/libio/fileops.c
+index 61b61b3..80767f5 100644
+--- a/libio/fileops.c
++++ b/libio/fileops.c
+@@ -335,16 +335,24 @@ _IO_new_file_fopen (fp, filename, mode, is32not64)
+   if (result != NULL)
+     {
+ #ifndef __ASSUME_O_CLOEXEC
+-      if ((fp->_flags2 & _IO_FLAGS2_CLOEXEC) != 0 && __have_o_cloexec <= 0)
+-	{
+-	  int fd = _IO_fileno (fp);
+-	  if (__have_o_cloexec == 0)
++# ifdef O_CLOEXEC
++      if (__have_o_cloexec <= 0)
++# endif
++        {
++	  if ((fp->_flags2 & _IO_FLAGS2_CLOEXEC) != 0)
+ 	    {
++	      int fd = _IO_fileno (fp);
+ 	      int flags = __fcntl (fd, F_GETFD);
+-	      __have_o_cloexec = (flags & FD_CLOEXEC) == 0 ? -1 : 1;
++# ifdef O_CLOEXEC
++	      if (__have_o_cloexec == 0)
++		__have_o_cloexec = (flags & FD_CLOEXEC) == 0 ? -1 : 1;
++	      if (__have_o_cloexec < 0)
++# endif
++		{
++		  flags |= FD_CLOEXEC;
++		  __fcntl (fd, F_SETFD, flags);
++		}
+ 	    }
+-	  if (__have_o_cloexec < 0)
+-	    __fcntl (fd, F_SETFD, FD_CLOEXEC);
+ 	}
+ #endif
+ 
 diff --git a/locale/loadarchive.c b/locale/loadarchive.c
 index dd70c15..4edb03e 100644
 --- a/locale/loadarchive.c
