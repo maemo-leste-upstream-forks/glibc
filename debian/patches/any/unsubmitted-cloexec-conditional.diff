@@ -1,0 +1,64 @@
+diff --git a/locale/loadarchive.c b/locale/loadarchive.c
+index dd70c15..4edb03e 100644
+--- a/locale/loadarchive.c
++++ b/locale/loadarchive.c
+@@ -152,6 +152,10 @@ _nl_load_locale_from_archive (int category, const char **namep)
+   int cnt;
+   size_t ps = __sysconf (_SC_PAGE_SIZE);
+   int fd = -1;
++  int oflags = O_RDONLY | O_LARGEFILE;
++#ifdef O_CLOEXEC
++  oflags |= O_CLOEXEC;
++#endif
+ 
+   /* Check if we have already loaded this locale from the archive.
+      If we previously loaded the locale but found bogons in the data,
+@@ -202,7 +206,7 @@ _nl_load_locale_from_archive (int category, const char **namep)
+       archmapped = &headmap;
+ 
+       /* The archive has never been opened.  */
+-      fd = open_not_cancel_2 (archfname, O_RDONLY|O_LARGEFILE|O_CLOEXEC);
++      fd = open_not_cancel_2 (archfname, oflags);
+       if (fd < 0)
+ 	/* Cannot open the archive, for whatever reason.  */
+ 	return NULL;
+@@ -393,8 +397,7 @@ _nl_load_locale_from_archive (int category, const char **namep)
+ 	  if (fd == -1)
+ 	    {
+ 	      struct stat64 st;
+-	      fd = open_not_cancel_2 (archfname,
+-				      O_RDONLY|O_LARGEFILE|O_CLOEXEC);
++	      fd = open_not_cancel_2 (archfname, oflags);
+ 	      if (fd == -1)
+ 		/* Cannot open the archive, for whatever reason.  */
+ 		return NULL;
+diff --git a/locale/loadlocale.c b/locale/loadlocale.c
+index de7e3d0..ec5de7c 100644
+--- a/locale/loadlocale.c
++++ b/locale/loadlocale.c
+@@ -168,11 +168,15 @@ _nl_load_locale (struct loaded_l10nfile *file, int category)
+   struct __locale_data *newdata;
+   int save_err;
+   int alloc = ld_mapped;
++  int oflags = O_RDONLY;
++#ifdef O_CLOEXEC
++  oflags |= O_CLOEXEC;
++#endif
+ 
+   file->decided = 1;
+   file->data = NULL;
+ 
+-  fd = open_not_cancel_2 (file->filename, O_RDONLY | O_CLOEXEC);
++  fd = open_not_cancel_2 (file->filename, oflags);
+   if (__builtin_expect (fd, 0) < 0)
+     /* Cannot open the file.  */
+     return;
+@@ -200,7 +204,7 @@ _nl_load_locale (struct loaded_l10nfile *file, int category)
+ 		 _nl_category_names.str + _nl_category_name_idxs[category],
+ 		 _nl_category_name_sizes[category] + 1);
+ 
+-      fd = open_not_cancel_2 (newp, O_RDONLY | O_CLOEXEC);
++      fd = open_not_cancel_2 (newp, oflags);
+       if (__builtin_expect (fd, 0) < 0)
+ 	return;
+ 
