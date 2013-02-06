@@ -1,10 +1,6 @@
 libc_rtlddir = /libx32
 extra_config_options = --enable-multi-arch
 
-# There is no gcc-4.6 for x32, so use 4.7
-CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)-4.7
-CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)-4.7
-
 # build 64-bit (amd64) alternative library
 EGLIBC_PASSES += amd64
 DEB_ARCH_REGULAR_PACKAGES += libc6-amd64 libc6-dev-amd64
