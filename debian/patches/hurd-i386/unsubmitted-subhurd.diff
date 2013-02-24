@@ -1,0 +1,29 @@
+The fmh function could in some cases mistakenly call vm_map with a null
+size. A recent kernel fix made that invalid and return KERN_INVALID_ARGUMENT,
+which isn't an expected code here, resulting in the linker not starting.
+Avoid calling vm_map when the computed mapping size is null to fix the
+problem.
+
+* sysdeps/mach/hurd/dl-sysdep.c (fmh): Leave loop when the computed mapping
+size fmhs becomes null.
+---
+ sysdeps/mach/hurd/dl-sysdep.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/sysdeps/mach/hurd/dl-sysdep.c b/sysdeps/mach/hurd/dl-sysdep.c
+index 67391d4..83f5bac 100644
+--- a/sysdeps/mach/hurd/dl-sysdep.c
++++ b/sysdeps/mach/hurd/dl-sysdep.c
+@@ -111,6 +111,8 @@ static void fmh(void) {
+     else
+       while (1) {
+ 	fmhs=max-fmha;
++	if (fmhs == 0)
++	  break;
+ 	err = __vm_map (__mach_task_self (),
+ 			&fmha, fmhs, 0, 0, MACH_PORT_NULL, 0, 1,
+ 			VM_PROT_NONE, VM_PROT_NONE, VM_INHERIT_COPY);
+-- 
+1.7.10.4
+
+
