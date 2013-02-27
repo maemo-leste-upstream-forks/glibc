@@ -17,6 +17,15 @@ Date:   Sun Feb 10 19:59:24 2013 +0100
     * sysdeps/mach/hurd/pt-hurd-cond-wait.c (__pthread_hurd_cond_wait_np):
     Rewrite as a call to __pthread_hurd_cond_timedwait_internal with no timeout.
 
+---
+ Versions.def                                          |    1 
+ libpthread/Makefile                                   |    1 
+ libpthread/Versions                                   |    3 
+ libpthread/sysdeps/mach/hurd/bits/pthread-np.h        |    6 
+ libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c |  169 ++++++++++++++++
+ libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c      |   76 +------
+ 6 files changed, 192 insertions(+), 64 deletions(-)
+
 diff --git a/libpthread/Makefile b/libpthread/Makefile
 index 2c7645d..c57f1a0 100644
 --- a/libpthread/Makefile
@@ -29,6 +38,8 @@ index 2c7645d..c57f1a0 100644
  									    \
  	pt-stack-alloc							    \
  	pt-thread-alloc							    \
+diff --git a/Versions.def b/Versions.def
+index 2c7645d..c57f1a0 100644
 --- a/Versions.def
 +++ b/Versions.def
 @@ -98,6 +98,7 @@ libpthread {

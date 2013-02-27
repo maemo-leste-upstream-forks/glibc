@@ -88,6 +88,27 @@ Date:   Sun Feb 3 16:06:51 2013 +0100
      * sysdeps/mach/pt-wakeup.c (__pthread_wakeup): Call __mach_msg in a
     non-blocking way.
 
+---
+ pthread/pt-alloc.c                      |    3 
+ pthread/pt-cancel.c                     |   27 +++++
+ pthread/pt-internal.h                   |   11 ++
+ pthread/pt-join.c                       |    2 
+ pthread/pt-setcancelstate.c             |    2 
+ pthread/pt-setcanceltype.c              |    2 
+ pthread/pt-testcancel.c                 |    7 +
+ sysdeps/generic/pt-cond-brdcast.c       |    8 -
+ sysdeps/generic/pt-cond-signal.c        |   23 +----
+ sysdeps/generic/pt-cond-timedwait.c     |  147 +++++++++++++++++++++++---------
+ sysdeps/generic/pt-mutex-timedlock.c    |   47 ++++++----
+ sysdeps/generic/pt-rwlock-timedrdlock.c |   49 ++++++----
+ sysdeps/generic/pt-rwlock-timedwrlock.c |   50 ++++++----
+ sysdeps/generic/pt-rwlock-unlock.c      |   13 +-
+ sysdeps/generic/sem-timedwait.c         |   51 ++++++-----
+ sysdeps/mach/hurd/pt-docancel.c         |    2 
+ sysdeps/mach/pt-thread-alloc.c          |    4 
+ sysdeps/mach/pt-wakeup.c                |    4 
+ 18 files changed, 292 insertions(+), 160 deletions(-)
+
 diff --git a/libpthread/pthread/pt-alloc.c b/libpthread/pthread/pt-alloc.c
 index 6af2da9..89fca8a 100644
 --- a/libpthread/pthread/pt-alloc.c
