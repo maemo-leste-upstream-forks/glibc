@@ -1,0 +1,107 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Fix connect/sendto/sendmsg into ignoring bytes beyond sockaddr length
+
+Thanks Tanaka Akira for the report.
+
+* sysdeps/mach/hurd/connect.c: Include <string.h>
+(__connect): Duplicate ADDR->sun_path with sockaddr length limitation before
+looking up the file name.
+* sysdeps/mach/hurd/sendmsg.c: Likewise.
+* sysdeps/mach/hurd/sendto.c: Likewise.
+* sysdeps/mach/hurd/bind.c: Call strndupa instead of implementing it by hand.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+---
+ sysdeps/mach/hurd/bind.c    |    6 ++----
+ sysdeps/mach/hurd/connect.c |    4 +++-
+ sysdeps/mach/hurd/sendmsg.c |    3 ++-
+ sysdeps/mach/hurd/sendto.c  |    4 +++-
+ 4 files changed, 10 insertions(+), 7 deletions(-)
+
+diff --git a/sysdeps/mach/hurd/bind.c b/sysdeps/mach/hurd/bind.c
+index 27509b3..17674a1 100644
+--- a/sysdeps/mach/hurd/bind.c
++++ b/sysdeps/mach/hurd/bind.c
+@@ -37,13 +37,11 @@ __bind  (int fd, __CONST_SOCKADDR_ARG addrarg, socklen_t len)
+ 
+   if (addr->sun_family == AF_LOCAL)
+     {
++      char *name = strndupa (addr->sun_path, len - offsetof (struct sockaddr_un, sun_path));
+       /* For the local domain, we must create a node in the filesystem
+ 	 using the ifsock translator and then fetch the address from it.  */
+       file_t dir, node;
+-      char name[len - offsetof (struct sockaddr_un, sun_path) + 1], *n;
+-
+-      strncpy (name, addr->sun_path, sizeof name - 1);
+-      name[sizeof name - 1] = '\0'; /* Make sure */
++      char *n;
+ 
+       dir = __file_name_split (name, &n);
+       if (dir == MACH_PORT_NULL)
+diff --git a/sysdeps/mach/hurd/connect.c b/sysdeps/mach/hurd/connect.c
+index b5c57cc..013e2ad 100644
+--- a/sysdeps/mach/hurd/connect.c
++++ b/sysdeps/mach/hurd/connect.c
+@@ -22,6 +22,7 @@
+ #include <hurd/socket.h>
+ #include <sys/un.h>
+ #include <hurd/ifsock.h>
++#include <string.h>
+ 
+ /* Open a connection on socket FD to peer at ADDR (which LEN bytes long).
+    For connectionless socket types, just set the default address to send to
+@@ -36,9 +37,10 @@ __connect (int fd, __CONST_SOCKADDR_ARG addrarg, socklen_t len)
+ 
+   if (addr->sun_family == AF_LOCAL)
+     {
++      char *name = strndupa (addr->sun_path, len - offsetof (struct sockaddr_un, sun_path));
+       /* For the local domain, we must look up the name as a file and talk
+ 	 to it with the ifsock protocol.  */
+-      file_t file = __file_name_lookup (addr->sun_path, 0, 0);
++      file_t file = __file_name_lookup (name, 0, 0);
+       if (file == MACH_PORT_NULL)
+ 	return -1;
+       err = __ifsock_getsockaddr (file, &aport);
+diff --git a/sysdeps/mach/hurd/sendmsg.c b/sysdeps/mach/hurd/sendmsg.c
+index 01495b8..c9eeac5 100644
+--- a/sysdeps/mach/hurd/sendmsg.c
++++ b/sysdeps/mach/hurd/sendmsg.c
+@@ -104,9 +104,10 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
+     {
+       if (addr->sun_family == AF_LOCAL)
+ 	{
++	  char *name = strndupa (addr->sun_path, addr_len - offsetof (struct sockaddr_un, sun_path));
+ 	  /* For the local domain, we must look up the name as a file
+ 	     and talk to it with the ifsock protocol.  */
+-	  file_t file = __file_name_lookup (addr->sun_path, 0, 0);
++	  file_t file = __file_name_lookup (name, 0, 0);
+ 	  if (file == MACH_PORT_NULL)
+ 	    {
+ 	      if (dealloc)
+diff --git a/sysdeps/mach/hurd/sendto.c b/sysdeps/mach/hurd/sendto.c
+index bd4123e..1d2e3ed 100644
+--- a/sysdeps/mach/hurd/sendto.c
++++ b/sysdeps/mach/hurd/sendto.c
+@@ -22,6 +22,7 @@
+ #include <hurd/fd.h>
+ #include <hurd/ifsock.h>
+ #include <hurd/socket.h>
++#include <string.h>
+ 
+ /* Send N bytes of BUF on socket FD to peer at address ADDR (which is
+    ADDR_LEN bytes long).  Returns the number sent, or -1 for errors.  */
+@@ -47,9 +48,10 @@ __sendto (int fd,
+ 
+       if (addr->sun_family == AF_LOCAL)
+ 	{
++	  char *name = strndupa (addr->sun_path, addr_len - offsetof (struct sockaddr_un, sun_path));
+ 	  /* For the local domain, we must look up the name as a file and talk
+ 	     to it with the ifsock protocol.  */
+-	  file_t file = __file_name_lookup (addr->sun_path, 0, 0);
++	  file_t file = __file_name_lookup (name, 0, 0);
+ 	  if (file == MACH_PORT_NULL)
+ 	    return errno;
+ 	  err_port = __ifsock_getsockaddr (file, aport);
+-- 
+tg: (4a7fa7e..) t/af_local_strlen (depends on: baseline)
