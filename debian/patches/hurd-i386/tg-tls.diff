@@ -231,7 +231,7 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
  
    while (*envp)
      ++envp;
-@@ -120,27 +116,9 @@
+@@ -120,25 +116,11 @@
       data block; the argument strings start there.  */
    if ((void *) d == argv[0])
      {
@@ -248,17 +248,15 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
        return;
      }
  
--#ifndef SHARED
--  __libc_enable_secure = d->flags & EXEC_SECURE;
+ #ifndef SHARED
+   __libc_enable_secure = d->flags & EXEC_SECURE;
 -
 -  _dl_phdr = (ElfW(Phdr) *) d->phdr;
 -  _dl_phnum = d->phdrsz / sizeof (ElfW(Phdr));
 -  assert (d->phdrsz % sizeof (ElfW(Phdr)) == 0);
--#endif
--
-   _hurd_init_dtable = d->dtable;
-   _hurd_init_dtablesize = d->dtablesize;
+ #endif
  
+   _hurd_init_dtable = d->dtable;
 @@ -174,13 +152,16 @@
    char **envp = &argv[argc + 1];
    struct hurd_startup_data *d;
@@ -277,16 +275,16 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
    __hurd_threadvar_stack_offset = (unsigned long int) threadvars;
  
    /* Since the cthreads initialization code uses malloc, and the
-@@ -194,6 +175,39 @@
+@@ -194,6 +175,33 @@
      ++envp;
    d = (void *) ++envp;
  
++#ifndef SHARED
 +  /* If we are the bootstrap task started by the kernel,
 +     then after the environment pointers there is no Hurd
 +     data block; the argument strings start there.  */
 +  if ((void *) d == argv[0])
 +    {
-+#ifndef SHARED
 +      /* We may need to see our own phdrs, e.g. for TLS setup.
 +         Try the usual kludge to find the headers without help from
 +	 the exec server.  */
@@ -295,20 +293,14 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
 +      _dl_phdr = (ElfW(Phdr) *) ((const void *) ehdr + ehdr->e_phoff);
 +      _dl_phnum = ehdr->e_phnum;
 +      assert (ehdr->e_phentsize == sizeof (ElfW(Phdr)));
-+#endif
 +    }
 +  else
 +    {
-+#ifndef SHARED
-+      __libc_enable_secure = d->flags & EXEC_SECURE;
-+
 +      _dl_phdr = (ElfW(Phdr) *) d->phdr;
 +      _dl_phnum = d->phdrsz / sizeof (ElfW(Phdr));
 +      assert (d->phdrsz % sizeof (ElfW(Phdr)) == 0);
-+#endif
 +    }
 +
-+#ifndef SHARED
 +  /* We need to setup TLS before starting sigthread */
 +  extern void __pthread_initialize_minimal(void);
 +  __pthread_initialize_minimal();
