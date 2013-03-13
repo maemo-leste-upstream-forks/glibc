@@ -1,0 +1,27 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Fix boot with statically-linked exec server.
+
+* sysdeps/mach/hurd/i386/init-first.c (init): Also find ELF headers by oneself
+when the pointer given in D is nul (as set by ext2fs).
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+---
+ sysdeps/mach/hurd/i386/init-first.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sysdeps/mach/hurd/i386/init-first.c b/sysdeps/mach/hurd/i386/init-first.c
+index 7460005..d66df4d 100644
+--- a/sysdeps/mach/hurd/i386/init-first.c
++++ b/sysdeps/mach/hurd/i386/init-first.c
+@@ -184,7 +184,7 @@ init (int *data)
+   /* If we are the bootstrap task started by the kernel,
+      then after the environment pointers there is no Hurd
+      data block; the argument strings start there.  */
+-  if ((void *) d == argv[0])
++  if ((void *) d == argv[0] || !d->phdr)
+     {
+       /* We may need to see our own phdrs, e.g. for TLS setup.
+          Try the usual kludge to find the headers without help from
+-- 
+tg: (bb61478..) t/exec-static (depends on: t/tls)
