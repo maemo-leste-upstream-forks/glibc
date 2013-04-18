@@ -1,0 +1,30 @@
+diff --git a/ChangeLog b/ChangeLog
+index a82adf4..5ab5d54 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,8 @@
++2013-04-17  Adam Conrad  <adconrad@0c3.net>
++
++	* sysdeps/unix/sysv/linux/sys/fsuid.h: Remove __wur from setfsuid
++	and setfsgid.
++
+ 2013-04-17  Carlos O'Donell  <carlos@redhat.com>
+ 
+ 	* configure.in: Remove i386 configure warning. Remove i386 case.
+diff --git a/sysdeps/unix/sysv/linux/sys/fsuid.h b/sysdeps/unix/sysv/linux/sys/fsuid.h
+index f844a5f..7590313 100644
+--- a/sysdeps/unix/sysv/linux/sys/fsuid.h
++++ b/sysdeps/unix/sysv/linux/sys/fsuid.h
+@@ -25,10 +25,10 @@ __BEGIN_DECLS
+ 
+ /* Change uid used for file access control to UID, without affecting
+    other privileges (such as who can send signals at the process).  */
+-extern int setfsuid (__uid_t __uid) __THROW __wur;
++extern int setfsuid (__uid_t __uid) __THROW;
+ 
+ /* Ditto for group id. */
+-extern int setfsgid (__gid_t __gid) __THROW __wur;
++extern int setfsgid (__gid_t __gid) __THROW;
+ 
+ __END_DECLS
+ 
