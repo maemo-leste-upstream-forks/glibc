@@ -13099,7 +13099,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/init-first.c
-@@ -0,0 +1,135 @@
+@@ -0,0 +1,139 @@
 +/* Initialization code run first thing by the ELF startup code.
 +   Copyright (C) 1995-2004, 2005, 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13119,6 +13119,7 @@
 +   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 +   02111-1307 USA.  */
 +
++#include <ctype.h>
 +#include <stdio.h>
 +#include <stdlib.h>
 +#include <fcntl.h>
@@ -13216,6 +13217,9 @@
 +  /* This is a hack to make the special getopt in GNU libc working.  */
 +  __getopt_clean_environment (envp);
 +#endif
++
++  /* Initialize ctype data.  */
++  __ctype_init ();
 +
 +#if defined SHARED && !defined NO_CTORS_DTORS_SECTIONS
 +  __libc_global_ctors ();
@@ -25145,7 +25149,7 @@
 +
 +  /* Now call sysctl using the binary encoded request.  */
 +  return __sysctl (request, requestlen,
-+		   oldval, oldlenp, newval, newlen);
++		   oldval, oldlenp, (void *)newval, newlen);
 +}
 +
 +weak_alias (__sysctlbyname, sysctlbyname)
