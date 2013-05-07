@@ -1,0 +1,10 @@
+--- a/linuxthreads/sysdeps/pthread/malloc-machine.h
++++ b/linuxthreads/sysdeps/pthread/malloc-machine.h
+@@ -37,6 +37,7 @@
+ 		      (*(int *)(m) ? 1 : ((*(int *)(m) = 1), 0)))
+ #define mutex_unlock(m)		\
+   __libc_maybe_call2 (pthread_mutex_unlock, (m), (*(int *)(m) = 0))
++#define MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
+ 
+ /* This is defined by newer gcc version unique for each module.  */
+ extern void *__dso_handle __attribute__ ((__weak__));
