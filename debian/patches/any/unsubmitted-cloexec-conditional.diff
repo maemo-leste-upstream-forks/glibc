@@ -1,3 +1,20 @@
+diff --git a/elf/dl-load.c b/elf/dl-load.c
+index dd182c9..7ebb6ff 100644
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -1721,7 +1721,11 @@ open_verify (const char *name, struct filebuf *fbp, struct link_map *loader,
+ #endif
+ 
+   /* Open the file.  We always open files read-only.  */
+-  int fd = __open (name, O_RDONLY | O_CLOEXEC);
++  int oflags = O_RDONLY;
++#ifdef O_CLOEXEC
++  oflags |= O_CLOEXEC;
++#endif
++  int fd = __open (name, oflags);
+   if (fd != -1)
+     {
+       ElfW(Ehdr) *ehdr;
 diff --git a/libio/fileops.c b/libio/fileops.c
 index 61b61b3..80767f5 100644
 --- a/libio/fileops.c
