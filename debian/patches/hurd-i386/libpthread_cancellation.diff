@@ -308,7 +308,7 @@ index d7c91e6..4b5450c 100644
 +__pthread_cond_signal (pthread_cond_t *cond)
  {
    struct __pthread *wakeup;
-   
+ 
 @@ -33,24 +35,9 @@ cond_signal (struct __pthread_cond *cond, int *unblocked)
    __pthread_spin_unlock (&cond->__lock);
  
@@ -874,7 +874,7 @@ index 4920d10..95fdbf9 100644
 @@ -31,8 +31,8 @@ __pthread_wakeup (struct __pthread *thread)
  {
    error_t err;
-   
+ 
 -  err = __mach_msg (&thread->wakeupmsg, MACH_SEND_MSG,
 +  err = __mach_msg (&thread->wakeupmsg, MACH_SEND_MSG | MACH_SEND_TIMEOUT,
  		    sizeof (thread->wakeupmsg), 0, MACH_PORT_NULL,
