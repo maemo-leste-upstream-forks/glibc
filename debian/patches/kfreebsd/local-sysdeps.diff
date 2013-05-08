@@ -175,7 +175,7 @@
 +
 +# Special ELF hacks.
 +ifeq ($(subdir),elf)
-+sysdep-rtld-routines += dl-brk dl-sbrk
++sysdep-rtld-routines += dl-brk dl-sbrk dl-getcwd
 +sysdep_routines += sys_umtx
 +endif
 +
@@ -5681,7 +5681,7 @@
 +# We need some extensions to the `ldd' script.
 +case "$machine" in
 +  x86_64*)
-+    ldd_rewrite_script=../ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldd-rewrite.sed
++    ldd_rewrite_script=$dir/x86_64/ldd-rewrite.sed
 +    ;;
 +  *)
 +    ;;
@@ -5970,7 +5970,7 @@
 +changequote(,)
 +case "$machine" in
 +  x86_64*)
-+    ldd_rewrite_script=../ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldd-rewrite.sed
++    ldd_rewrite_script=$dir/x86_64/ldd-rewrite.sed
 +    ;;
 +  *)
 +    ;;
@@ -6214,6 +6214,10 @@
 +  return 0;
 +}
 +rtld_hidden_def (_dl_make_stack_executable)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-getcwd.c
+@@ -0,0 +1 @@
++#include "getcwd.c"
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-origin.c
 @@ -0,0 +1,123 @@
@@ -8381,7 +8385,7 @@
 +libc_hidden_def (__fxstatat64)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,110 @@
 +/* Determine current working directory.  FreeBSD version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -8411,6 +8415,12 @@
 +#include <sysdep.h>
 +#include <bp-checks.h>
 +
++/* If we compile the file for use in ld.so we don't need the feature
++   that getcwd() allocates the buffers itself.  */
++#ifdef IS_IN_rtld
++# define NO_ALLOCATION  1
++#endif
++
 +/* The system calls only makes a lookup in the VFS cache, which can easily
 +   fail.  Therefore we use the generic version as a fallback.  */
 +extern int __syscall_getcwd (char *__unbounded buf, unsigned int size);
@@ -8434,8 +8444,11 @@
 +	      __set_errno (EINVAL);
 +	      return NULL;
 +	    }
-+
++#ifdef NO_ALLOCATION
++          buf = NULL;
++#else
 +	  buf = (char *) malloc (len);
++#endif
 +	  if (__builtin_expect (buf == NULL, 0))
 +	    {
 +	      __set_errno (ENOMEM);
@@ -8452,7 +8465,11 @@
 +
 +	  if (buf == NULL)
 +	    {
++#ifdef NO_ALLOCATION
++              buf = NULL;
++#else
 +	      buf = (char *) malloc (size);
++#endif
 +	      if (__builtin_expect (buf == NULL, 0))
 +		{
 +		  __set_errno (ENOMEM);
@@ -8464,15 +8481,21 @@
 +      memcpy (buf, tmpbuf, len);
 +      return buf;
 +    }
++#ifdef IS_IN_rtld
++  return NULL;
++#else
 +  return generic_getcwd (buf, size);
++#endif
 +}
 +
 +weak_alias (__getcwd, getcwd)
 +
++#ifndef IS_IN_rtld
 +/* Get the code for the generic version.  */
 +#define GETCWD_RETURN_TYPE	static char * internal_function
 +#define __getcwd		generic_getcwd
 +#include <sysdeps/posix/getcwd.c>
++#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents.c
 @@ -0,0 +1,90 @@
@@ -10493,7 +10516,7 @@
 +  { "libm.so.8", FLAG_ELF_LIBC5 },
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/linuxthreads/pt-machine.h
-@@ -0,0 +1,76 @@
+@@ -0,0 +1,79 @@
 +/* Machine-dependent pthreads configuration and inline functions.
 +   ix86 version for FreeBSD.
 +   Copyright (C) 1996-2001, 2002 Free Software Foundation, Inc.
@@ -10517,6 +10540,9 @@
 +
 +#ifndef _FREEBSD_PT_MACHINE_H
 +#define _FREEBSD_PT_MACHINE_H   1
++
++#define HAVE___THREAD 1
++#define USE_TLS 1
 +
 +/*
 +  some parts are common with linux/i386 version
@@ -14269,6 +14295,52 @@
 +
 +#endif	/* lowlevellock.h */
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/pt-crti.S
+@@ -0,0 +1,43 @@
++/* Special .init and .fini section support for libpthread.
++   Copyright (C) 2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   In addition to the permissions in the GNU Lesser General Public
++   License, the Free Software Foundation gives you unlimited
++   permission to link the compiled version of this file with other
++   programs, and to distribute those programs without any restriction
++   coming from the use of this file. (The GNU Lesser General Public
++   License restrictions do apply in other respects; for example, they
++   cover modification of the file, and distribution when not linked
++   into another program.)
++
++   Note that people who make modified versions of this file are not
++   obligated to grant this special exception for their modified
++   versions; it is their choice whether to do so. The GNU Lesser
++   General Public License gives permission to release a modified
++   version without this exception; this exception also makes it
++   possible to release a modified version which carries forward this
++   exception.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* Arrange for __pthread_initialize_minimal_internal to be called at
++   libpthread startup, instead of conditionally calling
++   __gmon_start__.  */
++
++#define PREINIT_FUNCTION __pthread_initialize_minimal_internal
++#define PREINIT_FUNCTION_WEAK 0
++
++#include <crti.S>
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/pt-sigsuspend.S
 @@ -0,0 +1,29 @@
 +/* Internal sigsuspend system call for LinuxThreads. FreeBSD version.
@@ -15604,7 +15676,7 @@
 +#define ENTRY_POINT __start
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/mips/linuxthreads/pt-machine.h
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,52 @@
 +/* Machine-dependent pthreads configuration and inline functions.
 +   MIPS kFreeBSD version.
 +   Copyright (C) 2001, 2002, 2003, 2004, 2010 Free Software Foundation, Inc.
@@ -15627,6 +15699,9 @@
 +
 +#ifndef _FREEBSD_PT_MACHINE_H
 +#define _FREEBSD_PT_MACHINE_H   1
++
++#define HAVE___THREAD 1
++#define USE_TLS 1
 +
 +/*
 +  almost all parts are common with linux version
@@ -22822,15 +22897,6 @@
 +/* use stub only variant */
 +#include <misc/stty.c>
 --- /dev/null
-+++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/svn-commit.tmp
-@@ -0,0 +1,6 @@
-+
-+--Cette ligne, et les suivantes ci-dessous, seront ignorées--
-+
-+M    mips/linuxthreads/tls.h
-+M    x86_64/linuxthreads/tls.h
-+M    i386/linuxthreads/tls.h
---- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/symlinkat.c
 @@ -0,0 +1,126 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
@@ -27528,7 +27594,7 @@
 +/* placeholder to make linuxthreads/sysdeps/x86_64/pt-machine.h happy */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/linuxthreads/pt-machine.h
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,54 @@
 +/* Machine-dependent pthreads configuration and inline functions.
 +   x86-64 FreeBSD version.
 +   Copyright (C) 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
@@ -27551,6 +27617,9 @@
 +
 +#ifndef _FREEBSD_PT_MACHINE_H
 +#define _FREEBSD_PT_MACHINE_H   1
++
++#define HAVE___THREAD 1
++#define USE_TLS 1
 +
 +/*
 +  almost all parts are common with linux version
