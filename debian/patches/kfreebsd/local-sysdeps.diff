@@ -10891,7 +10891,7 @@
 +ENTRY (__vfork)
 +
 +# ifdef SHARED
-+	call	__i686.get_pc_thunk.cx
++	call	GET_PC_THUNK(cx)
 +	addl	$_GLOBAL_OFFSET_TABLE_, %ecx
 +	cmpl	$0, __libc_pthread_functions@GOTOFF(%ecx)
 +# else
@@ -12029,7 +12029,7 @@
 +#endif	/* !PIC */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sysdep.h
-@@ -0,0 +1,216 @@
+@@ -0,0 +1,230 @@
 +/* Copyright (C) 1992,1993,1995-2000,2002,2003,2004
 +   Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -12064,6 +12064,20 @@
 +#if defined __i686 && defined __ASSEMBLER__
 +#undef __i686
 +#define __i686 __i686
++#endif
++
++#ifdef	__ASSEMBLER__
++# if __GNUC_PREREQ (4, 7)
++#  define GET_PC_THUNK(reg) __x86.get_pc_thunk.reg
++# else
++#  define GET_PC_THUNK(reg) __i686.get_pc_thunk.reg
++# endif
++#else
++# if __GNUC_PREREQ (4, 7)
++#  define GET_PC_THUNK_STR(reg) "__x86.get_pc_thunk." #reg
++# else
++#  define GET_PC_THUNK_STR(reg) "__i686.get_pc_thunk." #reg
++# endif
 +#endif
 +
 +#ifdef __ASSEMBLER__
