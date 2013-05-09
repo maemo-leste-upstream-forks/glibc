@@ -11049,6 +11049,39 @@
 +
 +weak_alias(__makecontext, makecontext)
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/pipe.S
+@@ -0,0 +1,30 @@
++/* Copyright (C) 1991,92,93,95,97,2002 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <sysdep.h>
++
++SYSCALL__ (pipe, 1)
++	movl 4(%esp), scratch
++	movl %eax, (scratch)
++	movl r1, 4(scratch)
++	xorl %eax, %eax
++	ret
++PSEUDO_END (__pipe)
++
++libc_hidden_def (__pipe)
++weak_alias (__pipe, pipe)
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/rfork.S
 @@ -0,0 +1,44 @@
 +/* Copyright (C) 1991-1992, 1994-1995, 1997, 2002 Free Software Foundation, Inc.
@@ -14346,11 +14379,11 @@
 +   License along with the GNU C Library; if not, see
 +   <http://www.gnu.org/licenses/>.  */
 +
-+/* Arrange for __pthread_initialize_minimal_internal to be called at
++/* Arrange for __pthread_initialize_minimal to be called at
 +   libpthread startup, instead of conditionally calling
 +   __gmon_start__.  */
 +
-+#define PREINIT_FUNCTION __pthread_initialize_minimal_internal
++#define PREINIT_FUNCTION __pthread_initialize_minimal
 +#define PREINIT_FUNCTION_WEAK 0
 +
 +#include <crti.S>
@@ -24920,7 +24953,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,201 @@
+@@ -0,0 +1,202 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
 +sys_access		-	access			i:si		__syscall_access
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
@@ -24966,6 +24999,7 @@
 +sys_getdents		-	getdents		i:ibn		__syscall_getdents
 +sys_getdirentries	-	getdirentries		i:ibnP		__syscall_getdirentries
 +getegid			-	getegid			i:		__getegid getegid
++getppid			-	getppid			i:		__getppid getppid
 +geteuid			-	geteuid			i:		__geteuid geteuid
 +getfh			-	getfh			i:sp		getfh
 +sys_getlogin		-	getlogin		i:bn		__syscall_getlogin

@@ -25,12 +25,12 @@
  
  # Make sure we link with the thread library.
  ifeq ($(build-shared),yes)
-@@ -266,33 +265,6 @@
+@@ -266,32 +265,9 @@
  endif
  
  ifeq ($(build-shared),yes)
 -vpath pt-initfini.c $(sysdirs)
--
+ 
 -$(objpfx)pt-initfini.s: pt-initfini.c
 -	$(compile.c) -S $(CFLAGS-pt-initfini.s) -finhibit-size-directive \
 -		$(patsubst -f%,-fno-%,$(exceptions)) -o $@
@@ -55,10 +55,11 @@
 -
 -$(objpfx)crtn.o: $(objpfx)crtn.S $(objpfx)defs.h
 -	$(compile.S) -g0 $(ASFLAGS-.os) -o $@
--
++$(objpfx)crti.o: $(objpfx)pt-crti.o
++	ln -f $< $@
+ 
  ifneq ($(multidir),.)
  $(objpfx)$(multidir):
- 	@mkdir -p $(objpfx)$(multidir)
 @@ -304,7 +275,7 @@
  	ln -f $< $@
  endif
