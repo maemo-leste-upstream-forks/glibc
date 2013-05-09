@@ -716,7 +716,7 @@
 +weak_alias (__bind, bind)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/dirent.h
-@@ -0,0 +1,52 @@
+@@ -0,0 +1,55 @@
 +/* Directory entry structure `struct dirent'.  FreeBSD version.
 +   Copyright (C) 1996-1998,2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -769,6 +769,9 @@
 +#define _DIRENT_HAVE_D_RECLEN 1
 +#define _DIRENT_HAVE_D_NAMLEN 1
 +#define _DIRENT_HAVE_D_TYPE 1
++
++/* Inform libc code that these two types are effectively identical.  */
++# define _DIRENT_MATCHES_DIRENT64       1
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/elf.h
 @@ -0,0 +1,37 @@
@@ -4685,9 +4688,9 @@
 +#endif	/* need timeval */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/typesizes.h
-@@ -0,0 +1,95 @@
+@@ -0,0 +1,91 @@
 +/* bits/typesizes.h -- underlying types for *_t.  kFreeBSD version.
-+   Copyright (C) 2002, 2003, 2010, 2012 Free Software Foundation, Inc.
++   Copyright (C) 2002, 2003, 2010 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -4734,16 +4737,8 @@
 +#define	__FSFILCNT_T_TYPE	__ULONGWORD_TYPE
 +#define	__FSFILCNT64_T_TYPE	__UQUAD_TYPE
 +#define	__ID_T_TYPE		__U32_TYPE
++#define __CLOCK_T_TYPE		__S32_TYPE
 +#define	__FSWORD_T_TYPE		__SWORD_TYPE
-+
-+#if defined(__arm__) || defined(__powerpc__)
-+#define __CLOCK_T_TYPE		__U32_TYPE
-+#elif defined(__i386__)
-+/* clock_t is unsigned in FreeBSD/i386, but it's too late to fix that now... */
-+#define __CLOCK_T_TYPE		__S32_TYPE
-+#else
-+#define __CLOCK_T_TYPE		__S32_TYPE
-+#endif
 +
 +/*
 + * This one is a bit tricky.  It needs to match the size
@@ -4755,13 +4750,12 @@
 + * necessary to implement function overload), so it must stay
 + * with __SLONGWORD_TYPE.
 + */
-+#if defined(__i386__) || defined(__amd64__)
++#if defined(__i386__) || defined(__amd64__) || defined(__powerpc__)
 +#define __TIME_T_TYPE		__SLONGWORD_TYPE
-+#elif defined(__powerpc__) && !defined(__LP64__)
-+#define __TIME_T_TYPE		__S32_TYPE
 +#else
 +#define __TIME_T_TYPE		__S64_TYPE
 +#endif
++
 +#define __USECONDS_T_TYPE	__U32_TYPE
 +#define __SUSECONDS_T_TYPE	__SLONGWORD_TYPE
 +#define __DADDR_T_TYPE		__SQUAD_TYPE
@@ -4775,6 +4769,11 @@
 +#define __SNSECONDS_T_TYPE	__SLONGWORD_TYPE
 +#define __SYSCALL_SLONG_TYPE	__SLONGWORD_TYPE
 +#define __SYSCALL_ULONG_TYPE	__ULONGWORD_TYPE
++
++/* Tell the libc code that off_t and off64_t are actually the same type
++   for all ABI purposes, even if possibly expressed as different base types
++   for C type-checking purposes.  */
++#define __OFF_T_MATCHES_OFF64_T 1
 +
 +/* Number of descriptors that can fit in an `fd_set'.  */
 +#define	__FD_SETSIZE		1024
@@ -14016,7 +14015,7 @@
 +#endif	/* bits/sigthread.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/typesizes.h
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,91 @@
 +/* bits/typesizes.h -- underlying types for *_t.  kFreeBSD version.
 +   Copyright (C) 2002, 2003, 2010 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -14097,6 +14096,11 @@
 +#define __SNSECONDS_T_TYPE	__SLONGWORD_TYPE
 +#define __SYSCALL_SLONG_TYPE	__SLONGWORD_TYPE
 +#define __SYSCALL_ULONG_TYPE	__ULONGWORD_TYPE
++
++/* Tell the libc code that off_t and off64_t are actually the same type
++   for all ABI purposes, even if possibly expressed as different base types
++   for C type-checking purposes.  */
++#define __OFF_T_MATCHES_OFF64_T 1
 +
 +/* Number of descriptors that can fit in an `fd_set'.  */
 +#define	__FD_SETSIZE		1024
