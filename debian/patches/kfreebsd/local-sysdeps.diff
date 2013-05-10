@@ -550,7 +550,7 @@
 +weak_alias (__access, access)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bind.c
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,56 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Aurelien Jarno <aurelien@aurel32.net>, 2005.
@@ -579,7 +579,7 @@
 +   there. The code below emulate this behaviour. */
 +
 +extern int __libc_sa_len (sa_family_t __af);
-+extern int __libc_sa_len_internal (sa_family_t __af);
++libc_hidden_proto (__libc_sa_len)
 +
 +extern int __syscall_bind (int fd, __CONST_SOCKADDR_ARG addr,
 +			   socklen_t addrlen) __THROW;
@@ -595,11 +595,7 @@
 +{
 +  socklen_t new_addrlen;
 +
-+#ifndef NOT_IN_libc
-+  new_addrlen = INTUSE(__libc_sa_len) ((addr.__sockaddr__)->sa_family);
-+#else
 +  new_addrlen = __libc_sa_len ((addr.__sockaddr__)->sa_family);
-+#endif
 +
 +  /* Only allow a smaller size, otherwise it could lead to
 +    stack corruption */
@@ -5885,7 +5881,7 @@
 +AC_DEFINE(HAVE_INLINED_SYSCALLS)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/connect.c
-@@ -0,0 +1,69 @@
+@@ -0,0 +1,65 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Aurelien Jarno <aurelien@aurel32.net>, 2005.
@@ -5915,7 +5911,7 @@
 +   there. The code below emulate this behaviour.  */
 +
 +extern int __libc_sa_len (sa_family_t __af);
-+extern int __libc_sa_len_internal (sa_family_t __af);
++libc_hidden_proto (__libc_sa_len)
 +
 +extern int __syscall_connect (int fd, __CONST_SOCKADDR_ARG addr,
 +			      socklen_t addrlen);
@@ -5931,11 +5927,7 @@
 +{
 +  socklen_t new_addrlen;
 +
-+#ifndef NOT_IN_libc
-+  new_addrlen = INTUSE(__libc_sa_len) ((addr.__sockaddr__)->sa_family);
-+#else
 +  new_addrlen = __libc_sa_len ((addr.__sockaddr__)->sa_family);
-+#endif
 +
 +  /* Only allow a smaller size, otherwise it could lead to
 +    stack corruption */
@@ -5952,9 +5944,9 @@
 +  return result;
 +}
 +
-+strong_alias (__libc_connect, __connect_internal)
 +weak_alias (__libc_connect, __connect)
 +weak_alias (__libc_connect, connect)
++libc_hidden_weak (__connect)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/devname.c
 @@ -0,0 +1,69 @@
@@ -21474,7 +21466,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sa_len.c
-@@ -0,0 +1,44 @@
+@@ -0,0 +1,47 @@
 +/* Copyright (C) 1998, 1999, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -21500,6 +21492,9 @@
 +#include <netipx/ipx.h>
 +#include <sys/un.h>
 +
++extern int __libc_sa_len (sa_family_t __af);
++libc_hidden_proto (__libc_sa_len)
++
 +int
 +__libc_sa_len (sa_family_t af)
 +{
@@ -21518,7 +21513,7 @@
 +    }
 +  return 0;
 +}
-+INTDEF(__libc_sa_len)
++libc_hidden_def (__libc_sa_len)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sbrk.c
 @@ -0,0 +1 @@
@@ -21847,7 +21842,7 @@
 +weak_alias (__send, send)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sendto.c
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,69 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Aurelien Jarno <aurelien@aurel32.net>, 2005.
@@ -21877,7 +21872,7 @@
 +   there. The code below emulate this behaviour.  */
 +
 +extern int __libc_sa_len (sa_family_t __af);
-+extern int __libc_sa_len_internal (sa_family_t __af);
++libc_hidden_proto (__libc_sa_len)
 +
 +extern ssize_t __syscall_sendto (int fd, __const void * buf,
 +		                 size_t n, int flags,
@@ -21896,18 +21891,14 @@
 +  socklen_t new_addrlen;
 +
 +  if (addr.__sockaddr__)
-+  {
-+#ifndef NOT_IN_libc
-+  new_addrlen = INTUSE(__libc_sa_len) ((addr.__sockaddr__)->sa_family);
-+#else
-+  new_addrlen = __libc_sa_len ((addr.__sockaddr__)->sa_family);
-+#endif
++    {
++      new_addrlen = __libc_sa_len ((addr.__sockaddr__)->sa_family);
 +
-+  /* Only allow a smaller size, otherwise it could lead to
-+    stack corruption */
-+  if ((new_addrlen != 0) && (new_addrlen < addrlen))
-+    addrlen = new_addrlen;
-+  }
++      /* Only allow a smaller size, otherwise it could lead to
++        stack corruption */
++      if ((new_addrlen != 0) && (new_addrlen < addrlen))
++	addrlen = new_addrlen;
++    }
 +
 +  /* We pass 6 arguments.  */
 +  if (SINGLE_THREAD_P)
