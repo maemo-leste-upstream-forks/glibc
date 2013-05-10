@@ -225,11 +225,11 @@
 --- a/linuxthreads/sysdeps/pthread/pthread.h
 +++ b/linuxthreads/sysdeps/pthread/pthread.h
 @@ -41,7 +41,7 @@
-   {0, 0, 0, PTHREAD_MUTEX_ADAPTIVE_NP, __LOCK_ALT_INITIALIZER}
+   {0, 0, 0, PTHREAD_MUTEX_ADAPTIVE_NP, __LOCK_INITIALIZER}
  #endif
  
--#define PTHREAD_COND_INITIALIZER {__LOCK_ALT_INITIALIZER, 0, "", 0}
-+#define PTHREAD_COND_INITIALIZER {__LOCK_ALT_INITIALIZER, 0, CLOCK_REALTIME, "", 0}
+-#define PTHREAD_COND_INITIALIZER {__LOCK_INITIALIZER, 0, "", 0}
++#define PTHREAD_COND_INITIALIZER {__LOCK_INITIALIZER, 0, CLOCK_REALTIME, "", 0}
  
  #if defined __USE_UNIX98 || defined __USE_XOPEN2K
  # define PTHREAD_RWLOCK_INITIALIZER \
