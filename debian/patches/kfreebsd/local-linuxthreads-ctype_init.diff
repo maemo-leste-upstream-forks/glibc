@@ -1,0 +1,24 @@
+--- a/linuxthreads/manager.c
++++ b/linuxthreads/manager.c
+@@ -127,6 +127,10 @@
+ #ifdef INIT_THREAD_SELF
+   INIT_THREAD_SELF(self, 1);
+ #endif
++
++  /* Initialize pointers to locale data.  */
++  __ctype_init ();
++
+ #if !(USE_TLS && HAVE___THREAD)
+   /* Set the error variable.  */
+   self->p_errnop = &self->p_errno;
+@@ -297,6 +301,10 @@
+                            SCHED_OTHER, &default_params);
+     }
+ #endif    
++
++  /* Initialize pointers to locale data.  */
++  __ctype_init ();
++
+ #if !(USE_TLS && HAVE___THREAD)
+   /* Initialize thread-locale current locale to point to the global one.
+      With __thread support, the variable's initializer takes care of this.  */

@@ -27835,16 +27835,16 @@
 +		- exit will call _exit in near future
 +	*/
 +
++	movq %rbx, %rdi		/* argument for either syscall */
 +	testq %rbx, %rbx	/* If it is zero exit.  */
 +	jz 2f
 +
-+	movq %rbx, %rdi
 +	call	JUMPTARGET(__setcontext)
 +	/* If this returns (which can happen if the syscall fails) we'll
 +	   exit the program with the return error value (-1).  */
 +
-+2:	movq %rax, %rdi
-+	call	HIDDEN_JUMPTARGET(exit)
++	movq %rax, %rdi
++2:	call	HIDDEN_JUMPTARGET(exit)
 +	/* The 'exit' call should never return.  In case it does cause
 +	   the process to terminate.  */
 +	hlt
