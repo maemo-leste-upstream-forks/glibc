@@ -9603,7 +9603,7 @@
 +#include <misc/gtty.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/Makefile
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,28 @@
 +ifeq ($(subdir),linuxthreads)
 +CFLAGS-pt-initfini.s += -fno-asynchronous-unwind-tables
 +endif
@@ -9626,6 +9626,11 @@
 +sysdep_routines += i386_vm86
 +# For <machine/sysarch.h>.
 +sysdep_routines += i386_get_ldt i386_set_ldt
++endif
++
++# special flag to avoid usage of xmm registers in ld.so
++ifeq ($(subdir),io)
++CFLAGS-rtld-fxstat64.os += -mno-sse -mno-mmx
 +endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/Versions
