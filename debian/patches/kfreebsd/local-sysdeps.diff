@@ -9602,8 +9602,15 @@
 +/* use stub only variant */
 +#include <misc/gtty.c>
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/Implies
+@@ -0,0 +1 @@
++unix/bsd/bsd4.4/kfreebsd/x86
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/Makefile
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,31 @@
++# The default ABI is 32.
++default-abi := 32
++
 +ifeq ($(subdir),linuxthreads)
 +CFLAGS-pt-initfini.s += -fno-asynchronous-unwind-tables
 +endif
@@ -26720,8 +26727,29 @@
 +#include <sysdeps/posix/writev.c>
 +
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86/Makefile
+@@ -0,0 +1,11 @@
++# We don't need any header files.
++abi-includes :=
++
++abi-variants := 32 64
++
++abi-32-options := -D__i386__ -U__x86_64__
++abi-32-condition := !defined __x86_64__
++abi-32-ld-soname := ld.so.1
++abi-64-options := -U__i386__ -D__x86_64__ -U__ILP32__ -D__LP64__
++abi-64-condition := defined __x86_64__ && defined __LP64__
++abi-64-ld-soname := ld-kfreebsd-x86-64.so.1
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/Implies
+@@ -0,0 +1 @@
++unix/bsd/bsd4.4/kfreebsd/x86
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/Makefile
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,20 @@
++# The default ABI is 64.
++default-abi := 64
++
 +32bit-predefine = __i386__
 +64bit-predefine = __x86_64__
 +
