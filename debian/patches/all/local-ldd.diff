@@ -1,8 +1,12 @@
+2013-05-11  Aurelien Jarno  <aurelien@aurel32.net>
+  
+	* elf/ldd.bash.in: Verify the dynamic linker is working before
+	using it.
+
 2009-11-08  Aurelien Jarno  <aurelien@aurel32.net>
 
-	* elf/ldd.bash.in: also handle error code 126 (ld.so non
-	executable). Always trace dynamic library dependencies through
-	the dynamic linker.
+	* elf/ldd.bash.in: Always trace dynamic library dependencies
+	through the dynamic linker.
 
 ---
  elf/ldd.bash.in |   20 +++-----------------
@@ -10,7 +14,7 @@
 
 --- a/elf/ldd.bash.in
 +++ b/elf/ldd.bash.in
-@@ -151,12 +152,11 @@
+@@ -151,31 +152,23 @@
      echo "ldd: ${file}:" $"not regular file" >&2
      result=1
    elif test -r "$file"; then
@@ -19,13 +23,20 @@
      RTLD=
      ret=1
      for rtld in ${RTLDLIST}; do
--      if test -x $rtld; then
-+      dummy=`$rtld 2>&1` 
-+      if test $? = 127; then
- 	verify_out=`${rtld} --verify "$file"`
- 	ret=$?
- 	case $ret in
-@@ -165,17 +165,8 @@
+       if test -x $rtld; then
+-	verify_out=`${rtld} --verify "$file"`
+-	ret=$?
+-	case $ret in
+-	[02]) RTLD=${rtld}; break;;
+-	esac
++	dummy=`$rtld 2>&1` 
++	if test $? = 127; then
++	  verify_out=`${rtld} --verify "$file"`
++	  ret=$?
++	  case $ret in
++	  [02]) RTLD=${rtld}; break;;
++	  esac
++	fi
        fi
      done
      case $ret in
@@ -45,7 +56,7 @@
        ;;
      1)
        # This can be a non-ELF binary or no binary at all.
-@@ -184,9 +175,6 @@
+@@ -184,9 +177,6 @@
  	result=1
        }
        ;;
