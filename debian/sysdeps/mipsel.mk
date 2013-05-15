@@ -33,10 +33,22 @@ ln -s mipsel-linux-gnu/bits debian/libc6-dev-mips64/usr/include/
 ln -s mipsel-linux-gnu/gnu debian/libc6-dev-mips64/usr/include/
 ln -s mipsel-linux-gnu/fpu_control.h debian/libc6-dev-mips64/usr/include/
 
+mkdir -p debian/libc6-dev-mips64/usr/include/mipsel-linux-gnu/gnu
+cp -a debian/tmp-mips64/usr/include/gnu/stubs-n64_hard.h \
+        debian/libc6-dev-mips64/usr/include/mipsel-linux-gnu/gnu
+
 mkdir -p debian/libc6-dev-mips64/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/mipsel-linux-gnu/sys` ; do \
         ln -s ../mipsel-linux-gnu/sys/$$i debian/libc6-dev-mips64/usr/include/sys/$$i ; \
 done
+
+endef
+
+define libc6-dev-mipsn32_extra_pkg_install
+
+mkdir -p debian/libc6-dev-mipsn32/usr/include/mipsel-linux-gnu/gnu
+cp -a debian/tmp-mipsn32/usr/include/gnu/stubs-n32_hard.h \
+        debian/libc6-dev-mipsn32/usr/include/mipsel-linux-gnu/gnu
 
 endef
 
