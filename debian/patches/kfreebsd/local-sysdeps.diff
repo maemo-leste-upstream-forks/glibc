@@ -897,9 +897,9 @@
 +
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/fcntl.h
-@@ -0,0 +1,186 @@
+@@ -0,0 +1,227 @@
 +/* O_*, F_*, FD_* bit values for FreeBSD.
-+   Copyright (C) 1991-1992, 1997, 2002 Free Software Foundation, Inc.
++   Copyright (C) 1991-1992, 1997-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -927,34 +927,64 @@
 +# include <bits/uio.h>
 +#endif
 +
++/*
++ * File status flags: these are used by open(2), fcntl(2).
++ * They are also used (indirectly) in the kernel file structure f_flags,
++ * which is a superset of the open/fcntl flags.  Open flags and f_flags
++ * are inter-convertible using OFLAGS(fflags) and FFLAGS(oflags).
++ * Open/fcntl flags begin with O_; kernel-internal flags begin with F.
++ */
++/* open-only flags */
++#define	O_RDONLY	0x0000		/* open for reading only */
++#define	O_WRONLY	0x0001		/* open for writing only */
++#define	O_RDWR		0x0002		/* open for reading and writing */
++#define	O_ACCMODE	0x0003		/* mask for above modes */
 +
-+/* open/fcntl - O_SYNC is only implemented on blocks devices and on files
-+   located on an ext2 file system */
-+#define O_ACCMODE	   0003
-+#define O_RDONLY	     00
-+#define O_WRONLY	     01
-+#define O_RDWR		     02
-+#define O_CREAT		  01000	/* not fcntl */
-+#define O_EXCL		  04000	/* not fcntl */
-+#define O_NOCTTY	0100000	/* not fcntl */
-+#define O_TRUNC		  02000	/* not fcntl */
-+#define O_APPEND	    010
-+#define O_NONBLOCK	     04
-+#define O_NDELAY	O_NONBLOCK
-+#define O_SYNC		   0200
-+#define O_FSYNC		 O_SYNC
-+#define O_ASYNC		   0100
++/*
++ * Kernel encoding of open mode; separate read and write bits that are
++ * independently testable: 1 greater than the above.
++ */
++ 
++#define	O_NONBLOCK	0x0004		/* no delay */
++#define	O_NDELAY	O_NONBLOCK	/* compat */
++#define	O_APPEND	0x0008		/* set append mode */
 +
-+#ifdef __USE_GNU
-+# define O_DIRECT	0200000	/* Direct disk access.	*/
-+enum { O_DIRECTORY = 0 };	/* Must be a directory.	 */
-+enum { O_NOATIME = 0};          /* Do not set atime.  */
-+# define O_NOFOLLOW	   0400	/* Do not follow links.	 */
++#if __USE_BSD
++#define	O_SHLOCK	0x0010		/* open with shared file lock */
++#define	O_EXLOCK	0x0020		/* open with exclusive file lock */
 +#endif
 +
-+#ifdef __USE_BSD
-+#define O_SHLOCK	    020 /* Open with shared file lock.  */
-+#define O_EXLOCK	    040 /* Open with shared exclusive lock.  */
++#define	O_ASYNC		0x0040		/* signal pgrp when data ready */
++#define	O_FSYNC		0x0080		/* synchronous writes */
++#define	O_SYNC		O_FSYNC		/* POSIX synonym for O_FSYNC */
++
++#if defined (__USE_XOPEN2K8) || defined (__USE_BSD)
++#define	O_NOFOLLOW	0x0100		/* don't follow symlinks */
++#endif
++
++#define	O_CREAT		0x0200		/* create if nonexistent */
++#define	O_TRUNC		0x0400		/* truncate to zero length */
++#define	O_EXCL		0x0800		/* error if already exists */
++/* Defined by POSIX 1003.1; BSD default, but must be distinct from O_RDONLY. */
++#define	O_NOCTTY	0x8000		/* don't assign controlling terminal */
++
++#if __USE_BSD
++/* Attempt to bypass buffer cache */
++#define	O_DIRECT	0x00010000
++enum { O_NOATIME = 0};          /* Do not set atime.  */
++#endif
++
++/* Defined by POSIX Extended API Set Part 2 */
++#if defined (__USE_XOPEN2K8) || defined (__USE_BSD)
++#define	O_DIRECTORY	0x00020000	/* Fail if not directory */
++#define	O_EXEC		0x00040000	/* Open for execute only */
++#endif
++
++#if defined (__USE_XOPEN2K8) || defined (__USE_BSD)
++/* Defined by POSIX 1003.1-2008; BSD default, but reserve for future use. */
++#define	O_TTY_INIT	0x00080000	/* Restore default termios attributes */
++/* Defining O_CLOEXEC would break kfreebsd 8.1, see #635192 */
++/* #define	O_CLOEXEC	0x00100000 */
 +#endif
 +
 +/* For now FreeBSD has synchronisity options for data and read operations.
@@ -963,12 +993,6 @@
 +#if defined __USE_POSIX199309 || defined __USE_UNIX98
 +# define O_DSYNC	O_SYNC	/* Synchronize data.  */
 +# define O_RSYNC	O_SYNC	/* Synchronize read operations.	 */
-+#endif
-+
-+#if _POSIX_C_SOURCE >= 200809L
-+#define O_TTY_INIT	0x00080000	/* Restore default termios attributes */
-+/* Defining O_CLOEXEC would break kfreebsd 8.1, see #635192 */
-+/* #define O_CLOEXEC	0x00100000 */
 +#endif
 +
 +/* Since 'off_t' is 64-bit, O_LARGEFILE is a no-op.  */
@@ -1007,6 +1031,7 @@
 + * for POSIX shared memory objects (which are otherwise
 + * implemented as plain files).
 + */
++#define FRDAHEAD        O_CREAT
 +#define FPOSIXSHM	O_NOFOLLOW
 +#endif
 +
@@ -1016,13 +1041,13 @@
 +#define F_SETFD		2	/* Set file descriptor flags.  */
 +#define F_GETFL		3	/* Get file status flags.  */
 +#define F_SETFL		4	/* Set file status flags.  */
-+#define F_GETLK		7	/* Get record locking info.  */
-+#define F_SETLK		8	/* Set record locking info (non-blocking).  */
-+#define F_SETLKW	9	/* Set record locking info (blocking).	*/
++#define F_GETLK		11	/* Get record locking info.  */
++#define F_SETLK		12	/* Set record locking info (non-blocking).  */
++#define F_SETLKW	13	/* Set record locking info (blocking).	*/
 +/* Not necessary, we always have 64-bit offsets.  */
-+#define F_GETLK64	7	/* Get record locking info.  */
-+#define F_SETLK64	8	/* Set record locking info (non-blocking).  */
-+#define F_SETLKW64	9	/* Set record locking info (blocking).	*/
++#define F_GETLK64	11	/* Get record locking info.  */
++#define F_SETLK64	12	/* Set record locking info (non-blocking).  */
++#define F_SETLKW64	13	/* Set record locking info (blocking).	*/
 +
 +#if defined __USE_BSD || defined __USE_UNIX98
 +# define F_SETOWN	5	/* Get owner of socket (receiver of SIGIO).  */
@@ -1032,10 +1057,14 @@
 +/* For F_[GET|SET]FD.  */
 +#define FD_CLOEXEC	1	/* actually anything with low bit set goes */
 +
-+/* For posix fcntl() and `l_type' field of a `struct flock' for lockf().  */
-+#define F_RDLCK		1	/* Read lock.  */
-+#define F_WRLCK		3	/* Write lock.	*/
-+#define F_UNLCK		2	/* Remove lock.	 */
++/* record locking flags (F_GETLK, F_SETLK, F_SETLKW) */
++#define	F_RDLCK		1		/* shared or read lock */
++#define	F_UNLCK		2		/* unlock */
++#define	F_WRLCK		3		/* exclusive or write lock */
++#if __USE_BSD
++#define	F_UNLCKSYS	4		/* purge locks for a given system ID */ 
++#define	F_CANCEL	5		/* cancel an async lock request */
++#endif
 +
 +#ifdef __USE_BSD
 +/* Operations for bsd flock(), also used by the kernel implementation.	*/
@@ -1084,6 +1113,18 @@
 +#define FSYNC		O_SYNC
 +#endif /* Use BSD.  */
 +
++
++#ifdef __USE_XOPEN2K
++/*
++ * Advice to posix_fadvise
++ */
++#define	POSIX_FADV_NORMAL	0	/* no special treatment */
++#define	POSIX_FADV_RANDOM	1	/* expect random page references */
++#define	POSIX_FADV_SEQUENTIAL	2	/* expect sequential page references */
++#define	POSIX_FADV_WILLNEED	3	/* will need these pages */
++#define	POSIX_FADV_DONTNEED	4	/* dont need these pages */
++#define	POSIX_FADV_NOREUSE	5	/* access data only once */
++#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/in.h
 @@ -0,0 +1,308 @@
@@ -5304,7 +5345,7 @@
 +
 +echo "$as_me:$LINENO: checking installed kFreeBSD kernel header files" >&5
 +echo $ECHO_N "checking installed kFreeBSD kernel header files... $ECHO_C" >&6
-+if test "${libc_cv_kfreebsd600+set}" = set; then
++if test "${libc_cv_kfreebsd810+set}" = set; then
 +  echo $ECHO_N "(cached) $ECHO_C" >&6
 +else
 +  cat >conftest.$ac_ext <<_ACEOF
@@ -5317,34 +5358,34 @@
 +#if !defined(__FreeBSD_kernel_version) && defined(__FreeBSD_version)
 +#define __FreeBSD_kernel_version __FreeBSD_version
 +#endif
-+#if !defined __FreeBSD_kernel_version || __FreeBSD_kernel_version <  (6 *100000+ 0 *1000+ 0) /* 6.0.0 */
++#if !defined __FreeBSD_kernel_version || __FreeBSD_kernel_version <  (8 *100000+ 1 *1000+ 0) /* 8.1.0 */
 +eat flaming death
 +#endif
 +_ACEOF
 +if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 +  $EGREP "eat flaming death" >/dev/null 2>&1; then
-+  libc_cv_kfreebsd600='TOO OLD!'
++  libc_cv_kfreebsd810='TOO OLD!'
 +else
-+  libc_cv_kfreebsd600='6.0.0 or later'
++  libc_cv_kfreebsd810='8.1.0 or later'
 +fi
 +rm -f conftest*
 +
 +fi
-+echo "$as_me:$LINENO: result: $libc_cv_kfreebsd600" >&5
-+echo "${ECHO_T}$libc_cv_kfreebsd600" >&6
-+if test "$libc_cv_kfreebsd600" != '6.0.0 or later'; then
++echo "$as_me:$LINENO: result: $libc_cv_kfreebsd810" >&5
++echo "${ECHO_T}$libc_cv_kfreebsd810" >&6
++if test "$libc_cv_kfreebsd810" != '8.1.0 or later'; then
 +  { { echo "$as_me:$LINENO: error: GNU libc requires kernel header files from
-+kFreeBSD 6.0.0 or later to be installed before configuring.
++kFreeBSD 8.1.0 or later to be installed before configuring.
 +The kernel header files are found usually in /usr/src/sys/; make sure
-+these directories use files from kFreeBSD 6.0.0 or later.
++these directories use files from kFreeBSD 8.1.0 or later.
 +This check uses <osreldate.h>, so
 +make sure that file was built correctly when installing the kernel header
 +files.  To use kernel headers not from /usr/src/sys/, use the
 +configure option --with-headers." >&5
 +echo "$as_me: error: GNU libc requires kernel header files from
-+kFreeBSD 6.0.0 or later to be installed before configuring.
++kFreeBSD 8.1.0 or later to be installed before configuring.
 +The kernel header files are found usually in /usr/src/sys/; make sure
-+these directories use files from kFreeBSD 6.0.0 or later.
++these directories use files from kFreeBSD 8.1.0 or later.
 +This check uses <osreldate.h>, so
 +make sure that file was built correctly when installing the kernel header
 +files.  To use kernel headers not from /usr/src/sys/, use the
@@ -5376,13 +5417,13 @@
 +case "$machine" in
 +  i386*)
 +    libc_cv_gcc_unwind_find_fde=yes
-+    arch_minimum_kernel=6.0.0
++    arch_minimum_kernel=8.1.0
 +    ;;
 +  x86_64*)
-+    arch_minimum_kernel=6.0.0
++    arch_minimum_kernel=8.1.0
 +    ;;
 +  *)
-+    arch_minimum_kernel=6.0.0
++    arch_minimum_kernel=8.1.0
 +    ;;
 +esac
 +if test -n "$minimum_kernel"; then
@@ -5396,7 +5437,7 @@
 +    minimum_kernel=$arch_minimum_kernel
 +  fi
 +else
-+  if test $arch_minimum_kernel != '6.0.0'; then
++  if test $arch_minimum_kernel != '8.1.0'; then
 +    minimum_kernel=$arch_minimum_kernel
 +  fi
 +fi
@@ -8486,7 +8527,7 @@
 +weak_alias (__getpagesize, getpagesize)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getpt.c
-@@ -0,0 +1,92 @@
+@@ -0,0 +1,51 @@
 +/* Copyright (C) 1998-1999, 2000-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -8510,72 +8551,31 @@
 +#include <string.h>
 +#include <unistd.h>
 +#include <sys/ioctl.h>
++#include <sysdep.h>
 +
++/* The system call does not change the controlling terminal, so we have
++ * to do it ourselves.  */
++extern int __syscall_posix_openpt (int oflag);
++libc_hidden_proto (__syscall_posix_openpt)
 +
-+/* Prefix for master pseudo terminal nodes.  */
-+#define _PATH_PTY "/dev/pty"
-+
-+
-+/* Letters indicating a series of pseudo terminals.  */
-+#ifndef PTYNAME1
-+#define PTYNAME1 "pqrs"
-+#endif
-+const char __libc_ptyname1[] attribute_hidden = PTYNAME1;
-+
-+/* Letters indicating the position within a series.  */
-+#ifndef PTYNAME2
-+#define PTYNAME2 "0123456789abcdefghijklmnopqrstuv";
-+#endif
-+const char __libc_ptyname2[] attribute_hidden = PTYNAME2;
-+
-+
-+/* Open a master pseudo terminal and return its file descriptor.  */
 +int
 +__posix_openpt (int oflag)
 +{
-+  char buf[sizeof (_PATH_PTY) + 2];
-+  const char *p, *q;
-+  char *s;
-+
-+  s = __mempcpy (buf, _PATH_PTY, sizeof (_PATH_PTY) - 1);
-+  /* s[0] and s[1] will be filled in the loop.  */
-+  s[2] = '\0';
-+
-+  for (p = __libc_ptyname1; *p != '\0'; ++p)
-+    {
-+      s[0] = *p;
-+
-+      for (q = __libc_ptyname2; *q != '\0'; ++q)
-+	{
-+	  int fd;
-+
-+	  s[1] = *q;
-+
-+	  fd = __open (buf, oflag);
-+	  if (fd >= 0)
-+	    {
-+	      if (!(oflag & O_NOCTTY))
-+		__ioctl (fd, TIOCSCTTY, NULL);
-+
-+	      return fd;
-+	    }
-+
-+	  if (errno == ENOENT)
-+	    return -1;
-+	}
-+    }
-+
-+  __set_errno (ENOENT);
-+  return -1;
++  int fd = INLINE_SYSCALL (posix_openpt, 1, oflag);
++  if (fd >= 0)
++  {
++      if (!(oflag & O_NOCTTY))
++        __ioctl (fd, TIOCSCTTY, NULL);
++  }
++  return fd;
 +}
 +
 +weak_alias (__posix_openpt, posix_openpt)
 +
-+
 +int
 +__getpt (void)
 +{
-+  return __posix_openpt (O_RDWR);
++  return __posix_openpt (O_RDWR | O_NOCTTY);
 +}
 +
 +weak_alias (__getpt, getpt)
@@ -12405,7 +12405,7 @@
 +#endif /* !_KENV_H */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-features.h
-@@ -0,0 +1,81 @@
+@@ -0,0 +1,85 @@
 +/* Set flags signalling availability of kernel features based on given
 +   kernel version number.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -12487,6 +12487,10 @@
 +/* The pselect syscall was introduced in kFreeBSD 8.1. */
 +# define __ASSUME_PSELECT		1
 +
++/* The posix_fallocate syscall was introduced in kFreeBSD 8.3. */
++#if __KFREEBSD_KERNEL_VERSION >= 0x80300
++# define __ASSUME_FALLOCATE		1
++#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-posix-cpu-timers.h
 @@ -0,0 +1,5 @@
@@ -18964,6 +18968,132 @@
 +
 +#endif /* !_PATHS_H_ */
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/posix_fadvise.c
+@@ -0,0 +1,52 @@
++/* Copyright (C) 2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sysdep.h>
++#include <sys/stat.h>
++#include <sys/sysctl.h>
++#include <sys/user.h>
++#include <kernel-features.h>
++
++extern int __syscall_posix_fadvise(int fd, off_t offset, off_t len, int advice);
++libc_hidden_proto (__syscall_posix_fadvise)
++
++/* the syscall is available in 8.x since 8.3 and in 9.1 and above */
++/* i.e. it is not supported in 9.0 kernel */
++
++int
++posix_fadvise(int fd, off_t offset, off_t len, int advice)
++{
++    int rv;
++    rv = INLINE_SYSCALL (posix_fadvise, 4, fd, offset, len, advice);
++    if (rv == -1)
++    {
++        if (errno == ENOSYS)	/* cheat under old kernels as successfull */
++            return 0;
++        return errno;
++    }
++    return rv;
++}
++
++strong_alias (posix_fadvise, posix_fadvise64)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/posix_fadvise64.c
+@@ -0,0 +1 @@
++/* 'posix_fadvise64' is the same as 'posix_fadvise', because __off64_t == __off_t.  */
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/posix_fallocate.c
+@@ -0,0 +1,60 @@
++/* Copyright (C) 2007-2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <fcntl.h>
++#include <kernel-features.h>
++#include <sysdep.h>
++
++extern int __syscall_posix_fallocate(int fd, off_t offset, off_t len);
++libc_hidden_proto (__syscall_posix_fallocate)
++
++#define posix_fallocate static internal_fallocate
++#include <sysdeps/posix/posix_fallocate.c>
++#undef posix_fallocate
++
++#if !defined __ASSUME_FALLOCATE
++static int __have_fallocate;
++#endif
++
++
++/* Reserve storage for the data of the file associated with FD.  */
++int
++posix_fallocate (int fd, __off_t offset, __off_t len)
++{
++#ifndef __ASSUME_FALLOCATE
++    if (__have_fallocate >= 0)
++#endif
++    {
++        int res = INLINE_SYSCALL (posix_fallocate, 3, fd, offset, len);
++      
++        if (res == -1)
++            res = errno;
++#ifndef __ASSUME_FALLOCATE
++        if (res == ENOSYS)
++        {
++            __have_fallocate = -1;
++        }
++        else
++#endif
++        {
++            if (res != EOPNOTSUPP)
++                return res;
++        }
++    }      
++    return internal_fallocate (fd, offset, len);
++}
++strong_alias (posix_fallocate, posix_fallocate64)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/posix_fallocate64.c
+@@ -0,0 +1 @@
++/* 'posix_fallocate64' is the same as 'posix_fallocate', because __off64_t == __off_t.  */
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/powerpc/bits/elf.h
 @@ -0,0 +1,39 @@
 +/* This file defines standard ELF types, structures, and macros.
@@ -19065,8 +19195,8 @@
 +libc_hidden_def (__profile_frequency)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptsname.c
-@@ -0,0 +1,111 @@
-+/* Copyright (C) 1998, 2002 Free Software Foundation, Inc.
+@@ -0,0 +1,110 @@
++/* Copyright (C) 1998-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -19080,22 +19210,26 @@
 +   Lesser General Public License for more details.
 +
 +   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
 +
 +#include <errno.h>
 +#include <paths.h>
 +#include <stdlib.h>
 +#include <string.h>
++#include <sys/ioctl.h>
 +#include <sys/stat.h>
 +#include <sys/sysmacros.h>
 +#include <sys/sysctl.h>
++#include <termios.h>
 +#include <unistd.h>
 +
 +
++/* Directory where we can find the slave pty nodes.  */
++#define _PATH_DEVPTS "/dev/pts/"
++
 +/* Static buffer for `ptsname'.  */
-+static char buffer[sizeof (_PATH_TTY) + 2];
++static char buffer[sizeof (_PATH_DEVPTS) + 20];
 +
 +
 +/* Return the pathname of the pseudo terminal slave associated with
@@ -19107,62 +19241,57 @@
 +  return __ptsname_r (fd, buffer, sizeof (buffer)) != 0 ? NULL : buffer;
 +}
 +
-+/* The are declared in getpt.c.  */
-+extern const char __libc_ptyname1[] attribute_hidden;
-+extern const char __libc_ptyname2[] attribute_hidden;
++
++int
++__isptymaster(int fd)
++{
++  if (0 == __ioctl(fd, TIOCPTMASTER))
++    return 0;
++
++  if (errno != EBADF)
++    __set_errno (EINVAL);
++
++  return -1;
++}
 +
 +
 +int
 +__ptsname_internal (int fd, char *buf, size_t buflen, struct stat64 *stp)
 +{
-+  int saved_errno = errno;
++  struct fiodgname_arg fiodgname;
 +  char *p;
-+
 +  if (buf == NULL)
 +    {
 +      __set_errno (EINVAL);
 +      return EINVAL;
 +    }
-+
-+  /* Don't call isatty (fd) - it usually fails with errno = EAGAIN.  */
-+
-+  if (__fxstat64 (_STAT_VER, fd, stp) < 0)
-+    return errno;
-+
++    
 +  /* Check if FD really is a master pseudo terminal.  */
-+  if (!(S_ISCHR (stp->st_mode)))
-+    {
-+      __set_errno (ENOTTY);
-+      return ENOTTY;
-+    }
++  if (0 != __isptymaster(fd))
++  {
++      return errno;
++  }
 +
-+  if (buflen < sizeof (_PATH_TTY) + 2)
-+    {
++  if (buflen < sizeof (_PATH_DEV) + 5) /* "/dev/" + "pts/"   */
++  {
 +      __set_errno (ERANGE);
 +      return ERANGE;
-+    }
++  }
 +
 +  /* Construct the slave's pathname.  */
 +  /* instead of strlen(_PATH_DEV) we use (sizeof (_PATH_DEV) - 1)  */
 +  p = __mempcpy (buf, _PATH_DEV, sizeof (_PATH_DEV) - 1);
 +  buflen -= (sizeof (_PATH_DEV) - 1);
-+  if(__sysctlbyname("kern.devname", p, &buflen, &stp->st_rdev, sizeof (stp->st_rdev)) < 0)
++
++  fiodgname.buf = p;
++  fiodgname.len = buflen;
++
++  if (0 != __ioctl(fd, FIODGNAME, &fiodgname))
 +    return errno;
-+  p[0] = 't';
 +
 +  if (__xstat64 (_STAT_VER, buf, stp) < 0)
 +    return errno;
 +
-+  /* Check if the pathname we're about to return might be
-+     slave pseudo terminal of the given master pseudo terminal.  */
-+  if (!(S_ISCHR (stp->st_mode)))
-+    {
-+      /* This really is a configuration problem.  */
-+      __set_errno (ENOTTY);
-+      return ENOTTY;
-+    }
-+
-+  __set_errno (saved_errno);
 +  return 0;
 +}
 +
@@ -21920,7 +22049,7 @@
 +#endif /* sys/swap.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h
-@@ -0,0 +1,486 @@
+@@ -0,0 +1,500 @@
 +#ifndef _SYSCALL_H
 +#define _SYSCALL_H	1
 +
@@ -21929,7 +22058,7 @@
 + *
 + * DO NOT EDIT-- this file is automatically generated.
 + * $FreeBSD$
-+ * created from FreeBSD: head/sys/kern/syscalls.master 224987 2011-08-18 22:51:30Z jonathan 
++ * created from FreeBSD: head/sys/kern/syscalls.master 250853 2013-05-21 11:40:16Z kib 
 + */
 +
 +#define	SYS_syscall	0
@@ -22142,6 +22271,10 @@
 +#define	SYS_ktimer_gettime	238
 +#define	SYS_ktimer_getoverrun	239
 +#define	SYS_nanosleep	240
++#define	SYS_ffclock_getcounter	241
++#define	SYS_ffclock_setestimate	242
++#define	SYS_ffclock_getestimate	243
++#define	SYS_clock_getcpuclockid2	247
 +#define	SYS_ntp_gettime	248
 +#define	SYS_minherit	250
 +#define	SYS_rfork	251
@@ -22232,7 +22365,6 @@
 +#define	SYS_extattr_get_fd	372
 +#define	SYS_extattr_delete_fd	373
 +#define	SYS___setugid	374
-+#define SYS_nfsclnt	375
 +#define	SYS_eaccess	376
 +#define	SYS_afs3_syscall	377
 +#define	SYS_nmount	378
@@ -22358,7 +22490,7 @@
 +#define	SYS_shmctl	SYS_freebsd7_shmctl
 +#define	SYS_lpathconf	513
 +#define	SYS_cap_new	514
-+#define	SYS_cap_getrights	515
++#define	SYS_cap_rights_get	515
 +#define	SYS_cap_enter	516
 +#define	SYS_cap_getmode	517
 +#define	SYS_pdfork	518
@@ -22372,9 +22504,20 @@
 +#define	SYS_rctl_get_limits	527
 +#define	SYS_rctl_add_rule	528
 +#define	SYS_rctl_remove_rule	529
-+#define SYS_posix_fallocate	530
-+#define SYS_posix_fadvise	531
-+#define	SYS_MAXSYSCALL	532
++#define	SYS_posix_fallocate	530
++#define	SYS_posix_fadvise	531
++#define	SYS_wait6	532
++#define	SYS_cap_rights_limit	533
++#define	SYS_cap_ioctls_limit	534
++#define	SYS_cap_ioctls_get	535
++#define	SYS_cap_fcntls_limit	536
++#define	SYS_cap_fcntls_get	537
++#define	SYS_bindat	538
++#define	SYS_connectat	539
++#define	SYS_chflagsat	540
++#define	SYS_accept4	541
++#define	SYS_pipe2	542
++#define	SYS_MAXSYSCALL	543
 +
 +#define SYS_obreak	SYS_break
 +#define SYS_sysctl	SYS___sysctl
@@ -22714,7 +22857,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,196 @@
+@@ -0,0 +1,199 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
 +sys_access		-	access			i:si		__syscall_access
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
@@ -22823,6 +22966,9 @@
 +obreak			-	obreak			i:a		__syscall_obreak
 +sys_open		-	open			i:siv		__syscall_open
 +poll			-	poll			Ci:pii		__poll poll
++sys_posix_fadvise	EXTRA	posix_fadvise		i:iiii		__syscall_posix_fadvise
++sys_posix_fallocate	EXTRA	posix_fallocate		i:iii		__syscall_posix_fallocate
++posix_openpt		getpt	posix_openpt		i:i		__syscall_posix_openpt
 +pread			-	pread			Ci:ibni		__libc_pread !__pread pread !__libc_pread64 !__pread64 pread64
 +pwrite			-	pwrite			Ci:ibni		__libc_pwrite !__pwrite pwrite !__libc_pwrite64 !__pwrite64 pwrite64
 +preadv			-	preadv			Ci:ipii		__preadv  preadv  __preadv64  preadv64 
@@ -23434,7 +23580,7 @@
 +libc_hidden_def (uname)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/unlockpt.c
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,32 @@
 +/* Copyright (C) 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -23458,28 +23604,15 @@
 +#include <sys/stat.h>
 +#include <unistd.h>
 +
++extern int __isptymaster(int fd);
 +
 +int
-+__unlockpt (int fd)
++unlockpt (int fd)
 +{
-+  struct stat64 st;
-+
 +  /* there is no need/way to do unlocking of slave pseudo-terminal device,
 +     just check whether fd might be valid master pseudo-terminal device */
-+
-+  if (__fxstat64 (_STAT_VER, fd, &st) < 0)
-+    return -1;
-+
-+  if (!(S_ISCHR (st.st_mode)))
-+  {
-+    __set_errno (ENOTTY);
-+    return -1;
-+  }
-+
-+  return 0;
++  return __isptymaster(fd);
 +}
-+
-+weak_alias (__unlockpt, unlockpt)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/usleep.c
 @@ -0,0 +1,50 @@
