@@ -106,18 +106,8 @@ else
 	    objdir=$(DEB_BUILDDIR) install_root=$(CURDIR)/build-tree/locales-all \
 	    localedata/install-locales; \
 	  sync; \
-	  cd $(CURDIR)/build-tree/locales-all/usr/lib/locale ; \
-	  fdupes -1 -H -q -R . | while read line ; do \
-	    set -- $${line} ; \
-	    tgt="$${1##./}" ; \
-	    shift ; \
-	    while [ "$$#" != 0 ] ; do \
-	      link="$${1##./}" ; \
-	      reltgt="$$(echo $$link | sed -e 's,[^/]\+$$,,g' -e 's,[^/]\+,..,g')$${tgt}" ; \
-	      ln -sf $${reltgt} $${link} ; \
-	      shift ; \
-	    done ; \
-	  done ; \
+	  rdfind -outputname /dev/null -makesymlinks true -removeidentinode false $(CURDIR)/build-tree/locales-all/usr/lib/locale ; \
+	  symlinks -r -s -c $(CURDIR)/build-tree/locales-all/usr/lib/locale ; \
 	fi
 endif
 	touch $@
