@@ -19095,7 +19095,7 @@
 +/* 'posix_fadvise64' is the same as 'posix_fadvise', because __off64_t == __off_t.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/posix_fallocate.c
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,81 @@
 +/* Copyright (C) 2007-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -19155,7 +19155,28 @@
 +    }      
 +    return internal_fallocate (fd, offset, len);
 +}
++
++/* 'posix_fallocate64' is the same as 'posix_fallocate', because __off64_t == __off_t.  */
++/*  but previous prototype have different size of len parameter */
++
++#include <shlib-compat.h>
++#include <bits/wordsize.h>
++
++#if __WORDSIZE == 32 && SHLIB_COMPAT(libc, GLIBC_2_2, GLIBC_2_3_3)
++
++int
++attribute_compat_text_section
++__posix_fallocate64_l32 (int fd, off64_t offset, size_t len)
++{
++  return posix_fallocate (fd, offset, len);
++}
++
++versioned_symbol (libc, posix_fallocate, posix_fallocate64,
++		  GLIBC_2_3_3);
++compat_symbol (libc, __posix_fallocate64_l32, posix_fallocate64, GLIBC_2_2);
++#else
 +strong_alias (posix_fallocate, posix_fallocate64)
++#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/posix_fallocate64.c
 @@ -0,0 +1 @@
