@@ -1,5 +1,8 @@
 libc_add-ons = ports nptl $(add-ons)
 
+CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)-4.4
+CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)-4.4
+
 # build 32-bit (n32) alternative library
 EGLIBC_PASSES += mipsn32
 DEB_ARCH_REGULAR_PACKAGES += libc6-mipsn32 libc6-dev-mipsn32
