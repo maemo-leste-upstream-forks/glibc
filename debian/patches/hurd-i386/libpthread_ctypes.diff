@@ -1,0 +1,37 @@
+commit ff1ae3d79b2d103f211ad4c600e144ad448a98e6
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Jun 11 03:57:44 2013 +0200
+
+    Initialize ctype
+    
+    * pthread/pt-create.c (entry_point) [IS_IN_libpthread]: Call __ctype_init.
+
+---
+ pt-create.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/libpthread/pthread/pt-create.c b/libpthread/pthread/pt-create.c
+index 25a3607..9ce0be8 100644
+--- a/libpthread/pthread/pt-create.c
++++ b/libpthread/pthread/pt-create.c
+@@ -26,6 +26,9 @@
+ 
+ #include <pt-internal.h>
+ 
++#ifdef IS_IN_libpthread
++# include <ctype.h>
++#endif
+ #ifdef HAVE_USELOCALE
+ # include <locale.h>
+ #endif
+@@ -44,6 +47,10 @@ entry_point (struct __pthread *self, void *(*start_routine)(void *), void *arg)
+ static void
+ entry_point (void *(*start_routine)(void *), void *arg)
+ {
++#ifdef IS_IN_libpthread
++  /* Initialize pointers to locale data.  */
++  __ctype_init ();
++#endif
+ #ifdef HAVE_USELOCALE
+   /* A fresh thread needs to be bound to the global locale.  */
+   uselocale (LC_GLOBAL_LOCALE);
