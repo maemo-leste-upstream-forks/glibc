@@ -13398,7 +13398,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/timer_create.c
-@@ -0,0 +1,226 @@
+@@ -0,0 +1,165 @@
 +/* Copyright (C) 2003,2004, 2007, 2009, 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -13430,33 +13430,12 @@
 +#include "kernel-posix-cpu-timers.h"
 +
 +
-+#ifdef SYS_ktimer_create
-+# ifndef __ASSUME_POSIX_TIMERS
-+static int compat_timer_create (clockid_t clock_id, struct sigevent *evp,
-+				timer_t *timerid);
-+#  define timer_create static compat_timer_create
-+#  include <linuxthreads/sysdeps/pthread/timer_create.c>
-+#  undef timer_create
-+
-+/* Nonzero if the system calls are not available.  */
-+int __no_posix_timers attribute_hidden;
-+# endif
-+
-+# ifdef timer_create_alias
-+#  define timer_create timer_create_alias
-+# endif
-+
-+
 +int
 +timer_create (clock_id, evp, timerid)
 +     clockid_t clock_id;
 +     struct sigevent *evp;
 +     timer_t *timerid;
 +{
-+# undef timer_create
-+# ifndef __ASSUME_POSIX_TIMERS
-+  if  (__no_posix_timers >= 0)
-+# endif
 +    {
 +      /* If the user wants notification via a thread we need to handle
 +	 this special.  */
@@ -13478,7 +13457,7 @@
 +		 the kernel to determine it.  */
 +	      local_evp.sigev_notify = SIGEV_SIGNAL;
 +	      local_evp.sigev_signo = SIGALRM;
-+	      local_evp.sigev_value.sival_ptr = newp;
++	      local_evp.sigev_value.sival_int = __kfreebsd_timer_ptr2id (newp);
 +
 +	      evp = &local_evp;
 +	    }
@@ -13487,13 +13466,7 @@
 +	  int retval = INLINE_SYSCALL (ktimer_create, 3, clock_id, evp,
 +				       &ktimerid);
 +
-+# ifndef __ASSUME_POSIX_TIMERS
-+	  if (retval != -1 || errno != ENOSYS)
-+# endif
 +	    {
-+# ifndef __ASSUME_POSIX_TIMERS
-+	      __no_posix_timers = 1;
-+# endif
 +
 +	      if (retval != -1)
 +		{
@@ -13512,30 +13485,9 @@
 +
 +	      return retval;
 +	    }
-+
-+	  __kfreebsd_timer_free (newp);
-+
-+# ifndef __ASSUME_POSIX_TIMERS
-+	  /* When we come here the syscall does not exist.  Make sure we
-+	     do not try to use it again.  */
-+	  __no_posix_timers = -1;
-+# endif
 +	}
 +      else
 +	{
-+# ifndef __ASSUME_POSIX_TIMERS
-+	  /* Make sure we have the necessary kernel support.  */
-+	  if (__no_posix_timers == 0)
-+	    {
-+	      struct timespec ts;
-+	      int res;
-+	      res = INLINE_SYSCALL (clock_getres, 2,
-+				    CLOCK_REALTIME, &ts);
-+	      __no_posix_timers = (res == -1 ? -1 : 1);
-+	    }
-+
-+	  if (__no_posix_timers > 0)
-+# endif
 +	    {
 +	      /* Create the helper thread.  */
 +	      pthread_once (&__helper_once, __start_helper_thread);
@@ -13611,23 +13563,10 @@
 +	    }
 +	}
 +    }
-+
-+# ifndef __ASSUME_POSIX_TIMERS
-+  /* Compatibility code.  */
-+  return compat_timer_create (clock_id, evp, timerid);
-+# endif
 +}
-+#else
-+# ifdef timer_create_alias
-+#  define timer_create timer_create_alias
-+# endif
-+/* The new system calls are not available.  Use the userlevel
-+   implementation.  */
-+# include <linuxthreads/sysdeps/pthread/timer_create.c>
-+#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/timer_delete.c
-@@ -0,0 +1,117 @@
+@@ -0,0 +1,71 @@
 +/* Copyright (C) 2003, 2007, 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -13655,28 +13594,10 @@
 +#include "kernel-posix-timers.h"
 +
 +
-+#ifdef SYS_ktimer_delete
-+# ifndef __ASSUME_POSIX_TIMERS
-+static int compat_timer_delete (timer_t timerid);
-+#  define timer_delete static compat_timer_delete
-+#  include <linuxthreads/sysdeps/pthread/timer_delete.c>
-+#  undef timer_delete
-+# endif
-+
-+# ifdef timer_delete_alias
-+#  define timer_delete timer_delete_alias
-+# endif
-+
-+
 +int
 +timer_delete (timerid)
 +     timer_t timerid;
 +{
-+# undef timer_delete
-+# ifndef __ASSUME_POSIX_TIMERS
-+  if (__no_posix_timers >= 0)
-+# endif
-+    {
 +      struct timer *kt = __kfreebsd_timer_id2ptr (timerid);
 +      if (! kt)
 +	return -1;
@@ -13707,11 +13628,6 @@
 +	      pthread_mutex_unlock (&__active_timer_sigev_thread_lock);
 +	    }
 +
-+# ifndef __ASSUME_POSIX_TIMERS
-+	  /* We know the syscall support is available.  */
-+	  __no_posix_timers = 1;
-+# endif
-+
 +	  /* Free the memory.  */
 +	  (void) __kfreebsd_timer_free (kt);
 +
@@ -13720,34 +13636,11 @@
 +
 +      /* The kernel timer is not known or something else bad happened.
 +	 Return the error.  */
-+# ifndef __ASSUME_POSIX_TIMERS
-+      if (errno != ENOSYS)
-+	{
-+	  __no_posix_timers = 1;
-+# endif
 +	  return -1;
-+# ifndef __ASSUME_POSIX_TIMERS
-+	}
-+
-+      __no_posix_timers = -1;
-+# endif
-+    }
-+
-+# ifndef __ASSUME_POSIX_TIMERS
-+  return compat_timer_delete (timerid);
-+# endif
 +}
-+#else
-+# ifdef timer_delete_alias
-+#  define timer_delete timer_delete_alias
-+# endif
-+/* The new system calls are not available.  Use the userlevel
-+   implementation.  */
-+# include <linuxthreads/sysdeps/pthread/timer_delete.c>
-+#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/timer_getoverr.c
-@@ -0,0 +1,83 @@
+@@ -0,0 +1,37 @@
 +/* Copyright (C) 2003, 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -13774,66 +13667,20 @@
 +#include "kernel-posix-timers.h"
 +
 +
-+#ifdef SYS_ktimer_getoverrun
-+# ifndef __ASSUME_POSIX_TIMERS
-+static int compat_timer_getoverrun (timer_t timerid);
-+#  define timer_getoverrun static compat_timer_getoverrun
-+#  include <linuxthreads/sysdeps/pthread/timer_getoverr.c>
-+#  undef timer_getoverrun
-+# endif
-+
-+# ifdef timer_getoverrun_alias
-+#  define timer_getoverrun timer_getoverrun_alias
-+# endif
-+
-+
 +int
 +timer_getoverrun (timerid)
 +     timer_t timerid;
 +{
-+# undef timer_getoverrun
-+# ifndef __ASSUME_POSIX_TIMERS
-+  if (__no_posix_timers >= 0)
-+# endif
-+    {
 +      struct timer *kt = __kfreebsd_timer_id2ptr (timerid);
 +      if (! kt)
 +	return -1;
 +
 +      /* Get the information from the kernel.  */
-+      int res = INLINE_SYSCALL (ktimer_getoverrun, 1, kt->ktimerid);
-+
-+# ifndef __ASSUME_POSIX_TIMERS
-+      if (res != -1 || errno != ENOSYS)
-+	{
-+	  /* We know the syscall support is available.  */
-+	  __no_posix_timers = 1;
-+# endif
-+	  return res;
-+# ifndef __ASSUME_POSIX_TIMERS
-+	}
-+# endif
-+
-+# ifndef __ASSUME_POSIX_TIMERS
-+      __no_posix_timers = -1;
-+# endif
-+    }
-+
-+# ifndef __ASSUME_POSIX_TIMERS
-+  return compat_timer_getoverrun (timerid);
-+# endif
++      return INLINE_SYSCALL (ktimer_getoverrun, 1, kt->ktimerid);
 +}
-+#else
-+# ifdef timer_getoverrun_alias
-+#  define timer_getoverrun timer_getoverrun_alias
-+# endif
-+/* The new system calls are not available.  Use the userlevel
-+   implementation.  */
-+# include <linuxthreads/sysdeps/pthread/timer_getoverr.c>
-+#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/timer_gettime.c
-@@ -0,0 +1,85 @@
+@@ -0,0 +1,39 @@
 +/* Copyright (C) 2003, 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -13861,67 +13708,21 @@
 +#include "kernel-posix-timers.h"
 +
 +
-+#ifdef SYS_ktimer_gettime
-+# ifndef __ASSUME_POSIX_TIMERS
-+static int compat_timer_gettime (timer_t timerid, struct itimerspec *value);
-+#  define timer_gettime static compat_timer_gettime
-+#  include <linuxthreads/sysdeps/pthread/timer_gettime.c>
-+#  undef timer_gettime
-+# endif
-+
-+# ifdef timer_gettime_alias
-+#  define timer_gettime timer_gettime_alias
-+# endif
-+
-+
 +int
 +timer_gettime (timerid, value)
 +     timer_t timerid;
 +     struct itimerspec *value;
 +{
-+# undef timer_gettime
-+# ifndef __ASSUME_POSIX_TIMERS
-+  if (__no_posix_timers >= 0)
-+# endif
-+    {
 +      struct timer *kt = __kfreebsd_timer_id2ptr (timerid);
 +      if (! kt)
 +	return -1;
 +
 +      /* Delete the kernel timer object.  */
-+      int res = INLINE_SYSCALL (ktimer_gettime, 2, kt->ktimerid, value);
-+
-+# ifndef __ASSUME_POSIX_TIMERS
-+      if (res != -1 || errno != ENOSYS)
-+	{
-+	  /* We know the syscall support is available.  */
-+	  __no_posix_timers = 1;
-+# endif
-+	  return res;
-+# ifndef __ASSUME_POSIX_TIMERS
-+	}
-+# endif
-+
-+# ifndef __ASSUME_POSIX_TIMERS
-+      __no_posix_timers = -1;
-+# endif
-+    }
-+
-+# ifndef __ASSUME_POSIX_TIMERS
-+  return compat_timer_gettime (timerid, value);
-+# endif
++      return INLINE_SYSCALL (ktimer_gettime, 2, kt->ktimerid, value);
 +}
-+#else
-+# ifdef timer_gettime_alias
-+#  define timer_gettime timer_gettime_alias
-+# endif
-+/* The new system calls are not available.  Use the userlevel
-+   implementation.  */
-+# include <linuxthreads/sysdeps/pthread/timer_gettime.c>
-+#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/timer_routines.c
-@@ -0,0 +1,214 @@
+@@ -0,0 +1,208 @@
 +/* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -13974,7 +13775,6 @@
 +__lwpid_t __helper_tid attribute_hidden;
 +sem_t __helper_tid_semaphore attribute_hidden;
 +
-+#ifdef SYS_ktimer_create
 +/* Helper thread to call the user-provided function.  */
 +static void *
 +timer_sigev_thread (void *arg)
@@ -14131,14 +13931,9 @@
 +     be created.  */
 +  pthread_atfork (NULL, NULL, reset_helper_control);
 +}
-+#endif
-+
-+#ifndef __ASSUME_POSIX_TIMERS
-+# include <linuxthreads/sysdeps/pthread/timer_routines.c>
-+#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/timer_settime.c
-@@ -0,0 +1,90 @@
+@@ -0,0 +1,42 @@
 +/* Copyright (C) 2003, 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -14165,22 +13960,6 @@
 +#include <kernel-features.h>
 +#include "kernel-posix-timers.h"
 +
-+
-+#ifdef SYS_ktimer_settime
-+# ifndef __ASSUME_POSIX_TIMERS
-+static int compat_timer_settime (timer_t timerid, int flags,
-+				 const struct itimerspec *value,
-+				 struct itimerspec *ovalue);
-+#  define timer_settime static compat_timer_settime
-+#  include <linuxthreads/sysdeps/pthread/timer_settime.c>
-+#  undef timer_settime
-+# endif
-+
-+# ifdef timer_settime_alias
-+#  define timer_settime timer_settime_alias
-+# endif
-+
-+
 +int
 +timer_settime (timerid, flags, value, ovalue)
 +     timer_t timerid;
@@ -14188,47 +13967,15 @@
 +     const struct itimerspec *value;
 +     struct itimerspec *ovalue;
 +{
-+# undef timer_settime
-+# ifndef __ASSUME_POSIX_TIMERS
-+  if (__no_posix_timers >= 0)
-+# endif
-+    {
 +      struct timer *kt = __kfreebsd_timer_id2ptr (timerid);
 +      if (! kt)
 +	return -1;
 +
-+      /* Delete the kernel timer object.  */
-+      int res = INLINE_SYSCALL (ktimer_settime, 4, kt->ktimerid, flags,
++      /* Set the kernel timer object.  */
++      return INLINE_SYSCALL (ktimer_settime, 4, kt->ktimerid, flags,
 +				value, ovalue);
 +
-+# ifndef __ASSUME_POSIX_TIMERS
-+      if (res != -1 || errno != ENOSYS)
-+	{
-+	  /* We know the syscall support is available.  */
-+	  __no_posix_timers = 1;
-+# endif
-+	  return res;
-+# ifndef __ASSUME_POSIX_TIMERS
-+	}
-+# endif
-+
-+# ifndef __ASSUME_POSIX_TIMERS
-+      __no_posix_timers = -1;
-+# endif
-+    }
-+
-+# ifndef __ASSUME_POSIX_TIMERS
-+  return compat_timer_settime (timerid, flags, value, ovalue);
-+# endif
 +}
-+#else
-+# ifdef timer_settime_alias
-+#  define timer_settime timer_settime_alias
-+# endif
-+/* The new system calls are not available.  Use the userlevel
-+   implementation.  */
-+# include <linuxthreads/sysdeps/pthread/timer_settime.c>
-+#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/unregister-atfork.c
 @@ -0,0 +1 @@
@@ -22968,7 +22715,7 @@
 +sys_clock_settime	-	clock_settime		i:ip		__syscall_clock_settime
 +sys_ktimer_create	-	ktimer_create		i:iPp		__syscall_ktimer_create
 +sys_ktimer_gettime	-	ktimer_gettime		i:ip		__syscall_ktimer_gettime
-+sys_ktimer_settime	-	ktimer_settime		i:ip		__syscall_ktimer_settime
++sys_ktimer_settime	-	ktimer_settime		i:iipp		__syscall_ktimer_settime
 +sys_ktimer_getoverrun	-	ktimer_getoverrun	i:i		__syscall_ktimer_getoverrun
 +sys_ktimer_delete	-	ktimer_delete		i:i		__syscall_ktimer_delete
 +sys_execve		-	execve			i:ppp		__syscall_execve
