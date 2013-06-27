@@ -1,0 +1,23 @@
+2013-06-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* sysdeps/m68k/sysdep.h (CALL_MCOUNT) [PROF]: Use %a6 instead of
+	%fp in cfi insns.
+
+diff --git a/ports/sysdeps/m68k/sysdep.h b/ports/sysdeps/m68k/sysdep.h
+index cd34dd8..f8ad70e 100644
+--- a/ports/sysdeps/m68k/sysdep.h
++++ b/ports/sysdeps/m68k/sysdep.h
+@@ -45,11 +45,11 @@
+    to locate our caller, so push one just for its benefit.  */
+ #  define CALL_MCOUNT \
+   move.l %fp, -(%sp);							      \
+-  cfi_adjust_cfa_offset (4);  cfi_rel_offset (%fp, 0);			      \
++  cfi_adjust_cfa_offset (4);  cfi_rel_offset (%a6, 0);			      \
+   move.l %sp, %fp;							      \
+   jbsr JUMPTARGET (_mcount);						      \
+   move.l (%sp)+, %fp;							      \
+-  cfi_adjust_cfa_offset (-4); cfi_restore (%fp);
++  cfi_adjust_cfa_offset (-4); cfi_restore (%a6);
+ # else
+ #  define CALL_MCOUNT		/* Do nothing.  */
+ # endif
