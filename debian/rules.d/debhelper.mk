@@ -36,7 +36,7 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	if test "$(curpass)" = "libc-bin"; then			\
 	  mv debian/$(curpass)/sbin/ldconfig			\
 	    debian/$(curpass)/sbin/ldconfig.real;		\
-	  install -m755 -o0 -g0 debian/local/ldconfig_wrap	\
+	  install -m755 -o0 -g0 debian/local/sbin/ldconfig	\
 	    debian/$(curpass)/sbin/ldconfig;			\
 	fi
 
