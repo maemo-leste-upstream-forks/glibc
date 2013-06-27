@@ -30,7 +30,7 @@
     all_upgraded=yes
     if [ -n "$hwcappkgs" ]; then
         for pkg in $hwcappkgs ; do
-            ver=$(dpkg-query -l $pkg 2>/dev/null | sed -e '/^[a-z][a-z]\s/!d;/^.[nc]/d;' -e "s/^..\s\+$pkg\s\+//;s/\s.*//g")
+            ver=$(dpkg-query -l $pkg 2>/dev/null | sed -e '/^[a-z][a-z]\s/!d;/^.[nc]/d;' -e "s/^..\s\+$pkg[0-9a-z:]*\s\+//;s/\s.*//g")
             if [ -n "$ver" ] && [ "$ver" != "CURRENT_VER" ]; then
                 all_upgraded=no
             fi
