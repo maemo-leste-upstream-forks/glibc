@@ -1,0 +1,181 @@
+2013-05-21  Andreas Schwab  <schwab@suse.de>
+
+	[BZ #15014]
+	* nss/getXXbyYY_r.c (INTERNAL (REENTRANT_NAME))
+	[HANDLE_DIGITS_DOTS]: Set any_service when digits-dots parsing was
+	successful.
+	* nss/digits_dots.c (__nss_hostname_digits_dots): Remove
+	redundant variable declarations and reallocation of buffer when
+	parsing as IPv6 address.  Always set NSS status when called from
+	reentrant functions.  Use NETDB_INTERNAL instead of TRY_AGAIN when
+	buffer too small.  Correct computation of needed size.
+
+diff --git a/nss/digits_dots.c b/nss/digits_dots.c
+index 2b86295..e007ef4 100644
+--- a/nss/digits_dots.c
++++ b/nss/digits_dots.c
+@@ -46,7 +46,10 @@ __nss_hostname_digits_dots (const char *name, struct hostent *resbuf,
+     {
+       if (h_errnop)
+ 	*h_errnop = NETDB_INTERNAL;
+-      *result = NULL;
++      if (buffer_size == NULL)
++	*status = NSS_STATUS_TRYAGAIN;
++      else
++	*result = NULL;
+       return -1;
+     }
+ 
+@@ -83,14 +86,16 @@ __nss_hostname_digits_dots (const char *name, struct hostent *resbuf,
+ 	}
+ 
+       size_needed = (sizeof (*host_addr)
+-		     + sizeof (*h_addr_ptrs) + strlen (name) + 1);
++		     + sizeof (*h_addr_ptrs)
++		     + sizeof (*h_alias_ptr) + strlen (name) + 1);
+ 
+       if (buffer_size == NULL)
+         {
+ 	  if (buflen < size_needed)
+ 	    {
++	      *status = NSS_STATUS_TRYAGAIN;
+ 	      if (h_errnop != NULL)
+-		*h_errnop = TRY_AGAIN;
++		*h_errnop = NETDB_INTERNAL;
+ 	      __set_errno (ERANGE);
+ 	      goto done;
+ 	    }
+@@ -109,7 +114,7 @@ __nss_hostname_digits_dots (const char *name, struct hostent *resbuf,
+ 	      *buffer_size = 0;
+ 	      __set_errno (save);
+ 	      if (h_errnop != NULL)
+-		*h_errnop = TRY_AGAIN;
++		*h_errnop = NETDB_INTERNAL;
+ 	      *result = NULL;
+ 	      goto done;
+ 	    }
+@@ -149,7 +154,9 @@ __nss_hostname_digits_dots (const char *name, struct hostent *resbuf,
+ 		  if (! ok)
+ 		    {
+ 		      *h_errnop = HOST_NOT_FOUND;
+-		      if (buffer_size)
++		      if (buffer_size == NULL)
++			*status = NSS_STATUS_NOTFOUND;
++		      else
+ 			*result = NULL;
+ 		      goto done;
+ 		    }
+@@ -190,7 +197,7 @@ __nss_hostname_digits_dots (const char *name, struct hostent *resbuf,
+ 		  if (buffer_size == NULL)
+ 		    *status = NSS_STATUS_SUCCESS;
+ 		  else
+-		   *result = resbuf;
++		    *result = resbuf;
+ 		  goto done;
+ 		}
+ 
+@@ -201,15 +208,6 @@ __nss_hostname_digits_dots (const char *name, struct hostent *resbuf,
+ 
+       if ((isxdigit (name[0]) && strchr (name, ':') != NULL) || name[0] == ':')
+ 	{
+-	  const char *cp;
+-	  char *hostname;
+-	  typedef unsigned char host_addr_t[16];
+-	  host_addr_t *host_addr;
+-	  typedef char *host_addr_list_t[2];
+-	  host_addr_list_t *h_addr_ptrs;
+-	  size_t size_needed;
+-	  int addr_size;
+-
+ 	  switch (af)
+ 	    {
+ 	    default:
+@@ -225,7 +223,10 @@ __nss_hostname_digits_dots (const char *name, struct hostent *resbuf,
+ 	      /* This is not possible.  We cannot represent an IPv6 address
+ 		 in an `struct in_addr' variable.  */
+ 	      *h_errnop = HOST_NOT_FOUND;
+-	      *result = NULL;
++	      if (buffer_size == NULL)
++		*status = NSS_STATUS_NOTFOUND;
++	      else
++		*result = NULL;
+ 	      goto done;
+ 
+ 	    case AF_INET6:
+@@ -233,42 +234,6 @@ __nss_hostname_digits_dots (const char *name, struct hostent *resbuf,
+ 	      break;
+ 	    }
+ 
+-	  size_needed = (sizeof (*host_addr)
+-			 + sizeof (*h_addr_ptrs) + strlen (name) + 1);
+-
+-	  if (buffer_size == NULL && buflen < size_needed)
+-	    {
+-	      if (h_errnop != NULL)
+-		*h_errnop = TRY_AGAIN;
+-	      __set_errno (ERANGE);
+-	      goto done;
+-	    }
+-	  else if (buffer_size != NULL && *buffer_size < size_needed)
+-	    {
+-	      char *new_buf;
+-	      *buffer_size = size_needed;
+-	      new_buf = realloc (*buffer, *buffer_size);
+-
+-	      if (new_buf == NULL)
+-		{
+-		  save = errno;
+-		  free (*buffer);
+-		  __set_errno (save);
+-		  *buffer = NULL;
+-		  *buffer_size = 0;
+-		  *result = NULL;
+-		  goto done;
+-		}
+-	      *buffer = new_buf;
+-	    }
+-
+-	  memset (*buffer, '\0', size_needed);
+-
+-	  host_addr = (host_addr_t *) *buffer;
+-	  h_addr_ptrs = (host_addr_list_t *)
+-	    ((char *) host_addr + sizeof (*host_addr));
+-	  hostname = (char *) h_addr_ptrs + sizeof (*h_addr_ptrs);
+-
+ 	  for (cp = name;; ++cp)
+ 	    {
+ 	      if (!*cp)
+@@ -281,7 +246,9 @@ __nss_hostname_digits_dots (const char *name, struct hostent *resbuf,
+ 		  if (inet_pton (AF_INET6, name, host_addr) <= 0)
+ 		    {
+ 		      *h_errnop = HOST_NOT_FOUND;
+-		      if (buffer_size)
++		      if (buffer_size == NULL)
++			*status = NSS_STATUS_NOTFOUND;
++		      else
+ 			*result = NULL;
+ 		      goto done;
+ 		    }
+diff --git a/nss/getXXbyYY_r.c b/nss/getXXbyYY_r.c
+index 1067744..44d00f4 100644
+--- a/nss/getXXbyYY_r.c
++++ b/nss/getXXbyYY_r.c
+@@ -179,6 +179,9 @@ INTERNAL (REENTRANT_NAME) (ADD_PARAMS, LOOKUP_TYPE *resbuf, char *buffer,
+     case -1:
+       return errno;
+     case 1:
++#ifdef NEED_H_ERRNO
++      any_service = true;
++#endif
+       goto done;
+     }
+ #endif
+@@ -288,7 +291,7 @@ done:
+     /* Either we failed to lookup the functions or the functions themselves
+        had a system error.  Set NETDB_INTERNAL here to let the caller know
+        that the errno may have the real reason for failure.  */
+-      *h_errnop = NETDB_INTERNAL;
++    *h_errnop = NETDB_INTERNAL;
+   else if (status != NSS_STATUS_SUCCESS && !any_service)
+     /* We were not able to use any service.  */
+     *h_errnop = NO_RECOVERY;
