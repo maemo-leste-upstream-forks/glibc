@@ -11,7 +11,7 @@ sparc_CC = $(CC) -m32
 sparc_CXX = $(CXX) -m32
 libc6-sparc_shlib_dep = libc6-sparc (>= $(shlib_dep_ver))
 sparc_extra_config_options = $(extra_config_options) --disable-profile
-sparc_rtlddir = /lib32
+sparc_rtlddir = /lib
 sparc_slibdir = /lib32
 sparc_libdir = /usr/lib32
 
@@ -31,4 +31,9 @@ for i in `ls debian/tmp-libc/usr/include/sparc64-linux-gnu/sys` ; do \
         ln -s ../sparc64-linux-gnu/sys/$$i debian/libc6-dev-sparc/usr/include/sys/$$i ; \
 done
 
+endef
+
+define libc6-sparc_extra_pkg_install
+mkdir -p debian/$(curpass)/lib
+ln -s /lib32/ld-linux.so.2 debian/$(curpass)/lib
 endef
