@@ -27,6 +27,7 @@ $(stamp)control: debian/rules.d/control.mk $(control_deps)
 	cat debian/control.in/libc0.3		>> $@T
 	cat debian/control.in/libc0.1		>> $@T
 	cat debian/control.in/i386		>> $@T
+	cat debian/control.in/sparc		>> $@T
 	cat debian/control.in/sparc64		>> $@T
 	cat debian/control.in/s390 		>> $@T
 	cat debian/control.in/s390x		>> $@T
