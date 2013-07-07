@@ -1,0 +1,31 @@
+--- a/sysdeps/i386/tlsdesc.sym
++++ b/sysdeps/i386/tlsdesc.sym
+@@ -8,7 +8,11 @@
+ 
+ -- Abuse tls.h macros to derive offsets relative to the thread register.
+ 
++#if 0
+ DTV_OFFSET			offsetof(struct pthread, header.dtv)
++#else
++DTV_OFFSET                      offsetof(struct _pthread_descr_struct, p_header.data.dtvp)
++#endif
+ 
+ TLSDESC_ARG			offsetof(struct tlsdesc, arg)
+ 
+--- a/sysdeps/x86_64/tlsdesc.sym
++++ b/sysdeps/x86_64/tlsdesc.sym
+@@ -5,10 +5,13 @@
+ #include <dl-tlsdesc.h>
+ 
+ --
++#if 0
++ DTV_OFFSET			offsetof(struct pthread, header.dtv) */
++#endif
+ 
+ -- Abuse tls.h macros to derive offsets relative to the thread register.
+ 
+-DTV_OFFSET			offsetof(struct pthread, header.dtv)
++DTV_OFFSET			offsetof(struct _pthread_descr_struct, p_header.data.dtvp)
+ 
+ TLSDESC_ARG			offsetof(struct tlsdesc, arg)
+ 
