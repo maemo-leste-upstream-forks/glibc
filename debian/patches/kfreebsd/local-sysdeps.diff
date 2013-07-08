@@ -7168,7 +7168,7 @@
 +#define SEM_VALUE_MAX   (2147483647)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/bits/posix_opt.h
-@@ -0,0 +1,190 @@
+@@ -0,0 +1,201 @@
 +/* Define POSIX options for FreeBSD.
 +   Copyright (C) 1996-1997, 1999, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -7231,6 +7231,7 @@
 +
 +/* Filenames are not silently truncated.  */
 +#define	_POSIX_NO_TRUNC	1
++
 +/* X/Open realtime support is only partially available.  */
 +#define _XOPEN_REALTIME	-1
 +
@@ -7262,11 +7263,25 @@
 +/* We support user-defined stacks.  */
 +#define _POSIX_THREAD_ATTR_STACKADDR	200809L
 +
++/* We do not support priority inheritence.  */
++#define _POSIX_THREAD_PRIO_INHERIT      -1
++
++/* We do not support priority protection */
++#define _POSIX_THREAD_PRIO_PROTECT      -1
++
++#ifdef __USE_XOPEN2K8
++/* We do not support priority inheritence for robust mutexes.  */
++# define _POSIX_THREAD_ROBUST_PRIO_INHERIT	-1
++
++/* We do not support priority protection for robust mutexes.  */
++# define _POSIX_THREAD_ROBUST_PRIO_PROTECT      -1
++#endif
++
 +/* We support POSIX.1b semaphores, but only the non-shared form for now.  */
 +#define _POSIX_SEMAPHORES	200809L
 +
-+/* Real-time signals are not available.  */
-+#define _POSIX_REALTIME_SIGNALS	-1
++/* Real-time signals are available.  */
++#define _POSIX_REALTIME_SIGNALS	200809L
 +
 +/* We support asynchronous I/O.  */
 +#define _POSIX_ASYNCHRONOUS_IO	200809L
@@ -7326,11 +7341,11 @@
 +/* The monotonic clock is available.  */
 +#define _POSIX_MONOTONIC_CLOCK	200809L
 +
-+/* The clock selection interfaces are not available.  */
-+#define _POSIX_CLOCK_SELECTION	-1
++/* The clock selection interfaces are available.  */
++#define _POSIX_CLOCK_SELECTION	200809L
 +
-+/* Advisory information interfaces are not available.  */
-+#define _POSIX_ADVISORY_INFO	-1
++/* Advisory information interfaces are available.  */
++#define _POSIX_ADVISORY_INFO	200809L
 +
 +/* IPv6 support is available.  */
 +#define _POSIX_IPV6	200809L
@@ -7353,10 +7368,6 @@
 +
 +/* Typed memory objects are not available.  */
 +#define _POSIX_TYPED_MEMORY_OBJECTS	-1
-+
-+/* No support for priority inheritance or protection.  */
-+#define _POSIX_THREAD_PRIO_INHERIT	-1
-+#define _POSIX_THREAD_PRIO_PROTECT	-1
 +
 +#endif /* bits/posix_opt.h */
 --- /dev/null
@@ -13530,7 +13541,7 @@
 +# undef DB_THREAD_SELF_INCLUDE
 +# undef DB_THREAD_SELF
 +# define DB_THREAD_SELF \
-+  REGISTER_THREAD_AREA (32, 12, 3)  /* offsetof (struct user_regs_struct, xgs) */ \
++  REGISTER_THREAD_AREA (32, 10 * 4, 3) /* offsetof (struct user_regs_struct, xgs) */ \
 +  REGISTER_THREAD_AREA (64, 26 * 8, 3) /* x86-64's user_regs_struct->gs */
 +#endif
 +
