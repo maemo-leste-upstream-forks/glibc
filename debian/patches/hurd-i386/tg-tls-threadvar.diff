@@ -4,7 +4,8 @@ t/tls-threadvar (when migrating to newer upstream glibc)
 
 ---
  include/errno.h |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ hurd/hurdsig.c                      |    2 -
+ sysdeps/mach/hurd/bits/libc-tsd.h   |   34 --------------------
 
 --- a/include/errno.h
 +++ b/include/errno.h
@@ -30,3 +31,61 @@ t/tls-threadvar (when migrating to newer upstream glibc)
  
  # endif	/* RTLD_PRIVATE_ERRNO */
  
+--- a/hurd/hurdsig.c
++++ b/hurd/hurdsig.c
+@@ -1275,8 +1277,6 @@
+ 	__libc_fatal ("hurd: Can't allocate threadvars for signal thread\n");
+       memset (__hurd_sigthread_variables, 0,
+ 	      __hurd_threadvar_max * sizeof (unsigned long int));
+-      __hurd_sigthread_variables[_HURD_THREADVAR_LOCALE]
+-	= (unsigned long int) &_nl_global_locale;
+ 
+       /* Reinitialize the MiG support routines so they will use a per-thread
+ 	 variable for the cached reply port.  */
+--- a/sysdeps/mach/hurd/bits/libc-tsd.h
++++ /dev/null
+@@ -1,34 +0,0 @@
+-/* libc-internal interface for thread-specific data.  Hurd version.
+-   Copyright (C) 1998,2002,2008 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#ifndef _BITS_LIBC_TSD_H
+-#define _BITS_LIBC_TSD_H 1
+-
+-#include <hurd/threadvar.h>
+-
+-#define __libc_tsd_define(CLASS, TYPE, KEY) /* nothing, always have threadvars */
+-
+-#define __libc_tsd_address(TYPE, KEY) \
+-  ((TYPE *) __hurd_threadvar_location (_HURD_THREADVAR_##KEY))
+-
+-#define __libc_tsd_get(TYPE, KEY) \
+-  (*__libc_tsd_address (TYPE, KEY))
+-#define __libc_tsd_set(TYPE, KEY, VALUE) \
+-  (*__libc_tsd_address (TYPE, KEY) = (VALUE))
+-
+-#endif	/* bits/libc-tsd.h */
+--- a/sysdeps/mach/hurd/i386/init-first.c
++++ b/sysdeps/mach/hurd/i386/init-first.c
+@@ -174,7 +152,6 @@
+      for malloc et al, or so we can use malloc below for the real
+      threadvars array.  */
+   memset (threadvars, 0, sizeof threadvars);
+-  threadvars[_HURD_THREADVAR_LOCALE] = (unsigned long int) &_nl_global_locale;
+   __hurd_threadvar_stack_offset = (unsigned long int) threadvars;
+ 
+   /* Since the cthreads initialization code uses malloc, and the

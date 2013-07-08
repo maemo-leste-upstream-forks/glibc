@@ -15,12 +15,11 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
 ---
  csu/libc-start.c                    |    2 +
  hurd/hurdfault.c                    |    2 +
- hurd/hurdsig.c                      |    4 +-
+ hurd/hurdsig.c                      |    2 +
  mach/mach.h                         |    3 +
  mach/setup-thread.c                 |   30 +++++++++++++++++-
  sysdeps/generic/thread_state.h      |    1 
  sysdeps/mach/hurd/bits/libc-lock.h  |    3 +
- sysdeps/mach/hurd/bits/libc-tsd.h   |   34 --------------------
  sysdeps/mach/hurd/fork.c            |    7 +++-
  sysdeps/mach/hurd/i386/init-first.c |   60 ++++++++++++++++++++++--------------
  sysdeps/mach/hurd/i386/tls.h        |   53 +++++++++++++++++++++++++------
@@ -69,15 +68,6 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
  
        __hurd_sigthread_stack_end = __hurd_sigthread_stack_base + stacksize;
        __hurd_sigthread_variables =
-@@ -1275,8 +1277,6 @@
- 	__libc_fatal ("hurd: Can't allocate threadvars for signal thread\n");
-       memset (__hurd_sigthread_variables, 0,
- 	      __hurd_threadvar_max * sizeof (unsigned long int));
--      __hurd_sigthread_variables[_HURD_THREADVAR_LOCALE]
--	= (unsigned long int) &_nl_global_locale;
- 
-       /* Reinitialize the MiG support routines so they will use a per-thread
- 	 variable for the cached reply port.  */
 --- a/mach/mach.h
 +++ b/mach/mach.h
 @@ -100,5 +100,8 @@
@@ -158,43 +148,6 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
  #include <cthreads.h>
  #include <hurd/threadvar.h>
  
---- a/sysdeps/mach/hurd/bits/libc-tsd.h
-+++ /dev/null
-@@ -1,34 +0,0 @@
--/* libc-internal interface for thread-specific data.  Hurd version.
--   Copyright (C) 1998,2002,2008 Free Software Foundation, Inc.
--   This file is part of the GNU C Library.
--
--   The GNU C Library is free software; you can redistribute it and/or
--   modify it under the terms of the GNU Lesser General Public
--   License as published by the Free Software Foundation; either
--   version 2.1 of the License, or (at your option) any later version.
--
--   The GNU C Library is distributed in the hope that it will be useful,
--   but WITHOUT ANY WARRANTY; without even the implied warranty of
--   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
--   Lesser General Public License for more details.
--
--   You should have received a copy of the GNU Lesser General Public
--   License along with the GNU C Library; if not, see
--   <http://www.gnu.org/licenses/>.  */
--
--#ifndef _BITS_LIBC_TSD_H
--#define _BITS_LIBC_TSD_H 1
--
--#include <hurd/threadvar.h>
--
--#define __libc_tsd_define(CLASS, TYPE, KEY) /* nothing, always have threadvars */
--
--#define __libc_tsd_address(TYPE, KEY) \
--  ((TYPE *) __hurd_threadvar_location (_HURD_THREADVAR_##KEY))
--
--#define __libc_tsd_get(TYPE, KEY) \
--  (*__libc_tsd_address (TYPE, KEY))
--#define __libc_tsd_set(TYPE, KEY, VALUE) \
--  (*__libc_tsd_address (TYPE, KEY) = (VALUE))
--
--#endif	/* bits/libc-tsd.h */
 --- a/sysdeps/mach/hurd/fork.c
 +++ b/sysdeps/mach/hurd/fork.c
 @@ -522,6 +522,11 @@
@@ -257,7 +210,7 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
  #endif
  
    _hurd_init_dtable = d->dtable;
-@@ -174,13 +152,16 @@
+@@ -174,6 +152,10 @@
    char **envp = &argv[argc + 1];
    struct hurd_startup_data *d;
    unsigned long int threadvars[_HURD_THREADVAR_MAX];
@@ -268,13 +221,6 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
  
    /* Provide temporary storage for thread-specific variables on the
       startup stack so the cthreads initialization code can use them
-      for malloc et al, or so we can use malloc below for the real
-      threadvars array.  */
-   memset (threadvars, 0, sizeof threadvars);
--  threadvars[_HURD_THREADVAR_LOCALE] = (unsigned long int) &_nl_global_locale;
-   __hurd_threadvar_stack_offset = (unsigned long int) threadvars;
- 
-   /* Since the cthreads initialization code uses malloc, and the
 @@ -194,6 +175,33 @@
      ++envp;
    d = (void *) ++envp;
