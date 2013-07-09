@@ -544,6 +544,45 @@
 +
 +weak_alias (__access, access)
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/aio_sigqueue.c
+@@ -0,0 +1,36 @@
++/* Copyright (C) 2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <aio.h>
++#include <errno.h>
++#include <signal.h>
++#include <unistd.h>
++#include <string.h>
++
++#include <sysdep.h>
++#include <sys/syscall.h>
++
++#include <aio_misc.h>
++
++int
++__aio_sigqueue (sig, val, caller_pid)
++     int sig;
++     const union sigval val;
++     pid_t caller_pid;
++{
++    return sigqueue(caller_pid, sig, val);
++}
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bind.c
 @@ -0,0 +1,56 @@
 +/* Copyright (C) 2005 Free Software Foundation, Inc.
@@ -8179,7 +8218,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/kernel-posix-timers.h
-@@ -0,0 +1,124 @@
+@@ -0,0 +1,138 @@
 +/* Copyright (C) 2003, 2007, 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -8252,7 +8291,7 @@
 +extern struct timer *__all_timers[TIMER_MAX];
 +
 +static inline struct timer *
-+__kfreebsd_timer_alloc ()
++__kfreebsd_timer_alloc (void)
 +{
 +  unsigned int i;
 +  struct timer *timer = malloc (sizeof (struct timer));
@@ -8304,6 +8343,20 @@
 +  __all_timers[__kfreebsd_timer_ptr2id (ptr)] = NULL;
 +  free (ptr);
 +}
++
++/* used syscalls */
++
++int __syscall_ktimer_create (clockid_t clockid, struct sigevent *evp, kernel_timer_t *timerid);
++int __syscall_ktimer_delete (kernel_timer_t timerid);
++int __syscall_ktimer_getoverrun (kernel_timer_t timerid);
++int __syscall_ktimer_gettime (kernel_timer_t timerid, struct itimerspec *value);
++int __syscall_ktimer_settime (kernel_timer_t timerid, int flags, const struct itimerspec *value, struct itimerspec *ovalue);
++
++libc_hidden_proto (__syscall_ktimer_create)
++libc_hidden_proto (__syscall_ktimer_delete)
++libc_hidden_proto (__syscall_ktimer_getoverrun)
++libc_hidden_proto (__syscall_ktimer_gettime)
++libc_hidden_proto (__syscall_ktimer_settime)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/libc-lowlevellock.c
 @@ -0,0 +1,20 @@
@@ -9434,7 +9487,7 @@
 +
 +#include <pthreadP.h>
 +#include <shlib-compat.h>
-+
++#include <sys/time.h>
 +
 +extern void __sem_wait_cleanup (void *arg) attribute_hidden;
 +
@@ -10843,7 +10896,7 @@
 +weak_alias (__libc_fcntl, fcntl)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fdatasync.c
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,32 @@
 +/* Copyright (C) 2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -10863,6 +10916,9 @@
 +
 +#include <unistd.h>
 +#include <sysdep-cancel.h>
++
++int __libc_fsync (int fd);
++libc_hidden_proto (__libc_fsync)
 +
 +/* Synchronize at least the data part of a file with the underlying
 +   media.  */
@@ -11494,6 +11550,45 @@
 +}
 +
 +libc_hidden_def (__fxstatat64)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gai_sigqueue.c
+@@ -0,0 +1,36 @@
++/* Copyright (C) 2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <netdb.h>
++#include <signal.h>
++#include <string.h>
++#include <unistd.h>
++
++#include <sysdep.h>
++#include <sys/syscall.h>
++
++#include <gai_misc.h>
++
++int
++__gai_sigqueue (sig, val, caller_pid)
++     int sig;
++     const union sigval val;
++     pid_t caller_pid;
++{
++    return sigqueue(caller_pid, sig, val);
++}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c
 @@ -0,0 +1,104 @@
@@ -13703,7 +13798,7 @@
 +
 +#include <sys/cdefs.h>
 +#include <machine/segments.h>
-+#include <machine/sysarch.h>
++#include <sysarch.h>
 +
 +int
 +i386_get_ldt (int from, union descriptor *descs, int num)
@@ -13781,7 +13876,7 @@
 +
 +#include <sys/cdefs.h>
 +#include <machine/segments.h>
-+#include <machine/sysarch.h>
++#include <sysarch.h>
 +
 +int
 +i386_set_ldt (int from, union descriptor *descs, int num)
@@ -22162,7 +22257,7 @@
 +
 +/* Reserve storage for the data of the file associated with FD.  */
 +int
-+posix_fallocate (int fd, __off_t offset, __off_t len)
++__posix_fallocate (int fd, __off_t offset, __off_t len)
 +{
 +#ifndef __ASSUME_FALLOCATE
 +    if (__have_fallocate >= 0)
@@ -22186,6 +22281,7 @@
 +    }      
 +    return internal_fallocate (fd, offset, len);
 +}
++strong_alias (__posix_fallocate, posix_fallocate)
 +
 +/* 'posix_fallocate64' is the same as 'posix_fallocate', because __off64_t == __off_t.  */
 +/*  but previous prototype have different size of len parameter */
@@ -22199,14 +22295,13 @@
 +attribute_compat_text_section
 +__posix_fallocate64_l32 (int fd, off64_t offset, size_t len)
 +{
-+  return posix_fallocate (fd, offset, len);
++  return __posix_fallocate (fd, offset, len);
 +}
 +
-+versioned_symbol (libc, posix_fallocate, posix_fallocate64,
-+		  GLIBC_2_3_3);
++versioned_symbol (libc, __posix_fallocate, posix_fallocate64, GLIBC_2_3_3);
 +compat_symbol (libc, __posix_fallocate64_l32, posix_fallocate64, GLIBC_2_2);
 +#else
-+strong_alias (posix_fallocate, posix_fallocate64)
++strong_alias (__posix_fallocate, posix_fallocate64)
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/posix_fallocate64.c
@@ -25931,7 +26026,7 @@
 +#endif	/* sys/un.h  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,79 @@
 +/* prototypes of generally used "inline syscalls"
 +   Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -25955,9 +26050,7 @@
 +#define KFREEBSD_INLINE_SYSCALLS_H
 +
 +#include <sys/types.h>
-+#define __need_sigset_t
 +#include <signal.h>
-+
 +#include <syscalls-internal.h>
 +
 +struct iovec;
@@ -25992,7 +26085,13 @@
 +libc_hidden_proto (__syscall_sigprocmask)
 +libc_hidden_proto (__syscall_nanosleep)
 +
-+
++int __syscall_sigwait     (const sigset_t *set, int *sig);
++int __syscall_sigwaitinfo (const sigset_t *set, siginfo_t *info);
++int __syscall_sigtimedwait(const sigset_t *set, siginfo_t *info, const struct timespec *timeout);
++libc_hidden_proto (__syscall_sigwait)
++libc_hidden_proto (__syscall_sigwaitinfo)
++libc_hidden_proto (__syscall_sigtimedwait)
++                           
 +int __syscall_thr_exit(long *p);
 +int __syscall_thr_kill(long id, int sig);
 +int __syscall_thr_kill2(int pid, long id, int sig);
@@ -26462,6 +26561,58 @@
 +kernel_has_rtsig (void)
 +{
 +  return 1;
++}
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/timespec_get.c
+@@ -0,0 +1,49 @@
++/* Copyright (C) 2011-2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <time.h>
++#include <sysdep.h>
++#include <kernel-features.h>
++
++/* Set TS to calendar time based in time base BASE.  */
++
++/* if the timespec_get function is successful 
++   it returns the nonzero value base;
++   otherwise, it returns zero.
++ */
++
++int __syscall_clock_gettime(clockid_t clock_id, struct timespec *tp);
++libc_hidden_proto (__syscall_clock_gettime)
++
++int
++timespec_get (ts, base)
++     struct timespec *ts;
++     int base;
++{
++  switch (base)
++    {
++    case TIME_UTC:
++      if ( 0 != INLINE_SYSCALL (clock_gettime, 2, CLOCK_REALTIME, ts))
++	return 0;
++      break;
++
++    default:
++      return 0;
++    }
++
++  return base;
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/truncate64.c

@@ -18156,8 +18156,8 @@
 +  /* Minimal initialization of the thread descriptor.  */
 +  struct pthread *pd = THREAD_SELF;
 +#if 1  
-+  pd->pid = __getpid();
 +  INLINE_SYSCALL(thr_self, 1, &(pd->ktid)); 
++  pd->pid = __getpid();
 +#else
 +  INTERNAL_SYSCALL_DECL (err);
 +  pd->pid = pd->tid = INTERNAL_SYSCALL (set_tid_address, err, 1, &pd->tid);
@@ -24806,7 +24806,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_mutex_init.c
-@@ -0,0 +1,149 @@
+@@ -0,0 +1,150 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -24888,6 +24888,7 @@
 +	return ENOTSUP;
 +      break;
 +#else
++    default:
 +	return ENOTSUP;
 +#endif      
 +    }
@@ -27573,7 +27574,7 @@
 +#include <lowlevellock.h>
 +#include <pthread.h>
 +#include <pthreadP.h>
-+
++#include <sys/time.h>
 +
 +/* Try to acquire read lock for RWLOCK or return after specfied time.  */
 +int
@@ -27707,7 +27708,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_rwlock_timedwrlock.c
-@@ -0,0 +1,145 @@
+@@ -0,0 +1,146 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
@@ -27731,6 +27732,7 @@
 +#include <lowlevellock.h>
 +#include <pthread.h>
 +#include <pthreadP.h>
++#include <sys/time.h>
 +
 +
 +/* Try to acquire write lock for RWLOCK or return after specfied time.	*/
@@ -29656,7 +29658,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/sem_open.c
-@@ -0,0 +1,418 @@
+@@ -0,0 +1,465 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -29708,13 +29710,52 @@
 +/* Protect the `mountpoint' variable above.  */
 +pthread_once_t __namedsem_once attribute_hidden = PTHREAD_ONCE_INIT;
 +
++#if 1
++
++/* This is the alternate debian mount point.  */
++static const char alternatemount[] = "/run/shm";
++/* This is the alternate debian directory.  */
++static const char alternatedir[] = "/run/shm/sem.";
++
 +/* Determine where the shmfs is mounted (if at all).  */
 +void
 +attribute_hidden
 +__where_is_shmfs (void)
 +{
-+#warning TODO - or ENOSYS
-+#if 0
++  struct statfs f;
++
++  /* The canonical place is /dev/shm.  This is at least what the
++     documentation tells everybody to do.  */
++  if (statfs (defaultmount, &f) == 0)
++    {
++      /* It is in the normal place.  */
++      mountpoint.dir = (char *) defaultdir;
++      mountpoint.dirlen = sizeof (defaultdir) - 1;
++
++      return;
++    }
++
++  /* The alternate place is /run/shm.  */
++  if (statfs (alternatemount, &f) == 0)
++    {
++      /* It is in the normal place.  */
++      mountpoint.dir = (char *) alternatedir;
++      mountpoint.dirlen = sizeof (alternatedir) - 1;
++
++      return;
++    }
++    
++  /* Not configured => not supported */  
++}
++
++#else
++
++
++/* Determine where the shmfs is mounted (if at all).  */
++void
++attribute_hidden
++__where_is_shmfs (void)
++{
 +  char buf[512];
 +  struct statfs f;
 +  struct mntent resmem;
@@ -29781,9 +29822,9 @@
 +
 +  /* Close the stream.  */
 +  __endmntent (fp);
-+#endif
 +}
 +
++#endif
 +
 +/* Comparison function for search of existing mapping.  */
 +int
@@ -29811,7 +29852,7 @@
 +/* Lock to protect the search tree.  */
 +int __sem_mappings_lock attribute_hidden = LLL_LOCK_INITIALIZER;
 +
-+#if 0
++
 +/* Search for existing mapping and if possible add the one provided.  */
 +static sem_t *
 +check_add_mapping (const char *name, size_t namelen, int fd, sem_t *existing)
@@ -29878,22 +29919,23 @@
 +  if (result != existing && existing != SEM_FAILED && existing != MAP_FAILED)
 +    {
 +      /* Do not disturb errno.  */
++#if 1
++      int saved_errno = errno;
++      munmap(existing, sizeof (sem_t));
++      errno = saved_errno; 
++#else    
 +      INTERNAL_SYSCALL_DECL (err);
 +      INTERNAL_SYSCALL (munmap, err, 2, existing, sizeof (sem_t));
++#endif
 +    }
 +
 +  return result;
 +}
 +
-+#endif
 +
 +sem_t *
 +sem_open (const char *name, int oflag, ...)
 +{
-+#if 1
-+      __set_errno (ENOSYS);
-+      return SEM_FAILED;
-+#else      
 +  char *finalname;
 +  sem_t *result = SEM_FAILED;
 +  int fd;
@@ -29957,7 +29999,11 @@
 +    try_create:
 +      va_start (ap, oflag);
 +
++#if 0
 +      mode = va_arg (ap, mode_t);
++#else
++      mode = va_arg (ap, int);
++#endif
 +      value = va_arg (ap, unsigned int);
 +
 +      va_end (ap);
@@ -29997,6 +30043,10 @@
 +	     since the file must be opened with a specific mode.  The
 +	     mode cannot later be set since then we cannot apply the
 +	     file create mask.  */
++#if 1
++#warning drop it after 2.18 sync
++#define __mktemp mktemp
++#endif
 +	  if (__mktemp (tmpfname) == NULL)
 +	    return SEM_FAILED;
 +
@@ -30073,7 +30123,6 @@
 +    }
 +
 +  return result;
-+#endif  
 +}
 --- /dev/null
 +++ b/fbtl/sem_unlink.c
