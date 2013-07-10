@@ -545,7 +545,7 @@
 +weak_alias (__access, access)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/aio_sigqueue.c
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,40 @@
 +/* Copyright (C) 2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -580,7 +580,11 @@
 +     const union sigval val;
 +     pid_t caller_pid;
 +{
++#ifdef NOT_IN_libc
 +    return sigqueue(caller_pid, sig, val);
++#else
++    return __sigqueue(caller_pid, sig, val);
++#endif    
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bind.c
@@ -6939,7 +6943,7 @@
 +pthread
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/Makefile
-@@ -0,0 +1,59 @@
+@@ -0,0 +1,62 @@
 +# Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +# This file is part of the GNU C Library.
 +# Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -6985,6 +6989,9 @@
 +libpthread-routines += ptw-sys_thr_self
 +libpthread-routines += ptw-sys_thr_set_name
 +libpthread-routines += ptw-sys_thr_exit
++libpthread-routines += ptw-exit-thread
++libpthread-routines += ptw-sigprocmask
++libpthread-routines += ptw-ioctl
 +endif
 +
 +ifeq ($(subdir),posix)
@@ -7001,7 +7008,7 @@
 +CFLAGS-sigaction.c = -DWRAPPER_INCLUDE='<fbtl/sigaction.c>'
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/Versions
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,16 @@
 +libc {
 +  GLIBC_2.3.2 {
 +    __register_atfork;
@@ -7011,12 +7018,9 @@
 +    __libc_current_sigrtmin_private; __libc_current_sigrtmax_private;
 +    __libc_allocate_rtsig_private;
 +# needed by pthread library
-+    __exit_thread;
 +    __syscall_sigprocmask;
 +    __syscall_sigwaitinfo;
-+    __sigprocmask;
 +    __syscall_sigsuspend;
-+    __ioctl;
 +    __syscall_sigaction;
 +    __syscall__umtx_op;
 +  }
@@ -11552,7 +11556,7 @@
 +libc_hidden_def (__fxstatat64)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/gai_sigqueue.c
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,40 @@
 +/* Copyright (C) 2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -11587,7 +11591,11 @@
 +     const union sigval val;
 +     pid_t caller_pid;
 +{
++#ifdef NOT_IN_libc
 +    return sigqueue(caller_pid, sig, val);
++#else
++    return __sigqueue(caller_pid, sig, val);
++#endif    
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/getcwd.c
@@ -12889,7 +12897,7 @@
 +#include <sysdeps/gnu/glob64.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/grantpt.c
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,36 @@
 +#include <assert.h>
 +#include <ctype.h>
 +#include <dirent.h>
@@ -12903,6 +12911,8 @@
 +
 +#include "pty-private.h"
 +
++int __syscall_closefrom(int fd);
++libc_hidden_proto (__syscall_closefrom)
 +
 +/* Close all file descriptors except the one specified.  */
 +static void
@@ -12913,7 +12923,7 @@
 +    for (i = 0 ; i < PTY_FILENO; i++)
 +        close_not_cancel_no_status (i);
 +        
-+    syscall(SYS_closefrom, PTY_FILENO + 1L);
++    INLINE_SYSCALL(closefrom, 1, PTY_FILENO + 1L);
 +
 +    int nullfd = open_not_cancel_2 (_PATH_DEVNULL, O_RDONLY);
 +    assert (nullfd == STDIN_FILENO);
@@ -19949,7 +19959,7 @@
 +#endif	/* net/ethernet.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/if.h
-@@ -0,0 +1,451 @@
+@@ -0,0 +1,458 @@
 +/*-
 + * Copyright (c) 1982, 1986, 1989, 1993
 + *	The Regents of the University of California.  All rights reserved.
@@ -20162,11 +20172,18 @@
 +#define IFCAP_POLLING_NOCOUNT   0x20000 /* polling ticks cannot be fragmented */
 +#define	IFCAP_VLAN_HWTSO        0x40000 /* can do IFCAP_TSO on VLANs */
 +#define	IFCAP_LINKSTATE         0x80000 /* the runtime link state is dynamic */
++#define	IFCAP_NETMAP		0x100000 /* netmap mode supported/enabled */
++#define	IFCAP_RXCSUM_IPV6	0x200000  /* can offload checksum on IPv6 RX */
++#define	IFCAP_TXCSUM_IPV6	0x400000  /* can offload checksum on IPv6 TX */
++
++#define	IFCAP_HWCSUM_IPV6	(IFCAP_RXCSUM_IPV6 | IFCAP_TXCSUM_IPV6)
 +
 +#define	IFCAP_HWCSUM		(IFCAP_RXCSUM | IFCAP_TXCSUM)
 +#define	IFCAP_TSO		(IFCAP_TSO4 | IFCAP_TSO6)
 +#define	IFCAP_WOL		(IFCAP_WOL_UCAST | IFCAP_WOL_MCAST | IFCAP_WOL_MAGIC)
 +#define	IFCAP_TOE		(IFCAP_TOE4 | IFCAP_TOE6)
++
++#define	IFCAP_CANTCHANGE	(IFCAP_NETMAP)
 +
 +#define	IFQ_MAXLEN	50
 +#define	IFNET_SLOWHZ	1		/* granularity is 1 second */
@@ -26108,7 +26125,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,209 @@
+@@ -0,0 +1,210 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
 +sys_access		-	access			i:si		__syscall_access
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
@@ -26131,6 +26148,7 @@
 +sys_clock_gettime	-	clock_gettime		i:ip		__syscall_clock_gettime
 +sys_clock_settime	-	clock_settime		i:ip		__syscall_clock_settime
 +sys_close		-	close			i:i		__syscall_close
++sys_closefrom		EXTRA	closefrom		i:i		__syscall_closefrom
 +sys_connect		-	connect			i:ipi		__syscall_connect
 +sys_cpuset_getaffinity	-	cpuset_getaffinity	i:iiiip		__syscall_cpuset_getaffinity
 +sys_cpuset_setaffinity	-	cpuset_setaffinity	i:iiiip		__syscall_cpuset_setaffinity
