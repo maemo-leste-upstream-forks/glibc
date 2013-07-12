@@ -4560,7 +4560,7 @@
 +
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/time.h
-@@ -0,0 +1,98 @@
+@@ -0,0 +1,102 @@
 +/* System-dependent timing definitions.  FreeBSD version.
 +   Copyright (C) 1996-1997, 1999, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -4605,10 +4605,6 @@
 +#  ifdef __USE_POSIX199309
 +/* Identifier for system-wide realtime clock.  */
 +#   define CLOCK_REALTIME		0
-+/* High-resolution timer from the CPU.  */
-+#   define CLOCK_PROCESS_CPUTIME_ID	2
-+/* Thread-specific CPU-time clock.  */
-+#   define CLOCK_THREAD_CPUTIME_ID	3
 +/* Monotonic system-wide clock.  */
 +#   define CLOCK_MONOTONIC		4
 +/* These are BSD specific clocks.  */
@@ -4623,6 +4619,14 @@
 +#    define CLOCK_MONOTONIC_PRECISE 11      /* FreeBSD-specific. */
 +#    define CLOCK_MONOTONIC_FAST    12      /* FreeBSD-specific. */
 +#    define CLOCK_SECOND    13              /* FreeBSD-specific. */
++#   endif
++/* Thread-specific CPU-time clock.  */
++#   define CLOCK_THREAD_CPUTIME_ID	14
++/* High-resolution timer from the CPU.  */
++#   define CLOCK_PROCESS_CPUTIME_ID	15
++#   ifdef __USE_BSD
++#     define CPUCLOCK_WHICH_PID 0
++#     define CPUCLOCK_WHICH_TID 1
 +#   endif
 +
 +/* Flag to indicate time is absolute.  */
@@ -5097,7 +5101,7 @@
 +#include <inet/check_pf.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_getres.c
-@@ -0,0 +1,42 @@
+@@ -0,0 +1,43 @@
 +/* Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -5123,15 +5127,16 @@
 +
 +# define SYSDEP_GETRES \
 +	case CLOCK_REALTIME:		\
-+	case CLOCK_MONOTONIC:		\
-+	case CLOCK_REALTIME_FAST:	\
-+	case CLOCK_REALTIME_PRECISE:	\
-+	case CLOCK_MONOTONIC_FAST:	\
-+	case CLOCK_MONOTONIC_PRECISE:	\
-+	case CLOCK_UPTIME:		\
-+	case CLOCK_UPTIME_FAST:		\
-+	case CLOCK_UPTIME_PRECISE:	\
 +	case CLOCK_VIRTUAL:		\
++	case CLOCK_PROF:		\
++	case CLOCK_MONOTONIC:		\
++	case CLOCK_UPTIME:		\
++	case CLOCK_UPTIME_PRECISE:	\
++	case CLOCK_UPTIME_FAST:		\
++	case CLOCK_REALTIME_PRECISE:	\
++	case CLOCK_REALTIME_FAST:	\
++	case CLOCK_MONOTONIC_PRECISE:	\
++	case CLOCK_MONOTONIC_FAST:	\
 +	case CLOCK_SECOND:		\
 +    retval = INLINE_SYSCALL (clock_getres, 2, clock_id, res);		      \
 +    break
@@ -5142,7 +5147,7 @@
 +#include <sysdeps/posix/clock_getres.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_gettime.c
-@@ -0,0 +1,42 @@
+@@ -0,0 +1,43 @@
 +/* Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -5169,15 +5174,16 @@
 +
 +# define SYSDEP_GETTIME \
 +	case CLOCK_REALTIME:		\
-+	case CLOCK_MONOTONIC:		\
-+	case CLOCK_REALTIME_FAST:	\
-+	case CLOCK_REALTIME_PRECISE:	\
-+	case CLOCK_MONOTONIC_FAST:	\
-+	case CLOCK_MONOTONIC_PRECISE:	\
-+	case CLOCK_UPTIME:		\
-+	case CLOCK_UPTIME_FAST:		\
-+	case CLOCK_UPTIME_PRECISE:	\
 +	case CLOCK_VIRTUAL:		\
++	case CLOCK_PROF:		\
++	case CLOCK_MONOTONIC:		\
++	case CLOCK_UPTIME:		\
++	case CLOCK_UPTIME_PRECISE:	\
++	case CLOCK_UPTIME_FAST:		\
++	case CLOCK_REALTIME_PRECISE:	\
++	case CLOCK_REALTIME_FAST:	\
++	case CLOCK_MONOTONIC_PRECISE:	\
++	case CLOCK_MONOTONIC_FAST:	\
 +	case CLOCK_SECOND:		\
 +    retval = INLINE_SYSCALL (clock_gettime, 2, clock_id, tp);		      \
 +    break
@@ -6943,7 +6949,7 @@
 +pthread
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/Makefile
-@@ -0,0 +1,62 @@
+@@ -0,0 +1,67 @@
 +# Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +# This file is part of the GNU C Library.
 +# Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -6992,6 +6998,11 @@
 +libpthread-routines += ptw-exit-thread
 +libpthread-routines += ptw-sigprocmask
 +libpthread-routines += ptw-ioctl
++libpthread-routines += ptw-sys_clock_getcpuclockid2
++endif
++
++ifeq ($(subdir),rt)
++sysdep_routines += sys_clock_getcpuclockid2
 +endif
 +
 +ifeq ($(subdir),posix)
@@ -7008,7 +7019,7 @@
 +CFLAGS-sigaction.c = -DWRAPPER_INCLUDE='<fbtl/sigaction.c>'
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/Versions
-@@ -0,0 +1,16 @@
+@@ -0,0 +1,18 @@
 +libc {
 +  GLIBC_2.3.2 {
 +    __register_atfork;
@@ -7023,6 +7034,8 @@
 +    __syscall_sigsuspend;
 +    __syscall_sigaction;
 +    __syscall__umtx_op;
++# needed by librt as INLINE_SYSCALL:
++    __syscall_clock_getcpuclockid2;
 +  }
 +}
 --- /dev/null
@@ -7320,7 +7333,7 @@
 +# define _POSIX_THREAD_ROBUST_PRIO_PROTECT      -1
 +#endif
 +
-+/* We support POSIX.1b semaphores, but only the non-shared form for now.  */
++/* We support POSIX.1b semaphores.  */
 +#define _POSIX_SEMAPHORES	200809L
 +
 +/* Real-time signals are available.  */
@@ -7378,8 +7391,8 @@
 +/* POSIX message queues are not available.  */
 +#define _POSIX_MESSAGE_PASSING	-1
 +
-+/* Thread process-shared synchronization is not supported.  */
-+#define _POSIX_THREAD_PROCESS_SHARED	-1
++/* Thread process-shared synchronization is supported.  */
++#define _POSIX_THREAD_PROCESS_SHARED	200809L
 +
 +/* The monotonic clock is available.  */
 +#define _POSIX_MONOTONIC_CLOCK	200809L
@@ -7548,6 +7561,290 @@
 +
 +
 +#endif /* bits/typesizes.h */
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/clock_getcpuclockid.c
+@@ -0,0 +1,32 @@
++/* Copyright (C) 2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <time.h>
++#include <unistd.h>
++#include <kernel-features.h>
++
++int __syscall_clock_getcpuclockid2(long id, int which, clockid_t *clock_id);
++libc_hidden_proto (__syscall_clock_getcpuclockid2)
++
++
++int
++__clock_getcpuclockid (pid_t pid, clockid_t *clock_id)
++{
++   return INLINE_SYSCALL(clock_getcpuclockid2, 3, pid, CPUCLOCK_WHICH_PID, clock_id);
++}
++strong_alias (__clock_getcpuclockid, clock_getcpuclockid)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/clock_getres.c
+@@ -0,0 +1,42 @@
++/* Copyright (C) 2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <stdint.h>
++#include <time.h>
++#include <sys/time.h>
++#include <libc-internal.h>
++#include <ldsodefs.h>
++#include <sysdep.h>
++
++int __syscall_clock_getres(clockid_t clock_id, struct timespec *tp);
++libc_hidden_proto (__syscall_clock_getres)
++
++/* Get resolution of clock.  */
++int
++__clock_getres (clockid_t clock_id, struct timespec *tp)
++{
++  /* we could try to provide fallback
++     via ??? for CLOCK_REALTIME
++     via HP_TIMING for CLOCK_PROCESS_CPUTIME_ID, 
++       CLOCK_THREAD_CPUTIME_ID and related timers
++
++     for now just pass it to kernel       
++   */    
++  return INLINE_SYSCALL (clock_getres, 2, clock_id, tp);
++}
++strong_alias (__clock_getres, clock_getres)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/clock_gettime.c
+@@ -0,0 +1,42 @@
++/* Copyright (C) 2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <stdint.h>
++#include <time.h>
++#include <sys/time.h>
++#include <libc-internal.h>
++#include <ldsodefs.h>
++#include <sysdep.h>
++
++int __syscall_clock_gettime(clockid_t clock_id, struct timespec *tp);
++libc_hidden_proto (__syscall_clock_gettime)
++
++/* Get current value of CLOCK and store it in TP.  */
++int
++__clock_gettime (clockid_t clock_id, struct timespec *tp)
++{
++  /* we could try to provide fallback
++     via gettimeofday for  CLOCK_REALTIME
++     via HP_TIMING for CLOCK_PROCESS_CPUTIME_ID, 
++       CLOCK_THREAD_CPUTIME_ID and related timers
++
++     for now just pass it to kernel       
++   */    
++  return INLINE_SYSCALL (clock_gettime, 2, clock_id, tp);
++}
++strong_alias (__clock_gettime, clock_gettime)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/clock_nanosleep.c
+@@ -0,0 +1,99 @@
++/* High-resolution sleep with the specified clock.
++   Copyright (C) 2000-2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <assert.h>
++#include <errno.h>
++#include <time.h>
++#include <hp-timing.h>
++#include <sysdep-cancel.h>
++
++
++int __syscall_clock_gettime(clockid_t clock_id, struct timespec *tp);
++libc_hidden_proto (__syscall_clock_gettime)
++
++
++/* This implementation assumes that these is only a `nanosleep' system
++   call.  So we have to remap all other activities.  */
++int
++__clock_nanosleep (clockid_t clock_id, int flags, const struct timespec *req,
++		 struct timespec *rem)
++{
++  struct timespec now;
++
++  if (__builtin_expect (req->tv_nsec, 0) < 0
++      || __builtin_expect (req->tv_nsec, 0) >= 1000000000)
++    return EINVAL;
++
++  if (clock_id == CLOCK_THREAD_CPUTIME_ID)
++    return EINVAL;		/* POSIX specifies EINVAL for this case.  */
++
++  switch(clock_id)
++  {
++	case CLOCK_REALTIME:
++	case CLOCK_MONOTONIC:
++	case CLOCK_UPTIME:
++	case CLOCK_UPTIME_PRECISE:
++	case CLOCK_UPTIME_FAST:
++	case CLOCK_REALTIME_PRECISE:
++	case CLOCK_REALTIME_FAST:
++	case CLOCK_MONOTONIC_PRECISE:
++	case CLOCK_MONOTONIC_FAST:
++	case CLOCK_SECOND:
++	    /* almost realtime clocks */
++        break;
++        
++        default:
++            /* Not supported.  */
++            return ENOTSUP;
++  }         
++
++  /* If we got an absolute time, remap it.  */
++  if (flags == TIMER_ABSTIME)
++    {
++      long int nsec;
++      long int sec;
++
++      /* Make sure we use safe data types.  */
++      assert (sizeof (sec) >= sizeof (now.tv_sec));
++
++      /* Get the current time for this clock.  */
++      if (__builtin_expect (INLINE_SYSCALL (clock_gettime, 2, clock_id, &now), 0) != 0)
++	return errno;
++
++      /* Compute the difference.  */
++      nsec = req->tv_nsec - now.tv_nsec;
++      sec = req->tv_sec - now.tv_sec - (nsec < 0);
++      if (sec < 0)
++	/* The time has already elapsed.  */
++	return 0;
++
++      now.tv_sec = sec;
++      now.tv_nsec = nsec + (nsec < 0 ? 1000000000 : 0);
++
++      /* From now on this is our time.  */
++      req = &now;
++
++      /* Make sure we are not modifying the struct pointed to by REM.  */
++      rem = NULL;
++    }
++  else if (__builtin_expect (flags, 0) != 0)
++    return EINVAL;
++
++  return __builtin_expect (__nanosleep (req, rem), 0) ? errno : 0;
++}
++strong_alias (__clock_nanosleep, clock_nanosleep)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/clock_settime.c
+@@ -0,0 +1,54 @@
++/* Copyright (C) 2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <stdint.h>
++#include <time.h>
++#include <sys/time.h>
++#include <libc-internal.h>
++#include <ldsodefs.h>
++#include <sysdep.h>
++
++int __syscall_clock_settime(clockid_t clock_id, const struct timespec *tp);
++libc_hidden_proto (__syscall_clock_settime)
++
++/* Set CLOCK to value TP.  */
++int
++__clock_settime (clockid_t clock_id, const struct timespec *tp)
++{
++  switch(clock_id)
++  {
++	case CLOCK_MONOTONIC:
++	case CLOCK_MONOTONIC_PRECISE:
++	case CLOCK_MONOTONIC_FAST:
++	    /* almost monotonic clocks */
++            __set_errno (EINVAL); /* per POSIX */
++	    return -1;
++        break;
++        default:;
++  };
++  /* we could try to provide fallback
++     via settimeofday for CLOCK_REALTIME
++     via HP_TIMING for CLOCK_PROCESS_CPUTIME_ID, 
++       CLOCK_THREAD_CPUTIME_ID and related timers
++
++     for now just pass it to kernel       
++   */    
++  
++  return INLINE_SYSCALL (clock_settime, 2, clock_id, tp);
++}
++strong_alias (__clock_settime, clock_settime)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/fatal-prepare.h
 @@ -0,0 +1,37 @@
@@ -8914,6 +9211,50 @@
 +#endif			 
 +}
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_getcpuclockid.c
+@@ -0,0 +1,41 @@
++/* Copyright (C) 2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <time.h>
++#include <unistd.h>
++#include <kernel-features.h>
++#include <pthreadP.h>
++#include <tls.h>
++
++int __syscall_clock_getcpuclockid2(long id, int which, clockid_t *clock_id);
++libc_hidden_proto (__syscall_clock_getcpuclockid2)
++
++int
++pthread_getcpuclockid (threadid, clockid)
++     pthread_t threadid;
++     clockid_t *clockid;
++{
++  struct pthread *pd = (struct pthread *) threadid;
++
++  /* Make sure the descriptor is valid.  */
++  if (INVALID_TD_P (pd))
++    /* Not a valid thread handle.  */
++    return ESRCH;
++
++  return INLINE_SYSCALL(clock_getcpuclockid2, 3, pd->tid, CPUCLOCK_WHICH_TID, clockid);
++}
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_kill.c
 @@ -0,0 +1,69 @@
 +/* Copyright (C) 2002-2012 Free Software Foundation, Inc.
@@ -10116,6 +10457,82 @@
 +PRIVATE		offsetof (struct new_sem, private)
 +NWAITERS	offsetof (struct new_sem, nwaiters)
 +SEM_VALUE_MAX	SEM_VALUE_MAX
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/sysconf.c
+@@ -0,0 +1,73 @@
++/* Get file-specific information about a file.
++   Copyright (C) 2006 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stdlib.h>
++#include <sysdep.h>
++#include <time.h>
++#include <unistd.h>
++#include <hp-timing.h>
++#include <sys/sysctl.h>
++
++static long int posix_sysconf (int name);
++
++int __syscall_clock_getcpuclockid2(long id, int which, clockid_t *clock_id);
++libc_hidden_proto (__syscall_clock_getcpuclockid2)
++
++/* Get the value of the system variable NAME.  */
++long int
++__sysconf (int name)
++{
++  int request[2];
++  int value;
++  size_t len = sizeof(value);
++
++  switch(name)
++    {
++      case _SC_CPUTIME:
++      case _SC_THREAD_CPUTIME:
++      {
++        clockid_t clock_id;
++        /* try whether we have a syscall available */ 
++        if ( ENOSYS != INLINE_SYSCALL(clock_getcpuclockid2, 3, 0, CPUCLOCK_WHICH_TID, &clock_id))
++	  return 200809L;
++	else
++	  return -1;
++      }  
++      case _SC_NGROUPS_MAX:
++	request[0] = CTL_KERN;
++	request[1] = KERN_NGROUPS;
++	if (__sysctl(request, 2, &value, &len, NULL, 0) == -1)
++	    return NGROUPS_MAX;
++	return (long)value;
++      case _SC_ARG_MAX:
++	request[0] = CTL_KERN;
++	request[1] = KERN_ARGMAX;
++	if (__sysctl(request, 2, &value, &len, NULL, 0) == -1)
++	    return ARG_MAX;
++	return (long)value;
++    }
++  return posix_sysconf (name);
++}
++
++/* Now the POSIX version.  */
++#undef __sysconf
++#define __sysconf static posix_sysconf
++#include <sysdeps/posix/sysconf.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/timer_create.c
 @@ -0,0 +1,168 @@
@@ -17019,7 +17436,7 @@
 +/* Parameters for the FreeBSD kernel ABI for CPU clocks.  */
 +
 +#define CPUCLOCK_WHICH(clock)   ((clock) & (clockid_t) CPUCLOCK_CLOCK_MASK)
-+#define CPUCLOCK_CLOCK_MASK     7
++#define CPUCLOCK_CLOCK_MASK     15
 +
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ldsodefs.h
@@ -26125,7 +26542,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,210 @@
+@@ -0,0 +1,211 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
 +sys_access		-	access			i:si		__syscall_access
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
@@ -26144,6 +26561,7 @@
 +sys_aio_waitcomplete	-	aio_waitcomplete	i:pp		__syscall_aio_waitcomplete
 +sys_aio_write		-	aio_write		i:p		__syscall_aio_write
 +sys_bind		-	bind			i:ipi		__syscall_bind
++sys_clock_getcpuclockid2  -     clock_getcpuclockid2    Vi:iip		__syscall_clock_getcpuclockid2
 +sys_clock_getres	-	clock_getres		i:ip		__syscall_clock_getres
 +sys_clock_gettime	-	clock_gettime		i:ip		__syscall_clock_gettime
 +sys_clock_settime	-	clock_settime		i:ip		__syscall_clock_settime
