@@ -7598,7 +7598,7 @@
 +strong_alias (__clock_getcpuclockid, clock_getcpuclockid)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/clock_getres.c
-@@ -0,0 +1,42 @@
+@@ -0,0 +1,60 @@
 +/* Copyright (C) 2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -7627,6 +7627,9 @@
 +int __syscall_clock_getres(clockid_t clock_id, struct timespec *tp);
 +libc_hidden_proto (__syscall_clock_getres)
 +
++int __syscall_clock_gettime(clockid_t clock_id, struct timespec *tp);
++libc_hidden_proto (__syscall_clock_gettime)
++
 +/* Get resolution of clock.  */
 +int
 +__clock_getres (clockid_t clock_id, struct timespec *tp)
@@ -7637,7 +7640,22 @@
 +       CLOCK_THREAD_CPUTIME_ID and related timers
 +
 +     for now just pass it to kernel       
-+   */    
++   */
++  /* the negative clock_id means a CPU-timer, the resolution is same for all of them
++     the kernel returns resolution regardless whether the timer is accessible,
++     but POSIX/testsuite expects EINVAL
++   */
++   
++  if (clock_id < 0)
++  {
++    int rv;
++    /* we reuse user provided struct timespec */
++    rv = INLINE_SYSCALL (clock_gettime, 2, clock_id, tp);
++    if (rv != 0)
++      return rv;
++    /* valid, now really get the resolution  */
++  }
++
 +  return INLINE_SYSCALL (clock_getres, 2, clock_id, tp);
 +}
 +strong_alias (__clock_getres, clock_getres)
