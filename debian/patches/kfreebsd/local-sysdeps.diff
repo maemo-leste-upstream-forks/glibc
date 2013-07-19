@@ -7563,7 +7563,7 @@
 +#endif /* bits/typesizes.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/clock_getcpuclockid.c
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,28 @@
 +/* Copyright (C) 2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -7585,10 +7585,6 @@
 +#include <time.h>
 +#include <unistd.h>
 +#include <kernel-features.h>
-+
-+int __syscall_clock_getcpuclockid2(long id, int which, clockid_t *clock_id);
-+libc_hidden_proto (__syscall_clock_getcpuclockid2)
-+
 +
 +int
 +__clock_getcpuclockid (pid_t pid, clockid_t *clock_id)
@@ -9230,7 +9226,7 @@
 +}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_getcpuclockid.c
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,38 @@
 +/* Copyright (C) 2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -9254,9 +9250,6 @@
 +#include <kernel-features.h>
 +#include <pthreadP.h>
 +#include <tls.h>
-+
-+int __syscall_clock_getcpuclockid2(long id, int which, clockid_t *clock_id);
-+libc_hidden_proto (__syscall_clock_getcpuclockid2)
 +
 +int
 +pthread_getcpuclockid (threadid, clockid)
@@ -10477,7 +10470,7 @@
 +SEM_VALUE_MAX	SEM_VALUE_MAX
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/sysconf.c
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,70 @@
 +/* Get file-specific information about a file.
 +   Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -10507,9 +10500,6 @@
 +#include <sys/sysctl.h>
 +
 +static long int posix_sysconf (int name);
-+
-+int __syscall_clock_getcpuclockid2(long id, int which, clockid_t *clock_id);
-+libc_hidden_proto (__syscall_clock_getcpuclockid2)
 +
 +/* Get the value of the system variable NAME.  */
 +long int
@@ -26633,7 +26623,7 @@
 +#endif	/* sys/un.h  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h
-@@ -0,0 +1,79 @@
+@@ -0,0 +1,88 @@
 +/* prototypes of generally used "inline syscalls"
 +   Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -26698,6 +26688,15 @@
 +libc_hidden_proto (__syscall_sigwait)
 +libc_hidden_proto (__syscall_sigwaitinfo)
 +libc_hidden_proto (__syscall_sigtimedwait)
++
++#if 1
++// interface might not be final
++// see http://www.freebsd.org/cgi/query-pr.cgi?pr=180652
++int __syscall_clock_getcpuclockid2(int64_t id, int which, clockid_t *clock_id);
++#else
++int __syscall_clock_getcpuclockid2(long id, int which, clockid_t *clock_id);
++#endif
++libc_hidden_proto (__syscall_clock_getcpuclockid2)
 +                           
 +int __syscall_thr_exit(long *p);
 +int __syscall_thr_kill(long id, int sig);
