@@ -1,4 +1,16 @@
-eglibc (2.17-8) UNRELEASED; urgency=low
+eglibc (2.17-51) UNRELEASED; urgency=low
+
+  [ Petr Salinger ]
+  * switch libpthread implementation on kfreebsd-* to fbtl.
+    Closes: #703545. Closes: #665287. Closes #683825. Closes #489066.
+  * split some parts of kfreebsd/local-linuxthreads29.diff
+    into  kfreebsd/local-nscd-no-sockcloexec.diff and
+          kfreebsd/local-linuxthreads-tlsdesc.diff
+  * add kfreebsd/local-fbtl.diff and kfreebsd/local-fbtl-depends.diff
+  * kfreebsd/local-sysdeps.diff: update to revision 4775 (from glibc-bsd).
+    Addresses: #717032 in new binutils.
+  * update testsuite-checking/expected-results-*-kfreebsd-gnu-*
+    by fbtl tests that are known to fail.
 
   [ Aurelien Jarno ]
   * debian/rules.d/build.mk: run the testsuite in parallel again.
@@ -9,17 +21,7 @@ eglibc (2.17-8) UNRELEASED; urgency=low
   * hurd-i386/unsubmitted-tls.diff: rename into tg-tls-threadvar.diff
   * hurd-i386/tg-tls.diff: Move some hooks to tg-tls-threadvar.diff.
 
-  [ Petr Salinger ]
-  * split some parts of kfreebsd/local-linuxthreads29.diff
-    into  kfreebsd/local-nscd-no-sockcloexec.diff and
-          kfreebsd/local-linuxthreads-tlsdesc.diff
-  * add kfreebsd/local-fbtl.diff and kfreebsd/local-fbtl-depends.diff
-  * kfreebsd/local-sysdeps.diff: update to revision 4775 (from glibc-bsd).
-    Addresses: #717032 in new binutils.
-  * update testsuite-checking/expected-results-*-kfreebsd-gnu-*
-    by fbtl tests that are known to fail.
-
- -- Aurelien Jarno <aurel32@debian.org>  Sun, 30 Jun 2013 01:45:35 +0200
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 25 Jul 2013 08:45:35 +0200
 
 eglibc (2.17-7) unstable; urgency=medium
 
