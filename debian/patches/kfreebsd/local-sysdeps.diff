@@ -46,7 +46,7 @@
 +gnu
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile
-@@ -0,0 +1,133 @@
+@@ -0,0 +1,134 @@
 +# Use bash, not /bin/sh, for executing scripts, because the native
 +# FreeBSD /bin/sh does not interpret the  IFS="<tab>" read ...  command
 +# in localedata/tst-fmon.sh correctly.
@@ -57,6 +57,7 @@
 +ifeq ($(subdir),misc)
 +sysdep_headers += \
 + kenv.h \
++ bits/os-unistd.h \
 + sys/mount.h \
 + sys/kd.h \
 + sys/rfork.h
@@ -1864,6 +1865,18 @@
 +
 +#endif /* __USE_MISC */
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/os-unistd.h
+@@ -0,0 +1,8 @@
++
++__BEGIN_DECLS
++
++/* whether is current process tainted by uid or gid changes */
++extern int issetugid(void) __THROW;
++
++__END_DECLS
++          
+\ No newline at end of file
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/param.h
 @@ -0,0 +1,193 @@
 +/* Copyright (C) 1995,1996,1997,2000,2001,2003 Free Software Foundation, Inc.
@@ -2126,7 +2139,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/posix_opt.h
-@@ -0,0 +1,90 @@
+@@ -0,0 +1,92 @@
 +/* Define POSIX options for FreeBSD.
 +   Copyright (C) 1996-1997, 1999, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2152,6 +2165,8 @@
 +
 +#ifndef	_BITS_POSIX_OPT_H
 +#define	_BITS_POSIX_OPT_H	1
++
++#include <bits/os-unistd.h> 
 +
 +/* Job control is supported.  */
 +#define	_POSIX_JOB_CONTROL	1
@@ -7224,7 +7239,7 @@
 +#define SEM_VALUE_MAX   (2147483647)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/bits/posix_opt.h
-@@ -0,0 +1,201 @@
+@@ -0,0 +1,203 @@
 +/* Define POSIX options for FreeBSD.
 +   Copyright (C) 1996-1997, 1999, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -7250,6 +7265,8 @@
 +
 +#ifndef	_BITS_POSIX_OPT_H
 +#define	_BITS_POSIX_OPT_H	1
++
++#include <bits/os-unistd.h>
 +
 +/* Job control is supported.  */
 +#define	_POSIX_JOB_CONTROL	1
@@ -17742,7 +17759,7 @@
 +#define DELAYTIMER_MAX	2147483647
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/linuxthreads/bits/posix_opt.h
-@@ -0,0 +1,190 @@
+@@ -0,0 +1,192 @@
 +/* Define POSIX options for FreeBSD.
 +   Copyright (C) 1996-1997, 1999, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -17768,6 +17785,8 @@
 +
 +#ifndef	_BITS_POSIX_OPT_H
 +#define	_BITS_POSIX_OPT_H	1
++
++#include <bits/os-unistd.h> 
 +
 +/* Job control is supported.  */
 +#define	_POSIX_JOB_CONTROL	1
@@ -26623,7 +26642,7 @@
 +#endif	/* sys/un.h  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls-inline.h
-@@ -0,0 +1,88 @@
+@@ -0,0 +1,82 @@
 +/* prototypes of generally used "inline syscalls"
 +   Copyright (C) 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -26689,13 +26708,7 @@
 +libc_hidden_proto (__syscall_sigwaitinfo)
 +libc_hidden_proto (__syscall_sigtimedwait)
 +
-+#if 1
-+// interface might not be final
-+// see http://www.freebsd.org/cgi/query-pr.cgi?pr=180652
 +int __syscall_clock_getcpuclockid2(int64_t id, int which, clockid_t *clock_id);
-+#else
-+int __syscall_clock_getcpuclockid2(long id, int which, clockid_t *clock_id);
-+#endif
 +libc_hidden_proto (__syscall_clock_getcpuclockid2)
 +                           
 +int __syscall_thr_exit(long *p);
