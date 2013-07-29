@@ -1,9 +1,3 @@
-# Some per-package extra files to install.
-define libc-bin_extra_debhelper_pkg_install
-  	# dh_installmanpages thinks that .so is a language.
- 	install --mode=0644 debian/local/manpages/ld.so.8 debian/libc-bin/usr/share/man/man8/ld.so.8
-endef
-
 # Should each of these have per-package options?
 
 $(patsubst %,binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES)) :: binaryinst_% : $(stamp)binaryinst_%
