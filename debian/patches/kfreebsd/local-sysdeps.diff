@@ -9283,6 +9283,88 @@
 +  return INLINE_SYSCALL(clock_getcpuclockid2, 3, pd->tid, CPUCLOCK_WHICH_TID, clockid);
 +}
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_getschedparam.c
+@@ -0,0 +1,79 @@
++/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <string.h>
++#include "pthreadP.h"
++#include <lowlevellock.h>
++
++
++int
++__pthread_getschedparam (threadid, policy, param)
++     pthread_t threadid;
++     int *policy;
++     struct sched_param *param;
++{
++  struct pthread *pd = (struct pthread *) threadid;
++
++  /* Make sure the descriptor is valid.  */
++  if (INVALID_TD_P (pd))
++    /* Not a valid thread handle.  */
++    return ESRCH;
++
++  int result = 0;
++#if 1
++#warning TODO scheduling 
++  *policy = SCHED_OTHER;
++  param->__sched_priority = 0;
++#else
++  
++  lll_lock (pd->lock, LLL_PRIVATE);
++
++  /* The library is responsible for maintaining the values at all
++     times.  If the user uses a interface other than
++     pthread_setschedparam to modify the scheduler setting it is not
++     the library's problem.  In case the descriptor's values have
++     not yet been retrieved do it now.  */
++  if ((pd->flags & ATTR_FLAG_SCHED_SET) == 0)
++    {
++      if (__sched_getparam (pd->tid, &pd->schedparam) != 0)
++	result = 1;
++      else
++	pd->flags |= ATTR_FLAG_SCHED_SET;
++    }
++
++  if ((pd->flags & ATTR_FLAG_POLICY_SET) == 0)
++    {
++      pd->schedpolicy = __sched_getscheduler (pd->tid);
++      if (pd->schedpolicy == -1)
++	result = 1;
++      else
++	pd->flags |= ATTR_FLAG_POLICY_SET;
++    }
++
++  if (result == 0)
++    {
++      *policy = pd->schedpolicy;
++      memcpy (param, &pd->schedparam, sizeof (struct sched_param));
++    }
++
++  lll_unlock (pd->lock, LLL_PRIVATE);
++#endif
++  return result;
++}
++strong_alias (__pthread_getschedparam, pthread_getschedparam)
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_kill.c
 @@ -0,0 +1,69 @@
 +/* Copyright (C) 2002-2012 Free Software Foundation, Inc.
@@ -9467,6 +9549,160 @@
 +}
 +weak_alias (__pthread_once, pthread_once)
 +hidden_def (__pthread_once)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_setschedparam.c
+@@ -0,0 +1,78 @@
++/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <sched.h>
++#include <string.h>
++#include "pthreadP.h"
++#include <lowlevellock.h>
++
++
++int
++__pthread_setschedparam (threadid, policy, param)
++     pthread_t threadid;
++     int policy;
++     const struct sched_param *param;
++{
++  struct pthread *pd = (struct pthread *) threadid;
++
++  /* Make sure the descriptor is valid.  */
++  if (INVALID_TD_P (pd))
++    /* Not a valid thread handle.  */
++    return ESRCH;
++
++#if 1
++#warning TODO scheduling
++  return ENOSYS;
++#else
++  int result = 0;
++
++  lll_lock (pd->lock, LLL_PRIVATE);
++
++  struct sched_param p;
++  const struct sched_param *orig_param = param;
++
++  /* If the thread should have higher priority because of some
++     PTHREAD_PRIO_PROTECT mutexes it holds, adjust the priority.  */
++  if (__builtin_expect (pd->tpp != NULL, 0)
++      && pd->tpp->priomax > param->sched_priority)
++    {
++      p = *param;
++      p.sched_priority = pd->tpp->priomax;
++      param = &p;
++    }
++
++  /* Try to set the scheduler information.  */
++  if (__builtin_expect (__sched_setscheduler (pd->tid, policy,
++					      param) == -1, 0))
++    result = errno;
++  else
++    {
++      /* We succeeded changing the kernel information.  Reflect this
++	 change in the thread descriptor.  */
++      pd->schedpolicy = policy;
++      memcpy (&pd->schedparam, orig_param, sizeof (struct sched_param));
++      pd->flags |= ATTR_FLAG_SCHED_SET | ATTR_FLAG_POLICY_SET;
++    }
++
++  lll_unlock (pd->lock, LLL_PRIVATE);
++
++  return result;
++#endif
++}
++strong_alias (__pthread_setschedparam, pthread_setschedparam)
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_setschedprio.c
+@@ -0,0 +1,70 @@
++/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <sched.h>
++#include <string.h>
++#include <sched.h>
++#include "pthreadP.h"
++#include <lowlevellock.h>
++
++
++int
++pthread_setschedprio (threadid, prio)
++     pthread_t threadid;
++     int prio;
++{
++  struct pthread *pd = (struct pthread *) threadid;
++
++  /* Make sure the descriptor is valid.  */
++  if (INVALID_TD_P (pd))
++    /* Not a valid thread handle.  */
++    return ESRCH;
++
++#if 1
++#warning TODO scheduling
++  return ENOSYS;
++#else
++  int result = 0;
++  struct sched_param param;
++  param.sched_priority = prio;
++
++  lll_lock (pd->lock, LLL_PRIVATE);
++
++  /* If the thread should have higher priority because of some
++     PTHREAD_PRIO_PROTECT mutexes it holds, adjust the priority.  */
++  if (__builtin_expect (pd->tpp != NULL, 0) && pd->tpp->priomax > prio)
++    param.sched_priority = pd->tpp->priomax;
++
++  /* Try to set the scheduler information.  */
++  if (__builtin_expect (sched_setparam (pd->tid, &param) == -1, 0))
++    result = errno;
++  else
++    {
++      /* We succeeded changing the kernel information.  Reflect this
++	 change in the thread descriptor.  */
++      param.sched_priority = prio;
++      memcpy (&pd->schedparam, &param, sizeof (struct sched_param));
++      pd->flags |= ATTR_FLAG_SCHED_SET;
++    }
++
++  lll_unlock (pd->lock, LLL_PRIVATE);
++
++  return result;
++#endif  
++}
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_sigmask.c
 @@ -0,0 +1,20 @@
