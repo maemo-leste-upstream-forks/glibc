@@ -1,0 +1,56 @@
+commit e7074e4c5edb0acaa979ea08e533736f906a9d68
+Author: David S. Miller <davem@davemloft.net>
+Date:   Tue Jul 23 02:31:37 2013 -0700
+
+    Increase nptl test case buffer size so we really block on current Linux kernels.
+    
+    	* tst-cancel4.c (WRITE_BUFFER_SIZE): Increase to 16384.
+
+diff --git a/nptl/ChangeLog b/nptl/ChangeLog
+index fc2ef41..0e4747e 100644
+--- a/nptl/ChangeLog
++++ b/nptl/ChangeLog
+@@ -1,3 +1,7 @@
++2013-07-22  David S. Miller  <davem@davemloft.net>
++
++	* tst-cancel4.c (WRITE_BUFFER_SIZE): Increase to 16384.
++
+ 2013-07-19  Dominik Vogt  <vogt@de.ibm.com>
+ 
+ 	* pthread_mutex_lock.c: Fix whitespace.
+diff --git a/nptl/tst-cancel4.c b/nptl/tst-cancel4.c
+index 9ffd5d1..10b7c6e 100644
+--- a/nptl/tst-cancel4.c
++++ b/nptl/tst-cancel4.c
+@@ -83,7 +83,30 @@ static pthread_barrier_t b2;
+ # define IPC_ADDVAL 0
+ #endif
+ 
+-#define WRITE_BUFFER_SIZE 4096
++/* The WRITE_BUFFER_SIZE value needs to be choosen such that if we set
++   the socket send buffer size to '1', a write of this size on that
++   socket will block.
++
++   The Linux kernel imposes a minimum send socket buffer size
++   which has changed over the years.  Currently the value is:
++
++     2 * (2048 + SKB_DATA_ALIGN(sizeof(struct sk_buff)))
++
++   which is attempting to make sure that with standard MTUs,
++   TCP can always queue up at least 2 full sized packets.
++
++   Furthermore, there is logic in the socket send paths that
++   will allow one more packet (of any size) to be queued up as
++   long as some socket buffer space remains.   Blocking only
++   occurs when we try to queue up a new packet and the send
++   buffer space has already been fully consumed.
++
++   Therefore we must set this value to the largest possible value of
++   the formula above (and since it depends upon the size of "struct
++   sk_buff", it is dependent upon machine word size etc.) plus some
++   slack space.  */
++
++#define WRITE_BUFFER_SIZE 16384
+ 
+ /* Cleanup handling test.  */
+ static int cl_called;
