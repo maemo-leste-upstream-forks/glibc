@@ -133,14 +133,12 @@ index e767f9e..37483fc 100644
  /* Returns 0 if everything is ok, != 0 in case of error.  */
  int
  process_elf_file (const char *file_name, const char *lib, int *flag,
-@@ -47,6 +171,10 @@ process_elf_file (const char *file_name, const char *lib, int *flag,
+@@ -47,6 +171,8 @@ process_elf_file (const char *file_name, const char *lib, int *flag,
  	    *flag = FLAG_ARM_LIBHF|FLAG_ELF_LIBC6;
  	  else if (elf32_header->e_flags & EF_ARM_ABI_FLOAT_SOFT)
- 	    *flag = FLAG_ELF_LIBC6;
+ 	    *flag = FLAG_ARM_LIBSF|FLAG_ELF_LIBC6;
 +	  else if (is_library_hf(file_name, file_contents, file_length))
 +	    *flag = FLAG_ARM_LIBHF|FLAG_ELF_LIBC6;
-+	  else /* Assume all untagged EF_ARM_EABI_VER5 is armel */
-+	    *flag = FLAG_ELF_LIBC6;
- 	}
-     }
-   else
+ 	  else
+ 	    /* We must assume the unmarked objects are compatible
+ 	       with all ABI variants. Such objects may have been

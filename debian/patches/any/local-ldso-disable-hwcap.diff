@@ -14,7 +14,15 @@
 
 --- a/elf/dl-hwcaps.c
 +++ b/elf/dl-hwcaps.c
-@@ -417,6 +417,20 @@
+@@ -42,6 +42,7 @@ _dl_important_hwcaps (const char *platform, size_t platform_len, size_t *sz,
+   size_t cnt = platform != NULL;
+   size_t n, m;
+   size_t total;
++  struct r_strlenpair *temp;
+   struct r_strlenpair *result;
+   struct r_strlenpair *rp;
+   char *cp;
+@@ -417,8 +417,22 @@
    /* For TLS enabled builds always add 'tls'.  */
    ++cnt;
  
@@ -33,8 +41,11 @@
 +    }
 +
    /* Create temporary data structure to generate result table.  */
-   temp = (struct r_strlenpair *) alloca (cnt * sizeof (*temp));
+-  struct r_strlenpair temp[cnt];
++  temp = (struct r_strlenpair *) alloca (cnt * sizeof (*temp));
    m = 0;
+ #ifdef NEED_DL_SYSINFO_DSO
+   if (dsocaps != NULL)
 @@ -496,8 +510,11 @@
    *sz = 1 << cnt;
    result = (struct r_strlenpair *) malloc (*sz * sizeof (*result) + total);
