@@ -26,11 +26,11 @@ Date:   Sun Feb 10 19:59:24 2013 +0100
  libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c      |   76 +------
  6 files changed, 192 insertions(+), 64 deletions(-)
 
-diff --git a/libpthread/Makefile b/libpthread/Makefile
-index 2c7645d..c57f1a0 100644
---- a/libpthread/Makefile
-+++ b/libpthread/Makefile
-@@ -115,6 +115,7 @@ libpthread-routines := pt-attr pt-attr-destroy pt-attr-getdetachstate	    \
+Index: eglibc-2.18/libpthread/Makefile
+===================================================================
+--- eglibc-2.18.orig/libpthread/Makefile	2013-10-09 10:42:41.000000000 +0000
++++ eglibc-2.18/libpthread/Makefile	2013-10-09 10:42:41.000000000 +0000
+@@ -115,6 +115,7 @@
  	pt-cond-wait							    \
  	pt-cond-timedwait						    \
  	pt-hurd-cond-wait						    \
@@ -38,11 +38,11 @@ index 2c7645d..c57f1a0 100644
  									    \
  	pt-stack-alloc							    \
  	pt-thread-alloc							    \
-diff --git a/Versions.def b/Versions.def
-index 2c7645d..c57f1a0 100644
---- a/Versions.def
-+++ b/Versions.def
-@@ -98,6 +98,7 @@ libpthread {
+Index: eglibc-2.18/Versions.def
+===================================================================
+--- eglibc-2.18.orig/Versions.def	2013-10-09 10:42:41.000000000 +0000
++++ eglibc-2.18/Versions.def	2013-10-09 22:15:02.000000000 +0000
+@@ -31,6 +31,7 @@
    GLIBC_2.12
    GLIBC_2.13
    GLIBC_2.13_DEBIAN_38
@@ -50,11 +50,19 @@ index 2c7645d..c57f1a0 100644
    GLIBC_2.14
    GLIBC_2.15
    GLIBC_2.16
-diff --git a/libpthread/Versions b/libpthread/Versions
-index 8573637..3d151cf 100644
---- a/libpthread/Versions
-+++ b/libpthread/Versions
-@@ -132,4 +132,7 @@ libpthread {
+@@ -106,6 +107,7 @@
+   GLIBC_2.11
+   GLIBC_2.12
+   GLIBC_2.13_DEBIAN_38
++  GLIBC_2.13_DEBIAN_39
+   GLIBC_2.18
+   GLIBC_PRIVATE
+ }
+Index: eglibc-2.18/libpthread/Versions
+===================================================================
+--- eglibc-2.18.orig/libpthread/Versions	2013-10-09 10:42:41.000000000 +0000
++++ eglibc-2.18/libpthread/Versions	2013-10-09 10:42:41.000000000 +0000
+@@ -133,4 +133,7 @@
    GLIBC_2.13_DEBIAN_38 {
      pthread_hurd_cond_wait_np;
    }
@@ -62,10 +70,10 @@ index 8573637..3d151cf 100644
 +    pthread_hurd_cond_timedwait_np;
 +  }
  }
-diff --git a/libpthread/sysdeps/mach/hurd/bits/pthread-np.h b/libpthread/sysdeps/mach/hurd/bits/pthread-np.h
-index 9817a06..5f75e06 100644
---- a/libpthread/sysdeps/mach/hurd/bits/pthread-np.h
-+++ b/libpthread/sysdeps/mach/hurd/bits/pthread-np.h
+Index: eglibc-2.18/libpthread/sysdeps/mach/hurd/bits/pthread-np.h
+===================================================================
+--- eglibc-2.18.orig/libpthread/sysdeps/mach/hurd/bits/pthread-np.h	2013-10-09 10:42:41.000000000 +0000
++++ eglibc-2.18/libpthread/sysdeps/mach/hurd/bits/pthread-np.h	2013-10-09 10:42:41.000000000 +0000
 @@ -29,4 +29,10 @@
  extern int pthread_hurd_cond_wait_np (pthread_cond_t *__restrict __cond,
  				      pthread_mutex_t *__restrict __mutex);
@@ -77,11 +85,10 @@ index 9817a06..5f75e06 100644
 +					   const struct timespec *abstime);
 +
  #endif /* bits/pthread-np.h */
-diff --git a/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c b/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
-new file mode 100644
-index 0000000..7491e0e
---- /dev/null
-+++ b/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
+Index: eglibc-2.18/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ eglibc-2.18/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c	2013-10-09 10:42:41.000000000 +0000
 @@ -0,0 +1,169 @@
 +/* pthread_hurd_cond_timedwait_np.  Hurd-specific wait on a condition.
 +   Copyright (C) 2012 Free Software Foundation, Inc.
@@ -252,10 +259,10 @@ index 0000000..7491e0e
 +
 +  return 0;
 +}
-diff --git a/libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c b/libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c
-index d2b5847..5e7c007 100644
---- a/libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c
-+++ b/libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c
+Index: eglibc-2.18/libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c
+===================================================================
+--- eglibc-2.18.orig/libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c	2013-10-09 10:42:41.000000000 +0000
++++ eglibc-2.18/libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c	2013-10-09 10:42:41.000000000 +0000
 @@ -23,71 +23,19 @@
  
  #include <pt-internal.h>
