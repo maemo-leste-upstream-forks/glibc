@@ -173,7 +173,7 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
        if (err = __thread_set_state (thread, MACHINE_THREAD_STATE_FLAVOR,
 --- a/sysdeps/mach/hurd/i386/init-first.c
 +++ b/sysdeps/mach/hurd/i386/init-first.c
-@@ -120,31 +116,11 @@
+@@ -113,31 +113,11 @@
       data block; the argument strings start there.  */
    if ((void *) d == argv[0])
      {
@@ -184,8 +184,8 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
 -      if (_dl_phdr == NULL)
 -        {
 -          /* We may need to see our own phdrs, e.g. for TLS setup.
--            Try the usual kludge to find the headers without help from
--            the exec server.  */
+-             Try the usual kludge to find the headers without help from
+-             the exec server.  */
 -          extern const void _start;
 -          const ElfW(Ehdr) *const ehdr = &_start;
 -          _dl_phdr = (const void *) ehdr + ehdr->e_phoff;
