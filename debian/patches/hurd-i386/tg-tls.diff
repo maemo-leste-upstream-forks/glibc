@@ -173,30 +173,25 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
        if (err = __thread_set_state (thread, MACHINE_THREAD_STATE_FLAVOR,
 --- a/sysdeps/mach/hurd/i386/init-first.c
 +++ b/sysdeps/mach/hurd/i386/init-first.c
-@@ -106,10 +106,6 @@
-   char **argv = &arg0;
-   char **envp = &argv[argc + 1];
-   struct hurd_startup_data *d;
--#ifndef SHARED
--  extern ElfW(Phdr) *_dl_phdr;
--  extern size_t _dl_phnum;
--#endif
- 
-   while (*envp)
-     ++envp;
-@@ -120,25 +116,11 @@
+@@ -120,31 +116,11 @@
       data block; the argument strings start there.  */
    if ((void *) d == argv[0])
      {
 -#ifndef SHARED
--      /* We may need to see our own phdrs, e.g. for TLS setup.
--	 Try the usual kludge to find the headers without help from
--	 the exec server.  */
--      extern const void _start;
--      const ElfW(Ehdr) *const ehdr = &_start;
--      _dl_phdr = (ElfW(Phdr) *) ((const void *) ehdr + ehdr->e_phoff);
--      _dl_phnum = ehdr->e_phnum;
--      assert (ehdr->e_phentsize == sizeof (ElfW(Phdr)));
+-      /* With a new enough linker (binutils-2.23 or better),
+-         the magic __ehdr_start symbol will be available and
+-         __libc_start_main will have done this that way already.  */
+-      if (_dl_phdr == NULL)
+-        {
+-          /* We may need to see our own phdrs, e.g. for TLS setup.
+-            Try the usual kludge to find the headers without help from
+-            the exec server.  */
+-          extern const void _start;
+-          const ElfW(Ehdr) *const ehdr = &_start;
+-          _dl_phdr = (const void *) ehdr + ehdr->e_phoff;
+-          _dl_phnum = ehdr->e_phnum;
+-          assert (ehdr->e_phentsize == sizeof (ElfW(Phdr)));
+-        }
 -#endif
        return;
      }
@@ -210,18 +205,7 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
  #endif
  
    _hurd_init_dtable = d->dtable;
-@@ -174,6 +152,10 @@
-   char **envp = &argv[argc + 1];
-   struct hurd_startup_data *d;
-   unsigned long int threadvars[_HURD_THREADVAR_MAX];
-+#ifndef SHARED
-+  extern ElfW(Phdr) *_dl_phdr;
-+  extern size_t _dl_phnum;
-+#endif
- 
-   /* Provide temporary storage for thread-specific variables on the
-      startup stack so the cthreads initialization code can use them
-@@ -194,6 +175,33 @@
+@@ -194,6 +175,39 @@
      ++envp;
    d = (void *) ++envp;
  
@@ -231,14 +215,20 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
 +     data block; the argument strings start there.  */
 +  if ((void *) d == argv[0])
 +    {
-+      /* We may need to see our own phdrs, e.g. for TLS setup.
-+         Try the usual kludge to find the headers without help from
-+	 the exec server.  */
-+      extern const void __executable_start;
-+      const ElfW(Ehdr) *const ehdr = &__executable_start;
-+      _dl_phdr = (ElfW(Phdr) *) ((const void *) ehdr + ehdr->e_phoff);
-+      _dl_phnum = ehdr->e_phnum;
-+      assert (ehdr->e_phentsize == sizeof (ElfW(Phdr)));
++      /* With a new enough linker (binutils-2.23 or better),
++         the magic __ehdr_start symbol will be available and
++         __libc_start_main will have done this that way already.  */
++      if (_dl_phdr == NULL)
++        {
++          /* We may need to see our own phdrs, e.g. for TLS setup.
++             Try the usual kludge to find the headers without help from
++             the exec server.  */
++          extern const void __executable_start;
++          const ElfW(Ehdr) *const ehdr = &__executable_start;
++          _dl_phdr = (const void *) ehdr + ehdr->e_phoff;
++          _dl_phnum = ehdr->e_phnum;
++          assert (ehdr->e_phentsize == sizeof (ElfW(Phdr)));
++        }
 +    }
 +  else
 +    {

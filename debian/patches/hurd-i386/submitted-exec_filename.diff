@@ -67,12 +67,6 @@ from argv[0] but argv[0] only contains the executable name by convention.
  server-interfaces	:= hurd/msg faultexc
 --- a/hurd/hurd.h
 +++ b/hurd/hurd.h
-@@ -1,4 +1,4 @@
--/* Copyright (C) 1993,94,95,96,97,98,99,2001,2002,2007
-+/* Copyright (C) 1993,94,95,96,97,98,99,2001,2002,2007,2010
-    Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
 @@ -246,12 +246,20 @@
  extern FILE *__fopenport (io_t port, const char *mode);
  
@@ -175,13 +169,6 @@ from argv[0] but argv[0] only contains the executable name by convention.
    /* Release references to the standard ports.  */
 --- a/sysdeps/mach/hurd/execve.c
 +++ b/sysdeps/mach/hurd/execve.c
-@@ -1,4 +1,5 @@
--/* Copyright (C) 1991, 92, 93, 94, 95, 97 Free Software Foundation, Inc.
-+/* Copyright (C) 1991, 92, 93, 94, 95, 97, 2010
-+   Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -34,7 +35,8 @@
      return -1;
  
@@ -194,12 +181,6 @@ from argv[0] but argv[0] only contains the executable name by convention.
    __mach_port_deallocate (__mach_task_self (), file);
 --- a/sysdeps/mach/hurd/fexecve.c
 +++ b/sysdeps/mach/hurd/fexecve.c
-@@ -1,4 +1,4 @@
--/* Copyright (C) 1993, 1994, 1997 Free Software Foundation, Inc.
-+/* Copyright (C) 1993, 1994, 1997, 2010 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -25,8 +25,9 @@
  int
  fexecve (int fd, char *const argv[], char *const envp[])
@@ -214,13 +195,6 @@ from argv[0] but argv[0] only contains the executable name by convention.
    return __hurd_fail (err);
 --- a/sysdeps/mach/hurd/spawni.c
 +++ b/sysdeps/mach/hurd/spawni.c
-@@ -1,5 +1,5 @@
- /* spawn a new process running an executable.  Hurd version.
--   Copyright (C) 2001,02,04,11 Free Software Foundation, Inc.
-+   Copyright (C) 2001,02,04,10,11 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -43,7 +43,7 @@
  	  int xflags)
  {

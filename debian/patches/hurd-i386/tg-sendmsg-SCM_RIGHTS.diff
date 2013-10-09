@@ -10,12 +10,6 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
 
 --- a/sysdeps/mach/hurd/recvmsg.c
 +++ b/sysdeps/mach/hurd/recvmsg.c
-@@ -1,4 +1,4 @@
--/* Copyright (C) 2001, 2002 Free Software Foundation, Inc.
-+/* Copyright (C) 2001, 2002, 2010 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -32,13 +32,33 @@
    addr_port_t aport;
    char *data = NULL;
@@ -140,12 +134,6 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
    return (buf - data);
 --- a/sysdeps/mach/hurd/sendmsg.c
 +++ b/sysdeps/mach/hurd/sendmsg.c
-@@ -1,4 +1,4 @@
--/* Copyright (C) 2001,2002,2004 Free Software Foundation, Inc.
-+/* Copyright (C) 2001,2002,2004,2010 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -31,6 +31,10 @@
  __libc_sendmsg (int fd, const struct msghdr *message, int flags)
  {

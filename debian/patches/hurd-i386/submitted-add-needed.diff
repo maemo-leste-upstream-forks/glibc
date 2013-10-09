@@ -12,9 +12,9 @@ No topgit branch. It's still unclear what we want to aim for.
  1 file changed, 3 insertions(+)
 --- a/Makerules
 +++ b/Makerules
-@@ -988,6 +988,9 @@
+@@ -981,6 +981,9 @@ $(inst_libdir)/libc.so: $(common-objpfx)
  	      '$(libdir)/$(patsubst %,$(libtype.oS),$(libprefix)$(libc-name))'\
- 	      ' AS_NEEDED (' $(slibdir)/$(rtld-installed-name) ') )' \
+ 	      ' AS_NEEDED (' $(rtlddir)/$(rtld-installed-name) ') )' \
  	) > $@.new
 +ifeq ($(patsubst gnu%,,$(config-os)),)
 +	echo 'INPUT ( AS_NEEDED ( -lmachuser -lhurduser ) )' >> $@.new

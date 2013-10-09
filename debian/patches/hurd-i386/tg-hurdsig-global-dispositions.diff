@@ -89,13 +89,6 @@ during/around the time __proc_dostop executes.
 
 --- a/hurd/ctty-input.c
 +++ b/hurd/ctty-input.c
-@@ -1,5 +1,5 @@
- /* _hurd_ctty_input -- Do an input RPC and generate SIGTTIN if necessary.
--   Copyright (C) 1995,97,99 Free Software Foundation, Inc.
-+   Copyright (C) 1995,97,99,2011 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -43,12 +43,15 @@
  	  else
  	    {
@@ -132,13 +125,6 @@ during/around the time __proc_dostop executes.
  	}
 --- a/hurd/ctty-output.c
 +++ b/hurd/ctty-output.c
-@@ -1,5 +1,5 @@
- /* _hurd_ctty_output -- Do an output RPC and generate SIGTTOU if necessary.
--   Copyright (C) 1995,97,99 Free Software Foundation, Inc.
-+   Copyright (C) 1995,97,99,2011 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -34,16 +34,19 @@
  
        do
@@ -179,13 +165,6 @@ during/around the time __proc_dostop executes.
  	  /* If the last RPC generated a SIGTTOU, loop to try it again.  */
 --- a/hurd/hurd/signal.h
 +++ b/hurd/hurd/signal.h
-@@ -1,5 +1,5 @@
- /* Implementing POSIX.1 signals under the Hurd.
--   Copyright (C) 1993,94,95,96,98,99,2002,2007,2008
-+   Copyright (C) 1993,94,95,96,98,99,2002,2007,2008,2011
- 	Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
 @@ -70,7 +70,13 @@
  
      sigset_t blocked;		/* What signals are blocked.  */
@@ -256,12 +235,6 @@ during/around the time __proc_dostop executes.
  	   delivered because we were in the critical section.
 --- a/hurd/hurdexec.c
 +++ b/hurd/hurdexec.c
-@@ -1,4 +1,4 @@
--/* Copyright (C) 1991,92,93,94,95,96,97,99,2001,02
-+/* Copyright (C) 1991,92,93,94,95,96,97,99,2001,2002,2011
-    	Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
 @@ -108,12 +108,13 @@
    assert (! __spin_lock_locked (&ss->critical_section_lock));
    __spin_lock (&ss->critical_section_lock);
@@ -290,13 +263,6 @@ during/around the time __proc_dostop executes.
    __mutex_lock (&_hurd_dtable_lock);
 --- a/hurd/hurdmsg.c
 +++ b/hurd/hurdmsg.c
-@@ -1,4 +1,5 @@
--/* Copyright (C) 1992, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
-+/* Copyright (C) 1992, 1994, 1995, 1996, 1997, 2011
-+       Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -121,17 +122,9 @@
      case INIT_UMASK:
        *value = _hurd_umask;
@@ -917,13 +883,6 @@ during/around the time __proc_dostop executes.
  	 refetch our pgrp; it is always inherited from the parent (so
 --- a/sysdeps/mach/hurd/i386/sigreturn.c
 +++ b/sysdeps/mach/hurd/i386/sigreturn.c
-@@ -1,4 +1,5 @@
--/* Copyright (C) 1991,92,94,95,96,97,98,2001 Free Software Foundation, Inc.
-+/* Copyright (C) 1991,92,94,95,96,97,98,2001,2011
-+       Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -38,7 +39,7 @@
      }
  
@@ -967,13 +926,6 @@ during/around the time __proc_dostop executes.
       reply port in use by the thread when interrupted.  */
 --- a/sysdeps/mach/hurd/i386/trampoline.c
 +++ b/sysdeps/mach/hurd/i386/trampoline.c
-@@ -1,5 +1,5 @@
- /* Set thread_state for sighandler, and sigcontext to recover.  i386 version.
--   Copyright (C) 1994,1995,1996,1997,1998,1999,2005,2008
-+   Copyright (C) 1994,1995,1996,1997,1998,1999,2005,2008,2011
- 	Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
 @@ -76,7 +76,11 @@
       interrupted RPC frame.  */
    state->basic.esp = state->basic.uesp;
@@ -989,12 +941,6 @@ during/around the time __proc_dostop executes.
        sigsp = ss->sigaltstack.ss_sp + ss->sigaltstack.ss_size;
 --- a/sysdeps/mach/hurd/sigaction.c
 +++ b/sysdeps/mach/hurd/sigaction.c
-@@ -1,4 +1,4 @@
--/* Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2002, 2007
-+/* Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2002, 2007, 2011
-      Free Software Foundation, Inc.
- 
-    This file is part of the GNU C Library.
 @@ -50,15 +50,15 @@
    ss = _hurd_self_sigstate ();
  
@@ -1042,13 +988,6 @@ during/around the time __proc_dostop executes.
    if (pending)
 --- a/sysdeps/mach/hurd/sigpending.c
 +++ b/sysdeps/mach/hurd/sigpending.c
-@@ -1,4 +1,5 @@
--/* Copyright (C) 1991, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
-+/* Copyright (C) 1991, 1993, 1994, 1995, 1997, 2011
-+       Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -37,9 +38,9 @@
      }
  
@@ -1064,13 +1003,6 @@ during/around the time __proc_dostop executes.
    return 0;
 --- a/sysdeps/mach/hurd/sigprocmask.c
 +++ b/sysdeps/mach/hurd/sigprocmask.c
-@@ -1,4 +1,5 @@
--/* Copyright (C) 1991,92,93,94,95,96,97,2002 Free Software Foundation, Inc.
-+/* Copyright (C) 1991,92,93,94,95,96,97,2002,2011
-+       Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -39,7 +40,7 @@
  
    ss = _hurd_self_sigstate ();
@@ -1103,14 +1035,6 @@ during/around the time __proc_dostop executes.
      *oset = old;
 --- a/sysdeps/mach/hurd/sigsuspend.c
 +++ b/sysdeps/mach/hurd/sigsuspend.c
-@@ -1,5 +1,5 @@
--/* Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2002, 2007
--     Free Software Foundation, Inc.
-+/* Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2002, 2007,
-+     2011 Free Software Foundation, Inc.
- 
-    This file is part of the GNU C Library.
- 
 @@ -42,7 +42,7 @@
  
    ss = _hurd_self_sigstate ();
@@ -1152,12 +1076,6 @@ during/around the time __proc_dostop executes.
      /* Tell the signal thread to check for pending signals.  */
 --- a/sysdeps/mach/hurd/sigwait.c
 +++ b/sysdeps/mach/hurd/sigwait.c
-@@ -1,4 +1,4 @@
--/* Copyright (C) 1996,97,2001,02 Free Software Foundation, Inc.
-+/* Copyright (C) 1996,97,2001,2002,2011 Free Software Foundation, Inc.
-    This file is part of the GNU C Library.
- 
-    The GNU C Library is free software; you can redistribute it and/or
 @@ -27,7 +27,7 @@
  __sigwait (const sigset_t *set, int *sig)
  {
