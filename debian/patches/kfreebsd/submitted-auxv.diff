@@ -1,5 +1,25 @@
 https://sourceware.org/bugzilla/show_bug.cgi?id=15794
 
+--- a/misc/getauxval.c
++++ b/misc/getauxval.c
+@@ -24,10 +24,15 @@
+ {
+   ElfW(auxv_t) *p;
+ 
++#ifdef AT_HWCAP
+   if (type == AT_HWCAP)
+     return GLRO(dl_hwcap);
+-  else if (type == AT_HWCAP2)
++#endif
++
++#ifdef AT_HWCAP2    
++  if (type == AT_HWCAP2)
+     return GLRO(dl_hwcap2);
++#endif
+ 
+   for (p = GLRO(dl_auxv); p->a_type != AT_NULL; p++)
+     if (p->a_type == type)
+
 diff --git a/bits/auxv.h b/bits/auxv.h
 new file mode 100644
 index 0000000..76701c3
