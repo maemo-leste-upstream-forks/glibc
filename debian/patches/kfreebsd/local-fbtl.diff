@@ -17894,7 +17894,7 @@
 +#define lll_mutex_unlock(futex) __generic_mutex_unlock (&(futex))
 --- /dev/null
 +++ b/fbtl/nptl-init.c
-@@ -0,0 +1,489 @@
+@@ -0,0 +1,493 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -18326,6 +18326,10 @@
 +    /* The system limit is unusably small.
 +       Use the minimal size acceptable.  */
 +    limit.rlim_cur = PTHREAD_STACK_MIN;
++  else if (limit.rlim_cur > (4 * ARCH_STACK_DEFAULT_SIZE))
++    /* The system limit is unusably high.
++       Use the maximal size acceptable.  */
++    limit.rlim_cur = (4 * ARCH_STACK_DEFAULT_SIZE);
 +
 +  /* Make sure it meets the minimum size that allocate_stack
 +     (allocatestack.c) will demand, which depends on the page size.  */

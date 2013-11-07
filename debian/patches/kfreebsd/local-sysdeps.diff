@@ -3394,7 +3394,7 @@
 +#endif /* ! _SIGSET_H_fns.  */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/socket.h
-@@ -0,0 +1,415 @@
+@@ -0,0 +1,421 @@
 +/* System-specific socket constants and types.  FreeBSD version.
 +   Copyright (C) 1991-1992,1994-1999,2000-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3793,6 +3793,12 @@
 +    int l_linger;		/* Time to linger.  */
 +  };
 +
++/* Magic IPv4 addresses defined in FreeBSD version of <netinet/in.h>, but not
++   included in Glibc version of the same header. */
++#define	INADDR_ALLRPTS_GROUP	(u_int32_t)0xe0000016	/* 224.0.0.22, IGMPv3 */
++#define	INADDR_CARP_GROUP	(u_int32_t)0xe0000012	/* 224.0.0.18 */
++#define	INADDR_PFSYNC_GROUP	(u_int32_t)0xe00000f0	/* 224.0.0.240 */
++#define	INADDR_ALLMDNS_GROUP	(u_int32_t)0xe00000fb	/* 224.0.0.251 */
 +
 +#ifdef __USE_BSD
 +
@@ -21569,7 +21575,7 @@
 +#endif	/* net/ethernet.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/if.h
-@@ -0,0 +1,458 @@
+@@ -0,0 +1,460 @@
 +/*-
 + * Copyright (c) 1982, 1986, 1989, 1993
 + *	The Regents of the University of California.  All rights reserved.
@@ -21885,6 +21891,7 @@
 +		int	ifru_media;
 +		char *	ifru_data;
 +		int	ifru_cap[2];
++		unsigned int ifru_fib;
 +	} ifr_ifru;
 +#define	ifr_addr	ifr_ifru.ifru_addr	/* address */
 +#define	ifr_dstaddr	ifr_ifru.ifru_dstaddr	/* other end of p-to-p link */
@@ -21902,6 +21909,7 @@
 +#define	ifr_reqcap	ifr_ifru.ifru_cap[0]	/* requested capabilities */
 +#define	ifr_curcap	ifr_ifru.ifru_cap[1]	/* current capabilities */
 +#define	ifr_index	ifr_ifru.ifru_index	/* interface index */
++#define	ifr_fib		ifr_ifru.ifru_fib	/* interface fib */
 +};
 +
 +#define	_SIZEOF_ADDR_IFREQ(ifr) \
