@@ -99,7 +99,16 @@
 +Native POSIX Threads Library by Ulrich Drepper et al
 --- /dev/null
 +++ b/fbtl/ChangeLog
-@@ -0,0 +1,12894 @@
+@@ -0,0 +1,12903 @@
++2013-06-24  Vladimir Nikulichev  <v.nikulichev@gmail.com>
++
++	[BZ #12310]
++	* pthread_exit.c: Add reference to pthread_create.
++
++2013-06-22  Joseph Myers  <joseph@codesourcery.com>
++
++	* pthread_getattr_default_np.c: Include <string.h>.
++
 +2013-06-15  Siddhesh Poyarekar  <siddhesh@redhat.com>
 +
 +	* Versions (libpthread): Add GLIBC_2.18.
@@ -13595,6 +13604,7 @@
 +		      pthread_attr_getaffinity pthread_attr_setaffinity \
 +		      cleanup_routine unwind-forcedunwind \
 +		      pthread_setname pthread_getname \
++		      pthread_setattr_default_np pthread_getattr_default_np
 +
 +#		lowlevelrobustlock
 +#		pthread_sigqueue
@@ -13609,7 +13619,6 @@
 +#		      pthread_mutexattr_setprioceiling tpp \
 +#		      pthread_mutex_getprioceiling \
 +#		      pthread_mutex_setprioceiling \
-+#		      pthread_setattr_default_np pthread_getattr_default_np
 +
 +# commented out also in nptl
 +
@@ -14829,7 +14838,7 @@
 +  what to test?
 --- /dev/null
 +++ b/fbtl/Versions
-@@ -0,0 +1,245 @@
+@@ -0,0 +1,250 @@
 +libc {
 +  GLIBC_2.0 {
 +    pthread_attr_destroy; pthread_attr_init;
@@ -15068,6 +15077,11 @@
 +  GLIBC_2.12 {
 +    pthread_setname_np; pthread_getname_np;
 +  };
++
++  GLIBC_2.18 {
++    pthread_getattr_default_np;
++    pthread_setattr_default_np;
++  }
 +
 +  GLIBC_PRIVATE {
 +    __pthread_initialize_minimal;
@@ -23190,7 +23204,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_create.c
-@@ -0,0 +1,672 @@
+@@ -0,0 +1,664 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -23503,14 +23517,11 @@
 +#endif
 +    }
 +
-+#warning call_tls_dtors will be available with 2.18 upload
-+#if 0
 +  /* Call destructors for the thread_local TLS variables.  */
 +#ifndef SHARED
 +  if (&__call_tls_dtors != NULL)
 +#endif
 +    __call_tls_dtors ();
-+#endif
 +
 +  /* Run the destructor for the thread-local data.  */
 +  __nptl_deallocate_tsd ();
@@ -23656,12 +23667,7 @@
 +      if (cpusetsize > 0)
 +	{
 +	  cpu_set_t *cpuset;
-+#if 0	  
 +	  if (__glibc_likely (__libc_use_alloca (cpusetsize)))
-+#else
-+#warning wait for 2.18	  
-+	  if ((__libc_use_alloca (cpusetsize)))
-+#endif	  
 +	    cpuset = __alloca (cpusetsize);
 +	  else
 +	    {
@@ -23956,7 +23962,7 @@
 +strong_alias (__pthread_equal, pthread_equal)
 --- /dev/null
 +++ b/fbtl/pthread_exit.c
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,35 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -23988,6 +23994,10 @@
 +  __do_cancel ();
 +}
 +strong_alias (__pthread_exit, pthread_exit)
++
++/* After a thread terminates, __libc_start_main decrements
++   __nptl_nthreads defined in pthread_create.c.  */
++PTHREAD_STATIC_FN_REQUIRE (pthread_create)
 --- /dev/null
 +++ b/fbtl/pthread_getattr_default_np.c
 @@ -0,0 +1,37 @@
@@ -28412,7 +28422,7 @@
 +strong_alias (__pthread_self, pthread_self)
 --- /dev/null
 +++ b/fbtl/pthread_setattr_default_np.c
-@@ -0,0 +1,110 @@
+@@ -0,0 +1,116 @@
 +/* Set the default attributes to be used by pthread_create in the process.
 +   Copyright (C) 2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -28435,6 +28445,7 @@
 +#include <stdlib.h>
 +#include <pthreadP.h>
 +#include <assert.h>
++#include <string.h>
 +
 +int
 +pthread_setattr_default_np (const pthread_attr_t *in)
@@ -28445,6 +28456,10 @@
 +
 +  assert (sizeof (*in) >= sizeof (struct pthread_attr));
 +  real_in = (struct pthread_attr *) in;
++
++#if 1
++#warning scheduling attributes not yet supported
++#else
 +
 +  /* Catch invalid values.  */
 +  int policy = real_in->schedpolicy;
@@ -28463,6 +28478,7 @@
 +  ret = check_cpuset_attr (real_in->cpuset, real_in->cpusetsize);
 +  if (ret)
 +    return ret;
++#endif
 +
 +  /* stacksize == 0 is fine.  It means that we don't change the current
 +     value.  */
@@ -29708,7 +29724,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/sem_open.c
-@@ -0,0 +1,465 @@
+@@ -0,0 +1,461 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -30093,10 +30109,6 @@
 +	     since the file must be opened with a specific mode.  The
 +	     mode cannot later be set since then we cannot apply the
 +	     file create mask.  */
-+#if 1
-+#warning drop it after 2.18 sync
-+#define __mktemp mktemp
-+#endif
 +	  if (__mktemp (tmpfname) == NULL)
 +	    return SEM_FAILED;
 +

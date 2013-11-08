@@ -4991,7 +4991,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/waitstatus.h
-@@ -0,0 +1,105 @@
+@@ -0,0 +1,102 @@
 +/* Definitions of status bits for `wait' et al.
 +   Copyright (C) 1992,1994,1996,1997,2000,2004 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -5028,29 +5028,26 @@
 +/* Nonzero if STATUS indicates normal termination.  */
 +#define	__WIFEXITED(status)	(__WTERMSIG(status) == 0)
 +
-+/* Nonzero if STATUS indicates termination by a signal.  */
-+#define __WIFSIGNALED(status) \
-+  (((signed char) (((status) & 0x7f) + 1) >> 1) > 0)
-+
 +/* Nonzero if STATUS indicates the child is stopped.  */
 +#define	__WIFSTOPPED(status)	(((status) & 0x7f) == 0x7f)
 +
-+/* Nonzero if STATUS indicates the child continued after a stop.  We only
-+   define this if <bits/waitflags.h> provides the WCONTINUED flag bit.  */
-+#ifdef WCONTINUED
-+# define __WIFCONTINUED(status)	((status) == __W_CONTINUED)
-+#endif
++/* Linux uses 0xffff, BSD uses SIGCONT */
++#define __W_CONTINUED		0x13
++#define	__WCOREFLAG		0x80
++/* Nonzero if STATUS indicates the child continued after a stop. */
++#define __WIFCONTINUED(status)	((status) == __W_CONTINUED)
 +
 +/* Nonzero if STATUS indicates the child dumped core.  */
 +#define	__WCOREDUMP(status)	((status) & __WCOREFLAG)
++
++/* Nonzero if STATUS indicates termination by a signal.  */
++#define __WIFSIGNALED(status) \
++  (!__WIFSTOPPED(status) && !__WIFEXITED(status) && !__WIFCONTINUED(status))
 +
 +/* Macros for constructing status values.  */
 +#define	__W_EXITCODE(ret, sig)	((ret) << 8 | (sig))
 +#define	__W_STOPCODE(sig)	((sig) << 8 | 0x7f)
 +
-+/* Linux uses 0xffff, BSD uses SIGCONT */
-+#define __W_CONTINUED		0x13
-+#define	__WCOREFLAG		0x80
 +
 +
 +#ifdef	__USE_BSD
@@ -18434,7 +18431,7 @@
 +#endif /* !_KENV_H */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/kernel-features.h
-@@ -0,0 +1,88 @@
+@@ -0,0 +1,93 @@
 +/* Set flags signalling availability of kernel features based on given
 +   kernel version number.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -18519,6 +18516,11 @@
 +/* The posix_fallocate syscall was introduced in kFreeBSD 8.3. */
 +#if __KFREEBSD_KERNEL_VERSION >= 0x80300
 +# define __ASSUME_FALLOCATE		1
++#endif
++
++/* The wait6 syscall was introduced in kFreeBSD 9.2. */
++#if __KFREEBSD_KERNEL_VERSION >= 0x90200
++# define __ASSUME_WAIT6			1
 +#endif
 +
 +/* Support for private "futexes" was added before we start with fbtl. */
@@ -27842,7 +27844,7 @@
 +#endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,212 @@
+@@ -0,0 +1,213 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
 +sys_access		-	access			i:si		__syscall_access
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
@@ -28052,6 +28054,7 @@
 +unmount			-	unmount			i:si		unmount
 +utrace			-	utrace			i:bn		utrace
 +wait4			-	wait4			i:iWiP		__syscall_wait4 __wait4	wait4
++sys_wait6		EXTRA	wait6			i:iiWiPP	__syscall_wait6
 +sys_write		-	write			i:ibn		__syscall_write
 +sys_writev		-	writev			i:ipi		__syscall_writev
 +yield			-	yield			i:		__syscall_yield
@@ -29461,7 +29464,7 @@
 +#include <sysdeps/unix/sysv/linux/wait3.c>
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/waitid.c
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,107 @@
 +/* 
 +   Copyright (C) 2004-2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -29486,9 +29489,52 @@
 +#include <sys/wait.h>
 +#include <sysdep.h>
 +
-+/* for now only the wrapper implementation */
-+/* later on we will try to use wait6 when available */
++extern int __syscall_wait6 (idtype_t itype, int64_t id,
++			    int *status, int options,
++			    struct rusage *rusage, siginfo_t *infop);
++libc_hidden_proto (__syscall_wait6)
 +
++
++#define DO_WAITID simulated_waitid
++static int simulated_waitid (idtype_t idtype, id_t id, siginfo_t *infop, int options);
++
++
++#if !defined __ASSUME_WAIT6
++static int __have_wait6;
++#endif
++
++static inline int
++do_waitid (idtype_t idtype, id_t id, siginfo_t *infop, int options)
++{
++  int ret;
++  int status;
++#ifndef __ASSUME_WAIT6
++  if (__have_wait6 >= 0)
++#endif
++  {
++      ret = INLINE_SYSCALL (wait6, 6, idtype, id, &status, options, NULL, infop);
++      
++      if (ret == 0 && infop != NULL)
++      {
++          memset(infop, 0, sizeof(*infop));
++      }
++      if (ret >= 0)
++          return 0;
++#ifndef __ASSUME_WAIT6
++      if (errno == ENOSYS)
++      {
++          __have_wait6 = -1;
++      }
++      else
++#endif
++      {
++          return ret;
++      }
++   }
++   return simulated_waitid(idtype, id, infop, options);
++}
++
++ 
 +#define waitid __unused_waitid_alias
 +#include <sysdeps/posix/waitid.c>
 +#undef waitid
