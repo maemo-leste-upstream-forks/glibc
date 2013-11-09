@@ -3,10 +3,10 @@ EGLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
 MIN_KERNEL_SUPPORTED := 8.3.0
 libc = libc0.1
 
-# Linuxthreads Config
+# the pt_chown is mandatory for kfreebsd
 threads = yes
 libc_add-ons = ports fbtl $(add-ons)
-libc_extra_config_options = $(extra_config_options)
+libc_extra_config_options = --enable-pt_chown $(extra_config_options)
 
 ifndef KFREEBSD_SOURCE
   ifeq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
