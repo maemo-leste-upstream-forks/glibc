@@ -11,7 +11,7 @@ sparc_CC = $(CC) -m32
 sparc_CXX = $(CXX) -m32
 libc6-sparc_shlib_dep = libc6-sparc (>= $(shlib_dep_ver))
 sparc_extra_config_options = $(extra_config_options) --disable-profile
-sparc_rtlddir = /lib32
+sparc_rtlddir = /lib
 sparc_slibdir = /lib32
 sparc_libdir = /usr/lib32
 

@@ -6,7 +6,6 @@ libc_add-ons = ports nptl $(add-ons)
 #armhf_configure_target = arm-linux-gnueabihf
 #armhf_CC = $(CC) -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard
 #armhf_CXX = $(CXX) -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard
-#armhf_rtlddir = /lib/arm-linux-gnueabihf
 #armhf_slibdir = /lib/arm-linux-gnueabihf
 #armhf_libdir = /usr/lib/arm-linux-gnueabihf
 #

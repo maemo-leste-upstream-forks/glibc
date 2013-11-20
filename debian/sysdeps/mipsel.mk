@@ -64,7 +64,6 @@ loongson2f_CC = $(CC) -mabi=32
 loongson2f_CXX = $(CXX) -mabi=32
 loongson2f_extra_cflags = -march=loongson2f -mtune=loongson2f -O2
 loongson2f_extra_config_options = $(extra_config_options) --disable-profile
-loongson2f_rtlddir = /lib/$(DEB_HOST_MULTIARCH)/loongson2f
 loongson2f_slibdir = /lib/$(DEB_HOST_MULTIARCH)/loongson2f
 
 # Need to put a tri-arch aware version of ldd in the base package
