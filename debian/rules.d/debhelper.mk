@@ -115,11 +115,10 @@ endif
 	# We adjust the compression format depending on the package:
 	# - libc* contains highly compressible data, but packages needed during
 	#   debootstrap have to be compressed with gzip
-	# - locales-all and locales contains highly compressible data
-	# - other packages use the default gzip format
+	# - other packages use dpkg's default xz format
 	case $(curpass) in \
-	libc*-dbg | libc*-pic | libc*-prof | locales-all | locales) \
-		dh_builddeb -p$(curpass) -- -Zxz -z7 ;; \
+	$(libc) | multiarch-support | libc-bin ) \
+		dh_builddeb -p$(curpass) -- -Zgzip -z9 ;; \
 	*) \
 		dh_builddeb -p$(curpass) ;; \
 	esac

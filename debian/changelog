@@ -33,9 +33,27 @@ eglibc (2.18-0experimental0) UNRELEASED; urgency=low
     - patches/any/cvs-gethostbyname-numeric.diff: Applied upstream.
     - patches/any/cvs-getaddrinfo-EAI_NONAME.diff: Applied upstream.
     - patches/any/cvs-tst-cancel4-buf.diff: Applied upstream.
+    - patches/arm64/cvs-setjmp-clobber.diff: Applied upstream.
+    - patches/any/cvs-tst-cancel4-buf.diff: Applied upstream.
+    - patches/any/cvs-CVE-2013-4332-pvalloc.diff: Rebased.
+    - patches/any/cvs-CVE-2013-4332-valloc.diff: Rebased.
+    - patches/any/cvs-CVE-2013-4788-static-ptrguard.diff: Rebased.
+    - patches/any/cvs-CVE-2013-4788-static-ptrguard-arm.diff: Rebased.
+    - patches/any/cvs-CVE-2013-2207-pt_chown.diff: Applied upstream.
   * debian/patches/any/cvs-tst-tls-atexit-deps.diff: Fix compilation of
     stdlib/tst-tls-atexit with binutils defaulting to ld --as-needed.
   * debian/control: Build-dep on netbase for service lookups in tests.
+  * debian/sysdeps/{linux,hurd}.mk: Force on pt_chown on linux and hurd.
+  * debian/debhelper.in/libc.install: ld.so is installed to RTLDDIR now.
+  * debian/rules.d/debhelper.mk: Compress $(libc), multiarch-support, and
+    libc-bin with gzip, and let the rest default to dpkg's new defaults.
+  * debian/patches/svn-updates.diff: Update to r24485 from SVN and 2.18.1.
+  * debian/debhelper.in/libc-bin.lintian-overrides: The manpages for zic
+    zdump, ldd, ldconfig, and getent have moved to the manpages package.
+  * debian/debhelper.in/libc.lintian-overrides: Don't whine about ldconfig.
+  * debian/patches/powerpc/unsubmitted-tst-auxv.diff: Fix regression in the
+    tst-setcontext-fpscr.c test introduced by kfreebsd/submitted-auxv.diff.
+  * debian/testsuite-checking/*: Allow powerpc to fail test-{double,float}.
 
   [ Samuel Thibault ]
   * patches/hurd-i386/libpthread_hurd_cond_timedwait.diff: Rebased.
@@ -64,7 +82,7 @@ eglibc (2.18-0experimental0) UNRELEASED; urgency=low
 
   [ Petr Salinger ]
   * debian/*: change version occurences from 2.17 to 2.18 for upgrades/deps.
-  * rules.d/build.mk: do not explicitely install symlink in rtlddir
+  * rules.d/build.mk: do not explicitly install symlink in rtlddir
   * kfreebsd/local-sysdeps.diff: update to revision 5135 (from glibc-bsd).
   * kfreebsd/local-fbtl.diff: likewise
   * sysdeps/kfreebsd.mk: pt_chown is mandatory
@@ -74,19 +92,95 @@ eglibc (2.18-0experimental0) UNRELEASED; urgency=low
   * add kfreebsd/submitted-auxv.diff. Closes: #717912.
   * drop obsolete patches/*/local-linuxthreads*
   * drop obsolete linuxthreads part of kfreebsd/local-scripts.diff
-  * drop obsolete kfreebsd/local-dosavesse.diff,
-		  kfreebsd/local-nosavesse.diff,
-		  kfreebsd/local-use-thr-primitives.diff,
- 		  kfreebsd/submitted-libc_once.diff,
-		  local-pthread_at_fork.diff
-	
+  * drop obsolete kfreebsd/local-dosavesse.diff, local-pthread_at_fork.diff,
+    kfreebsd/local-nosavesse.diff, kfreebsd/local-use-thr-primitives.diff,
+    and kfreebsd/submitted-libc_once.diff.
+
  -- Adam Conrad <adconrad@ubuntu.com>  Sat, 09 Nov 2013 12:48:20 +0100
 
-eglibc (2.17-93) UNRELEASED; urgency=low
+eglibc (2.17-96) unstable; urgency=low
+
+  * patches/any/cvs-CVE-2013-4237-alignment.diff: Fix alignment of the
+    directory block in dirstream.h, fixing readdir regression on sparc.
+  * testsuite-checking/*: Allow ptrguard test to fail on mips and hurd.
+
+ -- Adam Conrad <adconrad@0c3.net>  Fri, 15 Nov 2013 09:39:47 +0000
+
+eglibc (2.17-95) unstable; urgency=low
+
+  [ Adam Conrad ]
+  * patches/any/cvs-CVE-2013-4788-static-ptrguard-arm.diff: Pull fix
+    from git to fix the static-ptrguard testsuite regression on ARM.
+  * patches/series: Re-enable CVE-2013-4788 fixes (Closes: #717178)
+  * patches/series.kfreebsd*: Disable kfreebsd/local-readdir_r.diff.
+
+  [ Samuel Thibault ]
+  * patches/any/cvs-CVE-2012-44xx.diff: Include <sys/param.h> to get
+    MIN/MAX macros on hurd-i386.
+
+ -- Adam Conrad <adconrad@0c3.net>  Sat, 09 Nov 2013 21:45:05 -0700
+
+eglibc (2.17-94) unstable; urgency=low
+
+  [ Adam Conrad]
+  * patches/any/cvs-CVE-2012-44xx.diff: backport overflow fixes in strcoll
+    addressing CVE-2012-4412 and CVE-2012-4424 (Closes: #687530, #689423)
+  * patches/any/cvs-CVE-2013-4237.diff: backport git fix to respect the
+    NAME_MAX constraints in readdir_r: CVE-2013-4237 (Closes: #719558)
+  * debian/patches/any/cvs-CVE-2013-2207-pt_chown.diff: backpot git patch
+    to disable building and using pt_chown, but leave disabled for now
+    until we come up with a complete plan to not break end-user machines.
+  * patches/any/cvs-CVE-2013-4788-static-ptrguard*: backport fix from git
+    for pointer mangling in static builds, disabled due to ARM regression.
+  * patches/arm64/cvs-setjmp-clobber.diff: __sigsetjmp clobbers register
+    x1 before making the tail call to __sigjmp_save, which causes the
+    latter to always save the signal mask.  Backport git patch to fix.
+  * patches/ubuntu/unsubmitted-dlopen-static-crash.diff: New patch from
+    Maciej Rozycki to fix a dlopen segfault in statically linked programs.
+
+  [ Samuel Thibault ]
+  * libc0.3.symbols.hurd-i386: Refresh.
+  * patches/hurd-i386/tg-sendmsg-SCM_RIGHTS.diff: Fix spurious returned error
+    when flags are not 0.  Thanks Svante Signell for the catch
+    (Closes: #724681)
+  * patches/hurd-i386/libpthread_stubs.diff: Drop stub for pthread_atfork, now
+    implemented.
+  * patches/hurd-i386/tg-tls.diff: Fix getting LDT on fork.
+  * patches/hurd-i386/local-dl-dynamic-weak.diff: Remove patch, issue fixed in
+    libpthread.
+  * control: Make libc0.3 break old binaries which were depending on the
+    previous patch.
+  * patches/hurd-i386/tg-extern_inline.diff: Do not expose some internals of
+    libc outside libc.
+  * patches/hurd-i386/cvs-tls-threadvar-threadself.diff: New patch, store
+    pthread_self in TLS instead of threadvar.
+  * patches/hurd-i386/cvs-libpthread-tls.diff: New patch, delay TLS
+    deallocation.
+  * patches/hurd-i386/tg-tls.diff: Update, fix errno declaration for TLS.
+  * patches/hurd-i386/tg-tls-threadvar.diff: Update, replace all threadvars
+    with TLS.
+  * patches/hurd-i386/cvs-libpthread-userstack.diff: New patch, allow
+    user-provided stacks.
+  * patches/hurd-i386/tg-libc_getspecific.diff: New patch, fix erroneous
+    __libc_getspecific weak reference.
+  * control: Make libc0.3 break old hurd with overzealous inlines.
+  * patches/hurd-i386/libpthread.diff: Synchronize with upstream.
+
+  [ Petr Salinger ]
+  * fbtl.diff: limit default stack size to 4 * ARCH_STACK_DEFAULT_SIZE.
+    See #727009, #725516.
+  * sysdeps.diff: fixup get/set owner of socket
+
+ -- Adam Conrad <adconrad@0c3.net>  Sat, 09 Nov 2013 18:06:17 -0700
+
+eglibc (2.17-93) unstable; urgency=low
 
   [ Adam Conrad ]
   * patches/any/cvs-tst-cancel4-buf.diff: Increase nptl test case buffer
     size to 16384 so we really block on current (>= 3.10) Linux kernels.
+  * patches/any/cvs-CVE-2013-4332-*.diff: Backport git fixes for integer
+    overflows in allocator functions: CVE-2013-4332 (Closes: #722536)
+  * debian{control,sysdeps/arm64.mk}: Switch to gcc-4.8 on arm64 only.
 
   [ Samuel Thibault ]
   * patches/hurd-i386/unsubmitted-clock_t_centiseconds.diff: New patch from
@@ -97,8 +191,18 @@ eglibc (2.17-93) UNRELEASED; urgency=low
     Winter to prepare reboot() for /hurd/init getting PID 2 instead of 1.
   * patches/hurd-i386/submitted-path_mounted.diff: New patch from Justus
     Winter to fix hurd-i386's _PATH_MOUNTED according to Debian usage.
+  * patches/hurd-i386/tg-socket{,pair}_flags.diff: New patch from Thomas
+    Schwinge to add support for SOCK_CLOEXEC and SOCK_NONBLOCK.
+  * patches/hurd-i386/tg-pthread-atfork.diff,cvs-pthread_atfork.diff: Add
+    pthread_atfork support.
+  * patches/hurd-i386/tg-thread-cancel.diff: Update patch against two other
+    overzealous assertions.
+  * patches/hurd-i386/tg-pipe2.diff: New patch to add pipe2 support.
 
- -- Adam Conrad <adconrad@0c3.net>  Thu, 01 Aug 2013 23:00:51 +0100
+  [ Pino Toscano ]
+  * Generate udeb shlibs also for Hurd's libmachuser and libhurduser.
+
+ -- Adam Conrad <adconrad@0c3.net>  Sun, 22 Sep 2013 20:05:36 -0600
 
 eglibc (2.17-92) unstable; urgency=low
 

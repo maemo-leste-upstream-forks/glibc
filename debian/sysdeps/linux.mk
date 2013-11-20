@@ -8,9 +8,9 @@ threads = yes
 libc_add-ons = nptl $(add-ons)
 
 ifeq ($(DEB_BUILD_PROFILE),bootstrap)
-  libc_extra_config_options = $(extra_config_options)
+  libc_extra_config_options = --enable-pt_chown $(extra_config_options)
 else
-  libc_extra_config_options = --with-selinux $(extra_config_options)
+  libc_extra_config_options = --enable-pt_chown --with-selinux $(extra_config_options)
 endif
 
 ifndef LINUX_SOURCE

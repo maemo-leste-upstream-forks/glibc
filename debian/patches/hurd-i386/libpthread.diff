@@ -564,7 +564,7 @@
 +endif
 +
 +ifeq ($(IN_GLIBC),no)
-+$(inst_libdir) = $(libdir)
++inst_libdir = $(libdir)
 +endif
 +
 +ifeq ($(IN_GLIBC),no)
@@ -2813,7 +2813,7 @@
 +}
 --- /dev/null
 +++ b/libpthread/libpthread.a
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,23 @@
 +/* pthread initializer is weak in glibc.  It must be included if glibc
 +   is to start threading. */
 +EXTERN(_cthread_init_routine)
@@ -2832,11 +2832,14 @@
 +EXTERN(_cthreads_flockfile)
 +EXTERN(_cthreads_funlockfile)
 +EXTERN(_cthreads_ftrylockfile)
++/* To get the sigthread stack layout on fork */
++EXTERN(pthread_getattr_np)
++EXTERN(pthread_attr_getstack)
 +
 +GROUP(-lpthread2 -lihash -lrt)
 --- /dev/null
 +++ b/libpthread/libpthread_pic.a
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,23 @@
 +/* pthread initializer is weak in glibc.  It must be included if glibc
 +   is to start threading. */
 +EXTERN(_cthread_init_routine)
@@ -2855,6 +2858,9 @@
 +EXTERN(_cthreads_flockfile)
 +EXTERN(_cthreads_funlockfile)
 +EXTERN(_cthreads_ftrylockfile)
++/* To get the sigthread stack layout on fork */
++EXTERN(pthread_getattr_np)
++EXTERN(pthread_attr_getstack)
 +
 +GROUP(-lpthread2_pic -lihash_pic)
 --- /dev/null
@@ -3361,7 +3367,7 @@
 +}
 --- /dev/null
 +++ b/libpthread/pthread/pt-create.c
-@@ -0,0 +1,217 @@
+@@ -0,0 +1,219 @@
 +/* Thread creation.
 +   Copyright (C) 2000, 2002, 2005, 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3426,6 +3432,8 @@
 +  err = __pthread_create_internal (&pthread, attr, start_routine, arg);
 +  if (! err)
 +    *thread = pthread->thread;
++  else if (err == ENOMEM)
++    err = EAGAIN;
 +
 +  return err;
 +}
@@ -3546,16 +3554,16 @@
 +
 +  /* At this point it is possible to guess our pthread ID.  We have to
 +     make sure that all functions taking a pthread_t argument can
-+     handle the fact that this thread isn't really running yet.  */
++     handle the fact that this thread isn't really running yet.  Since
++     the new thread might be passed its ID through pthread_create (to
++     avoid calling pthread_self), read it before starting the thread.  */
++  *thread = pthread;
 +
 +  /* Schedule the new thread.  */
 +  err = __pthread_thread_start (pthread);
 +  if (err)
 +    goto failed_starting;
 +
-+  /* At this point the new thread is up and running.  */
-+
-+  *thread = pthread;
 +
 +  return 0;
 +
@@ -7568,7 +7576,7 @@
 +#ifdef PAGESIZE
 +  guardsize: PAGESIZE,
 +#else
-+  guardsize: 0,
++  guardsize: 1,
 +#endif /* PAGESIZE */
 +  detachstate: PTHREAD_CREATE_JOINABLE,
 +  inheritsched: PTHREAD_EXPLICIT_SCHED,

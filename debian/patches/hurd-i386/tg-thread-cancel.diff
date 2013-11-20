@@ -1,13 +1,26 @@
 From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: [PATCH] The critical section lock _can_ be held in that place.
+Subject: [PATCH] The critical section lock _can_ be held in these place.
+
+At least since hurd_thread_cancel can be called by another thread.
+
+2006-08-05  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+       * hurd/thread-cancel.c (hurd_thread_cancel): Do not assert that
+       `&ss->critical_section_lock' is unlocked.
+       * sysdeps/mach/hurd/jmp-unwind.c (_longjmp_unwind): Likewise.
+       * sysdeps/mach/hurd/spawni.c (__spawni): Likewise.
 
 ---
  hurd/thread-cancel.c |    1 -
- 1 file changed, 1 deletion(-)
+ sysdeps/mach/hurd/jmp-unwind.c | 1 -
+ sysdeps/mach/hurd/spawni.c     | 1 -
+ 3 files changed, 3 deletions(-)
 
+diff --git a/hurd/thread-cancel.c b/hurd/thread-cancel.c
+index c7f88ee..2e8d91e 100644
 --- a/hurd/thread-cancel.c
 +++ b/hurd/thread-cancel.c
-@@ -51,7 +51,6 @@
+@@ -51,7 +51,6 @@ hurd_thread_cancel (thread_t thread)
        return 0;
      }
  
@@ -15,3 +28,29 @@ Subject: [PATCH] The critical section lock _can_ be held in that place.
    __spin_lock (&ss->critical_section_lock);
    __spin_lock (&ss->lock);
    err = __thread_suspend (thread);
+diff --git a/sysdeps/mach/hurd/jmp-unwind.c b/sysdeps/mach/hurd/jmp-unwind.c
+index bdc24b9..d199682 100644
+--- a/sysdeps/mach/hurd/jmp-unwind.c
++++ b/sysdeps/mach/hurd/jmp-unwind.c
+@@ -50,7 +50,6 @@ _longjmp_unwind (jmp_buf env, int val)
+   /* All access to SS->active_resources must take place inside a critical
+      section where signal handlers cannot run.  */
+   __spin_lock (&ss->lock);
+-  assert (! __spin_lock_locked (&ss->critical_section_lock));
+   __spin_lock (&ss->critical_section_lock);
+ 
+   /* Remove local signal preemptors being unwound past.  */
+diff --git a/sysdeps/mach/hurd/spawni.c b/sysdeps/mach/hurd/spawni.c
+index 867579d..bcd06dd 100644
+--- a/sysdeps/mach/hurd/spawni.c
++++ b/sysdeps/mach/hurd/spawni.c
+@@ -235,7 +235,6 @@ __spawni (pid_t *pid, const char *file,
+ 
+   ss = _hurd_self_sigstate ();
+ 
+-  assert (! __spin_lock_locked (&ss->critical_section_lock));
+   __spin_lock (&ss->critical_section_lock);
+ 
+   __spin_lock (&ss->lock);
+-- 
+tg: (9a079e2..) t/thread-cancel (depends on: baseline)

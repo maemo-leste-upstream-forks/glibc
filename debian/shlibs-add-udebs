@@ -37,10 +37,11 @@ W="[^[:space:]]*"
 # in debian/debhelper.in; $W replaces any "*" wildcards there.
 expr_libc1="ld$W libm-$W libm libdl$W libresolv$W libc-$W libc"
 expr_libc2="libutil$W libcrypt$W librt$W libpthread$W"
+expr_hurd="libmachuser$W libhurduser$W"
 expr_nss_dns="libnss_dns$W"
 expr_nss_files="libnss_files$W"
 
-for expr in $expr_libc1 $expr_libc2; do
+for expr in $expr_libc1 $expr_libc2 $expr_hurd; do
 	add_udeb_line "$expr" $package-udeb
 done
 for expr in $expr_nss_dns; do

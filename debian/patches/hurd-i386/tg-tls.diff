@@ -13,24 +13,51 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
 	* sysdeps/mach/hurd/tls.h: Include <sysdep.h>.
 
 ---
+ sysdeps/mach/thread_state.h         |    3 ++
  csu/libc-start.c                    |    2 +
+ include/errno.h                     |   14 +++++----
  hurd/hurdfault.c                    |    2 +
  hurd/hurdsig.c                      |    2 +
- mach/mach.h                         |    3 +
- mach/setup-thread.c                 |   30 +++++++++++++++++-
+ mach/mach.h                         |    3 ++
+ mach/setup-thread.c                 |   30 +++++++++++++++++++-
  sysdeps/generic/thread_state.h      |    1 
- sysdeps/mach/hurd/bits/libc-lock.h  |    3 +
- sysdeps/mach/hurd/fork.c            |    7 +++-
- sysdeps/mach/hurd/i386/init-first.c |   60 ++++++++++++++++++++++--------------
- sysdeps/mach/hurd/i386/tls.h        |   53 +++++++++++++++++++++++++------
+ sysdeps/mach/hurd/bits/libc-lock.h  |    3 ++
+ sysdeps/mach/hurd/fork.c            |    7 ++++
+ sysdeps/mach/hurd/i386/init-first.c |   49 +++++++++++++++++++++------------
+ sysdeps/mach/hurd/i386/tls.h        |   53 +++++++++++++++++++++++++++++-------
  sysdeps/mach/hurd/i386/trampoline.c |    2 -
  sysdeps/mach/hurd/profil.c          |    2 +
- sysdeps/mach/hurd/setitimer.c       |    3 +
+ sysdeps/mach/hurd/setitimer.c       |    3 +-
  sysdeps/mach/hurd/tls.h             |    2 +
- sysdeps/mach/i386/thread_state.h    |   11 ++++++
- sysdeps/mach/thread_state.h         |    3 +
- 18 files changed, 149 insertions(+), 74 deletions(-)
+ sysdeps/mach/i386/thread_state.h    |   11 ++++++-
+ 17 files changed, 150 insertions(+), 39 deletions(-)
 
+Index: eglibc-2.17/include/errno.h
+===================================================================
+--- eglibc-2.17.orig/include/errno.h	2013-10-05 08:19:19.000000000 +0000
++++ eglibc-2.17/include/errno.h	2013-10-05 08:19:19.000000000 +0000
+@@ -21,13 +21,15 @@
+ 
+ #  include <tls.h>
+ 
+-#  undef  errno
+-#  ifndef NOT_IN_libc
+-#   define errno __libc_errno
+-#  else
+-#   define errno errno		/* For #ifndef errno tests.  */
+-#  endif
++#  if !defined(__GNU__)
++#   undef  errno
++#   ifndef NOT_IN_libc
++#    define errno __libc_errno
++#   else
++#    define errno errno		/* For #ifndef errno tests.  */
++#   endif
+ extern __thread int errno attribute_tls_model_ie;
++#  endif
+ 
+ # endif	/* !NOT_IN_libc || IN_LIB */
+ 
 --- a/csu/libc-start.c
 +++ b/csu/libc-start.c
 @@ -139,10 +139,12 @@
@@ -295,7 +322,7 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
 +
 +  struct descriptor desc, *_desc = &desc;
 +  int err;
-+  unsigned int count;
++  unsigned int count = 1;
 +
 +  if (__builtin_expect (sel, 0x48) & 4) /* LDT selector */
 +    err = __i386_get_ldt (orig, sel, 1, &_desc, &count);
