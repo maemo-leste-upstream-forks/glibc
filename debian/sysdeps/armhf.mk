@@ -17,6 +17,7 @@ endef
 #armel_configure_target = arm-linux-gnueabi
 #armel_CC = $(CC) -mfloat-abi=soft
 #armel_CXX = $(CXX) -mfloat-abi=soft
+#armel_rtlddir = /lib/arm-linux-gnueabi
 #armel_slibdir = /lib/arm-linux-gnueabi
 #armel_libdir = /usr/lib/arm-linux-gnueabi
 #

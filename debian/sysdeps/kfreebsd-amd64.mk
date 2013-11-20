@@ -12,6 +12,7 @@ i386_CXX = $(CXX) -m32
 i386_add-ons = ports fbtl $(add-ons)
 i386_extra_cflags = -march=pentium4 -mtune=generic
 i386_extra_config_options = $(extra_config_options) --disable-profile
+i386_rtlddir = /lib32
 i386_slibdir = /lib32
 i386_libdir = /usr/lib32
 

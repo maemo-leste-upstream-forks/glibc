@@ -10,6 +10,7 @@ powerpc_configure_target = powerpc-linux-gnu
 powerpc_CC = $(CC) -m32
 powerpc_CXX = $(CXX) -m32
 powerpc_extra_config_options := $(extra_config_options) --disable-profile
+powerpc_rtlddir = /lib32
 powerpc_slibdir = /lib32
 powerpc_libdir = /usr/lib32
 
