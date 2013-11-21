@@ -44,7 +44,6 @@ eglibc (2.18-0experimental0) UNRELEASED; urgency=low
     stdlib/tst-tls-atexit with binutils defaulting to ld --as-needed.
   * debian/control: Build-dep on netbase for service lookups in tests.
   * debian/sysdeps/{linux,hurd}.mk: Force on pt_chown on linux and hurd.
-  * debian/debhelper.in/libc.install: ld.so is installed to RTLDDIR now.
   * debian/rules.d/debhelper.mk: Compress $(libc), multiarch-support, and
     libc-bin with gzip, and let the rest default to dpkg's new defaults.
   * debian/patches/svn-updates.diff: Update to r24485 from SVN and 2.18.1.
@@ -54,6 +53,8 @@ eglibc (2.18-0experimental0) UNRELEASED; urgency=low
   * debian/patches/powerpc/unsubmitted-tst-auxv.diff: Fix regression in the
     tst-setcontext-fpscr.c test introduced by kfreebsd/submitted-auxv.diff.
   * debian/testsuite-checking/*: Allow powerpc to fail test-{double,float}.
+  * debian/patches/any/local-rtlddir-cross.diff: Revert to the state found
+    in 2.17 where ld.so was installed to slibdir and so listed in libc.so.
 
   [ Samuel Thibault ]
   * patches/hurd-i386/libpthread_hurd_cond_timedwait.diff: Rebased.
@@ -82,7 +83,6 @@ eglibc (2.18-0experimental0) UNRELEASED; urgency=low
 
   [ Petr Salinger ]
   * debian/*: change version occurences from 2.17 to 2.18 for upgrades/deps.
-  * rules.d/build.mk: do not explicitly install symlink in rtlddir
   * kfreebsd/local-sysdeps.diff: update to revision 5148 (from glibc-bsd).
   * kfreebsd/local-fbtl.diff: likewise
   * sysdeps/kfreebsd.mk: pt_chown is mandatory

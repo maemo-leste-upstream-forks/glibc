@@ -256,9 +256,7 @@ else
 	fi
 
 	# Create the ld.so symlink to the multiarch directory
-	#if [ $(curpass) = libc ]; then \
-	# it seems that the 2.18 Makefile already install symlink in rtlddir
-	if false ; then \
+	if [ $(curpass) = libc ]; then \
 	  rtld_so="$$(LANG=C LC_ALL=C readelf -l debian/tmp-$(curpass)/usr/bin/iconv | grep 'interpreter' | sed -e 's/.*interpreter: \(.*\)]/\1/g')" ; \
 	  rtld_so="$$(basename $$rtld_so)" ; \
 	  link_name="debian/tmp-$(curpass)/lib/$$rtld_so" ; \
