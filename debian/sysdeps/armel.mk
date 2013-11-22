@@ -1,4 +1,5 @@
 libc_add-ons = ports nptl $(add-ons)
+extra_config_options = --enable-multi-arch
 
 #EGLIBC_PASSES += armhf
 #DEB_ARCH_REGULAR_PACKAGES += libc6-armhf libc6-dev-armhf
