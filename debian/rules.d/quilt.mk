@@ -25,7 +25,7 @@ unpatch:
 	@if test -r debian/patches/series.$(DEB_HOST_ARCH); then \
 	  pc=".pc.$(DEB_HOST_ARCH)"; \
 	  QUILT_PC="$$pc" $(QUILT) upgrade || true; \
-	  if QUILT_PC="$$pc" $(QUILT) previous >/dev/null 2>&1; then \
+	  if QUILT_PC="$$pc" $(QUILT) applied >/dev/null 2>&1; then \
 	    echo "Unapplying architecture specific patches..."; \
 	    QUILT_PC="$$pc" $(QUILT) pop -a -v ; \
 	  fi ; \
@@ -34,7 +34,7 @@ unpatch:
 	rm -f $(stamp)patch
 
 refresh: unpatch
-	@if $(QUILT) previous >/dev/null 2>&1; then \
+	@if $(QUILT) applied >/dev/null 2>&1; then \
 	  echo "Unapplying Debian patches..." ; \
 	  $(QUILT) pop -a -v ; \
 	fi
