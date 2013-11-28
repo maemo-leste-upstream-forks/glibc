@@ -1945,9 +1945,9 @@
 +
 +#define MAXCOMLEN       19              /* max command name remembered */
 +#define MAXINTERP       32              /* max interpreter file name length */
-+#define MAXLOGNAME      17              /* max login name length (incl. NUL) */
++#define MAXLOGNAME      33              /* max login name length (incl. NUL) */
 +#define MAXUPRC         CHILD_MAX       /* max simultaneous processes */
-+#define NGROUPS         NGROUPS_MAX     /* max number groups */
++#define NGROUPS         (NGROUPS_MAX+1) /* max number groups */
 +#define MAXHOSTNAMELEN  256             /* max hostname size */
 +#define SPECNAMELEN     63              /* max length of devicename */
 +#define TTY_NAME_MAX	SPECNAMELEN
@@ -13623,7 +13623,7 @@
 +  if (__getlogin_cache == NULL)
 +    {
 +      if (INLINE_SYSCALL (getlogin, 2, __getlogin_cache_room, MAXLOGNAME) < 0)
-+	return -1;
++	return errno;
 +      /* The system call should return a NULL terminated name.  */
 +      if (__memchr (__getlogin_cache_room, '\0', MAXLOGNAME) == NULL)
 +	abort ();
@@ -13639,7 +13639,7 @@
 +  else
 +    {
 +      __set_errno (ERANGE);
-+      return -1;
++      return ERANGE;
 +    }
 +}
 +libc_hidden_def (getlogin_r)
