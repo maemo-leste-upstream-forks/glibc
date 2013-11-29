@@ -1,4 +1,5 @@
 libc_rtlddir = /lib
+extra_config_options = --enable-multi-arch
 
 # build 32-bit (s390) alternative library
 EGLIBC_PASSES += s390
