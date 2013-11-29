@@ -268,10 +268,6 @@ else
 endif
 	touch $@
 
-$(stamp)doc: $(stamp)patch
-	make -C $(CURDIR)/linuxthreads/man
-	touch $@
-
 $(stamp)source: $(stamp)patch
 	mkdir -p $(build-tree)
 	tar -c -J -C .. \

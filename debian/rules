@@ -199,7 +199,6 @@ endif
 include debian/rules.d/*.mk
 
 clean:: unpatch
-	make -C $(CURDIR)/linuxthreads/man clean
 	rm -f $(CURDIR)/po/*.mo
 	rm -rf $(patsubst %,debian/tmp-%,$(EGLIBC_PASSES))
 	rm -rf $(build-tree)
@@ -214,7 +213,7 @@ build-arch: $(stamp)info \
 	$(patsubst %,$(stamp)build_%,$(EGLIBC_PASSES)) \
 	$(patsubst %,$(stamp)check_%,$(EGLIBC_PASSES))
 
-build-indep: $(stamp)source $(stamp)doc
+build-indep: $(stamp)source
 
 build: build-arch build-indep
 
