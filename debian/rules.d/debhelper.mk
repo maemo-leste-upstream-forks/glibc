@@ -119,6 +119,8 @@ endif
 	case $(curpass) in \
 	$(libc) | multiarch-support | libc-bin ) \
 		dh_builddeb -p$(curpass) -- -Zgzip -z9 ;; \
+	locales-all ) \
+		dh_builddeb -p$(curpass) -- -Zxz -z7 ;; \
 	*) \
 		dh_builddeb -p$(curpass) ;; \
 	esac
