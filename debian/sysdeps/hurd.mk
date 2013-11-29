@@ -1,5 +1,4 @@
 # This is for the GNU OS.  Commonly known as the Hurd.
-EGLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
 libc = libc0.3
 
 # Linuxthreads Config (we claim "no threads" as nptl keys off this)

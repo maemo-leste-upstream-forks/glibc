@@ -1,4 +1,3 @@
-EGLIBC_OVERLAYS ?= $(shell ls glibc-linuxthreads* glibc-ports* glibc-libidn*)
 # When changing this, make sure to update debian/debhelper.in/libc.preinst!
 MIN_KERNEL_SUPPORTED := 8.3.0
 libc = libc0.1
