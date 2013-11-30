@@ -12,4 +12,4 @@ echo '# fixing these! They are listed here for the purpose of'
 echo '# regression testing during builds.'
 echo '# Format: <Failed test>, Error <Make error code> [(ignored)]'
 echo '#'
-grep 'make\[.*\]:.* \[/.*' $1 | sed -e's,^.*/,,g' -e 's/\]/,/g' | sort
+grep 'make\[.*\]:.* \[/.*' $1 | sed -e's,^.*/,,g' -e 's/\]/,/g' | sort -u
