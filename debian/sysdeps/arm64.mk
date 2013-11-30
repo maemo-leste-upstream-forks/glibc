@@ -1,4 +1,4 @@
 libc_add-ons = ports nptl $(add-ons)
 
-# Passing --disable-profile until arm64 has profiling support
-extra_config_options = --disable-profile
+# No --enable-multi-arch until binutils patches catch up:
+extra_config_options =
