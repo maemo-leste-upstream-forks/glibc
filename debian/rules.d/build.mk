@@ -57,6 +57,11 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	echo "slibdir = $(call xx,slibdir)"       >> $(DEB_BUILDDIR)/configparms
 	echo "rtlddir = $(call xx,rtlddir)"       >> $(DEB_BUILDDIR)/configparms
 
+	# Define the installation directory for all calls to make. This avoid
+	# broken glibc makefiles to spuriously trigger install rules trying to
+	# overwrite system headers.
+	echo "install_root = $(CURDIR)/debian/tmp-$(curpass)" >> $(DEB_BUILDDIR)/configparms
+
 	# Prevent autoconf from running unexpectedly by setting it to false.
 	# Also explicitly pass CC down - this is needed to get -m64 on
 	# Sparc, et cetera.
