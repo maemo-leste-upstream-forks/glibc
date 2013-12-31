@@ -13,11 +13,9 @@ reference.
  sysdeps/mach/hurd/i386/tls.h | 35 +++++++++++++++++++++++------------
  1 file changed, 23 insertions(+), 12 deletions(-)
 
-diff --git a/sysdeps/mach/hurd/i386/tls.h b/sysdeps/mach/hurd/i386/tls.h
-index 4f4c7c5..07c02e0 100644
 --- a/sysdeps/mach/hurd/i386/tls.h
 +++ b/sysdeps/mach/hurd/i386/tls.h
-@@ -58,6 +58,8 @@ static inline const char * __attribute__ ((unused))
+@@ -69,6 +69,8 @@ static inline const char * __attribute__
  _hurd_tls_init (tcbhead_t *tcb, int secondcall)
  {
    HURD_TLS_DESC_DECL (desc, tcb);
@@ -26,7 +24,7 @@ index 4f4c7c5..07c02e0 100644
  
    if (!secondcall)
      {
-@@ -65,25 +67,26 @@ _hurd_tls_init (tcbhead_t *tcb, int secondcall)
+@@ -76,25 +78,26 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
  	 from the TLS point of view.  */
        tcb->tcb = tcb;
  
@@ -60,9 +58,9 @@ index 4f4c7c5..07c02e0 100644
  	}
  
        /* Now install the new selector.  */
-@@ -96,21 +99,29 @@ _hurd_tls_init (tcbhead_t *tcb, int secondcall)
+@@ -107,21 +110,29 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
        asm ("mov %%gs, %w0" : "=q" (sel) : "0" (0));
-       if (__builtin_expect (sel, 0x50) & 4) /* LDT selector */
+       if (__builtin_expect (sel, 0x48) & 4) /* LDT selector */
  	{
 -	  kern_return_t err = __i386_set_ldt (tcb->self, sel, &desc, 1);
 +	  kern_return_t err = __i386_set_ldt (self, sel, &desc, 1);
@@ -95,5 +93,3 @@ index 4f4c7c5..07c02e0 100644
  }
  
  /* Code to initially initialize the thread pointer.  This might need
--- 
-tg: (9a079e2..) t/tls_thread_leak (depends on: baseline)
