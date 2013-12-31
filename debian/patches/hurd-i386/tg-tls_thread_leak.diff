@@ -1,0 +1,99 @@
+From: Richard Braun <rbraun@sceen.net>
+Subject: [PATCH] Hurd: fix port leak in TLS
+
+Depending on whether the thread is the main thread or not, the threading
+library can have trouble determining whether the thread reference in the
+TCB is valid. The simple solution is to let the threading library
+initialize the TCB, and use a temporary reference when initializing TLS.
+
+* sysdeps/mach/hurd/i386/tls.h (_hurd_tls_init): Use a temporary thread
+reference.
+
+---
+ sysdeps/mach/hurd/i386/tls.h | 35 +++++++++++++++++++++++------------
+ 1 file changed, 23 insertions(+), 12 deletions(-)
+
+diff --git a/sysdeps/mach/hurd/i386/tls.h b/sysdeps/mach/hurd/i386/tls.h
+index 4f4c7c5..07c02e0 100644
+--- a/sysdeps/mach/hurd/i386/tls.h
++++ b/sysdeps/mach/hurd/i386/tls.h
+@@ -58,6 +58,8 @@ static inline const char * __attribute__ ((unused))
+ _hurd_tls_init (tcbhead_t *tcb, int secondcall)
+ {
+   HURD_TLS_DESC_DECL (desc, tcb);
++  thread_t self = __mach_thread_self ();
++  const char *msg = NULL;
+ 
+   if (!secondcall)
+     {
+@@ -65,25 +67,26 @@ _hurd_tls_init (tcbhead_t *tcb, int secondcall)
+ 	 from the TLS point of view.  */
+       tcb->tcb = tcb;
+ 
+-      /* Cache our thread port.  */
+-      tcb->self = __mach_thread_self ();
+-
+       /* Get the first available selector.  */
+       int sel = -1;
+-      kern_return_t err = __i386_set_gdt (tcb->self, &sel, desc);
++      kern_return_t err = __i386_set_gdt (self, &sel, desc);
+       if (err == MIG_BAD_ID)
+ 	{
+ 	  /* Old kernel, use a per-thread LDT.  */
+ 	  sel = 0x27;
+-	  err = __i386_set_ldt (tcb->self, sel, &desc, 1);
++	  err = __i386_set_ldt (self, sel, &desc, 1);
+ 	  assert_perror (err);
+ 	  if (err)
+-	    return "i386_set_ldt failed";
++	    {
++	      msg = "i386_set_ldt failed";
++	      goto out;
++	    }
+ 	}
+       else if (err)
+ 	{
+ 	  assert_perror (err); /* Separate from above with different line #. */
+-	  return "i386_set_gdt failed";
++	  msg = "i386_set_gdt failed";
++	  goto out;
+ 	}
+ 
+       /* Now install the new selector.  */
+@@ -96,21 +99,29 @@ _hurd_tls_init (tcbhead_t *tcb, int secondcall)
+       asm ("mov %%gs, %w0" : "=q" (sel) : "0" (0));
+       if (__builtin_expect (sel, 0x50) & 4) /* LDT selector */
+ 	{
+-	  kern_return_t err = __i386_set_ldt (tcb->self, sel, &desc, 1);
++	  kern_return_t err = __i386_set_ldt (self, sel, &desc, 1);
+ 	  assert_perror (err);
+ 	  if (err)
+-	    return "i386_set_ldt failed";
++	    {
++	      msg = "i386_set_ldt failed";
++	      goto out;
++	    }
+ 	}
+       else
+ 	{
+-	  kern_return_t err = __i386_set_gdt (tcb->self, &sel, desc);
++	  kern_return_t err = __i386_set_gdt (self, &sel, desc);
+ 	  assert_perror (err);
+ 	  if (err)
+-	    return "i386_set_gdt failed";
++	    {
++	      msg = "i386_set_gdt failed";
++	      goto out;
++	    }
+ 	}
+     }
+ 
+-  return 0;
++out:
++  __mach_port_deallocate (__mach_task_self (), self);
++  return msg;
+ }
+ 
+ /* Code to initially initialize the thread pointer.  This might need
+-- 
+tg: (9a079e2..) t/tls_thread_leak (depends on: baseline)
