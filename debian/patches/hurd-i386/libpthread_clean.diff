@@ -2,32 +2,39 @@ These come from the l4 implementation and come in the way of the glibc
 Makefiles, drop them.
 
 ---
- libpthread/include/libc-symbols.h      |  395 ---------------------------------
- libpthread/include/set-hooks.h         |   72 ------
- libpthread/signal/README               |    4 
- libpthread/signal/TODO                 |   29 --
- libpthread/signal/kill.c               |   70 -----
- libpthread/signal/pt-kill-siginfo-np.c |   88 -------
- libpthread/signal/sig-internal.c       |   26 --
- libpthread/signal/sig-internal.h       |  177 --------------
- libpthread/signal/sigaction.c          |   72 ------
- libpthread/signal/sigaltstack.c        |   69 -----
- libpthread/signal/signal-dispatch.c    |  117 ---------
- libpthread/signal/signal.h             |  275 ----------------------
- libpthread/signal/sigpending.c         |   38 ---
- libpthread/signal/sigsuspend.c         |   29 --
- libpthread/signal/sigtimedwait.c       |   30 --
- libpthread/signal/sigwaiter.c          |   91 -------
- libpthread/signal/sigwaitinfo.c        |   74 ------
- 17 files changed, 1656 deletions(-)
-
+ include/libc-symbols.h      |  395 --------------------------------------------
+ include/set-hooks.h         |   72 --------
+ signal/README               |   12 -
+ signal/TODO                 |   29 ---
+ signal/kill.c               |   70 -------
+ signal/pt-kill-siginfo-np.c |   88 ---------
+ signal/sig-internal.c       |   26 --
+ signal/sig-internal.h       |  177 -------------------
+ signal/sigaction.c          |   72 --------
+ signal/sigaltstack.c        |   69 -------
+ signal/signal-dispatch.c    |  117 -------------
+ signal/signal.h             |  275 ------------------------------
+ signal/sigpending.c         |   38 ----
+ signal/sigsuspend.c         |   29 ---
+ signal/sigtimedwait.c       |   30 ---
+ signal/sigwaiter.c          |   91 ----------
+ signal/sigwaitinfo.c        |   74 --------
+ 17 files changed, 1664 deletions(-)
 --- a/libpthread/signal/README
 +++ /dev/null
-@@ -1,4 +0,0 @@
+@@ -1,12 +0,0 @@
 -This directory provides a signal implementation, which is appropriate
 -for operating systems where signals are managed at user-level.  It is
 -up to the run-time to catch the signals and forward them to the
 -implementation via, e.g., the pthread_kill_info_np call.
+-
+-The files in this directory are accompanied by the generic implementations
+-found in sysdeps/generic/: killpg.c, raise.c, sigaddset.c, sigdelset.c,
+-sigemptyset.c, sigfillset.c, siginterrupt.c, sigismember.c, signal.c,
+-sigwait.c.
+-
+-This implementation was once used for a native port running on L4, but is not
+-currently used in any libpthread port bundled in this release.
 --- a/libpthread/signal/TODO
 +++ /dev/null
 @@ -1,29 +0,0 @@
@@ -878,7 +885,7 @@ Makefiles, drop them.
 -    /* Pointer to a signal-catching function or one of the macros
 -       SIG_IGN or SIG_DFL.  */
 -    void (*sa_handler)(int);
--
+-                   
 -    /* Pointer to a signal-catching function.  */
 -    void (*sa_sigaction)(int, siginfo_t *, void *);
 -  };

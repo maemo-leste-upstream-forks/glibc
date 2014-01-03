@@ -16,22 +16,17 @@ Date:   Fri Jun 10 05:46:39 2011 +0000
 
 --- a/libpthread/sysdeps/mach/hurd/pt-sigstate-init.c
 +++ b/libpthread/sysdeps/mach/hurd/pt-sigstate-init.c
-@@ -19,6 +19,7 @@
+@@ -19,11 +19,24 @@
+    Boston, MA 02111-1307, USA.  */
  
  #include <pthread.h>
- #include <hurd/threadvar.h>
 +#include <hurd/signal.h>
- 
  #include <pt-internal.h>
  
-@@ -30,8 +31,21 @@
- 						thread->stackaddr);
- 
-   /* The real initialization happens internally in glibc the first
--     time that _hurd_thead_sigstate is called.  */
-+     time that _hurd_self_sigstate is called.  */
-   *location = 0;
- 
+ error_t
+ __pthread_sigstate_init (struct __pthread *thread)
+ {
+-  /* Nothing to do.  */
 +  /* Mark the thread as a global signal receiver so as to conform with
 +     the pthread semantics.  However, we must be careful.  The first
 +     pthread created is the main thread, during libpthread initialization.
