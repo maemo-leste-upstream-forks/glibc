@@ -51,7 +51,7 @@ diff --git a/sysdeps/unix/sysv/linux/bits/waitflags.h b/sysdeps/unix/sysv/linux/
 index 2be017d..2ede21b 100644
 --- a/sysdeps/unix/sysv/linux/bits/waitflags.h
 +++ b/sysdeps/unix/sysv/linux/bits/waitflags.h
-@@ -35,3 +35,16 @@
+@@ -35,3 +35,23 @@
  				      in this group */
  #define __WALL		0x40000000 /* Wait for any child.  */
  #define __WCLONE	0x80000000 /* Wait for cloned process.  */
@@ -60,6 +60,13 @@ index 2be017d..2ede21b 100644
 +#if defined __USE_SVID || defined __USE_XOPEN || defined __USE_XOPEN2K8
 +# ifndef __ENUM_IDTYPE_T
 +# define __ENUM_IDTYPE_T 1
++
++/* The Linux kernel defines these bare, rather than an enum,
++   which causes a conflict if the include order is reversed. */
++# undef P_ALL
++# undef P_PID
++# undef P_PGID
++
 +typedef enum
 +{
 +  P_ALL,		/* Wait for any child.  */
