@@ -1,0 +1,68 @@
+commit 6d9b9a67af7f49151191a4c7c406ca6be89855ec
+Author: Will Newton <will.newton@linaro.org>
+Date:   Wed Sep 25 10:14:20 2013 +0100
+
+    ARM: Allow building __longjmp as Thumb.
+    
+    Convert __longjmp code to allow building as Thumb.
+    
+    ports/ChangeLog.arm:
+    
+    2013-10-04  Will Newton  <will.newton@linaro.org>
+    
+    	* sysdeps/arm/__longjmp.S (NO_THUMB): Remove define.
+    	(__longjmp): Use Thumb supported instructions.
+    	* sysdeps/unix/sysv/linux/arm/____longjmp_chk.S (NO_THUMB):
+    	Remove define.
+
+2013-10-04  Will Newton  <will.newton@linaro.org>
+
+	* sysdeps/arm/__longjmp.S (NO_THUMB): Remove define.
+	(__longjmp): Use Thumb supported instructions.
+	* sysdeps/unix/sysv/linux/arm/____longjmp_chk.S (NO_THUMB):
+	Remove define.
+ 
+diff --git a/ports/sysdeps/arm/__longjmp.S b/ports/sysdeps/arm/__longjmp.S
+index 2b1f7f4..894c121 100644
+--- a/ports/sysdeps/arm/__longjmp.S
++++ b/ports/sysdeps/arm/__longjmp.S
+@@ -16,8 +16,6 @@
+    License along with the GNU C Library.  If not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
+-/* ??? Needs more rearrangement for the LDM to handle thumb mode.  */
+-#define NO_THUMB
+ #include <sysdep.h>
+ #include <bits/setjmp.h>
+ #include <rtld-global-offsets.h>
+@@ -28,6 +26,7 @@
+ ENTRY (__longjmp)
+ 	mov	ip, r0
+ 	movs	r0, r1		/* get the return value in place */
++	it	eq
+ 	moveq	r0, #1		/* can't let setjmp() return zero! */
+ 
+ #ifdef CHECK_SP
+@@ -44,7 +43,8 @@ ENTRY (__longjmp)
+ #ifdef PTR_DEMANGLE
+ 	PTR_DEMANGLE (fp, a4, a3, a2)
+ 	ldr	a4, [ip], #4
+-	PTR_DEMANGLE2 (sp, a4, a3)
++	PTR_DEMANGLE2 (a4, a4, a3)
++	mov	sp, a4
+ 	ldr	a4, [ip], #4
+ 	PTR_DEMANGLE2 (lr, a4, a3)
+ #else
+diff --git a/ports/sysdeps/unix/sysv/linux/arm/____longjmp_chk.S b/ports/sysdeps/unix/sysv/linux/arm/____longjmp_chk.S
+index 6ee7a1a..6777ef6 100644
+--- a/ports/sysdeps/unix/sysv/linux/arm/____longjmp_chk.S
++++ b/ports/sysdeps/unix/sysv/linux/arm/____longjmp_chk.S
+@@ -15,8 +15,6 @@
+    License along with the GNU C Library.  If not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
+-/* ??? Needs more rearrangement for the LDM to handle thumb mode.  */
+-#define NO_THUMB
+ #include <sysdep.h>
+ 
+ 	.section .rodata.str1.1,"aMS",%progbits,1
