@@ -1,9 +1,10 @@
-git snapshot dc3e00f590e33c92cab40c730367c5f3be9f73e2
+git snapshot 7c6dc6e28b2fc4b67934223f41cf080ffe58b230
+Date:   Wed Jan 22 01:15:55 2014 +0100
 
 ---
  ChangeLog                                     |    6 
  Makeconfig                                    |   12 
- Makefile                                      |  343 +++++++++
+ Makefile                                      |  342 +++++++++
  TODO                                          |  141 +++
  Versions                                      |  138 +++
  configure.in                                  |    4 
@@ -21,17 +22,17 @@ git snapshot dc3e00f590e33c92cab40c730367c5f3be9f73e2
  not-in-libc.h                                 |   11 
  pthread/Versions                              |   15 
  pthread/cthreads-compat.c                     |  107 ++
- pthread/pt-alloc.c                            |  231 ++++++
+ pthread/pt-alloc.c                            |  217 +++++
  pthread/pt-cancel.c                           |   63 +
  pthread/pt-cleanup.c                          |   28 
- pthread/pt-create.c                           |  238 ++++++
- pthread/pt-dealloc.c                          |   64 +
- pthread/pt-detach.c                           |   94 ++
- pthread/pt-exit.c                             |  119 +++
+ pthread/pt-create.c                           |  232 ++++++
+ pthread/pt-dealloc.c                          |   69 +
+ pthread/pt-detach.c                           |   80 ++
+ pthread/pt-exit.c                             |  112 +++
  pthread/pt-getattr.c                          |   49 +
  pthread/pt-initialize.c                       |   78 ++
- pthread/pt-internal.h                         |  333 +++++++++
- pthread/pt-join.c                             |   92 ++
+ pthread/pt-internal.h                         |  338 +++++++++
+ pthread/pt-join.c                             |   76 ++
  pthread/pt-self.c                             |   34 
  pthread/pt-setcancelstate.c                   |   47 +
  pthread/pt-setcanceltype.c                    |   47 +
@@ -94,7 +95,7 @@ git snapshot dc3e00f590e33c92cab40c730367c5f3be9f73e2
  sysdeps/generic/pt-attr-setstack.c            |   51 +
  sysdeps/generic/pt-attr-setstackaddr.c        |   29 
  sysdeps/generic/pt-attr-setstacksize.c        |   36 
- sysdeps/generic/pt-attr.c                     |   42 +
+ sysdeps/generic/pt-attr.c                     |   41 +
  sysdeps/generic/pt-barrier-destroy.c          |   27 
  sysdeps/generic/pt-barrier-init.c             |   53 +
  sysdeps/generic/pt-barrier-wait.c             |   61 +
@@ -196,8 +197,6 @@ git snapshot dc3e00f590e33c92cab40c730367c5f3be9f73e2
  sysdeps/hurd/pt-setspecific.c                 |   47 +
  sysdeps/i386/bits/memory.h                    |   40 +
  sysdeps/i386/bits/pt-atomic.h                 |   66 +
- sysdeps/i386/bits/spin-lock-inline.h          |   98 ++
- sysdeps/i386/bits/spin-lock.h                 |   39 +
  sysdeps/i386/machine-sp.h                     |   30 
  sysdeps/i386/pt-machdep.h                     |   29 
  sysdeps/mach/bits/spin-lock-inline.h          |   90 ++
@@ -205,28 +204,30 @@ git snapshot dc3e00f590e33c92cab40c730367c5f3be9f73e2
  sysdeps/mach/hurd/Implies                     |    2 
  sysdeps/mach/hurd/bits/pthread-np.h           |   38 +
  sysdeps/mach/hurd/i386/pt-machdep.c           |   83 ++
- sysdeps/mach/hurd/i386/pt-setup.c             |   97 ++
+ sysdeps/mach/hurd/i386/pt-setup.c             |  108 ++
  sysdeps/mach/hurd/pt-attr-setstackaddr.c      |   29 
  sysdeps/mach/hurd/pt-attr-setstacksize.c      |   29 
  sysdeps/mach/hurd/pt-docancel.c               |   66 +
  sysdeps/mach/hurd/pt-hurd-cond-timedwait.c    |  169 ++++
  sysdeps/mach/hurd/pt-hurd-cond-wait.c         |   41 +
  sysdeps/mach/hurd/pt-sigstate-destroy.c       |   28 
- sysdeps/mach/hurd/pt-sigstate-init.c          |   28 
+ sysdeps/mach/hurd/pt-sigstate-init.c          |   44 +
  sysdeps/mach/hurd/pt-sigstate.c               |   69 +
- sysdeps/mach/hurd/pt-sysdep.c                 |   79 ++
- sysdeps/mach/hurd/pt-sysdep.h                 |   68 +
+ sysdeps/mach/hurd/pt-sysdep.c                 |   70 +
+ sysdeps/mach/hurd/pt-sysdep.h                 |   67 +
+ sysdeps/mach/i386/bits/spin-lock-inline.h     |   98 ++
+ sysdeps/mach/i386/bits/spin-lock.h            |   39 +
  sysdeps/mach/pt-block.c                       |   39 +
  sysdeps/mach/pt-spin.c                        |   36 
  sysdeps/mach/pt-stack-alloc.c                 |   69 +
- sysdeps/mach/pt-thread-alloc.c                |  110 +++
- sysdeps/mach/pt-thread-dealloc.c              |   41 +
- sysdeps/mach/pt-thread-halt.c                 |   37 +
- sysdeps/mach/pt-thread-start.c                |   49 +
+ sysdeps/mach/pt-thread-alloc.c                |   95 ++
+ sysdeps/mach/pt-thread-start.c                |   51 +
+ sysdeps/mach/pt-thread-terminate.c            |   83 ++
  sysdeps/mach/pt-timedblock.c                  |   68 +
  sysdeps/mach/pt-wakeup.c                      |   38 +
  sysdeps/posix/pt-spin.c                       |   54 +
- sysdeps/pthread/Makefile                      |    3 
+ sysdeps/pthread/Makefile                      |    4 
+ tags                                          |  946 ++++++++++++++++++++++++++
  tests/.cvsignore                              |    1 
  tests/Makefile                                |   40 +
  tests/README                                  |    6 
@@ -248,7 +249,7 @@ git snapshot dc3e00f590e33c92cab40c730367c5f3be9f73e2
  tests/test-8.c                                |   60 +
  tests/test-9.c                                |   88 ++
  tests/test-__pthread_destroy_specific-skip.c  |   83 ++
- 248 files changed, 15396 insertions(+)
+ 247 files changed, 15357 insertions(+)
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/ChangeLog b/libpthread/ChangeLog
 --- a/libpthread/ChangeLog	1970-01-01 01:00:00.000000000 +0100
 +++ b/libpthread/ChangeLog	2009-10-14 03:39:13.000000000 +0200
@@ -2129,8 +2130,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 ++includes += -I$(..)libpthread/include
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/Makefile b/libpthread/Makefile
 --- a/libpthread/Makefile	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/Makefile	2014-01-01 18:30:46.335657054 +0100
-@@ -0,0 +1,343 @@
++++ b/libpthread/Makefile	2014-01-22 01:39:13.096882871 +0100
+@@ -0,0 +1,342 @@
 +#
 +#   Copyright (C) 1994, 1995, 1996, 1997, 2000, 2002, 2004, 2005, 2006, 2007,
 +#     2008, 2011 Free Software Foundation, Inc.
@@ -2252,9 +2253,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +									    \
 +	pt-stack-alloc							    \
 +	pt-thread-alloc							    \
-+	pt-thread-dealloc						    \
 +	pt-thread-start							    \
-+	pt-thread-halt							    \
++	pt-thread-terminate						    \
 +	pt-startup							    \
 +									    \
 +	pt-getconcurrency pt-setconcurrency				    \
@@ -2602,8 +2602,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-alloc.c b/libpthread/pthread/pt-alloc.c
 --- a/libpthread/pthread/pt-alloc.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-alloc.c	2014-01-01 18:30:46.335657054 +0100
-@@ -0,0 +1,231 @@
++++ b/libpthread/pthread/pt-alloc.c	2014-01-01 19:57:55.164746606 +0100
+@@ -0,0 +1,217 @@
 +/* Allocate a new thread structure.
 +   Copyright (C) 2000, 2002, 2005, 2007, 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2653,7 +2653,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +pthread_mutex_t __pthread_free_threads_lock;
 +
 +static inline error_t
-+initialize_pthread (struct __pthread *new, int recycling)
++initialize_pthread (struct __pthread *new)
 +{
 +  error_t err;
 +
@@ -2661,20 +2661,13 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  if (err)
 +    return err;
 +
++  new->nr_refs = 1;
 +  new->cancel_lock = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
 +  new->cancel_hook = NULL;
 +  new->cancel_hook_arg = NULL;
 +  new->cancel_state = PTHREAD_CANCEL_ENABLE;
 +  new->cancel_type = PTHREAD_CANCEL_DEFERRED;
 +  new->cancel_pending = 0;
-+
-+  if (recycling)
-+    /* Since we are recycling PTHREAD, we can assume certains things
-+       about PTHREAD's current state and save some cycles by not
-+       rewriting the memory.  */
-+    return 0;
-+
-+  new->stack = 0;
 +
 +  new->state_lock = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
 +  new->state_cond = (pthread_cond_t) PTHREAD_COND_INITIALIZER;
@@ -2723,22 +2716,15 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +  if (new)
 +    {
-+      /* The thread may still be running.  Make sure it is stopped.
-+	 If this is the case, then the thread is either at the end of
-+	 __pthread_dealloc or in __pthread_thread_halt.  In both
-+	 cases, we are interrupt it.  */
-+      __pthread_thread_halt (new);
-+
 +#ifdef ENABLE_TLS
 +      if (new->tcb)
 +	{
 +	  /* Drop old values */
 +	  _dl_deallocate_tls (new->tcb, 1);
-+	  new->tcb = NULL;
 +	}
 +#endif /* ENABLE_TLS */
 +
-+      err = initialize_pthread (new, 1);
++      err = initialize_pthread (new);
 +      if (! err)
 +	*pthread = new;
 +      return err;
@@ -2749,7 +2735,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  if (new == NULL)
 +    return ENOMEM;
 +
-+  err = initialize_pthread (new, 0);
++  err = initialize_pthread (new);
 +  if (err)
 +    {
 +      free (new);
@@ -2936,8 +2922,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-create.c b/libpthread/pthread/pt-create.c
 --- a/libpthread/pthread/pt-create.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-create.c	2014-01-01 18:30:46.335657054 +0100
-@@ -0,0 +1,238 @@
++++ b/libpthread/pthread/pt-create.c	2014-01-22 01:39:13.096882871 +0100
+@@ -0,0 +1,232 @@
 +/* Thread creation.
 +   Copyright (C) 2000, 2002, 2005, 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3043,46 +3029,29 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  pthread->state = (setup->detachstate == PTHREAD_CREATE_DETACHED
 +		    ? PTHREAD_DETACHED : PTHREAD_JOINABLE);
 +
-+  /* If the user supplied a stack, it is not our responsibility to
-+     setup a stack guard.  */
 +  if (setup->stackaddr)
-+    pthread->guardsize = 0;
-+  else
-+    pthread->guardsize = (setup->guardsize <= setup->stacksize
-+			  ? setup->guardsize : setup->stacksize);
-+
-+  /* Find a stack.  There are several scenarios: if a detached thread
-+     kills itself, it has no way to deallocate its stack, thus it
-+     leaves PTHREAD->stack set to true.  We try to reuse it here,
-+     however, if the user supplied a stack or changes the size,
-+     we cannot use the old one.  Right now, we simply deallocate it.  */
-+  if (pthread->stack)
 +    {
-+      if ((setup->stackaddr && setup->stackaddr != pthread->stackaddr)
-+       || (setup->stacksize != pthread->stacksize))
-+	{
-+	  __pthread_stack_dealloc (pthread->stackaddr,
-+				   pthread->stacksize);
-+	  pthread->stackaddr = setup->stackaddr;
-+	  pthread->stacksize = setup->stacksize;
-+	}
++      pthread->stackaddr = setup->stackaddr;
++
++      /* If the user supplied a stack, it is not our responsibility to
++	 setup a stack guard.  */
++      pthread->guardsize = 0;
++      pthread->stack = 0;
 +    }
 +  else
 +    {
-+      pthread->stacksize = setup->stacksize;
++      /* Allocate a stack.  */
++      err = __pthread_stack_alloc (&pthread->stackaddr,
++				   setup->stacksize);
++      if (err)
++	goto failed_stack_alloc;
 +
-+      if (setup->stackaddr)
-+	pthread->stackaddr = setup->stackaddr;
-+      else
-+	{
-+	  err = __pthread_stack_alloc (&pthread->stackaddr,
-+				       setup->stacksize);
-+	  if (err)
-+	    goto failed_stack_alloc;
-+
-+	  pthread->stack = 1;
-+	}
++      pthread->guardsize = (setup->guardsize <= setup->stacksize
++			   ? setup->guardsize : setup->stacksize);
++      pthread->stack = 1;
 +    }
++
++  pthread->stacksize = setup->stacksize;
 +
 +  /* Allocate the kernel thread and other required resources.  */
 +  err = __pthread_thread_alloc (pthread);
@@ -3108,6 +3077,10 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  err = __pthread_sigstate_init (pthread);
 +  if (err)
 +    goto failed_sigstate;
++
++  /* If the new thread is joinable, add a reference for the caller.  */
++  if (pthread->state == PTHREAD_JOINABLE)
++    pthread->nr_refs++;
 +
 +  /* Set the new thread's signal mask and set the pending signals to
 +     empty.  POSIX says: "The signal mask shall be inherited from the
@@ -3156,6 +3129,10 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  return 0;
 +
 + failed_starting:
++  /* If joinable, a reference was added for the caller.  */
++  if (pthread->state == PTHREAD_JOINABLE)
++    __pthread_dealloc (pthread);
++
 +  __pthread_setid (pthread->thread, NULL);
 +  __atomic_dec (&__pthread_total);
 + failed_sigstate:
@@ -3166,11 +3143,14 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  pthread->tcb = NULL;
 + failed_thread_tls_alloc:
 +#endif /* ENABLE_TLS */
-+  __pthread_thread_dealloc (pthread);
-+  __pthread_thread_halt (pthread);
++  __pthread_thread_terminate (pthread);
++
++  /* __pthread_thread_terminate has taken care of deallocating the stack and
++     the thread structure.  */
++  goto failed;
 + failed_thread_alloc:
-+  __pthread_stack_dealloc (pthread->stackaddr, pthread->stacksize);
-+  pthread->stack = 0;
++  if (pthread->stack)
++    __pthread_stack_dealloc (pthread->stackaddr, pthread->stacksize);
 + failed_stack_alloc:
 +  __pthread_dealloc (pthread);
 + failed:
@@ -3178,8 +3158,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-dealloc.c b/libpthread/pthread/pt-dealloc.c
 --- a/libpthread/pthread/pt-dealloc.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-dealloc.c	2014-01-01 18:30:46.335657054 +0100
-@@ -0,0 +1,64 @@
++++ b/libpthread/pthread/pt-dealloc.c	2014-01-01 19:57:55.168746553 +0100
+@@ -0,0 +1,69 @@
 +/* Deallocate a thread structure.
 +   Copyright (C) 2000, 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3205,6 +3185,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +#include <pt-internal.h>
 +
++#include <bits/pt-atomic.h>
++
 +/* List of thread structures corresponding to free thread IDs.  */
 +extern struct __pthread *__pthread_free_threads;
 +extern pthread_mutex_t __pthread_free_threads_lock;
@@ -3215,6 +3197,9 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +__pthread_dealloc (struct __pthread *pthread)
 +{
 +  assert (pthread->state != PTHREAD_TERMINATED);
++
++  if (! __atomic_dec_and_test (&pthread->nr_refs))
++    return;
 +
 +  /* Withdraw this thread from the thread ID lookup table.  */
 +  __pthread_setid (pthread->thread, NULL);
@@ -3246,8 +3231,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-detach.c b/libpthread/pthread/pt-detach.c
 --- a/libpthread/pthread/pt-detach.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-detach.c	2014-01-01 18:30:46.335657054 +0100
-@@ -0,0 +1,94 @@
++++ b/libpthread/pthread/pt-detach.c	2014-01-01 19:57:55.168746553 +0100
+@@ -0,0 +1,80 @@
 +/* Detach a thread.
 +   Copyright (C) 2000, 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3300,30 +3285,16 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +	 consequences instead of blocking indefinitely.  */
 +      pthread_cond_broadcast (&pthread->state_cond);
 +      __pthread_mutex_unlock (&pthread->state_lock);
++
++      __pthread_dealloc (pthread);
 +      break;
 +
 +    case PTHREAD_EXITED:
-+      /* THREAD has already exited.  Make sure that nobody can
-+         reference it anymore, and mark it as terminated.  */
-+
 +      __pthread_mutex_unlock (&pthread->state_lock);
 +
-+      /* Make sure the thread is not running before we remove its
-+         stack.  (The only possibility is that it is in a call to
-+         __pthread_thread_halt itself, but that is enough to cause a
-+         sigsegv.)  */
-+      __pthread_thread_halt (pthread);
-+
-+      /* Destroy the stack, the kernel resources and the control
-+	 block.  */
-+      if (pthread->stack)
-+	{
-+	  __pthread_stack_dealloc (pthread->stackaddr, pthread->stacksize);
-+	  pthread->stack = 0;
-+	}
-+
-+      __pthread_thread_dealloc (pthread);
-+
++      /* THREAD has already exited.  PTHREAD remained after the thread
++	 exited in order to provide the exit status, but it turns out
++	 it won't be needed.  */
 +      __pthread_dealloc (pthread);
 +      break;
 +
@@ -3344,8 +3315,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-exit.c b/libpthread/pthread/pt-exit.c
 --- a/libpthread/pthread/pt-exit.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-exit.c	2014-01-01 18:30:46.335657054 +0100
-@@ -0,0 +1,119 @@
++++ b/libpthread/pthread/pt-exit.c	2014-01-22 01:39:13.096882871 +0100
+@@ -0,0 +1,112 @@
 +/* Thread termination.
 +   Copyright (C) 2000, 2002, 2005, 2007, 2011 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3396,12 +3367,6 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +  pthread_setcancelstate (oldstate, &oldstate);
 +
-+  /* Destory any thread specific data.  */
-+  __pthread_destroy_specific (self);
-+
-+  /* Destroy any signal state.  */
-+  __pthread_sigstate_destroy (self);
-+
 +  /* Decrease the number of threads.  We use an atomic operation to
 +     make sure that only the last thread calls `exit'.  */
 +  if (__atomic_dec_and_test (&__pthread_total))
@@ -3425,14 +3390,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +      break;
 +
 +    case PTHREAD_DETACHED:
-+      /* Make sure that nobody can reference this thread anymore, and
-+         mark it as terminated.  Our thread ID will immediately become
-+         available for re-use.  For obvious reasons, we cannot
-+         deallocate our own stack and TLS.  However, it will eventually be
-+         reused when this thread structure is recycled.  */
 +      __pthread_mutex_unlock (&self->state_lock);
-+
-+      __pthread_dealloc (self);
 +
 +      break;
 +
@@ -3453,12 +3411,18 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +      break;
 +    }
 +
-+  /* Note that after this point the resources used by this thread can
-+     be freed at any moment if another thread joins or detaches us.
-+     This means that before freeing any resources, such a thread
-+     should make sure that this thread is really halted.  */
-+  
-+  __pthread_thread_halt (self);
++  /* Destroy any thread specific data.  */
++  __pthread_destroy_specific (self);
++
++  /* Destroy any signal state.  */
++  __pthread_sigstate_destroy (self);
++
++  /* Self terminating requires TLS, so defer the release of the TCB until
++     the thread structure is reused.  */
++
++  /* Release kernel resources, including the kernel thread and the stack,
++     and drop the self reference.  */
++  __pthread_thread_terminate (self);
 +
 +  /* NOTREACHED */
 +  abort ();
@@ -3722,8 +3686,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-internal.h b/libpthread/pthread/pt-internal.h
 --- a/libpthread/pthread/pt-internal.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-internal.h	2014-01-01 18:30:46.335657054 +0100
-@@ -0,0 +1,333 @@
++++ b/libpthread/pthread/pt-internal.h	2014-01-22 01:39:13.096882871 +0100
+@@ -0,0 +1,338 @@
 +/* Internal defenitions for pthreads library.
 +   Copyright (C) 2000, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3797,6 +3761,12 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +{
 +  /* Thread ID.  */
 +  pthread_t thread;
++
++  __atomic_t nr_refs;   /* Detached threads have a self reference only,
++			   while joinable threads have two references.
++			   These are used to keep the structure valid at
++			   thread destruction.  Detaching/joining a thread
++			   drops a reference.  */
 +
 +  /* Cancellation.  */
 +  pthread_mutex_t cancel_lock;  /* Protect cancel_xxx members.  */
@@ -3934,12 +3904,13 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +				      void *__restrict arg);
 +
 +/* Allocate a new thread structure and a pthread thread ID (but not a
-+   kernel thread or a stack).  */
++   kernel thread or a stack).  THREAD has one reference.  */
 +extern int __pthread_alloc (struct __pthread **thread);
 +
 +/* Deallocate the thread structure.  This is the dual of
-+   __pthread_alloc (N.B. it does not call __pthread_stack_alloc nor
-+   __pthread_thread_halt).  */
++   __pthread_alloc (N.B. it does not call __pthread_stack_dealloc nor
++   __pthread_thread_terminate).  THREAD loses one reference and is
++   released if the reference counter drops to 0.  */
 +extern void __pthread_dealloc (struct __pthread *thread);
 +
 +
@@ -3964,22 +3935,21 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +   resources) for THREAD; it must not be placed on the run queue.  */
 +extern int __pthread_thread_alloc (struct __pthread *thread);
 +
-+/* Deallocate any kernel resources associated with THREAD.  The thread
-+   must not be running (that is, if __pthread_thread_start was called,
-+   __pthread_thread_halt must first be called).  This function will
-+   never be called by a thread on itself.  In the case that a thread
-+   exits, its thread structure will be cached and cleaned up
-+   later.  */
-+extern void __pthread_thread_dealloc (struct __pthread *thread);
-+
 +/* Start THREAD making it eligible to run.  */
 +extern int __pthread_thread_start (struct __pthread *thread);
 +
-+/* Stop the kernel thread associated with THREAD.  This function may
-+   be called by two threads in parallel.  In particular, by the thread
-+   itself and another thread trying to join it.  This function must be
-+   implemented such that this is safe.  */
-+extern void __pthread_thread_halt (struct __pthread *thread);
++/* Terminate the kernel thread associated with THREAD, and deallocate its
++   stack as well as any other kernel resource associated with it.
++   In addition, THREAD looses one reference.
++
++   This function can be called by any thread, including the target thread.
++   Since some resources that are destroyed along the kernel thread are
++   stored in thread-local variables, the conditions required for this
++   function to behave correctly are a bit unusual : as long as the target
++   thread hasn't been started, any thread can terminate it, but once it
++   has started, no other thread can terminate it, so that thread-local
++   variables created by that thread are correctly released.  */
++extern void __pthread_thread_terminate (struct __pthread *thread);
 +
 +
 +/* Called by a thread just before it calls the provided start
@@ -4027,9 +3997,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +				   int clear_pending);
 +
 +
-+/* Default thread attributes.
-+   FIXME Normally const, see sysdeps/mach/hurd/pt-sysdep.c.  */
-+extern struct __pthread_attr __pthread_default_attr;
++/* Default thread attributes.  */
++extern const struct __pthread_attr __pthread_default_attr;
 +
 +/* Default barrier attributes.  */
 +extern const struct __pthread_barrierattr __pthread_default_barrierattr;
@@ -4059,8 +4028,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +#endif /* pt-internal.h */
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-join.c b/libpthread/pthread/pt-join.c
 --- a/libpthread/pthread/pt-join.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-join.c	2014-01-01 18:30:46.339656998 +0100
-@@ -0,0 +1,92 @@
++++ b/libpthread/pthread/pt-join.c	2014-01-01 19:57:55.168746553 +0100
+@@ -0,0 +1,76 @@
 +/* Wait for thread termination.
 +   Copyright (C) 2000 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -4113,27 +4082,11 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  switch (pthread->state)
 +    {
 +    case PTHREAD_EXITED:
-+      __pthread_mutex_unlock (&pthread->state_lock);
-+
 +      /* THREAD has already exited.  Salvage its exit status.  */
 +      if (status)
 +	*status = pthread->status;
 +
-+      /* Make sure the thread is not running before we remove its
-+         stack.  (The only possibility is that it is in a call to
-+         __pthread_thread_halt itself, but that is enough to cause a
-+         sigsegv.)  */
-+      __pthread_thread_halt (pthread);
-+
-+      /* Destroy the stack, the kernel resources and the control
-+	 block.  */
-+      if (pthread->stack)
-+	{
-+	  __pthread_stack_dealloc (pthread->stackaddr, pthread->stacksize);
-+	  pthread->stack = 0;
-+	}
-+
-+      __pthread_thread_dealloc (pthread);
++      __pthread_mutex_unlock (&pthread->state_lock);
 +
 +      __pthread_dealloc (pthread);
 +      break;
@@ -6479,8 +6432,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/generic/pt-attr.c b/libpthread/sysdeps/generic/pt-attr.c
 --- a/libpthread/sysdeps/generic/pt-attr.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/generic/pt-attr.c	2014-01-01 18:30:46.339656998 +0100
-@@ -0,0 +1,42 @@
++++ b/libpthread/sysdeps/generic/pt-attr.c	2014-01-01 19:57:55.168746553 +0100
+@@ -0,0 +1,41 @@
 +/* Default attributes.  Generic version.
 +   Copyright (C) 2000,02 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -6507,8 +6460,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +#include <pt-internal.h>
 +
-+/* FIXME Normally const, see sysdeps/mach/hurd/pt-sysdep.c.  */
-+struct __pthread_attr __pthread_default_attr =
++const struct __pthread_attr __pthread_default_attr =
 +{
 +  schedparam: { sched_priority: 0 },
 +  stacksize: PTHREAD_STACK_DEFAULT,
@@ -12207,151 +12159,6 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 +
 +#endif
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/i386/bits/spin-lock.h b/libpthread/sysdeps/i386/bits/spin-lock.h
---- a/libpthread/sysdeps/i386/bits/spin-lock.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/i386/bits/spin-lock.h	2012-09-15 21:43:27.807249556 +0200
-@@ -0,0 +1,39 @@
-+/* Machine-specific definitions for spin locks.  i386 version.
-+   Copyright (C) 2000, 2005, 2008, 2009 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Library General Public License as
-+   published by the Free Software Foundation; either version 2 of the
-+   License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Library General Public License for more details.
-+
-+   You should have received a copy of the GNU Library General Public
-+   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-+   Boston, MA 02111-1307, USA.  */
-+
-+/*
-+ * Never include this file directly; use <pthread.h> or <cthreads.h> instead.
-+ */
-+
-+#ifndef _BITS_SPIN_LOCK_H
-+#define _BITS_SPIN_LOCK_H	1
-+
-+#include <features.h>
-+
-+__BEGIN_DECLS
-+
-+/* The type of a spin lock object.  */
-+typedef __volatile int __pthread_spinlock_t;
-+
-+/* Initializer for a spin lock object.  */
-+# define __PTHREAD_SPIN_LOCK_INITIALIZER ((__pthread_spinlock_t) 0)
-+
-+__END_DECLS
-+
-+#endif /* bits/spin-lock.h */
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/i386/bits/spin-lock-inline.h b/libpthread/sysdeps/i386/bits/spin-lock-inline.h
---- a/libpthread/sysdeps/i386/bits/spin-lock-inline.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/i386/bits/spin-lock-inline.h	2012-09-15 21:43:27.807249556 +0200
-@@ -0,0 +1,98 @@
-+/* Machine-specific definitions for spin locks.  i386 version.
-+   Copyright (C) 2000, 2005, 2008, 2009 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Library General Public License as
-+   published by the Free Software Foundation; either version 2 of the
-+   License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Library General Public License for more details.
-+
-+   You should have received a copy of the GNU Library General Public
-+   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-+   Boston, MA 02111-1307, USA.  */
-+
-+/*
-+ * Never include this file directly; use <pthread.h> or <cthreads.h> instead.
-+ */
-+
-+#ifndef _BITS_SPIN_LOCK_INLINE_H
-+#define _BITS_SPIN_LOCK_INLINE_H	1
-+
-+#include <features.h>
-+#include <bits/spin-lock.h>
-+
-+__BEGIN_DECLS
-+
-+#if defined __USE_EXTERN_INLINES || defined _FORCE_INLINES
-+
-+# ifndef __EBUSY
-+#  include <errno.h>
-+#  define __EBUSY EBUSY
-+# endif
-+
-+# ifndef __PT_SPIN_INLINE
-+#  define __PT_SPIN_INLINE __extern_inline
-+# endif
-+
-+__PT_SPIN_INLINE int __pthread_spin_destroy (__pthread_spinlock_t *__lock);
-+
-+__PT_SPIN_INLINE int
-+__pthread_spin_destroy (__pthread_spinlock_t *__lock)
-+{
-+  return 0;
-+}
-+
-+__PT_SPIN_INLINE int __pthread_spin_init (__pthread_spinlock_t *__lock,
-+					  int __pshared);
-+
-+__PT_SPIN_INLINE int
-+__pthread_spin_init (__pthread_spinlock_t *__lock, int __pshared)
-+{
-+  *__lock = __PTHREAD_SPIN_LOCK_INITIALIZER;
-+  return 0;
-+}
-+
-+__PT_SPIN_INLINE int __pthread_spin_trylock (__pthread_spinlock_t *__lock);
-+
-+__PT_SPIN_INLINE int
-+__pthread_spin_trylock (__pthread_spinlock_t *__lock)
-+{
-+  int __locked;
-+  __asm__ __volatile ("xchgl %0, %1"
-+		      : "=&r" (__locked), "=m" (*__lock) : "0" (1) : "memory");
-+  return __locked ? __EBUSY : 0;
-+}
-+
-+__extern_inline int __pthread_spin_lock (__pthread_spinlock_t *__lock);
-+extern int _pthread_spin_lock (__pthread_spinlock_t *__lock);
-+
-+__extern_inline int
-+__pthread_spin_lock (__pthread_spinlock_t *__lock)
-+{
-+  if (__pthread_spin_trylock (__lock))
-+    return _pthread_spin_lock (__lock);
-+  return 0;
-+}
-+
-+__PT_SPIN_INLINE int __pthread_spin_unlock (__pthread_spinlock_t *__lock);
-+
-+__PT_SPIN_INLINE int
-+__pthread_spin_unlock (__pthread_spinlock_t *__lock)
-+{
-+  int __unlocked;
-+  __asm__ __volatile ("xchgl %0, %1"
-+		      : "=&r" (__unlocked), "=m" (*__lock) : "0" (0) : "memory");
-+  return 0;
-+}
-+
-+#endif /* Use extern inlines or force inlines.  */
-+
-+__END_DECLS
-+
-+#endif /* bits/spin-lock.h */
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/i386/machine-sp.h b/libpthread/sysdeps/i386/machine-sp.h
 --- a/libpthread/sysdeps/i386/machine-sp.h	1970-01-01 01:00:00.000000000 +0100
 +++ b/libpthread/sysdeps/i386/machine-sp.h	2012-09-15 21:43:27.807249556 +0200
@@ -12686,8 +12493,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/hurd/i386/pt-setup.c b/libpthread/sysdeps/mach/hurd/i386/pt-setup.c
 --- a/libpthread/sysdeps/mach/hurd/i386/pt-setup.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/hurd/i386/pt-setup.c	2013-12-26 17:44:13.572260390 +0100
-@@ -0,0 +1,97 @@
++++ b/libpthread/sysdeps/mach/hurd/i386/pt-setup.c	2014-01-22 01:39:13.100882758 +0100
+@@ -0,0 +1,108 @@
 +/* Setup thread stack.  Hurd/i386 version.
 +   Copyright (C) 2000, 2002, 2005, 2007, 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -12764,24 +12571,35 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +		 void (*entry_point)(struct __pthread *, void *(*)(void *), void *),
 +		 void *(*start_routine)(void *), void *arg)
 +{
++  tcbhead_t *tcb;
 +  error_t err;
 +  mach_port_t ktid;
 +
 +  thread->mcontext.pc = entry_point;
 +  thread->mcontext.sp = stack_setup (thread, start_routine, arg);
 +
-+  thread->tcb->self = thread->kernel_thread;
-+
 +  ktid = __mach_thread_self ();
-+  if (thread->kernel_thread != ktid)
++  if (thread->kernel_thread == ktid)
++    /* Fix up the TCB for the main thread.  The C library has already
++       installed a TCB, which we want to keep using.  This TCB must not
++       be freed so don't register it in the thread structure.  On the
++       other hand, it's not yet possible to reliably release a TCB.
++       Leave the unused one registered so that it doesn't leak.  The
++       only thing left to do is to correctly set the `self' member in
++       the already existing TCB.  */
++    tcb = THREAD_SELF;
++  else
 +    {
 +      err = __thread_set_pcsptp (thread->kernel_thread,
 +			       1, thread->mcontext.pc,
 +			       1, thread->mcontext.sp,
 +			       1, thread->tcb);
 +      assert_perror (err);
++      tcb = thread->tcb;
 +    }
 +  __mach_port_deallocate (__mach_task_self (), ktid);
++
++  tcb->self = thread->kernel_thread;
 +
 +  return 0;
 +}
@@ -13220,7 +13038,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/hurd/pt-sigstate-destroy.c b/libpthread/sysdeps/mach/hurd/pt-sigstate-destroy.c
 --- a/libpthread/sysdeps/mach/hurd/pt-sigstate-destroy.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/hurd/pt-sigstate-destroy.c	2014-01-01 18:30:46.339656998 +0100
++++ b/libpthread/sysdeps/mach/hurd/pt-sigstate-destroy.c	2014-01-01 19:57:55.168746553 +0100
 @@ -0,0 +1,28 @@
 +/* Destroy the signal state.  Hurd on Mach version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -13248,12 +13066,12 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +void
 +__pthread_sigstate_destroy (struct __pthread *thread)
 +{
-+  /* Nothing to do.  */
++  _hurd_sigstate_delete (thread->kernel_thread);
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/hurd/pt-sigstate-init.c b/libpthread/sysdeps/mach/hurd/pt-sigstate-init.c
 --- a/libpthread/sysdeps/mach/hurd/pt-sigstate-init.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/hurd/pt-sigstate-init.c	2014-01-01 18:30:46.339656998 +0100
-@@ -0,0 +1,28 @@
++++ b/libpthread/sysdeps/mach/hurd/pt-sigstate-init.c	2014-01-01 19:57:55.168746553 +0100
+@@ -0,0 +1,44 @@
 +/* Initialize the signal state.  Hurd on Mach version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13279,13 +13097,29 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +error_t
 +__pthread_sigstate_init (struct __pthread *thread)
 +{
-+  /* Nothing to do.  */
++  static int do_init_global;
++
++  /* Mark the thread as a global signal receiver so as to conform with
++     the pthread semantics.  However, we must be careful.  The first
++     pthread created is the main thread, during libpthread initialization.
++     We must not mark it, otherwise the sigprocmask call in
++     __pthread_create would try to access _hurd_global_sigstate,
++     which is not initialized yet.  When glibc runs _hurdsig_init later
++     on, the message thread is created, which must not be marked either.  */
++  if (do_init_global)
++    {
++      struct hurd_sigstate *ss = _hurd_thread_sigstate (thread->kernel_thread);
++      _hurd_sigstate_set_global_rcv (ss);
++    }
++  else if (__pthread_num_threads >= 2)
++    do_init_global = 1;
++
 +  return 0;
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/hurd/pt-sysdep.c b/libpthread/sysdeps/mach/hurd/pt-sysdep.c
 --- a/libpthread/sysdeps/mach/hurd/pt-sysdep.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/hurd/pt-sysdep.c	2014-01-01 18:30:46.339656998 +0100
-@@ -0,0 +1,79 @@
++++ b/libpthread/sysdeps/mach/hurd/pt-sysdep.c	2014-01-01 19:57:55.168746553 +0100
+@@ -0,0 +1,70 @@
 +/* System dependent pthreads code.  Hurd version.
 +   Copyright (C) 2000, 2002, 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13316,16 +13150,6 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +__thread struct __pthread *___pthread_self;
 +
-+/* Allow programs that know about this library to override the default stack
-+   size.
-+
-+   FIXME Stack sizes should normally be set at thread creation time using the
-+   standard interface, but Hurd threadvars have special alignment constraints.
-+   Until they are completely replaced with correct TLS, make this hack
-+   available.  */
-+extern size_t __pthread_stack_default_size;
-+weak_extern(__pthread_stack_default_size);
-+
 +/* Forward.  */
 +static void *init_routine (void);
 +
@@ -13342,16 +13166,17 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  struct __pthread *thread;
 +  int err;
 +
-+  /* FIXME */
-+  if (&__pthread_stack_default_size != NULL)
-+    __pthread_default_attr.stacksize = __pthread_stack_default_size;
-+
 +  /* Initialize the library.  */
 +  __pthread_init ();
 +
 +  /* Create the pthread structure for the main thread (i.e. us).  */
 +  err = __pthread_create_internal (&thread, 0, 0, 0);
 +  assert_perror (err);
++
++  /* XXX The caller copies the command line arguments and the environment
++     to the new stack.  Pretend it wasn't allocated so that it remains
++     valid if the main thread terminates.  */
++  thread->stack = 0;
 +
 +  ___pthread_self = thread;
 +
@@ -13367,8 +13192,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/hurd/pt-sysdep.h b/libpthread/sysdeps/mach/hurd/pt-sysdep.h
 --- a/libpthread/sysdeps/mach/hurd/pt-sysdep.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/hurd/pt-sysdep.h	2014-01-01 18:30:46.339656998 +0100
-@@ -0,0 +1,68 @@
++++ b/libpthread/sysdeps/mach/hurd/pt-sysdep.h	2014-01-01 19:57:55.172746500 +0100
+@@ -0,0 +1,67 @@
 +/* Internal defenitions for pthreads library.
 +   Copyright (C) 2000, 2002, 2007, 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13401,8 +13226,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +#define PTHREAD_SYSDEP_MEMBERS \
 +  thread_t kernel_thread;      \
-+  mach_msg_header_t wakeupmsg; \
-+  int have_kernel_resources;
++  mach_msg_header_t wakeupmsg;
 +
 +extern __thread struct __pthread *___pthread_self;
 +#define _pthread_self()                                            \
@@ -13437,6 +13261,151 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +
 +#endif /* pt-sysdep.h */
+diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/i386/bits/spin-lock.h b/libpthread/sysdeps/mach/i386/bits/spin-lock.h
+--- a/libpthread/sysdeps/mach/i386/bits/spin-lock.h	1970-01-01 01:00:00.000000000 +0100
++++ b/libpthread/sysdeps/mach/i386/bits/spin-lock.h	2012-09-15 21:43:27.807249556 +0200
+@@ -0,0 +1,39 @@
++/* Machine-specific definitions for spin locks.  i386 version.
++   Copyright (C) 2000, 2005, 2008, 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Library General Public License as
++   published by the Free Software Foundation; either version 2 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Library General Public License for more details.
++
++   You should have received a copy of the GNU Library General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++/*
++ * Never include this file directly; use <pthread.h> or <cthreads.h> instead.
++ */
++
++#ifndef _BITS_SPIN_LOCK_H
++#define _BITS_SPIN_LOCK_H	1
++
++#include <features.h>
++
++__BEGIN_DECLS
++
++/* The type of a spin lock object.  */
++typedef __volatile int __pthread_spinlock_t;
++
++/* Initializer for a spin lock object.  */
++# define __PTHREAD_SPIN_LOCK_INITIALIZER ((__pthread_spinlock_t) 0)
++
++__END_DECLS
++
++#endif /* bits/spin-lock.h */
+diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h b/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h
+--- a/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h	1970-01-01 01:00:00.000000000 +0100
++++ b/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h	2012-09-15 21:43:27.807249556 +0200
+@@ -0,0 +1,98 @@
++/* Machine-specific definitions for spin locks.  i386 version.
++   Copyright (C) 2000, 2005, 2008, 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Library General Public License as
++   published by the Free Software Foundation; either version 2 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Library General Public License for more details.
++
++   You should have received a copy of the GNU Library General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++/*
++ * Never include this file directly; use <pthread.h> or <cthreads.h> instead.
++ */
++
++#ifndef _BITS_SPIN_LOCK_INLINE_H
++#define _BITS_SPIN_LOCK_INLINE_H	1
++
++#include <features.h>
++#include <bits/spin-lock.h>
++
++__BEGIN_DECLS
++
++#if defined __USE_EXTERN_INLINES || defined _FORCE_INLINES
++
++# ifndef __EBUSY
++#  include <errno.h>
++#  define __EBUSY EBUSY
++# endif
++
++# ifndef __PT_SPIN_INLINE
++#  define __PT_SPIN_INLINE __extern_inline
++# endif
++
++__PT_SPIN_INLINE int __pthread_spin_destroy (__pthread_spinlock_t *__lock);
++
++__PT_SPIN_INLINE int
++__pthread_spin_destroy (__pthread_spinlock_t *__lock)
++{
++  return 0;
++}
++
++__PT_SPIN_INLINE int __pthread_spin_init (__pthread_spinlock_t *__lock,
++					  int __pshared);
++
++__PT_SPIN_INLINE int
++__pthread_spin_init (__pthread_spinlock_t *__lock, int __pshared)
++{
++  *__lock = __PTHREAD_SPIN_LOCK_INITIALIZER;
++  return 0;
++}
++
++__PT_SPIN_INLINE int __pthread_spin_trylock (__pthread_spinlock_t *__lock);
++
++__PT_SPIN_INLINE int
++__pthread_spin_trylock (__pthread_spinlock_t *__lock)
++{
++  int __locked;
++  __asm__ __volatile ("xchgl %0, %1"
++		      : "=&r" (__locked), "=m" (*__lock) : "0" (1) : "memory");
++  return __locked ? __EBUSY : 0;
++}
++
++__extern_inline int __pthread_spin_lock (__pthread_spinlock_t *__lock);
++extern int _pthread_spin_lock (__pthread_spinlock_t *__lock);
++
++__extern_inline int
++__pthread_spin_lock (__pthread_spinlock_t *__lock)
++{
++  if (__pthread_spin_trylock (__lock))
++    return _pthread_spin_lock (__lock);
++  return 0;
++}
++
++__PT_SPIN_INLINE int __pthread_spin_unlock (__pthread_spinlock_t *__lock);
++
++__PT_SPIN_INLINE int
++__pthread_spin_unlock (__pthread_spinlock_t *__lock)
++{
++  int __unlocked;
++  __asm__ __volatile ("xchgl %0, %1"
++		      : "=&r" (__unlocked), "=m" (*__lock) : "0" (0) : "memory");
++  return 0;
++}
++
++#endif /* Use extern inlines or force inlines.  */
++
++__END_DECLS
++
++#endif /* bits/spin-lock.h */
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/pt-block.c b/libpthread/sysdeps/mach/pt-block.c
 --- a/libpthread/sysdeps/mach/pt-block.c	1970-01-01 01:00:00.000000000 +0100
 +++ b/libpthread/sysdeps/mach/pt-block.c	2009-07-11 11:29:35.000000000 +0200
@@ -13595,8 +13564,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/pt-thread-alloc.c b/libpthread/sysdeps/mach/pt-thread-alloc.c
 --- a/libpthread/sysdeps/mach/pt-thread-alloc.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/pt-thread-alloc.c	2014-01-01 18:30:46.339656998 +0100
-@@ -0,0 +1,110 @@
++++ b/libpthread/sysdeps/mach/pt-thread-alloc.c	2014-01-01 19:57:55.172746500 +0100
+@@ -0,0 +1,95 @@
 +/* Start thread.  Mach version.
 +   Copyright (C) 2000, 2002, 2005, 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13666,137 +13635,36 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +int
 +__pthread_thread_alloc (struct __pthread *thread)
 +{
-+  if (thread->have_kernel_resources)
-+    return 0;
-+
++  static int do_create;
 +  error_t err;
 +
 +  err = create_wakeupmsg (thread);
 +  if (err)
 +    return err;
 +
-+  /* If there are no pthreads in the system then the pthread library
-+     is bootstrapping and the main thread must create initialize
-+     itself.  The thread itself is already running, it just has not
-+     pthread context.  We want to reuse what it already has (including
-+     the kernel thread), however, we must determine which thread is
-+     the main thread.
-+
-+     We cannot test if __pthread_total is one as we later decrement
-+     before creating the signal thread.  Currently, we check if
-+     __pthread_num_threads--the number of allocated thread
-+     structures--is one.  __pthread_alloc has already been called in
-+     __pthread_create_internal for us.  This predicate could be improved,
-+     however, it is sufficient for now.  */
-+  if (__pthread_num_threads == 1)
++  if (! do_create)
 +    {
 +      assert (__pthread_total == 0);
 +      thread->kernel_thread = __mach_thread_self ();
-+      /* We implicitly hold a reference drop the one that we just
-+	 acquired.  */
-+      __mach_port_deallocate (__mach_task_self (), thread->kernel_thread);
++      do_create = 1;
 +    }
 +  else
 +    {
 +      err = __thread_create (__mach_task_self (), &thread->kernel_thread);
 +      if (err)
-+	return EAGAIN;
++	{
++	  __mach_port_destroy (__mach_task_self (),
++			       thread->wakeupmsg.msgh_remote_port);
++	  return EAGAIN;
++	}
 +    }
-+
-+  thread->have_kernel_resources = 1;
 +
 +  return 0;
 +}
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/pt-thread-dealloc.c b/libpthread/sysdeps/mach/pt-thread-dealloc.c
---- a/libpthread/sysdeps/mach/pt-thread-dealloc.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/pt-thread-dealloc.c	2014-01-01 18:30:46.339656998 +0100
-@@ -0,0 +1,41 @@
-+/* Deallocate the kernel thread resources.  Mach version.
-+   Copyright (C) 2005 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Library General Public License as
-+   published by the Free Software Foundation; either version 2 of the
-+   License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Library General Public License for more details.
-+
-+   You should have received a copy of the GNU Library General Public
-+   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-+   Boston, MA 02111-1307, USA.  */
-+
-+#include <assert.h>
-+#include <errno.h>
-+#include <mach.h>
-+
-+#include <pt-internal.h>
-+
-+/* Deallocate any kernel resources associated with THREAD except don't
-+   halt the thread itself.  On return, the thread will be marked as
-+   dead and __pthread_halt will be called.  */
-+void
-+__pthread_thread_dealloc (struct __pthread *thread)
-+{
-+  /* Why no assert?  Easy.  When Mach kills a task, it starts by
-+     invalidating the task port and then terminating the threads one
-+     by one.  But while it is terminating them, they are still
-+     eligible to be scheduled.  Imagine we have two threads, one calls
-+     exit, one calls pthread_exit.  The second one may run this after
-+     the mask port can been destroyed thus gratuitously triggering the
-+     assert.  */
-+  __mach_port_destroy (__mach_task_self (),
-+		       thread->wakeupmsg.msgh_remote_port);
-+}
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/pt-thread-halt.c b/libpthread/sysdeps/mach/pt-thread-halt.c
---- a/libpthread/sysdeps/mach/pt-thread-halt.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/pt-thread-halt.c	2014-01-01 18:30:46.339656998 +0100
-@@ -0,0 +1,37 @@
-+/* Deallocate the kernel thread resources.  Mach version.
-+   Copyright (C) 2000, 2002, 2005 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Library General Public License as
-+   published by the Free Software Foundation; either version 2 of the
-+   License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Library General Public License for more details.
-+
-+   You should have received a copy of the GNU Library General Public
-+   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-+   Boston, MA 02111-1307, USA.  */
-+
-+#include <assert.h>
-+#include <errno.h>
-+#include <mach.h>
-+
-+#include <pt-internal.h>
-+
-+/* Stop the kernel thread associated with THREAD.  If NEED_DEALLOC is
-+   true, the function must call __pthread_dealloc on THREAD.
-+
-+   NB: The thread executing this function may be the thread which is
-+   being halted, thus the last action should be halting the thread
-+   itself.  */
-+void
-+__pthread_thread_halt (struct __pthread *thread)
-+{
-+  error_t err = __thread_terminate (thread->kernel_thread);
-+  assert_perror (err);
-+}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/pt-thread-start.c b/libpthread/sysdeps/mach/pt-thread-start.c
 --- a/libpthread/sysdeps/mach/pt-thread-start.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/pt-thread-start.c	2014-01-01 18:30:46.339656998 +0100
-@@ -0,0 +1,49 @@
++++ b/libpthread/sysdeps/mach/pt-thread-start.c	2014-01-01 19:57:55.172746500 +0100
+@@ -0,0 +1,51 @@
 +/* Start thread.  Mach version.
 +   Copyright (C) 2000,02 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13826,9 +13694,10 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +int
 +__pthread_thread_start (struct __pthread *thread)
 +{
++  static int do_start;
 +  error_t err;
 +
-+  if (__pthread_num_threads == 1)
++  if (! do_start)
 +    {
 +      /* The main thread is already running: do nothing.  */
 +      assert (__pthread_total == 1);
@@ -13837,6 +13706,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +                 __mach_port_deallocate (__mach_task_self (),
 +					 thread->kernel_thread);
 +		 ok; }));
++      do_start = 1;
 +    }
 +  else
 +    {
@@ -13847,6 +13717,93 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  return 0;
 +}
 Les fichiers binaires a/libpthread/sysdeps/mach/.pt-thread-start.c.swp et b/libpthread/sysdeps/mach/.pt-thread-start.c.swp sont différents
+diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/pt-thread-terminate.c b/libpthread/sysdeps/mach/pt-thread-terminate.c
+--- a/libpthread/sysdeps/mach/pt-thread-terminate.c	1970-01-01 01:00:00.000000000 +0100
++++ b/libpthread/sysdeps/mach/pt-thread-terminate.c	2014-01-22 01:39:13.100882758 +0100
+@@ -0,0 +1,83 @@
++/* Deallocate the kernel thread resources.  Mach version.
++   Copyright (C) 2000, 2002, 2005 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Library General Public License as
++   published by the Free Software Foundation; either version 2 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Library General Public License for more details.
++
++   You should have received a copy of the GNU Library General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++#include <assert.h>
++#include <errno.h>
++#include <mach.h>
++
++#include <mach/mig_support.h>
++
++#include <pt-internal.h>
++
++/* Terminate the kernel thread associated with THREAD, and deallocate its
++   right reference and its stack.  The function also drops a reference
++   on THREAD.  */
++void
++__pthread_thread_terminate (struct __pthread *thread)
++{
++  thread_t kernel_thread, self_ktid;
++  mach_port_t wakeup_port, reply_port;
++  void *stackaddr;
++  size_t stacksize;
++  error_t err;
++
++  kernel_thread = thread->kernel_thread;
++
++  if (thread->stack)
++    {
++      stackaddr = thread->stackaddr;
++      stacksize = thread->stacksize;
++    }
++  else
++    {
++      stackaddr = NULL;
++      stacksize = 0;
++    }
++
++  wakeup_port = thread->wakeupmsg.msgh_remote_port;
++
++  /* Each thread has its own reply port, allocated from MiG stub code calling
++     __mig_get_reply_port.  Destroying it is a bit tricky because the calls
++     involved are also RPCs, causing the creation of a new reply port if
++     currently null. The __thread_terminate_release call is actually a one way
++     simple routine designed not to require a reply port.  */
++  self_ktid = __mach_thread_self ();
++  reply_port = (self_ktid == kernel_thread)
++	       ? __mig_get_reply_port ()
++	       : MACH_PORT_NULL;
++  __mach_port_deallocate (__mach_task_self (), self_ktid);
++
++  /* Finally done with the thread structure.  */
++  __pthread_dealloc (thread);
++
++  /* The wake up port is now no longer needed.  */
++  __mach_port_destroy (__mach_task_self (), wakeup_port);
++
++  /* Terminate and release all that's left.  */
++  err = __thread_terminate_release (kernel_thread, mach_task_self (),
++				    kernel_thread, reply_port,
++				    stackaddr, stacksize);
++
++  /* The kernel does not support it yet.  Leak but at least terminate
++     correctly.  */
++  err = __thread_terminate (kernel_thread);
++
++  /* We are out of luck.  */
++  assert_perror (err);
++}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/pt-timedblock.c b/libpthread/sysdeps/mach/pt-timedblock.c
 --- a/libpthread/sysdeps/mach/pt-timedblock.c	1970-01-01 01:00:00.000000000 +0100
 +++ b/libpthread/sysdeps/mach/pt-timedblock.c	2012-04-22 01:20:02.255030549 +0200
@@ -14021,9 +13978,10 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +weak_alias (_pthread_spin_lock, __pthread_spin_lock);
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/pthread/Makefile b/libpthread/sysdeps/pthread/Makefile
 --- a/libpthread/sysdeps/pthread/Makefile	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/pthread/Makefile	2013-01-25 01:59:05.899058140 +0100
-@@ -0,0 +1,3 @@
++++ b/libpthread/sysdeps/pthread/Makefile	2014-01-02 00:10:18.302684003 +0100
+@@ -0,0 +1,4 @@
 +ifeq ($(subdir),posix)
++  # FIXME: this is not getting $(pthread-version) from libpthread/Makefile!
 +CFLAGS-confstr.c += -DLIBPTHREAD_VERSION='"libpthread $(pthread-version)"'
 +endif
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/tests/.cvsignore b/libpthread/tests/.cvsignore
