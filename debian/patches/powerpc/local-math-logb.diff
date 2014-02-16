@@ -21,7 +21,7 @@ index 17aa94b..d7fd59d 100644
 +  double ret;
  
    EXTRACT_WORDS (ix, lx, x);
-   ix &= 0x7fffffff;		/* high |x| */
+   ix &= 0x7fffffff;             /* high |x| */
 @@ -41,7 +42,9 @@ __logb (double x)
  	ma = __builtin_clz (ix);
        rix -= ma - 12;
@@ -62,11 +62,11 @@ index 92ce2c1..db030a7 100644
 @@ -27,6 +27,7 @@ long double
  {
    int64_t hx, rhx;
-   int64_t lx __attribute__ ((unused));
+   double xhi;
 +  long double ret;
- 
-   GET_LDOUBLE_WORDS64 (hx, lx, x);
-   hx &= 0x7fffffffffffffffLL;	/* high |x| */
+
+   xhi = ldbl_high (x);
+   EXTRACT_WORDS64 (hx, xhi);
 @@ -40,7 +41,9 @@ __logbl (long double x)
           though it were normalized.  */
        rhx -= __builtin_clzll (hx) - 12;
@@ -76,5 +76,5 @@ index 92ce2c1..db030a7 100644
 +  /* The test is to avoid logb_downward (0.0) == -0.0.  */
 +  return ret == -0.0 ? 0.0 : ret;
  }
- 
+ #ifndef __logbl
  long_double_symbol (libm, __logbl, logbl);
