@@ -14,7 +14,6 @@ stage1_libfake.so :=		\
 stage1_libfake.a :=		\
 	libanl.a		\
 	libBrokenLocale.a	\
-	libbsd-compat.a		\
 	libc.a			\
 	libc_nonshared.a	\
 	libcrypt.a		\
