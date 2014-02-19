@@ -1,74 +1,74 @@
-git snapshot 7c6dc6e28b2fc4b67934223f41cf080ffe58b230
-Date:   Wed Jan 22 01:15:55 2014 +0100
+git snapshot 3b391db91f70b2166951413ee1eccc78cd398a44
+Date: Wed, 19 Feb 2014 14:30:44 -0800 
 
 ---
  ChangeLog                                     |    6 
  Makeconfig                                    |   12 
- Makefile                                      |  342 +++++++++
- TODO                                          |  141 +++
- Versions                                      |  138 +++
+ Makefile                                      |  342 +++++++++++
+ TODO                                          |  141 ++++
+ Versions                                      |  138 ++++
  configure.in                                  |    4 
- forward.c                                     |  232 ++++++
- include/libc-symbols.h                        |  395 ++++++++++
+ forward.c                                     |  232 +++++++
+ include/libc-symbols.h                        |  395 +++++++++++++
  include/pthread.h                             |    7 
- include/pthread/pthread.h                     |  755 ++++++++++++++++++++
- include/pthread/pthreadtypes.h                |  125 +++
- include/semaphore.h                           |   69 +
- include/set-hooks.h                           |   72 +
- libc_pthread_init.c                           |   34 
+ include/pthread/pthread.h                     |  755 ++++++++++++++++++++++++++
+ include/pthread/pthreadtypes.h                |  125 ++++
+ include/semaphore.h                           |   69 ++
+ include/set-hooks.h                           |   72 ++
+ libc_pthread_init.c                           |   34 +
  libpthread.a                                  |   23 
  libpthread_pic.a                              |   23 
- lockfile.c                                    |   65 +
+ lockfile.c                                    |   65 ++
  not-in-libc.h                                 |   11 
  pthread/Versions                              |   15 
- pthread/cthreads-compat.c                     |  107 ++
- pthread/pt-alloc.c                            |  217 +++++
- pthread/pt-cancel.c                           |   63 +
+ pthread/cthreads-compat.c                     |  107 +++
+ pthread/pt-alloc.c                            |  219 +++++++
+ pthread/pt-cancel.c                           |   63 ++
  pthread/pt-cleanup.c                          |   28 
- pthread/pt-create.c                           |  232 ++++++
- pthread/pt-dealloc.c                          |   69 +
+ pthread/pt-create.c                           |  234 ++++++++
+ pthread/pt-dealloc.c                          |   69 ++
  pthread/pt-detach.c                           |   80 ++
  pthread/pt-exit.c                             |  112 +++
  pthread/pt-getattr.c                          |   49 +
  pthread/pt-initialize.c                       |   78 ++
- pthread/pt-internal.h                         |  338 +++++++++
+ pthread/pt-internal.h                         |  343 +++++++++++
  pthread/pt-join.c                             |   76 ++
- pthread/pt-self.c                             |   34 
+ pthread/pt-self.c                             |   34 +
  pthread/pt-setcancelstate.c                   |   47 +
  pthread/pt-setcanceltype.c                    |   47 +
- pthread/pt-sigmask.c                          |   33 
- pthread/pt-spin-inlines.c                     |   34 
- pthread/pt-testcancel.c                       |   36 
+ pthread/pt-sigmask.c                          |   33 +
+ pthread/pt-spin-inlines.c                     |   34 +
+ pthread/pt-testcancel.c                       |   36 +
  pthread/pt-yield.c                            |   26 
  pthread/pthread-functions.h                   |  116 +++
  shlib-versions                                |    1 
  signal/README                                 |   12 
  signal/TODO                                   |   29 
- signal/kill.c                                 |   70 +
- signal/pt-kill-siginfo-np.c                   |   88 ++
+ signal/kill.c                                 |   70 ++
+ signal/pt-kill-siginfo-np.c                   |   88 +++
  signal/sig-internal.c                         |   26 
- signal/sig-internal.h                         |  177 ++++
- signal/sigaction.c                            |   72 +
- signal/sigaltstack.c                          |   69 +
- signal/signal-dispatch.c                      |  117 +++
- signal/signal.h                               |  275 +++++++
+ signal/sig-internal.h                         |  177 ++++++
+ signal/sigaction.c                            |   72 ++
+ signal/sigaltstack.c                          |   69 ++
+ signal/signal-dispatch.c                      |  117 ++++
+ signal/signal.h                               |  275 +++++++++
  signal/sigpending.c                           |   38 +
  signal/sigsuspend.c                           |   29 
- signal/sigtimedwait.c                         |   30 
- signal/sigwaiter.c                            |   91 ++
+ signal/sigtimedwait.c                         |   30 +
+ signal/sigwaiter.c                            |   91 +++
  signal/sigwaitinfo.c                          |   74 ++
- sysdeps/generic/bits/barrier-attr.h           |   32 
+ sysdeps/generic/bits/barrier-attr.h           |   32 +
  sysdeps/generic/bits/barrier.h                |   39 +
  sysdeps/generic/bits/cancelation.h            |   51 +
- sysdeps/generic/bits/condition-attr.h         |   34 
+ sysdeps/generic/bits/condition-attr.h         |   34 +
  sysdeps/generic/bits/condition.h              |   39 +
  sysdeps/generic/bits/mutex-attr.h             |   41 +
  sysdeps/generic/bits/mutex.h                  |   75 ++
- sysdeps/generic/bits/once.h                   |   34 
+ sysdeps/generic/bits/once.h                   |   34 +
  sysdeps/generic/bits/pthread-np.h             |   27 
  sysdeps/generic/bits/pthread.h                |   38 +
  sysdeps/generic/bits/pthreadtypes.h           |   29 
- sysdeps/generic/bits/rwlock-attr.h            |   32 
+ sysdeps/generic/bits/rwlock-attr.h            |   32 +
  sysdeps/generic/bits/rwlock.h                 |   46 +
  sysdeps/generic/bits/semaphore.h              |   43 +
  sysdeps/generic/bits/thread-attr.h            |   44 +
@@ -76,13 +76,13 @@ Date:   Wed Jan 22 01:15:55 2014 +0100
  sysdeps/generic/killpg.c                      |   27 
  sysdeps/generic/pt-atfork.c                   |   29 
  sysdeps/generic/pt-attr-destroy.c             |   28 
- sysdeps/generic/pt-attr-getdetachstate.c      |   31 
+ sysdeps/generic/pt-attr-getdetachstate.c      |   31 +
  sysdeps/generic/pt-attr-getguardsize.c        |   29 
- sysdeps/generic/pt-attr-getinheritsched.c     |   31 
- sysdeps/generic/pt-attr-getschedparam.c       |   34 
- sysdeps/generic/pt-attr-getschedpolicy.c      |   31 
- sysdeps/generic/pt-attr-getscope.c            |   31 
- sysdeps/generic/pt-attr-getstack.c            |   31 
+ sysdeps/generic/pt-attr-getinheritsched.c     |   31 +
+ sysdeps/generic/pt-attr-getschedparam.c       |   34 +
+ sysdeps/generic/pt-attr-getschedpolicy.c      |   31 +
+ sysdeps/generic/pt-attr-getscope.c            |   31 +
+ sysdeps/generic/pt-attr-getstack.c            |   31 +
  sysdeps/generic/pt-attr-getstackaddr.c        |   29 
  sysdeps/generic/pt-attr-getstacksize.c        |   29 
  sysdeps/generic/pt-attr-init.c                |   29 
@@ -94,11 +94,11 @@ Date:   Wed Jan 22 01:15:55 2014 +0100
  sysdeps/generic/pt-attr-setscope.c            |   43 +
  sysdeps/generic/pt-attr-setstack.c            |   51 +
  sysdeps/generic/pt-attr-setstackaddr.c        |   29 
- sysdeps/generic/pt-attr-setstacksize.c        |   36 
+ sysdeps/generic/pt-attr-setstacksize.c        |   36 +
  sysdeps/generic/pt-attr.c                     |   41 +
  sysdeps/generic/pt-barrier-destroy.c          |   27 
  sysdeps/generic/pt-barrier-init.c             |   53 +
- sysdeps/generic/pt-barrier-wait.c             |   61 +
+ sysdeps/generic/pt-barrier-wait.c             |   61 ++
  sysdeps/generic/pt-barrier.c                  |   26 
  sysdeps/generic/pt-barrierattr-destroy.c      |   27 
  sysdeps/generic/pt-barrierattr-getpshared.c   |   29 
@@ -108,42 +108,42 @@ Date:   Wed Jan 22 01:15:55 2014 +0100
  sysdeps/generic/pt-cond-destroy.c             |   29 
  sysdeps/generic/pt-cond-init.c                |   47 +
  sysdeps/generic/pt-cond-signal.c              |   43 +
- sysdeps/generic/pt-cond-timedwait.c           |  178 ++++
+ sysdeps/generic/pt-cond-timedwait.c           |  178 ++++++
  sysdeps/generic/pt-cond-wait.c                |   39 +
  sysdeps/generic/pt-cond.c                     |   29 
  sysdeps/generic/pt-condattr-destroy.c         |   29 
- sysdeps/generic/pt-condattr-getclock.c        |   31 
+ sysdeps/generic/pt-condattr-getclock.c        |   31 +
  sysdeps/generic/pt-condattr-getpshared.c      |   29 
- sysdeps/generic/pt-condattr-init.c            |   30 
+ sysdeps/generic/pt-condattr-init.c            |   30 +
  sysdeps/generic/pt-condattr-setclock.c        |   52 +
  sysdeps/generic/pt-condattr-setpshared.c      |   39 +
  sysdeps/generic/pt-destroy-specific.c         |   28 
- sysdeps/generic/pt-equal.c                    |   31 
+ sysdeps/generic/pt-equal.c                    |   31 +
  sysdeps/generic/pt-getconcurrency.c           |   27 
- sysdeps/generic/pt-getcpuclockid.c            |   35 
- sysdeps/generic/pt-getschedparam.c            |   31 
+ sysdeps/generic/pt-getcpuclockid.c            |   35 +
+ sysdeps/generic/pt-getschedparam.c            |   31 +
  sysdeps/generic/pt-getspecific.c              |   27 
  sysdeps/generic/pt-init-specific.c            |   27 
  sysdeps/generic/pt-key-create.c               |   29 
  sysdeps/generic/pt-key-delete.c               |   29 
  sysdeps/generic/pt-key.h                      |   22 
- sysdeps/generic/pt-kill.c                     |   32 
+ sysdeps/generic/pt-kill.c                     |   32 +
  sysdeps/generic/pt-mutex-destroy.c            |   39 +
- sysdeps/generic/pt-mutex-getprioceiling.c     |   30 
+ sysdeps/generic/pt-mutex-getprioceiling.c     |   30 +
  sysdeps/generic/pt-mutex-init.c               |   50 +
  sysdeps/generic/pt-mutex-lock.c               |   37 +
- sysdeps/generic/pt-mutex-setprioceiling.c     |   30 
- sysdeps/generic/pt-mutex-timedlock.c          |  196 +++++
- sysdeps/generic/pt-mutex-transfer-np.c        |   66 +
+ sysdeps/generic/pt-mutex-setprioceiling.c     |   30 +
+ sysdeps/generic/pt-mutex-timedlock.c          |  196 ++++++
+ sysdeps/generic/pt-mutex-transfer-np.c        |   66 ++
  sysdeps/generic/pt-mutex-trylock.c            |  112 +++
- sysdeps/generic/pt-mutex-unlock.c             |  108 ++
+ sysdeps/generic/pt-mutex-unlock.c             |  108 +++
  sysdeps/generic/pt-mutexattr-destroy.c        |   27 
- sysdeps/generic/pt-mutexattr-getprioceiling.c |   30 
+ sysdeps/generic/pt-mutexattr-getprioceiling.c |   30 +
  sysdeps/generic/pt-mutexattr-getprotocol.c    |   29 
  sysdeps/generic/pt-mutexattr-getpshared.c     |   29 
  sysdeps/generic/pt-mutexattr-gettype.c        |   28 
  sysdeps/generic/pt-mutexattr-init.c           |   28 
- sysdeps/generic/pt-mutexattr-setprioceiling.c |   30 
+ sysdeps/generic/pt-mutexattr-setprioceiling.c |   30 +
  sysdeps/generic/pt-mutexattr-setprotocol.c    |   42 +
  sysdeps/generic/pt-mutexattr-setpshared.c     |   39 +
  sysdeps/generic/pt-mutexattr-settype.c        |   37 +
@@ -152,104 +152,103 @@ Date:   Wed Jan 22 01:15:55 2014 +0100
  sysdeps/generic/pt-rwlock-attr.c              |   26 
  sysdeps/generic/pt-rwlock-destroy.c           |   29 
  sysdeps/generic/pt-rwlock-init.c              |   45 +
- sysdeps/generic/pt-rwlock-rdlock.c            |   32 
- sysdeps/generic/pt-rwlock-timedrdlock.c       |  120 +++
- sysdeps/generic/pt-rwlock-timedwrlock.c       |  103 ++
+ sysdeps/generic/pt-rwlock-rdlock.c            |   32 +
+ sysdeps/generic/pt-rwlock-timedrdlock.c       |  120 ++++
+ sysdeps/generic/pt-rwlock-timedwrlock.c       |  103 +++
  sysdeps/generic/pt-rwlock-tryrdlock.c         |   56 +
  sysdeps/generic/pt-rwlock-trywrlock.c         |   46 +
  sysdeps/generic/pt-rwlock-unlock.c            |   87 ++
- sysdeps/generic/pt-rwlock-wrlock.c            |   34 
+ sysdeps/generic/pt-rwlock-wrlock.c            |   34 +
  sysdeps/generic/pt-rwlockattr-destroy.c       |   27 
  sysdeps/generic/pt-rwlockattr-getpshared.c    |   29 
  sysdeps/generic/pt-rwlockattr-init.c          |   28 
  sysdeps/generic/pt-rwlockattr-setpshared.c    |   39 +
- sysdeps/generic/pt-setconcurrency.c           |   34 
- sysdeps/generic/pt-setschedparam.c            |   31 
+ sysdeps/generic/pt-setconcurrency.c           |   34 +
+ sysdeps/generic/pt-setschedparam.c            |   31 +
  sysdeps/generic/pt-setschedprio.c             |   29 
  sysdeps/generic/pt-setspecific.c              |   27 
  sysdeps/generic/pt-startup.c                  |   25 
  sysdeps/generic/raise.c                       |   41 +
- sysdeps/generic/sem-close.c                   |   32 
+ sysdeps/generic/sem-close.c                   |   32 +
  sysdeps/generic/sem-destroy.c                 |   38 +
- sysdeps/generic/sem-getvalue.c                |   33 
+ sysdeps/generic/sem-getvalue.c                |   33 +
  sysdeps/generic/sem-init.c                    |   46 +
- sysdeps/generic/sem-open.c                    |   32 
- sysdeps/generic/sem-post.c                    |   62 +
- sysdeps/generic/sem-timedwait.c               |  100 ++
+ sysdeps/generic/sem-open.c                    |   32 +
+ sysdeps/generic/sem-post.c                    |   62 ++
+ sysdeps/generic/sem-timedwait.c               |  100 +++
  sysdeps/generic/sem-trywait.c                 |   42 +
- sysdeps/generic/sem-unlink.c                  |   32 
- sysdeps/generic/sem-wait.c                    |   32 
- sysdeps/generic/sigaddset.c                   |   35 
- sysdeps/generic/sigdelset.c                   |   35 
+ sysdeps/generic/sem-unlink.c                  |   32 +
+ sysdeps/generic/sem-wait.c                    |   32 +
+ sysdeps/generic/sigaddset.c                   |   35 +
+ sysdeps/generic/sigdelset.c                   |   35 +
  sysdeps/generic/sigemptyset.c                 |   29 
  sysdeps/generic/sigfillset.c                  |   29 
- sysdeps/generic/siginterrupt.c                |   36 
- sysdeps/generic/sigismember.c                 |   36 
+ sysdeps/generic/siginterrupt.c                |   36 +
+ sysdeps/generic/sigismember.c                 |   36 +
  sysdeps/generic/signal.c                      |   44 +
- sysdeps/generic/sigwait.c                     |   34 
+ sysdeps/generic/sigwait.c                     |   34 +
  sysdeps/hurd/pt-destroy-specific.c            |   79 ++
  sysdeps/hurd/pt-getspecific.c                 |   39 +
- sysdeps/hurd/pt-init-specific.c               |   30 
- sysdeps/hurd/pt-key-create.c                  |  109 ++
- sysdeps/hurd/pt-key-delete.c                  |   64 +
+ sysdeps/hurd/pt-init-specific.c               |   30 +
+ sysdeps/hurd/pt-key-create.c                  |  109 +++
+ sysdeps/hurd/pt-key-delete.c                  |   64 ++
  sysdeps/hurd/pt-key.h                         |   76 ++
  sysdeps/hurd/pt-kill.c                        |   52 +
  sysdeps/hurd/pt-setspecific.c                 |   47 +
  sysdeps/i386/bits/memory.h                    |   40 +
- sysdeps/i386/bits/pt-atomic.h                 |   66 +
- sysdeps/i386/machine-sp.h                     |   30 
+ sysdeps/i386/bits/pt-atomic.h                 |   66 ++
+ sysdeps/i386/machine-sp.h                     |   30 +
  sysdeps/i386/pt-machdep.h                     |   29 
- sysdeps/mach/bits/spin-lock-inline.h          |   90 ++
+ sysdeps/mach/bits/spin-lock-inline.h          |   90 +++
  sysdeps/mach/bits/spin-lock.h                 |   38 +
  sysdeps/mach/hurd/Implies                     |    2 
  sysdeps/mach/hurd/bits/pthread-np.h           |   38 +
  sysdeps/mach/hurd/i386/pt-machdep.c           |   83 ++
- sysdeps/mach/hurd/i386/pt-setup.c             |  108 ++
+ sysdeps/mach/hurd/i386/pt-setup.c             |  108 +++
  sysdeps/mach/hurd/pt-attr-setstackaddr.c      |   29 
  sysdeps/mach/hurd/pt-attr-setstacksize.c      |   29 
- sysdeps/mach/hurd/pt-docancel.c               |   66 +
- sysdeps/mach/hurd/pt-hurd-cond-timedwait.c    |  169 ++++
+ sysdeps/mach/hurd/pt-docancel.c               |   66 ++
+ sysdeps/mach/hurd/pt-hurd-cond-timedwait.c    |  169 +++++
  sysdeps/mach/hurd/pt-hurd-cond-wait.c         |   41 +
  sysdeps/mach/hurd/pt-sigstate-destroy.c       |   28 
  sysdeps/mach/hurd/pt-sigstate-init.c          |   44 +
- sysdeps/mach/hurd/pt-sigstate.c               |   69 +
- sysdeps/mach/hurd/pt-sysdep.c                 |   70 +
- sysdeps/mach/hurd/pt-sysdep.h                 |   67 +
- sysdeps/mach/i386/bits/spin-lock-inline.h     |   98 ++
+ sysdeps/mach/hurd/pt-sigstate.c               |   69 ++
+ sysdeps/mach/hurd/pt-sysdep.c                 |   70 ++
+ sysdeps/mach/hurd/pt-sysdep.h                 |   67 ++
+ sysdeps/mach/i386/bits/spin-lock-inline.h     |   98 +++
  sysdeps/mach/i386/bits/spin-lock.h            |   39 +
  sysdeps/mach/pt-block.c                       |   39 +
- sysdeps/mach/pt-spin.c                        |   36 
- sysdeps/mach/pt-stack-alloc.c                 |   69 +
- sysdeps/mach/pt-thread-alloc.c                |   95 ++
+ sysdeps/mach/pt-spin.c                        |   36 +
+ sysdeps/mach/pt-stack-alloc.c                 |   69 ++
+ sysdeps/mach/pt-thread-alloc.c                |   95 +++
  sysdeps/mach/pt-thread-start.c                |   51 +
  sysdeps/mach/pt-thread-terminate.c            |   83 ++
- sysdeps/mach/pt-timedblock.c                  |   68 +
+ sysdeps/mach/pt-timedblock.c                  |   68 ++
  sysdeps/mach/pt-wakeup.c                      |   38 +
  sysdeps/posix/pt-spin.c                       |   54 +
  sysdeps/pthread/Makefile                      |    4 
- tags                                          |  946 ++++++++++++++++++++++++++
  tests/.cvsignore                              |    1 
  tests/Makefile                                |   40 +
  tests/README                                  |    6 
  tests/test-1.c                                |   50 +
  tests/test-10.c                               |   46 +
- tests/test-11.c                               |  143 +++
+ tests/test-11.c                               |  143 ++++
  tests/test-12.c                               |   29 
- tests/test-13.c                               |   66 +
+ tests/test-13.c                               |   66 ++
  tests/test-14.c                               |   44 +
  tests/test-15.c                               |   87 ++
- tests/test-16.c                               |   71 +
+ tests/test-16.c                               |   71 ++
  tests/test-17.c                               |   57 +
  tests/test-2.c                                |   39 +
  tests/test-3.c                                |   55 +
  tests/test-4.c                                |   86 ++
  tests/test-5.c                                |   75 ++
- tests/test-6.c                                |   96 ++
- tests/test-7.c                                |   70 +
- tests/test-8.c                                |   60 +
- tests/test-9.c                                |   88 ++
+ tests/test-6.c                                |   96 +++
+ tests/test-7.c                                |   70 ++
+ tests/test-8.c                                |   60 ++
+ tests/test-9.c                                |   88 +++
  tests/test-__pthread_destroy_specific-skip.c  |   83 ++
- 247 files changed, 15357 insertions(+)
+ 246 files changed, 14420 insertions(+)
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/ChangeLog b/libpthread/ChangeLog
 --- a/libpthread/ChangeLog	1970-01-01 01:00:00.000000000 +0100
 +++ b/libpthread/ChangeLog	2009-10-14 03:39:13.000000000 +0200
@@ -2602,8 +2601,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-alloc.c b/libpthread/pthread/pt-alloc.c
 --- a/libpthread/pthread/pt-alloc.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-alloc.c	2014-01-01 19:57:55.164746606 +0100
-@@ -0,0 +1,217 @@
++++ b/libpthread/pthread/pt-alloc.c	2014-02-19 23:28:28.813138325 +0100
+@@ -0,0 +1,219 @@
 +/* Allocate a new thread structure.
 +   Copyright (C) 2000, 2002, 2005, 2007, 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2673,6 +2672,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  new->state_cond = (pthread_cond_t) PTHREAD_COND_INITIALIZER;
 +
 +  new->cancelation_handlers = 0;
++
++  memset (&new->res_state, '\0', sizeof (new->res_state));
 +
 +#ifdef ENABLE_TLS
 +  new->tcb = NULL;
@@ -2922,8 +2923,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-create.c b/libpthread/pthread/pt-create.c
 --- a/libpthread/pthread/pt-create.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-create.c	2014-01-22 01:39:13.096882871 +0100
-@@ -0,0 +1,232 @@
++++ b/libpthread/pthread/pt-create.c	2014-02-19 23:28:28.813138325 +0100
+@@ -0,0 +1,234 @@
 +/* Thread creation.
 +   Copyright (C) 2000, 2002, 2005, 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2947,6 +2948,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +#include <errno.h>
 +#include <pthread.h>
 +#include <signal.h>
++#include <resolv.h>
 +
 +#include <bits/pt-atomic.h>
 +
@@ -2971,6 +2973,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +{
 +#ifdef ENABLE_TLS
 +  ___pthread_self = self;
++  __resp = &self->res_state;
 +#endif
 +
 +#ifdef IS_IN_libpthread
@@ -3686,8 +3689,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-internal.h b/libpthread/pthread/pt-internal.h
 --- a/libpthread/pthread/pt-internal.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-internal.h	2014-01-22 01:39:13.096882871 +0100
-@@ -0,0 +1,338 @@
++++ b/libpthread/pthread/pt-internal.h	2014-02-19 23:28:28.813138325 +0100
+@@ -0,0 +1,343 @@
 +/* Internal defenitions for pthreads library.
 +   Copyright (C) 2000, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3715,6 +3718,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +#include <sched.h>
 +#include <signal.h>
 +#include <assert.h>
++#define __need_res_state
++#include <resolv.h>
 +
 +#include <bits/pt-atomic.h>
 +
@@ -3796,6 +3801,9 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  enum pthread_state state;
 +  pthread_mutex_t state_lock;	/* Locks the state.  */
 +  pthread_cond_t state_cond;	/* Signalled when the state changes.  */
++
++  /* Resolver state.  */
++  struct __res_state res_state;
 +
 +  /* Thread context.  */
 +  struct pthread_mcontext mcontext;
