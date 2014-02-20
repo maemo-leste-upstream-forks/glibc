@@ -158,6 +158,13 @@ then
 		    echo "Restarting services possibly affected by the upgrade:"
 		    failed=""
 		    for service in $services; do
+			# We can't just use a generic rewrite here, as it was
+			# samba in wheezy and smbd in jessie, which confuses.
+			if [ "$service" = "samba" ]; then
+			    if [ -x /etc/init.d/smbd ] || [ -f /etc/init/smbd ]; then
+				service="smbd"
+			    fi
+			fi
 		    	if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
 			    idl="invoke-rc.d ${service}"
 			elif [ -f /usr/share/file-rc/rc ] || [ -f /usr/lib/file-rc/rc ] && [ -f /etc/runlevel.conf ]; then
