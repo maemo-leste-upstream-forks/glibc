@@ -248,14 +248,6 @@ then
 	fi # end upgrading and $preversion lt 2.19
     fi # Upgrading
 
-    # On upgrade from older glibc versions, our PI doesn't yet exist
-    # on-disk, despite the preinst wanting to play with it, so make one
-    if [ "${DPKG_MAINTSCRIPT_ARCH:-$(dpkg --print-architecture)}" = "armhf" ]; then
-	if dpkg --compare-versions "$preversion" lt 2.13-28; then
-	    ln -sf SLIBDIR/ld-linux.so.3 RTLD_SO
-	fi
-    fi
-
     # This will keep us from using hwcap libs (optimized) during an
     # upgrade.
     touch /etc/ld.so.nohwcap
