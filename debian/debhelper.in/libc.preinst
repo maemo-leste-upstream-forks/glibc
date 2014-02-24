@@ -154,12 +154,6 @@ remove_lib64_symlink() {
 
 if [ "$type" = upgrade ]
 then
-    # Remove old /etc/init.d/glibc.sh init script
-    if dpkg --compare-versions "$preversion" le "2.9-22"; then
-        rm_conffile $(package_name) "/etc/init.d/glibc.sh"
-	update-rc.d glibc.sh remove >/dev/null
-    fi
-
     # Load debconf module if available
     if [ -f /usr/share/debconf/confmodule ] ; then
         . /usr/share/debconf/confmodule
@@ -248,10 +242,6 @@ then
 	fi # end upgrading and $preversion lt 2.19
     fi # Upgrading
 
-    # This will keep us from using hwcap libs (optimized) during an
-    # upgrade.
-    touch /etc/ld.so.nohwcap
-
     # Try to detect copies of the libc library in the various places
     # the dynamic linker uses.
     ldfile=$(readlink -e RTLD_SO)
@@ -293,6 +283,12 @@ then
         fi
     fi
 
+    # Remove old /etc/init.d/glibc.sh init script
+    if dpkg --compare-versions "$preversion" le "2.9-22"; then
+        rm_conffile $(package_name) "/etc/init.d/glibc.sh"
+	update-rc.d glibc.sh remove >/dev/null
+    fi
+
     # ldconfig might have broken the ld.so symlink in case a biarch package
     # of the same architecture than the native one has been installed (e.g.:
     # libc6-amd64:i386 on amd64). Try to detect this by checking that the 
@@ -306,6 +302,10 @@ then
 	echo "will be reenabled when a new version of libc-bin is unpacked." 
 	ln -sf /bin/true /sbin/ldconfig
     fi
+
+    # This will keep us from using hwcap libs (optimized) during an
+    # upgrade.
+    touch /etc/ld.so.nohwcap
 fi
 
 if [ "$type" != abort-upgrade ]
