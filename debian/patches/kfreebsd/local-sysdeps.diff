@@ -46,7 +46,7 @@
 +gnu
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Makefile
-@@ -0,0 +1,134 @@
+@@ -0,0 +1,138 @@
 +# Use bash, not /bin/sh, for executing scripts, because the native
 +# FreeBSD /bin/sh does not interpret the  IFS="<tab>" read ...  command
 +# in localedata/tst-fmon.sh correctly.
@@ -180,6 +180,10 @@
 +
 +ifeq ($(subdir),sunrpc)
 +sysdep_headers += nfs/nfs.h
++endif
++
++ifeq ($(subdir),rt)
++librt-routines += sys_shm_open
 +endif
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions
@@ -1890,7 +1894,7 @@
 +
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/param.h
-@@ -0,0 +1,192 @@
+@@ -0,0 +1,189 @@
 +/* Copyright (C) 1995,1996,1997,2000,2001,2003 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -1971,9 +1975,6 @@
 +#ifndef MAXDUMPPGS
 +#define MAXDUMPPGS	(DFLTPHYS/PAGE_SIZE)
 +#endif
-+#ifndef MAXHOSTNAMELEN
-+#define MAXHOSTNAMELEN 64 /* XXX */
-+#endif /* No MAXHOSTNAMELEN.  */
 +
 +/*
 + * Constants related to network buffer management.
@@ -19511,7 +19512,7 @@
 +#endif	/* net/ethernet.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/net/if.h
-@@ -0,0 +1,460 @@
+@@ -0,0 +1,438 @@
 +/*-
 + * Copyright (c) 1982, 1986, 1989, 1993
 + *	The Regents of the University of California.  All rights reserved.
@@ -19586,8 +19587,8 @@
 +	unsigned char	ifi_addrlen;		/* media address length */
 +	unsigned char	ifi_hdrlen;		/* media header length */
 +	unsigned char	ifi_link_state;		/* current link state */
-+	unsigned char	ifi_spare_char1;	/* spare byte */
-+	unsigned char	ifi_spare_char2;	/* spare byte */
++	unsigned char	ifi_vhid;		/* carp vhid */
++	unsigned char	ifi_baudrate_pf;	/* baudrate power factor */
 +	unsigned char	ifi_datalen;		/* length of this data struct */
 +	unsigned long	ifi_mtu;		/* maximum transmission unit */
 +	unsigned long	ifi_metric;		/* routing metric (external only) */
@@ -19853,29 +19854,7 @@
 +	 (sizeof(struct ifreq) - sizeof(struct sockaddr) + \
 +	  (ifr).ifr_addr.sa_len) : sizeof(struct ifreq))
 +
-+struct ifaliasreq {
-+	char	ifra_name[IFNAMSIZ];		/* if name, e.g. "en0" */
-+	struct	sockaddr ifra_addr;
-+	struct	sockaddr ifra_broadaddr;
-+	struct	sockaddr ifra_mask;
-+};
-+
-+struct ifmediareq {
-+	char	ifm_name[IFNAMSIZ];	/* if name, e.g. "en0" */
-+	int	ifm_current;		/* current media options */
-+	int	ifm_mask;		/* don't care mask */
-+	int	ifm_status;		/* media status */
-+	int	ifm_active;		/* active options */
-+	int	ifm_count;		/* # entries in ifm_ulist array */
-+	int	*ifm_ulist;		/* media words */
-+};
-+
-+struct  ifdrv {
-+	char            ifd_name[IFNAMSIZ];     /* if name, e.g. "en0" */
-+	unsigned long   ifd_cmd;
-+	size_t          ifd_len;
-+	void            *ifd_data;
-+};
++#include <sys/kglue/net/if.h>
 +
 +/*
 + * Structure used to retrieve aux status data from interfaces.
@@ -20081,7 +20060,7 @@
 +#endif	/* net/if_ether.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/icmp6.h
-@@ -0,0 +1,525 @@
+@@ -0,0 +1,561 @@
 +/* Copyright (C) 1991-1997,2000,2006,2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -20392,6 +20371,42 @@
 +#define ICMP6_FQDN_REPLY                140     /* FQDN reply */
 +#define ICMP6_NI_QUERY                  139     /* node information request */
 +#define ICMP6_NI_REPLY                  140     /* node information reply */
++#define MLDV2_LISTENER_REPORT		143	/* RFC3810 listener report */
++
++/* The definitions below are experimental. TBA */
++#define MLD_MTRACE_RESP			200	/* mtrace resp (to sender) */
++#define MLD_MTRACE			201	/* mtrace messages */
++
++#define ICMP6_DST_UNREACH_NOROUTE	0	/* no route to destination */
++#define ICMP6_DST_UNREACH_ADMIN	 	1	/* administratively prohibited */
++#define ICMP6_DST_UNREACH_NOTNEIGHBOR	2	/* not a neighbor(obsolete) */
++#define ICMP6_DST_UNREACH_BEYONDSCOPE	2	/* beyond scope of source address */
++#define ICMP6_DST_UNREACH_ADDR		3	/* address unreachable */
++#define ICMP6_DST_UNREACH_NOPORT	4	/* port unreachable */
++
++#define ICMP6_TIME_EXCEED_TRANSIT 	0	/* ttl==0 in transit */
++#define ICMP6_TIME_EXCEED_REASSEMBLY	1	/* ttl==0 in reass */
++
++#define ICMP6_PARAMPROB_HEADER 	 	0	/* erroneous header field */
++#define ICMP6_PARAMPROB_NEXTHEADER	1	/* unrecognized next header */
++#define ICMP6_PARAMPROB_OPTION		2	/* unrecognized option */
++
++#define ICMP6_INFOMSG_MASK		0x80	/* all informational messages */
++
++#define ICMP6_NI_SUBJ_IPV6	0	/* Query Subject is an IPv6 address */
++#define ICMP6_NI_SUBJ_FQDN	1	/* Query Subject is a Domain name */
++#define ICMP6_NI_SUBJ_IPV4	2	/* Query Subject is an IPv4 address */
++
++#define ICMP6_NI_SUCCESS	0	/* node information successful reply */
++#define ICMP6_NI_REFUSED	1	/* node information request is refused */
++#define ICMP6_NI_UNKNOWN	2	/* unknown Qtype */
++
++#define ICMP6_ROUTER_RENUMBERING_COMMAND  0	/* rr command */
++#define ICMP6_ROUTER_RENUMBERING_RESULT   1	/* rr result */
++#define ICMP6_ROUTER_RENUMBERING_SEQNUM_RESET   255	/* rr seq num reset */
++
++#define ND_REDIRECT_ONLINK	0	/* redirect to an on-link node */
++#define ND_REDIRECT_ROUTER	1	/* redirect to a better router */
 +
 +struct rr_pco_match    /* match prefix part */
 +  {
@@ -20609,7 +20624,7 @@
 +#endif /* netinet/icmpv6.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/if_ether.h
-@@ -0,0 +1,138 @@
+@@ -0,0 +1,139 @@
 +/* Copyright (C) 1996, 1997, 1999, 2006 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -20634,6 +20649,7 @@
 +#include <features.h>
 +#include <sys/types.h>
 +
++#include <sys/kglue/sys/types.h>
 +#include <net/if_ether.h>
 +
 +#ifdef __USE_BSD
@@ -23126,6 +23142,49 @@
 @@ -0,0 +1 @@
 +/* 'setrlimit64' is the same as 'setrlimit', because __rlim64_t == __rlim_t.  */
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/shm_open.c
+@@ -0,0 +1,40 @@
++/* Copyright (C) 2014 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <sys/mman.h>
++#include <fcntl.h>
++#include <sysdep.h>
++
++extern int __syscall_shm_open (const char *name, int flag, mode_t mode);
++libc_hidden_proto (__syscall_shm_open)
++
++int
++shm_open (name, flag, mode)
++     const char *name;
++     int flag;
++     mode_t mode;
++{
++  /*
++   * O_CLOEXEC never has any effect on shm_open(). However, old kernel
++   * versions (prior to rev 261138 in HEAD) return EINVAL when this
++   * (otherwise harmless) flag is used.
++   */
++  flag &= ~O_CLOEXEC;
++
++  return INLINE_SYSCALL (shm_open, 3, name, flag, mode);
++}
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/shmctl.c
 @@ -0,0 +1,91 @@
 +/* Copyright (C) 2013 Free Software Foundation, Inc.
@@ -24944,7 +25003,7 @@
 +#endif /* sys/swap.h */
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/syscall.h
-@@ -0,0 +1,500 @@
+@@ -0,0 +1,502 @@
 +#ifndef _SYSCALL_H
 +#define _SYSCALL_H	1
 +
@@ -25385,7 +25444,7 @@
 +#define	SYS_shmctl	512
 +#define	SYS_lpathconf	513
 +#define	SYS_cap_new	514
-+#define	SYS_cap_rights_get	515
++#define	SYS___cap_rights_get	515
 +#define	SYS_cap_enter	516
 +#define	SYS_cap_getmode	517
 +#define	SYS_pdfork	518
@@ -25412,7 +25471,9 @@
 +#define	SYS_chflagsat	540
 +#define	SYS_accept4	541
 +#define	SYS_pipe2	542
-+#define	SYS_MAXSYSCALL	543
++#define SYS_aio_mlock	543
++#define SYS_procctl	544
++#define	SYS_MAXSYSCALL	545
 +
 +#define SYS_obreak	SYS_break
 +#define SYS_sysctl	SYS___sysctl
@@ -25946,7 +26007,7 @@
 +setrlimit		-	setrlimit		i:ip		__setrlimit setrlimit setrlimit64
 +setsid			-	setsid			i:		__setsid setsid
 +setuid			-	setuid			i:i		__setuid setuid
-+shm_open		-	shm_open		i:sii		shm_open
++sys_shm_open		-	shm_open		i:sii		__syscall_shm_open
 +shm_unlink		-	shm_unlink		i:s		shm_unlink
 +shmat			-	shmat			i:iai		shmat
 +sys_shmctl		-	shmctl			i:iip		__syscall_shmctl

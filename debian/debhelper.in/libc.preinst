@@ -292,6 +292,20 @@ then
             exit 1
         fi
     fi
+
+    # ldconfig might have broken the ld.so symlink in case a biarch package
+    # of the same architecture than the native one has been installed (e.g.:
+    # libc6-amd64:i386 on amd64). Try to detect this by checking that the 
+    # ld.so symlink correctly points to ld-*.so in the slib directory, and 
+    # disable ldconfig in such a case. The symlink will be fixed when 
+    # unpacking the new libc version and ldconfig will be re-enabled when
+    # a new fixed version is unpacked.
+    if ! readlink -e RTLD_SO | grep -qE 'SLIBDIR/ld-[0-9.]+\.so' ; then
+        echo "Warning: found a potentially broken dynamic loader symlink,"
+	echo "disabling ldconfig to avoid a possible system breakage. It"
+	echo "will be reenabled when a new version of libc-bin is unpacked." 
+	ln -sf /bin/true /sbin/ldconfig
+    fi
 fi
 
 if [ "$type" != abort-upgrade ]
