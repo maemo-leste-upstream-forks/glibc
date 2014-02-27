@@ -14,25 +14,6 @@ package_name()
     fi
 }
 
-rm_conffile() {
-    local PKGNAME="$1"
-    local CONFFILE="$2"
-
-    [ -e "$CONFFILE" ] || return 0
-
-    local md5sum="$(md5sum $CONFFILE | sed -e 's/ .*//')"
-    local old_md5sum="$(dpkg-query -W -f='${Conffiles}' $PKGNAME | \
-            sed -n -e "\' $CONFFILE ' { s/ obsolete$//; s/.* //; p }")"
-    if [ "$md5sum" != "$old_md5sum" ]; then
-        echo "Obsolete conffile $CONFFILE has been modified by you."
-        echo "Saving as $CONFFILE.dpkg-bak ..."
-        mv -f "$CONFFILE" "$CONFFILE".dpkg-bak
-    else
-        echo "Removing obsolete conffile $CONFFILE ..."
-        rm -f "$CONFFILE"
-    fi
-}
-
 linux_compare_versions () {
     verA=$(($(echo "$1" | sed 's/^\([0-9]*\.[0-9]*\)\([^.0-9]\|$\)/\1.0\2/; s/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 10000 + \2 \* 100 + \3/')))
     verB=$(($(echo "$3" | sed 's/^\([0-9]*\.[0-9]*\)\([^.0-9]\|$\)/\1.0\2/; s/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 10000 + \2 \* 100 + \3/')))
@@ -281,12 +262,6 @@ then
             echo
             exit 1
         fi
-    fi
-
-    # Remove old /etc/init.d/glibc.sh init script
-    if dpkg --compare-versions "$preversion" le "2.9-22"; then
-        rm_conffile $(package_name) "/etc/init.d/glibc.sh"
-	update-rc.d glibc.sh remove >/dev/null
     fi
 
     # ldconfig might have broken the ld.so symlink in case a biarch package
