@@ -33,8 +33,6 @@ case, or else POLLERR.
  hurd/hurdselect.c |  124 +++++++++++++++++++++++++++++++++++------------------
  1 file changed, 83 insertions(+), 41 deletions(-)
 
-diff --git a/hurd/hurdselect.c b/hurd/hurdselect.c
-index 6c3eecd..2ea7cfd 100644
 --- a/hurd/hurdselect.c
 +++ b/hurd/hurdselect.c
 @@ -34,6 +34,7 @@
@@ -197,7 +195,7 @@ index 6c3eecd..2ea7cfd 100644
  
  			d[i].type |= SELECT_RETURNED;
  			++got;
-@@ -458,7 +480,7 @@ _hurd_select (int nfds,
+@@ -461,7 +483,7 @@ _hurd_select (int nfds,
  
    if (firstfd != -1)
      for (i = firstfd; i <= lastfd; ++i)
@@ -206,7 +204,7 @@ index 6c3eecd..2ea7cfd 100644
  	__mach_port_destroy (__mach_task_self (), d[i].reply_port);
    if (firstfd == -1 || (firstfd != lastfd && portset != MACH_PORT_NULL))
      /* Destroy PORTSET, but only if it's not actually the reply port for a
-@@ -480,15 +502,29 @@ _hurd_select (int nfds,
+@@ -483,15 +505,29 @@ _hurd_select (int nfds,
  	int type = d[i].type;
  	int_fast16_t revents = 0;
  
@@ -245,7 +243,7 @@ index 6c3eecd..2ea7cfd 100644
  
  	pollfds[i].revents = revents;
        }
-@@ -508,6 +544,12 @@ _hurd_select (int nfds,
+@@ -511,6 +547,12 @@ _hurd_select (int nfds,
  	    if ((type & SELECT_RETURNED) == 0)
  	      type = 0;
  
@@ -258,5 +256,3 @@ index 6c3eecd..2ea7cfd 100644
  	    if (type & SELECT_READ)
  	      ready++;
  	    else if (readfds)
--- 
-tg: (49683f5..) t/poll_errors_fixes (depends on: t/io_select_timeout)

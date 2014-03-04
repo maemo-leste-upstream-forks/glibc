@@ -16,11 +16,9 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
  sysdeps/mach/hurd/getcwd.c |   12 ------------
  1 file changed, 12 deletions(-)
 
-diff --git a/sysdeps/mach/hurd/getcwd.c b/sysdeps/mach/hurd/getcwd.c
-index e4cea5c..fdbcaf8 100644
 --- a/sysdeps/mach/hurd/getcwd.c
 +++ b/sysdeps/mach/hurd/getcwd.c
-@@ -267,11 +267,6 @@ _hurd_canonicalize_directory_name_internal (file_t thisdir,
+@@ -266,11 +266,6 @@ _hurd_canonicalize_directory_name_intern
         So the root is our current directory.  */
      *--file_namep = '/';
  
@@ -32,7 +30,7 @@ index e4cea5c..fdbcaf8 100644
    memmove (file_name, file_namep, file_name + size - file_namep);
    cleanup ();
    return file_name;
-@@ -311,13 +306,6 @@ __getcwd (char *buf, size_t size)
+@@ -310,13 +305,6 @@ __getcwd (char *buf, size_t size)
      __USEPORT (CWDIR,
  	       _hurd_canonicalize_directory_name_internal (port,
  							   buf, size));
@@ -46,5 +44,3 @@ index e4cea5c..fdbcaf8 100644
    return cwd;
  }
  weak_alias (__getcwd, getcwd)
--- 
-tg: (4a7fa7e..) t/remap_getcwd (depends on: baseline)

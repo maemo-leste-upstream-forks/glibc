@@ -21,11 +21,9 @@ the timeout locally when there is no file descriptor.
  hurd/hurdselect.c |  116 +++++++++++++++++++++++++++++++++++------------------
  2 files changed, 79 insertions(+), 40 deletions(-)
 
-diff --git a/hurd/Makefile b/hurd/Makefile
-index 321e04e..6146f21 100644
 --- a/hurd/Makefile
 +++ b/hurd/Makefile
-@@ -38,7 +38,8 @@ user-interfaces		:= $(addprefix hurd/,\
+@@ -37,7 +37,8 @@ user-interfaces		:= $(addprefix hurd/,\
  				       process process_request \
  				       msg msg_reply msg_request \
  				       exec exec_experimental exec_startup crash interrupt \
@@ -35,8 +33,6 @@ index 321e04e..6146f21 100644
  				       login password pfinet \
  				       )
  server-interfaces	:= hurd/msg faultexc
-diff --git a/hurd/hurdselect.c b/hurd/hurdselect.c
-index a02c7be..6c3eecd 100644
 --- a/hurd/hurdselect.c
 +++ b/hurd/hurdselect.c
 @@ -16,14 +16,17 @@
@@ -242,7 +238,7 @@ index a02c7be..6c3eecd 100644
  			d[i].type |= SELECT_RETURNED;
  			++got;
  		      }
-@@ -412,7 +450,7 @@ _hurd_select (int nfds,
+@@ -415,7 +453,7 @@ _hurd_select (int nfds,
  	/* Interruption on our side (e.g. signal reception).  */
  	err = EINTR;
  
@@ -251,7 +247,7 @@ index a02c7be..6c3eecd 100644
  	/* At least one descriptor is known to be ready now, so we will
  	   return success.  */
  	err = 0;
-@@ -456,9 +494,9 @@ _hurd_select (int nfds,
+@@ -459,9 +497,9 @@ _hurd_select (int nfds,
        }
    else
      {
@@ -263,7 +259,7 @@ index a02c7be..6c3eecd 100644
  
        /* Set the user bitarrays.  We only ever have to clear bits, as all
  	 desired ones are initially set.  */
-@@ -471,15 +509,15 @@ _hurd_select (int nfds,
+@@ -474,15 +512,15 @@ _hurd_select (int nfds,
  	      type = 0;
  
  	    if (type & SELECT_READ)
@@ -282,12 +278,10 @@ index a02c7be..6c3eecd 100644
  	    else if (exceptfds)
  	      FD_CLR (i, exceptfds);
  	  }
-@@ -488,5 +526,5 @@ _hurd_select (int nfds,
+@@ -491,5 +529,5 @@ _hurd_select (int nfds,
    if (sigmask && __sigprocmask (SIG_SETMASK, &oset, NULL))
      return -1;
  
 -  return got;
 +  return ready;
  }
--- 
-tg: (c7d3932..) t/io_select_timeout (depends on: t/single-select-timeout)

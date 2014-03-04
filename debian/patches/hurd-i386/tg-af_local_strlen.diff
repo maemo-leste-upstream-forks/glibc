@@ -22,9 +22,6 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
  sysdeps/mach/hurd/sendto.c  |    4 +++-
  5 files changed, 34 insertions(+), 8 deletions(-)
 
-diff --git a/hurd/hurdsocket.h b/hurd/hurdsocket.h
-new file mode 100644
-index 0000000..e12298e
 --- /dev/null
 +++ b/hurd/hurdsocket.h
 @@ -0,0 +1,22 @@
@@ -50,8 +47,6 @@ index 0000000..e12298e
 +
 +#define _hurd_sun_path_dupa(__addr, __len) \
 +  strndupa ((__addr)->sun_path, (__len) - offsetof (struct sockaddr_un, sun_path))
-diff --git a/sysdeps/mach/hurd/bind.c b/sysdeps/mach/hurd/bind.c
-index 27509b3..d791db9 100644
 --- a/sysdeps/mach/hurd/bind.c
 +++ b/sysdeps/mach/hurd/bind.c
 @@ -25,7 +25,7 @@
@@ -63,7 +58,7 @@ index 27509b3..d791db9 100644
  
  /* Give the socket FD the local address ADDR (which is LEN bytes long).  */
  int
-@@ -37,13 +37,11 @@ __bind  (int fd, __CONST_SOCKADDR_ARG addrarg, socklen_t len)
+@@ -37,13 +37,11 @@ __bind  (int fd, __CONST_SOCKADDR_ARG ad
  
    if (addr->sun_family == AF_LOCAL)
      {
@@ -79,8 +74,6 @@ index 27509b3..d791db9 100644
  
        dir = __file_name_split (name, &n);
        if (dir == MACH_PORT_NULL)
-diff --git a/sysdeps/mach/hurd/connect.c b/sysdeps/mach/hurd/connect.c
-index b5c57cc..6a0852d 100644
 --- a/sysdeps/mach/hurd/connect.c
 +++ b/sysdeps/mach/hurd/connect.c
 @@ -22,6 +22,7 @@
@@ -91,7 +84,7 @@ index b5c57cc..6a0852d 100644
  
  /* Open a connection on socket FD to peer at ADDR (which LEN bytes long).
     For connectionless socket types, just set the default address to send to
-@@ -36,9 +37,10 @@ __connect (int fd, __CONST_SOCKADDR_ARG addrarg, socklen_t len)
+@@ -36,9 +37,10 @@ __connect (int fd, __CONST_SOCKADDR_ARG
  
    if (addr->sun_family == AF_LOCAL)
      {
@@ -103,8 +96,6 @@ index b5c57cc..6a0852d 100644
        if (file == MACH_PORT_NULL)
  	return -1;
        err = __ifsock_getsockaddr (file, &aport);
-diff --git a/sysdeps/mach/hurd/sendmsg.c b/sysdeps/mach/hurd/sendmsg.c
-index 01495b8..d934ad6 100644
 --- a/sysdeps/mach/hurd/sendmsg.c
 +++ b/sysdeps/mach/hurd/sendmsg.c
 @@ -24,6 +24,7 @@
@@ -115,7 +106,7 @@ index 01495b8..d934ad6 100644
  
  /* Send a message described MESSAGE on socket FD.
     Returns the number of bytes sent, or -1 for errors.  */
-@@ -104,9 +105,10 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
+@@ -150,9 +151,10 @@ __libc_sendmsg (int fd, const struct msg
      {
        if (addr->sun_family == AF_LOCAL)
  	{
@@ -127,8 +118,6 @@ index 01495b8..d934ad6 100644
  	  if (file == MACH_PORT_NULL)
  	    {
  	      err = errno;
-diff --git a/sysdeps/mach/hurd/sendto.c b/sysdeps/mach/hurd/sendto.c
-index bd4123e..ee459d7 100644
 --- a/sysdeps/mach/hurd/sendto.c
 +++ b/sysdeps/mach/hurd/sendto.c
 @@ -22,6 +22,7 @@
@@ -151,5 +140,3 @@ index bd4123e..ee459d7 100644
  	  if (file == MACH_PORT_NULL)
  	    return errno;
  	  err_port = __ifsock_getsockaddr (file, aport);
--- 
-tg: (4a7fa7e..) t/af_local_strlen (depends on: baseline)

@@ -20,7 +20,7 @@ earlier this month.
 
 --- a/hurd/hurdsig.c
 +++ b/hurd/hurdsig.c
-@@ -442,6 +442,30 @@
+@@ -445,6 +445,30 @@ abort_all_rpcs (int signo, struct machin
        }
  }
  
@@ -51,7 +51,7 @@ earlier this month.
  struct hurd_signal_preemptor *_hurdsig_preemptors = 0;
  sigset_t _hurdsig_preempted_set;
  
-@@ -452,35 +476,18 @@
+@@ -455,35 +479,18 @@ weak_alias (_hurdsig_preemptors, _hurdsi
  #define STOPSIGS (sigmask (SIGTTIN) | sigmask (SIGTTOU) | \
  		  sigmask (SIGSTOP) | sigmask (SIGTSTP))
  
@@ -94,7 +94,7 @@ earlier this month.
    /* Mark the signal as pending.  */
    void mark_pending (void)
      {
-@@ -544,19 +551,23 @@
+@@ -547,19 +554,23 @@ _hurd_internal_post_signal (struct hurd_
  	ss_suspended = 1;
      }
  
@@ -123,7 +123,7 @@ earlier this month.
    thread_state.set = 0;		/* We know nothing.  */
  
    __spin_lock (&ss->lock);
-@@ -619,7 +630,7 @@
+@@ -622,7 +633,7 @@ _hurd_internal_post_signal (struct hurd_
  	    suspend ();
  	  __spin_unlock (&ss->lock);
  	  reply ();
@@ -132,7 +132,7 @@ earlier this month.
  	}
  
        handler = ss->actions[signo].sa_handler;
-@@ -862,7 +873,7 @@
+@@ -866,7 +877,7 @@ _hurd_internal_post_signal (struct hurd_
  					 as a unit.  */
  				      crit ? 0 : signo, 1,
  				      &thread_state, &state_changed,
@@ -141,7 +141,7 @@ earlier this month.
  		 != MACH_PORT_NULL);
  
  	    if (crit)
-@@ -948,6 +959,9 @@
+@@ -953,6 +964,9 @@ _hurd_internal_post_signal (struct hurd_
  	    && signo != SIGILL && signo != SIGTRAP)
  	  ss->actions[signo].sa_handler = SIG_DFL;
  
@@ -151,7 +151,7 @@ earlier this month.
  	/* Start the thread running the handler (or possibly waiting for an
  	   RPC reply before running the handler).  */
  	err = __thread_set_state (ss->thread, MACHINE_THREAD_STATE_FLAVOR,
-@@ -961,95 +975,129 @@
+@@ -966,95 +980,129 @@ _hurd_internal_post_signal (struct hurd_
        }
      }
  

@@ -31,8 +31,6 @@ That will fix sigaltstack.
  libpthread/libpthread.a             |    3 +++
  24 files changed, 135 insertions(+), 252 deletions(-)
 
-diff --git a/hurd/Versions b/hurd/Versions
-index 83c8ab1..738281d 100644
 --- a/hurd/Versions
 +++ b/hurd/Versions
 @@ -25,20 +25,16 @@ libc {
@@ -65,8 +63,6 @@ index 83c8ab1..738281d 100644
  
      # variables used for detecting cthreads
      _cthread_exit_routine; _cthread_init_routine;
-diff --git a/hurd/hurd/signal.h b/hurd/hurd/signal.h
-index ae581f6..e633deb 100644
 --- a/hurd/hurd/signal.h
 +++ b/hurd/hurd/signal.h
 @@ -40,7 +40,6 @@
@@ -77,7 +73,7 @@ index ae581f6..e633deb 100644
  struct hurd_signal_preemptor;	/* <hurd/sigpreempt.h> */
  
  
-@@ -129,14 +128,13 @@ extern struct hurd_sigstate *_hurd_self_sigstate (void)
+@@ -129,14 +128,13 @@ extern struct hurd_sigstate *_hurd_self_
  #define _HURD_SIGNAL_H_EXTERN_INLINE __extern_inline
  #endif
  
@@ -96,7 +92,7 @@ index ae581f6..e633deb 100644
  }
  
  /* Thread listening on our message port; also called the "signal thread".  */
-@@ -172,16 +170,22 @@ void *_hurd_critical_section_lock (void);
+@@ -167,16 +165,22 @@ extern int _hurd_core_limit;
  _HURD_SIGNAL_H_EXTERN_INLINE void *
  _hurd_critical_section_lock (void)
  {
@@ -123,8 +119,6 @@ index ae581f6..e633deb 100644
        __spin_unlock (&ss->lock);
      }
  
-diff --git a/hurd/hurd/threadvar.h b/hurd/hurd/threadvar.h
-index e8013ce..888d535 100644
 --- a/hurd/hurd/threadvar.h
 +++ b/hurd/hurd/threadvar.h
 @@ -20,6 +20,7 @@
@@ -229,8 +223,6 @@ index e8013ce..888d535 100644
 +#define __hurd_local_reply_port (*(__LIBC_NO_TLS() ? &__hurd_reply_port0 : &THREAD_SELF->reply_port))
  
  #endif	/* hurd/threadvar.h */
-diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
-index 8e912db..1d87e2e 100644
 --- a/hurd/hurdsig.c
 +++ b/hurd/hurdsig.c
 @@ -20,6 +20,7 @@
@@ -252,7 +244,7 @@ index 8e912db..1d87e2e 100644
  
  /* Linked-list of per-thread signal state.  */
  struct hurd_sigstate *_hurd_sigstates;
-@@ -234,11 +237,11 @@ abort_thread (struct hurd_sigstate *ss, struct machine_thread_all_state *state,
+@@ -234,11 +237,11 @@ abort_thread (struct hurd_sigstate *ss,
     that this location can be set without faulting, or else return NULL.  */
  
  static mach_port_t *
@@ -267,7 +259,7 @@ index 8e912db..1d87e2e 100644
  
    if (sigthread && _hurdsig_catch_memory_fault (portloc))
      /* Faulted trying to read the stack.  */
-@@ -323,7 +326,8 @@ _hurdsig_abort_rpcs (struct hurd_sigstate *ss, int signo, int sigthread,
+@@ -323,7 +326,8 @@ _hurdsig_abort_rpcs (struct hurd_sigstat
  	   our nonzero return tells the trampoline code to finish the message
  	   receive operation before running the handler.  */
  
@@ -277,7 +269,7 @@ index 8e912db..1d87e2e 100644
  							      sigthread);
  	error_t err = __interrupt_operation (intr_port, _hurdsig_interrupt_timeout);
  
-@@ -835,7 +839,8 @@ _hurd_internal_post_signal (struct hurd_sigstate *ss,
+@@ -835,7 +839,8 @@ _hurd_internal_post_signal (struct hurd_
  
  	    if (! machine_get_basic_state (ss->thread, &thread_state))
  	      goto sigbomb;
@@ -287,7 +279,7 @@ index 8e912db..1d87e2e 100644
  	    if (loc && *loc != MACH_PORT_NULL)
  	      /* This is the reply port for the context which called
  		 sigreturn.  Since we are abandoning that context entirely
-@@ -901,7 +906,8 @@ _hurd_internal_post_signal (struct hurd_sigstate *ss,
+@@ -901,7 +906,8 @@ _hurd_internal_post_signal (struct hurd_
  	{
  	  /* Fetch the thread variable for the MiG reply port,
  	     and set it to MACH_PORT_NULL.  */
@@ -297,7 +289,7 @@ index 8e912db..1d87e2e 100644
  							      1);
  	  if (loc)
  	    {
-@@ -1255,7 +1261,11 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
+@@ -1255,7 +1261,11 @@ _hurdsig_init (const int *intarray, size
  
    /* Start the signal thread listening on the message port.  */
  
@@ -310,7 +302,7 @@ index 8e912db..1d87e2e 100644
      {
        err = __thread_create (__mach_task_self (), &_hurd_msgport_thread);
        assert_perror (err);
-@@ -1270,14 +1280,6 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
+@@ -1270,14 +1280,6 @@ _hurdsig_init (const int *intarray, size
        assert_perror (err);
  
        __hurd_sigthread_stack_end = __hurd_sigthread_stack_base + stacksize;
@@ -325,7 +317,7 @@ index 8e912db..1d87e2e 100644
  
        /* Reinitialize the MiG support routines so they will use a per-thread
  	 variable for the cached reply port.  */
-@@ -1288,6 +1290,7 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
+@@ -1288,6 +1290,7 @@ _hurdsig_init (const int *intarray, size
      }
    else
      {
@@ -333,7 +325,7 @@ index 8e912db..1d87e2e 100644
        /* When cthreads is being used, we need to make the signal thread a
           proper cthread.  Otherwise it cannot use mutex_lock et al, which
           will be the cthreads versions.  Various of the message port RPC
-@@ -1297,9 +1300,20 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
+@@ -1297,9 +1300,20 @@ _hurdsig_init (const int *intarray, size
           we'll let the signal thread's per-thread variables be found as for
           any normal cthread, and just leave the magic __hurd_sigthread_*
           values all zero so they'll be ignored.  */
@@ -357,8 +349,6 @@ index 8e912db..1d87e2e 100644
  
        /* XXX We need the thread port for the signal thread further on
           in this thread (see hurdfault.c:_hurdsigfault_init).
-diff --git a/hurd/hurdstartup.c b/hurd/hurdstartup.c
-index 38147c9..688772a 100644
 --- a/hurd/hurdstartup.c
 +++ b/hurd/hurdstartup.c
 @@ -23,7 +23,6 @@
@@ -369,8 +359,6 @@ index 38147c9..688772a 100644
  #include <unistd.h>
  #include <elf.h>
  #include <set-hooks.h>
-diff --git a/hurd/sigunwind.c b/hurd/sigunwind.c
-index de966aa..a1819a2 100644
 --- a/hurd/sigunwind.c
 +++ b/hurd/sigunwind.c
 @@ -18,6 +18,7 @@
@@ -381,7 +369,7 @@ index de966aa..a1819a2 100644
  #include <jmpbuf-unwind.h>
  #include <assert.h>
  #include <stdint.h>
-@@ -38,8 +39,7 @@ _hurdsig_longjmp_from_handler (void *data, jmp_buf env, int val)
+@@ -38,8 +39,7 @@ _hurdsig_longjmp_from_handler (void *dat
      {
        /* Destroy the MiG reply port used by the signal handler, and restore
  	 the reply port in use by the thread when interrupted.  */
@@ -391,8 +379,6 @@ index de966aa..a1819a2 100644
        if (*reply_port)
  	{
  	  mach_port_t port = *reply_port;
-diff --git a/include/errno.h b/include/errno.h
-index effa593..5b75ffc 100644
 --- a/include/errno.h
 +++ b/include/errno.h
 @@ -21,7 +21,7 @@ extern int rtld_errno attribute_hidden;
@@ -404,8 +390,6 @@ index effa593..5b75ffc 100644
  #   undef  errno
  #   ifndef NOT_IN_libc
  #    define errno __libc_errno
-diff --git a/sysdeps/mach/hurd/Versions b/sysdeps/mach/hurd/Versions
-index 89e1906..9ecdbaf 100644
 --- a/sysdeps/mach/hurd/Versions
 +++ b/sysdeps/mach/hurd/Versions
 @@ -6,6 +6,8 @@ libc {
@@ -434,8 +418,6 @@ index 89e1906..9ecdbaf 100644
 +    _hurd_sigstate;
    }
  }
-diff --git a/sysdeps/mach/hurd/bits/libc-lock.h b/sysdeps/mach/hurd/bits/libc-lock.h
-index 8bf5656..9c25b4c 100644
 --- a/sysdeps/mach/hurd/bits/libc-lock.h
 +++ b/sysdeps/mach/hurd/bits/libc-lock.h
 @@ -24,7 +24,6 @@
@@ -457,9 +439,6 @@ index 8bf5656..9c25b4c 100644
  
  #else
  typedef struct __libc_lock_opaque__ __libc_lock_t;
-diff --git a/sysdeps/mach/hurd/bits/libc-tsd.h b/sysdeps/mach/hurd/bits/libc-tsd.h
-deleted file mode 100644
-index d2480ed..0000000
 --- a/sysdeps/mach/hurd/bits/libc-tsd.h
 +++ /dev/null
 @@ -1,34 +0,0 @@
@@ -497,8 +476,6 @@ index d2480ed..0000000
 -  (*__libc_tsd_address (TYPE, KEY) = (VALUE))
 -
 -#endif	/* bits/libc-tsd.h */
-diff --git a/sysdeps/mach/hurd/cthreads.c b/sysdeps/mach/hurd/cthreads.c
-index 5b5ed51..2f140f9 100644
 --- a/sysdeps/mach/hurd/cthreads.c
 +++ b/sysdeps/mach/hurd/cthreads.c
 @@ -19,6 +19,9 @@
@@ -511,8 +488,6 @@ index 5b5ed51..2f140f9 100644
  /* Placeholder for key creation routine from Hurd cthreads library.  */
  int
  weak_function
-diff --git a/sysdeps/mach/hurd/dl-sysdep.c b/sysdeps/mach/hurd/dl-sysdep.c
-index c9ab661..cea4a95 100644
 --- a/sysdeps/mach/hurd/dl-sysdep.c
 +++ b/sysdeps/mach/hurd/dl-sysdep.c
 @@ -64,25 +64,6 @@ hp_timing_t _dl_cpuclock_offset;
@@ -541,8 +516,6 @@ index c9ab661..cea4a95 100644
  #define FMH defined(__i386__)
  #if ! FMH
  # define fmh()		((void)0)
-diff --git a/sysdeps/mach/hurd/errno-loc.c b/sysdeps/mach/hurd/errno-loc.c
-index 73e5e79..fcca046 100644
 --- a/sysdeps/mach/hurd/errno-loc.c
 +++ b/sysdeps/mach/hurd/errno-loc.c
 @@ -16,13 +16,21 @@
@@ -574,15 +547,10 @@ index 73e5e79..fcca046 100644
 +#else
 +#include <../../../csu/errno-loc.c>
 +#endif
-diff --git a/sysdeps/mach/hurd/errno.c b/sysdeps/mach/hurd/errno.c
-deleted file mode 100644
-index a29091b..0000000
 --- a/sysdeps/mach/hurd/errno.c
 +++ /dev/null
 @@ -1 +0,0 @@
 -/* No definition of `errno' variable on the Hurd.  */
-diff --git a/sysdeps/mach/hurd/fork.c b/sysdeps/mach/hurd/fork.c
-index c3f88a9..6e7fe5f 100644
 --- a/sysdeps/mach/hurd/fork.c
 +++ b/sysdeps/mach/hurd/fork.c
 @@ -19,6 +19,7 @@
@@ -593,7 +561,7 @@ index c3f88a9..6e7fe5f 100644
  #include <setjmp.h>
  #include <thread_state.h>
  #include <sysdep.h>		/* For stack growth direction.  */
-@@ -497,19 +498,17 @@ __fork (void)
+@@ -504,19 +505,17 @@ __fork (void)
  				    (natural_t *) &state, &statecount))
  	LOSE;
  #if STACK_GROWTH_UP
@@ -615,11 +583,9 @@ index c3f88a9..6e7fe5f 100644
  	     The threadvar_stack variables conveniently tell us how
  	     to get to the highest address in the stack, just below
  	     the per-thread variables.  */
-diff --git a/sysdeps/mach/hurd/i386/init-first.c b/sysdeps/mach/hurd/i386/init-first.c
-index d1e3577..e9d1f04 100644
 --- a/sysdeps/mach/hurd/i386/init-first.c
 +++ b/sysdeps/mach/hurd/i386/init-first.c
-@@ -155,15 +155,6 @@ init (int *data)
+@@ -152,15 +152,6 @@ init (int *data)
    char **argv = (void *) (data + 1);
    char **envp = &argv[argc + 1];
    struct hurd_startup_data *d;
@@ -635,7 +601,7 @@ index d1e3577..e9d1f04 100644
  
    /* Since the cthreads initialization code uses malloc, and the
       malloc initialization code needs to get at the environment, make
-@@ -209,13 +200,6 @@ init (int *data)
+@@ -206,13 +197,6 @@ init (int *data)
    __pthread_initialize_minimal();
  #endif
  
@@ -649,7 +615,7 @@ index d1e3577..e9d1f04 100644
  
    /* After possibly switching stacks, call `init1' (above) with the user
       code as the return address, and the argument data immediately above
-@@ -231,11 +215,6 @@ init (int *data)
+@@ -228,11 +212,6 @@ init (int *data)
  
        __libc_stack_end = newsp;
  
@@ -661,7 +627,7 @@ index d1e3577..e9d1f04 100644
        /* Copy the argdata from the old stack to the new one.  */
        newsp = memcpy (newsp - ((char *) &d[1] - (char *) data), data,
  		      (char *) d - (char *) data);
-@@ -276,25 +255,11 @@ init (int *data)
+@@ -273,25 +252,11 @@ init (int *data)
      }
    else
      {
@@ -687,8 +653,6 @@ index d1e3577..e9d1f04 100644
        /* The argument data is just above the stack frame we will unwind by
  	 returning.  Mutate our own return address to run the code below.  */
        /* The following expression would typically be written as
-diff --git a/sysdeps/mach/hurd/i386/makecontext-helper.c b/sysdeps/mach/hurd/i386/makecontext-helper.c
-index 6db3b7e..e604488 100644
 --- a/sysdeps/mach/hurd/i386/makecontext-helper.c
 +++ b/sysdeps/mach/hurd/i386/makecontext-helper.c
 @@ -22,6 +22,7 @@
@@ -704,8 +668,6 @@ index 6db3b7e..e604488 100644
      }
  }
 +#endif
-diff --git a/sysdeps/mach/hurd/i386/makecontext.S b/sysdeps/mach/hurd/i386/makecontext.S
-index 7f3f6b0..b81403b 100644
 --- a/sysdeps/mach/hurd/i386/makecontext.S
 +++ b/sysdeps/mach/hurd/i386/makecontext.S
 @@ -27,7 +27,7 @@ ENTRY(__makecontext)
@@ -717,8 +679,6 @@ index 7f3f6b0..b81403b 100644
  	addl	$4, %esp
  	cfi_adjust_cfa_offset (-4)
  
-diff --git a/sysdeps/mach/hurd/i386/sigreturn.c b/sysdeps/mach/hurd/i386/sigreturn.c
-index 92727b5..1953096 100644
 --- a/sysdeps/mach/hurd/i386/sigreturn.c
 +++ b/sysdeps/mach/hurd/i386/sigreturn.c
 @@ -77,8 +77,7 @@ __sigreturn (struct sigcontext *scp)
@@ -731,8 +691,6 @@ index 92727b5..1953096 100644
    if (*reply_port)
      {
        mach_port_t port = *reply_port;
-diff --git a/sysdeps/mach/hurd/i386/tls.h b/sysdeps/mach/hurd/i386/tls.h
-index bf0cf43..7159484 100644
 --- a/sysdeps/mach/hurd/i386/tls.h
 +++ b/sysdeps/mach/hurd/i386/tls.h
 @@ -53,6 +53,17 @@
@@ -753,7 +711,7 @@ index bf0cf43..7159484 100644
  
  static inline const char * __attribute__ ((unused))
  _hurd_tls_init (tcbhead_t *tcb, int secondcall)
-@@ -127,6 +138,21 @@ _hurd_tls_init (tcbhead_t *tcb, int secondcall)
+@@ -126,6 +137,21 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
  	      : "i" (offsetof (tcbhead_t, tcb)));			      \
       __tcb;})
  
@@ -775,8 +733,6 @@ index bf0cf43..7159484 100644
  /* Install new dtv for current thread.  */
  # define INSTALL_NEW_DTV(dtvp)						      \
    ({ asm volatile ("movl %0,%%gs:%P1"					      \
-diff --git a/sysdeps/mach/hurd/mig-reply.c b/sysdeps/mach/hurd/mig-reply.c
-index f0b5172..1b3ff87 100644
 --- a/sysdeps/mach/hurd/mig-reply.c
 +++ b/sysdeps/mach/hurd/mig-reply.c
 @@ -18,26 +18,20 @@
@@ -813,7 +769,7 @@ index f0b5172..1b3ff87 100644
  }
  weak_alias (__mig_get_reply_port, mig_get_reply_port)
  
-@@ -45,12 +39,8 @@ weak_alias (__mig_get_reply_port, mig_get_reply_port)
+@@ -45,12 +39,8 @@ weak_alias (__mig_get_reply_port, mig_ge
  void
  __mig_dealloc_reply_port (mach_port_t arg)
  {
@@ -828,7 +784,7 @@ index f0b5172..1b3ff87 100644
  
    if (MACH_PORT_VALID (port))
      __mach_port_mod_refs (__mach_task_self (), port,
-@@ -73,15 +63,6 @@ weak_alias (__mig_put_reply_port, mig_put_reply_port)
+@@ -73,15 +63,6 @@ weak_alias (__mig_put_reply_port, mig_pu
  void
  __mig_init (void *stack)
  {
@@ -845,11 +801,9 @@ index f0b5172..1b3ff87 100644
 +  /* Do nothing.  */
  }
  weak_alias (__mig_init, mig_init)
-diff --git a/sysdeps/mach/hurd/profil.c b/sysdeps/mach/hurd/profil.c
-index e4be948..7cae6ac 100644
 --- a/sysdeps/mach/hurd/profil.c
 +++ b/sysdeps/mach/hurd/profil.c
-@@ -139,7 +139,7 @@ __profil (u_short *sample_buffer, size_t size, size_t offset, u_int scale)
+@@ -139,7 +139,7 @@ __profil (u_short *sample_buffer, size_t
  weak_alias (__profil, profil)
  
  /* Fetch PC samples.  This function must be very careful not to depend
@@ -867,7 +821,7 @@ index e4be948..7cae6ac 100644
     variables.  We arrange that by using special stubs arranged for at the
     end of this file. */
  static void
-@@ -267,7 +267,7 @@ text_set_element (_hurd_fork_child_hook, fork_profil_child);
+@@ -267,7 +267,7 @@ text_set_element (_hurd_fork_child_hook,
     are fatal in profile_waiter anyhow. */
  #define __mig_put_reply_port(foo)
  
@@ -876,8 +830,6 @@ index e4be948..7cae6ac 100644
     this. */
  #define __mig_get_reply_port() profil_reply_port
  
-diff --git a/sysdeps/mach/hurd/tls.h b/sysdeps/mach/hurd/tls.h
-index 230f907..a5f65ff 100644
 --- a/sysdeps/mach/hurd/tls.h
 +++ b/sysdeps/mach/hurd/tls.h
 @@ -47,6 +47,7 @@ typedef struct

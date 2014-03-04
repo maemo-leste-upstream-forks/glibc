@@ -32,11 +32,9 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
  sysdeps/mach/i386/thread_state.h    |   11 ++++++-
  17 files changed, 150 insertions(+), 39 deletions(-)
 
-Index: eglibc-2.17/include/errno.h
-===================================================================
---- eglibc-2.17.orig/include/errno.h	2013-10-05 08:19:19.000000000 +0000
-+++ eglibc-2.17/include/errno.h	2013-10-05 08:19:19.000000000 +0000
-@@ -21,13 +21,15 @@
+--- a/include/errno.h
++++ b/include/errno.h
+@@ -21,13 +21,15 @@ extern int rtld_errno attribute_hidden;
  
  #  include <tls.h>
  
@@ -60,7 +58,7 @@ Index: eglibc-2.17/include/errno.h
  
 --- a/csu/libc-start.c
 +++ b/csu/libc-start.c
-@@ -139,10 +139,12 @@
+@@ -189,10 +189,12 @@ LIBC_START_MAIN (int (*main) (int, char
    /* Perform IREL{,A} relocations.  */
    apply_irel ();
  
@@ -75,7 +73,7 @@ Index: eglibc-2.17/include/errno.h
    uintptr_t stack_chk_guard = _dl_setup_stack_chk_guard (_dl_random);
 --- a/hurd/hurdfault.c
 +++ b/hurd/hurdfault.c
-@@ -205,6 +205,8 @@
+@@ -204,6 +204,8 @@ _hurdsig_fault_init (void)
    /* This state will be restored when we fault.
       It runs the function above.  */
    memset (&state, 0, sizeof state);
@@ -86,7 +84,7 @@ Index: eglibc-2.17/include/errno.h
  
 --- a/hurd/hurdsig.c
 +++ b/hurd/hurdsig.c
-@@ -1267,6 +1267,8 @@
+@@ -1266,6 +1266,8 @@ _hurdsig_init (const int *intarray, size
  				 (vm_address_t *) &__hurd_sigthread_stack_base,
  				 &stacksize);
        assert_perror (err);
@@ -97,7 +95,7 @@ Index: eglibc-2.17/include/errno.h
        __hurd_sigthread_variables =
 --- a/mach/mach.h
 +++ b/mach/mach.h
-@@ -100,5 +100,8 @@
+@@ -100,5 +100,8 @@ kern_return_t mach_setup_thread (task_t
  				 vm_address_t *stack_base,
  				 vm_size_t *stack_size);
  
@@ -116,7 +114,7 @@ Index: eglibc-2.17/include/errno.h
  #include "sysdep.h"		/* Defines stack direction.  */
  
  #define	STACK_SIZE	(16 * 1024 * 1024) /* 16MB, arbitrary.  */
-@@ -72,8 +73,35 @@
+@@ -72,8 +73,35 @@ __mach_setup_thread (task_t task, thread
    if (error = __vm_protect (task, stack, __vm_page_size, 0, VM_PROT_NONE))
      return error;
  
@@ -177,7 +175,7 @@ Index: eglibc-2.17/include/errno.h
  
 --- a/sysdeps/mach/hurd/fork.c
 +++ b/sysdeps/mach/hurd/fork.c
-@@ -522,6 +522,11 @@
+@@ -528,6 +528,11 @@ __fork (void)
  #endif
        MACHINE_THREAD_STATE_SET_PC (&state,
  				   (unsigned long int) _hurd_msgport_receive);
@@ -189,7 +187,7 @@ Index: eglibc-2.17/include/errno.h
        if (err = __thread_set_state (sigthread, MACHINE_THREAD_STATE_FLAVOR,
  				    (natural_t *) &state, statecount))
  	LOSE;
-@@ -532,7 +537,7 @@
+@@ -538,7 +543,7 @@ __fork (void)
        _hurd_longjmp_thread_state (&state, env, 1);
  
        /* Do special thread setup for TLS if needed.  */
@@ -200,7 +198,7 @@ Index: eglibc-2.17/include/errno.h
        if (err = __thread_set_state (thread, MACHINE_THREAD_STATE_FLAVOR,
 --- a/sysdeps/mach/hurd/i386/init-first.c
 +++ b/sysdeps/mach/hurd/i386/init-first.c
-@@ -113,31 +113,11 @@
+@@ -113,31 +113,11 @@ init1 (int argc, char *arg0, ...)
       data block; the argument strings start there.  */
    if ((void *) d == argv[0])
      {
@@ -232,7 +230,7 @@ Index: eglibc-2.17/include/errno.h
  #endif
  
    _hurd_init_dtable = d->dtable;
-@@ -194,6 +175,39 @@
+@@ -193,6 +173,39 @@ init (int *data)
      ++envp;
    d = (void *) ++envp;
  
@@ -274,7 +272,7 @@ Index: eglibc-2.17/include/errno.h
       properly before before cthreads initialization, so cthreads can know
 --- a/sysdeps/mach/hurd/i386/tls.h
 +++ b/sysdeps/mach/hurd/i386/tls.h
-@@ -70,7 +70,7 @@
+@@ -70,7 +70,7 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
  
        /* Get the first available selector.  */
        int sel = -1;
@@ -283,7 +281,7 @@ Index: eglibc-2.17/include/errno.h
        if (err == MIG_BAD_ID)
  	{
  	  /* Old kernel, use a per-thread LDT.  */
-@@ -94,16 +94,16 @@
+@@ -94,16 +94,16 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
        /* Fetch the selector set by the first call.  */
        int sel;
        asm ("mov %%gs, %w0" : "=q" (sel) : "0" (0));
@@ -303,7 +301,7 @@ Index: eglibc-2.17/include/errno.h
  	  assert_perror (err);
  	  if (err)
  	    return "i386_set_gdt failed";
-@@ -140,9 +140,40 @@
+@@ -139,9 +139,40 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
  
  # include <mach/machine/thread_status.h>
  
@@ -347,7 +345,7 @@ Index: eglibc-2.17/include/errno.h
  {
    /* Fetch the selector set by _hurd_tls_init.  */
    int sel;
-@@ -150,11 +181,13 @@
+@@ -149,11 +180,13 @@ _hurd_tls_fork (thread_t child, struct i
    if (sel == state->ds)		/* _hurd_tls_init was never called.  */
      return 0;
  
@@ -366,7 +364,7 @@ Index: eglibc-2.17/include/errno.h
      err = __i386_set_gdt (child, &sel, desc);
 --- a/sysdeps/mach/hurd/i386/trampoline.c
 +++ b/sysdeps/mach/hurd/i386/trampoline.c
-@@ -64,7 +64,7 @@
+@@ -63,7 +63,7 @@ _hurd_setup_sighandler (struct hurd_sigs
  		  sizeof (state->basic));
  	  memcpy (&state->fpu, &ss->context->sc_i386_float_state,
  		  sizeof (state->fpu));
@@ -377,7 +375,7 @@ Index: eglibc-2.17/include/errno.h
  
 --- a/sysdeps/mach/hurd/profil.c
 +++ b/sysdeps/mach/hurd/profil.c
-@@ -68,6 +68,8 @@
+@@ -68,6 +68,8 @@ update_waiter (u_short *sample_buffer, s
        if (! err)
  	err = __mach_setup_thread (__mach_task_self (), profile_thread,
  				   &profile_waiter, NULL, NULL);
@@ -388,7 +386,7 @@ Index: eglibc-2.17/include/errno.h
      err = 0;
 --- a/sysdeps/mach/hurd/setitimer.c
 +++ b/sysdeps/mach/hurd/setitimer.c
-@@ -221,11 +221,12 @@
+@@ -221,11 +221,12 @@ setitimer_locked (const struct itimerval
  	    goto out;
  	  _hurd_itimer_thread_stack_base = 0; /* Anywhere.  */
  	  _hurd_itimer_thread_stack_size = __vm_page_size; /* Small stack.  */
