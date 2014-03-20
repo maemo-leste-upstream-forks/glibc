@@ -6,6 +6,12 @@ DEB_ORIG = ../eglibc_$(EGLIBC_VERSION).orig.tar.xz
 DEB_ORIG_REVISION = $(shell cat .svn-revision 2> /dev/null)
 SVN_UPDATES_DIFF = debian/patches/svn-updates.diff
 
+GLIBC_GIT = git://sourceware.org/git/glibc.git
+GLIBC_BRANCH = release/$(EGLIBC_VERSION)/master
+GLIBC_CHECKOUT = glibc-checkout
+GIT_ORIG_REVISION = $(shell cat .git-revision 2>/dev/null || echo glibc-$(EGLIBC_VERSION))
+GIT_UPDATES_DIFF = debian/patches/git-updates.diff
+
 get-orig-source: $(DEB_ORIG)
 $(DEB_ORIG):
 	dh_testdir
@@ -22,3 +28,11 @@ update-from-upstream-svn:
 	echo "SVN update of $(EGLIBC_SVN)/$(EGLIBC_BRANCH) from revision $(DEB_ORIG_REVISION)" > $(SVN_UPDATES_DIFF)
 	echo "" >> $(SVN_UPDATES_DIFF)
 	svn diff -r$(DEB_ORIG_REVISION) $(EGLIBC_SVN)/$(EGLIBC_BRANCH)/libc | filterdiff --addoldprefix=a/ --addnewprefix=b/ -x 'manual/*' >> $(SVN_UPDATES_DIFF)
+
+update-from-upstream-git:
+	dh_testdir
+	git clone --bare $(GLIBC_GIT) $(GLIBC_CHECKOUT)
+	echo "GIT update of $(GLIBC_GIT)/$(GLIBC_BRANCH) from $(GIT_ORIG_REVISION)" > $(GIT_UPDATES_DIFF)
+	echo "" >> $(GIT_UPDATES_DIFF)
+	(cd $(GLIBC_CHECKOUT) && git diff $(GIT_ORIG_REVISION) $(GLIBC_BRANCH)) | filterdiff -x 'manual/*' >> $(GIT_UPDATES_DIFF)
+	rm -rf $(GLIBC_CHECKOUT)
