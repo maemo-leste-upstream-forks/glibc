@@ -1,0 +1,58 @@
+commit 4facea473059914983b7da8dd654c06b8e3dcc41
+Author: Adhemerval Zanella <azanella@linux.vnet.ibm.com>
+Date:   Mon Mar 10 15:26:20 2014 -0500
+
+    PowerPC: Fix bzero definition for static libc for PPC64
+    
+    This patch fixes an issue for powerpc64[le] static build where __bzero
+    is definied in multiple places (memset-ppc64.o and bzero.o). It is now
+    defined only in bzero.o and memset-ppc64.o only defined __bzero_ppc for
+    both dynamic and static library.
+    
+    Fixes BZ#16683.
+
+2014-03-11  Adhemerval Zanella  <azanella@linux.vnet.ibm.com>
+
+	[BZ #16683]
+	* sysdeps/powerpc/powerpc64/multiarch/memset-ppc64.S (__bzero_ppc):
+	Define it for static builds as well.
+	(NO_BZERO_IMPL): Likewise.
+
+diff --git a/sysdeps/powerpc/powerpc64/multiarch/memset-ppc64.S b/sysdeps/powerpc/powerpc64/multiarch/memset-ppc64.S
+index 5b234d9e..65b3afe 100644
+--- a/sysdeps/powerpc/powerpc64/multiarch/memset-ppc64.S
++++ b/sysdeps/powerpc/powerpc64/multiarch/memset-ppc64.S
+@@ -18,10 +18,9 @@
+ 
+ #include <sysdep.h>
+ 
+-#if defined SHARED && !defined NOT_IN_libc
+-
+ /* Copied from bzero.S to prevent the linker from inserting a stub
+-   between bzero and memset.  */
++   between bzero and memset.  NOTE: this code should be positioned
++   before ENTRY/END_GEN_TB redefinition.  */
+ ENTRY (__bzero_ppc)
+         CALL_MCOUNT 3
+         mr      r5,r4
+@@ -29,6 +28,8 @@ ENTRY (__bzero_ppc)
+         b       L(_memset)
+ END_GEN_TB (__bzero_ppc,TB_TOCLESS)
+ 
++
++#if defined SHARED && !defined NOT_IN_libc
+ # undef EALIGN
+ # define EALIGN(name, alignt, words)				\
+   .section ".text";						\
+@@ -48,9 +49,9 @@ END_GEN_TB (__bzero_ppc,TB_TOCLESS)
+ # undef libc_hidden_builtin_def
+ # define libc_hidden_builtin_def(name)				\
+   .globl __GI_memset; __GI_memset = __memset_ppc
++#endif
+ 
+ /* Do not implement __bzero at powerpc64/memset.S.  */
+-# define NO_BZERO_IMPL
+-#endif
++#define NO_BZERO_IMPL
+ 
+ #include <sysdeps/powerpc/powerpc64/memset.S>

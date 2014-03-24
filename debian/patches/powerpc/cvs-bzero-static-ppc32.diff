@@ -1,0 +1,59 @@
+commit dd3946c615184e1957a0cb09352cac72be5d6d5b
+Author: Adhemerval Zanella <azanella@linux.vnet.ibm.com>
+Date:   Wed Mar 12 08:55:50 2014 -0500
+
+    PowerPC: Fix bzero definition for static libc for PPC32
+    
+    This patch fixes an issue for powerpc32-fpu static build which fails
+    with an 'bzero' undefined reference. This patch adds bzero ifunc selector
+    for static builds and fixes the '__bzero_ppc' reference to default
+    memset symbol (since static memset build does not provide ifunc
+    selector).
+    
+    Fixes BZ#16689.
+
+2014-03-12  Adhemerval Zanella  <azanella@linux.vnet.ibm.com>
+
+	[BZ #16689]
+	* sysdeps/powerpc/powerpc32/power4/multiarch/bzero-ppc32.S
+	(__bzero_ppc): Call memset@local instead of __memset_ppc@local for
+	static build.
+	* sysdeps/powerpc/powerpc32/power4/multiarch/bzero.c: Build IFUNC
+	selector for static builds.
+
+diff --git a/sysdeps/powerpc/powerpc32/power4/multiarch/bzero-ppc32.S b/sysdeps/powerpc/powerpc32/power4/multiarch/bzero-ppc32.S
+index 7a7cca9..80a2dc5 100644
+--- a/sysdeps/powerpc/powerpc32/power4/multiarch/bzero-ppc32.S
++++ b/sysdeps/powerpc/powerpc32/power4/multiarch/bzero-ppc32.S
+@@ -19,8 +19,17 @@
+ 
+ #include <sysdep.h>
+ 
++/* memset ifunc selector is not built for static and memset@local
++   for shared builds makes the linker point the call to the ifunc
++   selector.  */
++#ifdef SHARED
++# define MEMSET __memset_ppc
++#else
++# define MEMSET memset
++#endif
++
+ ENTRY (__bzero_ppc)
+         mr      r5,r4
+         li      r4,0
+-        b       __memset_ppc@local
++        b       MEMSET@local
+ END (__bzero_ppc)
+diff --git a/sysdeps/powerpc/powerpc32/power4/multiarch/bzero.c b/sysdeps/powerpc/powerpc32/power4/multiarch/bzero.c
+index 2a6298a..baaa6b4 100644
+--- a/sysdeps/powerpc/powerpc32/power4/multiarch/bzero.c
++++ b/sysdeps/powerpc/powerpc32/power4/multiarch/bzero.c
+@@ -17,7 +17,7 @@
+    <http://www.gnu.org/licenses/>.  */
+ 
+ /* Define multiple versions only for definition in libc.  */
+-#if defined SHARED && !defined NOT_IN_libc
++#ifndef NOT_IN_libc
+ # include <string.h>
+ # include <strings.h>
+ # include "init-arch.h"
