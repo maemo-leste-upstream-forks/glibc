@@ -4,10 +4,15 @@ Bug: https://sourceware.org/bugzilla/show_bug.cgi?id=16159
 Bug-Ubuntu: https://bugs.launchpad.net/bugs/1266492
 Forwarded: no, needs testing first
 
-Disable backtrace's by default when malloc internal errors have
+Disable backtraces by default when malloc internal errors have
 occurred; backtraces end up calling malloc themselves which causes a
 deadlock on the internal glibc malloc lock. It's also a bad idea to use
 malloc if an attacker has corrupted malloc's internal data structures.
+We do this by setting the default for MALLOC_CHECK_ to 1 and converting
+the first argument to __libc_message to equal 'action & 3':
+  if action = 1, __libc_message aborts
+  if action > 1, __libc_message aborts w/backtrace (on linux)
+Previously, setting MALLOC_CHECK_ to 1 would not abort.
 
 MALLOC_CHECK_ is also added to the list of environment variables to
 filter for setuid binaries.
@@ -15,15 +20,15 @@ filter for setuid binaries.
 For debugging purposes, people can manually add MALLOC_CHECK_=3 to their
 environment to get the backtracing behavior back.
 ---
- malloc/malloc.c             |    5 ++++-
+ malloc/malloc.c             |    9 +++++++--
  sysdeps/generic/unsecvars.h |    1 +
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
 Index: b/malloc/malloc.c
 ===================================================================
 --- a/malloc/malloc.c
 +++ b/malloc/malloc.c
-@@ -1863,8 +1863,11 @@ void weak_variable (*__after_morecore_ho
+@@ -1842,8 +1842,11 @@ void weak_variable (*__after_morecore_ho
  
  /* ---------------- Error behavior ------------------------------------ */
  
@@ -36,6 +41,17 @@ Index: b/malloc/malloc.c
  #endif
  
  static int check_action = DEFAULT_CHECK_ACTION;
+@@ -4988,7 +4991,9 @@ malloc_printerr (int action, const char
+       while (cp > buf)
+         *--cp = '0';
+ 
+-      __libc_message (action & 2, "*** Error in `%s': %s: 0x%s ***\n",
++      /* always abort (action & 1) and (on linux) if bit 1 is set,
++         emit backtrace */
++      __libc_message (action & 3, "*** Error in `%s': %s: 0x%s ***\n",
+                       __libc_argv[0] ? : "<unknown>", str, cp);
+     }
+   else if (action & 2)
 Index: b/sysdeps/generic/unsecvars.h
 ===================================================================
 --- a/sysdeps/generic/unsecvars.h
