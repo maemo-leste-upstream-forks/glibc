@@ -1,13 +1,20 @@
 https://sourceware.org/ml/libc-alpha/2014-04/msg00006.html
 
- sysdeps/unix/sysv/linux/aarch64/setcontext.S | 139 +++++++++++++++++----------
- 1 file changed, 88 insertions(+), 51 deletions(-)
+2014-04-01  Will Newton  <will.newton@linaro.org>
+
+	[BZ #16629]
+	* sysdeps/unix/sysv/linux/aarch64/setcontext.S (__setcontext):
+	Re-implement to restore registers in user code and avoid
+	rt_sigreturn system call.
+---
+ sysdeps/unix/sysv/linux/aarch64/setcontext.S | 147 +++++++++++++++++----------
+ 2 files changed, 95 insertions(+), 58 deletions(-)
 
 Index: eglibc-2.19/ports/sysdeps/unix/sysv/linux/aarch64/setcontext.S
 ===================================================================
 --- eglibc-2.19.orig/ports/sysdeps/unix/sysv/linux/aarch64/setcontext.S	2150-05-09 09:36:21.925789000 +0000
 +++ eglibc-2.19/ports/sysdeps/unix/sysv/linux/aarch64/setcontext.S	2150-05-09 09:36:48.235789000 +0000
-@@ -22,63 +22,100 @@
+@@ -22,68 +22,105 @@
  #include "ucontext_i.h"
  #include "ucontext-internal.h"
  
@@ -15,17 +22,11 @@ Index: eglibc-2.19/ports/sysdeps/unix/sysv/linux/aarch64/setcontext.S
 +/*  int __setcontext (const ucontext_t *ucp)
  
 -	.text
-+  Restores the machine context in UCP and thereby resumes execution
-+  in that context.
- 
+-
 -ENTRY(__setcontext)
-+  This implementation is intended to be used for *synchronous* context
-+  switches only.  Therefore, it does not have to restore anything
-+  other than the PRESERVED state.  */
- 
+-
 -	/* Create a signal frame on the stack:
-+	.text
- 
+-
 -		fp
 -		lr
 -		...
@@ -43,10 +44,15 @@ Index: eglibc-2.19/ports/sysdeps/unix/sysv/linux/aarch64/setcontext.S
 -	/* Allocate space for the sigcontext.  */
 -	mov	w3, #((RT_SIGFRAME_SIZE + SP_ALIGN_SIZE) & SP_ALIGN_MASK)
 -	sub	sp, sp,	x3
--
++  Restores the machine context in UCP and thereby resumes execution
++  in that context.
+ 
 -	/* Compute the base address of the ucontext structure.  */
 -	add	x1, sp, #RT_SIGFRAME_UCONTEXT
--
++  This implementation is intended to be used for *synchronous* context
++  switches only.  Therefore, it does not have to restore anything
++  other than the PRESERVED state.  */
+ 
 -	/* Only ucontext is required in the frame, *copy* it in.  */
 -
 -#if UCONTEXT_SIZE % 16
@@ -59,16 +65,18 @@ Index: eglibc-2.19/ports/sysdeps/unix/sysv/linux/aarch64/setcontext.S
 -	stp	x3, x4, [x1], #16
 -	sub	x2, x2, 1
 -	cbnz	x2, 0b
-+ENTRY(__setcontext)
-+	/* Save a copy of UCP.  */
-+	mov	x9, x0
++	.text
  
 -	/* rt_sigreturn () -- no arguments, sp points to struct rt_sigframe.  */
 -	mov	x8, SYS_ify (rt_sigreturn)
++ENTRY (__setcontext)
++	/* Save a copy of UCP.  */
++	mov	x9, x0
++
 +	/* Set the signal mask with
 +	   rt_sigprocmask (SIG_SETMASK, mask, NULL, _NSIG/8).  */
 +	mov	x0, #SIG_SETMASK
-+	ldr	x1, [x9, UCONTEXT_SIGMASK]
++	add	x1, x9, #UCONTEXT_SIGMASK
 +	mov	x2, #0
 +	mov	x3, #_NSIG8
 +	mov	x8, SYS_ify (rt_sigprocmask)
@@ -83,35 +91,36 @@ Index: eglibc-2.19/ports/sysdeps/unix/sysv/linux/aarch64/setcontext.S
 -	cfi_adjust_cfa_offset (16)
 -	cfi_restore (x29)
 -	cfi_restore (x30)
-+	cbz	x0, 1f
- 	b	C_SYMBOL_NAME(__syscall_error)
+-	b	C_SYMBOL_NAME(__syscall_error)
 -
++	cbz	x0, 1f
++	b	C_SYMBOL_NAME (__syscall_error)
 +1:
 +	/* Restore the general purpose registers.  */
 +	mov	x0, x9
-+	cfi_def_cfa(x0, 0)
-+	cfi_offset(x18, oX0 + 18 * SZREG)
-+	cfi_offset(x19, oX0 + 19 * SZREG)
-+	cfi_offset(x20, oX0 + 20 * SZREG)
-+	cfi_offset(x21, oX0 + 21 * SZREG)
-+	cfi_offset(x22, oX0 + 22 * SZREG)
-+	cfi_offset(x23, oX0 + 23 * SZREG)
-+	cfi_offset(x24, oX0 + 24 * SZREG)
-+	cfi_offset(x25, oX0 + 25 * SZREG)
-+	cfi_offset(x26, oX0 + 26 * SZREG)
-+	cfi_offset(x27, oX0 + 27 * SZREG)
-+	cfi_offset(x28, oX0 + 28 * SZREG)
-+	cfi_offset(x29, oX0 + 29 * SZREG)
-+	cfi_offset(x30, oX0 + 30 * SZREG)
++	cfi_def_cfa (x0, 0)
++	cfi_offset (x18, oX0 + 18 * SZREG)
++	cfi_offset (x19, oX0 + 19 * SZREG)
++	cfi_offset (x20, oX0 + 20 * SZREG)
++	cfi_offset (x21, oX0 + 21 * SZREG)
++	cfi_offset (x22, oX0 + 22 * SZREG)
++	cfi_offset (x23, oX0 + 23 * SZREG)
++	cfi_offset (x24, oX0 + 24 * SZREG)
++	cfi_offset (x25, oX0 + 25 * SZREG)
++	cfi_offset (x26, oX0 + 26 * SZREG)
++	cfi_offset (x27, oX0 + 27 * SZREG)
++	cfi_offset (x28, oX0 + 28 * SZREG)
++	cfi_offset (x29, oX0 + 29 * SZREG)
++	cfi_offset (x30, oX0 + 30 * SZREG)
 +
-+	cfi_offset( d8, oV0 + 8 * SZVREG)
-+	cfi_offset( d9, oV0 + 9 * SZVREG)
-+	cfi_offset(d10, oV0 + 10 * SZVREG)
-+	cfi_offset(d11, oV0 + 11 * SZVREG)
-+	cfi_offset(d12, oV0 + 12 * SZVREG)
-+	cfi_offset(d13, oV0 + 13 * SZVREG)
-+	cfi_offset(d14, oV0 + 14 * SZVREG)
-+	cfi_offset(d15, oV0 + 15 * SZVREG)
++	cfi_offset ( d8, oV0 + 8 * SZVREG)
++	cfi_offset ( d9, oV0 + 9 * SZVREG)
++	cfi_offset (d10, oV0 + 10 * SZVREG)
++	cfi_offset (d11, oV0 + 11 * SZVREG)
++	cfi_offset (d12, oV0 + 12 * SZVREG)
++	cfi_offset (d13, oV0 + 13 * SZVREG)
++	cfi_offset (d14, oV0 + 14 * SZVREG)
++	cfi_offset (d15, oV0 + 15 * SZVREG)
 +	ldp	x18, x19, [x0, oX0 + 18 * SZREG]
 +	ldp	x20, x21, [x0, oX0 + 20 * SZREG]
 +	ldp	x22, x23, [x0, oX0 + 22 * SZREG]
@@ -158,3 +167,13 @@ Index: eglibc-2.19/ports/sysdeps/unix/sysv/linux/aarch64/setcontext.S
  PSEUDO_END (__setcontext)
  weak_alias (__setcontext, setcontext)
  
+-ENTRY(__startcontext)
++ENTRY (__startcontext)
+ 	mov	x0, x19
+ 	cbnz	x0, __setcontext
+-1:	b       HIDDEN_JUMPTARGET(_exit)
+-END(__startcontext)
++1:	b       HIDDEN_JUMPTARGET (_exit)
++END (__startcontext)
+-- 
+1.8.1.4
