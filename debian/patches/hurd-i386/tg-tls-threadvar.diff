@@ -830,13 +830,13 @@ That will fix sigaltstack.
     this. */
  #define __mig_get_reply_port() profil_reply_port
  
---- a/sysdeps/mach/hurd/tls.h
-+++ b/sysdeps/mach/hurd/tls.h
+--- a/sysdeps/mach/hurd/i386/tls.h
++++ b/sysdeps/mach/hurd/i386/tls.h
 @@ -47,6 +47,7 @@ typedef struct
-   void *tcb;			/* Points to this structure.  */
-   dtv_t *dtv;			/* Vector of pointers to TLS data.  */
-   thread_t self;		/* This thread's control port.  */
+   void *__private_tm[4];
+   /* GCC split stack support.  */
+   void *__private_ss;
 +  mach_port_t reply_port;	/* This thread's reply port.  */
  } tcbhead_t;
- 
+ #endif
  
