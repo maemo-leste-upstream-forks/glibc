@@ -73,11 +73,7 @@ That will fix sigaltstack.
  struct hurd_signal_preemptor;	/* <hurd/sigpreempt.h> */
  
  
-@@ -129,14 +128,13 @@ extern struct hurd_sigstate *_hurd_self_
- #define _HURD_SIGNAL_H_EXTERN_INLINE __extern_inline
- #endif
- 
-+extern __thread struct hurd_sigstate *_hurd_sigstate;
+@@ -129,11 +128,9 @@ extern struct hurd_sigstate *_hurd_self_
  _HURD_SIGNAL_H_EXTERN_INLINE struct hurd_sigstate *
  _hurd_self_sigstate (void)
  {
@@ -86,9 +82,9 @@ That will fix sigaltstack.
 -  if (*location == NULL)
 -    *location = _hurd_thread_sigstate (__mach_thread_self ());
 -  return *location;
-+  if (_hurd_sigstate == NULL)
-+    _hurd_sigstate = _hurd_thread_sigstate (__mach_thread_self ());
-+  return _hurd_sigstate;
++  if (THREAD_SELF->_hurd_sigstate == NULL)
++    THREAD_SELF->_hurd_sigstate = _hurd_thread_sigstate (__mach_thread_self ());
++  return THREAD_SELF->_hurd_sigstate;
  }
  
  /* Thread listening on our message port; also called the "signal thread".  */
@@ -107,7 +103,7 @@ That will fix sigaltstack.
 +    return NULL;
 +#endif
 +
-+  ss = _hurd_sigstate;
++  ss = THREAD_SELF->_hurd_sigstate;
    if (ss == NULL)
      {
        /* The thread variable is unset; this must be the first time we've
@@ -115,7 +111,7 @@ That will fix sigaltstack.
  	 possible already be set.  Look up our sigstate structure the slow
  	 way; this locks the sigstate lock.  */
 -      ss = *location = _hurd_thread_sigstate (__mach_thread_self ());
-+      ss = _hurd_sigstate = _hurd_thread_sigstate (__mach_thread_self ());
++      ss = THREAD_SELF->_hurd_sigstate = _hurd_thread_sigstate (__mach_thread_self ());
        __spin_unlock (&ss->lock);
      }
  
@@ -233,14 +229,11 @@ That will fix sigaltstack.
  #include <mach.h>
  #include <mach/thread_switch.h>
  
-@@ -48,7 +49,9 @@ thread_t _hurd_sigthread;
+@@ -48,7 +49,6 @@ thread_t _hurd_sigthread;
  /* These are set up by _hurdsig_init.  */
  unsigned long int __hurd_sigthread_stack_base;
  unsigned long int __hurd_sigthread_stack_end;
 -unsigned long int *__hurd_sigthread_variables;
-+
-+/* Per-thread signal state.  */
-+__thread struct hurd_sigstate *_hurd_sigstate;
  
  /* Linked-list of per-thread signal state.  */
  struct hurd_sigstate *_hurd_sigstates;
@@ -392,12 +385,11 @@ That will fix sigaltstack.
  #    define errno __libc_errno
 --- a/sysdeps/mach/hurd/Versions
 +++ b/sysdeps/mach/hurd/Versions
-@@ -6,6 +6,8 @@ libc {
+@@ -6,6 +6,7 @@ libc {
    GLIBC_PRIVATE {
      # Functions shared with the dynamic linker
      __libc_read; __libc_write; __libc_lseek64;
 +    __libc_lock_self0; __libc_lock_self;
-+    _hurd_sigstate;
  
      _dl_init_first;
    }
@@ -410,12 +402,11 @@ That will fix sigaltstack.
      __hurd_threadvar_stack_mask;  __hurd_threadvar_stack_offset;
  
      # functions that must be shared with libc
-@@ -33,5 +33,7 @@ ld {
+@@ -33,5 +33,6 @@ ld {
  
      # functions that must be shared with libc
      __libc_read; __libc_write; __libc_lseek64;
 +    __libc_lock_self0; __libc_lock_self;
-+    _hurd_sigstate;
    }
  }
 --- a/sysdeps/mach/hurd/bits/libc-lock.h
@@ -711,14 +702,13 @@ That will fix sigaltstack.
  
  static inline const char * __attribute__ ((unused))
  _hurd_tls_init (tcbhead_t *tcb, int secondcall)
-@@ -126,6 +137,21 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
+@@ -126,6 +137,20 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
  	      : "i" (offsetof (tcbhead_t, tcb)));			      \
       __tcb;})
  
 +/* Return the TCB address of a thread given its state.  */
 +# define THREAD_TCB(thread, thread_state)				      \
 +  ({ int __sel = (thread_state)->basic.gs;				      \
-+     tcbhead_t *__tcb;							      \
 +     struct descriptor __desc, *___desc = &__desc;			      \
 +     unsigned int __count = 1;						      \
 +     kern_return_t __err;						      \
@@ -832,11 +822,12 @@ That will fix sigaltstack.
  
 --- a/sysdeps/mach/hurd/i386/tls.h
 +++ b/sysdeps/mach/hurd/i386/tls.h
-@@ -47,6 +47,7 @@ typedef struct
+@@ -47,6 +47,8 @@ typedef struct
    void *__private_tm[4];
    /* GCC split stack support.  */
    void *__private_ss;
 +  mach_port_t reply_port;	/* This thread's reply port.  */
++  struct hurd_sigstate *_hurd_sigstate;
  } tcbhead_t;
  #endif
  
