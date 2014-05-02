@@ -1,0 +1,51 @@
+Index: eglibc-2.18/libpthread/pthread/pt-create.c
+===================================================================
+--- eglibc-2.18.orig/libpthread/pthread/pt-create.c	2014-04-22 22:56:03.000000000 +0000
++++ eglibc-2.18/libpthread/pthread/pt-create.c	2014-05-02 10:19:01.000000000 +0000
+@@ -118,12 +118,10 @@
+     {
+       /* Allocate a stack.  */
+       err = __pthread_stack_alloc (&pthread->stackaddr,
+-				   setup->stacksize);
++				   setup->guardsize + setup->stacksize);
+       if (err)
+ 	goto failed_stack_alloc;
+ 
+-      pthread->guardsize = (setup->guardsize <= setup->stacksize
+-			   ? setup->guardsize : setup->stacksize);
+       pthread->stack = 1;
+     }
+ 
+Index: eglibc-2.18/libpthread/pthread/pt-internal.h
+===================================================================
+--- eglibc-2.18.orig/libpthread/pthread/pt-internal.h	2014-04-22 22:56:03.000000000 +0000
++++ eglibc-2.18/libpthread/pthread/pt-internal.h	2014-05-02 10:19:26.000000000 +0000
+@@ -94,11 +94,7 @@
+   /* Thread stack.  */
+   void *stackaddr;
+   size_t stacksize;
+-  size_t guardsize;		/* Included in STACKSIZE (i.e. total
+-				   stack memory is STACKSIZE, not
+-				   STACKSIZE + GUARDSIZE).  */
+-				/* FIXME: standard says that guardsize is in
+-				   addition to stacksize.  */
++  size_t guardsize;
+   int stack;			/* Nonzero if the stack was allocated.  */
+ 
+   /* Exit status.  */
+Index: eglibc-2.18/libpthread/sysdeps/generic/pt-attr-setstacksize.c
+===================================================================
+--- eglibc-2.18.orig/libpthread/sysdeps/generic/pt-attr-setstacksize.c	2014-04-22 22:56:03.000000000 +0000
++++ eglibc-2.18/libpthread/sysdeps/generic/pt-attr-setstacksize.c	2014-05-02 10:20:02.000000000 +0000
+@@ -26,11 +26,5 @@
+ {
+   attr->stacksize = stacksize;
+ 
+-  /* The guard size cannot be larger than the stack itself, as
+-     such, if the new stack size is smaller than the guard size,
+-     we squash the guard size.  */
+-  if (attr->guardsize > attr->stacksize)
+-    attr->guardsize = attr->stacksize;
+-
+   return 0;
+ }
