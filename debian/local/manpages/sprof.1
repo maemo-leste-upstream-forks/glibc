@@ -40,7 +40,12 @@
 .\"     string Tr holds user defined translation string.
 .\"     Bell System Logo is used as a dummy character.
 .\"
-.tr \(*W-|\(bv\*(Tr
+.\"     Avoid warning from groff about undefined string
+.if \n(.g \{\
+. if !dTr .ds Tr
+.\}
+.ie t .tr \(*W-|\(bv\*(Tr
+.el .tr \(*W-\*(Tr
 .ie n \{\
 .ds -- \(*W-
 .ds PI pi
@@ -82,13 +87,19 @@
 'br\}
 .\"	If the F register is turned on, we'll generate
 .\"	index entries out stderr for the following things:
-.\"		TH	Title 
+.\"		TH	Title
 .\"		SH	Header
-.\"		Sh	Subsection 
+.\"		Sh	Subsection
 .\"		Ip	Item
 .\"		X<>	Xref  (embedded
 .\"	Of course, you have to process the output yourself
 .\"	in some meaningful fashion.
+.\"     Avoid warning from groff about undefined register and macro
+. de IX
+..
+.if \n(.g \{\
+. if !rF . nr F 0
+.\}
 .if \nF \{
 .de IX
 .tm Index:\\$1\t\\n%\t"\\$2"
@@ -195,17 +206,17 @@ sprof \- Read and display shared object profiling data
 .SH "SYNOPSIS"
 \fBsprof\fR \fB\-p\fR|\fB\-c\fR [\fB\-q\fR]
 .SH "DESCRIPTION"
-\fB--call-pairs\fR, \fB\-c\fR
+\fB\-\-call-pairs\fR, \fB\-c\fR
 .PP
 .Vb 1
 \&        print list of count paths and their number of use
 .Ve
-\fB--flat-profile\fR, \fB\-p\fR
+\fB\-\-flat-profile\fR, \fB\-p\fR
 .PP
 .Vb 1
 \&        generate flat profile with counts and ticks
 .Ve
-\fB--graph\fR, \fB\-q\fR
+\fB\-\-graph\fR, \fB\-q\fR
 .PP
 .Vb 1
 \&        generate call graph

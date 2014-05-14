@@ -88,13 +88,58 @@ eglibc (2.19-0experimental0) UNRELEASED; urgency=medium
 
  -- Adam Conrad <adconrad@0c3.net>  Sun, 09 Feb 2014 09:46:13 -0700
 
-eglibc (2.18-6) UNRELEASED; urgency=medium
+eglibc (2.18-6) unstable; urgency=medium
 
   [ Samuel Thibault ]
   * patches/hurd-i386/cvs-libpthread_guardsize.diff: Fix guardsize semantic
     for gcc's -fsplit-stack.
 
- -- Adam Conrad <adconrad@0c3.net>  Sun, 27 Apr 2014 23:15:13 -0600
+  [ Aurelien Jarno ]
+  * patches/any/cvs-make-4.0.diff: patch from upstream to allow GNU Make
+    4.0 and greater.  Closes: #747013.
+  * patches/sparc/cvs-strcmp.diff: patch from upstream to fix a corner case
+    in the sparc specific strcmp() implementation.  Closes: #746310.
+  * debhelper.in/nscd.init: invalidate nscd cache on startup.  Closes:
+    #689427.
+  * patches/any/cvs-wprintf.diff: patch from upstream to correctly handle
+    %p in wprintf().  Closes: #729514.
+  * patches/any/submitted-resolv-first-query-failure.diff: replace by upstream
+    version patches/any/cvs-resolv-first-query-failure.diff.
+  * control.in/*: add conflicts between multiarch libc packages using the same
+    dynamic library loader.  Closes: #745552.
+  * patches/localedata/submitted-it_IT-thousands_sep.diff: new patch to define
+    the thousands separator for the it_IT locale.  Closes: #712157.
+  * patches/any/submitted-ptsname_r-uninitialized-memory.diff: new patch to
+    fix uninitialized memory in ptsname_r().  Closes: #741482.
+  * patches/all/submitted-po-fr-fixes.diff: new patch to fix the French
+    translation of inappropriate (inappropré -> inapproprié).  Closes:
+    #733237.
+  * patches/any/cvs-socketcall-syscall.diff: new patch from upstream to fix
+    socketcall multiplex syscall features detection.  Closes: #730744.
+  * patches/any/submitted-nl_langinfo-static.diff: new patch to fix
+    nl_langinfo() used in static binaries.  Closes: #747103.
+  * patches/any/sparc/cvs-efd_semaphore.diff: new patch from upstream to
+    declare EFD_SEMAPHORE in <bits/eventfd.h> on SPARC.  Closes: #730092,
+    #737697.
+  * patches/svn-updates.diff: update from 2.18 branch, to fix a race in free()
+    of fastbin chunk.
+  * local/manpages/sprof.1, local/manpages/rpcgen.1: apply typographical
+    fixes from Bjarni Ingi Gislason <bjarniig@rhi.hi.is>.  Closes: #726849,
+    #740973.
+  * patches/hppa/*.diff: apply changes from John David Anglin
+    <dave.anglin@bell.net>.  Closes: #725508, #741243.
+  * testsuite-checking/expected-results-mips*el: re-add tst-tls2.out and
+    tst-tls3.out (remove in the latest cleanup) as they still occasionally
+    fail.
+  * local/manpages/sotruss.1: new manpage.
+  * patches/sparc/submitted-prlimit.diff: new patch to fix missing
+    prlimit/prlimit64 prototypes on SPARC.  Closes: #703559.
+  * source/lintian-overrides: add override for false positive
+    license-problem-non-free-RFC tag. Remove old override for 
+    outdated-autotools-helper-file tag.
+  * control.in/main: Bump Standards-Version to 3.9.5 (no changes).
+
+ -- Aurelien Jarno <aurel32@debian.org>  Wed, 14 May 2014 19:15:10 +0200
 
 eglibc (2.18-5) unstable; urgency=medium
 

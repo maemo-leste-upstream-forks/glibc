@@ -1,10 +1,28 @@
 .\" @(#)rpcgen.new.1	1.1 90/11/09 TIRPC 1.0; from 40.10 of 10/10/89
 .\" Copyright (c) 1988,1990 Sun Microsystems, Inc. - All Rights Reserved.
-.nr X
+.\" Correction to the original for groff in October 2013
+.\" Local register 'X' interferes with the same register in the
+.\" 'an-old.tmac' macro file in groff
+.\" The original did not have any value for register X, added zero
+.ie \n(.g \{\
+.\" 'X' can be defined on the command line
+.if r X .nr XTH \nX
+.nr X 0
+.\}
+.el .nr X
+.\" End correction for groff
 .if \nX=0 .ds x} rpcgen 1 "" "\&"
 .if \nX=1 .ds x} rpcgen 1 ""
 .if \nX=2 .ds x} rpcgen 1 "" "\&"
 .if \nX=3 .ds x} rpcgen "" "" "\&"
+.\" Correction to the original for groff in October 2013
+.\" The local register 'X' can interfere with the same register in the
+.\" 'an-old.tmac' macro file in groff
+.if \n(.g \{\
+.ie r XTH .nr X \n[XTH] \" X was defined on the command line
+.el .rr X
+.\}
+.\" End correction for groff
 .TH \*(x}
 .SH NAME
 \f4rpcgen\f1 \- an RPC protocol compiler
@@ -47,7 +65,7 @@ is a language similar to C known as
 RPC Language (Remote Procedure Call Language).
 .P
 \f4rpcgen\f1
-is normally used as in the first synopsis where 
+is normally used as in the first synopsis where
 it takes an input file and generates up to four output files.
 If the
 \f2infile\f1
@@ -71,21 +89,21 @@ it will also generate the RPC dispatch table in
 With the
 \f4\-Sc\f1
 option,
-it will also generate  sample code which would illustrate how to use the
-remote procedures on the client side. This code would be created in 
+it will also generate sample code which would illustrate how to use the
+remote procedures on the client side.  This code would be created in
 \f4proto_client.c\f1.
 With the
 \f4\-Ss\f1
 option,
 it will also generate a sample server code which would illustrate how to write
-the remote procedures. This code would be created in 
+the remote procedures.  This code would be created in
 \f4proto_server.c\f1.
 .P
 The server created can be started both by the port monitors
 (for example, \f4inetd\f1 or \f4listen\f1)
 or by itself.
 When it is started by a port monitor,
-it creates servers only for the transport for which 
+it creates servers only for the transport for which
 the file descriptor \f40\fP was passed.
 The name of the transport must be specified
 by setting up the environmental variable
@@ -127,18 +145,18 @@ a pointer to the input and output arguments
 the size of these routines
 .PD
 .RE
-A server can use the dispatch table to check authorization 
-and then to execute the service routine; 
+A server can use the dispatch table to check authorization
+and then to execute the service routine;
 a client library may use it to deal with the details of storage
 management and XDR data conversion.
 .P
-The other three synopses shown above are used when 
+The other three synopses shown above are used when
 one does not want to generate all the output files,
 but only a particular one.
 Some examples of their usage is described in the
 EXAMPLE
 section below.
-When 
+When
 \f4rpcgen\f1
 is executed with the
 \f4\-s\f1
@@ -211,11 +229,11 @@ The following options are available:
 Generate all the files including sample code for client and server side.
 .TP
 \f4\-b\f1
-This generates code for the SunOS4.1 style of rpc. It is
+This generates code for the SunOS4.1 style of rpc.  It is
 for backward compatibility.  This is the default.
 .TP
 \f4\-5\f1
-This generates code for the SysVr4 style of rpc. It is used by the
+This generates code for the SysVr4 style of rpc.  It is used by the
 Transport Independent RPC that is in Svr4 systems.
 By default rpcgen generates code for SunOS4.1 stype of rpc.
 .TP
@@ -223,7 +241,7 @@ By default rpcgen generates code for SunOS4.1 stype of rpc.
 Compile into XDR routines.
 .TP
 \f4\-C\f1
-Generate code in ANSI C. This option also generates code that could be
+Generate code in ANSI C.  This option also generates code that could be
 compiled with the C++ compiler.  This is the default.
 .TP
 \f4\-k\f1
@@ -247,7 +265,7 @@ Compile into
 \f4C\f1
 data-definitions (a header file).
 \f4\-T\f1
-option can be used in conjunction to produce a 
+option can be used in conjunction to produce a
 header file which supports RPC dispatch tables.
 .TP
 \f4\-I\f1
@@ -255,14 +273,14 @@ Generate a service that can be started from inetd.  The default is
 to generate a static service that handles transports selected with \f4\-s\f1.
 Using \f4\-I\f1 allows starting a service by either method.
 .TP
-\f4-K\f2 secs\f1
+\f4\-K\f2 secs\f1
 By default, services created using \f4rpcgen\fP wait \f4120\fP seconds
 after servicing a request before exiting.
-That interval can be changed using the \f4-K\fP flag.
+That interval can be changed using the \f4\-K\fP flag.
 To create a server that exits immediately upon servicing a request,
-\f4-K\ 0\fP can be used.
+\f4\-K\ 0\fP can be used.
 To create a server that never exits, the appropriate argument is
-\f4-K\ -1\fP.
+\f4\-K\ \-1\fP.
 .IP
 When monitoring for a server,
 some portmonitors, like
@@ -271,7 +289,7 @@ some portmonitors, like
 spawn a new process in response to a service request.
 If it is known that a server will be used with such a monitor, the
 server should exit immediately on completion.
-For such servers, \f4rpcgen\fP should be used with \f4-K\ -1\fP.
+For such servers, \f4rpcgen\fP should be used with \f4\-K\ \-1\fP.
 .TP
 \f4\-l\f1
 Compile into client-side stubs.
@@ -279,8 +297,8 @@ Compile into client-side stubs.
 \f4\-m\f1
 Compile into server-side stubs,
 but do not generate a \(lqmain\(rq routine.
-This option is useful for doing callback-routines 
-and for users who need to write their own 
+This option is useful for doing callback-routines
+and for users who need to write their own
 \(lqmain\(rq routine to do initialization.
 .TP
 \f4\-M\f1
@@ -300,11 +318,11 @@ This option may be specified more than once,
 so as to compile a server that serves multiple transports.
 .TP
 \f4\-N\f1
-Use the newstyle of rpcgen. This allows procedures to have multiple arguments. 
-It also uses the style of parameter passing that closely resembles C. So, when 
+Use the newstyle of rpcgen.  This allows procedures to have multiple arguments.
+It also uses the style of parameter passing that closely resembles C.  So, when
 passing an argument to a remote procedure you do not have to pass a pointer to
-the argument but the argument itself. This behaviour is different from the oldstyle
-of rpcgen generated code. The newstyle is not the default case because of 
+the argument but the argument itself.  This behaviour is different from the oldstyle
+of rpcgen generated code.  The newstyle is not the default case because of
 backward compatibility.
 .TP
 \f4\-o \f2outfile\f1
@@ -325,7 +343,7 @@ and
 modes only).
 .TP
 \f4\-s \f2nettype\f1
-Compile into server-side stubs for all the 
+Compile into server-side stubs for all the
 transports belonging to the class
 \f2nettype\f1.
 The supported classes are
@@ -352,7 +370,7 @@ to the server before calling the client side stubs generated by rpcgen.
 Generate a sample Makefile which can be used for compiling the application.
 .TP
 \f4\-Ss\f1
-Generate skeleton code for the remote procedures on the server side. You would need
+Generate skeleton code for the remote procedures on the server side.  You would need
 to fill in the actual code for the remote procedures.
 .TP
 \f4\-t\f1
@@ -361,7 +379,7 @@ Compile into RPC dispatch table.
 \f4\-T\f1
 Generate the code to support RPC dispatch tables.
 .P
-The options 
+The options
 \f4\-c\f1,
 \f4\-h\f1,
 \f4\-l\f1,
@@ -381,12 +399,12 @@ are global and can be used with the other options.
 The RPC Language does not support nesting of structures.
 As a work-around,
 structures can be declared at the top-level,
-and their name used inside other structures in 
+and their name used inside other structures in
 order to achieve the same effect.
 .P
 Name clashes can occur when using program definitions,
 since the apparent scoping does not really apply.
-Most of these can be avoided by giving 
+Most of these can be avoided by giving
 unique names for programs,
 versions,
 procedures and types.
@@ -420,7 +438,7 @@ $ rpcgen \-h prot.x
 .P
 To send the test version of the
 \f4-DTEST\f1,
-server side stubs for 
+server side stubs for
 all the transport belonging to the class
 \f4datagram_n\f1
 to standard output, use:
