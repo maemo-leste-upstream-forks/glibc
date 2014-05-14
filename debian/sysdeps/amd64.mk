@@ -1,5 +1,5 @@
 libc_rtlddir = /lib64
-extra_config_options = --enable-multi-arch
+extra_config_options = --enable-multi-arch --enable-lock-elision
 
 # build 32-bit (i386) alternative library
 EGLIBC_PASSES += i386
