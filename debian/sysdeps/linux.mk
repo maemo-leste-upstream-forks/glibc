@@ -44,7 +44,7 @@ $(stamp)mkincludedir:
 	ln -s $(LINUX_HEADERS)/linux debian/include
 
 	# Library headers
-	for h in libaudit.h selinux sys/capability.h ; do \
+	for h in libaudit.h selinux sys/capability.h sys/sdt.h ; do \
 	    mkdir -p debian/include/$$(dirname $$h) ; \
 	    if [ -d "/usr/include/$(DEB_HOST_MULTIARCH)/$$h" ]; then \
 	        ln -s /usr/include/$(DEB_HOST_MULTIARCH)/$$h debian/include/$$h ; \
