@@ -88,7 +88,6 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		--without-selinux \
 		--enable-stackguard-randomization \
 		--enable-obsolete-rpc \
-		--enable-systemtap \
 		--with-pkgversion="Debian EGLIBC $(DEB_VERSION)" \
 		--with-bugurl="http://www.debian.org/Bugs/" \
 		$(if $(filter $(pt_chown),yes),--enable-pt_chown) \
