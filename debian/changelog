@@ -91,18 +91,22 @@ eglibc (2.19-0experimental0) UNRELEASED; urgency=medium
 
  -- Adam Conrad <adconrad@0c3.net>  Sun, 09 Feb 2014 09:46:13 -0700
 
-eglibc (2.18-7) UNRELEASED; urgency=medium
+eglibc (2.18-7) unstable; urgency=medium
 
   [ Aurelien Jarno ]
   * testsuite-checking/expected-results-*s390*: ignore tst-cancel17.out
     failure, it is due to a bug in the test (see BZ #12683).
   * local/etc/bindresvport.blacklist: add port 655 (tinc).  Closes: #748338.
+  * control.in/*: remove conflicts between multiarch libc packages using the
+    same dynamic library loader. This was introduced in 2.18-6, but sadly the
+    infrastructure is not ready for that, leaving now way to fix the problem.
+    Reopens: #745552.
 
   [ Samuel Thibault ]
   * patches/hurd-i386/cvs-libpthread_guardsize.diff: Disable for now, it
     breaks a bunch of tests.
 
- -- Aurelien Jarno <aurel32@debian.org>  Wed, 14 May 2014 20:16:16 +0200
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 19 May 2014 11:49:49 +0200
 
 eglibc (2.18-6) unstable; urgency=medium
 
