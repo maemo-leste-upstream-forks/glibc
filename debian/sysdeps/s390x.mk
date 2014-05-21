@@ -2,7 +2,7 @@ libc_rtlddir = /lib
 extra_config_options = --enable-multi-arch
 
 # build 32-bit (s390) alternative library
-EGLIBC_PASSES += s390
+GLIBC_PASSES += s390
 DEB_ARCH_REGULAR_PACKAGES += libc6-s390 libc6-dev-s390
 s390_add-ons = nptl $(add-ons)
 s390_configure_target = s390-linux-gnu

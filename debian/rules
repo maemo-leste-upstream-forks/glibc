@@ -59,11 +59,11 @@ DEB_HOST_GNU_TYPE_ALT ?=
 DEB_SOURCE_PACKAGE := $(strip $(shell egrep '^Source: ' debian/control | cut -f 2 -d ':'))
 
 DEB_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
-EGLIBC_VERSION = $(shell echo $(DEB_VERSION) | sed -e 's/.*://' -e 's/-.*//')
+GLIBC_VERSION = $(shell echo $(DEB_VERSION) | sed -e 's/.*://' -e 's/-.*//')
 
 DEB_BUILDDIR ?= $(build-tree)/$(DEB_HOST_ARCH)-$(curpass)
 
-EGLIBC_SOURCES = $(addprefix $(shell basename $(CURDIR))/, \
+GLIBC_SOURCES = $(addprefix $(shell basename $(CURDIR))/, \
 		 $(filter-out debian $(shell basename $(stamp)) $(build-tree), $(wildcard *)))
 		 
 # The kernel uses different CPU appreviations (uname output) than the GNU
@@ -83,7 +83,7 @@ endef
 $(foreach v, CPPFLAGS CFLAGS CXXFLAGS LDFLAGS, $(if $(filter environment,$(origin $(v))),$(eval $(call unsetenv, $(v)))))
 
 # Default setup
-EGLIBC_PASSES ?= libc
+GLIBC_PASSES ?= libc
 
 prefix=/usr
 bindir=$(prefix)/bin
@@ -150,7 +150,7 @@ else
   ifeq (,$(filter $(DEB_HOST_ARCH),$(no_libc_profile)))
     DEB_ARCH_REGULAR_PACKAGES += $(libc)-prof
   endif
-  DEB_INDEP_REGULAR_PACKAGES = glibc-doc eglibc-source locales
+  DEB_INDEP_REGULAR_PACKAGES = glibc-doc glibc-source locales
   DEB_UDEB_PACKAGES = $(libc)-udeb libnss-dns-udeb libnss-files-udeb
   ## Locales can only be pre-generated during native compiles
   ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
@@ -201,7 +201,7 @@ include debian/rules.d/*.mk
 
 clean:: unpatch
 	rm -f $(CURDIR)/po/*.mo
-	rm -rf $(patsubst %,debian/tmp-%,$(EGLIBC_PASSES))
+	rm -rf $(patsubst %,debian/tmp-%,$(GLIBC_PASSES))
 	rm -rf $(build-tree)
 	rm -rf $(stamp)
 	rm -rf debian/include
@@ -211,8 +211,8 @@ clean:: unpatch
 
 # Required Debian targets
 build-arch: $(stamp)info \
-	$(patsubst %,$(stamp)build_%,$(EGLIBC_PASSES)) \
-	$(patsubst %,$(stamp)check_%,$(EGLIBC_PASSES))
+	$(patsubst %,$(stamp)build_%,$(GLIBC_PASSES)) \
+	$(patsubst %,$(stamp)check_%,$(GLIBC_PASSES))
 
 build-indep: $(stamp)source
 

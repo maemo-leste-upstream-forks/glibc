@@ -2,7 +2,7 @@
 
 ifeq ($(DEB_STAGE),stage1)
 
-override EGLIBC_PASSES = libc
+override GLIBC_PASSES = libc
 override DEB_ARCH_REGULAR_PACKAGES = $(libc)-dev
 override DEB_INDEP_REGULAR_PACKAGES =
 override DEB_UDEB_PACKAGES =

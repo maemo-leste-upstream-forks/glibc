@@ -8,7 +8,7 @@ debug-packages = $(filter %-dbg,$(DEB_ARCH_REGULAR_PACKAGES))
 non-debug-packages = $(filter-out %-dbg,$(DEB_ARCH_REGULAR_PACKAGES))
 $(patsubst %,$(stamp)binaryinst_%,$(debug-packages)):: $(patsubst %,$(stamp)binaryinst_%,$(non-debug-packages))
 
-$(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES)):: $(patsubst %,$(stamp)install_%,$(EGLIBC_PASSES)) debhelper
+$(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES)):: $(patsubst %,$(stamp)install_%,$(GLIBC_PASSES)) debhelper
 	@echo Running debhelper for $(curpass)
 	dh_testroot
 	dh_installdirs -p$(curpass)
@@ -128,7 +128,7 @@ endif
 	touch $@
 
 $(patsubst %,binaryinst_%,$(DEB_UDEB_PACKAGES)) :: binaryinst_% : $(stamp)binaryinst_%
-$(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): debhelper $(patsubst %,$(stamp)install_%,$(EGLIBC_PASSES))
+$(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): debhelper $(patsubst %,$(stamp)install_%,$(GLIBC_PASSES))
 	@echo Running debhelper for $(curpass)
 	dh_testroot
 	dh_installdirs -p$(curpass)
@@ -151,7 +151,7 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): debhelper $(patsubst %,
 
 	touch $@
 
-debhelper: $(stamp)debhelper-common $(patsubst %,$(stamp)debhelper_%,$(EGLIBC_PASSES))
+debhelper: $(stamp)debhelper-common $(patsubst %,$(stamp)debhelper_%,$(GLIBC_PASSES))
 $(stamp)debhelper-common: 
 	for x in `find debian/debhelper.in -maxdepth 1 -type f`; do \
 	  y=debian/`basename $$x`; \
@@ -185,7 +185,7 @@ $(stamp)debhelper-common:
 	touch $@
 
 ifeq ($(DEB_BUILD_PROFILE),bootstrap)
-$(patsubst %,debhelper_%,$(EGLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
+$(patsubst %,debhelper_%,$(GLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
 $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	libdir=$(call xx,libdir) ; \
 	slibdir=$(call xx,slibdir) ; \
@@ -210,7 +210,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	mv debian/$(libc)-dev.install- debian/$(libc)-dev.install
 	sed -e "s#LIBDIR#lib#g" -i debian/$(libc)-dev.install
 else
-$(patsubst %,debhelper_%,$(EGLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
+$(patsubst %,debhelper_%,$(GLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
 $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	libdir=$(call xx,libdir) ; \
 	slibdir=$(call xx,slibdir) ; \

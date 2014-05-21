@@ -38,7 +38,7 @@ diff --git a/locale/nl_langinfo_l.c b/locale/nl_langinfo_l.c
 diff --git a/localedata/Makefile b/localedata/Makefile
 --- a/localedata/Makefile
 +++ b/localedata/Makefile
-@@ -45,7 +45,7 @@
+@@ -35,7 +35,7 @@ vpath %.h tests-mbwc
  
  test-srcs := collate-test xfrm-test tst-fmon tst-rpmatch tst-trans \
  	     tst-mbswcs1 tst-mbswcs2 tst-mbswcs3 tst-mbswcs4 tst-mbswcs5 \
@@ -47,29 +47,31 @@ diff --git a/localedata/Makefile b/localedata/Makefile
  test-input := de_DE.ISO-8859-1 en_US.ISO-8859-1 da_DK.ISO-8859-1 \
  	      hr_HR.ISO-8859-2 sv_SE.ISO-8859-1 tr_TR.UTF-8 fr_FR.UTF-8 \
  	      si_LK.UTF-8
-@@ -164,7 +164,8 @@
- tests: $(objpfx)sort-test.out $(objpfx)tst-fmon.out $(objpfx)tst-locale.out \
-        $(objpfx)tst-rpmatch.out $(objpfx)tst-trans.out \
-        $(objpfx)tst-mbswcs.out $(objpfx)tst-ctype.out \
--       $(objpfx)tst-langinfo.out $(objpfx)tst-numeric.out
-+       $(objpfx)tst-langinfo.out $(objpfx)tst-langinfo-static.out\
-+       $(objpfx)tst-numeric.out
- ifeq (y,$(OPTION_POSIX_WIDE_CHAR_DEVICE_IO))
- tests: $(objpfx)tst-wctype.out
- endif
-@@ -211,7 +212,11 @@
+@@ -95,7 +95,9 @@ tests-special += $(objpfx)sort-test.out $(objpfx)tst-fmon.out \
+ 		 $(objpfx)tst-locale.out $(objpfx)tst-rpmatch.out \
+ 		 $(objpfx)tst-trans.out $(objpfx)tst-mbswcs.out \
+ 		 $(objpfx)tst-ctype.out $(objpfx)tst-wctype.out \
+-		 $(objpfx)tst-langinfo.out $(objpfx)tst-numeric.out
++		 $(objpfx)tst-langinfo.out $(objpfx)tst-langinfo-static.out \
++		 $(objpfx)tst-numeric.out
++tests-static += tst-langinfo-static
+ 
+ ifeq ($(run-built-tests),yes)
+ # We have to generate locales
+@@ -197,7 +199,12 @@ $(objpfx)tst-wctype.out: tst-wctype.sh $(objpfx)tst-wctype \
  $(objpfx)tst-langinfo.out: tst-langinfo.sh $(objpfx)tst-langinfo \
  			$(objpfx)sort-test.out \
  			$(addprefix $(objpfx),$(CTYPE_FILES))
--	$(SHELL) $< $(common-objpfx) '$(test-program-cmd)'
-+	$(SHELL) $< $(common-objpfx) '$(test-program-cmd)' > $@
+-	$(SHELL) $< $(common-objpfx) '$(test-program-cmd)'; \
++	$(SHELL) $< $(common-objpfx) '$(test-program-cmd)' > $@; \
++	$(evaluate-test)
 +$(objpfx)tst-langinfo-static.out: tst-langinfo.sh $(objpfx)tst-langinfo-static \
 +			$(objpfx)sort-test.out \
 +			$(addprefix $(objpfx),$(CTYPE_FILES))
-+	$(SHELL) $< $(common-objpfx) '$(test-program-cmd)' >$@
++	$(SHELL) $< $(common-objpfx) '$(test-program-cmd)' > $@; \
+ 	$(evaluate-test)
  $(objpfx)tst-digits.out: $(objpfx)tst-locale.out
  $(objpfx)tst-mbswcs6.out: $(addprefix $(objpfx),$(CTYPE_FILES))
- endif
 diff --git a/localedata/tst-langinfo-static.c b/localedata/tst-langinfo-static.c
 --- /dev/null
 +++ b/localedata/tst-langinfo-static.c

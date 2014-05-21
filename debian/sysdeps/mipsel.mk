@@ -2,7 +2,7 @@ libc_add-ons = ports nptl $(add-ons)
 extra_cflags = -mno-plt
 
 # build 32-bit (n32) alternative library
-EGLIBC_PASSES += mipsn32
+GLIBC_PASSES += mipsn32
 DEB_ARCH_REGULAR_PACKAGES += libc6-mipsn32 libc6-dev-mipsn32
 mipsn32_add-ons = ports nptl $(add-ons)
 mipsn32_configure_target = mips32el-linux-gnu
@@ -16,7 +16,7 @@ mipsn32_libdir = /usr/lib32
 mipsn32_extra_config_options := $(extra_config_options) --disable-profile
 
 # build 64-bit alternative library
-EGLIBC_PASSES += mips64
+GLIBC_PASSES += mips64
 DEB_ARCH_REGULAR_PACKAGES += libc6-mips64 libc6-dev-mips64
 mips64_add-ons = ports nptl $(add-ons)
 mips64_configure_target = mips64el-linux-gnu
@@ -56,7 +56,7 @@ cp -a debian/tmp-mipsn32/usr/include/gnu/stubs-n32_hard.h \
 endef
 
 # build a loongson-2f optimized library
-EGLIBC_PASSES += loongson2f
+GLIBC_PASSES += loongson2f
 DEB_ARCH_REGULAR_PACKAGES += libc6-loongson2f
 loongson2f_add-ons = ports nptl $(add-ons)
 loongson2f_configure_target = mips32el-linux-gnu

@@ -2,7 +2,7 @@ libc_rtlddir = /libx32
 extra_config_options = --enable-multi-arch --enable-lock-elision
 
 # build 64-bit (amd64) alternative library
-EGLIBC_PASSES += amd64
+GLIBC_PASSES += amd64
 DEB_ARCH_REGULAR_PACKAGES += libc6-amd64 libc6-dev-amd64
 libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
 amd64_add-ons = nptl $(add-ons)
@@ -33,7 +33,7 @@ done
 endef
 
 # build 32-bit (i386) alternative library
-EGLIBC_PASSES += i386
+GLIBC_PASSES += i386
 DEB_ARCH_REGULAR_PACKAGES += libc6-i386 libc6-dev-i386
 libc6-i386_shlib_dep = libc6-i386 (>= $(shlib_dep_ver))
 i386_add-ons = nptl $(add-ons)

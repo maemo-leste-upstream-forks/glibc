@@ -20,13 +20,13 @@ ifdef WITH_SYSROOT
     libc_extra_config_options += --with-headers=$(WITH_SYSROOT)/$(includedir)
 endif
 
-$(patsubst %,mkbuilddir_%,$(EGLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
+$(patsubst %,mkbuilddir_%,$(GLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
 $(stamp)mkbuilddir_%: $(stamp)patch $(KERNEL_HEADER_DIR)
 	@echo Making builddir for $(curpass)
 	test -d $(DEB_BUILDDIR) || mkdir -p $(DEB_BUILDDIR)
 	touch $@
 
-$(patsubst %,configure_%,$(EGLIBC_PASSES)) :: configure_% : $(stamp)configure_%
+$(patsubst %,configure_%,$(GLIBC_PASSES)) :: configure_% : $(stamp)configure_%
 $(stamp)configure_%: $(stamp)mkbuilddir_%
 	@echo Configuring $(curpass)
 	rm -f $(DEB_BUILDDIR)/configparms
@@ -88,14 +88,14 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		--without-selinux \
 		--enable-stackguard-randomization \
 		--enable-obsolete-rpc \
-		--with-pkgversion="Debian EGLIBC $(DEB_VERSION)" \
+		--with-pkgversion="Debian GLIBC $(DEB_VERSION)" \
 		--with-bugurl="http://www.debian.org/Bugs/" \
 		$(if $(filter $(pt_chown),yes),--enable-pt_chown) \
 		$(if $(filter $(threads),no),--disable-nscd) \
 		$(call xx,with_headers) $(call xx,extra_config_options))
 	touch $@
 
-$(patsubst %,build_%,$(EGLIBC_PASSES)) :: build_% : $(stamp)build_%
+$(patsubst %,build_%,$(GLIBC_PASSES)) :: build_% : $(stamp)build_%
 $(stamp)build_%: $(stamp)configure_%
 	@echo Building $(curpass)
 
@@ -118,7 +118,7 @@ else
 endif
 	touch $@
 
-$(patsubst %,check_%,$(EGLIBC_PASSES)) :: check_% : $(stamp)check_%
+$(patsubst %,check_%,$(GLIBC_PASSES)) :: check_% : $(stamp)check_%
 $(stamp)check_%: $(stamp)build_%
 	@set -e ; \
 	if [ -n "$(findstring nocheck,$(DEB_BUILD_OPTIONS))" ]; then \
@@ -154,7 +154,7 @@ $(stamp)check_%: $(stamp)build_%
 	  echo "END TEST SUMMARY $(log_test)"
 	touch $@
 
-$(patsubst %,install_%,$(EGLIBC_PASSES)) :: install_% : $(stamp)install_%
+$(patsubst %,install_%,$(GLIBC_PASSES)) :: install_% : $(stamp)install_%
 $(stamp)install_%: $(stamp)check_%
 	@echo Installing $(curpass)
 	rm -rf $(CURDIR)/debian/tmp-$(curpass)
@@ -277,12 +277,12 @@ endif
 $(stamp)source: $(stamp)patch
 	mkdir -p $(build-tree)
 	tar -c -J -C .. \
-		-f $(build-tree)/eglibc-$(EGLIBC_VERSION).tar.xz \
-		$(EGLIBC_SOURCES)
-	mkdir -p debian/eglibc-source/usr/src/glibc
-	tar cf - --files-from debian/eglibc-source.filelist \
-	  | tar -x -C debian/eglibc-source/usr/src/glibc -f -
+		-f $(build-tree)/glibc-$(GLIBC_VERSION).tar.xz \
+		$(GLIBC_SOURCES)
+	mkdir -p debian/glibc-source/usr/src/glibc
+	tar cf - --files-from debian/glibc-source.filelist \
+	  | tar -x -C debian/glibc-source/usr/src/glibc -f -
 
 	touch $@
 
-.NOTPARALLEL: $(patsubst %,check_%,$(EGLIBC_PASSES))
+.NOTPARALLEL: $(patsubst %,check_%,$(GLIBC_PASSES))

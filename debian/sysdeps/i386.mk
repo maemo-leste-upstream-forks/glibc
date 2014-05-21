@@ -3,7 +3,7 @@ extra_config_options = --enable-multi-arch --enable-lock-elision
 # We use -march=i686 and glibc's i686 routines use cmov, so require it.
 # A Debian-local glibc patch adds cmov to the search path.
 # The optimized libraries also use NPTL!
-EGLIBC_PASSES += i686
+GLIBC_PASSES += i686
 DEB_ARCH_REGULAR_PACKAGES += libc6-i686
 i686_add-ons = nptl $(add-ons)
 i686_configure_target=i686-linux-gnu
@@ -13,7 +13,7 @@ i686_extra_config_options = $(extra_config_options) --disable-profile
 
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
 # greatly increase the speed when running under the 32bit Xen hypervisor.
-EGLIBC_PASSES += xen
+GLIBC_PASSES += xen
 DEB_ARCH_REGULAR_PACKAGES += libc6-xen
 xen_add-ons = nptl $(add-ons)
 xen_configure_target=i686-linux-gnu
@@ -32,7 +32,7 @@ echo 'hwcap 1 nosegneg'                                                       >>
 endef
 
 # build 64-bit (amd64) alternative library
-EGLIBC_PASSES += amd64
+GLIBC_PASSES += amd64
 DEB_ARCH_REGULAR_PACKAGES += libc6-amd64 libc6-dev-amd64
 libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
 amd64_add-ons = nptl $(add-ons)
@@ -76,7 +76,7 @@ done
 endef
 
 # build x32 ABI alternative library
-EGLIBC_PASSES += x32
+GLIBC_PASSES += x32
 DEB_ARCH_REGULAR_PACKAGES += libc6-x32 libc6-dev-x32
 libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
 x32_add-ons = nptl $(add-ons)

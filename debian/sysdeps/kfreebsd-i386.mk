@@ -2,7 +2,7 @@
 extra_config_options = --disable-compatible-utmp --disable-multi-arch
 
 # Build a 32-bit optimized library
-EGLIBC_PASSES += i686
+GLIBC_PASSES += i686
 DEB_ARCH_REGULAR_PACKAGES += libc0.1-i686
 
 # We use -march=i686 and glibc's i686 routines use cmov, so require it.

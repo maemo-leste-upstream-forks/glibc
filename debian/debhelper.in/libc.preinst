@@ -122,13 +122,13 @@ remove_lib64_symlink() {
         interpreter=$ldfile
     fi
 
-    mkdir /lib64.eglibc-new
-    ln -s $ldfile /lib64.eglibc-new/$(basename RTLD_SO)
+    mkdir /lib64.glibc-new
+    ln -s $ldfile /lib64.glibc-new/$(basename RTLD_SO)
     # sync before and after the operation to reduce the danger of hosing
     # the system
     sync
     rm -f /lib64
-    $interpreter /bin/mv /lib64.eglibc-new /lib64
+    $interpreter /bin/mv /lib64.glibc-new /lib64
     sync
     rm -f /lib/$(basename RTLD_SO)
 }
