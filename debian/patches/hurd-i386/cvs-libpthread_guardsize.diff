@@ -1,26 +1,29 @@
-Index: eglibc-2.18/libpthread/pthread/pt-create.c
-===================================================================
---- eglibc-2.18.orig/libpthread/pthread/pt-create.c	2014-04-22 22:56:03.000000000 +0000
-+++ eglibc-2.18/libpthread/pthread/pt-create.c	2014-05-02 10:19:01.000000000 +0000
-@@ -118,12 +118,10 @@
+diff --git a/libpthread/pthread/pt-create.c b/libpthread/pthread/pt-create.c
+index c2c84b1..00884b5 100644
+--- a/libpthread/pthread/pt-create.c
++++ b/libpthread/pthread/pt-create.c
+@@ -118,12 +118,13 @@ __pthread_create_internal (struct __pthread **thread,
      {
        /* Allocate a stack.  */
        err = __pthread_stack_alloc (&pthread->stackaddr,
 -				   setup->stacksize);
-+				   setup->guardsize + setup->stacksize);
++				   ((setup->guardsize + __vm_page_size-1)
++				    / __vm_page_size) * __vm_page_size
++				   + setup->stacksize);
        if (err)
  	goto failed_stack_alloc;
  
 -      pthread->guardsize = (setup->guardsize <= setup->stacksize
 -			   ? setup->guardsize : setup->stacksize);
++      pthread->guardsize = setup->guardsize;
        pthread->stack = 1;
      }
  
-Index: eglibc-2.18/libpthread/pthread/pt-internal.h
-===================================================================
---- eglibc-2.18.orig/libpthread/pthread/pt-internal.h	2014-04-22 22:56:03.000000000 +0000
-+++ eglibc-2.18/libpthread/pthread/pt-internal.h	2014-05-02 10:19:26.000000000 +0000
-@@ -94,11 +94,7 @@
+diff --git a/libpthread/pthread/pt-internal.h b/libpthread/pthread/pt-internal.h
+index eca63a1..79db55c 100644
+--- a/libpthread/pthread/pt-internal.h
++++ b/libpthread/pthread/pt-internal.h
+@@ -94,11 +94,7 @@ struct __pthread
    /* Thread stack.  */
    void *stackaddr;
    size_t stacksize;
@@ -33,11 +36,11 @@ Index: eglibc-2.18/libpthread/pthread/pt-internal.h
    int stack;			/* Nonzero if the stack was allocated.  */
  
    /* Exit status.  */
-Index: eglibc-2.18/libpthread/sysdeps/generic/pt-attr-setstacksize.c
-===================================================================
---- eglibc-2.18.orig/libpthread/sysdeps/generic/pt-attr-setstacksize.c	2014-04-22 22:56:03.000000000 +0000
-+++ eglibc-2.18/libpthread/sysdeps/generic/pt-attr-setstacksize.c	2014-05-02 10:20:02.000000000 +0000
-@@ -26,11 +26,5 @@
+diff --git a/libpthread/sysdeps/generic/pt-attr-setstacksize.c b/libpthread/sysdeps/generic/pt-attr-setstacksize.c
+index c88f917..00d9675 100644
+--- a/libpthread/sysdeps/generic/pt-attr-setstacksize.c
++++ b/libpthread/sysdeps/generic/pt-attr-setstacksize.c
+@@ -26,11 +26,5 @@ pthread_attr_setstacksize (pthread_attr_t *attr,
  {
    attr->stacksize = stacksize;
  
@@ -49,3 +52,18 @@ Index: eglibc-2.18/libpthread/sysdeps/generic/pt-attr-setstacksize.c
 -
    return 0;
  }
+diff --git a/libpthread/sysdeps/mach/hurd/i386/pt-setup.c b/libpthread/sysdeps/mach/hurd/i386/pt-setup.c
+index c3abe91..4511463 100644
+--- a/libpthread/sysdeps/mach/hurd/i386/pt-setup.c
++++ b/libpthread/sysdeps/mach/hurd/i386/pt-setup.c
+@@ -46,7 +46,9 @@ stack_setup (struct __pthread *thread,
+ 
+   /* Calculate the top of the new stack.  */
+   bottom = thread->stackaddr;
+-  top = (uintptr_t *) ((uintptr_t) bottom + thread->stacksize);
++  top = (uintptr_t *) ((uintptr_t) bottom + thread->stacksize
++        + ((thread->guardsize + __vm_page_size-1)
++	   / __vm_page_size) * __vm_page_size);
+ 
+   if (start_routine)
+     {
