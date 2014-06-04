@@ -16,7 +16,7 @@ msgstr ""
 "Project-Id-Version: glibc\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
 "POT-Creation-Date: 2014-05-21 00:04+0200\n"
-"PO-Revision-Date: 2008-04-01 21:12+0200\n"
+"PO-Revision-Date: 2014-06-04 20:45+0200\n"
 "Last-Translator: Esko Arajärvi <edu@iki.fi>\n"
 "Language-Team: Finnish <debian-l10n-finnish@lists.debian.org>\n"
 "Language: fi\n"
@@ -34,7 +34,7 @@ msgstr "Kaikki maa-asetukset"
 #. Description
 #: ../debhelper.in/locales.templates:1002
 msgid "Locales to be generated:"
-msgstr "Muodostettavat maa-asetukset."
+msgstr "Luotavat maa-asetukset:"
 
 #. Type: multiselect
 #. Description
@@ -68,7 +68,7 @@ msgstr "Ei mikään"
 #. Description
 #: ../debhelper.in/locales.templates:2002
 msgid "Default locale for the system environment:"
-msgstr "Järjestelmäympäristön oletusmaa-asetus:"
+msgstr "Järjestelmän oletusmaa-asetus:"
 
 #. Type: select
 #. Description
@@ -113,13 +113,13 @@ msgid ""
 "sessions."
 msgstr ""
 "Käynnissä olevat palvelut ja ohjelmat, jotka käyttävät NSS:ää, täytyy "
-"käynnistää uudelleen. Muuten ne eivät välttämättä enää pysty tekemään "
-"etsintöjä tai tunnistautumisia. Asennusprosessi pystyy käynnistämään jotkin "
-"palvelut uudelleen (esimerkiksi ssh:n ja telnetdin), mutta muita ohjelmia ei "
-"voida käynnistää automaattisesti uudelleen. Yksi tällainen ohjelma, joka "
-"täytyy käsin pysäyttää ja käynnistää uudelleen glibcin päivityksen jälkeen, "
-"on xdm. Tämä johtuu siitä, että automaattinen uudelleenkäynnistys saattaisi "
-"keskeyttää aktiiviset X11-istunnot."
+"käynnistää uudelleen. Muuten ne eivät välttämättä enää pysty tekemään hakuja "
+"tai tunnistautumisia. Asennusprosessi pystyy käynnistämään jotkin palvelut "
+"uudelleen (esimerkiksi ssh:n ja telnetdin), mutta muita ohjelmia ei voida "
+"käynnistää automaattisesti uudelleen. Yksi tällainen ohjelma, joka täytyy "
+"käsin pysäyttää ja käynnistää uudelleen glibcin päivityksen jälkeen, on xdm. "
+"Tämä johtuu siitä, että automaattinen uudelleenkäynnistys saattaisi "
+"keskeyttää aktiiviset X11-istuntosi."
 
 #. Type: boolean
 #. Description
@@ -138,7 +138,7 @@ msgid ""
 "If you want to interrupt the upgrade now and continue later, please answer "
 "No to the question below."
 msgstr ""
-"Jos päivitys halutaan keskeyttää nyt ja jatkaa myöhemmin, älä valitse tätä "
+"Jos haluat keskeyttää päivityksen nyt ja jatkaa myöhemmin, älä valitse tätä "
 "vaihtoehtoa."
 
 #. Type: string
@@ -160,11 +160,11 @@ msgid ""
 "be restarted now, and correct it if needed."
 msgstr ""
 "Käynnissä olevat palvelut ja ohjelmat, jotka käyttävät NSS:ää, täytyy "
-"käynnistää uudelleen. Muuten ne eivät välttämättä enää pysty tekemään "
-"etsintöjä tai tunnistautumisia (esimerkiksi ssh:n kanssa kirjautuminen ei "
-"välttämättä onnistu). Tarkista alla oleva välilyönnein eroteltu lista niiden "
-"palveluiden init.d-komentosarjoista, jotka käynnistetään nyt uudelleen, ja "
-"korjaa sitä tarvittaessa."
+"käynnistää uudelleen. Muuten ne eivät välttämättä enää pysty tekemään hakuja "
+"tai tunnistautumisia (esimerkiksi ssh:n kanssa kirjautuminen ei välttämättä "
+"onnistu). Tarkista alla oleva välilyönnein eroteltu lista niiden palveluiden "
+"init.d-komentosarjoista, jotka käynnistetään nyt uudelleen, ja korjaa sitä "
+"tarvittaessa."
 
 #. Type: string
 #. Description
@@ -205,7 +205,7 @@ msgstr ""
 #. Description
 #: ../debhelper.in/libc.templates:4001
 msgid "xscreensaver and xlockmore must be restarted before upgrading"
-msgstr ""
+msgstr "xscreensaver ja xlockmore täytyy käynnistää uudelleen ennen päivitystä"
 
 #. Type: error
 #. Description
@@ -218,12 +218,19 @@ msgid ""
 "stopped before continuing this upgrade, to avoid locking your users out of "
 "their current sessions."
 msgstr ""
+"Järjestelmässä on ajossa yksi tai useampia xscreensaverin tai xlockmoren "
+"instansseja. Johtuen epäyhteensopivista muutoksista ohjelmakirjastoissa GNU "
+"libc:n päivityksen jälkeen et voi tunnistautua käyttäen näitä ohjelmia. "
+"Ohjelmat tulisi käynnistää uudelleen tai pysäyttää ennen päivityksen "
+"jatkamista, jotta käyttäjät eivät jää lukituiksi ulos sessioistaan. "
 
 #. Type: boolean
 #. Description
 #: ../debhelper.in/libc.templates:5001
 msgid "Restart services during package upgrades without asking?"
 msgstr ""
+"Käynnistetäänkö palvelut kysymättä uudelleen pakettien päivityksen "
+"yhteydessä?"
 
 #. Type: boolean
 #. Description
@@ -237,3 +244,10 @@ msgid ""
 "necessary restarts will be done for you automatically so you can avoid being "
 "asked questions on each library upgrade."
 msgstr ""
+"Järjestelmässäsi on asennettuna palveluita, jotka tulee käynnistää uudelleen "
+"päivitettäessä tiettyjä ohjelmakirjastoja, kuten libpam, libc ja libssl. "
+"Koska palveluiden uudelleenkäynnistys saattaa aiheuttaa katkoja palveluihin, "
+"kunkin päivityksen yhteydessä yleensä kysytään luetteloa käynnistettävistä "
+"palveluista. Voit valita tämän vaihtoehdon, jos et halua nähdä kysymystä "
+"jokaisen kirjastopäivityksen yhteydessä. Tällöin tarvittavat palvelut "
+"käynnistetään uudelleen automaattisesti."

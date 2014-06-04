@@ -1,10 +1,21 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.19/master from glibc-2.19
 
 diff --git a/ChangeLog b/ChangeLog
-index 81c393a..fb5cf2a 100644
+index 81c393a..7fa7e06 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,57 @@
+@@ -1,3 +1,68 @@
++2014-06-03  Guo Yixuan  <culu.gyx@gmail.com>
++
++	[BZ #16882]
++	* nptl/sysdeps/sparc/sparc32/pthread_spin_lock.S
++	(pthread_spin_lock): Branch out of spin loop to proper location.
++	* nptl/sysdeps/sparc/sparc64/pthread_spin_lock.S
++	(pthread_spin_lock): Likewise.
++
++	* nptl/tst-spin4.c: New test.
++	* nptl/Makefile (tests): Add tst-spin4.
++
 +2014-05-17  Jose E. Marchesi  <jose.marchesi@oracle.com>
 +
 +	[BZ #16958]
@@ -63,7 +74,7 @@ index 81c393a..fb5cf2a 100644
  
  	[BZ #16529]
 diff --git a/NEWS b/NEWS
-index 98b479e..dde85f2 100644
+index 98b479e..64b2b11 100644
 --- a/NEWS
 +++ b/NEWS
 @@ -5,6 +5,13 @@ See the end for copying conditions.
@@ -74,7 +85,7 @@ index 98b479e..dde85f2 100644
 +
 +* The following bugs are resolved with this release:
 +
-+  16545, 16623, 16885, 16916, 16943, 16958.
++  16545, 16623, 16882, 16885, 16916, 16943, 16958.
 +
 +
  Version 2.19
@@ -100,6 +111,169 @@ index 929cd87..796df90 100644
  
  /* Set the attribute NAME of the file pointed to by PATH to VALUE (which
     is SIZE bytes long).  Return 0 on success, -1 for errors.  */
+diff --git a/nptl/Makefile b/nptl/Makefile
+index 57cc8c6..aa4a444 100644
+--- a/nptl/Makefile
++++ b/nptl/Makefile
+@@ -208,7 +208,7 @@ tests = tst-typesizes \
+ 	tst-mutexpi1 tst-mutexpi2 tst-mutexpi3 tst-mutexpi4 tst-mutexpi5 \
+ 	tst-mutexpi5a tst-mutexpi6 tst-mutexpi7 tst-mutexpi7a tst-mutexpi8 \
+ 	tst-mutexpi9 \
+-	tst-spin1 tst-spin2 tst-spin3 \
++	tst-spin1 tst-spin2 tst-spin3 tst-spin4 \
+ 	tst-cond1 tst-cond2 tst-cond3 tst-cond4 tst-cond5 tst-cond6 tst-cond7 \
+ 	tst-cond8 tst-cond9 tst-cond10 tst-cond11 tst-cond12 tst-cond13 \
+ 	tst-cond14 tst-cond15 tst-cond16 tst-cond17 tst-cond18 tst-cond19 \
+diff --git a/nptl/sysdeps/sparc/sparc32/pthread_spin_lock.S b/nptl/sysdeps/sparc/sparc32/pthread_spin_lock.S
+index ea863d7..3accc69 100644
+--- a/nptl/sysdeps/sparc/sparc32/pthread_spin_lock.S
++++ b/nptl/sysdeps/sparc/sparc32/pthread_spin_lock.S
+@@ -19,11 +19,11 @@
+ 
+ 	.text
+ ENTRY(pthread_spin_lock)
+-	ldstub		[%o0], %g1
++1:	ldstub		[%o0], %g1
+ 	orcc		%g1, 0x0, %g0
+ 	bne,a		2f
+ 	 ldub		[%o0], %g1
+-1:	retl
++	retl
+ 	 mov		0, %o0
+ 2:	orcc		%g1, 0x0, %g0
+ 	bne,a		2b
+diff --git a/nptl/sysdeps/sparc/sparc64/pthread_spin_lock.S b/nptl/sysdeps/sparc/sparc64/pthread_spin_lock.S
+index 0f849b2..aec6654 100644
+--- a/nptl/sysdeps/sparc/sparc64/pthread_spin_lock.S
++++ b/nptl/sysdeps/sparc/sparc64/pthread_spin_lock.S
+@@ -19,10 +19,10 @@
+ 
+ 	.text
+ ENTRY(pthread_spin_lock)
+-	ldstub		[%o0], %g1
++1:	ldstub		[%o0], %g1
+ 	brnz,pn		%g1, 2f
+ 	 membar		#StoreLoad | #StoreStore
+-1:	retl
++	retl
+ 	 mov		0, %o0
+ 2:	ldub		[%o0], %g1
+ 	brnz,pt		%g1, 2b
+diff --git a/nptl/tst-spin4.c b/nptl/tst-spin4.c
+new file mode 100644
+index 0000000..5b23a17
+--- /dev/null
++++ b/nptl/tst-spin4.c
+@@ -0,0 +1,109 @@
++#include <pthread.h>
++#include <stdio.h>
++#include <unistd.h>
++
++static int count = 0;
++
++static void *
++thread_add_one (void *arg)
++{
++  int tmp;
++  pthread_spinlock_t *lock = (pthread_spinlock_t *) arg;
++
++  /* When do_test holds the lock for 1 sec, the two thread will be
++     in contention for the lock. */
++  if (pthread_spin_lock (lock) != 0)
++    {
++      puts ("thread_add_one(): spin_lock failed");
++      pthread_exit ((void *) 1l);
++    }
++
++  /* sleep 1s before modifying count */
++  tmp = count;
++  sleep (1);
++  count = tmp + 1;
++
++  if (pthread_spin_unlock (lock) != 0)
++    {
++      puts ("thread_add_one(): spin_unlock failed");
++      pthread_exit ((void *) 1l);
++    }
++
++  return NULL;
++}
++
++static int
++do_test (void)
++{
++  pthread_t thr1, thr2;
++  pthread_spinlock_t lock;
++  int tmp;
++
++  if (pthread_spin_init (&lock, PTHREAD_PROCESS_PRIVATE) != 0)
++    {
++      puts ("spin_init failed");
++      return 1;
++    }
++
++  if (pthread_spin_lock (&lock) != 0)
++    {
++      puts ("1st spin_lock failed");
++      return 1;
++    }
++
++  if (pthread_create (&thr1, NULL, thread_add_one, (void *) &lock) != 0)
++    {
++      puts ("1st pthread_create failed");
++      return 1;
++    }
++
++  if (pthread_create (&thr2, NULL, thread_add_one, (void *) &lock) != 0)
++    {
++      puts ("2nd pthread_create failed");
++      return 1;
++    }
++
++  /* sleep 1s before modifying count */
++  tmp = count;
++  sleep (1);
++  count = tmp + 1;
++
++  if (pthread_spin_unlock (&lock) != 0)
++    {
++      puts ("1st spin_unlock failed");
++      return 1;
++    }
++
++  void *status;
++  if (pthread_join (thr1, &status) != 0)
++    {
++      puts ("1st pthread_join failed");
++      return 1;
++    }
++  if (status != NULL)
++    {
++      puts ("failure in the 1st thread");
++      return 1;
++    }
++  if (pthread_join (thr2, &status) != 0)
++    {
++      puts ("2nd pthread_join failed");
++      return 1;
++    }
++  if (status != NULL)
++    {
++      puts ("failure in the 2nd thread");
++      return 1;
++    }
++
++  if (count != 3)
++    {
++      printf ("count is %d, should be 3\n", count);
++      return 1;
++    }
++  return 0;
++}
++
++#define TIMEOUT 5
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 diff --git a/po/eo.po b/po/eo.po
 index d01582d..f6ea766 100644
 --- a/po/eo.po

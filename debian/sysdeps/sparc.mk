@@ -1,4 +1,4 @@
-extra_config_options = --enable-multi-arch
+extra_config_options = --disable-multi-arch
 
 # build 64-bit (sparc64) alternative library
 GLIBC_PASSES += sparc64

@@ -28,12 +28,30 @@ glibc (2.19-0experimental2) UNRELEASED; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Wed, 21 May 2014 12:38:51 +0200
 
-eglibc (2.19-0experimental1) UNRELEASED; urgency=medium
+eglibc (2.19-1) unstable; urgency=medium
 
   [ Aurelien Jarno ]
   * debian/control.in/main: remove outdated Build-Depends on bzip2.
+  * debian/patches/any/cvs-resolv-reuse-fd.diff: new patch from upstream
+    to fix invalid file descriptor reuse while sending DNS query.  Closes:
+    #722075.
+  * Finish debconf translation update from Esko Arajärvi.  Closes: #750124.
+  * debian/patches/git-updates.diff: update from the 2.19 branch:
+    - fixes pthread_spin_lock on sparc/sparc64.  Closes: #749087.
+  * debian/patches/any/submitted-argp-attribute.diff: new patch from Ondřej
+    Bílka to fix string functions with FORTIFY_SOURCE=2 when <argp.h> is
+    included before <string.h>.  Closes: #647084.
+  * debian/sysdeps/{sparc,sparc64}.mk: temporarily pass --disable-multiarch
+    to configure to try to fix random segmentation faults on Niagara 1
+    machines.
 
- -- Aurelien Jarno <aurel32@debian.org>  Sun, 25 May 2014 18:37:40 +0200
+  [ Samuel Thibault ]
+  * hurd-i386/unsubmitted-pthread_posix-option.diff: Split patches into...
+  * ... hurd-i386/tg-{posix_thread,gai_misc}.diff.
+  * patches/hurd-i386/cvs-libpthread_guardsize.diff: Fix guard size
+    computation and enable again.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Wed, 04 Jun 2014 20:32:06 +0200
 
 eglibc (2.19-0experimental0) experimental; urgency=medium
 
@@ -139,16 +157,6 @@ eglibc (2.19-0experimental0) experimental; urgency=medium
   * update testsuite-checking/expected-results-*-kfreebsd-gnu-*
 
  -- Adam Conrad <adconrad@0c3.net>  Thu, 22 May 2014 23:42:20 -0600
-
-eglibc (2.18-8) UNRELEASED; urgency=medium
-
-  !!! PLEASE MOVE ALL MAJOR DEVELOPMENT TO THE 2.19 BRANCH OR UPSTREAM !!!
-
-  [ Samuel Thibault ]
-  * patches/hurd-i386/cvs-libpthread_guardsize.diff: Fix guard size
-    computation and enable again.
-
- -- Aurelien Jarno <aurel32@debian.org>  Mon, 19 May 2014 12:35:58 +0200
 
 eglibc (2.18-7) unstable; urgency=medium
 
