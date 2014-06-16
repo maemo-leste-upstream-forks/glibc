@@ -5,7 +5,7 @@ extra_cflags = -mno-plt
 GLIBC_PASSES += mipsn32
 DEB_ARCH_REGULAR_PACKAGES += libc6-mipsn32 libc6-dev-mipsn32
 mipsn32_add-ons = ports nptl $(add-ons)
-mipsn32_configure_target = mips32el-linux-gnu
+mipsn32_configure_target = mips64el-linux-gnuabin32
 mipsn32_extra_cflags = -mno-plt
 mipsn32_CC = $(CC) -mabi=n32
 mipsn32_CXX = $(CXX) -mabi=n32
@@ -19,7 +19,7 @@ mipsn32_extra_config_options := $(extra_config_options) --disable-profile
 GLIBC_PASSES += mips64
 DEB_ARCH_REGULAR_PACKAGES += libc6-mips64 libc6-dev-mips64
 mips64_add-ons = ports nptl $(add-ons)
-mips64_configure_target = mips64el-linux-gnu
+mips64_configure_target = mips64el-linux-gnuabi64
 mips64_extra_cflags = -mno-plt
 mips64_CC = $(CC) -mabi=64
 mips64_CXX = $(CXX) -mabi=64
@@ -32,9 +32,9 @@ mips64_extra_config_options := $(extra_config_options) --disable-profile
 define libc6-dev-mips64_extra_pkg_install
 
 mkdir -p debian/libc6-dev-mips64/usr/include
-ln -s mipsel-linux-gnu/bits debian/libc6-dev-mips64/usr/include/
-ln -s mipsel-linux-gnu/gnu debian/libc6-dev-mips64/usr/include/
-ln -s mipsel-linux-gnu/fpu_control.h debian/libc6-dev-mips64/usr/include/
+ln -sf mipsel-linux-gnu/bits debian/libc6-dev-mips64/usr/include/
+ln -sf mipsel-linux-gnu/gnu debian/libc6-dev-mips64/usr/include/
+ln -sf mipsel-linux-gnu/fpu_control.h debian/libc6-dev-mips64/usr/include/
 
 mkdir -p debian/libc6-dev-mips64/usr/include/mipsel-linux-gnu/gnu
 cp -a debian/tmp-mips64/usr/include/gnu/stubs-n64_hard.h \
@@ -42,7 +42,7 @@ cp -a debian/tmp-mips64/usr/include/gnu/stubs-n64_hard.h \
 
 mkdir -p debian/libc6-dev-mips64/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/mipsel-linux-gnu/sys` ; do \
-        ln -s ../mipsel-linux-gnu/sys/$$i debian/libc6-dev-mips64/usr/include/sys/$$i ; \
+        ln -sf ../mipsel-linux-gnu/sys/$$i debian/libc6-dev-mips64/usr/include/sys/$$i ; \
 done
 
 endef

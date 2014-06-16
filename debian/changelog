@@ -32,6 +32,51 @@ glibc (2.19-1experimental0) UNRELEASED; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Wed, 21 May 2014 12:38:51 +0200
 
+eglibc (2.19-2) unstable; urgency=medium
+
+  [ Adam Conrad ]
+  * expected-results-aarch64-linux-gnu-libc: Ignore basic-test.out on
+    arm64 after assurance from upstream that this isn't a regression.
+
+  [ Aurelien Jarno ]
+  * Add support for mipsn32, mipsn32el, mips64 and mips64el, based on 
+    patches from Eleanor Chen, Yunqiang Su and Sphinx Jiang.  Closes:
+    #715038.
+    - debian/control.in/main: bump build-depends on linux-libc-dev to (>=
+      3.9). Do it for all architectures as this version is in Jessie for quite
+      some time.
+    - control.in/mips32: new file.
+    - control.in/mipsn32: add mips64 and mips64el architectures.
+    - control.in/mips64: add mipsn32 and mipsn32el architectures.
+    - debian/rules.d/control.mk: add mipsn32, mipsn32el, mips64 and mips64el
+      to the architecture list.
+    - debian/sysdeps/mips64.mk: new file.
+    - debian/sysdeps/mips64el.mk: new file.
+    - debian/sysdeps/mipsn32.mk: new file.
+    - debian/sysdeps/mipsn32el.mk: new file.
+  * debian/control.in/libc: add a Breaks: check (<< 0.9.10-6.1+b1) on s390x,
+    to make sure libcheck.a is using the GLIBC_2.19 version of the *jmp*
+    functions.
+  * debian/control.in/libc: add a Breaks: libtirpc1 (<< 2.3), as earlier
+    versions try to unlock a lock which hasn't been locked, causing an
+    issue with lock elision.  Closes: #751134.
+  * Update Swedish debconf translation, by Martin Bagge.  Closes: #751172.
+  * debian/patches/alpha/submitted-lll_futex_timed_wait_bitset.diff: new
+    patch to fix issues in the testsuite on alpha.  Closes: #750996.
+  * debian/testsuite-checking/expected-results-mips*-linux-gnu-*: re-add
+    tst-mqueue5.out (removed in the latest cleanup) as it still occasionally
+    fails.
+  * debian/patches/any/submitted-resolv-ipv6-nameservers.diff: new patch to
+    fix resolving issues when using IPv6 nameservers in resolv.conf.  Closes:
+    #627531, #644406, #709867.
+  * patches/any/cvs-posix_spawn_file_actions_addopen.diff: new patch from
+    upstream to fix a vulnerability in posix_spawn_file_actions_addopen
+    (CVE-2014-4043).  Closes: #751774.
+  * patches/kfreebsd/local-sysdeps.diff: update to revision 5486 (from
+    glibc-bsd).  Closes: #751565.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 16 Jun 2014 20:40:57 +0200
+
 eglibc (2.19-1) unstable; urgency=medium
 
   [ Aurelien Jarno ]

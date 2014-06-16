@@ -3,12 +3,12 @@ Section: libs
 Priority: required
 Build-Depends: gettext, dpkg-dev (>= 1.16.0), xz-utils, file, quilt,
  autoconf, gawk, debhelper (>= 7.4.3), rdfind, symlinks, netbase,
- linux-libc-dev (>= 3.2.1) [linux-any], linux-libc-dev (>= 3.4) [amd64 i386 x32],
+ linux-libc-dev (>= 3.9) [linux-any],
  libaudit-dev [linux-any], libcap-dev [linux-any], libselinux-dev [linux-any], systemtap-sdt-dev [linux-any],
  mig (>= 1.3-2) [hurd-i386], hurd-dev (>= 1:0.5.git20140320~) [hurd-i386], gnumach-dev (>= 2:1.4-2~) [hurd-i386],
  kfreebsd-kernel-headers [kfreebsd-any],
  binutils (>= 2.21),
- g++-4.8, g++-4.8-multilib [amd64 i386 kfreebsd-amd64 mips mipsel powerpc ppc64 s390x sparc sparc64 x32]
+ g++-4.8, g++-4.8-multilib [amd64 i386 kfreebsd-amd64 mips mipsel mipsn32 mipsn32el mips64 mips64el powerpc ppc64 s390x sparc sparc64 x32]
 Build-Depends-Indep: perl, po-debconf (>= 1.0)
 Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
 Uploaders: Clint Adams <clint@debian.org>, Aurelien Jarno <aurel32@debian.org>, Adam Conrad <adconrad@0c3.net>
@@ -135,7 +135,7 @@ Description: Transitional package to ensure multiarch compatibility
  be removed once nothing on the system depends on it.
 
 Package: libc6
-Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
+Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32el mips64 mips64el powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
 Section: libs
 Priority: required
 Multi-Arch: same
@@ -144,7 +144,7 @@ Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-
 Suggests: glibc-doc, debconf | debconf-2.0, locales [!hurd-i386]
 Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64]
 Conflicts: tzdata-etch, tzdata (<< 2007k-1), prelink (<= 0.0.20090311-1)
-Breaks: nscd (<< 2.19), locales (<< 2.19), locales-all (<< 2.19), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1)
+Breaks: nscd (<< 2.19), locales (<< 2.19), locales-all (<< 2.19), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 2.3)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
           libc6-x32 [x32],
@@ -153,6 +153,9 @@ Replaces: libc6-amd64 [amd64],
           libc6-ppc64 [ppc64],
           libc6-s390x [s390x],
           libc6-sparc64 [sparc64],
+          libc6-mips64 [mips64 mips64el],
+          libc6-mipsn32 [mipsn32 mipsn32el],
+          libc6-mips32 [mips mipsel],
           hurd (<< 20120408-3) [hurd-i386]
 Description: GNU C Library: Shared libraries
  Contains the standard libraries that are used by nearly all programs on
@@ -160,7 +163,7 @@ Description: GNU C Library: Shared libraries
  and the standard math library, as well as many others.
 
 Package: libc6-dev
-Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
+Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32el mips64 mips64el powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
 Section: libdevel
 Priority: optional
 Multi-Arch: same
@@ -169,14 +172,14 @@ Replaces: hurd-dev (<< 20120408-3) [hurd-i386]
 Recommends: gcc | c-compiler
 Suggests: glibc-doc, manpages-dev
 Provides: libc-dev, libc6-dev [alpha ia64 hurd-i386 kfreebsd-i386 kfreebsd-amd64]
-Breaks: binutils (<< 2.20.1-1), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3)
+Breaks: binutils (<< 2.20.1-1), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3), check (<< 0.9.10-6.1+b1) [s390x]
 Conflicts: libc6.1-dev, libc0.1-dev, libc0.3-dev,
 Description: GNU C Library: Development Libraries and Header Files
  Contains the symlinks, headers, and object files needed to compile
  and link programs which use the standard C library.
 
 Package: libc6-dbg
-Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
+Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32el mips64 mips64el powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
 Section: debug
 Priority: extra
 Multi-Arch: same
@@ -187,7 +190,7 @@ Description: GNU C Library: detached debugging symbols
  library.
 
 Package: libc6-prof
-Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
+Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32el mips64 mips64el powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
 Section: libdevel
 Priority: extra
 Multi-Arch: same
@@ -197,7 +200,7 @@ Description: GNU C Library: Profiling Libraries
  with gprof.
 
 Package: libc6-pic
-Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
+Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32el mips64 mips64el powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
 Section: libdevel
 Priority: optional
 Multi-Arch: same
@@ -212,7 +215,7 @@ Description: GNU C Library: PIC archive library
 
 Package: libc6-udeb
 XC-Package-Type: udeb
-Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
+Architecture: amd64 arm arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32el mips64 mips64el powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
 Section: debian-installer
 Priority: extra
 Provides: libc6, libc-udeb, ${locale-compat:Depends}
@@ -234,7 +237,7 @@ Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-
 Suggests: glibc-doc, debconf | debconf-2.0, locales [!hurd-i386]
 Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64]
 Conflicts: tzdata-etch, tzdata (<< 2007k-1), prelink (<= 0.0.20090311-1)
-Breaks: nscd (<< 2.19), locales (<< 2.19), locales-all (<< 2.19), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1)
+Breaks: nscd (<< 2.19), locales (<< 2.19), locales-all (<< 2.19), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 2.3)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
           libc6-x32 [x32],
@@ -243,6 +246,9 @@ Replaces: libc6-amd64 [amd64],
           libc6-ppc64 [ppc64],
           libc6-s390x [s390x],
           libc6-sparc64 [sparc64],
+          libc6-mips64 [mips64 mips64el],
+          libc6-mipsn32 [mipsn32 mipsn32el],
+          libc6-mips32 [mips mipsel],
           hurd (<< 20120408-3) [hurd-i386]
 Description: GNU C Library: Shared libraries
  Contains the standard libraries that are used by nearly all programs on
@@ -259,7 +265,7 @@ Replaces: hurd-dev (<< 20120408-3) [hurd-i386]
 Recommends: gcc | c-compiler
 Suggests: glibc-doc, manpages-dev
 Provides: libc-dev, libc6-dev [alpha ia64 hurd-i386 kfreebsd-i386 kfreebsd-amd64]
-Breaks: binutils (<< 2.20.1-1), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3)
+Breaks: binutils (<< 2.20.1-1), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3), check (<< 0.9.10-6.1+b1) [s390x]
 Conflicts: libc6-dev, libc0.1-dev, libc0.3-dev,
 Description: GNU C Library: Development Libraries and Header Files
  Contains the symlinks, headers, and object files needed to compile
@@ -324,7 +330,7 @@ Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-
 Suggests: glibc-doc, debconf | debconf-2.0, locales [!hurd-i386]
 Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64]
 Conflicts: tzdata-etch, tzdata (<< 2007k-1), prelink (<= 0.0.20090311-1)
-Breaks: nscd (<< 2.19), locales (<< 2.19), locales-all (<< 2.19), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1)
+Breaks: nscd (<< 2.19), locales (<< 2.19), locales-all (<< 2.19), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 2.3)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
           libc6-x32 [x32],
@@ -333,6 +339,9 @@ Replaces: libc6-amd64 [amd64],
           libc6-ppc64 [ppc64],
           libc6-s390x [s390x],
           libc6-sparc64 [sparc64],
+          libc6-mips64 [mips64 mips64el],
+          libc6-mipsn32 [mipsn32 mipsn32el],
+          libc6-mips32 [mips mipsel],
           hurd (<< 20120408-3) [hurd-i386]
 Description: GNU C Library: Shared libraries
  Contains the standard libraries that are used by nearly all programs on
@@ -349,7 +358,7 @@ Replaces: hurd-dev (<< 20120408-3) [hurd-i386]
 Recommends: gcc | c-compiler
 Suggests: glibc-doc, manpages-dev
 Provides: libc-dev, libc6-dev [alpha ia64 hurd-i386 kfreebsd-i386 kfreebsd-amd64]
-Breaks: binutils (<< 2.20.1-1), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3)
+Breaks: binutils (<< 2.20.1-1), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3), check (<< 0.9.10-6.1+b1) [s390x]
 Conflicts: libc6-dev, libc6.1-dev, libc0.1-dev,
 Description: GNU C Library: Development Libraries and Header Files
  Contains the symlinks, headers, and object files needed to compile
@@ -414,7 +423,7 @@ Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-
 Suggests: glibc-doc, debconf | debconf-2.0, locales [!hurd-i386]
 Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64]
 Conflicts: tzdata-etch, tzdata (<< 2007k-1), prelink (<= 0.0.20090311-1)
-Breaks: nscd (<< 2.19), locales (<< 2.19), locales-all (<< 2.19), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1)
+Breaks: nscd (<< 2.19), locales (<< 2.19), locales-all (<< 2.19), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 2.3)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
           libc6-x32 [x32],
@@ -423,6 +432,9 @@ Replaces: libc6-amd64 [amd64],
           libc6-ppc64 [ppc64],
           libc6-s390x [s390x],
           libc6-sparc64 [sparc64],
+          libc6-mips64 [mips64 mips64el],
+          libc6-mipsn32 [mipsn32 mipsn32el],
+          libc6-mips32 [mips mipsel],
           hurd (<< 20120408-3) [hurd-i386]
 Description: GNU C Library: Shared libraries
  Contains the standard libraries that are used by nearly all programs on
@@ -439,7 +451,7 @@ Replaces: hurd-dev (<< 20120408-3) [hurd-i386]
 Recommends: gcc | c-compiler
 Suggests: glibc-doc, manpages-dev
 Provides: libc-dev, libc6-dev [alpha ia64 hurd-i386 kfreebsd-i386 kfreebsd-amd64]
-Breaks: binutils (<< 2.20.1-1), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3)
+Breaks: binutils (<< 2.20.1-1), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3), check (<< 0.9.10-6.1+b1) [s390x]
 Conflicts: libc6-dev, libc6.1-dev, libc0.3-dev,
 Description: GNU C Library: Development Libraries and Header Files
  Contains the symlinks, headers, and object files needed to compile
@@ -665,8 +677,35 @@ Description: GNU C Library: 64bit Development Libraries for PowerPC64
  which use the standard C library. This is the 64bit version of the
  library, meant for PowerPC64 systems.
 
+Package: libc6-mips32
+Architecture: mipsn32 mipsn32el mips64 mips64el
+Section: libs
+Priority: optional
+Depends: libc6 (= ${binary:Version}), ${misc:Depends}
+Description: Embedded GNU C Library: o32 Shared libraries for MIPS
+ This package includes shared versions of the standard C library and the
+ standard math library, as well as many others. This is the o32 version
+ of the library, meant for MIPS systems.
+
+Package: libc6-dev-mips32
+Architecture: mipsn32 mipsn32el mips64 mips64el
+Section: libdevel
+Priority: optional
+Provides: lib32c-dev
+Conflicts: libc6-dev (<< 2.13-14)
+Replaces: libc6-dev (<< 2.13-11)
+Depends: libc6-dev (= ${binary:Version}), libc6-mips32 (= ${binary:Version}),
+   libc6-dev-mipsn32 (= ${binary:Version}) [mips64 mips64el],
+   libc6-dev-mips64 (= ${binary:Version}) [mipsn32 mipsn32el],
+   ${misc:Depends}
+Recommends: gcc-multilib
+Description: Embedded GNU C Library: o32 Development Libraries for MIPS
+ Contains the symlinks and object files needed to compile and link programs
+ which use the standard C library. This is the o32 version of the
+ library, meant for MIPS systems.
+
 Package: libc6-mipsn32
-Architecture: mips mipsel
+Architecture: mips mipsel mips64 mips64el
 Section: libs
 Priority: optional
 Depends: libc6 (= ${binary:Version}), ${misc:Depends}
@@ -676,13 +715,13 @@ Description: GNU C Library: n32 Shared libraries for MIPS64
  of the library, meant for MIPS64 systems.
 
 Package: libc6-dev-mipsn32
-Architecture: mips mipsel
+Architecture: mips mipsel mips64 mips64el
 Section: libdevel
 Priority: optional
 Provides: libn32c-dev
 Conflicts: libc6-dev (<< 2.13-14)
 Replaces: libc6-dev (<< 2.13-11)
-Depends: libc6-mipsn32 (= ${binary:Version}), libc6-dev-mips64 (= ${binary:Version}), ${misc:Depends}
+Depends: libc6-mipsn32 (= ${binary:Version}), libc6-dev-mips64 (= ${binary:Version}) [mips mipsel], libc6-dev (= ${binary:Version}), ${misc:Depends}
 Recommends: gcc-multilib
 Description: GNU C Library: n32 Development Libraries for MIPS64
  Contains the symlinks and object files needed to compile and link programs
@@ -690,7 +729,7 @@ Description: GNU C Library: n32 Development Libraries for MIPS64
  library, meant for MIPS64 systems.
 
 Package: libc6-mips64
-Architecture: mips mipsel
+Architecture: mips mipsel mipsn32 mipsn32el
 Section: libs
 Priority: optional
 Depends: libc6 (= ${binary:Version}), ${misc:Depends}
@@ -700,7 +739,7 @@ Description: GNU C Library: 64bit Shared libraries for MIPS64
  of the library, meant for MIPS64 systems.
 
 Package: libc6-dev-mips64
-Architecture: mips mipsel
+Architecture: mips mipsel mipsn32 mipsn32el
 Section: libdevel
 Priority: optional
 Provides: lib64c-dev

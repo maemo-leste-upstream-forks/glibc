@@ -223,7 +223,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	    pass="" \
 	    suffix="" \
 	    ;; \
-	  *:/lib32 | *:/lib64 | *:/libx32 | *:/lib/arm-linux-gnueabi*) \
+	  *:/lib32 | *:/lib64 | *:/libo32 | *:/libx32 | *:/lib/arm-linux-gnueabi*) \
 	    templates="libc libc-dev" \
 	    pass="-alt" \
 	    suffix="-$(curpass)" \

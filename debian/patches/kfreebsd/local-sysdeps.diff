@@ -5199,6 +5199,53 @@
 @@ -0,0 +1 @@
 +#include <inet/check_pf.c>
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock.c
+@@ -0,0 +1,44 @@
++/* Copyright (C) 1991, 1997, 1998, 1999 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <sys/resource.h>
++#include <sys/time.h>
++#include <time.h>
++
++#ifdef	__GNUC__
++__inline
++#endif
++static clock_t
++timeval_to_clock_t (const struct timeval *tv)
++{
++  return (clock_t) ((tv->tv_sec * CLOCKS_PER_SEC) +
++		    (tv->tv_usec * CLOCKS_PER_SEC / 1000000));
++}
++
++/* Return the time used by the program so far (user time + system time).  */
++clock_t
++clock (void)
++{
++  struct rusage usage;
++
++  if (__getrusage (RUSAGE_SELF, &usage) < 0)
++    return (clock_t) -1;
++
++  return (timeval_to_clock_t (&usage.ru_stime) +
++	  timeval_to_clock_t (&usage.ru_utime));
++}
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/clock_getres.c
 @@ -0,0 +1,43 @@
 +/* Copyright (C) 2006 Free Software Foundation, Inc.
@@ -17917,6 +17964,42 @@
 +  abort ();
 +}
 --- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/init-posix.c
+@@ -0,0 +1,33 @@
++/* Copyright (C) 1991, 94, 95, 97, 98, 2005 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <stddef.h>
++#include <time.h>
++
++/* This must be initialized data or its presence will not be sufficient to
++   merit linkage of this file, which is necessary for the real
++   initialization function below to be called.  */
++time_t _posix_start_time = -1;
++
++void
++__init_posix (void)
++{
++  _posix_start_time = time ((time_t *) NULL);
++}
++
++text_set_element(__libc_subinit, __init_posix);
+--- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ipc_priv.h
 @@ -0,0 +1,53 @@
 +/* 
@@ -26293,6 +26376,81 @@
 +{
 +  return 1;
 +}
+--- /dev/null
++++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/times.c
+@@ -0,0 +1,72 @@
++/* Copyright (C) 1991,92,93,95,96,97,1998,2001 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, write to the Free
++   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++   02111-1307 USA.  */
++
++#include <errno.h>
++#include <stddef.h>
++#include <sys/resource.h>
++#include <sys/times.h>
++#include <sys/time.h>
++#include <time.h>
++
++
++/* Time the program started.  */
++extern time_t _posix_start_time;
++
++#ifdef __GNUC__
++__inline
++#endif
++static clock_t
++timeval_to_clock_t (const struct timeval *tv, clock_t clk_tck)
++{
++  return (clock_t) ((tv->tv_sec * clk_tck) +
++		    (tv->tv_usec * clk_tck / 1000000L));
++}
++
++/* Store the CPU time used by this process and all its
++   dead children (and their dead children) in BUFFER.
++   Return the elapsed real time, or (clock_t) -1 for errors.
++   All times are in CLK_TCKths of a second.  */
++clock_t
++__times (buffer)
++     struct tms *buffer;
++{
++  struct rusage usage;
++  clock_t clk_tck;
++
++  if (buffer == NULL)
++    {
++      __set_errno (EINVAL);
++      return (clock_t) -1;
++    }
++
++  clk_tck = __getclktck ();
++  
++  if (__getrusage (RUSAGE_SELF, &usage) < 0)
++    return (clock_t) -1;
++  buffer->tms_utime = (clock_t) timeval_to_clock_t (&usage.ru_utime, clk_tck);
++  buffer->tms_stime = (clock_t) timeval_to_clock_t (&usage.ru_stime, clk_tck);
++
++  if (__getrusage (RUSAGE_CHILDREN, &usage) < 0)
++    return (clock_t) -1;
++  buffer->tms_cutime = (clock_t) timeval_to_clock_t (&usage.ru_utime, clk_tck);
++  buffer->tms_cstime = (clock_t) timeval_to_clock_t (&usage.ru_stime, clk_tck);
++
++  return (time ((time_t *) NULL) - _posix_start_time) * clk_tck;
++}
++
++weak_alias (__times, times)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/timespec_get.c
 @@ -0,0 +1,49 @@
