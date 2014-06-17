@@ -211,7 +211,7 @@ else
 	# Create the multiarch directories, and the configuration file in /etc/ld.so.conf.d
 	if [ $(curpass) = libc ]; then \
 	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \
-	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/$(DEB_HOST_GNU_TYPE).conf"; \
+	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/$(DEB_HOST_MULTIARCH).conf"; \
 	  echo "# Multiarch support" > $$conffile; \
 	  echo "$(call xx,slibdir)" >> $$conffile; \
 	  echo "$(call xx,libdir)" >> $$conffile; \

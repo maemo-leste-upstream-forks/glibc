@@ -70,16 +70,6 @@ checkpkgver () {
 
 if [ "$type" = "configure" ]
 then
-    # Add support for /etc/ld.so.conf.d
-    if [ -e /etc/ld.so.conf ]; then
-        [ -z "$(tail -n 1 /etc/ld.so.conf)" ] || echo >> /etc/ld.so.conf
-    else
-        touch /etc/ld.so.conf
-    fi
-    if ! grep -q '^include /etc/ld.so.conf.d/.*\.conf$' /etc/ld.so.conf ; then
-        echo 'include /etc/ld.so.conf.d/*.conf' >> /etc/ld.so.conf
-    fi
-
     # We don't use a registry anymore, remove the old file
     rm -f /etc/ld.so.hwcappkgs
  
@@ -248,6 +238,21 @@ then
         telinit u 2>/dev/null || true ; sleep 1
     fi
 fi
+
+# We now use the multiarch triplet instead of the GNU triplet for the ld.so
+# configuration file, in order to keep a stable path. Remove the old file.
+case ${DPKG_MAINTSCRIPT_ARCH:-$(dpkg --print-architecture)} in
+    hurd-i386)
+        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-gnu.conf 2.19-3~ libc6 -- "$@"
+        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-gnu-gnu.conf 2.19-3~ libc6 -- "$@"
+        ;;
+    i386)
+        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-linux-gnu.conf 2.19-3~ libc6 -- "$@"
+        ;;
+    kfreebsd-i386)
+        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-kfreebsd-gnu.conf 2.19-3~ libc6 -- "$@"
+        ;;
+esac
 
 #DEBHELPER#
 

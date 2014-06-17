@@ -355,15 +355,7 @@ then
         fi
 
         # sanity checking for the appropriate kernel on each architecture.
-        realarch=`uname -m`
         kernel_ver=`uname -r`
-
-        # convert "armv4l" and similar to just "arm", and "mips64" and similar
-        # to just "mips"
-        case $realarch in
-            arm*) realarch="arm";;
-            mips*) realarch="mips";;
-        esac
 
         # The GNU libc requires a >= 2.6.32 kernel, found in squeeze/lucid/RHEL6
         if linux_compare_versions "$kernel_ver" lt 2.6.32
@@ -387,6 +379,21 @@ then
         fi
     fi
 fi
+
+# We now use the multiarch triplet instead of the GNU triplet for the ld.so
+# configuration file, in order to keep a stable path. Remove the old file.
+case ${DPKG_MAINTSCRIPT_ARCH:-$(dpkg --print-architecture)} in
+    hurd-i386)
+        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-gnu.conf 2.19-3~ libc6 -- "$@"
+        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-gnu-gnu.conf 2.19-3~ libc6 -- "$@"
+        ;;
+    i386)
+        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-linux-gnu.conf 2.19-3~ libc6 -- "$@"
+        ;;
+    kfreebsd-i386)
+        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-kfreebsd-gnu.conf 2.19-3~ libc6 -- "$@"
+        ;;
+esac
 
 #DEBHELPER#
 

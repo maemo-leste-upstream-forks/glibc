@@ -30,6 +30,21 @@ glibc (2.19-2experimental0) UNRELEASED; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Wed, 21 May 2014 12:38:51 +0200
 
+eglibc (2.19-3) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/control.in/libc: fix libtirpc1 breaks.  Closes: #751852.
+  * debian/rules.d/build.mk: generate ld.so configuration file using
+    DEB_HOST_MULTIARCH instead of DEB_HOST_GNU_TYPE to have a stable
+    path even when the GNU triplet change.
+  * debian/debhelper.in/libc.{preinst,postrm,postinst}: remove old
+    ld.so configuration file on hurd-i386, i386 and kfreebsd-i386.
+  * debian/debhelper.in/libc.postinst: don't create/modify ld.so.conf,
+    but instead provide it as a conffile in libc-bin.  Closes: #737588.
+  * debian/debhelper.in/libc.preinst: remove dead code.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 17 Jun 2014 18:57:11 +0200
+
 eglibc (2.19-2) unstable; urgency=medium
 
   [ Adam Conrad ]
@@ -55,7 +70,7 @@ eglibc (2.19-2) unstable; urgency=medium
   * debian/control.in/libc: add a Breaks: check (<< 0.9.10-6.1+b1) on s390x,
     to make sure libcheck.a is using the GLIBC_2.19 version of the *jmp*
     functions.
-  * debian/control.in/libc: add a Breaks: libtirpc1 (<< 2.3), as earlier
+  * debian/control.in/libc: add a Breaks: libtirpc1 (<< 0.2.3), as earlier
     versions try to unlock a lock which hasn't been locked, causing an
     issue with lock elision.  Closes: #751134.
   * Update Swedish debconf translation, by Martin Bagge.  Closes: #751172.
