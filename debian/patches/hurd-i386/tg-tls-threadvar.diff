@@ -389,7 +389,7 @@ That will fix sigaltstack.
    GLIBC_PRIVATE {
      # Functions shared with the dynamic linker
      __libc_read; __libc_write; __libc_lseek64;
-+    __libc_lock_self0; __libc_lock_self;
++    __libc_lock_self0; __libc_get_lock_self;
  
      _dl_init_first;
    }
@@ -406,7 +406,7 @@ That will fix sigaltstack.
  
      # functions that must be shared with libc
      __libc_read; __libc_write; __libc_lseek64;
-+    __libc_lock_self0; __libc_lock_self;
++    __libc_lock_self0; __libc_get_lock_self;
    }
  }
 --- a/sysdeps/mach/hurd/bits/libc-lock.h
@@ -419,14 +419,17 @@ That will fix sigaltstack.
  
  typedef struct mutex __libc_lock_t;
  typedef struct
-@@ -35,7 +34,9 @@ typedef struct
+@@ -35,7 +34,12 @@ typedef struct
  } __libc_lock_recursive_t;
  typedef __libc_lock_recursive_t __rtld_lock_recursive_t;
  
 -#define __libc_lock_owner_self() ((void *) __hurd_threadvar_location (0))
 +extern char __libc_lock_self0[0];
-+extern __thread char __libc_lock_self[0];
-+#define __libc_lock_owner_self() (__LIBC_NO_TLS() ? &__libc_lock_self0 : (void*) &__libc_lock_self)
++/* We have to hide the __libc_lock_self access behind a function call,
++   otherwise gcc >= 4.9 would try to prefetch the TLS dereference even before
++   the __LIBC_NO_TLS test is finished... */
++extern void *__libc_get_lock_self(void);
++#define __libc_lock_owner_self() (__LIBC_NO_TLS() ? &__libc_lock_self0 : __libc_get_lock_self())
  
  #else
  typedef struct __libc_lock_opaque__ __libc_lock_t;
@@ -469,12 +472,18 @@ That will fix sigaltstack.
 -#endif	/* bits/libc-tsd.h */
 --- a/sysdeps/mach/hurd/cthreads.c
 +++ b/sysdeps/mach/hurd/cthreads.c
-@@ -19,6 +19,9 @@
+@@ -19,6 +19,15 @@
  #include <errno.h>
  #include <stdlib.h>
  
 +char __libc_lock_self0[0];
-+__thread char __libc_lock_self[0];
++static __thread char __libc_lock_self[0];
++
++void *
++__libc_get_lock_self(void)
++{
++  return (void*) &__libc_lock_self;
++}
 +
  /* Placeholder for key creation routine from Hurd cthreads library.  */
  int
