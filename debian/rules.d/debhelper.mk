@@ -184,7 +184,7 @@ $(stamp)debhelper-common:
 
 	touch $@
 
-ifeq ($(DEB_BUILD_PROFILE),bootstrap)
+ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 $(patsubst %,debhelper_%,$(GLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
 $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	libdir=$(call xx,libdir) ; \

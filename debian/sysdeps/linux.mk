@@ -9,7 +9,7 @@ pt_chown = yes
 threads = yes
 libc_add-ons = nptl $(add-ons)
 
-ifeq ($(DEB_BUILD_PROFILE),bootstrap)
+ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
   libc_extra_config_options = $(extra_config_options)
 else
   libc_extra_config_options = --with-selinux --enable-systemtap $(extra_config_options)

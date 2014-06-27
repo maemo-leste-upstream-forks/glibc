@@ -137,11 +137,16 @@ curpass = $(filter-out %_,$(subst _,_ ,$@))
 # Some architectures don't get libc-profile ported right away:
 no_libc_profile :=
 
-# Provide backward compatibility for the old DEB_STAGE for now
+# Provide backward compatibility for the old DEB_STAGE and DEB_BUILD_PROFILE for now
 ifeq ($(DEB_STAGE),stage1)
-  DEB_BUILD_PROFILE = bootstrap
-endif
+  DEB_BUILD_PROFILES+=stage1
+else
 ifeq ($(DEB_BUILD_PROFILE),bootstrap)
+  DEB_BUILD_PROFILES+=stage1
+endif
+endif
+
+ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
   DEB_ARCH_REGULAR_PACKAGES = $(libc)-dev
   DEB_INDEP_REGULAR_PACKAGES = 
   DEB_UDEB_PACKAGES = 
@@ -190,7 +195,7 @@ NODEBUG_libc6-sparc64 = 1
 NODEBUG_libc6-mips64 = 1
 NODEBUG_nscd = 1
 
-ifneq ($(DEB_BUILD_PROFILE),bootstrap)
+ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
   ifeq ($(threads),yes)
   DEB_ARCH_REGULAR_PACKAGES += nscd
   endif
