@@ -206,9 +206,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	  done ; \
 	done
 
-	egrep -v "LIBDIR.*.a " debian/$(libc)-dev.install >debian/$(libc)-dev.install-
-	mv debian/$(libc)-dev.install- debian/$(libc)-dev.install
-	sed -e "s#LIBDIR#lib#g" -i debian/$(libc)-dev.install
+	sed -e "/LIBDIR.*.a /d" -e "s#LIBDIR#lib#g" -i debian/$(libc)-dev.install
 else
 $(patsubst %,debhelper_%,$(GLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
 $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
