@@ -51,11 +51,13 @@ cp debian/tmp-amd64/usr/bin/ldd \
 	debian/tmp-libc/usr/bin
 endef
 
+ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 define libc6-dev_extra_pkg_install
 mkdir -p debian/libc6-dev/$(libdir)/xen
 cp -af debian/tmp-xen/$(libdir)/*.a \
 	debian/libc6-dev/$(libdir)/xen
 endef
+endif
 
 define libc6-dev-amd64_extra_pkg_install
 
