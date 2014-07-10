@@ -12,7 +12,7 @@ libc_add-ons = nptl $(add-ons)
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
   libc_extra_config_options = $(extra_config_options)
 else
-  libc_extra_config_options = --with-selinux --enable-systemtap $(extra_config_options)
+  libc_extra_config_options = --with-selinux $(extra_config_options)
 endif
 
 ifndef LINUX_SOURCE
@@ -44,7 +44,7 @@ $(stamp)mkincludedir:
 	ln -s $(LINUX_HEADERS)/linux debian/include
 
 	# Library headers
-	for h in libaudit.h selinux sys/capability.h sys/sdt.h ; do \
+	for h in libaudit.h selinux sys/capability.h ; do \
 	    mkdir -p debian/include/$$(dirname $$h) ; \
 	    if [ -d "/usr/include/$(DEB_HOST_MULTIARCH)/$$h" ]; then \
 	        ln -s /usr/include/$(DEB_HOST_MULTIARCH)/$$h debian/include/$$h ; \
