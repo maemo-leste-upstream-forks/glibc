@@ -22114,7 +22114,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/pthread_cond_broadcast.c
-@@ -0,0 +1,97 @@
+@@ -0,0 +1,98 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
@@ -22202,6 +22202,7 @@
 +#endif
 +wake_all:
 +      lll_futex_wake (&cond->__data.__futex, INT_MAX, pshared);
++      return 0;
 +    }
 +
 +  /* We are done.  */
@@ -41128,7 +41129,7 @@
 +#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-cancel-wrappers.sh
-@@ -0,0 +1,93 @@
+@@ -0,0 +1,92 @@
 +#! /bin/sh
 +# Test whether all cancelable functions are cancelable.
 +# Copyright (C) 2002-2013 Free Software Foundation, Inc.
@@ -41185,7 +41186,6 @@
 +C["sigsuspend"]=1
 +C["sigwait"]=1
 +C["sigwaitinfo"]=1
-+C["system"]=1
 +C["tcdrain"]=1
 +C["wait"]=1
 +C["waitid"]=1
