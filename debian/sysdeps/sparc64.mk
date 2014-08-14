@@ -3,8 +3,8 @@ libc_rtlddir = /lib64
 libc_extra_cflags = -mcpu=ultrasparc
 
 # build 32-bit (sparc) alternative library
-GLIBC_PASSES += sparc
-DEB_ARCH_REGULAR_PACKAGES += libc6-sparc libc6-dev-sparc
+GLIBC_MULTILIB_PASSES += sparc
+DEB_ARCH_MULTILIB_PACKAGES += libc6-sparc libc6-dev-sparc
 sparc_add-ons = nptl $(add-ons)
 sparc_configure_target=sparc-linux-gnu
 sparc_CC = $(CC) -m32

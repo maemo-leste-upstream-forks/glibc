@@ -1,8 +1,8 @@
 extra_config_options = --disable-multi-arch
 
 # build 64-bit (sparc64) alternative library
-GLIBC_PASSES += sparc64
-DEB_ARCH_REGULAR_PACKAGES += libc6-sparc64 libc6-dev-sparc64
+GLIBC_MULTILIB_PASSES += sparc64
+DEB_ARCH_MULTILIB_PACKAGES += libc6-sparc64 libc6-dev-sparc64
 sparc64_add-ons = nptl $(add-ons)
 sparc64_configure_target=sparc64-linux-gnu
 sparc64_CC = $(CC) -m64

@@ -178,6 +178,11 @@ standard-add-ons = libidn,
 -include debian/sysdeps/$(DEB_HOST_ARCH_OS).mk
 -include debian/sysdeps/$(DEB_HOST_ARCH).mk
 
+ifeq ($(filter nobiarch,$(DEB_BUILD_PROFILES)),)
+GLIBC_PASSES += $(GLIBC_MULTILIB_PASSES)
+DEB_ARCH_REGULAR_PACKAGES += $(DEB_ARCH_MULTILIB_PACKAGES)
+endif
+
 # Don't run dh_strip on this package
 NOSTRIP_$(libc)-dbg = 1
 

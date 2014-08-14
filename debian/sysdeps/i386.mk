@@ -32,8 +32,8 @@ echo 'hwcap 1 nosegneg'                                                       >>
 endef
 
 # build 64-bit (amd64) alternative library
-GLIBC_PASSES += amd64
-DEB_ARCH_REGULAR_PACKAGES += libc6-amd64 libc6-dev-amd64
+GLIBC_MULTILIB_PASSES += amd64
+DEB_ARCH_MULTILIB_PACKAGES += libc6-amd64 libc6-dev-amd64
 libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
 amd64_add-ons = nptl $(add-ons)
 amd64_configure_target = x86_64-linux-gnu
@@ -78,8 +78,8 @@ done
 endef
 
 # build x32 ABI alternative library
-GLIBC_PASSES += x32
-DEB_ARCH_REGULAR_PACKAGES += libc6-x32 libc6-dev-x32
+GLIBC_MULTILIB_PASSES += x32
+DEB_ARCH_MULTILIB_PACKAGES += libc6-x32 libc6-dev-x32
 libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
 x32_add-ons = nptl $(add-ons)
 x32_configure_target = x86_64-linux-gnux32

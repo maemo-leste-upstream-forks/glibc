@@ -1,8 +1,8 @@
 libc_add-ons = ports nptl $(add-ons)
 extra_config_options = --enable-multi-arch
 
-#GLIBC_PASSES += armhf
-#DEB_ARCH_REGULAR_PACKAGES += libc6-armhf libc6-dev-armhf
+#GLIBC_MULTILIB_PASSES += armhf
+#DEB_ARCH_MULTILIB_PACKAGES += libc6-armhf libc6-dev-armhf
 #armhf_add-ons = ports nptl $(add-ons)
 #armhf_configure_target = arm-linux-gnueabihf
 #armhf_CC = $(CC) -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard

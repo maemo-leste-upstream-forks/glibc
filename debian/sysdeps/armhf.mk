@@ -12,8 +12,8 @@ mkdir -p debian/libc6-udeb/lib/arm-linux-gnueabihf
 ln -sf /lib/ld-linux-armhf.so.3 debian/libc6-udeb/lib/arm-linux-gnueabihf/ld-linux.so.3
 endef
 
-#GLIBC_PASSES += armel
-#DEB_ARCH_REGULAR_PACKAGES += libc6-armel libc6-dev-armel
+#GLIBC_MULTILIB_PASSES += armel
+#DEB_ARCH_MULTILIB_PACKAGES += libc6-armel libc6-dev-armel
 #armel_add-ons = ports nptl $(add-ons)
 #armel_configure_target = arm-linux-gnueabi
 #armel_CC = $(CC) -mfloat-abi=soft
