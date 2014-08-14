@@ -36,8 +36,8 @@ $(stamp)control: debian/rules.d/control.mk $(control_deps)
 	cat debian/control.in/mips32		>> $@T
 	cat debian/control.in/mipsn32		>> $@T
 	cat debian/control.in/mips64		>> $@T
-	cat debian/control.in/armhf		>> $@T
-	cat debian/control.in/armel		>> $@T
+#	cat debian/control.in/armhf		>> $@T
+#	cat debian/control.in/armel		>> $@T
 	cat debian/control.in/kfreebsd-i386	>> $@T
 	cat debian/control.in/x32		>> $@T
 	cat debian/control.in/opt		>> $@T
