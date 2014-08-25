@@ -1,0 +1,100 @@
+2014-08-25  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix bind when umask is e.g. 0000.
+
+        * sysdeps/mach/hurd/bind.c (__bind): Pass mode 0666 to __dir_mkfile
+        instead of final mode, so that call __ifsock_getsockaddr can always
+        succeed, before calling __file_chmod to fix the mode according to umask,
+        before calling __dir_link to show the file.
+
+---
+ bind.c |   57 ++++++++++++++++++++++++++++++++-------------------------
+ 1 file changed, 32 insertions(+), 25 deletions(-)
+
+--- a/sysdeps/mach/hurd/bind.c.orig	2014-08-25 14:11:11.245229537 +0200
++++ b/sysdeps/mach/hurd/bind.c	2014-08-25 14:11:35.892517639 +0200
+@@ -40,7 +40,7 @@
+       char *name = _hurd_sun_path_dupa (addr, len);
+       /* For the local domain, we must create a node in the filesystem
+ 	 using the ifsock translator and then fetch the address from it.  */
+-      file_t dir, node;
++      file_t dir, node, ifsock;
+       char *n;
+ 
+       dir = __file_name_split (name, &n);
+@@ -48,7 +48,7 @@
+ 	return -1;
+ 
+       /* Create a new, unlinked node in the target directory.  */
+-      err = __dir_mkfile (dir, O_CREAT, 0666 & ~_hurd_umask, &node);
++      err = __dir_mkfile (dir, O_CREAT, 0666, &node);
+ 
+       if (! err)
+ 	{
+@@ -61,36 +61,43 @@
+ 				       MACH_MSG_TYPE_COPY_SEND);
+ 	  if (! err)
+ 	    {
+-	      /* Link the node, now a socket, into the target directory.  */
+-	      err = __dir_link (dir, node, n, 1);
+-	      if (err == EEXIST)
+-		err = EADDRINUSE;
++	      enum retry_type doretry;
++	      char retryname[1024];
++	      /* Get a port to the ifsock translator.  */
++	      err = __dir_lookup(node, "", 0, 0, &doretry, retryname, &ifsock);
++	      if (! err)
++		if (doretry != FS_RETRY_NORMAL || retryname[0] != '\0')
++		  err = EADDRINUSE;
+ 	    }
+-	  __mach_port_deallocate (__mach_task_self (), node);
+ 	  if (! err)
+ 	    {
+-	      /* Get a port to the ifsock translator.  */
+-	      file_t ifsock = __file_name_lookup_under (dir, n, 0, 0);
+-	      if (ifsock == MACH_PORT_NULL)
+-		{
+-		  err = errno;
+-		  /* If we failed, get rid of the node we created.  */
+-		  __dir_unlink (dir, n);
+-		}
+-	      else
++	      /* Get the address port.  */
++	      err = __ifsock_getsockaddr (ifsock, &aport);
++	      if (err == MIG_BAD_ID || err == EOPNOTSUPP)
++		/* We are not talking to /hurd/ifsock.  Probably
++		   someone came in after we linked our node, unlinked
++		   it, and replaced it with a different node, before we
++		   did our lookup.  Treat it as if our link had failed
++		   with EEXIST.  */
++		err = EADDRINUSE;
++	      if (! err)
+ 		{
+-		  /* Get the address port.  */
+-		  err = __ifsock_getsockaddr (ifsock, &aport);
+-		  if (err == MIG_BAD_ID || err == EOPNOTSUPP)
+-		    /* We are not talking to /hurd/ifsock.  Probably
+-		       someone came in after we linked our node, unlinked
+-		       it, and replaced it with a different node, before we
+-		       did our lookup.  Treat it as if our link had failed
+-		       with EEXIST.  */
+-		    err = EADDRINUSE;
++		  /* Fix the access mode before showing the file.  */
++		  err = __file_chmod (node, 0666 & ~_hurd_umask);
++		  if (! err)
++		    {
++		      /* Link the node, now a socket with proper mode, into the
++		       * target directory.  */
++		      err = __dir_link (dir, node, n, 1);
++		      if (err == EEXIST)
++			err = EADDRINUSE;
++		    }
++		  if (err)
++		    __mach_port_deallocate (__mach_task_self (), aport);
+ 		}
+ 	      __mach_port_deallocate (__mach_task_self (), ifsock);
+ 	    }
++	  __mach_port_deallocate (__mach_task_self (), node);
+ 	}
+       __mach_port_deallocate (__mach_task_self (), dir);
+ 
