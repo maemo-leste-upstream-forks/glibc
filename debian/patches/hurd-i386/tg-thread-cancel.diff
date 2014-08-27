@@ -1,7 +1,22 @@
 From: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Subject: [PATCH] The critical section lock _can_ be held in these place.
 
-At least since hurd_thread_cancel can be called by another thread.
+At least since hurd_thread_cancel can be called by another thread and lock our
+critical lock.
+
+http://bugs.debian.org/46859
+
+“
+Thomas suggested that there is no need to take the critical section
+lock.  I believe that taking the critical section lock is necessary to
+prevent the target thread from entering a signal handler.  Roland will
+look into the problem.
+”
+
+Taking the critical section lock makes these assertions bogus.
+
+It happens that hurd_thread_cancel is only called from libports and inside
+/hurd/term so this is rare in practice.
 
 2006-08-05  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
@@ -11,13 +26,26 @@ At least since hurd_thread_cancel can be called by another thread.
        * sysdeps/mach/hurd/spawni.c (__spawni): Likewise.
 
 ---
- hurd/thread-cancel.c |    1 -
+ hurd/hurdexec.c                | 1 -
+ hurd/thread-cancel.c           | 2 --
  sysdeps/mach/hurd/jmp-unwind.c | 1 -
  sysdeps/mach/hurd/spawni.c     | 1 -
- 3 files changed, 3 deletions(-)
+ 4 files changed, 5 deletions(-)
 
+diff --git a/hurd/hurdexec.c b/hurd/hurdexec.c
+index 0ced7f3..1de90c0 100644
+--- a/hurd/hurdexec.c
++++ b/hurd/hurdexec.c
+@@ -104,7 +104,6 @@ _hurd_exec (task_t task, file_t file,
+ 
+   ss = _hurd_self_sigstate ();
+ 
+-  assert (! __spin_lock_locked (&ss->critical_section_lock));
+   __spin_lock (&ss->critical_section_lock);
+ 
+   __spin_lock (&ss->lock);
 diff --git a/hurd/thread-cancel.c b/hurd/thread-cancel.c
-index c7f88ee..2e8d91e 100644
+index c7f88ee..eaf3d9e 100644
 --- a/hurd/thread-cancel.c
 +++ b/hurd/thread-cancel.c
 @@ -51,7 +51,6 @@ hurd_thread_cancel (thread_t thread)
@@ -28,6 +56,14 @@ index c7f88ee..2e8d91e 100644
    __spin_lock (&ss->critical_section_lock);
    __spin_lock (&ss->lock);
    err = __thread_suspend (thread);
+@@ -91,7 +90,6 @@ hurd_check_cancel (void)
+   int cancel;
+ 
+   __spin_lock (&ss->lock);
+-  assert (! __spin_lock_locked (&ss->critical_section_lock));
+   cancel = ss->cancel;
+   ss->cancel = 0;
+   __spin_unlock (&ss->lock);
 diff --git a/sysdeps/mach/hurd/jmp-unwind.c b/sysdeps/mach/hurd/jmp-unwind.c
 index bdc24b9..d199682 100644
 --- a/sysdeps/mach/hurd/jmp-unwind.c
