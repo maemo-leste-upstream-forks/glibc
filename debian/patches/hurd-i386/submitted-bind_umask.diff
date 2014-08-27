@@ -20,21 +20,19 @@
        char *n;
  
        dir = __file_name_split (name, &n);
-@@ -61,36 +61,38 @@ __bind  (int fd, __CONST_SOCKADDR_ARG ad
+@@ -61,36 +61,32 @@ __bind  (int fd, __CONST_SOCKADDR_ARG ad
  				       MACH_MSG_TYPE_COPY_SEND);
  	  if (! err)
  	    {
 -	      /* Link the node, now a socket, into the target directory.  */
 -	      err = __dir_link (dir, node, n, 1);
 -	      if (err == EEXIST)
--		err = EADDRINUSE;
 +	      enum retry_type doretry;
 +	      char retryname[1024];
 +	      /* Get a port to the ifsock translator.  */
 +	      err = __dir_lookup (node, "", 0, 0, &doretry, retryname, &ifsock);
-+	      if (! err)
-+		if (doretry != FS_RETRY_NORMAL || retryname[0] != '\0')
-+		  err = EADDRINUSE;
++	      if (! err && (doretry != FS_RETRY_NORMAL || retryname[0] != '\0'))
+ 		err = EADDRINUSE;
  	    }
 -	  __mach_port_deallocate (__mach_task_self (), node);
  	  if (! err)
@@ -42,23 +40,18 @@
 -	      /* Get a port to the ifsock translator.  */
 -	      file_t ifsock = __file_name_lookup_under (dir, n, 0, 0);
 -	      if (ifsock == MACH_PORT_NULL)
--		{
++	      /* Get the address port.  */
++	      err = __ifsock_getsockaddr (ifsock, &aport);
++	      if (err == MIG_BAD_ID || err == EOPNOTSUPP)
++		err = EGRATUITOUS;
++	      if (! err)
+ 		{
 -		  err = errno;
 -		  /* If we failed, get rid of the node we created.  */
 -		  __dir_unlink (dir, n);
 -		}
 -	      else
-+	      /* Get the address port.  */
-+	      err = __ifsock_getsockaddr (ifsock, &aport);
-+	      if (err == MIG_BAD_ID || err == EOPNOTSUPP)
-+		/* We are not talking to /hurd/ifsock.  Probably
-+		   someone came in after we linked our node, unlinked
-+		   it, and replaced it with a different node, before we
-+		   did our lookup.  Treat it as if our link had failed
-+		   with EEXIST.  */
-+		err = EADDRINUSE;
-+	      if (! err)
- 		{
+-		{
 -		  /* Get the address port.  */
 -		  err = __ifsock_getsockaddr (ifsock, &aport);
 -		  if (err == MIG_BAD_ID || err == EOPNOTSUPP)
@@ -68,7 +61,7 @@
 -		       did our lookup.  Treat it as if our link had failed
 -		       with EEXIST.  */
 +		  /* Link the node, now a socket with proper mode, into the
-+		   * target directory.  */
++		     target directory.  */
 +		  err = __dir_link (dir, node, n, 1);
 +		  if (err == EEXIST)
  		    err = EADDRINUSE;
