@@ -1,19 +1,17 @@
-2014-08-25  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+2014-08-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
-	Fix bind when umask is e.g. 0777.
+	Simplify atomicity of socket creation in bind.
 
-        * sysdeps/mach/hurd/bind.c (__bind): Pass mode 0666 to __dir_mkfile
-        instead of final mode, so that call __ifsock_getsockaddr can always
-        succeed, before calling __file_chmod to fix the mode according to umask,
-        before calling __dir_link to show the file.
+        * sysdeps/mach/hurd/bind.c (__bind): Use dir_lookup(node, "") instead of
+        looking up the name after linking the file.
 
 ---
- bind.c |   57 ++++++++++++++++++++++++++++++++-------------------------
- 1 file changed, 32 insertions(+), 25 deletions(-)
+ bind.c |   48 +++++++++++++++++++++++++-----------------------
+ 1 file changed, 25 insertions(+), 23 deletions(-)
 
---- a/sysdeps/mach/hurd/bind.c.orig	2014-08-25 14:11:11.245229537 +0200
-+++ b/sysdeps/mach/hurd/bind.c	2014-08-25 14:11:35.892517639 +0200
-@@ -40,7 +40,7 @@
+--- a/sysdeps/mach/hurd/bind.c
++++ b/sysdeps/mach/hurd/bind.c
+@@ -40,7 +40,7 @@ __bind  (int fd, __CONST_SOCKADDR_ARG ad
        char *name = _hurd_sun_path_dupa (addr, len);
        /* For the local domain, we must create a node in the filesystem
  	 using the ifsock translator and then fetch the address from it.  */
@@ -22,16 +20,7 @@
        char *n;
  
        dir = __file_name_split (name, &n);
-@@ -48,7 +48,7 @@
- 	return -1;
- 
-       /* Create a new, unlinked node in the target directory.  */
--      err = __dir_mkfile (dir, O_CREAT, 0666 & ~_hurd_umask, &node);
-+      err = __dir_mkfile (dir, O_CREAT, 0666, &node);
- 
-       if (! err)
- 	{
-@@ -61,36 +61,43 @@
+@@ -61,36 +61,38 @@ __bind  (int fd, __CONST_SOCKADDR_ARG ad
  				       MACH_MSG_TYPE_COPY_SEND);
  	  if (! err)
  	    {
@@ -42,7 +31,7 @@
 +	      enum retry_type doretry;
 +	      char retryname[1024];
 +	      /* Get a port to the ifsock translator.  */
-+	      err = __dir_lookup(node, "", 0, 0, &doretry, retryname, &ifsock);
++	      err = __dir_lookup (node, "", 0, 0, &doretry, retryname, &ifsock);
 +	      if (! err)
 +		if (doretry != FS_RETRY_NORMAL || retryname[0] != '\0')
 +		  err = EADDRINUSE;
@@ -78,17 +67,11 @@
 -		       it, and replaced it with a different node, before we
 -		       did our lookup.  Treat it as if our link had failed
 -		       with EEXIST.  */
--		    err = EADDRINUSE;
-+		  /* Fix the access mode before showing the file.  */
-+		  err = __file_chmod (node, 0666 & ~_hurd_umask);
-+		  if (! err)
-+		    {
-+		      /* Link the node, now a socket with proper mode, into the
-+		       * target directory.  */
-+		      err = __dir_link (dir, node, n, 1);
-+		      if (err == EEXIST)
-+			err = EADDRINUSE;
-+		    }
++		  /* Link the node, now a socket with proper mode, into the
++		   * target directory.  */
++		  err = __dir_link (dir, node, n, 1);
++		  if (err == EEXIST)
+ 		    err = EADDRINUSE;
 +		  if (err)
 +		    __mach_port_deallocate (__mach_task_self (), aport);
  		}
