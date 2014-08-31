@@ -94,3 +94,18 @@ index 6672065..cb9e26a 100644
      }
    else
      {
+diff --git a/libpthread/pthread/pt-getattr.c b/libpthread/pthread/pt-getattr.c
+index 24599c6..edb013f 100644
+--- a/libpthread/pthread/pt-getattr.c
++++ b/libpthread/pthread/pt-getattr.c
+@@ -39,7 +39,9 @@ pthread_getattr_np (pthread_t thread, pthread_attr_t *attr)
+      are not supported yet, so fill them with our default values.  */
+   *attr = __pthread_default_attr;
+ 
+-  attr->stackaddr = pthread->stackaddr;
++  attr->stackaddr = pthread->stackaddr +
++		      ((pthread->guardsize + __vm_page_size-1)
++		       / __vm_page_size * __vm_page_size);
+   attr->stacksize = pthread->stacksize;
+   attr->guardsize = pthread->guardsize;
+   attr->detachstate = (pthread->state == PTHREAD_DETACHED
