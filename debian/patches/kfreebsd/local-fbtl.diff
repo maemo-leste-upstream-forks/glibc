@@ -16948,7 +16948,7 @@
 +fi
 --- /dev/null
 +++ b/fbtl/descr.h
-@@ -0,0 +1,406 @@
+@@ -0,0 +1,410 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -16989,6 +16989,7 @@
 +#define __need_res_state
 +#include <resolv.h>
 +#include <kernel-features.h>
++#include <fpu_control.h>
 +
 +#ifndef TCB_ALIGNMENT
 +# define TCB_ALIGNMENT	sizeof (double)
@@ -17346,6 +17347,9 @@
 +  /* Resolver state.  */
 +  struct __res_state res;
 +
++  /* FPU initial control word */
++  fpu_control_t fpu_control_init;
++  
 +  /* This member must be last.  */
 +  char end_padding[];
 +
@@ -23186,7 +23190,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_create.c
-@@ -0,0 +1,664 @@
+@@ -0,0 +1,672 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -23426,6 +23430,10 @@
 +  hp_timing_t now;
 +  HP_TIMING_NOW (now);
 +  THREAD_SETMEM (pd, cpuclock_offset, now);
++#endif
++
++#if 1
++  _FPU_SETCW(pd->fpu_control_init);
 +#endif
 +
 +  /* Initialize resolver state pointer.  */
@@ -23719,6 +23727,10 @@
 +  pd->schedpolicy = self->schedpolicy;
 +  pd->schedparam = self->schedparam;
 +
++#if 1
++  _FPU_GETCW(pd->fpu_control_init); 
++#endif
++  
 +  /* Copy the stack guard canary.  */
 +#ifdef THREAD_COPY_STACK_GUARD
 +  THREAD_COPY_STACK_GUARD (pd);
