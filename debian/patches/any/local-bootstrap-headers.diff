@@ -1,5 +1,11 @@
 Taken from EGLIBC, r1484 + r1525
 
+2014-07-30  Helmut Grohne <helmut@subdivi.de>
+
+	* With the advent of multilib gnu/stubs.h became a meta-header that
+	includes the correct stubs-$abi.h. So install gnu/stubs.h as usual
+	and install stubs-bootstrap.h as gnu/stubs-$abi.h
+
 2007-02-20  Jim Blandy  <jimb@codesourcery.com>
 
 	* Makefile (install-headers): Preserve old behavior: depend on
@@ -33,48 +39,40 @@ Taken from EGLIBC, r1484 + r1525
 +   an empty stubs.h like this will do fine for GCC.  */
 --- a/Makefile
 +++ b/Makefile
-@@ -68,9 +68,18 @@
- vpath %.h $(subdir-dirs)
- 
- # What to install.
--install-others = $(inst_includedir)/gnu/stubs.h
- install-bin-script =
+@@ -177,6 +177,13 @@
+ install-others-nosubdir: $(installed-stubs)
+ endif
  
 +# If we're bootstrapping, install a dummy gnu/stubs.h along with the
 +# other headers, so 'make install-headers' produces a useable include
 +# tree.  Otherwise, install gnu/stubs.h later, after the rest of the
 +# build is done.
 +ifeq ($(install-bootstrap-headers),yes)
-+install-headers: $(inst_includedir)/gnu/stubs.h
-+else
-+install-others = $(inst_includedir)/gnu/stubs.h
++install-headers: $(inst_includedir)/gnu/stubs.h $(installed-stubs)
 +endif
-+
- ifeq (yes,$(build-shared))
- headers += gnu/lib-names.h
- endif
-@@ -150,6 +159,16 @@
  
- subdir-stubs := $(foreach dir,$(subdirs),$(common-objpfx)$(dir)/stubs)
- 
+ # Since stubs.h is never needed when building the library, we simplify the
+ # hairy installation process by producing it in place only as the last part
+@@ -184,6 +191,14 @@
+ # iterates over all the subdirs; subdir_install in each subdir depends on
+ # the subdir's stubs file.  Having more direct dependencies would result in
+ # extra iterations over the list for subdirs and many recursive makes.
++ifeq ($(install-bootstrap-headers),yes)
 +# gnu/stubs.h depends (via the subdir 'stubs' targets) on all the .o
 +# files in GLIBC.  For bootstrapping a GCC/GLIBC pair, an empty
 +# gnu/stubs.h is good enough.
-+ifeq ($(install-bootstrap-headers),yes)
-+$(inst_includedir)/gnu/stubs.h: include/stubs-bootstrap.h $(+force)
++$(installed-stubs): include/stubs-bootstrap.h $(+force)
 +	$(make-target-directory)
 +	$(INSTALL_DATA) $< $@
-+
-+installed-stubs =
 +else
- ifndef abi-variants
- installed-stubs = $(inst_includedir)/gnu/stubs.h
- else
-@@ -176,6 +195,7 @@
- 
- install-others-nosubdir: $(installed-stubs)
- endif
+ $(installed-stubs): include/stubs-prologue.h subdir_install
+ 	$(make-target-directory)
+ 	@rm -f $(objpfx)stubs.h
+@@ -192,6 +207,7 @@
+ 	then echo 'stubs.h unchanged'; \
+ 	else $(INSTALL_DATA) $(objpfx)stubs.h $@; fi
+ 	rm -f $(objpfx)stubs.h
 +endif
- 
- 
- # Since stubs.h is never needed when building the library, we simplify the
+ 
+ # This makes the Info or DVI file of the documentation from the Texinfo source.
+ .PHONY: info dvi pdf html
