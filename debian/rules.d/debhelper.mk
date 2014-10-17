@@ -224,7 +224,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	rtld_so=`LANG=C LC_ALL=C readelf -l debian/tmp-$$curpass/usr/bin/iconv | grep "interpreter" | sed -e 's/.*interpreter: \(.*\)]/\1/g'`; \
 	case "$$curpass:$$slibdir" in \
 	  libc:*) \
-	    templates="libc libc-dev libc-pic libc-prof libc-udeb libnss-dns-udeb libnss-files-udeb" \
+	    templates="libc libc-dev libc-pic libc-udeb libnss-dns-udeb libnss-files-udeb" \
 	    pass="" \
 	    suffix="" \
 	    ;; \

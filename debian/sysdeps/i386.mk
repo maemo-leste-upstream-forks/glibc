@@ -9,7 +9,7 @@ i686_add-ons = nptl $(add-ons)
 i686_configure_target=i686-linux-gnu
 i686_extra_cflags = -march=i686 -mtune=generic
 i686_slibdir = /lib/$(DEB_HOST_MULTIARCH)/i686/cmov
-i686_extra_config_options = $(extra_config_options) --disable-profile
+i686_extra_config_options = $(extra_config_options)
 
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
 # greatly increase the speed when running under the 32bit Xen hypervisor.
@@ -19,7 +19,7 @@ xen_add-ons = nptl $(add-ons)
 xen_configure_target=i686-linux-gnu
 xen_extra_cflags = -march=i686 -mtune=generic -mno-tls-direct-seg-refs
 xen_slibdir = /lib/$(DEB_HOST_MULTIARCH)/i686/nosegneg
-xen_extra_config_options = $(extra_config_options) --disable-profile
+xen_extra_config_options = $(extra_config_options)
 
 define libc6-xen_extra_pkg_install
 mkdir -p debian/libc6-xen/etc/ld.so.conf.d
@@ -41,7 +41,7 @@ amd64_configure_target = x86_64-linux-gnu
 # /usr/include/asm wrappers need that symbol.
 amd64_CC = $(CC) -m64 -D__x86_64__
 amd64_CXX = $(CXX) -m64 -D__x86_64__
-amd64_extra_config_options = $(extra_config_options) --disable-profile
+amd64_extra_config_options = $(extra_config_options)
 amd64_rtlddir = /lib64
 amd64_slibdir = /lib64
 amd64_libdir = /usr/lib64
@@ -85,7 +85,7 @@ x32_add-ons = nptl $(add-ons)
 x32_configure_target = x86_64-linux-gnux32
 x32_CC = $(CC) -mx32
 x32_CXX = $(CXX) -mx32
-x32_extra_config_options = $(extra_config_options) --disable-profile
+x32_extra_config_options = $(extra_config_options)
 x32_rtlddir = /libx32
 x32_slibdir = /libx32
 x32_libdir = /usr/libx32

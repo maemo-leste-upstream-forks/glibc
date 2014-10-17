@@ -10,7 +10,7 @@ i386_configure_target = i686-linux-gnu
 i386_CC = $(CC) -m32
 i386_CXX = $(CXX) -m32
 i386_extra_cflags = -march=pentium4 -mtune=generic
-i386_extra_config_options = $(extra_config_options) --disable-profile
+i386_extra_config_options = $(extra_config_options)
 i386_slibdir = /lib32
 i386_libdir = /usr/lib32
 
@@ -45,7 +45,7 @@ x32_add-ons = nptl $(add-ons)
 x32_configure_target = x86_64-linux-gnux32
 x32_CC = $(CC) -mx32
 x32_CXX = $(CXX) -mx32
-x32_extra_config_options = $(extra_config_options) --disable-profile
+x32_extra_config_options = $(extra_config_options)
 x32_rtlddir = /libx32
 x32_slibdir = /libx32
 x32_libdir = /usr/libx32

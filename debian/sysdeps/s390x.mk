@@ -8,7 +8,7 @@ s390_add-ons = nptl $(add-ons)
 s390_configure_target = s390-linux-gnu
 s390_CC = $(CC) -m31
 s390_CXX = $(CXX) -m31
-s390_extra_config_options := $(extra_config_options) --disable-profile
+s390_extra_config_options := $(extra_config_options)
 s390_slibdir = /lib32
 s390_libdir = /usr/lib32
 

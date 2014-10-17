@@ -6,7 +6,7 @@ i686_add-ons = $(libc_add-ons)
 i686_configure_target=i686-gnu
 i686_extra_cflags = -march=i686 -mtune=generic
 i686_slibdir = /lib/$(DEB_HOST_MULTIARCH)/i686/cmov
-i686_extra_config_options = $(extra_config_options) --disable-profile --disable-compatible-utmp
+i686_extra_config_options = $(extra_config_options) --disable-compatible-utmp
 
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
 # greatly increase the speed when running under the 32bit Xen hypervisor.
@@ -16,7 +16,7 @@ xen_add-ons = $(libc_add-ons)
 xen_configure_target=i686-gnu
 xen_extra_cflags = -march=i686 -mtune=generic -mno-tls-direct-seg-refs
 xen_slibdir = /lib/$(DEB_HOST_MULTIARCH)/i686/nosegneg
-xen_extra_config_options = $(extra_config_options) --disable-profile
+xen_extra_config_options = $(extra_config_options)
 
 define libc0.3-dev_extra_pkg_install
 mkdir -p debian/libc0.3-dev/$(libdir)/xen
