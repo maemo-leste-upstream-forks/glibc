@@ -17400,7 +17400,7 @@
 +libc_hidden_def (if_freenameindex)
 --- /dev/null
 +++ b/ports/sysdeps/unix/bsd/bsd4.4/kfreebsd/ifaddrs.c
-@@ -0,0 +1,362 @@
+@@ -0,0 +1,374 @@
 +/*	$KAME: getifaddrs.c,v 1.9 2001/08/20 02:31:20 itojun Exp $	*/
 +
 +/*
@@ -17550,7 +17550,13 @@
 +			if (ifm->ifm_addrs & RTA_IFP) {
 +				idx = ifm->ifm_index;
 +				++icnt;
++				/* XXX: smooth over a kfreebsd 9.0->10.1 ABI break:
++				  sizeof(struct rt_msghdr) is correct for 10.1 kernel */
 +				dl = (struct sockaddr_dl *)(void *)(ifm + 1);
++				if (rtm->rtm_msglen == 152) {
++					/* on kfreebsd-i386 9.0, struct rt_msghdr is 96 bytes */
++					dl = (struct sockaddr_dl *)((char *)ifm + 96);
++				}
 +				dcnt += SA_RLEN((struct sockaddr *)(void*)dl) +
 +				    ALIGNBYTES;
 +#ifdef	HAVE_IFM_DATA
@@ -17637,7 +17643,13 @@
 +			ifm = (struct if_msghdr *)(void *)rtm;
 +			if (ifm->ifm_addrs & RTA_IFP) {
 +				idx = ifm->ifm_index;
++				/* XXX: smooth over a kfreebsd 9.0->10.1 ABI break:
++				  sizeof(struct rt_msghdr) is correct for 10.1 kernel */
 +				dl = (struct sockaddr_dl *)(void *)(ifm + 1);
++				if (rtm->rtm_msglen == 152) {
++					/* on kfreebsd-i386 9.0, struct rt_msghdr is 96 bytes */
++					dl = (struct sockaddr_dl *)((char *)ifm + 96);
++				}
 +
 +				cif = ift;
 +				ift->ifa_name = names;
