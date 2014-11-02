@@ -1,12 +1,12 @@
-git snapshot 3b391db91f70b2166951413ee1eccc78cd398a44
-Date: Wed, 19 Feb 2014 14:30:44 -0800 
+git snapshot 3360034b7814d90503098700fc18bf07c47838c3
+Date: Sun Nov 2 02:32:07 2014 +0100
 
 ---
  ChangeLog                                     |    6 
  Makeconfig                                    |   12 
- Makefile                                      |  342 +++++++++++
- TODO                                          |  141 ++++
- Versions                                      |  138 ++++
+ Makefile                                      |  340 +++++++++++
+ TODO                                          |  131 ++++
+ Versions                                      |  139 ++++
  configure.in                                  |    4 
  forward.c                                     |  232 +++++++
  include/libc-symbols.h                        |  395 +++++++++++++
@@ -25,13 +25,13 @@ Date: Wed, 19 Feb 2014 14:30:44 -0800
  pthread/pt-alloc.c                            |  219 +++++++
  pthread/pt-cancel.c                           |   63 ++
  pthread/pt-cleanup.c                          |   28 
- pthread/pt-create.c                           |  234 ++++++++
+ pthread/pt-create.c                           |  251 ++++++++
  pthread/pt-dealloc.c                          |   69 ++
  pthread/pt-detach.c                           |   80 ++
  pthread/pt-exit.c                             |  112 +++
- pthread/pt-getattr.c                          |   49 +
+ pthread/pt-getattr.c                          |   51 +
  pthread/pt-initialize.c                       |   78 ++
- pthread/pt-internal.h                         |  343 +++++++++++
+ pthread/pt-internal.h                         |  339 +++++++++++
  pthread/pt-join.c                             |   76 ++
  pthread/pt-self.c                             |   34 +
  pthread/pt-setcancelstate.c                   |   47 +
@@ -42,21 +42,6 @@ Date: Wed, 19 Feb 2014 14:30:44 -0800
  pthread/pt-yield.c                            |   26 
  pthread/pthread-functions.h                   |  116 +++
  shlib-versions                                |    1 
- signal/README                                 |   12 
- signal/TODO                                   |   29 
- signal/kill.c                                 |   70 ++
- signal/pt-kill-siginfo-np.c                   |   88 +++
- signal/sig-internal.c                         |   26 
- signal/sig-internal.h                         |  177 ++++++
- signal/sigaction.c                            |   72 ++
- signal/sigaltstack.c                          |   69 ++
- signal/signal-dispatch.c                      |  117 ++++
- signal/signal.h                               |  275 +++++++++
- signal/sigpending.c                           |   38 +
- signal/sigsuspend.c                           |   29 
- signal/sigtimedwait.c                         |   30 +
- signal/sigwaiter.c                            |   91 +++
- signal/sigwaitinfo.c                          |   74 ++
  sysdeps/generic/bits/barrier-attr.h           |   32 +
  sysdeps/generic/bits/barrier.h                |   39 +
  sysdeps/generic/bits/cancelation.h            |   51 +
@@ -94,7 +79,7 @@ Date: Wed, 19 Feb 2014 14:30:44 -0800
  sysdeps/generic/pt-attr-setscope.c            |   43 +
  sysdeps/generic/pt-attr-setstack.c            |   51 +
  sysdeps/generic/pt-attr-setstackaddr.c        |   29 
- sysdeps/generic/pt-attr-setstacksize.c        |   36 +
+ sysdeps/generic/pt-attr-setstacksize.c        |   30 +
  sysdeps/generic/pt-attr.c                     |   41 +
  sysdeps/generic/pt-barrier-destroy.c          |   27 
  sysdeps/generic/pt-barrier-init.c             |   53 +
@@ -104,7 +89,7 @@ Date: Wed, 19 Feb 2014 14:30:44 -0800
  sysdeps/generic/pt-barrierattr-getpshared.c   |   29 
  sysdeps/generic/pt-barrierattr-init.c         |   28 
  sysdeps/generic/pt-barrierattr-setpshared.c   |   39 +
- sysdeps/generic/pt-cond-brdcast.c             |   40 +
+ sysdeps/generic/pt-cond-brdcast.c             |   45 +
  sysdeps/generic/pt-cond-destroy.c             |   29 
  sysdeps/generic/pt-cond-init.c                |   47 +
  sysdeps/generic/pt-cond-signal.c              |   43 +
@@ -190,13 +175,15 @@ Date: Wed, 19 Feb 2014 14:30:44 -0800
  sysdeps/hurd/pt-destroy-specific.c            |   79 ++
  sysdeps/hurd/pt-getspecific.c                 |   39 +
  sysdeps/hurd/pt-init-specific.c               |   30 +
- sysdeps/hurd/pt-key-create.c                  |  109 +++
+ sysdeps/hurd/pt-key-create.c                  |  111 +++
  sysdeps/hurd/pt-key-delete.c                  |   64 ++
  sysdeps/hurd/pt-key.h                         |   76 ++
  sysdeps/hurd/pt-kill.c                        |   52 +
  sysdeps/hurd/pt-setspecific.c                 |   47 +
  sysdeps/i386/bits/memory.h                    |   40 +
  sysdeps/i386/bits/pt-atomic.h                 |   66 ++
+ sysdeps/i386/bits/spin-lock-inline.h          |   98 +++
+ sysdeps/i386/bits/spin-lock.h                 |   39 +
  sysdeps/i386/machine-sp.h                     |   30 +
  sysdeps/i386/pt-machdep.h                     |   29 
  sysdeps/mach/bits/spin-lock-inline.h          |   90 +++
@@ -204,7 +191,7 @@ Date: Wed, 19 Feb 2014 14:30:44 -0800
  sysdeps/mach/hurd/Implies                     |    2 
  sysdeps/mach/hurd/bits/pthread-np.h           |   38 +
  sysdeps/mach/hurd/i386/pt-machdep.c           |   83 ++
- sysdeps/mach/hurd/i386/pt-setup.c             |  108 +++
+ sysdeps/mach/hurd/i386/pt-setup.c             |  110 +++
  sysdeps/mach/hurd/pt-attr-setstackaddr.c      |   29 
  sysdeps/mach/hurd/pt-attr-setstacksize.c      |   29 
  sysdeps/mach/hurd/pt-docancel.c               |   66 ++
@@ -215,14 +202,12 @@ Date: Wed, 19 Feb 2014 14:30:44 -0800
  sysdeps/mach/hurd/pt-sigstate.c               |   69 ++
  sysdeps/mach/hurd/pt-sysdep.c                 |   70 ++
  sysdeps/mach/hurd/pt-sysdep.h                 |   67 ++
- sysdeps/mach/i386/bits/spin-lock-inline.h     |   98 +++
- sysdeps/mach/i386/bits/spin-lock.h            |   39 +
  sysdeps/mach/pt-block.c                       |   39 +
  sysdeps/mach/pt-spin.c                        |   36 +
  sysdeps/mach/pt-stack-alloc.c                 |   69 ++
  sysdeps/mach/pt-thread-alloc.c                |   95 +++
  sysdeps/mach/pt-thread-start.c                |   51 +
- sysdeps/mach/pt-thread-terminate.c            |   83 ++
+ sysdeps/mach/pt-thread-terminate.c            |   85 ++
  sysdeps/mach/pt-timedblock.c                  |   68 ++
  sysdeps/mach/pt-wakeup.c                      |   38 +
  sysdeps/posix/pt-spin.c                       |   54 +
@@ -248,7 +233,7 @@ Date: Wed, 19 Feb 2014 14:30:44 -0800
  tests/test-8.c                                |   60 ++
  tests/test-9.c                                |   88 +++
  tests/test-__pthread_destroy_specific-skip.c  |   83 ++
- 246 files changed, 14420 insertions(+)
+ 231 files changed, 13232 insertions(+)
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/ChangeLog b/libpthread/ChangeLog
 --- a/libpthread/ChangeLog	1970-01-01 01:00:00.000000000 +0100
 +++ b/libpthread/ChangeLog	2009-10-14 03:39:13.000000000 +0200
@@ -2129,8 +2114,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 ++includes += -I$(..)libpthread/include
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/Makefile b/libpthread/Makefile
 --- a/libpthread/Makefile	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/Makefile	2014-01-22 01:39:13.096882871 +0100
-@@ -0,0 +1,342 @@
++++ b/libpthread/Makefile	2014-04-07 23:16:37.761428785 +0200
+@@ -0,0 +1,340 @@
 +#
 +#   Copyright (C) 1994, 1995, 1996, 1997, 2000, 2002, 2004, 2005, 2006, 2007,
 +#     2008, 2011 Free Software Foundation, Inc.
@@ -2349,10 +2334,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +ifeq ($(IN_GLIBC),no)
 +HURDLIBS = ihash
-+LDLIBS = -lrt
 +else
 +LDLIBS-pthread.so = -lihash
-+$(objpfx)libpthread.so: $(common-objpfx)rt/librt.so
 +endif
 +
 +ifeq ($(IN_GLIBC),no)
@@ -2923,8 +2906,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-create.c b/libpthread/pthread/pt-create.c
 --- a/libpthread/pthread/pt-create.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-create.c	2014-02-19 23:28:28.813138325 +0100
-@@ -0,0 +1,234 @@
++++ b/libpthread/pthread/pt-create.c	2014-09-28 23:33:57.558060561 +0200
+@@ -0,0 +1,251 @@
 +/* Thread creation.
 +   Copyright (C) 2000, 2002, 2005, 2007 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2951,6 +2934,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +#include <resolv.h>
 +
 +#include <bits/pt-atomic.h>
++#include <hurd/resource.h>
 +
 +#include <pt-internal.h>
 +
@@ -3019,6 +3003,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  struct __pthread *pthread;
 +  const struct __pthread_attr *setup;
 +  sigset_t sigset;
++  size_t stacksize;
 +
 +  /* Allocate a new thread structure.  */
 +  err = __pthread_alloc (&pthread);
@@ -3027,6 +3012,17 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +  /* Use the default attributes if ATTR is NULL.  */
 +  setup = attr ? attr : &__pthread_default_attr;
++
++  stacksize = setup->stacksize;
++  if (!stacksize)
++    {
++      struct rlimit rlim;
++      getrlimit(RLIMIT_STACK, &rlim);
++      if (rlim.rlim_cur != RLIM_INFINITY)
++	stacksize = rlim.rlim_cur;
++      if (!stacksize)
++	stacksize = PTHREAD_STACK_DEFAULT;
++    }
 +
 +  /* Initialize the thread state.  */
 +  pthread->state = (setup->detachstate == PTHREAD_CREATE_DETACHED
@@ -3045,16 +3041,17 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +    {
 +      /* Allocate a stack.  */
 +      err = __pthread_stack_alloc (&pthread->stackaddr,
-+				   setup->stacksize);
++				   ((setup->guardsize + __vm_page_size-1)
++				    / __vm_page_size) * __vm_page_size
++				   + stacksize);
 +      if (err)
 +	goto failed_stack_alloc;
 +
-+      pthread->guardsize = (setup->guardsize <= setup->stacksize
-+			   ? setup->guardsize : setup->stacksize);
++      pthread->guardsize = setup->guardsize;
 +      pthread->stack = 1;
 +    }
 +
-+  pthread->stacksize = setup->stacksize;
++  pthread->stacksize = stacksize;
 +
 +  /* Allocate the kernel thread and other required resources.  */
 +  err = __pthread_thread_alloc (pthread);
@@ -3153,7 +3150,10 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  goto failed;
 + failed_thread_alloc:
 +  if (pthread->stack)
-+    __pthread_stack_dealloc (pthread->stackaddr, pthread->stacksize);
++    __pthread_stack_dealloc (pthread->stackaddr,
++			     ((setup->guardsize + __vm_page_size-1)
++			      / __vm_page_size) * __vm_page_size
++			     + stacksize);
 + failed_stack_alloc:
 +  __pthread_dealloc (pthread);
 + failed:
@@ -3434,8 +3434,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +strong_alias (__pthread_exit, pthread_exit);
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-getattr.c b/libpthread/pthread/pt-getattr.c
 --- a/libpthread/pthread/pt-getattr.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-getattr.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,49 @@
++++ b/libpthread/pthread/pt-getattr.c	2014-08-31 16:43:49.305763417 +0200
+@@ -0,0 +1,51 @@
 +/* Thread attributes retrieval.
 +   Copyright (C) 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3477,7 +3477,9 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +     are not supported yet, so fill them with our default values.  */
 +  *attr = __pthread_default_attr;
 +
-+  attr->stackaddr = pthread->stackaddr;
++  attr->stackaddr = pthread->stackaddr +
++		      ((pthread->guardsize + __vm_page_size-1)
++		       / __vm_page_size * __vm_page_size);
 +  attr->stacksize = pthread->stacksize;
 +  attr->guardsize = pthread->guardsize;
 +  attr->detachstate = (pthread->state == PTHREAD_DETACHED
@@ -3689,8 +3691,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/pthread/pt-internal.h b/libpthread/pthread/pt-internal.h
 --- a/libpthread/pthread/pt-internal.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/pthread/pt-internal.h	2014-02-19 23:28:28.813138325 +0100
-@@ -0,0 +1,343 @@
++++ b/libpthread/pthread/pt-internal.h	2014-05-02 12:29:53.149925200 +0200
+@@ -0,0 +1,339 @@
 +/* Internal defenitions for pthreads library.
 +   Copyright (C) 2000, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3787,11 +3789,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  /* Thread stack.  */
 +  void *stackaddr;
 +  size_t stacksize;
-+  size_t guardsize;		/* Included in STACKSIZE (i.e. total
-+				   stack memory is STACKSIZE, not
-+				   STACKSIZE + GUARDSIZE).  */
-+				/* FIXME: standard says that guardsize is in
-+				   addition to stacksize.  */
++  size_t guardsize;
 +  int stack;			/* Nonzero if the stack was allocated.  */
 +
 +  /* Exit status.  */
@@ -4423,1264 +4421,6 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +++ b/libpthread/shlib-versions	2012-04-22 01:03:32.972396697 +0200
 @@ -0,0 +1 @@
 +.*-.*-.*	libpthread=0.3
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/kill.c b/libpthread/signal/kill.c
---- a/libpthread/signal/kill.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/kill.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,70 @@
-+/* kill.c - Generic kill implementation.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include "sig-internal.h"
-+
-+int
-+kill (pid_t pid, int signo)
-+{
-+  if (pid != getpid ())
-+    {
-+      errno = EOPNOTSUPP;
-+      return -1;
-+    }
-+
-+  /* "Signals generated for the process shall be delivered to exactly
-+     one of those threads within the process which is in a call to a
-+     sigwait() function selecting that signal or has not blocked
-+     delivery of the signal.  If there are no threads in a call to a
-+     sigwait() function selecting that signal, and if all threads
-+     within the process block delivery of the signal, the signal shall
-+     remaing pending on the process" (2.4.1).  */
-+
-+  /* First, see if there is a waiter, which is interested in this
-+     signal.  */
-+  pthread_mutex_lock (&sig_lock);
-+
-+  struct sigwaiter *waiter;
-+  for (waiter = sigwaiters; waiter; waiter = waiter->next)
-+    if ((waiter->signals & sigmask (signo)))
-+      /* Got a winner.  */
-+      {
-+	sigdelset (&process_pending, signo);
-+
-+	pthread_mutex_lock (&waiter->ss->lock);
-+	sigdelset (&waiter->ss->pending, signo);
-+
-+	memset (&waiter->info, 0, sizeof (waiter->info));
-+	waiter->info.si_signo = signo;
-+
-+	sigwaiter_unblock (waiter);
-+
-+	return 0;
-+      }
-+
-+  pthread_mutex_unlock (&sig_lock);
-+
-+  /* XXX: We just generate the signal for the current thread.  If the
-+     current thread has blocked the signal, the correct thing to do is
-+     to iterate over all the other threads and find on that hasn't
-+     blocked it.  */
-+  return pthread_kill (pthread_self (), signo);
-+}
-+
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/pt-kill-siginfo-np.c b/libpthread/signal/pt-kill-siginfo-np.c
---- a/libpthread/signal/pt-kill-siginfo-np.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/pt-kill-siginfo-np.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,88 @@
-+/* pthread-kill-siginfo-np.c - Generic pthread_kill_siginfo_np implementation.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include "pt-internal.h"
-+#include "sig-internal.h"
-+
-+int
-+pthread_kill_siginfo_np (pthread_t tid, siginfo_t si)
-+{
-+  int sig = si.si_signo;
-+
-+  if (sig < 0 || sig >= NSIG)
-+    return EINVAL;
-+
-+  if (sig == 0)
-+    return 0;
-+
-+  struct signal_state *ss = &__pthread_getid (tid)->ss;
-+
-+  pthread_mutex_lock (&sig_lock);
-+  pthread_mutex_lock (&ss->lock);
-+
-+  if (ss->sigwaiter && (ss->sigwaiter->signals & sigmask (si.si_signo)))
-+    /* The thread is in a call to sigwait.  */
-+    {
-+      ss->sigwaiter->info = si;
-+      sigwaiter_unblock (ss->sigwaiter);
-+      return 0;
-+    }
-+
-+  pthread_mutex_unlock (&sig_lock);
-+
-+  if (ss->actions[sig - 1].sa_handler == (void *) SIG_IGN
-+      || (ss->actions[sig - 1].sa_handler == (void *) SIG_DFL
-+	  && default_action (sig) == sig_ignore))
-+    /* It is unclear (to me) what is supposed to happen when a signal
-+       is generated for a thread, which is blocking that signal and
-+       ignoring it.  POSIX does say that when the action associated
-+       with a pending, blocked signal is set to SIG_IGN, the pending
-+       signal is to be cleared.  Thus, it makes sense that any signal
-+       set to ignore is discarded at generation.  */
-+    {
-+      pthread_mutex_unlock (&ss->lock);
-+      return 0;
-+    }
-+
-+
-+  if ((sigmask (sig) & ss->blocked))
-+    /* The signal is blocked.  Mark it pending.  */
-+    {
-+      ss->pending |= sigmask (sig);
-+      pthread_mutex_unlock (&ss->lock);
-+      return 0;
-+    }
-+
-+  if (pthread_self () == tid
-+      && (! (ss->actions[si.si_signo - 1].sa_flags & SA_ONSTACK)
-+	  || (ss->stack.ss_flags & SS_DISABLE)
-+	  || (ss->stack.ss_flags & SS_ONSTACK)))
-+    /* We are sending a signal to ourself and we don't use an
-+       alternate stack.  */
-+    signal_dispatch (ss, &si);
-+  else
-+    signal_dispatch_lowlevel (ss, tid, si);
-+
-+  /* Don't unlock ss: signal_dispatch and signal_dispatch_lowlevel
-+     assume ownership of the lock.  */
-+
-+  return 0;
-+}
-+
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/README b/libpthread/signal/README
---- a/libpthread/signal/README	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/README	2012-09-15 21:43:27.795249799 +0200
-@@ -0,0 +1,12 @@
-+This directory provides a signal implementation, which is appropriate
-+for operating systems where signals are managed at user-level.  It is
-+up to the run-time to catch the signals and forward them to the
-+implementation via, e.g., the pthread_kill_info_np call.
-+
-+The files in this directory are accompanied by the generic implementations
-+found in sysdeps/generic/: killpg.c, raise.c, sigaddset.c, sigdelset.c,
-+sigemptyset.c, sigfillset.c, siginterrupt.c, sigismember.c, signal.c,
-+sigwait.c.
-+
-+This implementation was once used for a native port running on L4, but is not
-+currently used in any libpthread port bundled in this release.
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/sigaction.c b/libpthread/signal/sigaction.c
---- a/libpthread/signal/sigaction.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/sigaction.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,72 @@
-+/* sigaction.c - Generic sigaction implementation.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include "sig-internal.h"
-+#include "pt-internal.h"
-+
-+int
-+sigaction (int sig, const struct sigaction *restrict sa,
-+	   struct sigaction *restrict osa)
-+{
-+  if (sig <= 0 || sig >= NSIG)
-+    {
-+      errno = EINVAL;
-+      return -1;
-+    }
-+
-+  struct signal_state *ss = &_pthread_self ()->ss;
-+
-+  pthread_mutex_lock (&ss->lock);
-+
-+  if (osa)
-+    *osa = ss->actions[sig - 1];
-+
-+  if (sa)
-+    {
-+      ss->actions[sig - 1] = *sa;
-+
-+      /* "The SIGKILL and SIGSTOP signals shall not be added to the
-+	 signal mask using this mechanism; this restriction shall be
-+	 enforced by the system without causing an error to be
-+	 indicated" (sigaction).  */
-+      sigdelset (&ss->blocked, SIGKILL);
-+      sigdelset (&ss->blocked, SIGSTOP);
-+
-+      /* A "signal shall remain pending on the process until it is
-+	 unblocked, it is accepted when ..., or the action associated
-+	 with it is set to ignore the signal"  (2.4.1).
-+
-+         "Setting a signal action to SIG_DFL for a signal that is
-+         pending, and whose default action is to ignore the signal,
-+         ..., shall cause the pending signal to be discarded, whether
-+         or not it is blocked" (2.4.3).  */
-+      if (sa->sa_handler == SIG_IGN
-+	  || (sa->sa_handler == SIG_DFL && default_action (sig) == sig_ignore))
-+	{
-+	  sigdelset (&ss->pending, sig);
-+	  sigdelset (&process_pending, sig);
-+	}
-+    }
-+
-+  pthread_mutex_unlock (&ss->lock);
-+
-+  return 0;
-+}
-+
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/sigaltstack.c b/libpthread/signal/sigaltstack.c
---- a/libpthread/signal/sigaltstack.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/sigaltstack.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,69 @@
-+/* sigaltstack.c - Generic sigaltstack implementation.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include "sig-internal.h"
-+#include "pt-internal.h"
-+
-+int
-+sigaltstack (const stack_t *restrict stack, stack_t *restrict old)
-+{
-+  int err = 0;
-+  struct signal_state *ss = &_pthread_self ()->ss;
-+
-+  pthread_mutex_lock (&ss->lock);
-+
-+  if (old)
-+    *old = ss->stack;
-+
-+  if (stack)
-+    {
-+      if (stack->ss_size < MINSIGSTKSZ)
-+	{
-+	  err = ENOMEM;
-+	  goto out;
-+	}
-+
-+      if ((stack->ss_flags & ~(SS_DISABLE)))
-+	/* Flags contains a value other than SS_DISABLE.  */
-+	{
-+	  err = EINVAL;
-+	  goto out;
-+	}
-+
-+      if ((ss->stack.ss_flags & SS_ONSTACK))
-+	/* Stack in use.  */
-+	{
-+	  err = EPERM;
-+	  goto out;
-+	}
-+
-+      ss->stack = *stack;
-+    }
-+
-+ out:
-+  pthread_mutex_unlock (&ss->lock);
-+
-+  if (err)
-+    {
-+      errno = err;
-+      return -1;
-+    }
-+  return 0;
-+}
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/sig-internal.c b/libpthread/signal/sig-internal.c
---- a/libpthread/signal/sig-internal.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/sig-internal.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,26 @@
-+/* sig-internal.c - Signal state functions.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include "sig-internal.h"
-+
-+pthread_mutex_t sig_lock = PTHREAD_MUTEX_INITIALIZER;
-+
-+sigset_t process_pending;
-+siginfo_t process_pending_info[NSIG];
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/sig-internal.h b/libpthread/signal/sig-internal.h
---- a/libpthread/signal/sig-internal.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/sig-internal.h	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,177 @@
-+/* sig-internal.h - Internal signal handling interface.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#ifndef SIG_INTERNAL_H
-+#define SIG_INTERNAL_H
-+
-+#include <signal.h>
-+
-+#include <sig-sysdep.h>
-+
-+#define sigmask(sig) (1ULL << (sig - 1))
-+#define STOPSIGS (sigmask (SIGTTIN) | sigmask (SIGTTOU) | \
-+		  sigmask (SIGSTOP) | sigmask (SIGTSTP))
-+
-+/* General lock.  Protects PROCESS_PENDING, PROCESS_PENDING_INFO,
-+   SIGWAITERS.  */
-+extern pthread_mutex_t sig_lock;
-+
-+/* "Signals generated for the process shall be delivered to exactly
-+   one of those threads within the process which is in a call to a
-+   sigwait() function selecting that signal or has not blocked
-+   delivery of the signal.  If there are no threads in a call to a
-+   sigwait() function selecting that signal, and if all threads within
-+   the process block delivery of the signal, the signal shall remaing
-+   pending on the process"  (2.4.1).
-+
-+   This variable is protected by SIG_LOCK.  */
-+extern sigset_t process_pending;
-+extern siginfo_t process_pending_info[NSIG];
-+
-+struct sigwaiter;
-+
-+/* The per-thread signal state.  */
-+struct signal_state
-+{
-+  /* Protects the following fields.  STACK.SA_FLAGS may be accessed
-+     using atomic operations.  */
-+  pthread_mutex_t lock;
-+
-+  /* Pending signals.  */
-+  sigset_t pending;
-+
-+  /* Blocked signals (i.e., the signal mask).  */
-+  sigset_t blocked;
-+
-+  stack_t stack;
-+  struct sigaction actions[NSIG];
-+  siginfo_t info[NSIG];
-+
-+  /* If the thread is blocked in a call to sigwait.  */
-+  struct sigwaiter *sigwaiter;
-+};
-+
-+#define PTHREAD_SIGNAL_MEMBERS struct signal_state ss;
-+
-+/* Arranges for thread TID to call signal_dispatch.  Must not be
-+   called if TID is the caller and an alternate stack is not required.
-+   In this case, the caller should call signal_dispatch directly.  */
-+extern void signal_dispatch_lowlevel (struct signal_state *ss,
-+				      pthread_t tid, siginfo_t si);
-+
-+/* This is the signal handler entry point.  A thread is forced into
-+   this state when it receives a signal.  We need to save the thread's
-+   state and then invoke the high-level signal dispatcher.  SS->LOCK
-+   is locked by the caller.  */
-+extern void signal_dispatch (struct signal_state *ss, siginfo_t *si);
-+
-+#ifndef SIGNAL_DISPATCH_ENTRY
-+#define SIGNAL_DISPATCH_ENTRY
-+#endif
-+
-+#ifndef SIGNAL_DISPATCH_EXIT
-+#define SIGNAL_DISPATCH_EXIT
-+#endif
-+
-+/* When a thread calls sigwait and a requested signal is not pending,
-+   it allocates the following structure, fills it in, adds it to
-+   sigwaiters and sleeps.  */
-+struct sigwaiter
-+{
-+  struct sigwaiter *next;
-+  struct sigwaiter *prev;
-+
-+  /* Thread's signal state.  */
-+  struct signal_state *ss;
-+
-+  /* Signals this thread is waiting for.  */
-+  sigset_t signals;
-+
-+  /* The selected signal is returned here.  The waiter also
-+     futex_waits on this info.si_signo.  */
-+  siginfo_t info;
-+};
-+
-+/* This variable is protected by SIG_LOCK.  */
-+extern struct sigwaiter *sigwaiters;
-+
-+/* Block the caller waiting for a signal in set SET.  SIG_LOCK and
-+   SS->LOCK must be held and will be unlocked by this function before
-+   blocking.  */
-+extern siginfo_t sigwaiter_block (struct signal_state *ss,
-+				  const sigset_t *restrict set);
-+
-+/* Unblock the waiter WAITER.  SIG_LOCK and WAITER->SS->LOCK must be
-+   held.  Both will be dropped on return.  */
-+extern void sigwaiter_unblock (struct sigwaiter *waiter);
-+
-+enum sig_action { sig_core, sig_terminate, sig_ignore, sig_cont, sig_stop };
-+
-+static inline enum sig_action
-+default_action (int signo)
-+{
-+  switch (signo)
-+    {
-+    case SIGABRT:
-+    case SIGBUS:
-+    case SIGFPE:
-+    case SIGILL:
-+    case SIGQUIT:
-+    case SIGSEGV:
-+    case SIGSTKFLT:
-+    case SIGSYS:
-+    case SIGTRAP:
-+    case SIGXCPU:
-+    case SIGXFSZ:
-+      return sig_core;
-+
-+    case SIGALRM:
-+    case SIGHUP:
-+    case SIGINT:
-+    case SIGIO: /* Perhaps ignore?  */
-+    case SIGKILL:
-+    case SIGPIPE:
-+    case SIGPROF:
-+    case SIGTERM:
-+    case SIGUSR1:
-+    case SIGUSR2:
-+    case SIGVTALRM:
-+      return sig_terminate;
-+
-+    case SIGCHLD:
-+    case SIGPWR:
-+    case SIGURG:
-+    case SIGWINCH:
-+      return sig_ignore;
-+
-+    case SIGCONT:
-+      return sig_cont;
-+
-+    case SIGSTOP:
-+    case SIGTSTP:
-+    case SIGTTIN:
-+    case SIGTTOU:
-+      return sig_stop;
-+    }
-+
-+  panic ("Unknown signal number: %d", signo);
-+}
-+
-+#endif
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/signal-dispatch.c b/libpthread/signal/signal-dispatch.c
---- a/libpthread/signal/signal-dispatch.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/signal-dispatch.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,117 @@
-+/* signal-dispatch.c - Signal dispatcher.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include "sig-internal.h"
-+
-+/* This is the signal handler entry point.  A thread is forced into
-+   this state when it receives a signal.  We need to save the thread's
-+   state and then invoke the high-level signal dispatcher.  SS->LOCK
-+   is locked by the caller.  */
-+void
-+signal_dispatch (struct signal_state *ss, siginfo_t *si)
-+{
-+  SIGNAL_DISPATCH_ENTRY;
-+
-+  int signo = si->si_signo;
-+
-+  assert (signo > 0 && signo < NSIG);
-+  assert (pthread_mutex_trylock (&ss->lock) == EBUSY);
-+
-+  do
-+    {
-+      if ((sigmask (signo) & STOPSIGS))
-+	/* Stop signals clear a pending SIGCONT even if they
-+	   are handled or ignored (but not if preempted).  */
-+	{
-+	  sigdelset (&ss->pending, SIGCONT);
-+	  sigdelset (&process_pending, SIGCONT);
-+	}
-+      else if ((signo == SIGCONT))
-+	/* Even if handled or ignored (but not preempted), SIGCONT
-+	   clears stop signals and resumes the process.  */
-+	{
-+	  ss->pending &= ~STOPSIGS;
-+	  process_pending &= ~STOPSIGS;
-+	}
-+
-+      void (*handler)(int, siginfo_t *, void *)
-+	= ss->actions[signo - 1].sa_sigaction;
-+
-+      /* Reset to SIG_DFL if requested.  SIGILL and SIGTRAP cannot
-+	 be automatically reset when delivered; the system silently
-+	 enforces this restriction (sigaction).  */
-+      if (ss->actions[signo - 1].sa_flags & SA_RESETHAND
-+	  && signo != SIGILL && signo != SIGTRAP)
-+	ss->actions[signo - 1].sa_handler = SIG_DFL;
-+
-+      sigset_t orig_blocked = ss->blocked;
-+      /* Block requested signals while running the handler.  */
-+      ss->blocked |= ss->actions[signo - 1].sa_mask;
-+
-+      /* Block SIGNO unless we're asked not to.  */
-+      if (! (ss->actions[signo - 1].sa_flags & (SA_RESETHAND | SA_NODEFER)))
-+	sigaddset (&ss->blocked, signo);
-+
-+      sigdelset (&ss->pending, signo);
-+      pthread_mutex_unlock (&ss->lock);
-+
-+      pthread_mutex_lock (&sig_lock);
-+      sigdelset (&process_pending, signo);
-+      pthread_mutex_unlock (&sig_lock);
-+
-+      if (handler == (void *) SIG_DFL)
-+	{
-+	  enum sig_action action = default_action (signo);
-+
-+	  if (action == sig_terminate || action == sig_core)
-+	    _exit (128 + signo);
-+
-+	  if (action == sig_stop)
-+	    /* XXX: Implement me.  */
-+	    panic ("Stopping process unimplemented.");
-+
-+	  if (action == sig_cont)
-+	    /* XXX: Implement me.  */;
-+	    panic ("Continuing process unimplemented.");
-+	}
-+      else if (handler == (void *) SIG_IGN)
-+	;
-+      else
-+	handler (signo, si, NULL);
-+
-+      pthread_mutex_lock (&ss->lock);
-+
-+      /* "When a thread's signal mask is changed in a signal-catching
-+	 function that is installed by sigaction(), the restoration of
-+	 the signal mask on return from the signal-catching function
-+	 overrides that change (see sigaction())" (sigprocmask).  */
-+      ss->blocked = orig_blocked;
-+
-+      sigset_t pending = ~ss->blocked & ss->pending;
-+      if (! pending)
-+	pending = ~ss->blocked & process_pending;
-+      signo = l4_lsb64 (pending);
-+    }
-+  while (signo);
-+
-+  pthread_mutex_unlock (&ss->lock);
-+
-+  SIGNAL_DISPATCH_EXIT;
-+}
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/signal.h b/libpthread/signal/signal.h
---- a/libpthread/signal/signal.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/signal.h	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,275 @@
-+/* signal.h - Signal handling interface.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#ifndef _SIGNAL_H
-+#define _SIGNAL_H 1
-+
-+#include <stdint.h>
-+#include <sys/types.h>
-+
-+typedef volatile int sig_atomic_t;
-+
-+typedef uint64_t sigset_t;
-+
-+int sigaddset (sigset_t *, int);
-+int sigdelset (sigset_t *, int);
-+int sigemptyset (sigset_t *);
-+int sigfillset (sigset_t *);
-+int sigismember (const sigset_t *, int);
-+
-+/* These values are consistent with Linux.  */
-+#define SIGRTMIN 34
-+#define SIGRTMAX 64
-+
-+enum
-+  {
-+    SIGHUP = 1,
-+#define SIGHUP SIGHUP
-+    SIGINT,
-+#define SIGINT SIGINT
-+    SIGQUIT,
-+#define SIGQUIT SIGQUIT
-+    SIGILL,
-+#define SIGILL SIGILL
-+    SIGTRAP,
-+#define SIGTRAP SIGTRAP
-+    SIGABRT,
-+#define SIGABRT SIGABRT
-+    SIGBUS,
-+#define SIGBUS SIGBUS
-+    SIGFPE,
-+#define SIGFPE SIGFPE
-+    SIGKILL,
-+#define SIGKILL SIGKILL
-+    SIGUSR1,
-+#define SIGUSR1 SIGUSR1
-+    SIGSEGV,
-+#define SIGSEGV SIGSEGV
-+    SIGUSR2,
-+#define SIGUSR2 SIGUSR2
-+    SIGPIPE,
-+#define SIGPIPE SIGPIPE
-+    SIGALRM,
-+#define SIGALRM SIGALRM
-+    SIGTERM,
-+#define SIGTERM SIGTERM
-+    SIGSTKFLT,
-+#define SIGSTKFLT SIGSTKFLT
-+    SIGCHLD,
-+#define SIGCHLD SIGCHLD
-+    SIGCONT,
-+#define SIGCONT SIGCONT
-+    SIGSTOP,
-+#define SIGSTOP SIGSTOP
-+    SIGTSTP,
-+#define SIGTSTP SIGTSTP
-+    SIGTTIN,
-+#define SIGTTIN SIGTTIN
-+    SIGTTOU,
-+#define SIGTTOU SIGTTOU
-+    SIGURG,
-+#define SIGURG SIGURG
-+    SIGXCPU,
-+#define SIGXCPU SIGXCPU
-+    SIGXFSZ,
-+#define SIGXFSZ SIGXFSZ
-+    SIGVTALRM,
-+#define SIGVTALRM SIGVTALRM
-+    SIGPROF,
-+#define SIGPROF SIGPROF
-+    SIGWINCH,
-+#define SIGWINCH SIGWINCH
-+    SIGIO,
-+#define SIGIO SIGIO
-+    SIGPWR,
-+#define SIGPWR SIGPWR
-+    SIGSYS,
-+#define SIGSYS SIGSYS
-+    NSIG
-+  };
-+
-+/* The resulting set is the union of the current set and the signal
-+   set pointed to by the argument set.  */
-+#define SIG_BLOCK 1
-+/* The resulting set is the intersection of the current set and the
-+   complement of the signal set pointed to by the argument set.  */
-+#define SIG_UNBLOCK 2
-+/* The resulting set is the signal set pointed to by the argument
-+   set.  */
-+#define SIG_SETMASK 3
-+
-+int pthread_sigmask (int how, const sigset_t *mask, sigset_t *old);
-+int sigprocmask (int how, const sigset_t *restrict mask,
-+		 sigset_t *restrict old);
-+
-+/* Return set of pending signals.  */
-+int sigpending(sigset_t *set);
-+
-+union sigval
-+{
-+  int sival_int;
-+  void *sival_ptr;
-+};
-+
-+#define SIG_DFL ((void (*)(int)) (0))
-+#define SIG_ERR ((void (*)(int)) (-1))
-+#define SIG_IGN ((void (*)(int)) (1))
-+
-+/* Causes signal delivery to occur on an alternate stack.  */
-+#define SA_ONSTACK (1 << 0)
-+/* Do not generate SIGCHLD when children stop or stopped children
-+   continue.  */
-+#define SA_NOCLDSTOP (1 << 1)
-+/* Causes signal dispositions to be set to SIG_DFL on entry to signal
-+   handlers.  */
-+#define SA_RESETHAND (1 << 2)
-+/* Causes certain functions to become restartable.  */
-+#define SA_RESTART (1 << 3)
-+/* Causes extra information to be passed to signal handlers at the
-+   time of receipt of a signal.  */
-+#define SA_SIGINFO (1 << 4)
-+/* Causes implementations not to create zombie processes on child
-+   death.  */
-+#define SA_NOCLDWAIT (1 << 5)
-+/* Causes signal not to be automatically blocked on entry to
-+   signal handler.  */
-+#define SA_NODEFER (1 << 6)
-+
-+typedef struct
-+{
-+  int si_signo;
-+  int si_code;
-+  int si_errno;
-+  pid_t si_pid;
-+  uid_t si_uid;
-+  void *si_addr;
-+  int si_status;
-+  long si_band;
-+  union sigval si_value;
-+} siginfo_t;
-+
-+struct sigaction
-+{
-+  union
-+  {
-+    /* Pointer to a signal-catching function or one of the macros
-+       SIG_IGN or SIG_DFL.  */
-+    void (*sa_handler)(int);
-+                   
-+    /* Pointer to a signal-catching function.  */
-+    void (*sa_sigaction)(int, siginfo_t *, void *);
-+  };
-+
-+  /* Set of signals to be blocked during execution of the signal
-+     handling function.  */
-+  sigset_t sa_mask;
-+
-+  /* Special flags.  */
-+  int sa_flags;
-+};
-+
-+int sigaction (int signo, const struct sigaction *restrict newaction,
-+	       struct sigaction *restrict oldaction);
-+
-+void (*signal (int signo, void (*handler)(int)))(int);
-+void (*bsd_signal (int signo, void (*handler)(int)))(int);
-+
-+/* Process is executing on an alternate signal stack.  */
-+#define SS_ONSTACK (1 << 0)
-+/* Alternate signal stack is disabled.  */
-+#define SS_DISABLE (1 << 1)
-+
-+/* Minimum stack size for a signal handler.  */
-+#define MINSIGSTKSZ PAGESIZE
-+/* Default size in bytes for the alternate signal stack. */
-+#define SIGSTKSZ (16 * PAGESIZE)
-+
-+typedef struct
-+{
-+  void *ss_sp;
-+  size_t ss_size;
-+  int ss_flags;
-+} stack_t;
-+
-+int sigaltstack(const stack_t *restrict stack, stack_t *restrict old);
-+
-+#include <pthread.h>
-+
-+/* Send SIGNO to the process PID.  */
-+int kill(pid_t pid, int signo);
-+
-+/* Send SIGNO to the process group PG.  */
-+int killpg(pid_t pg, int signo);
-+
-+/* Send SIGNO to thread TID.  */
-+int pthread_kill(pthread_t tid, int signo);
-+
-+/* Send a signal to thread TID using SIGINFO.  */
-+int pthread_kill_siginfo_np (pthread_t tid, siginfo_t siginfo);
-+
-+/* Send SIGNO to the calling thread.  */
-+int raise(int signo);
-+
-+typedef struct sigevent
-+{
-+  /* Notification type.  */
-+  int sigev_notify;
-+
-+  /* Signal number.  */
-+  int sigev_signo;
-+
-+  /* Signal value.  */
-+  union sigval sigev_value;
-+
-+  /* Notification function.  */
-+  void (*sigev_notify_function) (union sigval);
-+
-+  /* Notification attributes.  */
-+  pthread_attr_t *sigev_notify_attributes;
-+} sigevent_t;
-+
-+enum
-+  {
-+    SIGEV_NONE = 0,
-+#define SIGEV_NONE SIGEV_NONE
-+    SIGEV_SIGNAL,
-+#define SIGEV_SIGNAL SIGEV_SIGNAL
-+    SIGEV_THREAD
-+#define SIGEV_THREAD SIGEV_THREAD
-+  };
-+
-+#define SIG_HOLD
-+
-+int sighold (int);
-+int sigignore (int);
-+int siginterrupt (int, int);
-+int sigpause (int);
-+int sigqueue (pid_t, int, const union sigval);
-+int sigrelse (int);
-+void (*sigset (int, void (*)(int)))(int);
-+int sigsuspend (const sigset_t *);
-+
-+/* Wait for a signal.  */
-+int sigwait (const sigset_t *restrict set, int *restrict signo);
-+int sigwaitinfo (const sigset_t *restrict set, siginfo_t *restrict info);
-+int sigtimedwait (const sigset_t *restrict set, siginfo_t *restrict info,
-+		  const struct timespec *restrict timespec);
-+
-+#endif
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/sigpending.c b/libpthread/signal/sigpending.c
---- a/libpthread/signal/sigpending.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/sigpending.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,38 @@
-+/* sigpending.c - Generic sigpending implementation.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include <sig-internal.h>
-+#include <pt-internal.h>
-+
-+int
-+sigpending (sigset_t *set)
-+{
-+  struct signal_state *ss = &_pthread_self ()->ss;
-+
-+  pthread_mutex_lock (&ss->lock);
-+
-+  /* There is no need to lock SIG_LOCK for process_pending since we
-+     just read it, which is atomic.  */
-+  *set = (ss->pending | process_pending) & ss->blocked;
-+
-+  pthread_mutex_unlock (&ss->lock);
-+
-+  return 0;
-+}
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/sigsuspend.c b/libpthread/signal/sigsuspend.c
---- a/libpthread/signal/sigsuspend.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/sigsuspend.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,29 @@
-+/* sigsuspend.c - Generic sigsuspend implementation.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include "sig-internal.h"
-+
-+int
-+sigsuspend (const sigset_t *set)
-+{
-+  /* XXX: Implement me.  */
-+  errno = EOPNOTSUPP;
-+  return -1;
-+}
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/sigtimedwait.c b/libpthread/signal/sigtimedwait.c
---- a/libpthread/signal/sigtimedwait.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/sigtimedwait.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,30 @@
-+/* sigtimedwait.c - Generic sigtimedwait implementation.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include "sig-internal.h"
-+
-+int
-+sigtimedwait (const sigset_t *restrict set, siginfo_t *restrict info,
-+	      const struct timespec *restrict timeout)
-+{
-+  errno = EOPNOTSUPP;
-+  return -1;
-+}
-+
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/sigwaiter.c b/libpthread/signal/sigwaiter.c
---- a/libpthread/signal/sigwaiter.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/sigwaiter.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,91 @@
-+/* sigwaiter.c - Signal handling functions.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include "sig-internal.h"
-+
-+#include <hurd/futex.h>
-+
-+struct sigwaiter *sigwaiters;
-+
-+siginfo_t
-+sigwaiter_block (struct signal_state *ss, const sigset_t *restrict set)
-+{
-+  assert (pthread_mutex_trylock (&sig_lock) == EBUSY);
-+  assert (pthread_mutex_trylock (&ss->lock) == EBUSY);
-+
-+  assert (! ss->sigwaiter);
-+
-+  struct sigwaiter waiter;
-+
-+  waiter.next = sigwaiters;
-+  if (waiter.next)
-+    {
-+      assert (! waiter.next->prev);
-+      waiter.next->prev = &waiter;
-+    }
-+  waiter.prev = 0;
-+  sigwaiters = &waiter;
-+
-+  waiter.ss = ss;
-+  waiter.info.si_signo = 0;
-+  waiter.signals = *set;
-+
-+  ss->sigwaiter = &waiter;
-+
-+  pthread_mutex_unlock (&ss->lock);
-+  pthread_mutex_unlock (&sig_lock);
-+
-+  futex_wait (&waiter.info.si_signo, 0);
-+
-+#ifndef NDEBUG
-+  pthread_mutex_lock (&ss->lock);
-+  ss->sigwaiter = 0;
-+  pthread_mutex_unlock (&ss->lock);
-+#endif
-+
-+  assert (waiter.info.si_signo);
-+  return waiter.info;
-+}
-+
-+void
-+sigwaiter_unblock (struct sigwaiter *waiter)
-+{
-+  assert (pthread_mutex_trylock (&sig_lock) == EBUSY);
-+  assert (pthread_mutex_trylock (&waiter->ss->lock) == EBUSY);
-+
-+  struct sigwaiter *prev = waiter->prev;
-+  struct sigwaiter *next = waiter->next;
-+
-+  if (next)
-+    next->prev = prev;
-+
-+  if (prev)
-+    prev->next = next;
-+  else
-+    sigwaiters = next;
-+
-+  sigdelset (&process_pending, waiter->info.si_signo);
-+  sigdelset (&waiter->ss->pending, waiter->info.si_signo);
-+
-+  pthread_mutex_unlock (&waiter->ss->lock);
-+  pthread_mutex_unlock (&sig_lock);
-+
-+  futex_wake (&waiter->info.si_signo, 1);
-+}
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/sigwaitinfo.c b/libpthread/signal/sigwaitinfo.c
---- a/libpthread/signal/sigwaitinfo.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/sigwaitinfo.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,74 @@
-+/* sigwaitinfo.c - Generic sigwaitinfo implementation.
-+   Copyright (C) 2008 Free Software Foundation, Inc.
-+   Written by Neal H. Walfield <neal@gnu.org>.
-+
-+   This file is part of the GNU Hurd.
-+
-+   The GNU Hurd is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public License
-+   as published by the Free Software Foundation; either version 3 of
-+   the License, or (at your option) any later version.
-+
-+   The GNU Hurd is distributed in the hope that it will be useful, but
-+   WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with this program.  If not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include <sig-internal.h>
-+#include <pt-internal.h>
-+
-+int
-+sigwaitinfo (const sigset_t *restrict set, siginfo_t *restrict info)
-+{
-+  pthread_mutex_lock (&sig_lock);
-+
-+  struct signal_state *ss = &_pthread_self ()->ss;
-+
-+  pthread_mutex_lock (&ss->lock);
-+
-+  if ((process_pending & *set) || (ss->pending & *set))
-+    /* There is at least one signal pending.  */
-+    {
-+      bool local = true;
-+      sigset_t extant = process_pending & *set;
-+      if (! extant)
-+	{
-+	  local = false;
-+	  extant = ss->pending & *set;
-+	}
-+
-+      assert (extant);
-+
-+      int signo = l4_msb64 (extant);
-+
-+      if (info)
-+	{
-+	  if (local)
-+	    *info = ss->info[signo - 1];
-+	  else
-+	    *info = process_pending_info[signo - 1];
-+	  info->si_signo = signo;
-+	}
-+
-+      sigdelset (&process_pending, signo);
-+      sigdelset (&ss->pending, signo);
-+
-+      pthread_mutex_unlock (&ss->lock);
-+      pthread_mutex_unlock (&sig_lock);
-+      return 0;
-+    }
-+
-+  siginfo_t i = sigwaiter_block (ss, set);
-+  assert (i.si_signo);
-+  assert ((sigmask (i.si_signo) & *set));
-+
-+  if (info)
-+    *info = i;
-+
-+  return 0;
-+}
-+
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/signal/TODO b/libpthread/signal/TODO
---- a/libpthread/signal/TODO	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/signal/TODO	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,29 @@
-+Unimplemented Functionality
-+---------------------------
-+
-+We don't support interruptible functions.  That is, if a signal is
-+delivered when a thread is in e.g. the write system call, then the
-+write function should be interrupted and return EINTR when the signal
-+handler is finished.  To realize this behavior, we could have a thread
-+local interruptible flag and a setjmp buffer.  A function that is
-+interruptible would fill the jump buffer and set the interruptible
-+flag.  If a signal comes in and the interruptible flag is set, rather
-+than resuming the thread, we longjmp to the buffer.
-+
-+If a signal action has set the SA_SIGINFO, the third argument must be
-+a pointer to a ucontext describing the thread's interrupted state;
-+this implementation passes NULL.  This isn't as bad as it sounds as
-+the the ucontext family of functions are marked obsolete in SUSv3 with
-+the advisory that any use of them should be replaced by the use of
-+pthread functionality (cf. makecontext rationale).
-+
-+stop and continue signals are not implemented (as we need to stop all
-+threads, this requires being in bed with libpthread).
-+
-+Implementation is not yet cancellation-safe.
-+
-+There are not even stubs for sighold, sigingore, sigpause, sigrelse,
-+however, according to posix: "Use of any of these functions is
-+unspecified in a multi-threaded process."
-+
-+Implement sigtimedwait, sigqueue.
-\ Pas de fin de ligne à la fin du fichier
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/generic/bits/barrier-attr.h b/libpthread/sysdeps/generic/bits/barrier-attr.h
 --- a/libpthread/sysdeps/generic/bits/barrier-attr.h	1970-01-01 01:00:00.000000000 +0100
 +++ b/libpthread/sysdeps/generic/bits/barrier-attr.h	2009-07-11 11:29:35.000000000 +0200
@@ -6440,7 +5180,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/generic/pt-attr.c b/libpthread/sysdeps/generic/pt-attr.c
 --- a/libpthread/sysdeps/generic/pt-attr.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/generic/pt-attr.c	2014-01-01 19:57:55.168746553 +0100
++++ b/libpthread/sysdeps/generic/pt-attr.c	2014-09-28 23:33:57.558060561 +0200
 @@ -0,0 +1,41 @@
 +/* Default attributes.  Generic version.
 +   Copyright (C) 2000,02 Free Software Foundation, Inc.
@@ -6471,7 +5211,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +const struct __pthread_attr __pthread_default_attr =
 +{
 +  schedparam: { sched_priority: 0 },
-+  stacksize: PTHREAD_STACK_DEFAULT,
++  stacksize: 0,
 +  stackaddr: NULL,
 +#ifdef PAGESIZE
 +  guardsize: PAGESIZE,
@@ -7210,8 +5950,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/generic/pt-attr-setstacksize.c b/libpthread/sysdeps/generic/pt-attr-setstacksize.c
 --- a/libpthread/sysdeps/generic/pt-attr-setstacksize.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/generic/pt-attr-setstacksize.c	2013-12-26 17:44:13.572260390 +0100
-@@ -0,0 +1,36 @@
++++ b/libpthread/sysdeps/generic/pt-attr-setstacksize.c	2014-05-02 12:29:53.153925146 +0200
+@@ -0,0 +1,30 @@
 +/* pthread_attr_setstacksize.  Generic version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -7239,12 +5979,6 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +			   size_t stacksize)
 +{
 +  attr->stacksize = stacksize;
-+
-+  /* The guard size cannot be larger than the stack itself, as
-+     such, if the new stack size is smaller than the guard size,
-+     we squash the guard size.  */
-+  if (attr->guardsize > attr->stacksize)
-+    attr->guardsize = attr->stacksize;
 +
 +  return 0;
 +}
@@ -7707,7 +6441,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +strong_alias (__pthread_condattr_init, pthread_condattr_init);
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/generic/pt-condattr-setclock.c b/libpthread/sysdeps/generic/pt-condattr-setclock.c
 --- a/libpthread/sysdeps/generic/pt-condattr-setclock.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/generic/pt-condattr-setclock.c	2014-01-01 18:24:01.141287670 +0100
++++ b/libpthread/sysdeps/generic/pt-condattr-setclock.c	2014-04-07 23:16:37.765428655 +0200
 @@ -0,0 +1,52 @@
 +/* pthread_condattr_setclock.  Generic version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -7746,7 +6480,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +	  struct timespec ts;
 +	  int res;
 +
-+	  res = clock_getres (CLOCK_MONOTONIC, &ts);
++	  res = clock_gettime (CLOCK_MONOTONIC, &ts);
 +	  avail = res < 0 ? -1 : 1;
 +	}
 +
@@ -7806,8 +6540,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/generic/pt-cond-brdcast.c b/libpthread/sysdeps/generic/pt-cond-brdcast.c
 --- a/libpthread/sysdeps/generic/pt-cond-brdcast.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/generic/pt-cond-brdcast.c	2013-02-10 10:49:14.689444866 +0100
-@@ -0,0 +1,40 @@
++++ b/libpthread/sysdeps/generic/pt-cond-brdcast.c	2014-11-02 02:30:18.671231651 +0100
+@@ -0,0 +1,45 @@
 +/* Broadcast a condition.  Generic version.
 +   Copyright (C) 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -7838,10 +6572,15 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  struct __pthread *wakeup;
 +
 +  __pthread_spin_lock (&cond->__lock);
-+  __pthread_dequeuing_iterate (cond->__queue, wakeup)
-+    __pthread_wakeup (wakeup);
-+
-+  cond->__queue = NULL;
++  while ((wakeup = cond->__queue))
++    {
++      __pthread_dequeue (wakeup);
++      __pthread_spin_unlock (&cond->__lock);
++      /* Wake it up without spin held, so it may have a chance to really
++        preempt us */
++      __pthread_wakeup (wakeup);
++      __pthread_spin_lock (&cond->__lock);
++    }
 +  __pthread_spin_unlock (&cond->__lock);
 +
 +  return 0;
@@ -11687,8 +10426,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/hurd/pt-key-create.c b/libpthread/sysdeps/hurd/pt-key-create.c
 --- a/libpthread/sysdeps/hurd/pt-key-create.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/hurd/pt-key-create.c	2009-07-11 11:29:35.000000000 +0200
-@@ -0,0 +1,109 @@
++++ b/libpthread/sysdeps/hurd/pt-key-create.c	2014-08-20 21:06:52.977640023 +0200
+@@ -0,0 +1,111 @@
 +/* pthread_key_create.  Hurd version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -11722,7 +10461,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +int __pthread_key_invalid_count;
 +
 +int
-+pthread_key_create (pthread_key_t *key, void (*destructor) (void *))
++__pthread_key_create (pthread_key_t *key, void (*destructor) (void *))
 +{
 +  /* Where to look for the next key slot.  */
 +  static int index;
@@ -11798,6 +10537,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  __pthread_mutex_unlock (&__pthread_key_lock);
 +  return 0;
 +}
++strong_alias (__pthread_key_create, pthread_key_create)
++hidden_def (__pthread_key_create)
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/hurd/pt-key-delete.c b/libpthread/sysdeps/hurd/pt-key-delete.c
 --- a/libpthread/sysdeps/hurd/pt-key-delete.c	1970-01-01 01:00:00.000000000 +0100
 +++ b/libpthread/sysdeps/hurd/pt-key-delete.c	2011-11-05 21:26:10.870602444 +0100
@@ -12167,6 +10908,151 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 +
 +#endif
+diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/i386/bits/spin-lock.h b/libpthread/sysdeps/i386/bits/spin-lock.h
+--- a/libpthread/sysdeps/i386/bits/spin-lock.h	1970-01-01 01:00:00.000000000 +0100
++++ b/libpthread/sysdeps/i386/bits/spin-lock.h	2014-05-02 12:29:22.598331373 +0200
+@@ -0,0 +1,39 @@
++/* Machine-specific definitions for spin locks.  i386 version.
++   Copyright (C) 2000, 2005, 2008, 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Library General Public License as
++   published by the Free Software Foundation; either version 2 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Library General Public License for more details.
++
++   You should have received a copy of the GNU Library General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++/*
++ * Never include this file directly; use <pthread.h> or <cthreads.h> instead.
++ */
++
++#ifndef _BITS_SPIN_LOCK_H
++#define _BITS_SPIN_LOCK_H	1
++
++#include <features.h>
++
++__BEGIN_DECLS
++
++/* The type of a spin lock object.  */
++typedef __volatile int __pthread_spinlock_t;
++
++/* Initializer for a spin lock object.  */
++# define __PTHREAD_SPIN_LOCK_INITIALIZER ((__pthread_spinlock_t) 0)
++
++__END_DECLS
++
++#endif /* bits/spin-lock.h */
+diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/i386/bits/spin-lock-inline.h b/libpthread/sysdeps/i386/bits/spin-lock-inline.h
+--- a/libpthread/sysdeps/i386/bits/spin-lock-inline.h	1970-01-01 01:00:00.000000000 +0100
++++ b/libpthread/sysdeps/i386/bits/spin-lock-inline.h	2014-05-02 12:29:22.598331373 +0200
+@@ -0,0 +1,98 @@
++/* Machine-specific definitions for spin locks.  i386 version.
++   Copyright (C) 2000, 2005, 2008, 2009 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Library General Public License as
++   published by the Free Software Foundation; either version 2 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Library General Public License for more details.
++
++   You should have received a copy of the GNU Library General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If not,
++   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
++   Boston, MA 02111-1307, USA.  */
++
++/*
++ * Never include this file directly; use <pthread.h> or <cthreads.h> instead.
++ */
++
++#ifndef _BITS_SPIN_LOCK_INLINE_H
++#define _BITS_SPIN_LOCK_INLINE_H	1
++
++#include <features.h>
++#include <bits/spin-lock.h>
++
++__BEGIN_DECLS
++
++#if defined __USE_EXTERN_INLINES || defined _FORCE_INLINES
++
++# ifndef __EBUSY
++#  include <errno.h>
++#  define __EBUSY EBUSY
++# endif
++
++# ifndef __PT_SPIN_INLINE
++#  define __PT_SPIN_INLINE __extern_inline
++# endif
++
++__PT_SPIN_INLINE int __pthread_spin_destroy (__pthread_spinlock_t *__lock);
++
++__PT_SPIN_INLINE int
++__pthread_spin_destroy (__pthread_spinlock_t *__lock)
++{
++  return 0;
++}
++
++__PT_SPIN_INLINE int __pthread_spin_init (__pthread_spinlock_t *__lock,
++					  int __pshared);
++
++__PT_SPIN_INLINE int
++__pthread_spin_init (__pthread_spinlock_t *__lock, int __pshared)
++{
++  *__lock = __PTHREAD_SPIN_LOCK_INITIALIZER;
++  return 0;
++}
++
++__PT_SPIN_INLINE int __pthread_spin_trylock (__pthread_spinlock_t *__lock);
++
++__PT_SPIN_INLINE int
++__pthread_spin_trylock (__pthread_spinlock_t *__lock)
++{
++  int __locked;
++  __asm__ __volatile ("xchgl %0, %1"
++		      : "=&r" (__locked), "=m" (*__lock) : "0" (1) : "memory");
++  return __locked ? __EBUSY : 0;
++}
++
++__extern_inline int __pthread_spin_lock (__pthread_spinlock_t *__lock);
++extern int _pthread_spin_lock (__pthread_spinlock_t *__lock);
++
++__extern_inline int
++__pthread_spin_lock (__pthread_spinlock_t *__lock)
++{
++  if (__pthread_spin_trylock (__lock))
++    return _pthread_spin_lock (__lock);
++  return 0;
++}
++
++__PT_SPIN_INLINE int __pthread_spin_unlock (__pthread_spinlock_t *__lock);
++
++__PT_SPIN_INLINE int
++__pthread_spin_unlock (__pthread_spinlock_t *__lock)
++{
++  int __unlocked;
++  __asm__ __volatile ("xchgl %0, %1"
++		      : "=&r" (__unlocked), "=m" (*__lock) : "0" (0) : "memory");
++  return 0;
++}
++
++#endif /* Use extern inlines or force inlines.  */
++
++__END_DECLS
++
++#endif /* bits/spin-lock.h */
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/i386/machine-sp.h b/libpthread/sysdeps/i386/machine-sp.h
 --- a/libpthread/sysdeps/i386/machine-sp.h	1970-01-01 01:00:00.000000000 +0100
 +++ b/libpthread/sysdeps/i386/machine-sp.h	2012-09-15 21:43:27.807249556 +0200
@@ -12501,8 +11387,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/hurd/i386/pt-setup.c b/libpthread/sysdeps/mach/hurd/i386/pt-setup.c
 --- a/libpthread/sysdeps/mach/hurd/i386/pt-setup.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/hurd/i386/pt-setup.c	2014-01-22 01:39:13.100882758 +0100
-@@ -0,0 +1,108 @@
++++ b/libpthread/sysdeps/mach/hurd/i386/pt-setup.c	2014-05-23 20:44:39.167033951 +0200
+@@ -0,0 +1,110 @@
 +/* Setup thread stack.  Hurd/i386 version.
 +   Copyright (C) 2000, 2002, 2005, 2007, 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -12551,7 +11437,9 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +  /* Calculate the top of the new stack.  */
 +  bottom = thread->stackaddr;
-+  top = (uintptr_t *) ((uintptr_t) bottom + thread->stacksize);
++  top = (uintptr_t *) ((uintptr_t) bottom + thread->stacksize
++        + ((thread->guardsize + __vm_page_size-1)
++	   / __vm_page_size) * __vm_page_size);
 +
 +  if (start_routine)
 +    {
@@ -13269,151 +12157,6 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +
 +#endif /* pt-sysdep.h */
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/i386/bits/spin-lock.h b/libpthread/sysdeps/mach/i386/bits/spin-lock.h
---- a/libpthread/sysdeps/mach/i386/bits/spin-lock.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/i386/bits/spin-lock.h	2012-09-15 21:43:27.807249556 +0200
-@@ -0,0 +1,39 @@
-+/* Machine-specific definitions for spin locks.  i386 version.
-+   Copyright (C) 2000, 2005, 2008, 2009 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Library General Public License as
-+   published by the Free Software Foundation; either version 2 of the
-+   License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Library General Public License for more details.
-+
-+   You should have received a copy of the GNU Library General Public
-+   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-+   Boston, MA 02111-1307, USA.  */
-+
-+/*
-+ * Never include this file directly; use <pthread.h> or <cthreads.h> instead.
-+ */
-+
-+#ifndef _BITS_SPIN_LOCK_H
-+#define _BITS_SPIN_LOCK_H	1
-+
-+#include <features.h>
-+
-+__BEGIN_DECLS
-+
-+/* The type of a spin lock object.  */
-+typedef __volatile int __pthread_spinlock_t;
-+
-+/* Initializer for a spin lock object.  */
-+# define __PTHREAD_SPIN_LOCK_INITIALIZER ((__pthread_spinlock_t) 0)
-+
-+__END_DECLS
-+
-+#endif /* bits/spin-lock.h */
-diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h b/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h
---- a/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h	2012-09-15 21:43:27.807249556 +0200
-@@ -0,0 +1,98 @@
-+/* Machine-specific definitions for spin locks.  i386 version.
-+   Copyright (C) 2000, 2005, 2008, 2009 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Library General Public License as
-+   published by the Free Software Foundation; either version 2 of the
-+   License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Library General Public License for more details.
-+
-+   You should have received a copy of the GNU Library General Public
-+   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-+   Boston, MA 02111-1307, USA.  */
-+
-+/*
-+ * Never include this file directly; use <pthread.h> or <cthreads.h> instead.
-+ */
-+
-+#ifndef _BITS_SPIN_LOCK_INLINE_H
-+#define _BITS_SPIN_LOCK_INLINE_H	1
-+
-+#include <features.h>
-+#include <bits/spin-lock.h>
-+
-+__BEGIN_DECLS
-+
-+#if defined __USE_EXTERN_INLINES || defined _FORCE_INLINES
-+
-+# ifndef __EBUSY
-+#  include <errno.h>
-+#  define __EBUSY EBUSY
-+# endif
-+
-+# ifndef __PT_SPIN_INLINE
-+#  define __PT_SPIN_INLINE __extern_inline
-+# endif
-+
-+__PT_SPIN_INLINE int __pthread_spin_destroy (__pthread_spinlock_t *__lock);
-+
-+__PT_SPIN_INLINE int
-+__pthread_spin_destroy (__pthread_spinlock_t *__lock)
-+{
-+  return 0;
-+}
-+
-+__PT_SPIN_INLINE int __pthread_spin_init (__pthread_spinlock_t *__lock,
-+					  int __pshared);
-+
-+__PT_SPIN_INLINE int
-+__pthread_spin_init (__pthread_spinlock_t *__lock, int __pshared)
-+{
-+  *__lock = __PTHREAD_SPIN_LOCK_INITIALIZER;
-+  return 0;
-+}
-+
-+__PT_SPIN_INLINE int __pthread_spin_trylock (__pthread_spinlock_t *__lock);
-+
-+__PT_SPIN_INLINE int
-+__pthread_spin_trylock (__pthread_spinlock_t *__lock)
-+{
-+  int __locked;
-+  __asm__ __volatile ("xchgl %0, %1"
-+		      : "=&r" (__locked), "=m" (*__lock) : "0" (1) : "memory");
-+  return __locked ? __EBUSY : 0;
-+}
-+
-+__extern_inline int __pthread_spin_lock (__pthread_spinlock_t *__lock);
-+extern int _pthread_spin_lock (__pthread_spinlock_t *__lock);
-+
-+__extern_inline int
-+__pthread_spin_lock (__pthread_spinlock_t *__lock)
-+{
-+  if (__pthread_spin_trylock (__lock))
-+    return _pthread_spin_lock (__lock);
-+  return 0;
-+}
-+
-+__PT_SPIN_INLINE int __pthread_spin_unlock (__pthread_spinlock_t *__lock);
-+
-+__PT_SPIN_INLINE int
-+__pthread_spin_unlock (__pthread_spinlock_t *__lock)
-+{
-+  int __unlocked;
-+  __asm__ __volatile ("xchgl %0, %1"
-+		      : "=&r" (__unlocked), "=m" (*__lock) : "0" (0) : "memory");
-+  return 0;
-+}
-+
-+#endif /* Use extern inlines or force inlines.  */
-+
-+__END_DECLS
-+
-+#endif /* bits/spin-lock.h */
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/pt-block.c b/libpthread/sysdeps/mach/pt-block.c
 --- a/libpthread/sysdeps/mach/pt-block.c	1970-01-01 01:00:00.000000000 +0100
 +++ b/libpthread/sysdeps/mach/pt-block.c	2009-07-11 11:29:35.000000000 +0200
@@ -13724,11 +12467,10 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +  return 0;
 +}
-Les fichiers binaires a/libpthread/sysdeps/mach/.pt-thread-start.c.swp et b/libpthread/sysdeps/mach/.pt-thread-start.c.swp sont différents
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/mach/pt-thread-terminate.c b/libpthread/sysdeps/mach/pt-thread-terminate.c
 --- a/libpthread/sysdeps/mach/pt-thread-terminate.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/mach/pt-thread-terminate.c	2014-01-22 01:39:13.100882758 +0100
-@@ -0,0 +1,83 @@
++++ b/libpthread/sysdeps/mach/pt-thread-terminate.c	2014-08-19 21:07:35.033804739 +0200
+@@ -0,0 +1,85 @@
 +/* Deallocate the kernel thread resources.  Mach version.
 +   Copyright (C) 2000, 2002, 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13773,7 +12515,9 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +  if (thread->stack)
 +    {
 +      stackaddr = thread->stackaddr;
-+      stacksize = thread->stacksize;
++      stacksize = ((thread->guardsize + __vm_page_size-1)
++		  / __vm_page_size) * __vm_page_size
++		  + thread->stacksize;
 +    }
 +  else
 +    {
@@ -15371,8 +14115,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/TODO b/libpthread/TODO
 --- a/libpthread/TODO	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/TODO	2012-09-15 21:43:27.795249799 +0200
-@@ -0,0 +1,141 @@
++++ b/libpthread/TODO	2014-04-07 23:16:41.081322612 +0200
+@@ -0,0 +1,131 @@
 +-*- Mode: outline -*-
 +
 +* Interfaces
@@ -15418,16 +14162,6 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +     pthread_setschedprio
 +     pthread_getschedparam
 +     pthread_setschedparam
-+
-+** Alternate stacks
-+
-+   Supporting alternate stacks (via pthread_attr_getstackaddr,
-+   pthread_attr_setstackaddr, pthread_attr_getstack,
-+   pthread_attr_setstack, pthread_attr_getstacksize and
-+   pthread_attr_setstacksize) is no problem as long as they are of the
-+   correct size and have the correct alignment.  This is due to
-+   limitations in the Hurd TSD implementation
-+   (c.f. <hurd/threadvar.h>).
 +
 +** Cancelation
 +*** Cancelation points
@@ -15516,8 +14250,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +   http://sources.redhat.com/ml/libc-alpha/2002-08/msg00278.html.
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/Versions b/libpthread/Versions
 --- a/libpthread/Versions	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/Versions	2013-09-21 22:32:47.069176263 +0200
-@@ -0,0 +1,138 @@
++++ b/libpthread/Versions	2014-08-20 21:07:03.697318547 +0200
+@@ -0,0 +1,139 @@
 +libc {
 +  GLIBC_2.13 {
 +    pthread_attr_destroy; pthread_attr_getdetachstate;
@@ -15608,6 +14342,7 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +    pthread_join;
 +
 +    pthread_key_create; pthread_key_delete;
++    __pthread_key_create;
 +
 +    pthread_kill;
 +
