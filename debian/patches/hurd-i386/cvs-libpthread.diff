@@ -1,5 +1,5 @@
-git snapshot 3360034b7814d90503098700fc18bf07c47838c3
-Date: Sun Nov 2 02:32:07 2014 +0100
+git snapshot 46d3992fea0690f81ed3924a0a13f3aecde809ae
+Date: Sun Nov 2 04:20:13 2014 +0100
 
 ---
  ChangeLog                                     |    6 
@@ -142,7 +142,7 @@ Date: Sun Nov 2 02:32:07 2014 +0100
  sysdeps/generic/pt-rwlock-timedwrlock.c       |  103 +++
  sysdeps/generic/pt-rwlock-tryrdlock.c         |   56 +
  sysdeps/generic/pt-rwlock-trywrlock.c         |   46 +
- sysdeps/generic/pt-rwlock-unlock.c            |   87 ++
+ sysdeps/generic/pt-rwlock-unlock.c            |   98 +++
  sysdeps/generic/pt-rwlock-wrlock.c            |   34 +
  sysdeps/generic/pt-rwlockattr-destroy.c       |   27 
  sysdeps/generic/pt-rwlockattr-getpshared.c    |   29 
@@ -233,7 +233,7 @@ Date: Sun Nov 2 02:32:07 2014 +0100
  tests/test-8.c                                |   60 ++
  tests/test-9.c                                |   88 +++
  tests/test-__pthread_destroy_specific-skip.c  |   83 ++
- 231 files changed, 13232 insertions(+)
+ 231 files changed, 13243 insertions(+)
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/ChangeLog b/libpthread/ChangeLog
 --- a/libpthread/ChangeLog	1970-01-01 01:00:00.000000000 +0100
 +++ b/libpthread/ChangeLog	2009-10-14 03:39:13.000000000 +0200
@@ -9127,8 +9127,8 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +}
 diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread/sysdeps/generic/pt-rwlock-unlock.c b/libpthread/sysdeps/generic/pt-rwlock-unlock.c
 --- a/libpthread/sysdeps/generic/pt-rwlock-unlock.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/libpthread/sysdeps/generic/pt-rwlock-unlock.c	2013-02-10 10:49:14.693444779 +0100
-@@ -0,0 +1,87 @@
++++ b/libpthread/sysdeps/generic/pt-rwlock-unlock.c	2014-11-02 04:19:54.541667466 +0100
+@@ -0,0 +1,98 @@
 +/* Unlock a rwlock.  Generic version.
 +   Copyright (C) 2000,02 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -9196,15 +9196,26 @@ diff --exclude .svn --exclude .git --exclude CVS --exclude .hg -urN a/libpthread
 +
 +  if (rwlock->readerqueue)
 +    {
-+      __pthread_dequeuing_iterate (rwlock->readerqueue, wakeup)
-+	{
-+	  rwlock->readers ++;
-+	  __pthread_wakeup (wakeup);
-+	}
++      unsigned n = 0;
 +
-+      rwlock->readerqueue = 0;
++      __pthread_queue_iterate (rwlock->readerqueue, wakeup)
++        n ++;
 +
-+      __pthread_spin_unlock (&rwlock->__lock);
++      {
++	struct __pthread *wakeups[n];
++	unsigned i = 0;
++
++	__pthread_dequeuing_iterate (rwlock->readerqueue, wakeup)
++	    wakeups[i ++] = wakeup;
++
++	rwlock->readers += n;
++	rwlock->readerqueue = 0;
++
++	__pthread_spin_unlock (&rwlock->__lock);
++
++	for (i = 0; i < n; i ++)
++	  __pthread_wakeup (wakeups[i]);
++      }
 +
 +      return 0;
 +    }
