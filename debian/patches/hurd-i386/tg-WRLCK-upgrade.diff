@@ -1,0 +1,30 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Make F_WRLCK potentially upgrade owned F_RDLCK
+
+lockf(LOCK_EX) would drop any existing shared lock before taking the exclusive
+lock. F_WRLCK needs an atomic upgrade, so use lockf(LOCK_SH|LOCK_EX) instead.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+* sysdeps/mach/hurd/fcntl.c (__libc_fcntl): For F_WRLCK, set cmd to
+LOCK_SH|LOCK_EX instead of LOCK_SH.
+
+---
+ sysdeps/mach/hurd/fcntl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sysdeps/mach/hurd/fcntl.c b/sysdeps/mach/hurd/fcntl.c
+index 70180fa..b827fec 100644
+--- a/sysdeps/mach/hurd/fcntl.c
++++ b/sysdeps/mach/hurd/fcntl.c
+@@ -151,7 +151,7 @@ __libc_fcntl (int fd, int cmd, ...)
+ 	switch (fl->l_type)
+ 	  {
+ 	  case F_RDLCK: cmd |= LOCK_SH; break;
+-	  case F_WRLCK: cmd |= LOCK_EX; break;
++	  case F_WRLCK: cmd |= LOCK_SH | LOCK_EX; break;
+ 	  case F_UNLCK: cmd |= LOCK_UN; break;
+ 	  default:
+ 	    errno = EINVAL;
+-- 
+tg: (9a079e2..) t/WRLCK-upgrade (depends on: baseline)
