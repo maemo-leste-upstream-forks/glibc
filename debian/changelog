@@ -6,6 +6,17 @@ glibc (2.19-16) UNRELEASED; urgency=medium
   * patches/hurd-i386/cvs-libpthread-libc-lockP{,2}.diff: New patch to
     dynamically call pthread functions from libc.
 
+  [ Aurelien Jarno ]
+  * We have a transition mechanism for the locales, as the Debian archive
+    used to expose arch:all packages on all architectures even when the
+    corresponding arch:any package is not available yet. This has been
+    fixed long time ago, the transition mechanism has not been used
+    correctly for a lot of time and has been broken by the split out of
+    libc-bin. The breakage has been partially fixed by the "Breaks: locales 
+    (<< 2.19)" added to libc6. It's now time to add the missing "Depends:
+    libc-bin (>> 2.19)" to locales and remove the transition mechanism.
+    Closes: #583088, #779442 
+
  -- Aurelien Jarno <aurel32@debian.org>  Sun, 08 Feb 2015 17:21:50 +0100
 
 glibc (2.19-15) unstable; urgency=medium
