@@ -4,7 +4,7 @@
 
 --- a/elf/dl-load.c
 +++ b/elf/dl-load.c
-@@ -1644,6 +1644,208 @@
+@@ -1644,6 +1644,209 @@
      _dl_debug_printf_c ("\t\t(%s)\n", what);
  }
  
@@ -13,8 +13,8 @@
 +   P incremented past the value.  We assume that a word is large enough to
 +   hold any value so encoded; if it is smaller than a pointer on some target,
 +   pointers should not be leb128 encoded on that target.  */
-+static const unsigned char *
-+read_uleb128 (const unsigned char *p, unsigned long *val)
++static unsigned char *
++read_uleb128 (unsigned char *p, unsigned long *val)
 +{
 +  unsigned int shift = 0;
 +  unsigned char byte;
@@ -106,7 +106,8 @@
 +		   * (ABI_VFP_args) */
 +		  while (section_len > 0)
 +                    {
-+		      unsigned long tag, val;
++		      unsigned long val = 0;
++		      unsigned long tag;
 +		      unsigned long size;
 +
 +		      end = p;
@@ -125,7 +126,7 @@
 +		      if (ATTR_TAG_FILE != tag)
 +                        {
 +			  /* ignore, we don't care */
-+			  _dl_debug_printf_c ("    ignoring unknown subsection with type %u length %lu\n", tag, size);
++			  _dl_debug_printf_c ("    ignoring unknown subsection with type %lu length %lu\n", tag, size);
 +			  p = end;
 +			  continue;
 +                        }
