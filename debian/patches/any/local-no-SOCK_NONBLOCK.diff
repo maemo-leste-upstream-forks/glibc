@@ -26,13 +26,13 @@
  		/* only try IPv6 if IPv6 NS and if not failed before */
  		if (nsap->sa_family == AF_INET6 && !statp->ipv6_unavail) {
 +#ifdef SOCK_NONBLOCK
- 			if (__builtin_expect (__have_o_nonblock >= 0, 1)) {
+ 			if (__glibc_likely (__have_o_nonblock >= 0))       {
  				EXT(statp).nssocks[ns] =
  				  socket(PF_INET6, SOCK_DGRAM|SOCK_NONBLOCK,
 @@ -929,12 +930,14 @@
  #endif
  			}
- 			if (__builtin_expect (__have_o_nonblock < 0, 0))
+ 			if (__glibc_unlikely (__have_o_nonblock < 0))
 +#endif
  				EXT(statp).nssocks[ns] =
  				  socket(PF_INET6, SOCK_DGRAM, 0);
@@ -41,13 +41,13 @@
  			slen = sizeof (struct sockaddr_in6);
  		} else if (nsap->sa_family == AF_INET) {
 +#ifdef SOCK_NONBLOCK
- 			if (__builtin_expect (__have_o_nonblock >= 0, 1)) {
+ 			if (__glibc_likely (__have_o_nonblock >= 0))       {
  				EXT(statp).nssocks[ns]
  				  = socket(PF_INET, SOCK_DGRAM|SOCK_NONBLOCK,
 @@ -947,6 +950,7 @@
  #endif
  			}
- 			if (__builtin_expect (__have_o_nonblock < 0, 0))
+ 			if (__glibc_unlikely (__have_o_nonblock < 0))
 +#endif
  				EXT(statp).nssocks[ns]
  				  = socket(PF_INET, SOCK_DGRAM, 0);
@@ -57,7 +57,7 @@
  			return (0);
  		}
 +#ifdef SOCK_NONBLOCK
- 		if (__builtin_expect (__have_o_nonblock < 0, 0)) {
+ 		if (__glibc_unlikely (__have_o_nonblock < 0))       {
 +#else
 +                {
 +#endif

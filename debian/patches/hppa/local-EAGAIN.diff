@@ -19,8 +19,8 @@
  	      {
  		THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
  
---- a/nptl/sysdeps/pthread/aio_misc.h
-+++ b/nptl/sysdeps/pthread/aio_misc.h
+--- a/sysdeps/nptl/aio_misc.h
++++ b/sysdeps/nptl/aio_misc.h
 @@ -50,7 +50,7 @@
  	  {								      \
  	    status = lll_futex_timed_wait (futexaddr, oldval, timeout,	      \
@@ -39,8 +39,8 @@
  									      \
  	pthread_mutex_lock (&__aio_requests_mutex);			      \
        }									      \
---- a/nptl/sysdeps/pthread/gai_misc.h
-+++ b/nptl/sysdeps/pthread/gai_misc.h
+--- a/sysdeps/nptl/gai_misc.h
++++ b/sysdeps/nptl/gai_misc.h
 @@ -51,7 +51,7 @@
  	  {								      \
  	    status = lll_futex_timed_wait (futexaddr, oldval, timeout,	      \
@@ -59,37 +59,6 @@
  									      \
  	pthread_mutex_lock (&__gai_requests_mutex);			      \
        }									      \
---- a/nptl/sysdeps/unix/sysv/linux/sem_timedwait.c
-+++ b/nptl/sysdeps/unix/sysv/linux/sem_timedwait.c
-@@ -94,7 +94,7 @@
-       rt.tv_sec = sec;
-       rt.tv_nsec = nsec;
-       err = do_futex_timed_wait(isem, &rt);
--      if (err != 0 && err != -EWOULDBLOCK)
-+      if (err != 0 && err != -EWOULDBLOCK && err != -EAGAIN)
- 	{
- 	  __set_errno (-err);
- 	  err = -1;
---- a/nptl/sysdeps/unix/sysv/linux/sem_wait.c
-+++ b/nptl/sysdeps/unix/sysv/linux/sem_wait.c
-@@ -67,7 +67,7 @@
-   while (1)
-     {
-       err = do_futex_wait(isem);
--      if (err != 0 && err != -EWOULDBLOCK)
-+      if (err != 0 && err != -EWOULDBLOCK && err != -EAGAIN)
- 	{
- 	  __set_errno (-err);
- 	  err = -1;
-@@ -112,7 +112,7 @@
-       /* Disable asynchronous cancellation.  */
-       __pthread_disable_asynccancel (oldtype);
-     }
--  while (err == 0 || err == -EWOULDBLOCK);
-+  while (err == 0 || err == -EWOULDBLOCK || err == -EAGAIN);
- 
-   __set_errno (-err);
-   return -1;
 --- a/sunrpc/clnt_udp.c
 +++ b/sunrpc/clnt_udp.c
 @@ -462,7 +462,7 @@

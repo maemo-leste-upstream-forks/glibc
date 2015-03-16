@@ -5,7 +5,7 @@ extra_config_options = --enable-multi-arch
 GLIBC_MULTILIB_PASSES += powerpc
 DEB_ARCH_MULTILIB_PACKAGES += libc6-powerpc libc6-dev-powerpc
 libc6-powerpc_shlib_dep = libc6-powerpc (>= $(shlib_dep_ver))
-powerpc_add-ons = nptl $(add-ons)
+powerpc_add-ons = $(add-ons)
 powerpc_configure_target = powerpc-linux-gnu
 powerpc_CC = $(CC) -m32
 powerpc_CXX = $(CXX) -m32

@@ -1,14 +1,14 @@
 ---
- ports/sysdeps/unix/sysv/linux/ia64/sys/user.h |    3 ++-
- ports/sysdeps/unix/sysv/linux/mips/sys/user.h |    4 ++--
+ sysdeps/unix/sysv/linux/ia64/sys/user.h |    3 ++-
+ sysdeps/unix/sysv/linux/mips/sys/user.h |    4 ++--
  sysdeps/unix/sysv/linux/check_native.c        |    6 ------
  sysdeps/unix/sysv/linux/check_pf.c            |    6 ------
  sysdeps/unix/sysv/linux/ifaddrs.c             |    6 ------
  sysdeps/unix/sysv/linux/x86/sys/user.h        |    2 ++
  6 files changed, 6 insertions(+), 21 deletions(-)
 
---- a/ports/sysdeps/unix/sysv/linux/ia64/sys/user.h
-+++ b/ports/sysdeps/unix/sysv/linux/ia64/sys/user.h
+--- a/sysdeps/unix/sysv/linux/ia64/sys/user.h
++++ b/sysdeps/unix/sysv/linux/ia64/sys/user.h
 @@ -20,6 +20,7 @@
  
  #include <features.h>
@@ -26,26 +26,6 @@
  #define UPAGES			1
  #define HOST_TEXT_START_ADDR	(u.start_code)
  #define HOST_DATA_START_ADDR	(u.start_data)
---- a/ports/sysdeps/unix/sysv/linux/mips/sys/user.h
-+++ b/ports/sysdeps/unix/sysv/linux/mips/sys/user.h
-@@ -19,6 +19,7 @@
- #define _SYS_USER_H	1
- 
- #include <sgidefs.h>
-+#include <unistd.h>
- 
- /* The whole purpose of this file is for GDB and GDB only.  Don't read
-    too much into it.  Don't use it for anything other than GDB unless
-@@ -206,8 +207,7 @@
- 
- #endif
- 
--#define PAGE_SHIFT		12
--#define PAGE_SIZE		(1UL << PAGE_SHIFT)
-+#define PAGE_SIZE		(sysconf(_SC_PAGESIZE))
- #define PAGE_MASK		(~(PAGE_SIZE-1))
- #define NBPG			PAGE_SIZE
- #define UPAGES			1
 --- a/sysdeps/unix/sysv/linux/x86/sys/user.h
 +++ b/sysdeps/unix/sysv/linux/x86/sys/user.h
 @@ -22,6 +22,8 @@
@@ -60,22 +40,6 @@
 --- a/sysdeps/unix/sysv/linux/check_native.c
 +++ b/sysdeps/unix/sysv/linux/check_native.c
 @@ -77,13 +77,7 @@
-   memset (&nladdr, '\0', sizeof (nladdr));
-   nladdr.nl_family = AF_NETLINK;
- 
--#ifdef PAGE_SIZE
--  /* Help the compiler optimize out the malloc call if PAGE_SIZE
--     is constant and smaller or equal to PTHREAD_STACK_MIN/4.  */
--  const size_t buf_size = PAGE_SIZE;
--#else
-   const size_t buf_size = __getpagesize ();
--#endif
-   bool use_malloc = false;
-   char *buf;
- 
---- a/sysdeps/unix/sysv/linux/check_pf.c
-+++ b/sysdeps/unix/sysv/linux/check_pf.c
-@@ -108,13 +108,7 @@
    memset (&nladdr, '\0', sizeof (nladdr));
    nladdr.nl_family = AF_NETLINK;
  

@@ -5,7 +5,7 @@ extra_config_options = --enable-multi-arch --enable-lock-elision
 # The optimized libraries also use NPTL!
 GLIBC_PASSES += i686
 DEB_ARCH_REGULAR_PACKAGES += libc6-i686
-i686_add-ons = nptl $(add-ons)
+i686_add-ons = $(add-ons)
 i686_configure_target=i686-linux-gnu
 i686_extra_cflags = -march=i686 -mtune=generic
 i686_slibdir = /lib/$(DEB_HOST_MULTIARCH)/i686/cmov
@@ -15,7 +15,7 @@ i686_extra_config_options = $(extra_config_options)
 # greatly increase the speed when running under the 32bit Xen hypervisor.
 GLIBC_PASSES += xen
 DEB_ARCH_REGULAR_PACKAGES += libc6-xen
-xen_add-ons = nptl $(add-ons)
+xen_add-ons = $(add-ons)
 xen_configure_target=i686-linux-gnu
 xen_extra_cflags = -march=i686 -mtune=generic -mno-tls-direct-seg-refs
 xen_slibdir = /lib/$(DEB_HOST_MULTIARCH)/i686/nosegneg
@@ -35,7 +35,7 @@ endef
 GLIBC_MULTILIB_PASSES += amd64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-amd64 libc6-dev-amd64
 libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
-amd64_add-ons = nptl $(add-ons)
+amd64_add-ons = $(add-ons)
 amd64_configure_target = x86_64-linux-gnu
 # __x86_64__ is defined here because Makeconfig uses -undef and the
 # /usr/include/asm wrappers need that symbol.
@@ -81,7 +81,7 @@ endef
 GLIBC_MULTILIB_PASSES += x32
 DEB_ARCH_MULTILIB_PACKAGES += libc6-x32 libc6-dev-x32
 libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
-x32_add-ons = nptl $(add-ons)
+x32_add-ons = $(add-ons)
 x32_configure_target = x86_64-linux-gnux32
 x32_CC = $(CC) -mx32
 x32_CXX = $(CXX) -mx32

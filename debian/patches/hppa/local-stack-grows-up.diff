@@ -1,7 +1,5 @@
 ---
  nptl/allocatestack.c         |   35 +++++++++++++++++++++++++----------
- nptl/pthread_attr_getstack.c |    4 ++++
- nptl/pthread_attr_setstack.c |    8 ++++++++
  nptl/pthread_create.c        |   19 ++++++++++++++++---
  nptl/pthread_getattr_np.c    |    4 ++++
  5 files changed, 57 insertions(+), 13 deletions(-)
@@ -9,7 +7,7 @@
 --- a/nptl/allocatestack.c
 +++ b/nptl/allocatestack.c
 @@ -361,6 +361,15 @@
-   if (__builtin_expect (attr->flags & ATTR_FLAG_STACKADDR, 0))
+   if (__glibc_unlikely (attr->flags & ATTR_FLAG_STACKADDR))
      {
        uintptr_t adj;
 +#if _STACK_GROWS_DOWN
@@ -98,46 +96,6 @@
  #endif
  
    return 0;
---- a/nptl/pthread_attr_getstack.c
-+++ b/nptl/pthread_attr_getstack.c
-@@ -32,7 +32,11 @@
-   iattr = (struct pthread_attr *) attr;
- 
-   /* Store the result.  */
-+#ifdef _STACK_GROWS_DOWN
-   *stackaddr = (char *) iattr->stackaddr - iattr->stacksize;
-+#else
-+  *stackaddr = (char *) iattr->stackaddr;
-+#endif
-   *stacksize = iattr->stacksize;
- 
-   return 0;
---- a/nptl/pthread_attr_setstack.c
-+++ b/nptl/pthread_attr_setstack.c
-@@ -47,7 +47,11 @@
- #endif
- 
-   iattr->stacksize = stacksize;
-+#if _STACK_GROWS_DOWN
-   iattr->stackaddr = (char *) stackaddr + stacksize;
-+#else
-+  iattr->stackaddr = (char *) stackaddr;
-+#endif
-   iattr->flags |= ATTR_FLAG_STACKADDR;
- 
-   return 0;
-@@ -80,7 +84,11 @@
- #  endif
- 
-   iattr->stacksize = stacksize;
-+#if _STACK_GROWS_DOWN
-   iattr->stackaddr = (char *) stackaddr + stacksize;
-+#else
-+  iattr->stackaddr = (char *) stackaddr;
-+#endif
-   iattr->flags |= ATTR_FLAG_STACKADDR;
- 
-   return 0;
 --- a/nptl/pthread_create.c
 +++ b/nptl/pthread_create.c
 @@ -399,12 +399,25 @@
@@ -172,7 +130,7 @@
 --- a/nptl/pthread_getattr_np.c
 +++ b/nptl/pthread_getattr_np.c
 @@ -60,7 +60,11 @@
-   if (__builtin_expect (thread->stackblock != NULL, 1))
+   if (__glibc_likely (thread->stackblock != NULL))
      {
        iattr->stacksize = thread->stackblock_size;
 +#ifdef _STACK_GROWS_DOWN

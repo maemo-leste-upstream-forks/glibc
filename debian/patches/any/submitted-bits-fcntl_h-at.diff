@@ -16,8 +16,6 @@
     
 	* sysdeps/unix/sysv/linux/alpha/bits/fcntl.h: Define AT_*
 	constants.
-	* sysdeps/unix/sysv/linux/am33/bits/fcntl.h: Define AT_*
-	constants.
 	* sysdeps/unix/sysv/linux/arm/bits/fcntl.h: Define AT_*
 	constants.
 	* sysdeps/unix/sysv/linux/hppa/bits/fcntl.h: Define AT_*
@@ -31,13 +29,12 @@
 
 ---
  io/fcntl.h                                       |   17 -----------------
- ports/sysdeps/unix/sysv/linux/alpha/bits/fcntl.h |   18 ++++++++++++++++++
- ports/sysdeps/unix/sysv/linux/am33/bits/fcntl.h  |   20 ++++++++++++++++++++
- ports/sysdeps/unix/sysv/linux/arm/bits/fcntl.h   |   18 ++++++++++++++++++
- ports/sysdeps/unix/sysv/linux/hppa/bits/fcntl.h  |   18 ++++++++++++++++++
- ports/sysdeps/unix/sysv/linux/ia64/bits/fcntl.h  |   18 ++++++++++++++++++
- ports/sysdeps/unix/sysv/linux/m68k/bits/fcntl.h  |   18 ++++++++++++++++++
- ports/sysdeps/unix/sysv/linux/mips/bits/fcntl.h  |   18 ++++++++++++++++++
+ sysdeps/unix/sysv/linux/alpha/bits/fcntl.h |   18 ++++++++++++++++++
+ sysdeps/unix/sysv/linux/arm/bits/fcntl.h   |   18 ++++++++++++++++++
+ sysdeps/unix/sysv/linux/hppa/bits/fcntl.h  |   18 ++++++++++++++++++
+ sysdeps/unix/sysv/linux/ia64/bits/fcntl.h  |   18 ++++++++++++++++++
+ sysdeps/unix/sysv/linux/m68k/bits/fcntl.h  |   18 ++++++++++++++++++
+ sysdeps/unix/sysv/linux/mips/bits/fcntl.h  |   18 ++++++++++++++++++
  sysdeps/mach/hurd/bits/fcntl.h                   |   18 ++++++++++++++++++
  sysdeps/unix/sysv/linux/powerpc/bits/fcntl.h     |   18 ++++++++++++++++++
  sysdeps/unix/sysv/linux/s390/bits/fcntl.h        |   18 ++++++++++++++++++
@@ -129,29 +126,3 @@
  __BEGIN_DECLS
  
  #ifdef __USE_GNU
---- a/ports/sysdeps/unix/sysv/linux/am33/bits/fcntl.h
-+++ b/ports/sysdeps/unix/sysv/linux/am33/bits/fcntl.h
-@@ -178,3 +178,23 @@
- # define POSIX_FADV_DONTNEED	4 /* Don't need these pages.  */
- # define POSIX_FADV_NOREUSE	5 /* Data will be accessed once.  */
- #endif
-+
-+/* Values for `*at' functions.  */
-+#ifdef __USE_ATFILE
-+# define AT_FDCWD		-100	/* Special value used to indicate
-+					   the *at functions should use the
-+					   current working directory. */
-+# define AT_SYMLINK_NOFOLLOW	0x100	/* Do not follow symbolic links.  */
-+# define AT_REMOVEDIR		0x200	/* Remove directory instead of
-+					   unlinking file.  */
-+# define AT_SYMLINK_FOLLOW	0x400	/* Follow symbolic links.  */
-+# ifdef __USE_GNU
-+#  define AT_NO_AUTOMOUNT	0x800	/* Suppress terminal automount
-+					   traversal.  */
-+#  define AT_EMPTY_PATH		0x1000	/* Allow empty relative pathname.  */
-+# endif
-+# define AT_EACCESS		0x200	/* Test access permitted for
-+					   effective IDs, not real IDs.  */
-+#endif
-+
-+

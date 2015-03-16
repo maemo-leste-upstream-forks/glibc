@@ -7,7 +7,7 @@ pt_chown = yes
 
 # NPTL Config
 threads = yes
-libc_add-ons = ports fbtl $(add-ons)
+libc_add-ons = fbtl $(add-ons)
 libc_extra_config_options = $(extra_config_options)
 
 ifndef KFREEBSD_SOURCE

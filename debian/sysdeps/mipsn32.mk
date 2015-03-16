@@ -1,11 +1,11 @@
-libc_add-ons = ports nptl $(add-ons)
+libc_add-ons = $(add-ons)
 libc_rtlddir = /lib32
 extra_cflags = -mno-plt
 
 # build 64-bit alternative library
 GLIBC_MULTILIB_PASSES += mips64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-mips64 libc6-dev-mips64
-mips64_add-ons = ports nptl $(add-ons)
+mips64_add-ons = $(add-ons)
 mips64_configure_target = mips64-linux-gnuabi64
 mips64_extra_cflags = -mno-plt
 mips64_CC = $(CC) -mabi=64
@@ -19,7 +19,7 @@ mips64_extra_config_options := $(extra_config_options)
 # build 32-bit (o32) alternative library
 GLIBC_MULTILIB_PASSES += mips32
 DEB_ARCH_MULTILIB_PACKAGES += libc6-mips32 libc6-dev-mips32
-mips32_add-ons = ports nptl $(add-ons)
+mips32_add-ons = $(add-ons)
 mips32_configure_target = mips-linux-gnu
 mips32_extra_cflags = -mno-plt
 mips32_CC = $(CC) -mabi=32

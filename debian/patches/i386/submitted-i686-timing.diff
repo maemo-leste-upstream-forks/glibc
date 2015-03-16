@@ -37,19 +37,10 @@
    /* The object to be initialized first.  */
    EXTERN struct link_map *_dl_initfirst;
  
--#if HP_TIMING_AVAIL || HP_SMALL_TIMING_AVAIL
-+#if HP_TIMING_AVAIL || HP_SMALL_TIMING_AVAIL || HP_TIMING_PAD
+-#if HP_SMALL_TIMING_AVAIL
++#if HP_SMALL_TIMING_AVAIL || HP_TIMING_PAD
    /* Start time on CPU clock.  */
    EXTERN hp_timing_t _dl_cpuclock_offset;
- #endif
-@@ -543,7 +543,7 @@ struct rtld_global_ro
-   /* All search directories defined at startup.  */
-   EXTERN struct r_search_path_elem *_dl_init_all_dirs;
- 
--#if HP_TIMING_AVAIL || HP_SMALL_TIMING_AVAIL
-+#if HP_TIMING_AVAIL || HP_SMALL_TIMING_AVAIL || HP_TIMING_PAD
-   /* Overhead of a high-precision timing measurement.  */
-   EXTERN hp_timing_t _dl_hp_timing_overhead;
  #endif
 --- /dev/null
 +++ b/sysdeps/i386/hp-timing.h
@@ -122,7 +113,7 @@
 +static void
 +dlinit_hptiming (void)
 +{
-+#if HP_TIMING_AVAIL || HP_SMALL_TIMING_AVAIL
++#if HP_SMALL_TIMING_AVAIL
 +  if (GL(dl_cpuclock_offset) == 0)
 +    HP_TIMING_NOW (GL(dl_cpuclock_offset));
 +#endif

@@ -1,8 +1,6 @@
 2014-06-13  Aurelien Jarno  <aurelien@aurel32.net>
 
         [BZ #17053]
-	* resolv/res_init.c (__res_vinit): Improve comments
-	about nserv and nservall.
 	* resolv/res_init.c (__res_vinit): Fill in IPv4 name server
 	information using the nserv index. Only count IPv4 name servers
 	in statp->nscount.
@@ -12,25 +10,11 @@
 	IPv6 name servers before ignoring the request.
 	(send_dg): Check for both IPv4 and IPv6 name servers to compute
 	time for the total operation.
-	* resolv/res_init.c (__res_iclose): Only clear nsinit if the
-	addresses have been freed.
 
 diff --git a/resolv/res_init.c b/resolv/res_init.c
 index ea133f8..42e16b6 100644
 --- a/resolv/res_init.c
 +++ b/resolv/res_init.c
-@@ -153,9 +153,9 @@ __res_vinit(res_state statp, int preinit) {
- 	char *cp, **pp;
- 	int n;
- 	char buf[BUFSIZ];
--	int nserv = 0;    /* number of nameserver records read from file */
-+	int nserv = 0;    /* number of IPv4 nameservers read from file */
- #ifdef _LIBC
--	int nservall = 0; /* number of NS records read, nserv IPv4 only */
-+	int nservall = 0; /* number of (IPv4 + IPV6) nameservers read from file */
- #endif
- 	int haveenv = 0;
- 	int havesearch = 0;
 @@ -308,9 +308,9 @@ __res_vinit(res_state statp, int preinit) {
  			cp++;
  		    if ((*cp != '\0') && (*cp != '\n')
@@ -59,19 +43,9 @@ index ea133f8..42e16b6 100644
  	}
 -	if (__builtin_expect(statp->nscount == 0, 0)) {
 +	if (__builtin_expect(nservall == 0, 0)) {
- 	    statp->nsaddr.sin_addr = inet_makeaddr(IN_LOOPBACKNET, 1);
+ 	    statp->nsaddr.sin_addr = __inet_makeaddr(IN_LOOPBACKNET, 1);
  	    statp->nsaddr.sin_family = AF_INET;
  	    statp->nsaddr.sin_port = htons(NAMESERVER_PORT);
-@@ -621,7 +621,8 @@ __res_iclose(res_state statp, bool free_addr) {
- 				statp->_u._ext.nsaddrs[ns] = NULL;
- 			}
- 		}
--	statp->_u._ext.nsinit = 0;
-+	if (free_addr)
-+		statp->_u._ext.nsinit = 0;
- }
- libc_hidden_def (__res_iclose)
- 
 diff --git a/resolv/res_send.c b/resolv/res_send.c
 index af42b8a..82242bd 100644
 --- a/resolv/res_send.c

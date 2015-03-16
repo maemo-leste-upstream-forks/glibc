@@ -1,10 +1,10 @@
-libc_add-ons = ports nptl $(add-ons)
+libc_add-ons = $(add-ons)
 extra_cflags = -mno-plt
 
 # build 32-bit (n32) alternative library
 GLIBC_MULTILIB_PASSES += mipsn32
 DEB_ARCH_MULTILIB_PACKAGES += libc6-mipsn32 libc6-dev-mipsn32
-mipsn32_add-ons = ports nptl $(add-ons)
+mipsn32_add-ons = $(add-ons)
 mipsn32_configure_target = mips64el-linux-gnuabin32
 mipsn32_extra_cflags = -mno-plt
 mipsn32_CC = $(CC) -mabi=n32
@@ -18,7 +18,7 @@ mipsn32_extra_config_options := $(extra_config_options)
 # build 64-bit alternative library
 GLIBC_MULTILIB_PASSES += mips64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-mips64 libc6-dev-mips64
-mips64_add-ons = ports nptl $(add-ons)
+mips64_add-ons = $(add-ons)
 mips64_configure_target = mips64el-linux-gnuabi64
 mips64_extra_cflags = -mno-plt
 mips64_CC = $(CC) -mabi=64
@@ -58,7 +58,7 @@ endef
 # build a loongson-2f optimized library
 GLIBC_PASSES += loongson2f
 DEB_ARCH_REGULAR_PACKAGES += libc6-loongson2f
-loongson2f_add-ons = ports nptl $(add-ons)
+loongson2f_add-ons = $(add-ons)
 loongson2f_configure_target = mips32el-linux-gnu
 loongson2f_CC = $(CC) -mabi=32
 loongson2f_CXX = $(CXX) -mabi=32

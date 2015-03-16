@@ -1,4 +1,4 @@
-libc_add-ons = ports nptl $(add-ons)
+libc_add-ons = $(add-ons)
 extra_config_options = --enable-multi-arch
 
 # Install a compat symlink so old binaries keep working:
@@ -14,7 +14,7 @@ endef
 
 #GLIBC_MULTILIB_PASSES += armel
 #DEB_ARCH_MULTILIB_PACKAGES += libc6-armel libc6-dev-armel
-#armel_add-ons = ports nptl $(add-ons)
+#armel_add-ons = $(add-ons)
 #armel_configure_target = arm-linux-gnueabi
 #armel_CC = $(CC) -mfloat-abi=soft
 #armel_CXX = $(CXX) -mfloat-abi=soft

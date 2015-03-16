@@ -1,4 +1,4 @@
-libc_add-ons = ports nptl $(add-ons)
+libc_add-ons = $(add-ons)
 libc_extra_config_options = $(extra_config_options) --disable-sanity-checks
 
 # hppa64 needs symlink /usr/hppa64-linux/include to /usr/include
