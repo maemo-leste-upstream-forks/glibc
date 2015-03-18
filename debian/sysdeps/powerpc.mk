@@ -1,4 +1,4 @@
-extra_config_options = --enable-multi-arch
+extra_config_options = --enable-multi-arch --enable-lock-elision
 
 # build 64-bit (ppc64) alternative library
 GLIBC_MULTILIB_PASSES += ppc64
