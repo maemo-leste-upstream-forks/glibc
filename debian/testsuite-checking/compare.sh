@@ -13,12 +13,14 @@ grep -Ev '^ *$|^#' $2 | sort > $results
 
 builddir=${3:-.}
 
+echo "+--------------------------- BEGIN COMPARE ---------------------------+"
+echo "Comparing against $1"
 REGRESSIONS=$(diff -wBI '^#.*' $expected $results | sed -e '/^>/!d;s/^> //g')
 PROGRESSIONS=$(diff -wBI '^#.*' $expected $results | sed -e '/^</!d;s/^< //g')
 if [ -n "$REGRESSIONS" ] ; then
-  echo "+---------------------------------------------------------------+"
-  echo "|  Encountered regressions that don't match expected failures:  |"
-  echo "+---------------------------------------------------------------+"
+  echo "+---------------------------------------------------------------------+"
+  echo "|     Encountered regressions that don't match expected failures:     |"
+  echo "+---------------------------------------------------------------------+"
   echo "$REGRESSIONS"
   for test in $REGRESSIONS
   do
@@ -39,11 +41,12 @@ else
 fi
 
 if [ -n "$PROGRESSIONS" ] ; then
-  echo "+----------------------------------------------------------------+"
-  echo "|  Encountered progressions that don't match expected failures:  |"
-  echo "+----------------------------------------------------------------+"
+  echo "+---------------------------------------------------------------------+"
+  echo "|    Encountered progressions that don't match expected failures:     |"
+  echo "+---------------------------------------------------------------------+"
   echo "$PROGRESSIONS"
 fi
+echo "+---------------------------- END COMPARE ----------------------------+"
 
 rm -f $expected $results
 # This would be a lovely place to exit 0 if you wanted to disable hard failures
