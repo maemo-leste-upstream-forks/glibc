@@ -147,9 +147,9 @@ $(stamp)check_%: $(stamp)build_%
 	    echo "*** WARNING ***" ; \
 	  fi ; \
 	fi
-	@n=$$(grep '^make.* Error' $(log_test) | wc -l || true); \
+	@n=$$(grep '^FAIL: ' $(log_test) | wc -l || true); \
 	  echo "TEST SUMMARY $(log_test) ($$n matching lines)"; \
-	  grep '^make.* Error' $(log_test) || true; \
+	  grep '^FAIL: ' $(log_test) || true; \
 	  echo "END TEST SUMMARY $(log_test)"
 	touch $@
 

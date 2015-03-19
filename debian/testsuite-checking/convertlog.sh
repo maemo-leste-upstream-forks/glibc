@@ -10,6 +10,5 @@ echo '#'
 echo '# Testsuite failures, someone should be working towards'
 echo '# fixing these! They are listed here for the purpose of'
 echo '# regression testing during builds.'
-echo '# Format: <Failed test>, Error <Make error code> [(ignored)]'
 echo '#'
-grep 'make\[.*\]:.* \[/.*' $1 | sed -e's,^.*/,,g' -e 's/\]/,/g' | sort -u
+grep '^FAIL: ' $1 | sed -e's/FAIL: //' | sort -u
