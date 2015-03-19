@@ -209,10 +209,11 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	    sed -e "s#TMPDIR#debian/tmp-$$curpass#g" -i $$t; \
 	    sed -e "s#RTLDDIR#$$rtlddir#g" -i $$t; \
 	    sed -e "s#SLIBDIR#$$slibdir#g" -i $$t; \
+	    sed -e "s#LIBDIR#$$libdir#g" -i $$t; \
 	  done ; \
 	done
 
-	sed -e "/LIBDIR.*.a /d" -e "s#LIBDIR#lib#g" -i debian/$(libc)-dev.install
+	sed -e "/$$libdir.*.a /d" -i debian/$(libc)-dev.install
 else
 $(patsubst %,debhelper_%,$(GLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
 $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
