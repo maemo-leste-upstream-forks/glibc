@@ -32,7 +32,7 @@ else
   echo "+---------------------------------------------------------------------+"
   echo "| Passed regression testing.  Give yourself a hearty pat on the back. |"
   echo "+---------------------------------------------------------------------+"
-  for test in $results
+  for test in $(cat $results)
   do
     echo TEST $test:
     cat $builddir/$test.out
