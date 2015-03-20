@@ -22,6 +22,7 @@ if [ -n "$REGRESSIONS" ] ; then
   echo "|     Encountered regressions that don't match expected failures:     |"
   echo "+---------------------------------------------------------------------+"
   echo "$REGRESSIONS"
+  echo "+---------------------------------------------------------------------+"
   for test in $REGRESSIONS
   do
     echo TEST $test:
