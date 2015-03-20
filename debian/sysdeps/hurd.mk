@@ -7,6 +7,8 @@ pt_chown = yes
 # Linuxthreads Config (we claim "no threads" as nptl keys off this)
 threads = no
 libc_add-ons = libpthread $(add-ons)
+# MIG generates a lot of warnings
+extra_config_options = --disable-werror
 libc_extra_config_options := $(extra_config_options)
 
 # Glibc should really do this for us.
