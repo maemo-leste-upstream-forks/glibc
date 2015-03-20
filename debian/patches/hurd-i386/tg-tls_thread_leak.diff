@@ -16,75 +16,51 @@ reference.
 --- a/sysdeps/mach/hurd/i386/tls.h
 +++ b/sysdeps/mach/hurd/i386/tls.h
 @@ -69,6 +69,8 @@ static inline const char * __attribute__
- _hurd_tls_init (tcbhead_t *tcb, int secondcall)
+ _hurd_tls_init (tcbhead_t *tcb)
  {
    HURD_TLS_DESC_DECL (desc, tcb);
 +  thread_t self = __mach_thread_self ();
 +  const char *msg = NULL;
  
-   if (!secondcall)
-     {
+   /* This field is used by TLS accesses to get our "thread pointer"
+      from the TLS point of view.  */
 @@ -76,25 +78,26 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
- 	 from the TLS point of view.  */
-       tcb->tcb = tcb;
+      from the TLS point of view.  */
+   tcb->tcb = tcb;
  
--      /* Cache our thread port.  */
--      tcb->self = __mach_thread_self ();
+-  /* Cache our thread port.  */
+-  tcb->self = __mach_thread_self ();
 -
-       /* Get the first available selector.  */
-       int sel = -1;
--      kern_return_t err = __i386_set_gdt (tcb->self, &sel, desc);
-+      kern_return_t err = __i386_set_gdt (self, &sel, desc);
-       if (err == MIG_BAD_ID)
- 	{
- 	  /* Old kernel, use a per-thread LDT.  */
- 	  sel = 0x27;
--	  err = __i386_set_ldt (tcb->self, sel, &desc, 1);
-+	  err = __i386_set_ldt (self, sel, &desc, 1);
- 	  assert_perror (err);
- 	  if (err)
--	    return "i386_set_ldt failed";
-+	    {
-+	      msg = "i386_set_ldt failed";
-+	      goto out;
-+	    }
- 	}
-       else if (err)
- 	{
- 	  assert_perror (err); /* Separate from above with different line #. */
--	  return "i386_set_gdt failed";
-+	  msg = "i386_set_gdt failed";
+   /* Get the first available selector.  */
+   int sel = -1;
+-  kern_return_t err = __i386_set_gdt (tcb->self, &sel, desc);
++  kern_return_t err = __i386_set_gdt (self, &sel, desc);
+   if (err == MIG_BAD_ID)
+     {
+       /* Old kernel, use a per-thread LDT.  */
+       sel = 0x27;
+-      err = __i386_set_ldt (tcb->self, sel, &desc, 1);
++      err = __i386_set_ldt (self, sel, &desc, 1);
+       assert_perror (err);
+       if (err)
+-	return "i386_set_ldt failed";
++	{
++	  msg = "i386_set_ldt failed";
 +	  goto out;
- 	}
- 
-       /* Now install the new selector.  */
-@@ -107,21 +110,29 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
-       asm ("mov %%gs, %w0" : "=q" (sel) : "0" (0));
-       if (__builtin_expect (sel, 0x48) & 4) /* LDT selector */
- 	{
--	  kern_return_t err = __i386_set_ldt (tcb->self, sel, &desc, 1);
-+	  kern_return_t err = __i386_set_ldt (self, sel, &desc, 1);
- 	  assert_perror (err);
- 	  if (err)
--	    return "i386_set_ldt failed";
-+	    {
-+	      msg = "i386_set_ldt failed";
-+	      goto out;
-+	    }
- 	}
-       else
- 	{
--	  kern_return_t err = __i386_set_gdt (tcb->self, &sel, desc);
-+	  kern_return_t err = __i386_set_gdt (self, &sel, desc);
- 	  assert_perror (err);
- 	  if (err)
--	    return "i386_set_gdt failed";
-+	    {
-+	      msg = "i386_set_gdt failed";
-+	      goto out;
-+	    }
- 	}
++	}
      }
+   else if (err)
+     {
+       assert_perror (err); /* Separate from above with different line #. */
+-      return "i386_set_gdt failed";
++      msg = "i386_set_gdt failed";
++      goto out;
+     }
+ 
+   /* Now install the new selector.  */
+@@ -107,7 +110,9 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
+   /* Now install the new selector.  */
+   asm volatile ("mov %w0, %%gs" :: "q" (sel));
  
 -  return 0;
 +out:

@@ -39,14 +39,14 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
  #  include <tls.h>
  
 -#  undef  errno
--#  ifndef NOT_IN_libc
+-#  if IS_IN (libc)
 -#   define errno __libc_errno
 -#  else
 -#   define errno errno		/* For #ifndef errno tests.  */
 -#  endif
 +#  if !defined(__GNU__)
 +#   undef  errno
-+#   ifndef NOT_IN_libc
++#   if IS_IN (libc)
 +#    define errno __libc_errno
 +#   else
 +#    define errno errno		/* For #ifndef errno tests.  */
@@ -54,7 +54,7 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
  extern __thread int errno attribute_tls_model_ie;
 +#  endif
  
- # endif	/* !NOT_IN_libc || IN_LIB */
+ # endif	/* IS_IN_LIB */
  
 --- a/csu/libc-start.c
 +++ b/csu/libc-start.c
@@ -274,33 +274,13 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
 +++ b/sysdeps/mach/hurd/i386/tls.h
 @@ -70,7 +70,7 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
  
-       /* Get the first available selector.  */
-       int sel = -1;
--      error_t err = __i386_set_gdt (tcb->self, &sel, desc);
-+      kern_return_t err = __i386_set_gdt (tcb->self, &sel, desc);
-       if (err == MIG_BAD_ID)
- 	{
- 	  /* Old kernel, use a per-thread LDT.  */
-@@ -94,16 +94,16 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
-       /* Fetch the selector set by the first call.  */
-       int sel;
-       asm ("mov %%gs, %w0" : "=q" (sel) : "0" (0));
--      if (__builtin_expect (sel, 0x50) & 4) /* LDT selector */
-+      if (__builtin_expect (sel, 0x48) & 4) /* LDT selector */
- 	{
--	  error_t err = __i386_set_ldt (tcb->self, sel, &desc, 1);
-+	  kern_return_t err = __i386_set_ldt (tcb->self, sel, &desc, 1);
- 	  assert_perror (err);
- 	  if (err)
- 	    return "i386_set_ldt failed";
- 	}
-       else
- 	{
--	  error_t err = __i386_set_gdt (tcb->self, &sel, desc);
-+	  kern_return_t err = __i386_set_gdt (tcb->self, &sel, desc);
- 	  assert_perror (err);
- 	  if (err)
- 	    return "i386_set_gdt failed";
+   /* Get the first available selector.  */
+   int sel = -1;
+-  error_t err = __i386_set_gdt (tcb->self, &sel, desc);
++  kern_return_t err = __i386_set_gdt (tcb->self, &sel, desc);
+   if (err == MIG_BAD_ID)
+     {
+       /* Old kernel, use a per-thread LDT.  */
 @@ -139,9 +139,40 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
  
  # include <mach/machine/thread_status.h>

@@ -19,7 +19,6 @@ Pass the file name of executable to the exec server, which it needs to
 execute #!-scripts.  Currently, the exec server tries to guess the name
 from argv[0] but argv[0] only contains the executable name by convention.
 ---
- Versions.def                |    1 
  hurd/Makefile               |    4 +-
  hurd/Versions               |    4 ++
  hurd/hurd.h                 |   14 ++++++++--
@@ -29,19 +28,11 @@ from argv[0] but argv[0] only contains the executable name by convention.
  sysdeps/mach/hurd/spawni.c  |   59 ++++++++++++++++++++++++++------------------
  8 files changed, 102 insertions(+), 43 deletions(-)
 
---- a/Versions.def
-+++ b/Versions.def
-@@ -45,6 +45,7 @@ libc {
-   GLIBC_PRIVATE
-   GLIBC_2.13_DEBIAN_19
-   GLIBC_2.13_DEBIAN_31
-+  GLIBC_2.13_DEBIAN_33
- }
- libcrypt {
-   GLIBC_2.0
---- a/hurd/Versions
-+++ b/hurd/Versions
-@@ -160,6 +160,10 @@ libc {
+Index: glibc-2.21/hurd/Versions
+===================================================================
+--- glibc-2.21.orig/hurd/Versions
++++ glibc-2.21/hurd/Versions
+@@ -132,6 +132,10 @@ libc {
      _hurd_sigstate_unlock;
      _hurd_sigstate_delete;
    }
@@ -50,11 +41,13 @@ from argv[0] but argv[0] only contains the executable name by convention.
 +    _hurd_exec_file_name;
 +  }
  
- %if !SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_2)
    HURD_CTHREADS_0.3 {
---- a/hurd/Makefile
-+++ b/hurd/Makefile
-@@ -36,8 +36,8 @@ user-interfaces		:= $(addprefix hurd/,\
+     # weak refs to libthreads functions that libc calls iff libthreads in use
+Index: glibc-2.21/hurd/Makefile
+===================================================================
+--- glibc-2.21.orig/hurd/Makefile
++++ glibc-2.21/hurd/Makefile
+@@ -32,8 +32,8 @@ user-interfaces		:= $(addprefix hurd/,\
  				       auth startup \
  				       process process_request \
  				       msg msg_reply msg_request \
@@ -65,8 +58,10 @@ from argv[0] but argv[0] only contains the executable name by convention.
  				       login password pfinet \
  				       )
  server-interfaces	:= hurd/msg faultexc
---- a/hurd/hurd.h
-+++ b/hurd/hurd.h
+Index: glibc-2.21/hurd/hurd.h
+===================================================================
+--- glibc-2.21.orig/hurd/hurd.h
++++ glibc-2.21/hurd/hurd.h
 @@ -245,12 +245,20 @@ extern FILE *fopenport (io_t port, const
  extern FILE *__fopenport (io_t port, const char *mode);
  
@@ -90,8 +85,10 @@ from argv[0] but argv[0] only contains the executable name by convention.
  
  
  /* Inform the proc server we have exited with STATUS, and kill the
---- a/hurd/hurdexec.c
-+++ b/hurd/hurdexec.c
+Index: glibc-2.21/hurd/hurdexec.c
+===================================================================
+--- glibc-2.21.orig/hurd/hurdexec.c
++++ glibc-2.21/hurd/hurdexec.c
 @@ -30,11 +30,29 @@
  
  /* Overlay TASK, executing FILE with arguments ARGV and environment ENVP.
@@ -123,7 +120,7 @@ from argv[0] but argv[0] only contains the executable name by convention.
    error_t err;
    char *args, *env;
    size_t argslen, envlen;
-@@ -217,7 +235,7 @@ _hurd_exec (task_t task, file_t file,
+@@ -216,7 +234,7 @@ _hurd_exec (task_t task, file_t file,
        /* We have euid != svuid or egid != svgid.  POSIX.1 says that exec
  	 sets svuid = euid and svgid = egid.  So we must get a new auth
  	 port and reauthenticate everything with it.  We'll pass the new
@@ -132,7 +129,7 @@ from argv[0] but argv[0] only contains the executable name by convention.
  
        auth_t newauth;
  
-@@ -361,13 +379,27 @@ _hurd_exec (task_t task, file_t file,
+@@ -360,13 +378,27 @@ _hurd_exec (task_t task, file_t file,
        if (__sigismember (&_hurdsig_traced, SIGKILL))
  	flags |= EXEC_SIGTRAP;
  #endif
@@ -167,8 +164,10 @@ from argv[0] but argv[0] only contains the executable name by convention.
      }
  
    /* Release references to the standard ports.  */
---- a/sysdeps/mach/hurd/execve.c
-+++ b/sysdeps/mach/hurd/execve.c
+Index: glibc-2.21/sysdeps/mach/hurd/execve.c
+===================================================================
+--- glibc-2.21.orig/sysdeps/mach/hurd/execve.c
++++ glibc-2.21/sysdeps/mach/hurd/execve.c
 @@ -34,7 +34,8 @@ __execve (file_name, argv, envp)
      return -1;
  
@@ -179,8 +178,10 @@ from argv[0] but argv[0] only contains the executable name by convention.
  
    /* Oh well.  Might as well be tidy.  */
    __mach_port_deallocate (__mach_task_self (), file);
---- a/sysdeps/mach/hurd/fexecve.c
-+++ b/sysdeps/mach/hurd/fexecve.c
+Index: glibc-2.21/sysdeps/mach/hurd/fexecve.c
+===================================================================
+--- glibc-2.21.orig/sysdeps/mach/hurd/fexecve.c
++++ glibc-2.21/sysdeps/mach/hurd/fexecve.c
 @@ -25,8 +25,9 @@
  int
  fexecve (int fd, char *const argv[], char *const envp[])
@@ -193,8 +194,10 @@ from argv[0] but argv[0] only contains the executable name by convention.
    if (! err)
      err = EGRATUITOUS;
    return __hurd_fail (err);
---- a/sysdeps/mach/hurd/spawni.c
-+++ b/sysdeps/mach/hurd/spawni.c
+Index: glibc-2.21/sysdeps/mach/hurd/spawni.c
+===================================================================
+--- glibc-2.21.orig/sysdeps/mach/hurd/spawni.c
++++ glibc-2.21/sysdeps/mach/hurd/spawni.c
 @@ -43,7 +43,7 @@ __spawni (pid_t *pid, const char *file,
  	  int xflags)
  {
