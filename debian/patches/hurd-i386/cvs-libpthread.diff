@@ -3,8 +3,9 @@ from git.savannah.gnu.org:/srv/git/hurd/libpthread.git/
 thus by construction only libpthread/ files, thus hurd-only
 Date: Sun Nov 2 15:07:29 2014 +0100
 
-Plus all patches up to git ed61c3b7b5ebdde30f4d887972876b210fae2372
-Date:   Sun Mar 8 17:55:49 2015 +0100
+Plus all patches up to
+commit 8b48173fdc8f52a234ff9d3d1de5277c60d7eea4
+Date:   Fri Mar 20 18:29:25 2015 +0100
 
 ---
  ChangeLog                                     |    6 
@@ -15645,3 +15646,84 @@ index 59fa40e..65201ed 100644
 -strong_alias (__funlockfile, _IO_funlockfile)
 +weak_alias (__funlockfile, _IO_funlockfile)
  weak_alias (__funlockfile, funlockfile)
+
+commit 900ceafde74f7c7c5101e3da51d52f8f8d92430f
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Fri Mar 20 17:03:15 2015 +0100
+
+    Don't hardcode using __libc_stack_end
+    
+    * sysdeps/mach/hurd/pt-sysdep.c (_init_routine): Use `stack' parameter
+    instead of hardcoding __libc_stack_end.
+
+diff --git a/libpthread/sysdeps/mach/hurd/pt-sysdep.c b/libpthread/sysdeps/mach/hurd/pt-sysdep.c
+index b23d9df..63e71e8 100644
+--- a/libpthread/sysdeps/mach/hurd/pt-sysdep.c
++++ b/libpthread/sysdeps/mach/hurd/pt-sysdep.c
+@@ -59,7 +59,7 @@ _init_routine (void *stack)
+       /* Avoid allocating another stack */
+       attrp = &attr;
+       pthread_attr_init(attrp);
+-      pthread_attr_setstack(attrp, __libc_stack_end, __vm_page_size);
++      pthread_attr_setstack(attrp, stack, __vm_page_size);
+     }
+ 
+   /* Create the pthread structure for the main thread (i.e. us).  */
+
+commit ec4ab3d578a2287b5cd6c898d209fb220fe65331
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Fri Mar 20 17:57:05 2015 +0100
+
+    Fix reference to ___pthread_init
+    
+    * sysdeps/mach/hurd/pt-sysdep.c (_init_routine): Call ___pthread_init
+    instead of __pthread_init.
+
+diff --git a/libpthread/sysdeps/mach/hurd/pt-sysdep.c b/libpthread/sysdeps/mach/hurd/pt-sysdep.c
+index 63e71e8..939194b 100644
+--- a/libpthread/sysdeps/mach/hurd/pt-sysdep.c
++++ b/libpthread/sysdeps/mach/hurd/pt-sysdep.c
+@@ -50,7 +50,7 @@ _init_routine (void *stack)
+     return 0;
+ 
+   /* Initialize the library.  */
+-  __pthread_init ();
++  ___pthread_init ();
+ 
+   if (stack)
+     {
+
+commit 8b48173fdc8f52a234ff9d3d1de5277c60d7eea4
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Fri Mar 20 18:29:25 2015 +0100
+
+    Fix librt link
+    
+    * Makefile (libpthread-routines): Add shm-directory.
+    * Versions (GLIBC_PRIVATE): Add __shm_directory.
+
+diff --git a/libpthread/Makefile b/libpthread/Makefile
+index b8dee58..2906788 100644
+--- a/libpthread/Makefile
++++ b/libpthread/Makefile
+@@ -149,6 +149,8 @@ libpthread-routines := pt-attr pt-attr-destroy pt-attr-getdetachstate	    \
+ 	sem-post sem-timedwait sem-trywait sem-unlink			    \
+ 	sem-wait							    \
+ 									    \
++	shm-directory							    \
++									    \
+ 	cthreads-compat							    \
+ 	$(SYSDEPS)
+ 
+diff --git a/libpthread/Versions b/libpthread/Versions
+index 19ff26c..f9ac817 100644
+--- a/libpthread/Versions
++++ b/libpthread/Versions
+@@ -136,4 +136,7 @@ libpthread {
+     pthread_hurd_cond_wait_np;
+     pthread_hurd_cond_timedwait_np;
+   }
++  GLIBC_PRIVATE {
++    __shm_directory;
++  }
+ }
