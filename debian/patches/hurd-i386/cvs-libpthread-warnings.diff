@@ -1,0 +1,44 @@
+commit 32b1b38645b2df6abc017566a8200d6be02a6609
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Mar 21 03:01:15 2015 +0100
+
+    Fix warning
+    
+    * forward.c (pthread_exit): Rename to __pthread_exit.
+    (pthread_exit): New strong alias for __pthread_exit.
+
+diff --git a/libpthread/forward.c b/libpthread/forward.c
+index 994106e..771b3ca 100644
+--- a/libpthread/forward.c
++++ b/libpthread/forward.c
+@@ -106,7 +106,8 @@ FORWARD (pthread_equal, (pthread_t thread1, pthread_t thread2),
+ 
+ 
+ /* Use an alias to avoid warning, as pthread_exit is declared noreturn.  */
+-FORWARD_NORETURN (pthread_exit, void, (void *retval), (retval), exit (EXIT_SUCCESS))
++FORWARD_NORETURN (__pthread_exit, void, (void *retval), (retval), exit (EXIT_SUCCESS))
++strong_alias (__pthread_exit, pthread_exit);
+ 
+ 
+ FORWARD (pthread_getschedparam,
+commit b1cd77fe6e132d0468e14e05abf0ef39e83a1262
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Mar 21 03:10:13 2015 +0100
+
+    Silence warning
+    
+    * sysdeps/mach/hurd/pt-hurd-cond-timedwait.c (err): Initialize to 0.
+
+diff --git a/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c b/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
+index 7491e0e..0e11d56 100644
+--- a/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
++++ b/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
+@@ -44,7 +44,7 @@ __pthread_hurd_cond_timedwait_internal (pthread_cond_t *cond,
+ {
+   struct hurd_sigstate *ss = _hurd_self_sigstate ();
+   struct __pthread *self = _pthread_self ();
+-  error_t err;
++  error_t err = 0;
+   int cancel, drain;
+   clockid_t clock_id = __pthread_default_condattr.clock;
+ 
