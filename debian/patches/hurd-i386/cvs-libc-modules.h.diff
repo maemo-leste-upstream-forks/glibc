@@ -1,0 +1,22 @@
+commit d583531a9e15bc6d2b21a4cc3460682bc16b4892
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Mar 21 01:19:23 2015 +0100
+
+    Add missing dependency
+    
+    	* sysdeps/mach/hurd/Makefile ($(common-objpfx)errnos.d): Depend on
+    	libc-modules.h
+
+diff --git a/sysdeps/mach/hurd/Makefile b/sysdeps/mach/hurd/Makefile
+index 82c11e0..b528815 100644
+--- a/sysdeps/mach/hurd/Makefile
++++ b/sysdeps/mach/hurd/Makefile
+@@ -78,7 +78,7 @@ endef
+ # the headers we want to search for Mach error codes, listed above (and
+ # incidentally, all other headers those include).
+ -include $(common-objpfx)errnos.d
+-$(common-objpfx)errnos.d: $(mach-errnos-deps)
++$(common-objpfx)errnos.d: $(mach-errnos-deps) libc-modules.h
+ 	$(mach-errno-h) | \
+ 	$(CC) $(CFLAGS) $(CPPFLAGS) -M -x c - | \
+ 	sed $(sed-remove-objpfx) -e 's,- *:,mach-errnos-deps :=,' \
