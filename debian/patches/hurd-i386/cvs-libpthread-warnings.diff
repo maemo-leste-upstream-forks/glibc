@@ -7,11 +7,11 @@ Date:   Sat Mar 21 03:01:15 2015 +0100
     * forward.c (pthread_exit): Rename to __pthread_exit.
     (pthread_exit): New strong alias for __pthread_exit.
 
-diff --git a/libpthread/forward.c b/libpthread/forward.c
-index 994106e..771b3ca 100644
---- a/libpthread/forward.c
-+++ b/libpthread/forward.c
-@@ -106,7 +106,8 @@ FORWARD (pthread_equal, (pthread_t thread1, pthread_t thread2),
+Index: glibc-2.21/libpthread/forward.c
+===================================================================
+--- glibc-2.21.orig/libpthread/forward.c
++++ glibc-2.21/libpthread/forward.c
+@@ -106,7 +106,8 @@ FORWARD (pthread_equal, (pthread_t threa
  
  
  /* Use an alias to avoid warning, as pthread_exit is declared noreturn.  */
@@ -21,19 +21,11 @@ index 994106e..771b3ca 100644
  
  
  FORWARD (pthread_getschedparam,
-commit b1cd77fe6e132d0468e14e05abf0ef39e83a1262
-Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Date:   Sat Mar 21 03:10:13 2015 +0100
-
-    Silence warning
-    
-    * sysdeps/mach/hurd/pt-hurd-cond-timedwait.c (err): Initialize to 0.
-
-diff --git a/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c b/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
-index 7491e0e..0e11d56 100644
---- a/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
-+++ b/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
-@@ -44,7 +44,7 @@ __pthread_hurd_cond_timedwait_internal (pthread_cond_t *cond,
+Index: glibc-2.21/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
+===================================================================
+--- glibc-2.21.orig/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
++++ glibc-2.21/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
+@@ -44,7 +44,7 @@ __pthread_hurd_cond_timedwait_internal (
  {
    struct hurd_sigstate *ss = _hurd_self_sigstate ();
    struct __pthread *self = _pthread_self ();
@@ -42,3 +34,29 @@ index 7491e0e..0e11d56 100644
    int cancel, drain;
    clockid_t clock_id = __pthread_default_condattr.clock;
  
+Index: glibc-2.21/libpthread/pthread/pt-initialize.c
+===================================================================
+--- glibc-2.21.orig/libpthread/pthread/pt-initialize.c
++++ glibc-2.21/libpthread/pthread/pt-initialize.c
+@@ -52,7 +52,7 @@ static const struct pthread_functions pt
+     .ptr_pthread_cond_wait = __pthread_cond_wait,
+     .ptr_pthread_cond_timedwait = __pthread_cond_timedwait,
+     .ptr_pthread_equal = __pthread_equal,
+-    .ptr_pthread_exit = __pthread_exit,
++    .ptr___pthread_exit = __pthread_exit,
+     .ptr_pthread_getschedparam = __pthread_getschedparam,
+     .ptr_pthread_setschedparam = __pthread_setschedparam,
+     .ptr_pthread_mutex_destroy = _pthread_mutex_destroy,
+Index: glibc-2.21/libpthread/sysdeps/pthread/pthread-functions.h
+===================================================================
+--- glibc-2.21.orig/libpthread/sysdeps/pthread/pthread-functions.h
++++ glibc-2.21/libpthread/sysdeps/pthread/pthread-functions.h
+@@ -103,7 +103,7 @@ struct pthread_functions
+   int (*ptr_pthread_cond_timedwait) (pthread_cond_t *, pthread_mutex_t *,
+ 				     const struct timespec *);
+   int (*ptr_pthread_equal) (pthread_t, pthread_t);
+-  void (*ptr_pthread_exit) (void *);
++  void (*ptr___pthread_exit) (void *);
+   int (*ptr_pthread_getschedparam) (pthread_t, int *, struct sched_param *);
+   int (*ptr_pthread_setschedparam) (pthread_t, int,
+ 				    const struct sched_param *);
