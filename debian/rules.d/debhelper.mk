@@ -170,6 +170,8 @@ $(stamp)debhelper-common:
 	  case $$y in \
 	    *.install) \
 	      sed -e "s/^#.*//" -i $$y ; \
+	      $(if $(filter $(pt_chown),no),sed -e "/pt_chown/d" -i $$y ;) \
+	      $(if $(filter $(pldd),no),sed -e "/pldd/d" -i $$y ;) \
 	      ;; \
 	  esac; \
 	done

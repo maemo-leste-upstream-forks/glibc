@@ -4,6 +4,8 @@ libc = libc6
 
 # Build and expect pt_chown on this platform
 pt_chown = yes
+# Expect pldd on this platform
+pldd = yes
 
 # NPTL Config
 threads = yes
