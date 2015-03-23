@@ -1,0 +1,23 @@
+commit 9e70234cbd21923a1177cc443a4476d8227b6c4f
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon Mar 23 00:28:42 2015 +0100
+
+    Add more exception to local headers list
+    
+    	* scripts/check-local-headers.sh (exclude): Add device/,
+    	hurd/hurd_types.h, hurd/ioctl_types.h, hurd/paths.h, hurd/ioctls.defs,
+    	cthreads.h.
+
+diff --git a/scripts/check-local-headers.sh b/scripts/check-local-headers.sh
+index 2136b58..3589c40 100755
+--- a/scripts/check-local-headers.sh
++++ b/scripts/check-local-headers.sh
+@@ -33,7 +33,7 @@ exec ${AWK} -v includedir="$includedir" '
+ BEGIN {
+   status = 0
+   exclude = "^" includedir \
+-    "/(.*-.*-.*/|)(asm[-/]|arch|linux/|selinux/|mach/|gd|nss3/|c\\+\\+/|sys/(capability|sdt(|-config))\\.h|libaudit\\.h)"
++    "/(.*-.*-.*/|)(asm[-/]|arch|linux/|selinux/|mach/|device/|hurd/(((hurd|ioctl)_types|paths)\\.h|ioctls\\.defs)|cthreads\\.h|gd|nss3/|c\\+\\+/|sys/(capability|sdt(|-config))\\.h|libaudit\\.h)"
+ }
+ /^[^ ]/ && $1 ~ /.*:/ { obj = $1 }
+ {
