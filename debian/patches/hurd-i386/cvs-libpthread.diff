@@ -1,7 +1,7 @@
-git snapshot 8b48173fdc8f52a234ff9d3d1de5277c60d7eea4
+git snapshot 733616d782505a538bc2df900fe211a4e5a68b54
 from git.savannah.gnu.org:/srv/git/hurd/libpthread.git/
 thus by construction only libpthread/ files, thus hurd-only
-Date:   Fri Mar 20 18:29:25 2015 +0100
+Date:   Sun Mar 22 23:26:51 2015 +0100
 
 ---
  ChangeLog                                     |    6 
@@ -44,22 +44,22 @@ Date:   Fri Mar 20 18:29:25 2015 +0100
  pthread/pt-yield.c                            |   26 
  pthread/pthread-functions.h                   |  116 +++
  shlib-versions                                |    1 
- sysdeps/generic/bits/barrier-attr.h           |   32 +
- sysdeps/generic/bits/barrier.h                |   39 +
- sysdeps/generic/bits/cancelation.h            |   51 +
- sysdeps/generic/bits/condition-attr.h         |   34 +
- sysdeps/generic/bits/condition.h              |   39 +
- sysdeps/generic/bits/mutex-attr.h             |   41 +
- sysdeps/generic/bits/mutex.h                  |   75 ++
- sysdeps/generic/bits/once.h                   |   34 +
- sysdeps/generic/bits/pthread-np.h             |   27 
- sysdeps/generic/bits/pthread.h                |   38 +
- sysdeps/generic/bits/pthreadtypes.h           |   29 
- sysdeps/generic/bits/rwlock-attr.h            |   32 +
- sysdeps/generic/bits/rwlock.h                 |   46 +
- sysdeps/generic/bits/semaphore.h              |   43 +
- sysdeps/generic/bits/thread-attr.h            |   44 +
- sysdeps/generic/bits/thread-specific.h        |   25 
+ sysdeps/pthread/bits/barrier-attr.h           |   32 +
+ sysdeps/pthread/bits/barrier.h                |   39 +
+ sysdeps/pthread/bits/cancelation.h            |   51 +
+ sysdeps/pthread/bits/condition-attr.h         |   34 +
+ sysdeps/pthread/bits/condition.h              |   39 +
+ sysdeps/pthread/bits/mutex-attr.h             |   41 +
+ sysdeps/pthread/bits/mutex.h                  |   75 ++
+ sysdeps/pthread/bits/once.h                   |   34 +
+ sysdeps/pthread/bits/pthread-np.h             |   27 
+ sysdeps/pthread/bits/pthread.h                |   38 +
+ sysdeps/pthread/bits/pthreadtypes.h           |   29 
+ sysdeps/pthread/bits/rwlock-attr.h            |   32 +
+ sysdeps/pthread/bits/rwlock.h                 |   46 +
+ sysdeps/pthread/bits/semaphore.h              |   43 +
+ sysdeps/pthread/bits/thread-attr.h            |   44 +
+ sysdeps/pthread/bits/thread-specific.h        |   25 
  sysdeps/generic/killpg.c                      |   27 
  sysdeps/generic/pt-atfork.c                   |   29 
  sysdeps/generic/pt-attr-destroy.c             |   28 
@@ -260,7 +260,7 @@ Index: glibc-2.21/libpthread/forward.c
 ===================================================================
 --- /dev/null
 +++ glibc-2.21/libpthread/forward.c
-@@ -0,0 +1,244 @@
+@@ -0,0 +1,245 @@
 +/* Copyright (C) 2002, 2003, 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -369,7 +369,8 @@ Index: glibc-2.21/libpthread/forward.c
 +
 +
 +/* Use an alias to avoid warning, as pthread_exit is declared noreturn.  */
-+FORWARD_NORETURN (pthread_exit, void, (void *retval), (retval), exit (EXIT_SUCCESS))
++FORWARD_NORETURN (__pthread_exit, void, (void *retval), (retval), exit (EXIT_SUCCESS))
++strong_alias (__pthread_exit, pthread_exit);
 +
 +
 +FORWARD (pthread_getschedparam,
@@ -3049,7 +3050,7 @@ Index: glibc-2.21/libpthread/pthread/pt-create.c
 +  /* Use the default attributes if ATTR is NULL.  */
 +  setup = attr ? attr : &__pthread_default_attr;
 +
-+  stacksize = setup->stacksize;
++  stacksize = setup->__stacksize;
 +  if (!stacksize)
 +    {
 +      struct rlimit rlim;
@@ -3061,12 +3062,12 @@ Index: glibc-2.21/libpthread/pthread/pt-create.c
 +    }
 +
 +  /* Initialize the thread state.  */
-+  pthread->state = (setup->detachstate == PTHREAD_CREATE_DETACHED
++  pthread->state = (setup->__detachstate == PTHREAD_CREATE_DETACHED
 +		    ? PTHREAD_DETACHED : PTHREAD_JOINABLE);
 +
-+  if (setup->stackaddr)
++  if (setup->__stackaddr)
 +    {
-+      pthread->stackaddr = setup->stackaddr;
++      pthread->stackaddr = setup->__stackaddr;
 +
 +      /* If the user supplied a stack, it is not our responsibility to
 +	 setup a stack guard.  */
@@ -3077,13 +3078,13 @@ Index: glibc-2.21/libpthread/pthread/pt-create.c
 +    {
 +      /* Allocate a stack.  */
 +      err = __pthread_stack_alloc (&pthread->stackaddr,
-+				   ((setup->guardsize + __vm_page_size-1)
++				   ((setup->__guardsize + __vm_page_size-1)
 +				    / __vm_page_size) * __vm_page_size
 +				   + stacksize);
 +      if (err)
 +	goto failed_stack_alloc;
 +
-+      pthread->guardsize = setup->guardsize;
++      pthread->guardsize = setup->__guardsize;
 +      pthread->stack = 1;
 +    }
 +
@@ -3190,7 +3191,7 @@ Index: glibc-2.21/libpthread/pthread/pt-create.c
 + failed_thread_alloc:
 +  if (pthread->stack)
 +    __pthread_stack_dealloc (pthread->stackaddr,
-+			     ((setup->guardsize + __vm_page_size-1)
++			     ((setup->__guardsize + __vm_page_size-1)
 +			      / __vm_page_size) * __vm_page_size
 +			     + stacksize);
 + failed_stack_alloc:
@@ -3407,8 +3408,8 @@ Index: glibc-2.21/libpthread/pthread/pt-exit.c
 +
 +  for (handlers = __pthread_get_cleanup_stack ();
 +       *handlers;
-+       *handlers = (*handlers)->next)
-+    (*handlers)->handler ((*handlers)->arg);
++       *handlers = (*handlers)->__next)
++    (*handlers)->__handler ((*handlers)->__arg);
 +
 +  pthread_setcancelstate (oldstate, &oldstate);
 +
@@ -3520,12 +3521,12 @@ Index: glibc-2.21/libpthread/pthread/pt-getattr.c
 +     are not supported yet, so fill them with our default values.  */
 +  *attr = __pthread_default_attr;
 +
-+  attr->stackaddr = pthread->stackaddr +
++  attr->__stackaddr = pthread->stackaddr +
 +		      ((pthread->guardsize + __vm_page_size-1)
 +		       / __vm_page_size * __vm_page_size);
-+  attr->stacksize = pthread->stacksize;
-+  attr->guardsize = pthread->guardsize;
-+  attr->detachstate = (pthread->state == PTHREAD_DETACHED
++  attr->__stacksize = pthread->stacksize;
++  attr->__guardsize = pthread->guardsize;
++  attr->__detachstate = (pthread->state == PTHREAD_DETACHED
 +		       ? PTHREAD_CREATE_DETACHED : PTHREAD_CREATE_JOINABLE);
 +
 +  return 0;
@@ -3589,7 +3590,7 @@ Index: glibc-2.21/libpthread/pthread/pt-initialize.c
 +    .ptr_pthread_cond_wait = __pthread_cond_wait,
 +    .ptr_pthread_cond_timedwait = __pthread_cond_timedwait,
 +    .ptr_pthread_equal = __pthread_equal,
-+    .ptr_pthread_exit = __pthread_exit,
++    .ptr___pthread_exit = __pthread_exit,
 +    .ptr_pthread_getschedparam = __pthread_getschedparam,
 +    .ptr_pthread_setschedparam = __pthread_setschedparam,
 +    .ptr_pthread_mutex_destroy = _pthread_mutex_destroy,
@@ -4357,10 +4358,10 @@ Index: glibc-2.21/libpthread/shlib-versions
 +++ glibc-2.21/libpthread/shlib-versions
 @@ -0,0 +1 @@
 +.*-.*-.*	libpthread=0.3
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/barrier-attr.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/barrier-attr.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/barrier-attr.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/barrier-attr.h
 @@ -0,0 +1,32 @@
 +/* Thread barrier attribute type.  Generic version.
 +   Copyright (C) 2002, 2008 Free Software Foundation, Inc.
@@ -4390,14 +4391,14 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/barrier-attr.h
 +   Note that not all of them are supported on all systems.  */
 +struct __pthread_barrierattr
 +{
-+  enum __pthread_process_shared pshared;
++  enum __pthread_process_shared __pshared;
 +};
 +
 +#endif /* bits/barrier-attr.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/barrier.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/barrier.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/barrier.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/barrier.h
 @@ -0,0 +1,39 @@
 +/* Thread barrier attribute type.  Generic version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -4426,22 +4427,22 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/barrier.h
 +/* This structure describes the attributes of a POSIX barrier.  */
 +struct __pthread_barrier
 +{
-+  __pthread_spinlock_t lock;
-+  struct __pthread *queue; /* List of waiters.  */
-+  unsigned pending;	/* Number of that still need to wait on
++  __pthread_spinlock_t __lock;
++  struct __pthread *__queue; /* List of waiters.  */
++  unsigned __pending;	/* Number of that still need to wait on
 +			   barrier.  */
-+  unsigned count;	/* Number of threads that must wait before
++  unsigned __count;	/* Number of threads that must wait before
 +			   barrier is passed.  */
-+  struct __pthread_barrierattr *attr;
-+  void *data;
++  struct __pthread_barrierattr *__attr;
++  void *__data;
 +};
 +
 +
 +#endif /* bits/barrier.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/cancelation.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/cancelation.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/cancelation.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/cancelation.h
 @@ -0,0 +1,51 @@
 +/* Cancelation.  Generic version.
 +   Copyright (C) 2002, 2008 Free Software Foundation, Inc.
@@ -4467,9 +4468,9 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/cancelation.h
 +
 +struct __pthread_cancelation_handler
 +{
-+  void (*handler)(void *);
-+  void *arg;
-+  struct __pthread_cancelation_handler *next;
++  void (*__handler)(void *);
++  void *__arg;
++  struct __pthread_cancelation_handler *__next;
 +};
 +
 +/* Returns the thread local location of the cleanup handler stack.  */
@@ -4489,15 +4490,15 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/cancelation.h
 +	  
 +#define __pthread_cleanup_pop(execute) \
 +	  if (execute) \
-+	    __handler.handler (__handler.arg); \
-+	  *__handlers = __handler.next; \
++	    __handler.__handler (__handler.__arg); \
++	  *__handlers = __handler.__next; \
 +	}
 +
 +#endif /* _BITS_CANCELATION_H */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/condition-attr.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/condition-attr.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/condition-attr.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/condition-attr.h
 @@ -0,0 +1,34 @@
 +/* Condition attribute type.  Generic version.
 +   Copyright (C) 2002, 2008 Free Software Foundation, Inc.
@@ -4528,15 +4529,15 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/condition-attr.h
 +/* User visible part of a condition attribute variable.  */
 +struct __pthread_condattr
 +  {
-+    enum __pthread_process_shared pshared;
-+    __clockid_t clock;
++    enum __pthread_process_shared __pshared;
++    __clockid_t __clock;
 +  };
 +
 +#endif /* bits/condition.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/condition.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/condition.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/condition.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/condition.h
 @@ -0,0 +1,39 @@
 +/* Condition type.  Generic version.
 +   Copyright (C) 2000, 2005, 2009 Free Software Foundation, Inc.
@@ -4577,10 +4578,10 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/condition.h
 +  { __PTHREAD_SPIN_LOCK_INITIALIZER, NULL, NULL, NULL, NULL }
 +
 +#endif /* bits/condition.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/mutex-attr.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/mutex-attr.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/mutex-attr.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/mutex-attr.h
 @@ -0,0 +1,41 @@
 +/* Mutex attribute type.  Generic version.
 +   Copyright (C) 2002, 2008 Free Software Foundation, Inc.
@@ -4612,10 +4613,10 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/mutex-attr.h
 +   attribute.  */
 +struct __pthread_mutexattr
 +{
-+  int prioceiling;
-+  enum __pthread_mutex_protocol protocol;
-+  enum __pthread_process_shared pshared;
-+  enum __pthread_mutex_type mutex_type;
++  int __prioceiling;
++  enum __pthread_mutex_protocol __protocol;
++  enum __pthread_process_shared __pshared;
++  enum __pthread_mutex_type __mutex_type;
 +};
 +
 +/* Attributes for a recursive mutex.  */
@@ -4623,10 +4624,10 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/mutex-attr.h
 +extern const struct __pthread_mutexattr __pthread_recursive_mutexattr;
 +
 +#endif /* bits/mutex-attr.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/mutex.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/mutex.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/mutex.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/mutex.h
 @@ -0,0 +1,75 @@
 +/* Mutex type.  Generic version.
 +
@@ -4671,14 +4672,14 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/mutex.h
 +    __pthread_spinlock_t __lock;
 +    /* In cthreads, mutex_init does not initialized thre third
 +       pointer, as such, we cannot rely on its value for anything.  */
-+    char *cthreadscompat1;
++    char *__cthreadscompat1;
 +    struct __pthread *__queue;
-+    struct __pthread_mutexattr *attr;
-+    void *data;
++    struct __pthread_mutexattr *__attr;
++    void *__data;
 +    /*  Up to this point, we are completely compatible with cthreads
 +	and what libc expects.  */
-+    void *owner;
-+    unsigned locks;
++    void *__owner;
++    unsigned __locks;
 +    /* If NULL then the default attributes apply.  */
 +  };
 +
@@ -4703,10 +4704,10 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/mutex.h
 +#endif /* Not __pthread_mutex_defined.  */
 +
 +#endif /* bits/mutex.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/once.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/once.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/once.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/once.h
 @@ -0,0 +1,34 @@
 +/* Dynamic package initialization data structures.  Generic version.
 +   Copyright (C) 2002, 2009 Free Software Foundation, Inc.
@@ -4734,18 +4735,18 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/once.h
 +
 +struct __pthread_once
 +{
-+  int run;
-+  __pthread_spinlock_t lock;
++  int __run;
++  __pthread_spinlock_t __lock;
 +};
 +
 +#define __PTHREAD_ONCE_INIT \
 +	{ 0, __PTHREAD_SPIN_LOCK_INITIALIZER }
 +
 +#endif /* bits/once.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/pthread.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/pthread.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/pthread.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/pthread.h
 @@ -0,0 +1,38 @@
 +/* Pthread data structures.  Generic version.
 +   Copyright (C) 2002, 2008 Free Software Foundation, Inc.
@@ -4785,10 +4786,10 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/pthread.h
 +#endif
 +
 +#endif /* bits/pthread.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/pthread-np.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/pthread-np.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/pthread-np.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/pthread-np.h
 @@ -0,0 +1,27 @@
 +/* Non-portable functions. Generic version.
 +   Copyright (C) 2008 Free Software Foundation, Inc.
@@ -4817,10 +4818,10 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/pthread-np.h
 +#define _BITS_PTHREAD_NP_H	1
 +
 +#endif /* bits/pthread-np.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/pthreadtypes.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/pthreadtypes.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/pthreadtypes.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/pthreadtypes.h
 @@ -0,0 +1,29 @@
 +/* 
 +   Copyright (C) 2000 Free Software Foundation, Inc.
@@ -4851,10 +4852,10 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/pthreadtypes.h
 +#include <pthread/pthreadtypes.h>
 +
 +#endif /* bits/pthreadtypes.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/rwlock-attr.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/rwlock-attr.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/rwlock-attr.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/rwlock-attr.h
 @@ -0,0 +1,32 @@
 +/* Thread rwlock attribute type.  Generic version.
 +   Copyright (C) 2002, 2008 Free Software Foundation, Inc.
@@ -4884,14 +4885,14 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/rwlock-attr.h
 +   Note that not all of them are supported on all systems.  */
 +struct __pthread_rwlockattr
 +{
-+  enum __pthread_process_shared pshared;
++  enum __pthread_process_shared __pshared;
 +};
 +
 +#endif /* bits/rwlock-attr.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/rwlock.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/rwlock.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/rwlock.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/rwlock.h
 @@ -0,0 +1,46 @@
 +/* rwlock type.  Generic version.
 +   Copyright (C) 2002, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
@@ -4926,9 +4927,9 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/rwlock.h
 +  {
 +    __pthread_spinlock_t __held;
 +    __pthread_spinlock_t __lock;
-+    int readers;
-+    struct __pthread *readerqueue;
-+    struct __pthread *writerqueue;
++    int __readers;
++    struct __pthread *__readerqueue;
++    struct __pthread *__writerqueue;
 +    struct __pthread_rwlockattr *__attr;
 +    void *__data;
 +  };
@@ -4939,10 +4940,10 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/rwlock.h
 +
 +
 +#endif /* bits/rwlock.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/semaphore.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/semaphore.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/semaphore.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/semaphore.h
 @@ -0,0 +1,43 @@
 +/* Semaphore type.  Generic version.
 +   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
@@ -4987,11 +4988,11 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/semaphore.h
 +  { __PTHREAD_SPIN_LOCK_INITIALIZER, NULL, (pshared), (value), NULL }
 +
 +#endif /* bits/mutex.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/thread-attr.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/thread-attr.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/thread-attr.h
-@@ -0,0 +1,44 @@
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/thread-attr.h
+@@ -0,0 +1,47 @@
 +/* Thread attribute type.  Generic version.
 +   Copyright (C) 2000, 2002, 2008 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -5017,6 +5018,9 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/thread-attr.h
 +#define __need_schedparam
 +#include <bits/sched.h>
 +
++#define __need_size_t
++#include <stddef.h>
++
 +enum __pthread_detachstate;
 +enum __pthread_inheritsched;
 +enum __pthread_contentionscope;
@@ -5025,21 +5029,21 @@ Index: glibc-2.21/libpthread/sysdeps/generic/bits/thread-attr.h
 +   that not all of them are supported on all systems.  */
 +struct __pthread_attr
 +{
-+  struct __sched_param schedparam;
-+  void *stackaddr;
-+  size_t stacksize;
-+  size_t guardsize;
-+  enum __pthread_detachstate detachstate;
-+  enum __pthread_inheritsched inheritsched;
-+  enum __pthread_contentionscope contentionscope;
-+  int schedpolicy;
++  struct __sched_param __schedparam;
++  void *__stackaddr;
++  size_t __stacksize;
++  size_t __guardsize;
++  enum __pthread_detachstate __detachstate;
++  enum __pthread_inheritsched __inheritsched;
++  enum __pthread_contentionscope __contentionscope;
++  int __schedpolicy;
 +};
 +
 +#endif /* bits/thread-attr.h */
-Index: glibc-2.21/libpthread/sysdeps/generic/bits/thread-specific.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/thread-specific.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/generic/bits/thread-specific.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/thread-specific.h
 @@ -0,0 +1,25 @@
 +/* Thread specific data.  Generic version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
@@ -5165,18 +5169,18 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr.c
 +
 +const struct __pthread_attr __pthread_default_attr =
 +{
-+  schedparam: { sched_priority: 0 },
-+  stacksize: 0,
-+  stackaddr: NULL,
++  __schedparam: { sched_priority: 0 },
++  __stacksize: 0,
++  __stackaddr: NULL,
 +#ifdef PAGESIZE
-+  guardsize: PAGESIZE,
++  __guardsize: PAGESIZE,
 +#else
-+  guardsize: 1,
++  __guardsize: 1,
 +#endif /* PAGESIZE */
-+  detachstate: PTHREAD_CREATE_JOINABLE,
-+  inheritsched: PTHREAD_EXPLICIT_SCHED,
-+  contentionscope: PTHREAD_SCOPE_SYSTEM,
-+  schedpolicy: SCHED_OTHER
++  __detachstate: PTHREAD_CREATE_JOINABLE,
++  __inheritsched: PTHREAD_EXPLICIT_SCHED,
++  __contentionscope: PTHREAD_SCOPE_SYSTEM,
++  __schedpolicy: SCHED_OTHER
 +};
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-destroy.c
 ===================================================================
@@ -5242,7 +5246,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-getdetachstate.c
 +__pthread_attr_getdetachstate (const pthread_attr_t *attr,
 +			     int *detachstate)
 +{
-+  *detachstate = attr->detachstate;
++  *detachstate = attr->__detachstate;
 +  return 0;
 +}
 +
@@ -5278,7 +5282,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-getguardsize.c
 +pthread_attr_getguardsize (const pthread_attr_t *attr,
 +			   size_t *guardsize)
 +{
-+  *guardsize = attr->guardsize;
++  *guardsize = attr->__guardsize;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-getinheritsched.c
@@ -5312,7 +5316,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-getinheritsched.c
 +__pthread_attr_getinheritsched (const pthread_attr_t *attr,
 +			      int *inheritsched)
 +{
-+  *inheritsched = attr->inheritsched;
++  *inheritsched = attr->__inheritsched;
 +  return 0;
 +}
 +
@@ -5351,7 +5355,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-getschedparam.c
 +__pthread_attr_getschedparam (const pthread_attr_t *attr,
 +			    struct sched_param *param)
 +{
-+  memcpy (param, &attr->schedparam, sizeof *param);
++  memcpy (param, &attr->__schedparam, sizeof *param);
 +  return 0;
 +}
 +
@@ -5387,7 +5391,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-getschedpolicy.c
 +__pthread_attr_getschedpolicy (const pthread_attr_t *attr,
 +			     int *policy)
 +{
-+  *policy = attr->schedpolicy;
++  *policy = attr->__schedpolicy;
 +  return 0;
 +}
 +
@@ -5423,7 +5427,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-getscope.c
 +__pthread_attr_getscope (const pthread_attr_t *attr,
 +		       int *contentionscope)
 +{
-+  *contentionscope = attr->contentionscope;
++  *contentionscope = attr->__contentionscope;
 +  return 0;
 +}
 +
@@ -5459,7 +5463,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-getstackaddr.c
 +pthread_attr_getstackaddr (const pthread_attr_t *attr,
 +			   void **stackaddr)
 +{
-+  *stackaddr = attr->stackaddr;
++  *stackaddr = attr->__stackaddr;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-getstack.c
@@ -5529,7 +5533,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-getstacksize.c
 +pthread_attr_getstacksize (const pthread_attr_t *attr,
 +			   size_t *stacksize)
 +{
-+  *stacksize = attr->stacksize;
++  *stacksize = attr->__stacksize;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-init.c
@@ -5601,7 +5605,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-setdetachstate.c
 +    {
 +    case PTHREAD_CREATE_DETACHED:
 +    case PTHREAD_CREATE_JOINABLE:
-+      attr->detachstate = detachstate;
++      attr->__detachstate = detachstate;
 +      break;
 +    default:
 +      return EINVAL;
@@ -5642,7 +5646,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-setguardsize.c
 +pthread_attr_setguardsize (pthread_attr_t *attr,
 +			   size_t guardsize)
 +{
-+  attr->guardsize = guardsize;
++  attr->__guardsize = guardsize;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-setinheritsched.c
@@ -5680,7 +5684,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-setinheritsched.c
 +    {
 +    case PTHREAD_INHERIT_SCHED:
 +    case PTHREAD_EXPLICIT_SCHED:
-+      attr->inheritsched = inheritsched;
++      attr->__inheritsched = inheritsched;
 +      break;
 +    default:
 +      return EINVAL;
@@ -5724,10 +5728,10 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-setschedparam.c
 +__pthread_attr_setschedparam (pthread_attr_t *attr,
 +			    const struct sched_param *param)
 +{
-+  if (memcmp (param, &__pthread_default_attr.schedparam,
++  if (memcmp (param, &__pthread_default_attr.__schedparam,
 +	      sizeof *param) == 0)
 +    {
-+      memcpy (&attr->schedparam, param, sizeof *param);
++      memcpy (&attr->__schedparam, param, sizeof *param);
 +      return 0;
 +    }
 +
@@ -5769,7 +5773,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-setschedpolicy.c
 +  switch (policy)
 +    {
 +    case SCHED_OTHER:
-+      attr->schedpolicy = policy;
++      attr->__schedpolicy = policy;
 +      break;
 +
 +    case SCHED_FIFO:
@@ -5815,9 +5819,9 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-setscope.c
 +__pthread_attr_setscope (pthread_attr_t *attr,
 +		       int contentionscope)
 +{
-+  if (contentionscope == __pthread_default_attr.contentionscope)
++  if (contentionscope == __pthread_default_attr.__contentionscope)
 +    {
-+      attr->contentionscope = contentionscope;
++      attr->__contentionscope = contentionscope;
 +      return 0;
 +    }
 +
@@ -5863,7 +5867,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-setstackaddr.c
 +pthread_attr_setstackaddr (pthread_attr_t *attr,
 +			   void *stackaddr)
 +{
-+  attr->stackaddr = stackaddr;
++  attr->__stackaddr = stackaddr;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-setstack.c
@@ -5953,7 +5957,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr-setstacksize.c
 +pthread_attr_setstacksize (pthread_attr_t *attr,
 +			   size_t stacksize)
 +{
-+  attr->stacksize = stacksize;
++  attr->__stacksize = stacksize;
 +
 +  return 0;
 +}
@@ -6020,7 +6024,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-barrierattr-getpshared.c
 +pthread_barrierattr_getpshared (const pthread_barrierattr_t *attr,
 +				int *pshared)
 +{
-+  *pshared = attr->pshared;
++  *pshared = attr->__pshared;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-barrierattr-init.c
@@ -6090,7 +6094,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-barrierattr-setpshared.c
 +  switch (pshared)
 +    {
 +    case PTHREAD_PROCESS_PRIVATE:
-+      attr->pshared = pshared;
++      attr->__pshared = pshared;
 +      return 0;
 +
 +    case PTHREAD_PROCESS_SHARED:
@@ -6129,7 +6133,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-barrier.c
 +
 +const struct __pthread_barrierattr __pthread_default_barrierattr =
 +{
-+  pshared: PTHREAD_PROCESS_PRIVATE
++  __pshared: PTHREAD_PROCESS_PRIVATE
 +};
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-barrier-destroy.c
 ===================================================================
@@ -6203,9 +6207,9 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-barrier-init.c
 +
 +  memset (barrier, 0, sizeof *barrier);
 +
-+  barrier->lock = PTHREAD_SPINLOCK_INITIALIZER;
-+  barrier->pending = count;
-+  barrier->count = count;
++  barrier->__lock = PTHREAD_SPINLOCK_INITIALIZER;
++  barrier->__pending = count;
++  barrier->__count = count;
 +
 +  if (! attr
 +      || memcmp (attr, &__pthread_default_barrierattr, sizeof (*attr) == 0))
@@ -6214,11 +6218,11 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-barrier-init.c
 +
 +  /* Non-default attributes.  */
 +
-+  barrier->attr = malloc (sizeof *attr);
-+  if (! barrier->attr)
++  barrier->__attr = malloc (sizeof *attr);
++  if (! barrier->__attr)
 +    return ENOMEM;
 +
-+  *barrier->attr = *attr;
++  *barrier->__attr = *attr;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-barrier-wait.c
@@ -6253,28 +6257,28 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-barrier-wait.c
 +int
 +pthread_barrier_wait (pthread_barrier_t *barrier)
 +{
-+  __pthread_spin_lock (&barrier->lock);
-+  if (-- barrier->pending == 0)
++  __pthread_spin_lock (&barrier->__lock);
++  if (-- barrier->__pending == 0)
 +    {
-+      barrier->pending = barrier->count;
++      barrier->__pending = barrier->__count;
 +
-+      if (barrier->count > 1)
++      if (barrier->__count > 1)
 +	{
 +	  struct __pthread *wakeup;
 +	  unsigned n = 0;
 +
-+	  __pthread_queue_iterate (barrier->queue, wakeup)
++	  __pthread_queue_iterate (barrier->__queue, wakeup)
 +	    n ++;
 +
 +	  {
 +	    struct __pthread *wakeups[n];
 +	    unsigned i = 0;
 +
-+	    __pthread_dequeuing_iterate (barrier->queue, wakeup)
++	    __pthread_dequeuing_iterate (barrier->__queue, wakeup)
 +	      wakeups[i ++] = wakeup;
 +
-+	    barrier->queue = NULL;
-+	    __pthread_spin_unlock (&barrier->lock);
++	    barrier->__queue = NULL;
++	    __pthread_spin_unlock (&barrier->__lock);
 +
 +	    for (i = 0; i < n; i ++)
 +	      __pthread_wakeup (wakeups[i]);
@@ -6288,8 +6292,8 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-barrier-wait.c
 +      struct __pthread *self = _pthread_self ();
 +
 +      /* Add ourselves to the list of waiters.  */
-+      __pthread_enqueue (&barrier->queue, self);
-+      __pthread_spin_unlock (&barrier->lock);
++      __pthread_enqueue (&barrier->__queue, self);
++      __pthread_spin_unlock (&barrier->__lock);
 +
 +      __pthread_block (self);
 +      return 0;
@@ -6362,7 +6366,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-condattr-getclock.c
 +pthread_condattr_getclock (const pthread_condattr_t *attr,
 +			   clockid_t *clock)
 +{
-+  *clock = attr->clock;
++  *clock = attr->__clock;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-condattr-getpshared.c
@@ -6396,7 +6400,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-condattr-getpshared.c
 +pthread_condattr_getpshared (const pthread_condattr_t *attr,
 +			     int *pshared)
 +{
-+  *pshared = attr->pshared;
++  *pshared = attr->__pshared;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-condattr-init.c
@@ -6487,7 +6491,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-condattr-setclock.c
 +  else if (clock != CLOCK_REALTIME)
 +    return EINVAL;
 +
-+  attr->clock = clock;
++  attr->__clock = clock;
 +
 +  return 0;
 +}
@@ -6525,7 +6529,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-condattr-setpshared.c
 +  switch (pshared)
 +    {
 +    case PTHREAD_PROCESS_PRIVATE:
-+      attr->pshared = pshared;
++      attr->__pshared = pshared;
 +      return 0;
 +
 +    case PTHREAD_PROCESS_SHARED:
@@ -6616,8 +6620,8 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-cond.c
 +
 +const struct __pthread_condattr __pthread_default_condattr =
 +{
-+  pshared: PTHREAD_PROCESS_PRIVATE,
-+  clock: CLOCK_REALTIME
++  __pshared: PTHREAD_PROCESS_PRIVATE,
++  __clock: CLOCK_REALTIME
 +};
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-cond-destroy.c
 ===================================================================
@@ -6832,7 +6836,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-cond-timedwait.c
 +{
 +  error_t err;
 +  int cancelled, oldtype, drain;
-+  clockid_t clock_id = __pthread_default_condattr.clock;
++  clockid_t clock_id = __pthread_default_condattr.__clock;
 +
 +  if (abstime && (abstime->tv_nsec < 0 || abstime->tv_nsec >= 1000000000))
 +    return EINVAL;
@@ -6870,7 +6874,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-cond-timedwait.c
 +      __pthread_spin_lock (&cond->__lock);
 +      __pthread_enqueue (&cond->__queue, self);
 +      if (cond->__attr)
-+	clock_id = cond->__attr->clock;
++	clock_id = cond->__attr->__clock;
 +      __pthread_spin_unlock (&cond->__lock);
 +    }
 +  __pthread_mutex_unlock (&self->cancel_lock);
@@ -7382,26 +7386,26 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutexattr.c
 +
 +const struct __pthread_mutexattr __pthread_default_mutexattr =
 +{
-+  prioceiling: 0,
-+  protocol: PTHREAD_PRIO_NONE,
-+  pshared: PTHREAD_PROCESS_PRIVATE,
-+  mutex_type: PTHREAD_MUTEX_DEFAULT
++  __prioceiling: 0,
++  __protocol: PTHREAD_PRIO_NONE,
++  __pshared: PTHREAD_PROCESS_PRIVATE,
++  __mutex_type: PTHREAD_MUTEX_DEFAULT
 +};
 +
 +const struct __pthread_mutexattr __pthread_errorcheck_mutexattr =
 +{
-+  prioceiling: 0,
-+  protocol: PTHREAD_PRIO_NONE,
-+  pshared: PTHREAD_PROCESS_PRIVATE,
-+  mutex_type: PTHREAD_MUTEX_ERRORCHECK
++  __prioceiling: 0,
++  __protocol: PTHREAD_PRIO_NONE,
++  __pshared: PTHREAD_PROCESS_PRIVATE,
++  __mutex_type: PTHREAD_MUTEX_ERRORCHECK
 +};
 +
 +const struct __pthread_mutexattr __pthread_recursive_mutexattr =
 +{
-+  prioceiling: 0,
-+  protocol: PTHREAD_PRIO_NONE,
-+  pshared: PTHREAD_PROCESS_PRIVATE,
-+  mutex_type: PTHREAD_MUTEX_RECURSIVE
++  __prioceiling: 0,
++  __protocol: PTHREAD_PRIO_NONE,
++  __pshared: PTHREAD_PROCESS_PRIVATE,
++  __mutex_type: PTHREAD_MUTEX_RECURSIVE
 +};
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutexattr-destroy.c
 ===================================================================
@@ -7501,7 +7505,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutexattr-getprotocol.c
 +pthread_mutexattr_getprotocol (const pthread_mutexattr_t *attr,
 +			       int *protocol)
 +{
-+  *protocol = attr->protocol;
++  *protocol = attr->__protocol;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutexattr-getpshared.c
@@ -7535,7 +7539,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutexattr-getpshared.c
 +pthread_mutexattr_getpshared (const pthread_mutexattr_t *attr,
 +			      int *pshared)
 +{
-+  *pshared = attr->pshared;
++  *pshared = attr->__pshared;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutexattr-gettype.c
@@ -7568,7 +7572,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutexattr-gettype.c
 +int
 +pthread_mutexattr_gettype (const pthread_mutexattr_t *attr, int *type)
 +{
-+  *type = attr->mutex_type;
++  *type = attr->__mutex_type;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutexattr-init.c
@@ -7670,9 +7674,9 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutexattr-setprotocol.c
 +pthread_mutexattr_setprotocol (pthread_mutexattr_t *attr,
 +			       int protocol)
 +{
-+  if (protocol == __pthread_default_mutexattr.protocol)
++  if (protocol == __pthread_default_mutexattr.__protocol)
 +    {
-+      attr->protocol = protocol;
++      attr->__protocol = protocol;
 +      return 0;
 +    }
 +
@@ -7720,7 +7724,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutexattr-setpshared.c
 +  switch (pshared)
 +    {
 +    case PTHREAD_PROCESS_PRIVATE:
-+      attr->pshared = pshared;
++      attr->__pshared = pshared;
 +      return 0;
 +
 +    case PTHREAD_PROCESS_SHARED:
@@ -7765,7 +7769,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutexattr-settype.c
 +    case PTHREAD_MUTEX_NORMAL:
 +    case PTHREAD_MUTEX_ERRORCHECK:
 +    case PTHREAD_MUTEX_RECURSIVE:
-+      attr->mutex_type = type;
++      attr->__mutex_type = type;
 +      return 0;
 +
 +    default:
@@ -7805,12 +7809,12 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-destroy.c
 +int
 +_pthread_mutex_destroy (pthread_mutex_t *mutex)
 +{
-+  if (mutex->attr == __PTHREAD_ERRORCHECK_MUTEXATTR
-+   || mutex->attr == __PTHREAD_RECURSIVE_MUTEXATTR)
++  if (mutex->__attr == __PTHREAD_ERRORCHECK_MUTEXATTR
++   || mutex->__attr == __PTHREAD_RECURSIVE_MUTEXATTR)
 +    /* Static attributes.  */
 +    ;
 +  else
-+    free (mutex->attr);
++    free (mutex->__attr);
 +
 +  return 0;
 +}
@@ -7893,15 +7897,15 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-init.c
 +    /* The default attributes.  */
 +    return 0;
 +
-+  if (! mutex->attr
-+      || mutex->attr == __PTHREAD_ERRORCHECK_MUTEXATTR
-+      || mutex->attr == __PTHREAD_RECURSIVE_MUTEXATTR)
-+    mutex->attr = malloc (sizeof *attr);
++  if (! mutex->__attr
++      || mutex->__attr == __PTHREAD_ERRORCHECK_MUTEXATTR
++      || mutex->__attr == __PTHREAD_RECURSIVE_MUTEXATTR)
++    mutex->__attr = malloc (sizeof *attr);
 +
-+  if (! mutex->attr)
++  if (! mutex->__attr)
 +    return ENOMEM;
 +
-+  *mutex->attr = *attr;
++  *mutex->__attr = *attr;
 +  return 0;
 +}
 +
@@ -8023,7 +8027,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-timedlock.c
 +  error_t err;
 +  int drain;
 +  struct __pthread *self;
-+  const struct __pthread_mutexattr *attr = mutex->attr;
++  const struct __pthread_mutexattr *attr = mutex->__attr;
 +
 +  if (attr == __PTHREAD_ERRORCHECK_MUTEXATTR)
 +    attr = &__pthread_errorcheck_mutexattr;
@@ -8042,22 +8046,22 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-timedlock.c
 +	   initialized, in particular, before the main thread has a
 +	   TCB.  */
 +	{
-+	  assert (! mutex->owner);
-+	  mutex->owner = _pthread_self ();
++	  assert (! mutex->__owner);
++	  mutex->__owner = _pthread_self ();
 +	}
 +#endif
 +#endif
 +
 +      if (attr)
-+	switch (attr->mutex_type)
++	switch (attr->__mutex_type)
 +	  {
 +	  case PTHREAD_MUTEX_NORMAL:
 +	    break;
 +
 +	  case PTHREAD_MUTEX_RECURSIVE:
-+	    mutex->locks = 1;
++	    mutex->__locks = 1;
 +	  case PTHREAD_MUTEX_ERRORCHECK:
-+	    mutex->owner = _pthread_self ();
++	    mutex->__owner = _pthread_self ();
 +	    break;
 +
 +	  default:
@@ -8073,18 +8077,18 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-timedlock.c
 +  self = _pthread_self ();
 +  assert (self);
 +
-+  if (! attr || attr->mutex_type == PTHREAD_MUTEX_NORMAL)
++  if (! attr || attr->__mutex_type == PTHREAD_MUTEX_NORMAL)
 +    {
 +#if defined(ALWAYS_TRACK_MUTEX_OWNER)
-+      assert (mutex->owner != self);
++      assert (mutex->__owner != self);
 +#endif
 +    }
 +  else
 +    {
-+      switch (attr->mutex_type)
++      switch (attr->__mutex_type)
 +	{
 +	case PTHREAD_MUTEX_ERRORCHECK:
-+	  if (mutex->owner == self)
++	  if (mutex->__owner == self)
 +	    {
 +	      __pthread_spin_unlock (&mutex->__lock);
 +	      return EDEADLK;
@@ -8092,9 +8096,9 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-timedlock.c
 +	  break;
 +
 +	case PTHREAD_MUTEX_RECURSIVE:
-+	  if (mutex->owner == self)
++	  if (mutex->__owner == self)
 +	    {
-+	      mutex->locks ++;
++	      mutex->__locks ++;
 +	      __pthread_spin_unlock (&mutex->__lock);
 +	      return 0;
 +	    }
@@ -8106,9 +8110,9 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-timedlock.c
 +    }
 +
 +#if !defined(ALWAYS_TRACK_MUTEX_OWNER)
-+  if (attr && attr->mutex_type != PTHREAD_MUTEX_NORMAL)
++  if (attr && attr->__mutex_type != PTHREAD_MUTEX_NORMAL)
 +#endif
-+    assert (mutex->owner);
++    assert (mutex->__owner);
 +
 +  if (abstime && (abstime->tv_nsec < 0 || abstime->tv_nsec >= 1000000000))
 +    return EINVAL;
@@ -8152,23 +8156,23 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-timedlock.c
 +    }
 +
 +#if !defined(ALWAYS_TRACK_MUTEX_OWNER)
-+  if (attr && attr->mutex_type != PTHREAD_MUTEX_NORMAL)
++  if (attr && attr->__mutex_type != PTHREAD_MUTEX_NORMAL)
 +#endif
 +    {
-+      assert (mutex->owner == self);
++      assert (mutex->__owner == self);
 +    }
 +
 +  if (attr)
-+    switch (attr->mutex_type)
++    switch (attr->__mutex_type)
 +      {
 +      case PTHREAD_MUTEX_NORMAL:
 +	break;
 +
 +      case PTHREAD_MUTEX_RECURSIVE:
-+	assert (mutex->locks == 0);
-+	mutex->locks = 1;
++	assert (mutex->__locks == 0);
++	mutex->__locks = 1;
 +      case PTHREAD_MUTEX_ERRORCHECK:
-+	mutex->owner = self;
++	mutex->__owner = self;
 +	break;
 +
 +      default:
@@ -8217,10 +8221,10 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-transfer-np.c
 +int
 +__pthread_mutex_transfer_np (struct __pthread_mutex *mutex, pthread_t tid)
 +{
-+  assert (mutex->owner == _pthread_self ());
++  assert (mutex->__owner == _pthread_self ());
 +
 +  struct __pthread *thread = __pthread_getid (tid);
-+  const struct __pthread_mutexattr *attr = mutex->attr;
++  const struct __pthread_mutexattr *attr = mutex->__attr;
 +
 +  if (! thread)
 +    return ESRCH;
@@ -8233,21 +8237,21 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-transfer-np.c
 +  if (attr == __PTHREAD_RECURSIVE_MUTEXATTR)
 +    attr = &__pthread_recursive_mutexattr;
 +
-+  if (attr && attr->mutex_type == PTHREAD_MUTEX_ERRORCHECK)
++  if (attr && attr->__mutex_type == PTHREAD_MUTEX_ERRORCHECK)
 +    {
 +
-+      if (mutex->owner != _pthread_self ())
++      if (mutex->__owner != _pthread_self ())
 +	return EPERM;
 +
-+      mutex->owner = thread;
++      mutex->__owner = thread;
 +    }
 +
 +#ifndef NDEBUG
 +# if !defined(ALWAYS_TRACK_MUTEX_OWNER)
-+  if (attr && attr->mutex_type != PTHREAD_MUTEX_NORMAL)
++  if (attr && attr->__mutex_type != PTHREAD_MUTEX_NORMAL)
 +# endif
 +    {
-+      mutex->owner = thread;
++      mutex->__owner = thread;
 +    }
 +#endif
 +
@@ -8291,7 +8295,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-trylock.c
 +{
 +  int err;
 +  struct __pthread *self;
-+  const struct __pthread_mutexattr *attr = mutex->attr;
++  const struct __pthread_mutexattr *attr = mutex->__attr;
 +
 +  if (attr == __PTHREAD_ERRORCHECK_MUTEXATTR)
 +    attr = &__pthread_errorcheck_mutexattr;
@@ -8310,22 +8314,22 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-trylock.c
 +	   initialized, in particular, before the main thread has a
 +	   TCB.  */
 +	{
-+	  assert (! mutex->owner);
-+	  mutex->owner = _pthread_self ();
++	  assert (! mutex->__owner);
++	  mutex->__owner = _pthread_self ();
 +	}
 +#endif
 +#endif
 +
 +      if (attr)
-+	switch (attr->mutex_type)
++	switch (attr->__mutex_type)
 +	  {
 +	  case PTHREAD_MUTEX_NORMAL:
 +	    break;
 +
 +	  case PTHREAD_MUTEX_RECURSIVE:
-+	    mutex->locks = 1;
++	    mutex->__locks = 1;
 +	  case PTHREAD_MUTEX_ERRORCHECK:
-+	    mutex->owner = _pthread_self ();
++	    mutex->__owner = _pthread_self ();
 +	    break;
 +
 +	  default:
@@ -8341,7 +8345,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-trylock.c
 +  if (attr)
 +    {
 +      self = _pthread_self ();
-+      switch (attr->mutex_type)
++      switch (attr->__mutex_type)
 +	{
 +	case PTHREAD_MUTEX_NORMAL:
 +	  break;
@@ -8353,9 +8357,9 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-trylock.c
 +	  break;
 +
 +	case PTHREAD_MUTEX_RECURSIVE:
-+	  if (mutex->owner == self)
++	  if (mutex->__owner == self)
 +	    {
-+	      mutex->locks ++;
++	      mutex->__locks ++;
 +	      err = 0;
 +	    }
 +	  break;
@@ -8407,7 +8411,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-unlock.c
 +__pthread_mutex_unlock (pthread_mutex_t *mutex)
 +{
 +  struct __pthread *wakeup;
-+  const struct __pthread_mutexattr *attr = mutex->attr;
++  const struct __pthread_mutexattr *attr = mutex->__attr;
 +
 +  if (attr == __PTHREAD_ERRORCHECK_MUTEXATTR)
 +    attr = &__pthread_errorcheck_mutexattr;
@@ -8416,38 +8420,38 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-unlock.c
 +
 +  __pthread_spin_lock (&mutex->__lock);
 +
-+  if (! attr || attr->mutex_type == PTHREAD_MUTEX_NORMAL)
++  if (! attr || attr->__mutex_type == PTHREAD_MUTEX_NORMAL)
 +    {
 +#if defined(ALWAYS_TRACK_MUTEX_OWNER)
 +# ifndef NDEBUG
 +      if (_pthread_self ())
 +	{
-+	  assert (mutex->owner);
-+	  assert (mutex->owner == _pthread_self ());
-+	  mutex->owner = NULL;
++	  assert (mutex->__owner);
++	  assert (mutex->__owner == _pthread_self ());
++	  mutex->__owner = NULL;
 +	}
 +# endif
 +#endif
 +    }
 +  else
-+    switch (attr->mutex_type)
++    switch (attr->__mutex_type)
 +      {
 +      case PTHREAD_MUTEX_ERRORCHECK:
 +      case PTHREAD_MUTEX_RECURSIVE:
-+	if (mutex->owner != _pthread_self ())
++	if (mutex->__owner != _pthread_self ())
 +	  {
 +	    __pthread_spin_unlock (&mutex->__lock);
 +	    return EPERM;
 +	  }
 +
-+	if (attr->mutex_type == PTHREAD_MUTEX_RECURSIVE)
-+	  if (--mutex->locks > 0)
++	if (attr->__mutex_type == PTHREAD_MUTEX_RECURSIVE)
++	  if (--mutex->__locks > 0)
 +	    {
 +	      __pthread_spin_unlock (&mutex->__lock);
 +	      return 0;
 +	    }
 +
-+	mutex->owner = 0;
++	mutex->__owner = 0;
 +	break;
 +
 +      default:
@@ -8467,10 +8471,10 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-mutex-unlock.c
 +
 +#ifndef NDEBUG
 +# if !defined (ALWAYS_TRACK_MUTEX_OWNER)
-+  if (attr && attr->mutex_type != PTHREAD_MUTEX_NORMAL)
++  if (attr && attr->__mutex_type != PTHREAD_MUTEX_NORMAL)
 +# endif
 +    {
-+      mutex->owner = wakeup;
++      mutex->__owner = wakeup;
 +    }
 +#endif
 +
@@ -8517,18 +8521,18 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-once.c
 +int
 +__pthread_once (pthread_once_t *once_control, void (*init_routine) (void))
 +{
-+  if (once_control->run == 0)
++  if (once_control->__run == 0)
 +    {
-+      __pthread_spin_lock (&once_control->lock);
++      __pthread_spin_lock (&once_control->__lock);
 +
-+      if (once_control->run == 0)
++      if (once_control->__run == 0)
 +	{
 +	  init_routine ();
 +	  __memory_barrier ();
-+	  once_control->run = 1;
++	  once_control->__run = 1;
 +	}
 +
-+      __pthread_spin_unlock (&once_control->lock);
++      __pthread_spin_unlock (&once_control->__lock);
 +    }
 +
 +  return 0;
@@ -8563,7 +8567,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlock-attr.c
 +
 +const struct __pthread_rwlockattr __pthread_default_rwlockattr =
 +{
-+  pshared: PTHREAD_PROCESS_PRIVATE
++  __pshared: PTHREAD_PROCESS_PRIVATE
 +};
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlockattr-destroy.c
 ===================================================================
@@ -8628,7 +8632,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlockattr-getpshared.c
 +pthread_rwlockattr_getpshared (const pthread_rwlockattr_t *attr,
 +			       int *pshared)
 +{
-+  *pshared = attr->pshared;
++  *pshared = attr->__pshared;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlockattr-init.c
@@ -8698,7 +8702,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlockattr-setpshared.c
 +  switch (pshared)
 +    {
 +    case PTHREAD_PROCESS_PRIVATE:
-+      attr->pshared = pshared;
++      attr->__pshared = pshared;
 +      return 0;
 +
 +    case PTHREAD_PROCESS_SHARED:
@@ -8874,21 +8878,21 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlock-timedrdlock.c
 +  if (__pthread_spin_trylock (&rwlock->__held) == 0)
 +    /* Successfully acquired the lock.  */
 +    {
-+      assert (rwlock->readerqueue == 0);
-+      assert (rwlock->writerqueue == 0);
-+      assert (rwlock->readers == 0);
++      assert (rwlock->__readerqueue == 0);
++      assert (rwlock->__writerqueue == 0);
++      assert (rwlock->__readers == 0);
 +
-+      rwlock->readers = 1;
++      rwlock->__readers = 1;
 +      __pthread_spin_unlock (&rwlock->__lock);
 +      return 0;
 +    }
 +  else
 +    /* Lock is held, but is held by a reader?  */
-+    if (rwlock->readers > 0)
++    if (rwlock->__readers > 0)
 +      /* Just add ourself to number of readers.  */
 +      {
-+	assert (rwlock->readerqueue == 0);
-+	rwlock->readers ++;
++	assert (rwlock->__readerqueue == 0);
++	rwlock->__readers ++;
 +	__pthread_spin_unlock (&rwlock->__lock);
 +	return 0;
 +      }
@@ -8896,7 +8900,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlock-timedrdlock.c
 +  /* The lock is busy.  */
 +
 +  /* Better be blocked by a writer.  */
-+  assert (rwlock->readers == 0);
++  assert (rwlock->__readers == 0);
 +
 +  if (abstime && (abstime->tv_nsec < 0 || abstime->tv_nsec >= 1000000000))
 +    return EINVAL;
@@ -8904,7 +8908,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlock-timedrdlock.c
 +  self = _pthread_self ();
 +
 +  /* Add ourself to the queue.  */
-+  __pthread_enqueue (&rwlock->readerqueue, self);
++  __pthread_enqueue (&rwlock->__readerqueue, self);
 +  __pthread_spin_unlock (&rwlock->__lock);
 +
 +  /* Block the thread.  */
@@ -8944,7 +8948,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlock-timedrdlock.c
 +  /* The reader count has already been increment by whoever woke us
 +     up.  */
 +
-+  assert (rwlock->readers > 0);
++  assert (rwlock->__readers > 0);
 +
 +  return 0;
 +}
@@ -8999,9 +9003,9 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlock-timedwrlock.c
 +  if (__pthread_spin_trylock (&rwlock->__held) == 0)
 +    /* Successfully acquired the lock.  */
 +    {
-+      assert (rwlock->readerqueue == 0);
-+      assert (rwlock->writerqueue == 0);
-+      assert (rwlock->readers == 0);
++      assert (rwlock->__readerqueue == 0);
++      assert (rwlock->__writerqueue == 0);
++      assert (rwlock->__readers == 0);
 +
 +      __pthread_spin_unlock (&rwlock->__lock);
 +      return 0;
@@ -9015,7 +9019,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlock-timedwrlock.c
 +  self = _pthread_self ();
 +
 +  /* Add ourselves to the queue.  */
-+  __pthread_enqueue (&rwlock->writerqueue, self);
++  __pthread_enqueue (&rwlock->__writerqueue, self);
 +  __pthread_spin_unlock (&rwlock->__lock);
 +
 +  /* Block the thread.  */
@@ -9052,7 +9056,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlock-timedwrlock.c
 +      return err;
 +    }
 +
-+  assert (rwlock->readers == 0);
++  assert (rwlock->__readers == 0);
 +
 +  return 0;
 +}
@@ -9100,20 +9104,20 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlock-tryrdlock.c
 +  if (__pthread_spin_trylock (&rwlock->__held) == 0)
 +    /* Successfully acquired the lock.  */
 +    {
-+      assert (rwlock->readerqueue == 0);
-+      assert (rwlock->writerqueue == 0);
-+      assert (rwlock->readers == 0);
++      assert (rwlock->__readerqueue == 0);
++      assert (rwlock->__writerqueue == 0);
++      assert (rwlock->__readers == 0);
 +
-+      rwlock->readers = 1;
++      rwlock->__readers = 1;
 +      __pthread_spin_unlock (&rwlock->__lock);
 +      return 0;
 +    }
 +  else
 +    /* Lock is held, but is held by a reader?  */
-+    if (rwlock->readers > 0)
++    if (rwlock->__readers > 0)
 +      {
-+	assert (rwlock->readerqueue == 0);
-+	rwlock->readers ++;
++	assert (rwlock->__readerqueue == 0);
++	rwlock->__readers ++;
 +	__pthread_spin_unlock (&rwlock->__lock);
 +	return 0;
 +      }
@@ -9161,9 +9165,9 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlock-trywrlock.c
 +  if (__pthread_spin_trylock (&rwlock->__held) == 0)
 +    /* Successfully acquired the lock.  */
 +    {
-+      assert (rwlock->readerqueue == 0);
-+      assert (rwlock->writerqueue == 0);
-+      assert (rwlock->readers == 0);
++      assert (rwlock->__readerqueue == 0);
++      assert (rwlock->__writerqueue == 0);
++      assert (rwlock->__readers == 0);
 +
 +      __pthread_spin_unlock (&rwlock->__lock);
 +      return 0;
@@ -9215,25 +9219,25 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlock-unlock.c
 +
 +  assert (__pthread_spin_trylock (&rwlock->__held) == EBUSY);
 +
-+  if (rwlock->readers > 1)
++  if (rwlock->__readers > 1)
 +    /* There are other readers.  */
 +    {
-+      rwlock->readers --;
++      rwlock->__readers --;
 +      __pthread_spin_unlock (&rwlock->__lock);
 +      return 0;
 +    }
 +
-+  if (rwlock->readers == 1)
++  if (rwlock->__readers == 1)
 +    /* Last reader.  */
-+    rwlock->readers = 0;
++    rwlock->__readers = 0;
 +      
 +
 +  /* Wake someone else up.  Try the writer queue first, then the
 +     reader queue if that is empty.  */
 +
-+  if (rwlock->writerqueue)
++  if (rwlock->__writerqueue)
 +    {
-+      wakeup = rwlock->writerqueue;
++      wakeup = rwlock->__writerqueue;
 +      __pthread_dequeue (wakeup);
 +
 +      /* We do not unlock RWLOCK->held: we are transferring the ownership
@@ -9245,22 +9249,22 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-rwlock-unlock.c
 +      return 0;
 +    }
 +
-+  if (rwlock->readerqueue)
++  if (rwlock->__readerqueue)
 +    {
 +      unsigned n = 0;
 +
-+      __pthread_queue_iterate (rwlock->readerqueue, wakeup)
++      __pthread_queue_iterate (rwlock->__readerqueue, wakeup)
 +        n ++;
 +
 +      {
 +	struct __pthread *wakeups[n];
 +	unsigned i = 0;
 +
-+	__pthread_dequeuing_iterate (rwlock->readerqueue, wakeup)
++	__pthread_dequeuing_iterate (rwlock->__readerqueue, wakeup)
 +	    wakeups[i ++] = wakeup;
 +
-+	rwlock->readers += n;
-+	rwlock->readerqueue = 0;
++	rwlock->__readers += n;
++	rwlock->__readerqueue = 0;
 +
 +	__pthread_spin_unlock (&rwlock->__lock);
 +
@@ -11647,7 +11651,7 @@ Index: glibc-2.21/libpthread/sysdeps/mach/hurd/pt-attr-setstackaddr.c
 +pthread_attr_setstackaddr (pthread_attr_t *attr,
 +			   void *stackaddr)
 +{
-+  attr->stackaddr = stackaddr;
++  attr->__stackaddr = stackaddr;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/mach/hurd/pt-attr-setstacksize.c
@@ -11681,7 +11685,7 @@ Index: glibc-2.21/libpthread/sysdeps/mach/hurd/pt-attr-setstacksize.c
 +pthread_attr_setstacksize (pthread_attr_t *attr,
 +			   size_t stacksize)
 +{
-+  attr->stacksize = stacksize;
++  attr->__stacksize = stacksize;
 +  return 0;
 +}
 Index: glibc-2.21/libpthread/sysdeps/mach/hurd/pt-docancel.c
@@ -11806,9 +11810,9 @@ Index: glibc-2.21/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
 +{
 +  struct hurd_sigstate *ss = _hurd_self_sigstate ();
 +  struct __pthread *self = _pthread_self ();
-+  error_t err;
++  error_t err = 0;
 +  int cancel, drain;
-+  clockid_t clock_id = __pthread_default_condattr.clock;
++  clockid_t clock_id = __pthread_default_condattr.__clock;
 +
 +  /* This function will be called by hurd_thread_cancel while we are blocked
 +     We wake up our thread if it's still blocking or about to block, so it will
@@ -11853,7 +11857,7 @@ Index: glibc-2.21/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
 +         us up.  */
 +      __pthread_enqueue (&cond->__queue, self);
 +      if (cond->__attr)
-+	clock_id = cond->__attr->clock;
++	clock_id = cond->__attr->__clock;
 +      /* Tell hurd_thread_cancel how to unblock us.  */
 +      ss->cancel_hook = &cancel_me;
 +    }
@@ -14967,7 +14971,7 @@ Index: glibc-2.21/libpthread/sysdeps/pthread/pthread-functions.h
 +  int (*ptr_pthread_cond_timedwait) (pthread_cond_t *, pthread_mutex_t *,
 +				     const struct timespec *);
 +  int (*ptr_pthread_equal) (pthread_t, pthread_t);
-+  void (*ptr_pthread_exit) (void *);
++  void (*ptr___pthread_exit) (void *);
 +  int (*ptr_pthread_getschedparam) (pthread_t, int *, struct sched_param *);
 +  int (*ptr_pthread_setschedparam) (pthread_t, int,
 +				    const struct sched_param *);
