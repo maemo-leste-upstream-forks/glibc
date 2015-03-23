@@ -61,15 +61,15 @@ index 92ce2c1..db030a7 100644
 +++ b/sysdeps/ieee754/ldbl-128ibm/s_logbl.c
 @@ -27,6 +27,7 @@ long double
  {
-   int64_t hx, rhx;
-   double xhi;
+   int64_t hx, hxs, rhx;
+   double xhi, xlo;
 +  long double ret;
 
-   xhi = ldbl_high (x);
+   ldbl_unpack (x, &xhi, &xlo);
    EXTRACT_WORDS64 (hx, xhi);
 @@ -40,7 +41,9 @@ __logbl (long double x)
-          though it were normalized.  */
-       rhx -= __builtin_clzll (hx) - 12;
+       if ((hxs ^ lx) < 0 && (lx & 0x7fffffffffffffffLL) != 0)
+ 	rhx--;
      }
 -  return (long double) (rhx - 1023);
 +  ret = (long double) (rhx - 1023);
