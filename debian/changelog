@@ -72,6 +72,10 @@ glibc (2.21-0experimental1) UNRELEASED; urgency=medium
   * debian/patches/arm/cvs-arm-sfi_breg.diff: Fix LDR_GLOBAL macro.
   * debian/patches/arm/cvs-memcpy-memmove-always-bx.diff: Fix memcpy
     and memmove for the ARM_ALWAYS_BX class of hardware like ArmadaXP.
+  * debian/{control.in/*,debhelper.in/*,rules.d/*}: Stop hardcoding our
+    upstream version all over the place and use GLIBC_VERSION instead.
+  * debian/debhelper.in/libc.preinst: Unconditionally wipe ld.so.cache
+    on major version upgrades, which is significantly less error-prone.
 
   [ Aurelien Jarno ]
   * debian/patches/any/local-libgcc-compat-main.diff: Fix definition of

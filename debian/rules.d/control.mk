@@ -42,6 +42,6 @@ $(stamp)control: debian/rules.d/control.mk $(control_deps)
 	cat debian/control.in/opt		>> $@T
 	cat debian/control.in/libnss-dns-udeb	>> $@T
 	cat debian/control.in/libnss-files-udeb	>> $@T
-	sed -e 's%@libc@%$(libc)%g' < $@T > debian/control
+	sed -e 's%@libc@%$(libc)%g' -e 's%@GLIBC_VERSION@%$(GLIBC_VERSION)%g' < $@T > debian/control
 	rm $@T
 	touch $@

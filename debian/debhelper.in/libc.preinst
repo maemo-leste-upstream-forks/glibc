@@ -142,7 +142,7 @@ then
 
     if [ -n "$preversion" ]; then
 	# NSS authentication trouble guard
-	if dpkg --compare-versions "$preversion" lt 2.21; then
+	if dpkg --compare-versions "$preversion" lt GLIBC_VERSION; then
 	    if pidof xscreensaver xlockmore >/dev/null; then
 		if [ -f /usr/share/debconf/confmodule ] ; then
 		    db_version 2.0
@@ -220,7 +220,7 @@ then
 	            exit 1
 		fi
 	    fi
-	fi # end upgrading and $preversion lt 2.21
+	fi # end upgrading and $preversion lt GLIBC_VERSION
     fi # Upgrading
 
     # Try to detect copies of the libc library in the various places
@@ -410,13 +410,10 @@ case $type in
 esac
 
 if [ -n "$preversion" ]; then
-    if dpkg --compare-versions "$preversion" lt 2.13-39; then
-       # upgrading from a pre-multiarch libc to a multiarch libc; we have
-       # to blow away /etc/ld.so.cache, otherwise the old unpacked libc
-       # is still first in the cache and segfaults when combined with
-       # our newly-unpacked ld.so. Do this last to avoid slowing down the
-       # rest of the upgrade.  Version number bumped to 2.13-39 to also
-       # cover cache format upgrades for ARM.
+    if dpkg --compare-versions "$preversion" lt GLIBC_VERSION; then
+       # unconditionally wipe ld.so.cache on major version upgrades; this
+       # makes those upgrades a bit slower, but is less error-prone than
+       # hoping we notice every time the cache format is changed upstream
        rm -f /etc/ld.so.cache
        rm -f /var/cache/ldconfig/aux-cache
     fi

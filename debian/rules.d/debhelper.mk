@@ -167,6 +167,7 @@ $(stamp)debhelper-common:
 	  sed -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" -i $$y; \
 	  sed -e "/NOHWCAP/r debian/script.in/nohwcap.sh" -i $$y; \
 	  sed -e "s#CURRENT_VER#$(DEB_VERSION)#" -i $$y; \
+	  sed -e "s#GLIBC_VERSION#$(GLIBC_VERSION)#" -i $$y; \
 	  case $$y in \
 	    *.install) \
 	      sed -e "s/^#.*//" -i $$y ; \
