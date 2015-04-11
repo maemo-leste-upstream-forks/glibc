@@ -82,7 +82,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		MAKEINFO=: \
 		$(CURDIR)/configure \
 		--host=$(call xx,configure_target) \
-		--build=$$configure_build --prefix=/usr --without-cvs \
+		--build=$$configure_build --prefix=/usr \
 		--enable-add-ons=$(standard-add-ons)"$(call xx,add-ons)" \
 		--without-selinux \
 		--enable-stackguard-randomization \
