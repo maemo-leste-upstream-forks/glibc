@@ -275,9 +275,17 @@ endif
 
 $(stamp)source: $(stamp)patch
 	mkdir -p $(build-tree)
-	tar -c -J -C .. \
-		-f $(build-tree)/glibc-$(GLIBC_VERSION).tar.xz \
-		$(GLIBC_SOURCES)
+	cd .. && \
+	       find $(GLIBC_SOURCES) -depth -newermt '$(DEB_BUILD_DATE)' \
+			-print0 | \
+               xargs -0r touch --no-dereference --date='$(DEB_BUILD_DATE)'
+	cd .. && \
+		find $(GLIBC_SOURCES) -print0 | \
+		LC_ALL=C sort -z | \
+		tar -c -J --null -T - --no-recursion \
+			--mode=go=rX,u+rw,a-s \
+			--owner=root --group=root --numeric-owner \
+			-f $(CURDIR)/$(build-tree)/glibc-$(GLIBC_VERSION).tar.xz
 	mkdir -p debian/glibc-source/usr/src/glibc
 	tar cf - --files-from debian/glibc-source.filelist \
 	  | tar -x -C debian/glibc-source/usr/src/glibc -f -
