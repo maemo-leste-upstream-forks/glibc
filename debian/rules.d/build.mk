@@ -160,10 +160,10 @@ ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	    cross-compiling=yes install_root=$(CURDIR)/debian/tmp-$(curpass)	\
 	    install-bootstrap-headers=yes install-headers )
 
-	install -d $(CURDIR)/debian/tmp-$(curpass)/lib
-	install -m 644 $(DEB_BUILDDIR)/csu/crt[1in].o $(CURDIR)/debian/tmp-$(curpass)/lib
-	${CC} -nostdlib -nostartfiles -shared -x c /dev/null \
-	        -o $(CURDIR)/debian/tmp-$(curpass)/lib/libc.so
+	install -d $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)
+	install -m 644 $(DEB_BUILDDIR)/csu/crt[1in].o $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)/.
+	$(call xx,CC) -nostdlib -nostartfiles -shared -x c /dev/null \
+	        -o $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)/libc.so
 else
 	: # FIXME: why just needed for ARM multilib?
 	case "$(curpass)" in \
@@ -204,6 +204,7 @@ else
 	  $(MAKE) -f debian/generate-supported.mk IN=localedata/SUPPORTED \
 	    OUT=debian/tmp-$(curpass)/usr/share/i18n/SUPPORTED; \
 	fi
+endif
 
 	# Create the multiarch directories, and the configuration file in /etc/ld.so.conf.d
 	if [ $(curpass) = libc ]; then \
@@ -225,6 +226,7 @@ else
 	  mv debian/tmp-$(curpass)/usr/include/ieee754.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
 	fi
 
+ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	# For our biarch libc, add an ld.so.conf.d configuration; this
 	# is needed because multiarch libc Replaces: libc6-i386 for ld.so, and
 	# the multiarch ld.so doesn't look at the (non-standard) /lib32, so we

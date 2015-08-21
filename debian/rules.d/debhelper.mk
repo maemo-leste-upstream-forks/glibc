@@ -203,20 +203,30 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	templates="libc-dev" ;\
 	pass="" ; \
 	suffix="" ;\
+	case "$$curpass:$$slibdir" in \
+	  libc:*) \
+	    ;; \
+	  *:/lib32 | *:/lib64 | *:/libx32 | *:/lib/arm-linux-gnueabi*) \
+	    pass="-alt" \
+	    suffix="-$(curpass)" \
+	    ;; \
+	esac ; \
 	for t in $$templates ; do \
 	  for s in debian/$$t$$pass.* ; do \
 	    t=`echo $$s | sed -e "s#libc\(.*\)$$pass#$(libc)\1$$suffix#"` ; \
+	    echo "Generating $$t ..."; \
 	    if [ "$$s" != "$$t" ] ; then \
 	      cp $$s $$t ; \
 	    fi ; \
-	    sed -e "s#TMPDIR#debian/tmp-$$curpass#g" -i $$t; \
-	    sed -e "s#RTLDDIR#$$rtlddir#g" -i $$t; \
-	    sed -e "s#SLIBDIR#$$slibdir#g" -i $$t; \
-	    sed -e "s#LIBDIR#$$libdir#g" -i $$t; \
+	    sed -i \
+		-e "/$$libdir.*.a /d" \
+		-e "s#TMPDIR#debian/tmp-$$curpass#g" \
+		-e "s#RTLDDIR#$$rtlddir#g" \
+		-e "s#SLIBDIR#$$slibdir#g" \
+		-e "s#LIBDIR#$$libdir#g" \
+	      $$t; \
 	  done ; \
 	done
-
-	sed -e "/$$libdir.*.a /d" -i debian/$(libc)-dev.install
 else
 $(patsubst %,debhelper_%,$(GLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
 $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
