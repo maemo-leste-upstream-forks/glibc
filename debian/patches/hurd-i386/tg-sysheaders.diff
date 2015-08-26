@@ -1,0 +1,104 @@
+From: Manolis Ragkousis <manolis837@gmail.com>
+Date: Fri, 14 Aug 2015 01:20:59 +0300
+Subject: [PATCH] Check sysheaders when looking for Mach and Hurd headers.
+
+* sysdeps/mach/configure.ac: Add sysheaders check.
+* sysdeps/mach/configure: Regenerate.
+* sysdeps/mach/hurd/configure.ac: Add sysheaders check.
+* sysdeps/mach/hurd/configure: Regenerate.
+
+---
+ sysdeps/mach/configure         | 9 +++++++++
+ sysdeps/mach/configure.ac      | 9 +++++++++
+ sysdeps/mach/hurd/configure    | 9 +++++++++
+ sysdeps/mach/hurd/configure.ac | 9 +++++++++
+ 4 files changed, 36 insertions(+)
+
+--- a/sysdeps/mach/configure
++++ b/sysdeps/mach/configure
+@@ -165,6 +165,11 @@ fi
+ config_vars="$config_vars
+ MIG = $MIG"
+ 
++if test -n "$sysheaders"; then
++  OLD_CPPFLAGS=$CPPFLAGS
++  CPPFLAGS="$CPPFLAGS $SYSINCLUDES"
++fi
++
+ ### Sanity checks for Mach header installation
+ 
+ 
+@@ -553,3 +558,7 @@ if test $hurd_cv_mig_retcode = yes; then
+   $as_echo "#define HAVE_MIG_RETCODE 1" >>confdefs.h
+ 
+ fi
++
++if test -n "$sysheaders"; then
++  CPPFLAGS=$OLD_CPPFLAGS
++fi
+--- a/sysdeps/mach/configure.ac
++++ b/sysdeps/mach/configure.ac
+@@ -6,6 +6,11 @@ if test "x$MIG" = xMISSING; then
+ fi
+ LIBC_CONFIG_VAR([MIG], [$MIG])
+ 
++if test -n "$sysheaders"; then
++  OLD_CPPFLAGS=$CPPFLAGS
++  CPPFLAGS="$CPPFLAGS $SYSINCLUDES"
++fi
++
+ ### Sanity checks for Mach header installation
+ AC_CHECK_HEADER(mach/mach_types.h,,
+                 [AC_MSG_ERROR([cannot find Mach headers])], -)
+@@ -124,3 +129,7 @@ if test $hurd_cv_mig_retcode = yes; then
+ fi])
+ 
+ hurd_MIG_RETCODE
++
++if test -n "$sysheaders"; then
++  CPPFLAGS=$OLD_CPPFLAGS
++fi
+--- a/sysdeps/mach/hurd/configure
++++ b/sysdeps/mach/hurd/configure
+@@ -17,6 +17,11 @@ case "$machine" in
+     ;;
+ esac
+ 
++if test -n "$sysheaders"; then
++  OLD_CPPFLAGS=$CPPFLAGS
++  CPPFLAGS="$CPPFLAGS $SYSINCLUDES"
++fi
++
+ 
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking Hurd header version" >&5
+ $as_echo_n "checking Hurd header version... " >&6; }
+@@ -52,3 +57,7 @@ if test "x$libc_cv_hurd_version" != xok;
+ fi
+ 
+ use_ldconfig=yes
++
++if test -n "$sysheaders"; then
++  CPPFLAGS=$OLD_CPPFLAGS
++fi
+--- a/sysdeps/mach/hurd/configure.ac
++++ b/sysdeps/mach/hurd/configure.ac
+@@ -17,6 +17,11 @@ case "$machine" in
+     ;;
+ esac
+ 
++if test -n "$sysheaders"; then
++  OLD_CPPFLAGS=$CPPFLAGS
++  CPPFLAGS="$CPPFLAGS $SYSINCLUDES"
++fi
++
+ AC_CACHE_CHECK(Hurd header version, libc_cv_hurd_version, [dnl
+ AC_TRY_COMPILE(dnl
+ [#include <hurd/version.h>], [
+@@ -31,3 +36,7 @@ if test "x$libc_cv_hurd_version" != xok;
+ fi
+ 
+ use_ldconfig=yes
++
++if test -n "$sysheaders"; then
++  CPPFLAGS=$OLD_CPPFLAGS
++fi
