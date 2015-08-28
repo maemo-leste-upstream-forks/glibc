@@ -13,6 +13,33 @@ libc_add-ons = libpthread $(add-ons)
 extra_config_options = --disable-werror
 libc_extra_config_options := $(extra_config_options)
 
+ifndef HURD_SOURCE
+  HURD_HEADERS := /usr/include
+else
+  HURD_HEADERS := $(HURD_SOURCE)/include
+endif
+
+# Minimum Kernel supported
+with_headers = --with-headers=$(shell pwd)/debian/include
+
+KERNEL_HEADER_DIR = $(stamp)mkincludedir
+$(stamp)mkincludedir:
+	rm -rf debian/include
+	mkdir debian/include
+
+	# System headers
+	for path in hurd mach mach_debug device cthreads.h; do \
+	    ln -s $(HURD_HEADERS)/$$path debian/include ; \
+	done
+
+	# To make configure happy if libc0.3-dev is not installed.
+	touch debian/include/assert.h
+
+	touch $@
+
+# Also to make configure happy.
+export CPPFLAGS = -isystem $(shell pwd)/debian/include
+
 # Glibc should really do this for us.
 define libc_extra_install
 mkdir -p debian/tmp-$(curpass)/lib
