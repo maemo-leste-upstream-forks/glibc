@@ -1,3 +1,8 @@
+2.13-33 dates when this was added
+
+TODO: _DEBIAN_ in versions however pose problem. Remove the _DEBIAN_ version
+once packages are rebuilt against 2.21.
+
 2010-08-04  Emilio Pozuelo Monfort  <pochu27@gmail.com>
 	* hurd/hurdexec.c (_hurd_exec): Deprecate it.
 	(_hurd_exec_file_name): New function.
@@ -32,11 +37,15 @@ Index: glibc-2.21/hurd/Versions
 ===================================================================
 --- glibc-2.21.orig/hurd/Versions
 +++ glibc-2.21/hurd/Versions
-@@ -132,6 +132,10 @@ libc {
+@@ -140,6 +140,14 @@ libc {
      _hurd_sigstate_unlock;
      _hurd_sigstate_delete;
    }
 +  GLIBC_2.13_DEBIAN_33 {
++    # "quasi-internal" functions
++    _hurd_exec_file_name;
++  }
++  GLIBC_2.21 {
 +    # "quasi-internal" functions
 +    _hurd_exec_file_name;
 +  }
@@ -89,8 +98,12 @@ Index: glibc-2.21/hurd/hurdexec.c
 ===================================================================
 --- glibc-2.21.orig/hurd/hurdexec.c
 +++ glibc-2.21/hurd/hurdexec.c
-@@ -30,11 +30,29 @@
+@@ -28,13 +28,33 @@
+ #include <assert.h>
+ #include <argz.h>
  
++#include <shlib-compat.h>
++
  /* Overlay TASK, executing FILE with arguments ARGV and environment ENVP.
     If TASK == mach_task_self (), some ports are dealloc'd by the exec server.
 -   ARGV and ENVP are terminated by NULL pointers.  */
@@ -114,13 +127,13 @@ Index: glibc-2.21/hurd/hurdexec.c
 +   FILE if FILE is a script, and will then pass /dev/fd/N to the
 +   interpreter.  */
 +error_t
-+_hurd_exec_file_name (task_t task, file_t file, const char *filename,
++__hurd_exec_file_name (task_t task, file_t file, const char *filename,
 +		      char *const argv[], char *const envp[])
 +{
    error_t err;
    char *args, *env;
    size_t argslen, envlen;
-@@ -216,7 +234,7 @@ _hurd_exec (task_t task, file_t file,
+@@ -216,7 +236,7 @@ _hurd_exec (task_t task, file_t file,
        /* We have euid != svuid or egid != svgid.  POSIX.1 says that exec
  	 sets svuid = euid and svgid = egid.  So we must get a new auth
  	 port and reauthenticate everything with it.  We'll pass the new
@@ -129,7 +142,7 @@ Index: glibc-2.21/hurd/hurdexec.c
  
        auth_t newauth;
  
-@@ -360,13 +378,27 @@ _hurd_exec (task_t task, file_t file,
+@@ -360,13 +380,27 @@ _hurd_exec (task_t task, file_t file,
        if (__sigismember (&_hurdsig_traced, SIGKILL))
  	flags |= EXEC_SIGTRAP;
  #endif
@@ -164,6 +177,20 @@ Index: glibc-2.21/hurd/hurdexec.c
      }
  
    /* Release references to the standard ports.  */
+@@ -401,3 +435,13 @@ _hurd_exec (task_t task, file_t file,
+   free (env);
+   return err;
+ }
++versioned_symbol (libc, __hurd_exec_file_name, _hurd_exec_file_name, GLIBC_2_21);
++#if SHLIB_COMPAT (libc, GLIBC_2_13, GLIBC_2_21)
++error_t
++__hurd_exec_file_name_2_13 (task_t task, file_t file, const char *filename,
++		      char *const argv[], char *const envp[])
++{
++  return __hurd_exec_file_name (task, file, filename, argv, envp);
++}
++compat_symbol (libc, __hurd_exec_file_name_2_13, _hurd_exec_file_name, GLIBC_2_13_DEBIAN_33);
++#endif
 Index: glibc-2.21/sysdeps/mach/hurd/execve.c
 ===================================================================
 --- glibc-2.21.orig/sysdeps/mach/hurd/execve.c

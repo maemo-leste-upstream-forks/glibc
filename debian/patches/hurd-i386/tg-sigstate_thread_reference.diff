@@ -100,9 +100,9 @@ calling _hurd_thread_sigstate.
 - * until this function is called.) */
 + * corresponding thread is terminated.  */
  void
- _hurd_sigstate_delete (thread_t thread)
+ __hurd_sigstate_delete (thread_t thread)
  {
-@@ -146,7 +152,12 @@ _hurd_sigstate_delete (thread_t thread)
+@@ -145,7 +151,12 @@ __hurd_sigstate_delete (thread_t thread)
  
    __mutex_unlock (&_hurd_siglock);
    if (ss)
@@ -114,5 +114,5 @@ calling _hurd_thread_sigstate.
 +      free (ss);
 +    }
  }
- 
- /* Make SS a global receiver, with pthread signal semantics.  */
+ versioned_symbol (libc, __hurd_sigstate_delete, _hurd_sigstate_delete, GLIBC_2_21);
+ #if SHLIB_COMPAT (libc, GLIBC_2_13, GLIBC_2_21)

@@ -23,22 +23,22 @@ Index: glibc/libpthread/pthread/alloca_cutoff.c
 +	return size <= 4096;
 +}
 +libc_hidden_def (__libc_alloca_cutoff)
-Index: glibc/libpthread/Versions
+Index: glibc-2.21/libpthread/Versions
 ===================================================================
---- glibc.orig/libpthread/Versions
-+++ glibc/libpthread/Versions
-@@ -17,6 +17,7 @@ libc {
-     pthread_self; pthread_setcancelstate; pthread_setcanceltype;
+--- glibc-2.21.orig/libpthread/Versions
++++ glibc-2.21/libpthread/Versions
+@@ -36,6 +36,7 @@ libc {
      __pthread_get_cleanup_stack;
+   }
    GLIBC_PRIVATE {
 +    __libc_alloca_cutoff;
      __libc_pthread_init;
      __register_atfork;
    }
-diff --git a/sysdeps/pthread/allocalim.h b/sysdeps/pthread/allocalim.h
-index 718f199..e4d0825 100644
---- a/sysdeps/pthread/allocalim.h
-+++ b/sysdeps/pthread/allocalim.h
+Index: glibc-2.21/sysdeps/pthread/allocalim.h
+===================================================================
+--- glibc-2.21.orig/sysdeps/pthread/allocalim.h
++++ glibc-2.21/sysdeps/pthread/allocalim.h
 @@ -24,6 +24,9 @@ extern __always_inline
  int
  __libc_use_alloca (size_t size)
