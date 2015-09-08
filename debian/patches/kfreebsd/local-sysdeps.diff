@@ -962,7 +962,7 @@
 +
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/fcntl.h
-@@ -0,0 +1,226 @@
+@@ -0,0 +1,230 @@
 +/* O_*, F_*, FD_* bit values for FreeBSD.
 +   Copyright (C) 1991-1992, 1997-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -1112,6 +1112,10 @@
 +#define F_GETLK64	11	/* Get record locking info.  */
 +#define F_SETLK64	12	/* Set record locking info (non-blocking).  */
 +#define F_SETLKW64	13	/* Set record locking info (blocking).	*/
++
++#if __USE_BSD || __POSIX_VISIBLE >= 200809
++#define	F_DUPFD_CLOEXEC	17	/* Like F_DUPFD, but FD_CLOEXEC is set */
++#endif
 +
 +#if defined __USE_BSD || defined __USE_UNIX98
 +# define F_GETOWN	5	/* Get owner of socket (receiver of SIGIO).  */
@@ -21209,7 +21213,7 @@
 +#endif /* netinet/ip_icmp.h */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/tcp.h
-@@ -0,0 +1,267 @@
+@@ -0,0 +1,269 @@
 +/* netinet/tcp.h
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -21287,13 +21291,16 @@
 +#define MAX_SACK_BLKS   6       /* Max # SACK blocks stored at receiver side */   
 +#define TCP_MAX_SACK    4       /* MAX # SACKs sent in any segment */
 +
-+# ifdef __FAVOR_BSD
 +/*
 + * TCP header.
 + * Per RFC 793, September, 1981.
 + */
 +struct tcphdr
 +  {
++    __extension__ union
++    {
++      struct
++      {
 +    u_int16_t th_sport;		/* source port */
 +    u_int16_t th_dport;		/* destination port */
 +    tcp_seq th_seq;		/* sequence number */
@@ -21317,10 +21324,8 @@
 +    u_int16_t th_sum;		/* checksum */
 +    u_int16_t th_urp;		/* urgent pointer */
 +};
-+
-+# else /* !__FAVOR_BSD */
-+struct tcphdr
-+  {
++      struct
++      {
 +    u_int16_t source;
 +    u_int16_t dest;
 +    u_int32_t seq;
@@ -21352,7 +21357,8 @@
 +    u_int16_t check;
 +    u_int16_t urg_ptr;
 +};
-+# endif /* __FAVOR_BSD */
++    };
++};
 +
 +enum
 +{
