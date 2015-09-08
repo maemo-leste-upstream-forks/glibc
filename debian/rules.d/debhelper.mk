@@ -206,9 +206,12 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	case "$$curpass:$$slibdir" in \
 	  libc:*) \
 	    ;; \
-	  *:/lib32 | *:/lib64 | *:/libx32 | *:/lib/arm-linux-gnueabi*) \
+	  *:/lib32 | *:/lib64 | *:/libo32 | *:/libx32 | *:/lib/arm-linux-gnueabi*) \
 	    pass="-alt" \
 	    suffix="-$(curpass)" \
+	    ;; \
+	  *:* ) \
+           templates="" \
 	    ;; \
 	esac ; \
 	for t in $$templates ; do \
@@ -219,7 +222,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	      cp $$s $$t ; \
 	    fi ; \
 	    sed -i \
-		-e "/$$libdir.*.a /d" \
+		-e "/LIBDIR.*\.a /d" \
 		-e "s#TMPDIR#debian/tmp-$$curpass#g" \
 		-e "s#RTLDDIR#$$rtlddir#g" \
 		-e "s#SLIBDIR#$$slibdir#g" \
