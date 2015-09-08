@@ -55,17 +55,6 @@ cp -a debian/tmp-mipsn32/usr/include/gnu/stubs-n32_hard.h \
 
 endef
 
-# build a loongson-2f optimized library
-GLIBC_PASSES += loongson2f
-DEB_ARCH_REGULAR_PACKAGES += libc6-loongson2f
-loongson2f_add-ons = $(add-ons)
-loongson2f_configure_target = mips32el-linux-gnu
-loongson2f_CC = $(CC) -mabi=32
-loongson2f_CXX = $(CXX) -mabi=32
-loongson2f_extra_cflags = -march=loongson2f -mtune=loongson2f -O2
-loongson2f_extra_config_options = $(extra_config_options)
-loongson2f_slibdir = /lib/$(DEB_HOST_MULTIARCH)/loongson2f
-
 # Need to put a tri-arch aware version of ldd in the base package
 define mipsn32_extra_install
 cp debian/tmp-mipsn32/usr/bin/ldd debian/tmp-libc/usr/bin
