@@ -117,12 +117,10 @@ endif
 	dh_md5sums -p$(curpass)
 
 	# We adjust the compression format depending on the package:
-	# - libc* contains highly compressible data, but packages needed during
-	#   debootstrap have to be compressed with gzip
+	# - we slightly increase the compression level for locales-all as it
+	#   contains highly compressible data
 	# - other packages use dpkg's default xz format
 	case $(curpass) in \
-	$(libc) | multiarch-support | libc-bin ) \
-		dh_builddeb -p$(curpass) -- -Zgzip -z9 ;; \
 	locales-all ) \
 		dh_builddeb -p$(curpass) -- -Zxz -z7 ;; \
 	*) \
