@@ -103,7 +103,7 @@ endif
 		-o -regex '.*/libpthread-.*so' \
 		-o -regex '.*/libc-.*so' \) \
 		-exec chmod a+x '{}' ';'
-	dh_makeshlibs -X/usr/lib/debug -p$(curpass) -V "$(call xx,shlib_dep)"
+	dh_makeshlibs -Xgconv/ -p$(curpass) -V "$(call xx,shlib_dep)"
 	# Add relevant udeb: lines in shlibs files
 	chmod a+x debian/shlibs-add-udebs
 	./debian/shlibs-add-udebs $(curpass)
