@@ -38,9 +38,7 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	    debian/$(curpass)/sbin/ldconfig;			\
 	fi
 
-	# extra_debhelper_pkg_install is used for debhelper.mk only.
 	# when you want to install extra packages, use extra_pkg_install.
-	$(call xx,extra_debhelper_pkg_install)
 	$(call xx,extra_pkg_install)
 
 ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
