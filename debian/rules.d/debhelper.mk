@@ -164,7 +164,6 @@ $(stamp)debhelper-common:
 	      -e "s#CURRENT_VER#$(DEB_VERSION)#" \
 	      -e "s#BUILD-TREE#$(build-tree)#" \
 	      -e "s#LIBC#$(libc)#" \
-	      -e "s#EXIT_CHECK##" \
 	      -e "s#DEB_HOST_ARCH#$(DEB_HOST_ARCH)#" \
 	      $$x > $$y ; \
 	  case $$y in \
