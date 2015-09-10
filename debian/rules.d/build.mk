@@ -154,7 +154,7 @@ $(stamp)check_%: $(stamp)build_%
 	touch $@
 
 $(patsubst %,install_%,$(GLIBC_PASSES)) :: install_% : $(stamp)install_%
-$(stamp)install_%: $(stamp)check_%
+$(stamp)install_%: $(stamp)build_%
 	@echo Installing $(curpass)
 	rm -rf $(CURDIR)/debian/tmp-$(curpass)
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
