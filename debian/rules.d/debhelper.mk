@@ -157,15 +157,15 @@ debhelper: $(stamp)debhelper-common $(patsubst %,$(stamp)debhelper_%,$(GLIBC_PAS
 $(stamp)debhelper-common: 
 	for x in `find debian/debhelper.in -maxdepth 1 -type f`; do \
 	  y=debian/`basename $$x`; \
-	  sed -e "s#GLIBC_VERSION#$(GLIBC_VERSION)#" \
+	  sed -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" \
+	      -e "/NOHWCAP/r debian/script.in/nohwcap.sh" \
+	      -e "/__PROVIDED_LOCALES__/r debian/tmp-libc/usr/share/i18n/SUPPORTED" \
+	      -e "s#GLIBC_VERSION#$(GLIBC_VERSION)#" \
 	      -e "s#CURRENT_VER#$(DEB_VERSION)#" \
 	      -e "s#BUILD-TREE#$(build-tree)#" \
 	      -e "s#LIBC#$(libc)#" \
 	      -e "s#EXIT_CHECK##" \
 	      -e "s#DEB_HOST_ARCH#$(DEB_HOST_ARCH)#" \
-	      -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" \
-	      -e "/NOHWCAP/r debian/script.in/nohwcap.sh" \
-	      -e "/__PROVIDED_LOCALES__/r debian/tmp-libc/usr/share/i18n/SUPPORTED" \
 	      $$x > $$y ; \
 	  case $$y in \
 	    *.install) \
