@@ -157,15 +157,16 @@ debhelper: $(stamp)debhelper-common $(patsubst %,$(stamp)debhelper_%,$(GLIBC_PAS
 $(stamp)debhelper-common: 
 	for x in `find debian/debhelper.in -maxdepth 1 -type f`; do \
 	  y=debian/`basename $$x`; \
-	  cp $$x $$y; \
-	  sed -e "s#GLIBC_VERSION#$(GLIBC_VERSION)#" -i $$y; \
-	  sed -e "s#CURRENT_VER#$(DEB_VERSION)#" -i $$y; \
-	  sed -e "s#BUILD-TREE#$(build-tree)#" -i $$y; \
-	  sed -e "s#LIBC#$(libc)#" -i $$y; \
-	  sed -e "s#EXIT_CHECK##" -i $$y; \
-	  sed -e "s#DEB_HOST_ARCH#$(DEB_HOST_ARCH)#" -i $$y; \
-	  sed -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" -i $$y; \
-	  sed -e "/NOHWCAP/r debian/script.in/nohwcap.sh" -i $$y; \
+	  sed -e "s#GLIBC_VERSION#$(GLIBC_VERSION)#" \
+	      -e "s#CURRENT_VER#$(DEB_VERSION)#" \
+	      -e "s#BUILD-TREE#$(build-tree)#" \
+	      -e "s#LIBC#$(libc)#" \
+	      -e "s#EXIT_CHECK##" \
+	      -e "s#DEB_HOST_ARCH#$(DEB_HOST_ARCH)#" \
+	      -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" \
+	      -e "/NOHWCAP/r debian/script.in/nohwcap.sh" \
+	      -e "/__PROVIDED_LOCALES__/r debian/tmp-libc/usr/share/i18n/SUPPORTED" \
+	      $$x > $$y ; \
 	  case $$y in \
 	    *.install) \
 	      sed -e "s/^#.*//" -i $$y ; \
@@ -174,9 +175,6 @@ $(stamp)debhelper-common:
 	      ;; \
 	  esac; \
 	done
-
-	# Substitute __PROVIDED_LOCALES__.
-	perl -i -pe 'BEGIN {undef $$/; open(IN, "debian/tmp-libc/usr/share/i18n/SUPPORTED"); $$j=<IN>;} s/__PROVIDED_LOCALES__/$$j/g;' debian/locales.config debian/locales.postinst
 
 	# Generate common substvars files.
 	: > tmp.substvars
