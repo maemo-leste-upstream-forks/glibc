@@ -55,7 +55,8 @@ DEB_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' '
 GLIBC_VERSION = $(shell echo $(DEB_VERSION) | sed -e 's/.*://' -e 's/-.*//')
 
 # The minimum package version with which these packages are compatible.
-shlib_dep = $(libc) (>= $(GLIBC_VERSION))
+shlib_dep_ver = $(GLIBC_VERSION)
+shlib_dep = $(libc) (>= $(shlib_dep_ver))
 
 DEB_BUILDDIR ?= $(build-tree)/$(DEB_HOST_ARCH)-$(curpass)
 
