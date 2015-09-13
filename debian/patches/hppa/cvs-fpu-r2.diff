@@ -1,8 +1,14 @@
-Index: eglibc-2.18/sysdeps/hppa/fpu/feholdexcpt.c
+2015-03-07  John David Anglin  <danglin@gcc.gnu.org>
+
+	* sysdeps/hppa/fpu/feholdexcpt.c (feholdexcept): Don't modify
+	bufptr in asms.
+	* sysdeps/hppa/fpu/fesetenv.c (fesetenv): Likewise.
+
+Index: glibc-2.21/sysdeps/hppa/fpu/feholdexcpt.c
 ===================================================================
---- eglibc-2.18.orig/sysdeps/hppa/fpu/feholdexcpt.c	2013-06-15 13:37:04.000000000 -0400
-+++ eglibc-2.18/sysdeps/hppa/fpu/feholdexcpt.c	2014-04-09 21:01:32.492451011 -0400
-@@ -29,8 +29,8 @@
+--- glibc-2.21.orig/sysdeps/hppa/fpu/feholdexcpt.c
++++ glibc-2.21/sysdeps/hppa/fpu/feholdexcpt.c
+@@ -29,8 +29,8 @@ feholdexcept (fenv_t *envp)
    /* Store the environment.  */
    bufptr = clear.buf;
    __asm__ (
@@ -13,20 +19,25 @@ Index: eglibc-2.18/sysdeps/hppa/fpu/feholdexcpt.c
    memcpy (envp, &clear.env, sizeof (fenv_t));
  
    /* Clear exception queues */
-@@ -44,7 +44,7 @@
-      Thus we start bufptr at the end and work backwards */
-   bufptr = (unsigned long long *)((unsigned int)(clear.buf) + sizeof(unsigned int)*4);
+@@ -40,11 +40,9 @@ feholdexcept (fenv_t *envp)
+   /* Now clear all flags  */
+   clear.env.__status_word &= ~(FE_ALL_EXCEPT << 27);
+ 
+-  /* Load the new environment. Note: fr0 must load last to enable T-bit
+-     Thus we start bufptr at the end and work backwards */
+-  bufptr = (unsigned long long *)((unsigned int)(clear.buf) + sizeof(unsigned int)*4);
++  /* Load the new environment. Note: fr0 must load last to enable T-bit.  */
    __asm__ (
 -	   "fldd,mb -8(%0),%%fr0\n"
 +	   "fldd 0(%0),%%fr0\n"
  	   : : "r" (bufptr), "m" (clear) : "%r0");
  
    return 0;
-Index: eglibc-2.18/sysdeps/hppa/fpu/fesetenv.c
+Index: glibc-2.21/sysdeps/hppa/fpu/fesetenv.c
 ===================================================================
---- eglibc-2.18.orig/sysdeps/hppa/fpu/fesetenv.c	2013-06-15 13:37:04.000000000 -0400
-+++ eglibc-2.18/sysdeps/hppa/fpu/fesetenv.c	2014-04-09 20:59:45.221386729 -0400
-@@ -33,7 +33,7 @@
+--- glibc-2.21.orig/sysdeps/hppa/fpu/fesetenv.c
++++ glibc-2.21/sysdeps/hppa/fpu/fesetenv.c
+@@ -33,7 +33,7 @@ fesetenv (const fenv_t *envp)
       we want to use from the environment specified by the parameter.  */
    bufptr = temp.buf;
    __asm__ (
@@ -35,7 +46,7 @@ Index: eglibc-2.18/sysdeps/hppa/fpu/fesetenv.c
  	   : "=m" (temp) : "r" (bufptr) : "%r0");
  
    temp.env.__status_word &= ~(FE_ALL_EXCEPT
-@@ -54,7 +54,7 @@
+@@ -54,7 +54,7 @@ fesetenv (const fenv_t *envp)
       we take advantage of that to load in reverse order so fr0
       is loaded last and T-Bit is enabled. */
    __asm__ (
