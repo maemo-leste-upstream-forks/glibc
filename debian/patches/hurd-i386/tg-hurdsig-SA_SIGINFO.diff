@@ -18,7 +18,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
 
 --- a/hurd/hurd/signal.h
 +++ b/hurd/hurd/signal.h
-@@ -276,6 +276,11 @@ extern void _hurd_raise_signal (struct h
+@@ -274,6 +274,11 @@ extern void _hurd_raise_signal (struct h
  extern void _hurd_exception2signal (struct hurd_signal_detail *detail,
  				    int *signo);
  
@@ -413,8 +413,8 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  struct sigcontext *
  _hurd_setup_sighandler (struct hurd_sigstate *ss, __sighandler_t handler,
  			int signo, struct hurd_signal_detail *detail,
-@@ -38,18 +91,37 @@ _hurd_setup_sighandler (struct hurd_sigs
-   extern const void _hurd_intr_rpc_msg_in_trap;
+@@ -37,18 +90,37 @@ _hurd_setup_sighandler (struct hurd_sigs
+   void firewall (void);
    extern const void _hurd_intr_rpc_msg_cx_sp;
    extern const void _hurd_intr_rpc_msg_sp_restored;
 +  struct sigaction *action;
@@ -453,7 +453,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
      } *stackframe;
  
    if (ss->context)
-@@ -141,15 +213,9 @@ _hurd_setup_sighandler (struct hurd_sigs
+@@ -140,15 +212,9 @@ _hurd_setup_sighandler (struct hurd_sigs
  	  = &stackframe->link.thread.next;
        ss->active_resources = &stackframe->link;
  
@@ -470,7 +470,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
        scp->sc_onstack = ss->sigaltstack.ss_flags & SS_ONSTACK ? 1 : 0;
  
        /* struct sigcontext is laid out so that starting at sc_gs mimics a
-@@ -163,6 +229,35 @@ _hurd_setup_sighandler (struct hurd_sigs
+@@ -162,6 +228,35 @@ _hurd_setup_sighandler (struct hurd_sigs
  			      &state->fpu, &scp->sc_i386_float_state,
  			      sizeof (state->fpu));
  

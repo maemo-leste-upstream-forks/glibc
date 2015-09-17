@@ -13,8 +13,6 @@ Subject: [PATCH] socket_flags
  sysdeps/mach/hurd/socket.c          | 15 ++++++++++++++-
  2 files changed, 15 insertions(+), 1 deletion(-)
 
-diff --git a/sysdeps/mach/hurd/kernel-features.h b/sysdeps/mach/hurd/kernel-features.h
-index 29d73c4..2b10327 100644
 --- a/sysdeps/mach/hurd/kernel-features.h
 +++ b/sysdeps/mach/hurd/kernel-features.h
 @@ -23,3 +23,4 @@
@@ -22,8 +20,6 @@ index 29d73c4..2b10327 100644
  #define __ASSUME_DUP3		1
  #define __ASSUME_ACCEPT4	1
 +#define __ASSUME_SOCK_CLOEXEC	1
-diff --git a/sysdeps/mach/hurd/socket.c b/sysdeps/mach/hurd/socket.c
-index 7917686..9bb1eee 100644
 --- a/sysdeps/mach/hurd/socket.c
 +++ b/sysdeps/mach/hurd/socket.c
 @@ -21,6 +21,7 @@
@@ -64,6 +60,4 @@ index 7917686..9bb1eee 100644
 +  return _hurd_intern_fd (sock, O_IGNORE_CTTY | flags, 1);
  }
  
- weak_alias (__socket, socket)
--- 
-tg: (703def4..) t/socket_flags (depends on: t/fcntl-internal.h)
+ libc_hidden_def (__socket)
