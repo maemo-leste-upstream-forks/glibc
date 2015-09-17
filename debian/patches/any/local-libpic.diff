@@ -15,9 +15,9 @@
  			     $(inst_libdir)/$(patsubst %,$(libtype$o),\
  						     $(libprefix)$(libc-name)))
 +installed-libcs := $(installed-libcs) $(inst_libdir)/libc_pic.a
- install: $(installed-libcs)
- $(installed-libcs): $(inst_libdir)/lib$(libprefix)%: lib $(+force)
- 	$(make-target-directory)
+ 
+ .PHONY: check-install-supported
+ check-install-supported:
 @@ -860,6 +883,22 @@
  install-lib.so-versioned := $(filter $(versioned), $(install-lib.so))
  install-lib.so-unversioned := $(filter-out $(versioned), $(install-lib.so))

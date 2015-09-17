@@ -4,7 +4,7 @@
 
 --- a/math/Makefile
 +++ b/math/Makefile
-@@ -92,12 +92,16 @@
+@@ -92,13 +92,17 @@
  	test-fenv-tls test-fenv-preserve test-fenv-return test-fenvinline \
  	$(tests-static)
  tests-static = test-fpucw-static test-fpucw-ieee-static
@@ -19,9 +19,10 @@
 +endif
 +
  ifneq (no,$(PERL))
+ libm-vec-tests = $(addprefix test-,$(libmvec-tests))
 -libm-tests = test-float test-double $(test-longdouble-$(long-double-fcts)) \
 +libm-tests = test-float test-double $(test-longdouble-$(test-long-double-fcts)) \
- 	test-ifloat test-idouble
+ 	test-ifloat test-idouble $(libm-vec-tests)
  libm-tests.o = $(addsuffix .o,$(libm-tests))
  
 @@ -174,11 +178,15 @@
