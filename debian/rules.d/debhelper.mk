@@ -143,6 +143,7 @@ $(stamp)debhelper-common:
 	      sed -e "s/^#.*//" -i $$y ; \
 	      $(if $(filter $(pt_chown),no),sed -e "/pt_chown/d" -i $$y ;) \
 	      $(if $(filter $(pldd),no),sed -e "/pldd/d" -i $$y ;) \
+	      $(if $(filter $(mvec),no),sed -e "/libmvec/d" -i $$y ;) \
 	      ;; \
 	  esac; \
 	done

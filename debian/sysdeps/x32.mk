@@ -1,5 +1,6 @@
 libc_rtlddir = /libx32
 extra_config_options = --enable-multi-arch --enable-lock-elision
+mvec = yes
 
 # build 64-bit (amd64) alternative library
 GLIBC_MULTILIB_PASSES += amd64

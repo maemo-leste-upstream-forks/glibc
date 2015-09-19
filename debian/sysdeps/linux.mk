@@ -6,6 +6,8 @@ libc = libc6
 pt_chown = no
 # Expect pldd on this platform
 pldd = yes
+# Expect the mvec library on this platform
+mvec = no
 
 # NPTL Config
 threads = yes
