@@ -464,12 +464,18 @@ That will fix sigaltstack.
 -#endif	/* bits/libc-tsd.h */
 --- a/sysdeps/mach/hurd/cthreads.c
 +++ b/sysdeps/mach/hurd/cthreads.c
-@@ -19,6 +19,15 @@
+@@ -19,6 +19,21 @@
  #include <errno.h>
  #include <stdlib.h>
  
 +char __libc_lock_self0[0];
++#if IS_IN (rtld)
++/* We don't support static tls relocation so early, but we do not have threads
++   there either anyway.  */
++static char __libc_lock_self[0];
++#else
 +static __thread char __libc_lock_self[0];
++#endif
 +
 +void *
 +__libc_get_lock_self(void)
