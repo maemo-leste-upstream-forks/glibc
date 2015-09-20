@@ -21,10 +21,8 @@ Release reference.
  sysdeps/mach/hurd/dl-sysdep.c | 1 +
  4 files changed, 12 insertions(+), 3 deletions(-)
 
-Index: glibc-2.19/mach/mach/mach_traps.h
-===================================================================
---- glibc-2.19.orig/mach/mach/mach_traps.h
-+++ glibc-2.19/mach/mach/mach_traps.h
+--- a/mach/mach/mach_traps.h
++++ b/mach/mach/mach_traps.h
 @@ -41,9 +41,10 @@ extern mach_port_t __mach_thread_self (v
  extern mach_port_t (mach_task_self) (void);
  extern mach_port_t (__mach_task_self) (void);
@@ -39,10 +37,8 @@ Index: glibc-2.19/mach/mach/mach_traps.h
  
  /* Attempt to context switch the current thread off the processor.  Returns
     true if there are other threads that can be run and false if not.  */
-Index: glibc-2.19/mach/mach_init.c
-===================================================================
---- glibc-2.19.orig/mach/mach_init.c
-+++ glibc-2.19/mach/mach_init.c
+--- a/mach/mach_init.c
++++ b/mach/mach_init.c
 @@ -20,6 +20,7 @@
  #include <unistd.h>
  
@@ -58,11 +54,9 @@ Index: glibc-2.19/mach/mach_init.c
 +  __mach_host_self_ = (__mach_host_self) ();
    __mig_init (0);
  
- #if HAVE_HOST_PAGE_SIZE
-Index: glibc-2.19/mach/mach_init.h
-===================================================================
---- glibc-2.19.orig/mach/mach_init.h
-+++ glibc-2.19/mach/mach_init.h
+ #ifdef HAVE_HOST_PAGE_SIZE
+--- a/mach/mach_init.h
++++ b/mach/mach_init.h
 @@ -31,6 +31,11 @@ extern mach_port_t __mach_task_self_;
  #define __mach_task_self()	(__mach_task_self_ + 0)	/* Not an lvalue.  */
  #define mach_task_self()	(__mach_task_self ())
@@ -75,10 +69,8 @@ Index: glibc-2.19/mach/mach_init.h
  /* Kernel page size.  */
  extern vm_size_t __vm_page_size;
  extern vm_size_t vm_page_size;
-Index: glibc-2.19/sysdeps/mach/hurd/dl-sysdep.c
-===================================================================
---- glibc-2.19.orig/sysdeps/mach/hurd/dl-sysdep.c
-+++ glibc-2.19/sysdeps/mach/hurd/dl-sysdep.c
+--- a/sysdeps/mach/hurd/dl-sysdep.c
++++ b/sysdeps/mach/hurd/dl-sysdep.c
 @@ -278,6 +278,7 @@ _dl_sysdep_start_cleanup (void)
       __mach_init.  We are done with them now, and the user will
       reacquire them for himself when he wants them.  */

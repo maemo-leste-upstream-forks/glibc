@@ -33,10 +33,8 @@ from argv[0] but argv[0] only contains the executable name by convention.
  sysdeps/mach/hurd/spawni.c  |   59 ++++++++++++++++++++++++++------------------
  8 files changed, 102 insertions(+), 43 deletions(-)
 
-Index: glibc-2.21/hurd/Versions
-===================================================================
---- glibc-2.21.orig/hurd/Versions
-+++ glibc-2.21/hurd/Versions
+--- a/hurd/Versions
++++ b/hurd/Versions
 @@ -140,6 +140,14 @@ libc {
      _hurd_sigstate_unlock;
      _hurd_sigstate_delete;
@@ -52,12 +50,10 @@ Index: glibc-2.21/hurd/Versions
  
    HURD_CTHREADS_0.3 {
      # weak refs to libthreads functions that libc calls iff libthreads in use
-Index: glibc-2.21/hurd/Makefile
-===================================================================
---- glibc-2.21.orig/hurd/Makefile
-+++ glibc-2.21/hurd/Makefile
+--- a/hurd/Makefile
++++ b/hurd/Makefile
 @@ -32,8 +32,8 @@ user-interfaces		:= $(addprefix hurd/,\
- 				       auth startup \
+ 				       auth auth_request auth_reply startup \
  				       process process_request \
  				       msg msg_reply msg_request \
 -				       exec exec_startup crash interrupt \
@@ -67,10 +63,8 @@ Index: glibc-2.21/hurd/Makefile
  				       login password pfinet \
  				       )
  server-interfaces	:= hurd/msg faultexc
-Index: glibc-2.21/hurd/hurd.h
-===================================================================
---- glibc-2.21.orig/hurd/hurd.h
-+++ glibc-2.21/hurd/hurd.h
+--- a/hurd/hurd.h
++++ b/hurd/hurd.h
 @@ -245,12 +245,20 @@ extern FILE *fopenport (io_t port, const
  extern FILE *__fopenport (io_t port, const char *mode);
  
@@ -94,10 +88,8 @@ Index: glibc-2.21/hurd/hurd.h
  
  
  /* Inform the proc server we have exited with STATUS, and kill the
-Index: glibc-2.21/hurd/hurdexec.c
-===================================================================
---- glibc-2.21.orig/hurd/hurdexec.c
-+++ glibc-2.21/hurd/hurdexec.c
+--- a/hurd/hurdexec.c
++++ b/hurd/hurdexec.c
 @@ -28,13 +28,33 @@
  #include <assert.h>
  #include <argz.h>
@@ -191,10 +183,8 @@ Index: glibc-2.21/hurd/hurdexec.c
 +}
 +compat_symbol (libc, __hurd_exec_file_name_2_13, _hurd_exec_file_name, GLIBC_2_13_DEBIAN_33);
 +#endif
-Index: glibc-2.21/sysdeps/mach/hurd/execve.c
-===================================================================
---- glibc-2.21.orig/sysdeps/mach/hurd/execve.c
-+++ glibc-2.21/sysdeps/mach/hurd/execve.c
+--- a/sysdeps/mach/hurd/execve.c
++++ b/sysdeps/mach/hurd/execve.c
 @@ -34,7 +34,8 @@ __execve (file_name, argv, envp)
      return -1;
  
@@ -205,10 +195,8 @@ Index: glibc-2.21/sysdeps/mach/hurd/execve.c
  
    /* Oh well.  Might as well be tidy.  */
    __mach_port_deallocate (__mach_task_self (), file);
-Index: glibc-2.21/sysdeps/mach/hurd/fexecve.c
-===================================================================
---- glibc-2.21.orig/sysdeps/mach/hurd/fexecve.c
-+++ glibc-2.21/sysdeps/mach/hurd/fexecve.c
+--- a/sysdeps/mach/hurd/fexecve.c
++++ b/sysdeps/mach/hurd/fexecve.c
 @@ -25,8 +25,9 @@
  int
  fexecve (int fd, char *const argv[], char *const envp[])
@@ -221,10 +209,8 @@ Index: glibc-2.21/sysdeps/mach/hurd/fexecve.c
    if (! err)
      err = EGRATUITOUS;
    return __hurd_fail (err);
-Index: glibc-2.21/sysdeps/mach/hurd/spawni.c
-===================================================================
---- glibc-2.21.orig/sysdeps/mach/hurd/spawni.c
-+++ glibc-2.21/sysdeps/mach/hurd/spawni.c
+--- a/sysdeps/mach/hurd/spawni.c
++++ b/sysdeps/mach/hurd/spawni.c
 @@ -43,7 +43,7 @@ __spawni (pid_t *pid, const char *file,
  	  int xflags)
  {
