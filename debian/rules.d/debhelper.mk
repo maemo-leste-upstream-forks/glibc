@@ -129,14 +129,15 @@ debhelper: $(stamp)debhelper-common $(patsubst %,$(stamp)debhelper_%,$(GLIBC_PAS
 $(stamp)debhelper-common: 
 	for x in `find debian/debhelper.in -maxdepth 1 -type f`; do \
 	  y=debian/`basename $$x`; \
-	  sed -e "/NSS_CHECK/r debian/script.in/nsscheck.sh" \
-	      -e "/NOHWCAP/r debian/script.in/nohwcap.sh" \
-	      -e "/__PROVIDED_LOCALES__/r debian/tmp-libc/usr/share/i18n/SUPPORTED" \
-	      -e "s#GLIBC_VERSION#$(GLIBC_VERSION)#" \
-	      -e "s#CURRENT_VER#$(DEB_VERSION)#" \
-	      -e "s#BUILD-TREE#$(build-tree)#" \
-	      -e "s#LIBC#$(libc)#" \
-	      -e "s#DEB_HOST_ARCH#$(DEB_HOST_ARCH)#" \
+	  perl -p \
+	      -e 'BEGIN {undef $$/; open(IN, "debian/script.in/nsscheck.sh"); $$j=<IN>;} s/__NSS_CHECK__/$$j/g;' \
+	      -e 'BEGIN {undef $$/; open(IN, "debian/script.in/nohwcap.sh"); $$k=<IN>;} s/__NOHWCAP__/$$k/g;' \
+	      -e 'BEGIN {undef $$/; open(IN, "debian/tmp-libc/usr/share/i18n/SUPPORTED"); $$l=<IN>;} s/__PROVIDED_LOCALES__/$$l/g;' \
+	      -e 's#GLIBC_VERSION#$(GLIBC_VERSION)#g;' \
+	      -e 's#CURRENT_VER#$(DEB_VERSION)#g;' \
+	      -e 's#BUILD-TREE#$(build-tree)#g;' \
+	      -e 's#LIBC#$(libc)#g;' \
+	      -e 's#DEB_HOST_ARCH#$(DEB_HOST_ARCH)#g;' \
 	      $$x > $$y ; \
 	  case $$y in \
 	    *.install) \
