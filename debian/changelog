@@ -11,6 +11,8 @@ glibc (2.21-0experimental2) UNRELEASED; urgency=medium
     libpthread/sysdeps/generic. Move libpthread/include/semaphore.h into
     libpthread/sysdeps/pthread/semaphore.h instead of the latter just
     including the former, since the latter is what gets installed.
+  * patches/hurd-i386/cvs-cache-mach_host_self.diff: New patch to avoid port
+    count issue on the host port.
 
   [ Aurelien Jarno ]
   * rules.d/debhelper.mk: replace GLIBC_VERSION before LIBC.  Closes:
@@ -304,10 +306,14 @@ glibc (2.21-0experimental0) experimental; urgency=medium
 
  -- Adam Conrad <adconrad@0c3.net>  Fri, 06 Mar 2015 13:47:43 -0700
 
-glibc (2.19-21~) UNRELEASED; urgency=medium
+glibc (2.19-22) unstable; urgency=medium
 
-  [ Aurelien Jarno ]
-  *
+  * patches/hurd-i386/cvs-cache-mach_host_self.diff: Remove, since it introduces
+    a new symbol, which will be easier to handle in 2.21.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 22 Sep 2015 01:38:34 +0200
+
+glibc (2.19-21) unstable; urgency=medium
 
   [ Samuel Thibault ]
   * patches/hurd-i386/cvs-bootstrap.diff: Fix typos.
@@ -319,7 +325,7 @@ glibc (2.19-21~) UNRELEASED; urgency=medium
   * patches/hurd-i386/tg-sendmsg-SCM_CREDS.diff: New patch, adds support for
     passing credentials over sockets (SCM_CREDS).
 
- -- Samuel Thibault <sthibault@debian.org>  Sun, 13 Sep 2015 19:50:50 +0200
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 21 Sep 2015 19:54:01 +0200
 
 glibc (2.19-20) unstable; urgency=medium
 
