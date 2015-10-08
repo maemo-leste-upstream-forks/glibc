@@ -1,16 +1,5 @@
-Build stubs for new gnumach.defs
+Build stubs for new task_notify.defs and gnumach.defs
 
---- a/mach/Makefile
-+++ b/mach/Makefile
-@@ -111,7 +111,7 @@ ifndef mach-shortcuts
- # $(mach-shortcuts) will be set, and that will change how
- # mach_interface.defs is processed: it will get the -D flags below.
- user-interfaces := $(filter-out $(mach-interface-list:%=mach/%) \
--				mach/mach_port mach/mach_host mach/mach4 \
-+				mach/mach_port mach/mach_host mach/mach4 mach/gnumach \
- 				device/device_request,\
- 				$(user-interfaces))
- endif
 --- a/sysdeps/mach/configure
 +++ b/sysdeps/mach/configure
 @@ -277,7 +277,7 @@ if test $libc_cv_mach_task_creation_time
@@ -18,7 +7,7 @@ Build stubs for new gnumach.defs
  
  mach_interface_list=
 -for ifc in mach mach4 \
-+for ifc in mach mach4 gnumach \
++for ifc in mach mach4 task_notify gnumach \
  	   clock clock_priv host_priv host_security ledger lock_set \
  	   processor processor_set task thread_act vm_map \
  	   memory_object memory_object_default default_pager \
@@ -29,7 +18,7 @@ Build stubs for new gnumach.defs
  dnl
  mach_interface_list=
 -for ifc in mach mach4 \
-+for ifc in mach mach4 gnumach \
++for ifc in mach mach4 task_notify gnumach \
  	   clock clock_priv host_priv host_security ledger lock_set \
  	   processor processor_set task thread_act vm_map \
  	   memory_object memory_object_default default_pager \
