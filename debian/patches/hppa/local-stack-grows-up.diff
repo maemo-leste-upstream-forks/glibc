@@ -1,28 +1,22 @@
----
- nptl/allocatestack.c         |   35 +++++++++++++++++++++++++----------
- nptl/pthread_create.c        |   19 ++++++++++++++++---
- nptl/pthread_getattr_np.c    |    4 ++++
- 5 files changed, 57 insertions(+), 13 deletions(-)
-
 --- a/nptl/allocatestack.c
 +++ b/nptl/allocatestack.c
-@@ -361,6 +361,15 @@
+@@ -371,6 +371,15 @@
    if (__glibc_unlikely (attr->flags & ATTR_FLAG_STACKADDR))
      {
        uintptr_t adj;
 +#if _STACK_GROWS_DOWN
 +      char * stackaddr = (char *) attr->stackaddr;
 +#else
-+      /* Assume the same layout as the _STACK_GROWS_DOWN case, 
-+	 with struct pthread at the top of the stack block. 
-+	 Later we adjust the guard location and stack address 
++      /* Assume the same layout as the _STACK_GROWS_DOWN case,
++	 with struct pthread at the top of the stack block.
++	 Later we adjust the guard location and stack address
 +	 to match the _STACK_GROWS_UP case.  */
 +      char * stackaddr = (char *) attr->stackaddr + attr->stacksize;
 +#endif
  
        /* If the user also specified the size of the stack make sure it
  	 is large enough.  */
-@@ -370,11 +379,11 @@
+@@ -380,11 +389,11 @@
  
        /* Adjust stack size for alignment of the TLS block.  */
  #if TLS_TCB_AT_TP
@@ -36,7 +30,7 @@
  	    & __static_tls_align_m1;
        assert (size > adj);
  #endif
-@@ -384,10 +393,10 @@
+@@ -394,10 +403,10 @@
  	 the stack.  It is the user's responsibility to do this if it
  	 is wanted.  */
  #if TLS_TCB_AT_TP
@@ -49,7 +43,7 @@
  				- __static_tls_size - adj)
  			       - TLS_PRE_TCB_SIZE);
  #endif
-@@ -399,7 +408,7 @@
+@@ -409,7 +418,7 @@
        pd->specific[0] = pd->specific_1stblock;
  
        /* Remember the stack-related values.  */
@@ -58,7 +52,7 @@
        pd->stackblock_size = size;
  
        /* This is a user-provided stack.  It will not be queued in the
-@@ -625,7 +634,7 @@
+@@ -633,7 +642,7 @@
  	  char *guard = mem + (((size - guardsize) / 2) & ~pagesize_m1);
  #elif _STACK_GROWS_DOWN
  	  char *guard = mem;
@@ -67,7 +61,7 @@
  	  char *guard = (char *) (((uintptr_t) pd - guardsize) & ~pagesize_m1);
  #endif
  	  if (mprotect (guard, guardsize, PROT_NONE) != 0)
-@@ -675,9 +684,13 @@
+@@ -683,9 +692,13 @@
  			prot) != 0)
  	    goto mprot_error;
  #elif _STACK_GROWS_UP
@@ -84,10 +78,10 @@
  #endif
  
  	  pd->guardsize = guardsize;
-@@ -720,8 +733,10 @@
- #elif _STACK_GROWS_DOWN
+@@ -732,8 +745,10 @@
    *stack = stacktop;
- #elif _STACK_GROWS_UP
+ # endif
+ #else
 +  /* We don't use stacktop. In _STACK_GROWS_UP the start
 +     of the stack is simply stackblock (lowest address of
 +     the stored block of memory for the stack).  */
@@ -98,7 +92,7 @@
    return 0;
 --- a/nptl/pthread_create.c
 +++ b/nptl/pthread_create.c
-@@ -399,12 +399,25 @@
+@@ -426,12 +426,25 @@
  #ifdef _STACK_GROWS_DOWN
    char *sp = CURRENT_STACK_FRAME;
    size_t freesize = (sp - (char *) pd->stackblock) & ~pagesize_m1;
@@ -109,11 +103,11 @@
    if (freesize > PTHREAD_STACK_MIN)
      __madvise (pd->stackblock, freesize - PTHREAD_STACK_MIN, MADV_DONTNEED);
 +#else
-+  /* Page aligned start of memory to free (higher than or equal 
++  /* Page aligned start of memory to free (higher than or equal
 +     to current sp plus the minimum stack size).  */
-+  void *freeblock = (void*)((size_t)(CURRENT_STACK_FRAME 
-+				     + PTHREAD_STACK_MIN 
-+				     + pagesize_m1) 
++  void *freeblock = (void*)((size_t)(CURRENT_STACK_FRAME
++				     + PTHREAD_STACK_MIN
++				     + pagesize_m1)
 +				    & ~pagesize_m1);
 +  char *free_end = (char *) (((uintptr_t) pd - pd->guardsize) & ~pagesize_m1);
 +  /* Is there any space to free?  */
