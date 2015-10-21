@@ -679,22 +679,21 @@
 +
 +/* Legal values for a_type (entry type).  */
 +
-+#define AT_NULL		0		/* End of vector */
-+#define AT_IGNORE	1		/* Entry should be ignored */
-+#define AT_EXECFD	2		/* File descriptor of program */
-+#define AT_PHDR		3		/* Program headers for program */
-+#define AT_PHENT	4		/* Size of program header entry */
-+#define AT_PHNUM	5		/* Number of program headers */
-+#define AT_PAGESZ	6		/* System page size */
-+#define AT_BASE		7		/* Base address of interpreter */
-+#define AT_FLAGS	8		/* Flags */
-+#define AT_ENTRY	9		/* Entry point of program */
-+#define AT_NOTELF	10		/* Program is not ELF */
-+#define AT_UID		11		/* Real uid */
-+#define AT_EUID		12		/* Effective uid */
-+#define AT_GID		13		/* Real gid */
-+#define AT_EGID		14		/* Effective gid */
-+
++#define	AT_NULL		0	/* End of vector */
++#define	AT_IGNORE	1	/* Entry should be ignored */
++#define	AT_EXECFD	2	/* File descriptor of program */
++#define	AT_PHDR		3	/* Program headers for program */
++#define	AT_PHENT	4	/* Size of program header entry */
++#define	AT_PHNUM	5	/* Number of program headers */
++#define	AT_PAGESZ	6	/* System page size */
++#define	AT_BASE		7	/* Base address of interpreter */
++#define	AT_FLAGS	8	/* Flags */
++#define	AT_ENTRY	9	/* Entry point of program */
++#define	AT_NOTELF	10	/* Program is not ELF */
++#define	AT_UID		11	/* Real uid */
++#define	AT_EUID		12	/* Effective uid */
++#define	AT_GID		13	/* Real gid */
++#define	AT_EGID		14	/* Effective gid */
 +#define	AT_EXECPATH	15	/* Path to the executable. */
 +#define	AT_CANARY	16	/* Canary for SSP. */
 +#define	AT_CANARYLEN	17	/* Length of the canary. */
@@ -702,6 +701,7 @@
 +#define	AT_NCPUS	19	/* Number of CPUs. */
 +#define	AT_PAGESIZES	20	/* Pagesizes. */
 +#define	AT_PAGESIZESLEN	21	/* Number of pagesizes. */
++#define	AT_TIMEKEEP	22	/* Pointer to timehands. */
 +#define	AT_STACKPROT	23	/* Initial stack protection. */
 +
 --- /dev/null
@@ -4891,7 +4891,7 @@
 +#endif
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/utsname.h
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,31 @@
 +/* Copyright (C) 1997, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -4919,6 +4919,10 @@
 +
 +/* But the version entry is longer.  */
 +#define _UTSNAME_VERSION_LENGTH 256
++
++/* If nonzero, the size of of the `domainname` field in `struct utsname'.
++   This is zero to indicate that there should be no such field at all.  */
++#define _UTSNAME_DOMAIN_LENGTH  0
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/waitflags.h
 @@ -0,0 +1,82 @@
@@ -6774,7 +6778,7 @@
 +#include <elf/dl-support.c>
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-sysdep.c
-@@ -0,0 +1,315 @@
+@@ -0,0 +1,316 @@
 +/* Operating system support for run-time dynamic linker.  GNU/kFreeBSD version.
 +   Copyright (C) 1995-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -7012,6 +7016,7 @@
 +	  [AT_NCPUS - 2] =		{ "NCPUS:        ", dec },
 +	  [AT_PAGESIZES - 2] =		{ "PAGESIZES:    0x", hex },
 +	  [AT_PAGESIZESLEN - 2] =	{ "PAGESIZESLEN: ", dec },
++	  [AT_TIMEKEEP - 2] =		{ "TIMEKEEP:     0x", hex },
 +	  [AT_STACKPROT - 2] =		{ "STACKPROT:    0x", hex },
 +	};
 +      unsigned int idx = (unsigned int) (av->a_type - 2);
@@ -14576,6 +14581,76 @@
 +#endif
 +
 +#endif /* _BITS_SIGCONTEXT_H */
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/c++-types.data
+@@ -0,0 +1,67 @@
++blkcnt64_t:x
++blkcnt_t:x
++blksize_t:j
++caddr_t:Pc
++clockid_t:i
++clock_t:i
++daddr_t:x
++dev_t:j
++fd_mask:l
++fsblkcnt64_t:y
++fsblkcnt_t:m
++fsfilcnt64_t:y
++fsfilcnt_t:m
++fsid_t:8__fsid_t
++gid_t:j
++id_t:j
++ino64_t:y
++ino_t:j
++int16_t:s
++int32_t:i
++int64_t:x
++int8_t:a
++intptr_t:i
++key_t:l
++loff_t:x
++mode_t:t
++nlink_t:t
++off64_t:x
++off_t:x
++pid_t:i
++pthread_attr_t:14pthread_attr_t
++pthread_barrier_t:17pthread_barrier_t
++pthread_barrierattr_t:21pthread_barrierattr_t
++pthread_cond_t:14pthread_cond_t
++pthread_condattr_t:18pthread_condattr_t
++pthread_key_t:j
++pthread_mutex_t:15pthread_mutex_t
++pthread_mutexattr_t:19pthread_mutexattr_t
++pthread_once_t:i
++pthread_rwlock_t:16pthread_rwlock_t
++pthread_rwlockattr_t:20pthread_rwlockattr_t
++pthread_spinlock_t:i
++pthread_t:m
++quad_t:x
++register_t:i
++rlim64_t:x
++rlim_t:x
++sigset_t:10__sigset_t
++size_t:j
++socklen_t:j
++ssize_t:i
++suseconds_t:l
++time_t:l
++u_char:h
++uid_t:j
++uint:j
++u_int:j
++u_int16_t:t
++u_int32_t:j
++u_int64_t:y
++u_int8_t:h
++ulong:m
++u_long:m
++u_quad_t:y
++useconds_t:j
++ushort:t
++u_short:t
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/dl-machine.h
 @@ -0,0 +1,145 @@
@@ -30957,7 +31032,7 @@
 +#include <sysdeps/unix/sysv/linux/wait3.c>
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/waitid.c
-@@ -0,0 +1,107 @@
+@@ -0,0 +1,108 @@
 +/* 
 +   Copyright (C) 2004-2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -30978,6 +31053,7 @@
 +
 +#include <shlib-compat.h>
 +#include <stddef.h>
++#include <string.h>
 +#include <errno.h>
 +#include <sys/wait.h>
 +#include <sysdep.h>
@@ -31893,6 +31969,76 @@
 +#endif
 +
 +#endif /* _BITS_SIGCONTEXT_H */
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/c++-types.data
+@@ -0,0 +1,67 @@
++blkcnt64_t:l
++blkcnt_t:l
++blksize_t:j
++caddr_t:Pc
++clockid_t:i
++clock_t:i
++daddr_t:l
++dev_t:j
++fd_mask:l
++fsblkcnt64_t:m
++fsblkcnt_t:m
++fsfilcnt64_t:m
++fsfilcnt_t:m
++fsid_t:8__fsid_t
++gid_t:j
++id_t:j
++ino64_t:m
++ino_t:j
++int16_t:s
++int32_t:i
++int64_t:l
++int8_t:a
++intptr_t:l
++key_t:l
++loff_t:l
++mode_t:t
++nlink_t:t
++off64_t:l
++off_t:l
++pid_t:i
++pthread_attr_t:14pthread_attr_t
++pthread_barrier_t:17pthread_barrier_t
++pthread_barrierattr_t:21pthread_barrierattr_t
++pthread_cond_t:14pthread_cond_t
++pthread_condattr_t:18pthread_condattr_t
++pthread_key_t:j
++pthread_mutex_t:15pthread_mutex_t
++pthread_mutexattr_t:19pthread_mutexattr_t
++pthread_once_t:i
++pthread_rwlock_t:16pthread_rwlock_t
++pthread_rwlockattr_t:20pthread_rwlockattr_t
++pthread_spinlock_t:i
++pthread_t:m
++quad_t:l
++register_t:l
++rlim64_t:l
++rlim_t:l
++sigset_t:10__sigset_t
++size_t:m
++socklen_t:j
++ssize_t:l
++suseconds_t:l
++time_t:l
++u_char:h
++uid_t:j
++uint:j
++u_int:j
++u_int16_t:t
++u_int32_t:j
++u_int64_t:m
++u_int8_t:h
++ulong:m
++u_long:m
++u_quad_t:m
++useconds_t:j
++ushort:t
++u_short:t
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-cache.h
 @@ -0,0 +1 @@
