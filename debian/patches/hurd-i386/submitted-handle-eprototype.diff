@@ -83,7 +83,7 @@ Checking for the EPROTOTYPE errno in addition to EINVAL handles the situation.
 +					     && (errno == EINVAL || errno == EPROTOTYPE) ? -1 : 1);
  #endif
  			}
- 			if (__builtin_expect (__have_o_nonblock < 0, 0))
+ 			if (__glibc_unlikely (__have_o_nonblock < 0))
 @@ -945,7 +945,7 @@ reopen (res_state statp, int *terrno, in
  				if (__have_o_nonblock == 0)
  					__have_o_nonblock
@@ -92,7 +92,7 @@ Checking for the EPROTOTYPE errno in addition to EINVAL handles the situation.
 +					     && (errno == EINVAL || errno == EPROTOTYPE) ? -1 : 1);
  #endif
  			}
- 			if (__builtin_expect (__have_o_nonblock < 0, 0))
+ 			if (__glibc_unlikely (__have_o_nonblock < 0))
 --- a/sunrpc/clnt_udp.c
 +++ b/sunrpc/clnt_udp.c
 @@ -180,7 +180,7 @@ __libc_clntudp_bufcreate (struct sockadd
