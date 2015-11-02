@@ -25449,7 +25449,7 @@
 +libc_hidden_def (__profile_frequency)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptsname.c
-@@ -0,0 +1,109 @@
+@@ -0,0 +1,110 @@
 +/* Copyright (C) 1998-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -25522,7 +25522,8 @@
 +  /* Check if FD really is a master pseudo terminal.  */
 +  if (0 != __isptymaster(fd))
 +  {
-+      return errno;
++      __set_errno (ENOTTY);
++      return ENOTTY;
 +  }
 +
 +  if (buflen < sizeof (_PATH_DEV) + 5) /* "/dev/" + "pts/"   */
