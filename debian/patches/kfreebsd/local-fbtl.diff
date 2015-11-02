@@ -13481,7 +13481,7 @@
 +sysd-rules-patterns += ptw-%:%
 --- /dev/null
 +++ b/fbtl/Makefile
-@@ -0,0 +1,634 @@
+@@ -0,0 +1,643 @@
 +# Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +# This file is part of the GNU C Library.
 +
@@ -13696,19 +13696,11 @@
 +	tst-attr1 tst-attr2 tst-attr3 tst-default-attr \
 +	tst-mutex1 tst-mutex2 tst-mutex3 tst-mutex4 tst-mutex5 tst-mutex6 \
 +	tst-mutex7 tst-mutex8 tst-mutex9 tst-mutex5a tst-mutex7a \
-+	tst-mutexpi1 tst-mutexpi2 tst-mutexpi3 tst-mutexpi4 tst-mutexpi5 \
-+	tst-mutexpi5a tst-mutexpi6 tst-mutexpi7 tst-mutexpi7a tst-mutexpi8 \
-+	tst-mutexpi9 \
 +	tst-spin1 tst-spin2 tst-spin3 \
 +	tst-cond1 tst-cond2 tst-cond3 tst-cond4 tst-cond5 tst-cond6 tst-cond7 \
 +	tst-cond8 tst-cond9 tst-cond10 tst-cond11 tst-cond12 tst-cond13 \
 +	tst-cond14 tst-cond15 tst-cond16 tst-cond17 tst-cond18 tst-cond19 \
-+	tst-cond20 tst-cond21 tst-cond22 tst-cond23 tst-cond24 tst-cond25 \
-+	tst-cond-except \
-+	tst-robust1 tst-robust2 tst-robust3 tst-robust4 tst-robust5 \
-+	tst-robust6 tst-robust7 tst-robust8 tst-robust9 \
-+	tst-robustpi1 tst-robustpi2 tst-robustpi3 tst-robustpi4 tst-robustpi5 \
-+	tst-robustpi6 tst-robustpi7 tst-robustpi8 tst-robustpi9 \
++	tst-cond20 tst-cond21 tst-cond22 tst-cond23 \
 +	tst-rwlock1 tst-rwlock2 tst-rwlock2a tst-rwlock3 tst-rwlock4 \
 +	tst-rwlock5 tst-rwlock6 tst-rwlock7 tst-rwlock8 tst-rwlock9 \
 +	tst-rwlock10 tst-rwlock11 tst-rwlock12 tst-rwlock13 tst-rwlock14 \
@@ -13759,6 +13751,18 @@
 +	tst-vfork1 tst-vfork2 tst-vfork1x tst-vfork2x \
 +	tst-getpid1 tst-getpid2 tst-getpid3 \
 +	tst-initializers1 $(patsubst %,tst-initializers1-%,c89 gnu89 c99 gnu99)
++
++# These tests do not even compile due to missing pthread_* functions
++#	tst-mutexpi1 tst-mutexpi2 tst-mutexpi3 tst-mutexpi4 tst-mutexpi5 \
++#	tst-mutexpi5a tst-mutexpi6 tst-mutexpi7 tst-mutexpi7a tst-mutexpi8 \
++#	tst-mutexpi9 \
++#	tst-cond24 tst-cond25 \
++#	tst-cond-except \
++#	tst-robust1 tst-robust2 tst-robust3 tst-robust4 tst-robust5 \
++#	tst-robust6 tst-robust7 tst-robust8 tst-robust9 \
++#	tst-robustpi1 tst-robustpi2 tst-robustpi3 tst-robustpi4 tst-robustpi5 \
++#	tst-robustpi6 tst-robustpi7 tst-robustpi8 tst-robustpi9 \
++
 +xtests = tst-setuid1 tst-setuid1-static tst-mutexpp1 tst-mutexpp6 tst-mutexpp10
 +test-srcs = tst-oddstacklimit
 +
@@ -13844,11 +13848,16 @@
 +
 +tests-static += tst-locale1 tst-locale2 tst-stackguard1-static \
 +		tst-cancel21-static tst-cancel24-static tst-cond8-static \
-+		tst-mutex8-static tst-mutexpi8-static tst-sem11-static \
++		tst-mutex8-static tst-sem11-static \
 +		tst-sem12-static
++# This test does not even compile due to missing pthread_* functions
++		tst-mutexpi8-static
 +tests += tst-stackguard1-static tst-cancel21-static tst-cancel24-static \
-+	 tst-cond8-static tst-mutex8-static tst-mutexpi8-static \
++	 tst-cond8-static tst-mutex8-static \
 +	 tst-sem11-static tst-sem12-static
++# This test does not even compile due to missing pthread_* functions
++	 tst-mutexpi8-static
++
 +xtests-static += tst-setuid1-static
 +
 +# These tests are linked with libc before libpthread
@@ -32760,7 +32769,7 @@
 +#define GAI_MISC_NOTIFY(waitlist) \
 +  do {									      \
 +    if (*waitlist->counterp > 0 && --*waitlist->counterp == 0)		      \
-+      lll_futex_wake (waitlist->counterp, 1, LLL_PRIVATE);		      \
++      lll_futex_wake ((unsigned int *) waitlist->counterp, 1, LLL_PRIVATE);   \
 +  } while (0)
 +
 +#define GAI_MISC_WAIT(result, futex, timeout, cancel) \
@@ -32779,8 +32788,8 @@
 +	int status;							      \
 +	do								      \
 +	  {								      \
-+	    status = lll_futex_timed_wait (futexaddr, oldval, timeout,	      \
-+					   LLL_PRIVATE);		      \
++	    status = lll_futex_timed_wait ((unsigned int *) futexaddr, oldval,\
++					   timeout, LLL_PRIVATE);	      \
 +	    if (status != EWOULDBLOCK)					      \
 +	      break;							      \
 +									      \

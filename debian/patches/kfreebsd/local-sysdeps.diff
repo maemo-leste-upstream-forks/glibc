@@ -2929,7 +2929,7 @@
 +#define	SIG_SETMASK	3	/* Set the set of blocked signals.  */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h
-@@ -0,0 +1,237 @@
+@@ -0,0 +1,276 @@
 +/* siginfo_t, sigevent and constants.  FreeBSD version.
 +   Copyright (C) 1997-1998, 2000-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2984,9 +2984,48 @@
 +    int si_status;		/* Exit value or signal.  */
 +    void *si_addr;		/* Address of faulting instruction.  */
 +    union sigval si_value;	/* Signal value.  */
-+    long int si_band;		/* Band event for SIGPOLL.  */
-+    int __si_spare[7];
++    union
++      {
++	struct
++	  {
++	    int     _trapno;	/* machine specific trap code */
++	   } _fault;
++
++	/* POSIX.1b timers.  */
++	struct
++	  {
++	    int     _timerid;
++	    int     _overrun;
++	  } _timer;
++
++	struct
++	  {
++	    int     _mqd;
++	  } _mesgq;
++
++	/* SIGPOLL.  */
++	struct
++	  {
++	    long    _band;	/* band event for SIGPOLL.  */
++	  } _poll;
++
++	struct
++	  {
++	    long    __spare1__;
++	    int     __spare2__[7];
++	  } __spare__;
++	} _reason;
 +  } siginfo_t;
++
++
++/* X/Open requires some more fields with fixed names.  */
++# define si_int		si_value.sival_int
++# define si_ptr		si_value.sival_ptr
++# define si_trapno	_reason._fault._trapno
++# define si_timerid	_reason._timer._timerid
++# define si_overrun	_reason._timer._overrun
++# define si_mqd		_reason._mesgq._mqd
++# define si_band	_reason._poll._band
 +
 +
 +/* Values for `si_code'.  Positive values are reserved for kernel-generated
