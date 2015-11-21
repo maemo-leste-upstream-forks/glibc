@@ -2126,7 +2126,7 @@
 +#define POLLPRI		0x0002		/* There is urgent data to read.  */
 +#define POLLOUT		0x0004		/* Writing now will not block.  */
 +
-+#ifdef __USE_XOPEN
++#if defined __USE_XOPEN || defined __USE_XOPEN2K8
 +/* These values are defined in XPG4.2.  */
 +# define POLLRDNORM	0x0040		/* Normal data may be read.  */
 +# define POLLRDBAND	0x0080		/* Priority data may be read.  */
@@ -4420,7 +4420,7 @@
 +#endif /* bits/syslog-path.h */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/termios.h
-@@ -0,0 +1,253 @@
+@@ -0,0 +1,245 @@
 +/* termios type and macro definitions.  FreeBSD version.
 +   Copyright (C) 1993-1994,1996-1997,1999,2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -4580,38 +4580,30 @@
 +#ifdef	__USE_MISC
 +# define ECHOKE	(1 << 0)	/* Visual erase for KILL.  */
 +#endif
-+#define	_ECHOE	(1 << 1)	/* Visual erase for ERASE.  */
-+#define	ECHOE	_ECHOE
-+#define	_ECHOK	(1 << 2)	/* Echo NL after KILL.  */
-+#define	ECHOK	_ECHOK
-+#define	_ECHO	(1 << 3)	/* Enable echo.  */
-+#define	ECHO	_ECHO
-+#define	_ECHONL	(1 << 4)	/* Echo NL even if ECHO is off.  */
-+#define	ECHONL	_ECHONL
++#define	ECHOE	(1 << 1)	/* Visual erase for ERASE.  */
++#define	ECHOK	(1 << 2)	/* Echo NL after KILL.  */
++#define	ECHO	(1 << 3)	/* Enable echo.  */
++#define	ECHONL	(1 << 4)	/* Echo NL even if ECHO is off.  */
 +#ifdef	__USE_MISC
 +# define ECHOPRT	(1 << 5)	/* Hardcopy visual erase.  */
 +# define ECHOCTL	(1 << 6)	/* Echo control characters as ^X.  */
 +#endif
-+#define	_ISIG	(1 << 7)	/* Enable signals.  */
-+#define	ISIG	_ISIG
-+#define	_ICANON	(1 << 8)	/* Do erase and kill processing.  */
-+#define	ICANON	_ICANON
++#define	ISIG	(1 << 7)	/* Enable signals.  */
++#define	ICANON	(1 << 8)	/* Do erase and kill processing.  */
 +#ifdef	__USE_MISC
 +# define ALTWERASE (1 << 9)	/* Alternate WERASE algorithm.  */
 +#endif
-+#define	_IEXTEN	(1 << 10)	/* Enable DISCARD and LNEXT.  */
-+#define	IEXTEN	_IEXTEN
-+#define	_EXTPROC (1 << 11)	/* External processing.  */
-+#define EXTPROC	_EXTPROC
-+#define	_TOSTOP	(1 << 22)	/* Send SIGTTOU for background output.  */
-+#define	TOSTOP	_TOSTOP
++#define	IEXTEN	(1 << 10)	/* Enable DISCARD and LNEXT.  */
++#ifdef __USE_MISC
++# define EXTPROC (1 << 11)	/* External processing.  */
++#endif
++#define	TOSTOP	(1 << 22)	/* Send SIGTTOU for background output.  */
 +#ifdef	__USE_MISC
 +# define FLUSHO	(1 << 23)	/* Output being flushed (state).  */
 +# define NOKERNINFO (1 << 25)	/* Disable VSTATUS.  */
 +# define PENDIN	(1 << 29)	/* Retype pending input (state).  */
 +#endif
-+#define	_NOFLSH	(1 << 31)	/* Disable flush after interrupt.  */
-+#define	NOFLSH	_NOFLSH
++#define	NOFLSH	(1 << 31)	/* Disable flush after interrupt.  */
 +
 +  /* Input and output baud rates.  */
 +#define	B0	0		/* Hang up.  */
@@ -4676,7 +4668,7 @@
 +
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/time.h
-@@ -0,0 +1,102 @@
+@@ -0,0 +1,103 @@
 +/* System-dependent timing definitions.  FreeBSD version.
 +   Copyright (C) 1996-1997, 1999, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -4712,7 +4704,8 @@
 +   XSI-conformant systems. */
 +#  define CLOCKS_PER_SEC  ((clock_t) 1000000l)
 +
-+#  if !defined __STRICT_ANSI__ && !defined __USE_XOPEN2K
++#  if (!defined __STRICT_ANSI__ || defined __USE_POSIX) \
++   && !defined __USE_XOPEN2K
 +/* Even though CLOCKS_PER_SEC has such a strange value CLK_TCK
 +   presents the real value for clock ticks per second for the system.  */
 +#   define CLK_TCK 128
@@ -10278,7 +10271,7 @@
 +#include <string.h>
 +#include <unistd.h>
 +
-+extern int __syscall_thr_set_name(long tid, char *name);
++extern int __syscall_thr_set_name(long tid, const char *name);
 +libc_hidden_proto(__syscall_thr_set_name)
 +
 +int
