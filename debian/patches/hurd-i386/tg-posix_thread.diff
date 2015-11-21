@@ -7,8 +7,8 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
 ---
  sysdeps/mach/hurd/Makefile         |  4 ++++
- sysdeps/mach/hurd/bits/posix_opt.h | 40 +++++++++++++++++++++++++-------------
- 2 files changed, 31 insertions(+), 13 deletions(-)
+ sysdeps/mach/hurd/bits/local_lim.h |  9 ++++++++
+ sysdeps/mach/hurd/bits/posix_opt.h | 42 +++++++++++++++++++++++++-------------
 
 diff --git a/sysdeps/mach/hurd/Makefile b/sysdeps/mach/hurd/Makefile
 index 68aedb6..4a6ee36 100644
@@ -25,6 +25,23 @@ index 68aedb6..4a6ee36 100644
  # Override the generic Makeconfig values so we link against the RPC libs.
  link-libc-static := -Wl,--start-group \
  		    $(patsubst %,$(common-objpfx)%.a,\
+diff --git a/sysdeps/mach/hurd/bits/local_lim.h b/sysdeps/mach/hurd/bits/local_lim.h
+index f7cc86c..570b5ce 100644
+--- a/sysdeps/mach/hurd/bits/local_lim.h
++++ b/sysdeps/mach/hurd/bits/local_lim.h
+@@ -32,3 +32,12 @@
+    suitable, and `sysconf' will return a number at least as large.  */
+ 
+ #define NGROUPS_MAX	256
++
++/* The number of data keys per process.  */
++#define _POSIX_THREAD_KEYS_MAX	128
++
++/* Controlling the iterations of destructors for thread-specific data.  */
++#define _POSIX_THREAD_DESTRUCTOR_ITERATIONS	4
++
++/* The number of threads per process.  */
++#define _POSIX_THREAD_THREADS_MAX	64
 diff --git a/sysdeps/mach/hurd/bits/posix_opt.h b/sysdeps/mach/hurd/bits/posix_opt.h
 index 940e376..24ef55c 100644
 --- a/sysdeps/mach/hurd/bits/posix_opt.h
@@ -101,8 +118,9 @@ index 940e376..24ef55c 100644
 @@ -140,7 +154,7 @@
  #define _POSIX_TIMERS	0
  
- /* The barrier functions are not available.  */
+-/* The barrier functions are not available.  */
 -#define _POSIX_BARRIERS	-1
++/* We support barrier functions.  */
 +#define _POSIX_BARRIERS	200112L
  
  /* POSIX message queues could be available in future.  */
