@@ -1,10 +1,14 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.21/master from glibc-2.21
 
 diff --git a/ChangeLog b/ChangeLog
-index dc1ed1b..868d355 100644
+index dc1ed1b..079b411 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,63 @@
+@@ -1,3 +1,67 @@
++2015-07-08  Mike Frysinger  <vapier@gentoo.org>
++
++	* nscd/selinux.c: Delete selinux/flask.h include.
++
 +2015-03-02  Andreas Schwab  <schwab@suse.de>
 +
 +	* elf/Makefile ($(elf-objpfx)runtime-linker.st): Fix typo in
@@ -68,7 +72,7 @@ index dc1ed1b..868d355 100644
  2015-02-06  Carlos O'Donell  <carlos@systemhalted.org>
  
  	* version.h (RELEASE): Set to "stable".
-@@ -7,6 +67,7 @@
+@@ -7,6 +71,7 @@
  	* sysdeps/unix/sysv/linux/hppa/pthread.h: Sync with pthread.h.
  
  2015-02-05  Paul Pluzhnikov  <ppluzhnikov@google.com>
@@ -335,6 +339,18 @@ index 876c89f..820b354 100644
     }
  
    return result;
+diff --git a/nscd/selinux.c b/nscd/selinux.c
+index e433b1b..806763f 100644
+--- a/nscd/selinux.c
++++ b/nscd/selinux.c
+@@ -29,7 +29,6 @@
+ #include <unistd.h>
+ #include <sys/prctl.h>
+ #include <selinux/avc.h>
+-#include <selinux/flask.h>
+ #include <selinux/selinux.h>
+ #ifdef HAVE_LIBAUDIT
+ # include <libaudit.h>
 diff --git a/nss/Makefile b/nss/Makefile
 index d419baf..dc351dd 100644
 --- a/nss/Makefile
