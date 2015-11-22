@@ -10245,7 +10245,7 @@
 +#endif
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_setname.c
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,34 @@
 +/* pthread_setname_np -- Set  thread name
 +   Copyright (C) 2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -10270,9 +10270,6 @@
 +#include <stdio.h>
 +#include <string.h>
 +#include <unistd.h>
-+
-+extern int __syscall_thr_set_name(long tid, const char *name);
-+libc_hidden_proto(__syscall_thr_set_name)
 +
 +int
 +pthread_setname_np (th, name)
@@ -29445,7 +29442,7 @@
 +int __syscall_thr_kill2(int pid, long id, int sig);
 +int __syscall_thr_new(void *arg, int size);
 +int __syscall_thr_self(long *id);
-+int __syscall_thr_set_name(long id, char*name);
++int __syscall_thr_set_name(long id, const char *name);
 +libc_hidden_proto (__syscall_thr_exit)
 +libc_hidden_proto (__syscall_thr_kill)
 +libc_hidden_proto (__syscall_thr_kill2)
