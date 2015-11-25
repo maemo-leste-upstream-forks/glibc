@@ -21,12 +21,10 @@ diff --git a/sysdeps/mach/hurd/dl-sysdep.c b/sysdeps/mach/hurd/dl-sysdep.c
 index e446f15..7b3c569 100644
 --- a/sysdeps/mach/hurd/dl-sysdep.c
 +++ b/sysdeps/mach/hurd/dl-sysdep.c
-@@ -55,7 +55,8 @@ rtld_hidden_data_def (__libc_enable_secure)
- int __libc_multiple_libcs = 0;	/* Defining this here avoids the inclusion
+@@ -55,6 +55,7 @@ rtld_hidden_data_def (__libc_enable_secure)
  				   of init-first.  */
  /* This variable contains the lowest stack address ever used.  */
--void *__libc_stack_end;
-+void *__libc_stack_end attribute_relro = NULL;
+ void *__libc_stack_end;
 +rtld_hidden_data_def(__libc_stack_end)
  
  #if HP_TIMING_AVAIL
