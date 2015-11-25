@@ -102,7 +102,7 @@ index 0000000..b456158
 +	movl	%eax, 8(%esp)
 +	movl	$0, 4(%esp)
 +	movl	$SIG_BLOCK, (%esp)
-+	call	HIDDEN_JUMPTARGET (__sigprocmask)
++	call	JUMPTARGET (__sigprocmask)
 +	addl	$12, %esp
 +	cfi_adjust_cfa_offset (-12)
 +	/* Propagate %eax (and errno, in case).  */
@@ -363,7 +363,7 @@ index 0000000..2294eb6
 +	leal	oSIGMASK(%eax), %eax
 +	movl	%eax, 4(%esp)
 +	movl	$SIG_SETMASK, (%esp)
-+	call	HIDDEN_JUMPTARGET (__sigprocmask)
++	call	JUMPTARGET (__sigprocmask)
 +	addl	$12, %esp
 +	cfi_adjust_cfa_offset (-12)
 +	testl	%eax, %eax
@@ -490,7 +490,7 @@ index 0000000..fb45b70
 +	leal	oSIGMASK(%ecx), %eax
 +	movl	%eax, 4(%esp)
 +	movl	$SIG_SETMASK, (%esp)
-+	call	HIDDEN_JUMPTARGET (__sigprocmask)
++	call	JUMPTARGET (__sigprocmask)
 +	addl	$12, %esp
 +	cfi_adjust_cfa_offset (-12)
 +	testl	%eax, %eax
