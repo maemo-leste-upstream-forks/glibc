@@ -1,27 +1,21 @@
-diff --git a/sysdeps/i386/setjmp.S b/sysdeps/i386/setjmp.S
-index 5fe4900..cb4f0bd 100644
 --- a/sysdeps/i386/setjmp.S
 +++ b/sysdeps/i386/setjmp.S
-@@ -55,3 +55,4 @@ ENTRY (__sigsetjmp)
+@@ -55,3 +55,4 @@
  	jmp __sigjmp_save
  #endif
  END (__sigsetjmp)
 +hidden_def (__sigsetjmp)
-diff --git a/sysdeps/mach/hurd/accept4.c b/sysdeps/mach/hurd/accept4.c
-index 19114f7..13cd593 100644
 --- a/sysdeps/mach/hurd/accept4.c
 +++ b/sysdeps/mach/hurd/accept4.c
-@@ -95,5 +95,4 @@ __libc_accept4 (int fd, __SOCKADDR_ARG addrarg, socklen_t *addr_len, int flags)
+@@ -95,5 +95,4 @@
  
    return _hurd_intern_fd (new, O_IGNORE_CTTY | flags, 1);
  }
 -libc_hidden_def (__libc_accept4)
  weak_alias (__libc_accept4, accept4)
-diff --git a/sysdeps/mach/hurd/dl-sysdep.c b/sysdeps/mach/hurd/dl-sysdep.c
-index e446f15..7b3c569 100644
 --- a/sysdeps/mach/hurd/dl-sysdep.c
 +++ b/sysdeps/mach/hurd/dl-sysdep.c
-@@ -55,6 +55,7 @@ rtld_hidden_data_def (__libc_enable_secure)
+@@ -55,7 +55,8 @@
  int __libc_multiple_libcs = 0;	/* Defining this here avoids the inclusion
  				   of init-first.  */
  /* This variable contains the lowest stack address ever used.  */
@@ -31,20 +25,16 @@ index e446f15..7b3c569 100644
  
  #if HP_TIMING_AVAIL
  hp_timing_t _dl_cpuclock_offset;
-diff --git a/sysdeps/mach/hurd/fxstatat64.c b/sysdeps/mach/hurd/fxstatat64.c
-index a15c16d..ee7456d 100644
 --- a/sysdeps/mach/hurd/fxstatat64.c
 +++ b/sysdeps/mach/hurd/fxstatat64.c
-@@ -43,3 +43,4 @@ __fxstatat64 (int vers, int fd, const char *filename, struct stat64 *buf,
+@@ -43,3 +43,4 @@
  
    return __hurd_fail (err);
  }
 +libc_hidden_def (__fxstatat64)
-diff --git a/sysdeps/mach/hurd/if_index.c b/sysdeps/mach/hurd/if_index.c
-index 652149b..03b31f9 100644
 --- a/sysdeps/mach/hurd/if_index.c
 +++ b/sysdeps/mach/hurd/if_index.c
-@@ -65,7 +65,9 @@ __if_freenameindex (struct if_nameindex *ifn)
+@@ -65,7 +65,9 @@
      }
    free (ifn);
  }
@@ -54,7 +44,7 @@ index 652149b..03b31f9 100644
  
  /* Return an array of if_nameindex structures, one for each network
     interface present, plus one indicating the end of the array.  On
-@@ -152,6 +154,7 @@ __if_nameindex (void)
+@@ -152,6 +154,7 @@
    return idx;
  }
  weak_alias (__if_nameindex, if_nameindex)
@@ -62,39 +52,31 @@ index 652149b..03b31f9 100644
  
  /* Store the name of the interface corresponding to index IFINDEX in
     IFNAME (which has space for at least IFNAMSIZ characters).  Return
-diff --git a/sysdeps/mach/hurd/open.c b/sysdeps/mach/hurd/open.c
-index c497a7c..6d5c97b 100644
 --- a/sysdeps/mach/hurd/open.c
 +++ b/sysdeps/mach/hurd/open.c
-@@ -56,5 +56,5 @@ weak_alias (__libc_open, open)
+@@ -56,5 +56,5 @@
  /* open64 is just the same as open for us.  */
  weak_alias (__libc_open, __libc_open64)
  weak_alias (__libc_open, __open64)
 -libc_hidden_weak (_open64)
 +libc_hidden_weak (__open64)
  weak_alias (__libc_open, open64)
-diff --git a/sysdeps/mach/hurd/sigwait.c b/sysdeps/mach/hurd/sigwait.c
-index de024a3..8850f2a 100644
 --- a/sysdeps/mach/hurd/sigwait.c
 +++ b/sysdeps/mach/hurd/sigwait.c
-@@ -129,4 +129,5 @@ all_done:
+@@ -134,4 +134,5 @@
    return 0;
  }
  
 +libc_hidden_def (__sigwait)
  weak_alias (__sigwait, sigwait)
-diff --git a/sysdeps/mach/hurd/xmknodat.c b/sysdeps/mach/hurd/xmknodat.c
-index 6c7d669..82a6eb9 100644
 --- a/sysdeps/mach/hurd/xmknodat.c
 +++ b/sysdeps/mach/hurd/xmknodat.c
-@@ -115,3 +115,5 @@ __xmknodat (int vers, int fd, const char *path, mode_t mode, dev_t *dev)
+@@ -115,3 +115,5 @@
      return __hurd_fail (err);
    return 0;
  }
 +
 +libc_hidden_def (__xmknodat)
-diff --git a/sysdeps/mach/nanosleep.c b/sysdeps/mach/nanosleep.c
-index 390d8a7..eabd23e 100644
 --- a/sysdeps/mach/nanosleep.c
 +++ b/sysdeps/mach/nanosleep.c
 @@ -19,10 +19,11 @@
@@ -110,7 +92,7 @@ index 390d8a7..eabd23e 100644
  	     struct timespec *remaining)
  {
    mach_port_t recv;
-@@ -64,5 +65,6 @@ __nanosleep (const struct timespec *requested_time,
+@@ -64,5 +65,6 @@
  
    return 0;
  }
@@ -118,8 +100,8 @@ index 390d8a7..eabd23e 100644
  libc_hidden_def (__nanosleep)
 -weak_alias (__nanosleep, nanosleep)
 +weak_alias (__libc_nanosleep, nanosleep)
---- a/libpthread/sysdeps/generic/raise.c.orig	2015-11-25 02:19:19.640063307 +0100
-+++ b/libpthread/sysdeps/generic/raise.c	2015-11-25 02:19:32.860007847 +0100
+--- a/libpthread/sysdeps/generic/raise.c
++++ b/libpthread/sysdeps/generic/raise.c
 @@ -19,6 +19,7 @@
     <http://www.gnu.org/licenses/>.  */
  
@@ -150,7 +132,7 @@ index 390d8a7..eabd23e 100644
  stub_warning (pthread_key_create)
 --- a/libpthread/sysdeps/hurd/pt-key-create.c
 +++ b/libpthread/sysdeps/hurd/pt-key-create.c
-@@ -108,4 +108,3 @@ __pthread_key_create (pthread_key_t *key, void (*destructor) (void *))
+@@ -108,4 +108,3 @@
    return 0;
  }
  strong_alias (__pthread_key_create, pthread_key_create)
