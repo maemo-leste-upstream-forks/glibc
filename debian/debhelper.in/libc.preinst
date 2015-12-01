@@ -28,15 +28,6 @@ kfreebsd_compare_versions () {
     test $verA -$2 $verB
 }
 
-kernel26_help() {
-    echo ""
-    echo "The installation of a 2.6 kernel _could_ ask you to install a new libc"
-    echo "first, this is NOT a bug, and should *NOT* be reported. In that case,"
-    echo "please add lenny sources to your /etc/apt/sources.list and run:"
-    echo "  apt-get install -t lenny linux-image-2.6"
-    echo "Then reboot into this new kernel, and proceed with your upgrade"
-}
-
 # Sanity check.
 # If there are versions of glibc outside of the normal installation
 # location (/lib, /lib64, etc.) then things may break very badly
@@ -324,18 +315,6 @@ then
         exit 1
     fi
 
-    if [ -n "$LD_ASSUME_KERNEL" ] ; then
-        if dpkg --compare-versions "$LD_ASSUME_KERNEL" le "2.6.1"; then
-           echo
-           echo "POSIX threads library NPTL requires kernel version 2.6.1"
-           echo "or later.  It appears that LD_ASSUME_KERNEL is set to $LD_ASSUME_KERNEL."
-           echo "It is not safe to upgrade the C library in this situation;"
-           echo "Please unset this environment variable and try again."
-           echo
-           exit 1
-       fi
-    fi
-
     # glibc kernel version check
     system=`uname -s`
     if [ "$system" = "Linux" ]
@@ -364,8 +343,6 @@ then
             echo WARNING: this version of the GNU libc requires kernel version
             echo 3.2 or later.  Please upgrade your kernel before installing
             echo glibc.
-            kernel26_help
-
             exit 1
         fi
 
