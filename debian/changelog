@@ -6,7 +6,6 @@ glibc (2.22-0experimental0) UNRELEASED; urgency=medium
     - debian/patches/any/cvs-ldconfig-aux-cache.diff: Upstreamed.
     - debian/patches/any/cvs-localplt-new-readelf.diff: Upstreamed.
     - debian/patches/any/cvs-logbl-accuracy.diff: Upstreamed.
-    - debian/patches/any/cvs-make-typo.diff: Upstreamed.
     - debian/patches/any/cvs-vismain-pie.diff: Upstreamed.
     - debian/patches/any/local-xfail-stdlib-linkns.diff: Dropped.
     - debian/patches/any/local-tester-gcc-4.9.diff: Dropped.
@@ -24,7 +23,7 @@ glibc (2.22-0experimental0) UNRELEASED; urgency=medium
     - debian/patches/powerpc/cvs-ppc-sqrtf.diff: Upstreamed.
     - debian/patches/powerpc/cvs-ppc-tabort-le.diff: Upstreamed.
     - debian/patches/all/local-alias-et_EE.diff: Rebased.
-    - debian/patches/amd64/local-blacklist-on-TSX-Haswell.diff: Rebased.
+    - debian/patches/amd64/local-blacklist-for-Intel-TSX.diff: Rebased.
     - debian/patches/any/local-libgcc-compat-ports.diff: Rebased.
     - debian/patches/any/local-libpic.diff: Rebased.
     - debian/patches/any/local-no-pagesize.diff: Rebased.
@@ -66,9 +65,121 @@ glibc (2.22-0experimental0) UNRELEASED; urgency=medium
     _POSIX_THREAD_KEYS_MAX, _POSIX_THREAD_DESTRUCTOR_ITERATIONS and
     _POSIX_THREAD_THREADS_MAX.
 
+  [ Aurelien Jarno ]
+  * debian/patches/hppa/cvs-atomic.diff: Upstreamed.
+  * debian/patches/hppa/cvs-sysdep-errno.diff: Upstreamed.
+  * debian/patches/hppa/cvs-inline-syscall-rewrite.diff: Upstreamed.
+  * debian/patches/any/cvs-mangle-tls_dtor_list.diff: Rebased.
+  * debian/patches/any/cvs-tls-dtv.diff: Upstreamed.
+  * debian/patches/any/cvs-rfc3542-advanced-api.diff: Upstreamed.
+  * debian/patches/any/cvs-check-localplt.diff: Upstreamed.
+
  -- Adam Conrad <adconrad@0c3.net>  Tue, 15 Sep 2015 17:57:41 -0600
 
-glibc (2.21-0experimental2) UNRELEASED; urgency=medium
+glibc (2.21-1) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * testsuite-checking/expected-results-mips64el-linux-gnu-*: allow 
+    nptl/tst-cancel24-static to fail on mips64el.  It's an upstream regression
+    only affecting static binaries currently under investigation.
+  * patches/hppa/submitted-mathdef.diff: update to include the ABI baseline
+    changes.
+  * testsuite-checking/expected-results-*kfreebsd-gnu-*: re-add rt/tst-shm as
+    it seems it can still occasionally fail on the buildds.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 01 Dec 2015 00:17:43 +0100
+
+glibc (2.21-0experimental4) experimental; urgency=medium
+
+  [ Aurelien Jarno ]
+  * testsuite-checking/expected-results-*kfreebsd-gnu-*: re-add tst-getpid1
+    and tst-getpid2 as it seems they can still occasionally fail on the
+    buildds.
+  * testsuite-checking/expected-results-mips64el-linux-gnu-libc: rename into
+    testsuite-checking/expected-results-mips64el-linux-gnuabi64-libc.
+  * testsuite-checking/expected-results-{arm,mips}*: allow nptl/tst-stack4 to
+    fail. It's a new test which fails intermitently on the buildds and a known
+    upstream problem.
+  * patches/hppa/submitted-mathdef.diff: new patch from John David Anglin to
+    define __NO_LONG_DOUBLE_MATH on hppa.  Closes: #805836.
+  * patches/hppa/cvs-inline-syscall-rewrite.diff: new patch backported from
+    upstream as requested by John David Anglin.
+  * patches/hppa/cvs-sysdep-errno.diff: new patch backported from upstream as
+    requested by John David Anglin.
+  * testsuite-checking/expected-results-hppa-linux-gnu-libc: update testsuite
+    result, from John David Anglin.
+  * testsuite-checking/*{arm,mips,hppa}*: allow nptl/tst-cancel24-static to
+    fail on armel, armhf, hppa, mips, mipsel. It's an upstream regression
+    only affecting static binaries currently under investigation.
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/tg-tls-threadvar.diff: Update, to fix recursion while
+    accessing TLS while locking for accessing TLS.
+  * patches/hurd-i386/tg-context_functions.diff: Update, to fix sigprocmask
+    visibility.
+  * patches/hurd-i386/cvs-hidden.diff: New patch, to fix build with hidden
+    support.
+  * sysdeps/hurd-i386.mk: Disable libc0.3-i686 and libc0.3-xen build for now,
+    to get 2.21 out against the binutils version which broke them.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 29 Nov 2015 23:24:08 +0100
+
+glibc (2.21-0experimental3) experimental; urgency=medium
+
+  [ Aurelien Jarno ]
+  * patches/hppa/cvs-allocatestack-stacktop.diff: new patch from upstream
+    to fix a set-but-unused warning in nptl/allocatestack.c, causing a
+    build failure.
+  * patches/hppa/local-stack-grows-up.diff: rebase.
+  * patches/any/cvs-tls-dtv.diff: new patch from upstream to fix DTV race,
+    assert, and DTV_SURPLUS Static TLS limit.  This also reduces the failure
+    rate of nptl/tst-stack4.  Closes: #793641.
+  * Add expected testsuite result for mips64el:
+    - testsuite-checking/expected-results-mips64el-linux-gnu-libc
+    - testsuite-checking/expected-results-mips64el-linux-gnuabin32-mipsn32
+    - testsuite-checking/expected-results-mipsel-linux-gnu-mips32
+  * patches/kfreebsd/local-sysdeps.diff, patches/kfreebsd/local-fbtl.diff:
+    update to revision 5844 (from glibc-bsd):
+    - Update to glibc 2.21.
+    - Define F_DUP2FD_CLOEXEC.  Closes: #712074.
+    - Define SOCK_CLOEXEC and SOCK_NONBLOCK.
+    - Wire-up accept4.  Closes: #722885.
+  * sysdeps/kfreebsd-{amd64,i386}.mk: configure with --disable-werror.
+  * patches/kfreebsd/local-nscd-no-sockcloexec.diff: Drop.
+  * patches/kfreebsd/local-getaddrinfo-freebsd-kernel.diff: improve and remove
+    a warning.
+  * patches/kfreebsd/local-tst-auxv.diff: new patch to disable AT_EXECFN
+    testing in tst-auxv when it is not defined.
+  * patches/any/cvs-rfc3542-advanced-api.diff: new patch from usptream to
+    add missing Advanced API (RFC3542) (1) defines.  Closes: #753909.
+  * debian/rules: don't put debug files from libc0.1-i386 and libc6-mips32
+    into libc0.1-dbg or libc6-dbg.
+  * patches/hppa/cvs-atomic.diff, patches/hppa/cvs-inline-syscall.diff: new
+    patches from upstream to improve atomic and inline syscalls on HPPA
+    (closes: #799478).
+  * rules.d/build.mk: don't run the testsuite with make -k, as a build
+    failure in the testsuite, otherwise build failures cause the regression
+    comparison to be entirely skipped.
+  * testsuite-checking/expected-results-*kfreebsd-gnu-*: update testsuite
+    results.
+  * patches/any/cvs-check-localplt.diff: new patch from upstream to fix
+    check-localplt test with recent binutils version on x86.
+  * patches/hppa/submitted-gmon-start.diff: new patch from upstream to
+    fix __gmon_start__ symbol proliferation on hppa.  Closes: #805730.
+  * Update from upstream stable branch:
+    - patches/any/cvs-make-typo.diff: Merged. 
+    - Fix FTBFS with libselinux 2.4.
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/tg-pagesize.diff: Refresh.
+  * patches/hurd-i386/submitted-handle-eprototype.diff: Refresh.
+  * patches/hurd-i386/tg-posix_thread.diff: Update, to define
+    _POSIX_THREAD_KEYS_MAX, _POSIX_THREAD_DESTRUCTOR_ITERATIONS and
+    _POSIX_THREAD_THREADS_MAX.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 22 Nov 2015 19:37:39 +0100
+
+glibc (2.21-0experimental2) experimental; urgency=medium
 
   [ Samuel Thibault ]
   * Symbol versions which contain _DEBIAN_ are unexpected by upstream scripts.
@@ -86,6 +197,7 @@ glibc (2.21-0experimental2) UNRELEASED; urgency=medium
   * patches/hurd-i386/unsubmitted-gnumach.defs.diff: Also build
     task_notify.defs stubs.  Drop unneeded change.
   * libc0.3.symbols.hurd-i386: Update.
+  * patches/hurd-i386/local-mach_print.diff: New patch to export mach_print.
 
   [ Aurelien Jarno ]
   * rules.d/debhelper.mk: replace GLIBC_VERSION before LIBC.  Closes:
@@ -133,6 +245,14 @@ glibc (2.21-0experimental2) UNRELEASED; urgency=medium
     binary-indep targets.
   * patches/hppa/cvs-alloca-werror.diff: new patch from upstream to fix a
     build failure.
+  * debhelper.in/libc.preinst: fix up error message for too old Linux
+    kernels.  Closes: #800846.
+  * patches/any/cvs-ld_pointer_guard.diff: new patch from upstream to
+    unconditionally disable LD_POINTER_GUARD.  Closes: #798316, #801691.
+  * patches/any/cvs-mangle-tls_dtor_list.diff: new patch from upstream to
+    mangle function pointers in tls_dtor_list.  Closes: #802256.
+  * Update Brazilian Portuguese debconf translation, by Adriano Rafael
+    Gomes.  Closes: #799418.
 
   [ Steven Chamberlain ]
   * sysdeps/kfreebsd.mk: find kfreebsd-kernel-headers in multiarch path.
@@ -146,7 +266,12 @@ glibc (2.21-0experimental2) UNRELEASED; urgency=medium
     support for futex_atomic_cmpxchg_inatomic to restore the  previous state
     and fix the pulsesink (and others) regression on ARM (closes: #788799)
 
- -- Aurelien Jarno <aurel32@debian.org>  Sat, 29 Aug 2015 00:43:44 +0200
+  [ Henrique de Moraes Holschuh ]
+  * Replace patches/amd64/local-blacklist-on-TSX-Haswell.diff by 
+    local-blacklist-for-Intel-TSX.diff also blacklisting some Broadwell
+    models.  Closes: #800574.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 19 Oct 2015 00:20:34 +0200
 
 glibc (2.21-0experimental1) experimental; urgency=medium
 

@@ -1,0 +1,58 @@
+2015-11-30  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/unix/sysv/linux/hppa/libc.abilist: Add __finitel, __isinfl,
+	and __isnanl.
+        * sysdeps/unix/sysv/linux/hppa/libm.abilist: Add _finitel.
+
+2015-11-22  John David Anglin  <danglin@gcc.gnu.org>
+
+	[BZ #19270]
+	* sysdeps/hppa/fpu/bits/mathdef.h (__NO_LONG_DOUBLE_MATH): Define.
+
+--- a/sysdeps/hppa/fpu/bits/mathdef.h
++++ b/sysdeps/hppa/fpu/bits/mathdef.h
+@@ -34,5 +34,10 @@
+ 
+ #endif	/* ISO C99 */
+ 
+-/* On hppa `long double' is 64-bits. */
+-#undef __NO_LONG_DOUBLE_MATH
++#ifndef __NO_LONG_DOUBLE_MATH
++/* On hppa `long double' and `double' are  64-bits.  So, libm is built
++   with NO_LONG_DOUBLE defined.  The following define ensures the library
++   and headers are consistent.  This disables the declaration of all the
++   `long double' function variants.  */
++# define __NO_LONG_DOUBLE_MATH	1
++#endif
+--- a/sysdeps/unix/sysv/linux/hppa/libc.abilist
++++ b/sysdeps/unix/sysv/linux/hppa/libc.abilist
+@@ -274,6 +274,7 @@
+  __ffs F
+  __finite F
+  __finitef F
++ __finitel F
+  __flbf F
+  __fork F
+  __fpending F
+@@ -305,9 +306,11 @@
+  __isgraph_l F
+  __isinf F
+  __isinff F
++ __isinfl F
+  __islower_l F
+  __isnan F
+  __isnanf F
++ __isnanl F
+  __isprint_l F
+  __ispunct_l F
+  __isspace_l F
+--- a/sysdeps/unix/sysv/linux/hppa/libm.abilist
++++ b/sysdeps/unix/sysv/linux/hppa/libm.abilist
+@@ -66,6 +66,7 @@
+  __clog10l F
+  __finite F
+  __finitef F
++ __finitel F
+  __fpclassify F
+  __fpclassifyf F
+  __signbit F

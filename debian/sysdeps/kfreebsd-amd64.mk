@@ -1,5 +1,5 @@
 # Main library
-extra_config_options = --disable-compatible-utmp --disable-multi-arch
+extra_config_options = --disable-compatible-utmp --disable-multi-arch --disable-werror
 
 # build 32-bit (i386) alternative library
 GLIBC_MULTILIB_PASSES += i386

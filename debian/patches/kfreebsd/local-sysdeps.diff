@@ -136,7 +136,7 @@
 +# Other.
 +sysdep_routines += swapon swapoff sys_aio_cancel sys_aio_error sys_aio_read sys_aio_return sys_aio_suspend sys_aio_waitcomplete sys_aio_write sys_lio_listio issetugid modfind modfnext modnext modstat obreak quotactl rfork sysarch undelete yield
 +# for INLINE_SYSCALL
-+sysdep_routines += sys_fork sys_execve sys_sigaction sys_close sys_fcntl
++sysdep_routines += sys_fork sys_sigaction sys_close sys_fcntl
 +sysdep_routines += sys_clock_getres sys_clock_gettime sys_clock_settime
 +sysdep_routines += sys_ktimer_create sys_ktimer_gettime sys_ktimer_settime sys_ktimer_getoverrun sys_ktimer_delete
 +sysdep_routines += sys_semctl sys_shmctl sys_msgctl
@@ -187,7 +187,7 @@
 +endif
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/Versions
-@@ -0,0 +1,126 @@
+@@ -0,0 +1,129 @@
 +libc {
 +  # The comment lines with "#errlist-compat" are magic; see errlist-compat.awk.
 +  # When you get an error from errlist-compat.awk, you need to add a new
@@ -295,6 +295,9 @@
 +    waitid;
 +    #errlist-compat 97
 +    _sys_errlist; sys_errlist; _sys_nerr; sys_nerr;
++  }
++  GLIBC_2.21 {
++    __statfs;
 +  }
 +  GLIBC_PRIVATE {
 +    # needed by libpthread.
@@ -592,7 +595,7 @@
 +     const union sigval val;
 +     pid_t caller_pid;
 +{
-+#ifdef NOT_IN_libc
++#if !IS_IN (libc)
 +    return sigqueue(caller_pid, sig, val);
 +#else
 +    return __sigqueue(caller_pid, sig, val);
@@ -679,22 +682,21 @@
 +
 +/* Legal values for a_type (entry type).  */
 +
-+#define AT_NULL		0		/* End of vector */
-+#define AT_IGNORE	1		/* Entry should be ignored */
-+#define AT_EXECFD	2		/* File descriptor of program */
-+#define AT_PHDR		3		/* Program headers for program */
-+#define AT_PHENT	4		/* Size of program header entry */
-+#define AT_PHNUM	5		/* Number of program headers */
-+#define AT_PAGESZ	6		/* System page size */
-+#define AT_BASE		7		/* Base address of interpreter */
-+#define AT_FLAGS	8		/* Flags */
-+#define AT_ENTRY	9		/* Entry point of program */
-+#define AT_NOTELF	10		/* Program is not ELF */
-+#define AT_UID		11		/* Real uid */
-+#define AT_EUID		12		/* Effective uid */
-+#define AT_GID		13		/* Real gid */
-+#define AT_EGID		14		/* Effective gid */
-+
++#define	AT_NULL		0	/* End of vector */
++#define	AT_IGNORE	1	/* Entry should be ignored */
++#define	AT_EXECFD	2	/* File descriptor of program */
++#define	AT_PHDR		3	/* Program headers for program */
++#define	AT_PHENT	4	/* Size of program header entry */
++#define	AT_PHNUM	5	/* Number of program headers */
++#define	AT_PAGESZ	6	/* System page size */
++#define	AT_BASE		7	/* Base address of interpreter */
++#define	AT_FLAGS	8	/* Flags */
++#define	AT_ENTRY	9	/* Entry point of program */
++#define	AT_NOTELF	10	/* Program is not ELF */
++#define	AT_UID		11	/* Real uid */
++#define	AT_EUID		12	/* Effective uid */
++#define	AT_GID		13	/* Real gid */
++#define	AT_EGID		14	/* Effective gid */
 +#define	AT_EXECPATH	15	/* Path to the executable. */
 +#define	AT_CANARY	16	/* Canary for SSP. */
 +#define	AT_CANARYLEN	17	/* Length of the canary. */
@@ -702,6 +704,7 @@
 +#define	AT_NCPUS	19	/* Number of CPUs. */
 +#define	AT_PAGESIZES	20	/* Pagesizes. */
 +#define	AT_PAGESIZESLEN	21	/* Number of pagesizes. */
++#define	AT_TIMEKEEP	22	/* Pointer to timehands. */
 +#define	AT_STACKPROT	23	/* Initial stack protection. */
 +
 --- /dev/null
@@ -962,7 +965,7 @@
 +
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/fcntl.h
-@@ -0,0 +1,230 @@
+@@ -0,0 +1,233 @@
 +/* O_*, F_*, FD_* bit values for FreeBSD.
 +   Copyright (C) 1991-1992, 1997-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -1014,7 +1017,7 @@
 +#define	O_NDELAY	O_NONBLOCK	/* compat */
 +#define	O_APPEND	0x0008		/* set append mode */
 +
-+#if __USE_BSD
++#if defined __USE_MISC
 +#define	O_SHLOCK	0x0010		/* open with shared file lock */
 +#define	O_EXLOCK	0x0020		/* open with exclusive file lock */
 +#endif
@@ -1023,7 +1026,7 @@
 +#define	O_FSYNC		0x0080		/* synchronous writes */
 +#define	O_SYNC		O_FSYNC		/* POSIX synonym for O_FSYNC */
 +
-+#if defined (__USE_XOPEN2K8) || defined (__USE_BSD)
++#if defined (__USE_XOPEN2K8) || defined (__USE_MISC)
 +#define	O_NOFOLLOW	0x0100		/* don't follow symlinks */
 +#endif
 +
@@ -1033,19 +1036,19 @@
 +/* Defined by POSIX 1003.1; BSD default, but must be distinct from O_RDONLY. */
 +#define	O_NOCTTY	0x8000		/* don't assign controlling terminal */
 +
-+#if __USE_BSD
++#if defined __USE_MISC
 +/* Attempt to bypass buffer cache */
 +#define	O_DIRECT	0x00010000
 +enum { O_NOATIME = 0};          /* Do not set atime.  */
 +#endif
 +
 +/* Defined by POSIX Extended API Set Part 2 */
-+#if defined (__USE_XOPEN2K8) || defined (__USE_BSD)
++#if defined (__USE_XOPEN2K8) || defined (__USE_MISC)
 +#define	O_DIRECTORY	0x00020000	/* Fail if not directory */
 +#define	O_EXEC		0x00040000	/* Open for execute only */
 +#endif
 +
-+#if defined (__USE_XOPEN2K8) || defined (__USE_BSD)
++#if defined (__USE_XOPEN2K8) || defined (__USE_MISC)
 +/* Defined by POSIX 1003.1-2008; BSD default, but reserve for future use. */
 +#define	O_TTY_INIT	0x00080000	/* Restore default termios attributes */
 +#define	O_CLOEXEC	0x00100000
@@ -1062,7 +1065,7 @@
 +/* Since 'off_t' is 64-bit, O_LARGEFILE is a no-op.  */
 +#define O_LARGEFILE	0
 +
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +/* Bits in the file status flags returned by F_GETFL.
 +   These are all the O_* flags, plus FREAD and FWRITE, which are
 +   independent bits set by which of O_RDONLY, O_WRONLY, and O_RDWR, was
@@ -1089,7 +1092,7 @@
 + * initial open syscall.  Those bits can thus be given a
 + * different meaning for fcntl(2).
 + */
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +/*
 + * Set by shm_open(3) to get automatic MAP_ASYNC behavior
 + * for POSIX shared memory objects (which are otherwise
@@ -1113,11 +1116,14 @@
 +#define F_SETLK64	12	/* Set record locking info (non-blocking).  */
 +#define F_SETLKW64	13	/* Set record locking info (blocking).	*/
 +
-+#if __USE_BSD || __POSIX_VISIBLE >= 200809
++#if defined __USE_MISC || __POSIX_VISIBLE >= 200809
 +#define	F_DUPFD_CLOEXEC	17	/* Like F_DUPFD, but FD_CLOEXEC is set */
 +#endif
++#if defined __USE_MISC
++#define F_DUP2FD_CLOEXEC 18	/* Like F_DUP2FD, but FD_CLOEXEC is set */
++#endif
 +
-+#if defined __USE_BSD || defined __USE_UNIX98
++#if defined __USE_MISC || defined __USE_UNIX98
 +# define F_GETOWN	5	/* Get owner of socket (receiver of SIGIO).  */
 +# define F_SETOWN	6	/* Set owner of socket (receiver of SIGIO).  */
 +#endif
@@ -1129,12 +1135,12 @@
 +#define	F_RDLCK		1		/* shared or read lock */
 +#define	F_UNLCK		2		/* unlock */
 +#define	F_WRLCK		3		/* exclusive or write lock */
-+#if __USE_BSD
++#if defined __USE_MISC
 +#define	F_UNLCKSYS	4		/* purge locks for a given system ID */ 
 +#define	F_CANCEL	5		/* cancel an async lock request */
 +#endif
 +
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +/* Operations for bsd flock(), also used by the kernel implementation.	*/
 +# define LOCK_SH	1	/* shared lock */
 +# define LOCK_EX	2	/* exclusive lock */
@@ -1167,7 +1173,7 @@
 +
 +/* Define some more compatibility macros to be backward compatible with
 +   BSD systems which did not managed to hide these kernel macros.  */
-+#ifdef	__USE_BSD
++#ifdef	__USE_MISC
 +# define FAPPEND	O_APPEND
 +# define FFSYNC		O_FSYNC
 +# define FASYNC		O_ASYNC
@@ -1637,7 +1643,7 @@
 +/* Special key values.  */
 +#define IPC_PRIVATE	((__key_t) 0)	/* private key */
 +
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +/* Common mode bits.  */
 +# define IPC_R		0400		/* read permission, same as S_IRUSR */
 +# define IPC_W		0200		/* write permission, same as S_IWUSR */
@@ -1726,7 +1732,7 @@
 +/* Flags contain mapping type, sharing type and options.  */
 +
 +/* Mapping type (must choose one and only one of these).  */
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +# define MAP_FILE	 0x0000	/* Mapped from a file or device.  */
 +# define MAP_ANON	 0x1000	/* Allocated from anonymous virtual memory.  */
 +# define MAP_TYPE	 0x1000	/* Mask for type field.  */
@@ -1738,13 +1744,13 @@
 +/* Sharing types (must choose one and only one of these).  */
 +#define	MAP_SHARED	 0x0001	/* Share changes.  */
 +#define	MAP_PRIVATE	 0x0002	/* Changes private; copy pages on write.  */
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +# define MAP_COPY MAP_PRIVATE	/* Virtual copy of region at mapping time.  */
 +#endif
 +
 +/* Other flags.  */
 +#define	MAP_FIXED	 0x0010	/* Map address must be exactly as requested. */
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +#define MAP_RENAME	 0x0020 /* Sun: rename private pages to file */
 +#define MAP_NORESERVE	 0x0040 /* Sun: don't reserve needed swap area */
 +#define MAP_RESERVED0080 0x0080	/* previously misimplemented MAP_INHERIT */
@@ -1756,7 +1762,7 @@
 +#endif
 +
 +/* Advice to `madvise'.  */
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +# define MADV_NORMAL	 0	/* No further special treatment.  */
 +# define MADV_RANDOM	 1	/* Expect random page references.  */
 +# define MADV_SEQUENTIAL 2	/* Expect sequential page references.  */
@@ -1790,7 +1796,7 @@
 +					   space.  */
 +
 +/* Flags for 'minherit'.  */
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +# define INHERIT_SHARE	0
 +# define INHERIT_COPY	1
 +# define INHERIT_NONE	2
@@ -1808,7 +1814,7 @@
 +#define	MINCORE_MODIFIED_OTHER	0x10 /* Page has been modified */
 +#endif /* Use MISC */
 +
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +
 +__BEGIN_DECLS
 +
@@ -2120,7 +2126,7 @@
 +#define POLLPRI		0x0002		/* There is urgent data to read.  */
 +#define POLLOUT		0x0004		/* Writing now will not block.  */
 +
-+#ifdef __USE_XOPEN
++#if defined __USE_XOPEN || defined __USE_XOPEN2K8
 +/* These values are defined in XPG4.2.  */
 +# define POLLRDNORM	0x0040		/* Normal data may be read.  */
 +# define POLLRDBAND	0x0080		/* Priority data may be read.  */
@@ -2128,7 +2134,7 @@
 +# define POLLWRBAND	0x0100		/* Priority data may be written.  */
 +#endif
 +
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +/* General FreeBSD extension (currently only supported for sockets): */
 +# define POLLINIGNEOF	0x2000		/* like POLLIN, except ignore EOF */
 +#endif
@@ -2140,7 +2146,7 @@
 +#define POLLHUP		0x0010		/* Hung up.  */
 +#define POLLNVAL	0x0020		/* Invalid polling request.  */
 +
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +
 +# define POLLSTANDARD	(POLLIN|POLLPRI|POLLOUT|POLLRDNORM|POLLRDBAND|\
 +			POLLWRBAND|POLLERR|POLLHUP|POLLNVAL)
@@ -2696,7 +2702,7 @@
 +#define SETVAL		8		/* set semval */
 +#define SETALL		9		/* set all semval's */
 +
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +# define SEM_R		IPC_R		/* read permission for user */
 +# define SEM_A		IPC_W		/* alter permission for user */
 +#endif
@@ -2781,7 +2787,7 @@
 +#include <bits/types.h>
 +
 +/* Permission flag for shmget.  */
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +# define SHM_R		IPC_R		/* read permission for user */
 +# define SHM_W		IPC_W		/* write permission for user */
 +#endif
@@ -2926,7 +2932,7 @@
 +#define	SIG_SETMASK	3	/* Set the set of blocked signals.  */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/siginfo.h
-@@ -0,0 +1,237 @@
+@@ -0,0 +1,276 @@
 +/* siginfo_t, sigevent and constants.  FreeBSD version.
 +   Copyright (C) 1997-1998, 2000-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2981,9 +2987,48 @@
 +    int si_status;		/* Exit value or signal.  */
 +    void *si_addr;		/* Address of faulting instruction.  */
 +    union sigval si_value;	/* Signal value.  */
-+    long int si_band;		/* Band event for SIGPOLL.  */
-+    int __si_spare[7];
++    union
++      {
++	struct
++	  {
++	    int     _trapno;	/* machine specific trap code */
++	   } _fault;
++
++	/* POSIX.1b timers.  */
++	struct
++	  {
++	    int     _timerid;
++	    int     _overrun;
++	  } _timer;
++
++	struct
++	  {
++	    int     _mqd;
++	  } _mesgq;
++
++	/* SIGPOLL.  */
++	struct
++	  {
++	    long    _band;	/* band event for SIGPOLL.  */
++	  } _poll;
++
++	struct
++	  {
++	    long    __spare1__;
++	    int     __spare2__[7];
++	  } __spare__;
++	} _reason;
 +  } siginfo_t;
++
++
++/* X/Open requires some more fields with fixed names.  */
++# define si_int		si_value.sival_int
++# define si_ptr		si_value.sival_ptr
++# define si_trapno	_reason._fault._trapno
++# define si_timerid	_reason._timer._timerid
++# define si_overrun	_reason._timer._overrun
++# define si_mqd		_reason._mesgq._mqd
++# define si_band	_reason._poll._band
 +
 +
 +/* Values for `si_code'.  Positive values are reserved for kernel-generated
@@ -3396,7 +3441,7 @@
 +#endif /* ! _SIGSET_H_fns.  */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/socket.h
-@@ -0,0 +1,421 @@
+@@ -0,0 +1,431 @@
 +/* System-specific socket constants and types.  FreeBSD version.
 +   Copyright (C) 1991-1992,1994-1999,2000-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -3450,9 +3495,19 @@
 +#define SOCK_RAW SOCK_RAW
 +  SOCK_RDM = 4,			/* Reliably-delivered messages.  */
 +#define SOCK_RDM SOCK_RDM
-+  SOCK_SEQPACKET = 5		/* Sequenced, reliable, connection-based,
++  SOCK_SEQPACKET = 5,		/* Sequenced, reliable, connection-based,
 +				   datagrams of fixed maximum length.  */
 +#define SOCK_SEQPACKET SOCK_SEQPACKET
++
++  /* Flags to be ORed into the type parameter of socket and socketpair and
++     used for the flags parameter of paccept.  */
++
++  SOCK_CLOEXEC = 0x10000000,	/* Atomically set close-on-exec flag for the
++				new descriptor(s).  */
++#define SOCK_CLOEXEC SOCK_CLOEXEC
++  SOCK_NONBLOCK = 0x20000000	/* Atomically mark descriptor(s) as
++				non-blocking.  */
++#define SOCK_NONBLOCK SOCK_NONBLOCK
 +};
 +
 +/*
@@ -3802,7 +3857,7 @@
 +#define	INADDR_PFSYNC_GROUP	(u_int32_t)0xe00000f0	/* 224.0.0.240 */
 +#define	INADDR_ALLMDNS_GROUP	(u_int32_t)0xe00000fb	/* 224.0.0.251 */
 +
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +
 +struct sf_hdtr;
 +
@@ -3996,7 +4051,7 @@
 +#define __S_IWRITE	0200	/* Write by owner.  */
 +#define __S_IEXEC	0100	/* Execute by owner.  */
 +
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +
 +/* Definitions of flags stored in file flags word.  */
 +
@@ -4037,7 +4092,7 @@
 +
 +__END_DECLS
 +
-+#endif /* __USE_BSD */
++#endif /* __USE_MISC */
 +
 +#endif /* bits/stat.h */
 --- /dev/null
@@ -4321,7 +4376,7 @@
 +
 +/* sys_errlist and sys_nerr are deprecated.  Use strerror instead.  */
 +
-+#ifdef  __USE_BSD
++#ifdef  __USE_MISC
 +extern int sys_nerr;
 +extern __const char *__const sys_errlist[];
 +#endif
@@ -4365,7 +4420,7 @@
 +#endif /* bits/syslog-path.h */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/termios.h
-@@ -0,0 +1,253 @@
+@@ -0,0 +1,245 @@
 +/* termios type and macro definitions.  FreeBSD version.
 +   Copyright (C) 1993-1994,1996-1997,1999,2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -4392,7 +4447,7 @@
 +/* These macros are also defined in some <bits/ioctls.h> files (with
 +   numerically identical values), but this serves to shut up cpp's
 +   complaining. */
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +
 +# ifdef MDMBUF
 +#  undef MDMBUF
@@ -4404,7 +4459,7 @@
 +#  undef PENDIN
 +# endif
 +
-+#endif /* __USE_BSD */
++#endif /* __USE_MISC */
 +
 +#ifdef ECHO
 +# undef ECHO
@@ -4445,13 +4500,13 @@
 +#define VWERASE 4
 +#define VKILL 5
 +#define VREPRINT 6
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +# define VERASE2 7
 +#endif
 +#define VINTR 8
 +#define VQUIT 9
 +#define VSUSP 10
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +# define VDSUSP 11
 +#endif
 +#define VSTART 12
@@ -4460,7 +4515,7 @@
 +#define VDISCARD 15
 +#define VMIN 16
 +#define VTIME 17
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +# define VSTATUS 18
 +#endif
 +
@@ -4489,7 +4544,7 @@
 +# define OXTABS	TAB3
 +# define XTABS	TAB3
 +#endif
-+#ifdef	__USE_BSD
++#ifdef	__USE_MISC
 +# define ONOEOT	(1 << 3)	/* Discard EOT (^D) on output.  */
 +#endif
 +#define	OCRNL	(1 << 4)	/* map CR to NL on output */
@@ -4497,7 +4552,7 @@
 +#define	ONLRET	(1 << 6)	/* NL performs CR function */
 +
 +/* c_cflag bit meaning */
-+#ifdef	__USE_BSD
++#ifdef	__USE_MISC
 +# define CIGNORE	(1 << 0)	/* Ignore these control flags.  */
 +#endif
 +#define	CSIZE	(CS5|CS6|CS7|CS8)	/* Number of bits per byte (mask).  */
@@ -4511,7 +4566,7 @@
 +#define	PARODD	(1 << 13)	/* Odd parity instead of even.  */
 +#define	HUPCL	(1 << 14)	/* Hang up on last close.  */
 +#define	CLOCAL	(1 << 15)	/* Ignore modem status lines.  */
-+#ifdef	__USE_BSD
++#ifdef	__USE_MISC
 +# define CCTS_OFLOW	(1 << 16)	/* CTS flow control of output.  */
 +# define CRTS_IFLOW	(1 << 17)	/* RTS flow control of input.  */
 +# define CRTSCTS	(CCTS_OFLOW|CRTS_IFLOW)	/* CTS/RTS flow control.  */
@@ -4522,41 +4577,33 @@
 +#endif
 +
 +/* c_lflag bits */
-+#ifdef	__USE_BSD
++#ifdef	__USE_MISC
 +# define ECHOKE	(1 << 0)	/* Visual erase for KILL.  */
 +#endif
-+#define	_ECHOE	(1 << 1)	/* Visual erase for ERASE.  */
-+#define	ECHOE	_ECHOE
-+#define	_ECHOK	(1 << 2)	/* Echo NL after KILL.  */
-+#define	ECHOK	_ECHOK
-+#define	_ECHO	(1 << 3)	/* Enable echo.  */
-+#define	ECHO	_ECHO
-+#define	_ECHONL	(1 << 4)	/* Echo NL even if ECHO is off.  */
-+#define	ECHONL	_ECHONL
-+#ifdef	__USE_BSD
++#define	ECHOE	(1 << 1)	/* Visual erase for ERASE.  */
++#define	ECHOK	(1 << 2)	/* Echo NL after KILL.  */
++#define	ECHO	(1 << 3)	/* Enable echo.  */
++#define	ECHONL	(1 << 4)	/* Echo NL even if ECHO is off.  */
++#ifdef	__USE_MISC
 +# define ECHOPRT	(1 << 5)	/* Hardcopy visual erase.  */
 +# define ECHOCTL	(1 << 6)	/* Echo control characters as ^X.  */
 +#endif
-+#define	_ISIG	(1 << 7)	/* Enable signals.  */
-+#define	ISIG	_ISIG
-+#define	_ICANON	(1 << 8)	/* Do erase and kill processing.  */
-+#define	ICANON	_ICANON
-+#ifdef	__USE_BSD
++#define	ISIG	(1 << 7)	/* Enable signals.  */
++#define	ICANON	(1 << 8)	/* Do erase and kill processing.  */
++#ifdef	__USE_MISC
 +# define ALTWERASE (1 << 9)	/* Alternate WERASE algorithm.  */
 +#endif
-+#define	_IEXTEN	(1 << 10)	/* Enable DISCARD and LNEXT.  */
-+#define	IEXTEN	_IEXTEN
-+#define	_EXTPROC (1 << 11)	/* External processing.  */
-+#define EXTPROC	_EXTPROC
-+#define	_TOSTOP	(1 << 22)	/* Send SIGTTOU for background output.  */
-+#define	TOSTOP	_TOSTOP
-+#ifdef	__USE_BSD
++#define	IEXTEN	(1 << 10)	/* Enable DISCARD and LNEXT.  */
++#ifdef __USE_MISC
++# define EXTPROC (1 << 11)	/* External processing.  */
++#endif
++#define	TOSTOP	(1 << 22)	/* Send SIGTTOU for background output.  */
++#ifdef	__USE_MISC
 +# define FLUSHO	(1 << 23)	/* Output being flushed (state).  */
 +# define NOKERNINFO (1 << 25)	/* Disable VSTATUS.  */
 +# define PENDIN	(1 << 29)	/* Retype pending input (state).  */
 +#endif
-+#define	_NOFLSH	(1 << 31)	/* Disable flush after interrupt.  */
-+#define	NOFLSH	_NOFLSH
++#define	NOFLSH	(1 << 31)	/* Disable flush after interrupt.  */
 +
 +  /* Input and output baud rates.  */
 +#define	B0	0		/* Hang up.  */
@@ -4615,13 +4662,13 @@
 +#define	TCSANOW		0
 +#define	TCSADRAIN	1
 +#define	TCSAFLUSH	2
-+#ifdef	__USE_BSD
++#ifdef	__USE_MISC
 +# define TCSASOFT	0x10	/* Flag: Don't alter hardware state.  */
 +#endif
 +
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/time.h
-@@ -0,0 +1,102 @@
+@@ -0,0 +1,103 @@
 +/* System-dependent timing definitions.  FreeBSD version.
 +   Copyright (C) 1996-1997, 1999, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -4655,9 +4702,10 @@
 +/* CAE XSH, Issue 4, Version 2: <time.h>
 +   The value of CLOCKS_PER_SEC is required to be 1 million on all
 +   XSI-conformant systems. */
-+#  define CLOCKS_PER_SEC  1000000l
++#  define CLOCKS_PER_SEC  ((clock_t) 1000000l)
 +
-+#  if !defined __STRICT_ANSI__ && !defined __USE_XOPEN2K
++#  if (!defined __STRICT_ANSI__ || defined __USE_POSIX) \
++   && !defined __USE_XOPEN2K
 +/* Even though CLOCKS_PER_SEC has such a strange value CLK_TCK
 +   presents the real value for clock ticks per second for the system.  */
 +#   define CLK_TCK 128
@@ -4669,7 +4717,7 @@
 +/* Monotonic system-wide clock.  */
 +#   define CLOCK_MONOTONIC		4
 +/* These are BSD specific clocks.  */
-+#   ifdef __USE_BSD
++#   ifdef __USE_MISC
 +#    define CLOCK_VIRTUAL		1
 +#    define CLOCK_PROF			2
 +#    define CLOCK_UPTIME    5               /* FreeBSD-specific. */
@@ -4685,7 +4733,7 @@
 +#   define CLOCK_THREAD_CPUTIME_ID	14
 +/* High-resolution timer from the CPU.  */
 +#   define CLOCK_PROCESS_CPUTIME_ID	15
-+#   ifdef __USE_BSD
++#   ifdef __USE_MISC
 +#     define CPUCLOCK_WHICH_PID 0
 +#     define CPUCLOCK_WHICH_TID 1
 +#   endif
@@ -4864,7 +4912,7 @@
 +   uses a single read() or write() call to guarantee atomicity.  */
 +#define UIO_MAXIOV	1024
 +
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +enum    uio_rw { UIO_READ, UIO_WRITE };
 +
 +/* Segment flag values. */
@@ -4878,7 +4926,7 @@
 +#endif
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/utsname.h
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,31 @@
 +/* Copyright (C) 1997, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -4906,6 +4954,10 @@
 +
 +/* But the version entry is longer.  */
 +#define _UTSNAME_VERSION_LENGTH 256
++
++/* If nonzero, the size of of the `domainname` field in `struct utsname'.
++   This is zero to indicate that there should be no such field at all.  */
++#define _UTSNAME_DOMAIN_LENGTH  0
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/waitflags.h
 @@ -0,0 +1,82 @@
@@ -4946,13 +4998,13 @@
 +                                   a breakpoint. */
 +                                   
 +#define __WCLONE	0x80000000	/* Wait for cloned process.  */
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +# define WLINUXCLONE	__WCLONE	/* FreeBSD name for __WCLONE.  */
 +#endif
 +
 +
 +/* The following values are used by the `waitid' function.  */
-+#if defined __USE_SVID || defined __USE_XOPEN || defined __USE_XOPEN2K8
++#if defined __USE_MISC || defined __USE_XOPEN || defined __USE_XOPEN2K8
 +# ifndef __ENUM_IDTYPE_T
 +# define __ENUM_IDTYPE_T 1
 +
@@ -4986,7 +5038,7 @@
 +        P_PSETID                /* Processor set identifier. */
 +} idtype_t;                     /* The type of id_t we are using. */
 +
-+#  if defined __USE_BSD
++#  if defined __USE_MISC
 +#  define P_ZONEID        P_JAILID
 +#  endif
 +# endif
@@ -5052,7 +5104,7 @@
 +
 +
 +
-+#ifdef	__USE_BSD
++#ifdef	__USE_MISC
 +
 +# include <endian.h>
 +
@@ -6761,7 +6813,7 @@
 +#include <elf/dl-support.c>
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/dl-sysdep.c
-@@ -0,0 +1,315 @@
+@@ -0,0 +1,316 @@
 +/* Operating system support for run-time dynamic linker.  GNU/kFreeBSD version.
 +   Copyright (C) 1995-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -6820,7 +6872,7 @@
 +ElfW(Addr) _dl_base_addr;
 +#endif
 +int __libc_enable_secure attribute_relro = 0;
-+INTVARDEF(__libc_enable_secure)
++rtld_hidden_data_def (__libc_enable_secure)
 +int __libc_multiple_libcs = 0;	/* Defining this here avoids the inclusion
 +				   of init-first.  */
 +/* This variable contains the lowest stack address ever used.  */
@@ -6864,7 +6916,7 @@
 +#endif
 +
 +  __libc_stack_end = DL_STACK_END (start_argptr);
-+  DL_FIND_ARG_COMPONENTS (start_argptr, _dl_argc, INTUSE(_dl_argv), _environ,
++  DL_FIND_ARG_COMPONENTS (start_argptr, _dl_argc, _dl_argv, _environ,
 +			  GLRO(dl_auxv));
 +
 +  user_entry = (ElfW(Addr)) ENTRY_POINT;
@@ -6908,7 +6960,7 @@
 +
 +      /* If one of the two pairs of IDs does not match this is a setuid
 +	 or setgid run.  */
-+      INTUSE(__libc_enable_secure) = uid | gid;
++      __libc_enable_secure = uid | gid;
 +    }
 +
 +#ifndef HAVE_AUX_PAGESIZE
@@ -6946,7 +6998,7 @@
 +  /* If this is a SUID program we make sure that FDs 0, 1, and 2 are
 +     allocated.  If necessary we are doing it ourself.  If it is not
 +     possible we stop the program.  */
-+  if (__builtin_expect (INTUSE(__libc_enable_secure), 0))
++  if (__builtin_expect (__libc_enable_secure, 0))
 +    __libc_check_standard_fds ();
 +
 +  (*dl_main) (phdr, phnum, &user_entry, GLRO(dl_auxv));
@@ -6999,6 +7051,7 @@
 +	  [AT_NCPUS - 2] =		{ "NCPUS:        ", dec },
 +	  [AT_PAGESIZES - 2] =		{ "PAGESIZES:    0x", hex },
 +	  [AT_PAGESIZESLEN - 2] =	{ "PAGESIZESLEN: ", dec },
++	  [AT_TIMEKEEP - 2] =		{ "TIMEKEEP:     0x", hex },
 +	  [AT_STACKPROT - 2] =		{ "STACKPROT:    0x", hex },
 +	};
 +      unsigned int idx = (unsigned int) (av->a_type - 2);
@@ -7148,14 +7201,6 @@
 +  INTERNAL_SYSCALL (writev, err, 3, fd, iov, niov);
 +}
 --- /dev/null
-+++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/execve.c
-@@ -0,0 +1,5 @@
-+int __syscall_execve(const char *filename, 
-+                     char *const argv[], 
-+                     char *const envp[]);
-+libc_hidden_proto (__syscall_execve)
-+#include <sysdeps/unix/sysv/linux/execve.c>
---- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/faccessat.c
 @@ -0,0 +1,68 @@
 +/* Test for access to file, relative to open directory.  Linux version.
@@ -7232,7 +7277,7 @@
 +pthread
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/Makefile
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,62 @@
 +# Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +# This file is part of the GNU C Library.
 +# Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -7278,7 +7323,6 @@
 +libpthread-routines += ptw-sys_thr_self
 +libpthread-routines += ptw-sys_thr_set_name
 +libpthread-routines += ptw-sys_thr_exit
-+libpthread-routines += ptw-exit-thread
 +libpthread-routines += ptw-sigprocmask
 +libpthread-routines += ptw-ioctl
 +libpthread-routines += ptw-sys_clock_getcpuclockid2
@@ -7292,10 +7336,6 @@
 +CFLAGS-fork.c = $(libio-mtsafe)
 +CFLAGS-getpid.o = -fomit-frame-pointer
 +CFLAGS-getpid.os = -fomit-frame-pointer
-+endif
-+
-+ifeq ($(subdir),posix)
-+sysdep_routines += exit-thread
 +endif
 +
 +# Needed in both the signal and nptl subdir.
@@ -8516,7 +8556,7 @@
 +#define GAI_MISC_NOTIFY(waitlist) \
 +  do {									      \
 +    if (*waitlist->counterp > 0 && --*waitlist->counterp == 0)		      \
-+      lll_futex_wake (waitlist->counterp, 1, LLL_PRIVATE);		      \
++      lll_futex_wake ((unsigned int *) waitlist->counterp, 1, LLL_PRIVATE);   \
 +  } while (0)
 +
 +#warning have to check sign of return values from futex wait calls
@@ -8537,8 +8577,8 @@
 +	int status;							      \
 +	do								      \
 +	  {								      \
-+	    status = lll_futex_timed_wait (futexaddr, oldval, timeout,	      \
-+					   LLL_PRIVATE);		      \
++	    status = lll_futex_timed_wait ((unsigned int *) futexaddr, oldval,\
++					   timeout, LLL_PRIVATE);	      \
 +	    if (status != EWOULDBLOCK)					      \
 +	      break;							      \
 +									      \
@@ -9004,7 +9044,7 @@
 +
 +#include <pthreadP.h>
 +
-+#ifndef NOT_IN_libc
++#if IS_IN (libc)
 +# ifndef TLS_MULTIPLE_THREADS_IN_TCB
 +/* Variable set to a nonzero value either if more than one thread runs or ran,
 +   or if a single-threaded process is trying to cancel itself.  See
@@ -9141,7 +9181,7 @@
 +
 +
 +/* These functions don't get included in libc.so  */
-+#ifdef IS_IN_libpthread
++#if IS_IN (libpthread)
 +void
 +__lll_lock_wait_shared (int *futex)
 +{
@@ -10205,7 +10245,7 @@
 +#endif
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_setname.c
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,34 @@
 +/* pthread_setname_np -- Set  thread name
 +   Copyright (C) 2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -10230,9 +10270,6 @@
 +#include <stdio.h>
 +#include <string.h>
 +#include <unistd.h>
-+
-+extern int __syscall_thr_set_name(long tid, char *name);
-+libc_hidden_proto(__syscall_thr_set_name)
 +
 +int
 +pthread_setname_np (th, name)
@@ -10418,7 +10455,7 @@
 +   License along with the GNU C Library; if not, see
 +   <http://www.gnu.org/licenses/>.  */
 +
-+#define BUILD_AS_pthread_sigmask 1
++#define BUILD_AS_pthread_sigmask
 +#include "sigprocmask.c"
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_yield.c
@@ -11089,7 +11126,7 @@
 +
 +/* Get and/or change the set of blocked signals.  */
 +int
-+#if BUILD_AS_pthread_sigmask
++#ifdef BUILD_AS_pthread_sigmask
 +pthread_sigmask(how, set, oset)
 +#else
 +__sigprocmask (how, set, oset)
@@ -11115,7 +11152,7 @@
 +    }
 +
 +  rv = INLINE_SYSCALL (sigprocmask, 3, how, set, oset);
-+#if BUILD_AS_pthread_sigmask
++#ifdef BUILD_AS_pthread_sigmask
 +  return rv;
 +}  
 +#else
@@ -11154,7 +11191,7 @@
 +
 +#include <sysdep-cancel.h>
 +#include <sys/syscall.h>
-+#include <nptl/pthreadP.h>
++#include <fbtl/pthreadP.h>
 +
 +static int
 +do_sigtimedwait (const sigset_t *set, siginfo_t *info,
@@ -11231,7 +11268,7 @@
 +
 +#include <sysdep-cancel.h>
 +#include <sys/syscall.h>
-+#include <nptl/pthreadP.h>
++#include <fbtl/pthreadP.h>
 +
 +
 +/* Return any pending signal or wait for one for the given time.  */
@@ -11312,7 +11349,7 @@
 +
 +#include <sysdep-cancel.h>
 +#include <sys/syscall.h>
-+#include <nptl/pthreadP.h>
++#include <fbtl/pthreadP.h>
 +
 +
 +static int
@@ -11524,7 +11561,7 @@
 +#include <sysdep.h>
 +#include <kernel-features.h>
 +#include <internaltypes.h>
-+#include <nptl/pthreadP.h>
++#include <fbtl/pthreadP.h>
 +#include "kernel-posix-timers.h"
 +#include "kernel-posix-cpu-timers.h"
 +
@@ -11848,7 +11885,7 @@
 +#include <stdbool.h>
 +#include <sysdep.h>
 +#include <kernel-features.h>
-+#include <nptl/pthreadP.h>
++#include <fbtl/pthreadP.h>
 +#include "kernel-posix-timers.h"
 +
 +/* NPTL/Linux simply casts "timer_t" to "struct timer *", but on
@@ -12961,7 +12998,7 @@
 +     const union sigval val;
 +     pid_t caller_pid;
 +{
-+#ifdef NOT_IN_libc
++#if !IS_IN(libc)
 +    return sigqueue(caller_pid, sig, val);
 +#else
 +    return __sigqueue(caller_pid, sig, val);
@@ -13000,7 +13037,7 @@
 +
 +/* If we compile the file for use in ld.so we don't need the feature
 +   that getcwd() allocates the buffers itself.  */
-+#ifdef IS_IN_rtld
++#if IS_IN (rtld)
 +# define NO_ALLOCATION  1
 +#endif
 +
@@ -13075,7 +13112,7 @@
 +#include <sysdeps/posix/getcwd.c>
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/getdents.c
-@@ -0,0 +1,90 @@
+@@ -0,0 +1,43 @@
 +/* Read directory entries, 3 argument function.  FreeBSD version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13101,8 +13138,6 @@
 +#include <errno.h>
 +#include <sysdep.h>
 +
-+#if 1
-+
 +/* Use the 3-argument system call.  */
 +
 +extern int __syscall_getdents (int fd, char *buf, size_t nbytes);
@@ -13117,51 +13152,6 @@
 +{
 +  return __syscall_getdents (fd, buf, nbytes);
 +}
-+
-+/* Export getdents().  Not an internal_function.  */
-+ssize_t
-+getdents (int fd, char *buf, size_t nbytes)
-+{
-+  return __syscall_getdents (fd, buf, nbytes);
-+}
-+
-+#else
-+
-+/* Use the 4-argument system call.  */
-+
-+extern int __syscall_getdirentries (int fd, char *buf, unsigned int nbytes,
-+				    long *basep);
-+
-+/* Read directory entries from FD into BUF, reading at most NBYTES.
-+   Returns the number of bytes read; zero when at end of directory; or
-+   -1 for errors.  */
-+ssize_t
-+internal_function
-+__getdents (int fd, char *buf, size_t nbytes)
-+{
-+  /* On 64-bit platforms, the system call differs from this function
-+     because it takes an 'unsigned int', not a 'size_t'.  */
-+  unsigned int nbytes32;
-+
-+  nbytes32 = nbytes;
-+  if (nbytes32 == nbytes)
-+    return __syscall_getdirentries (fd, buf, nbytes32, NULL);
-+  else
-+    {
-+      /* NBYTES is too large.  */
-+      __set_errno (EINVAL);
-+      return -1;
-+    }
-+}
-+
-+/* Export getdents().  Not an internal_function.  */
-+ssize_t
-+getdents (int fd, char *buf, size_t nbytes)
-+{
-+  return __getdents (fd, buf, nbytes);
-+}
-+
-+#endif
 +
 +/* Since 'struct dirent64' == 'struct dirent', the functions '__getdents64'
 +   and '__getdents' are equal.  */
@@ -14577,6 +14567,76 @@
 +
 +#endif /* _BITS_SIGCONTEXT_H */
 --- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/c++-types.data
+@@ -0,0 +1,67 @@
++blkcnt64_t:x
++blkcnt_t:x
++blksize_t:j
++caddr_t:Pc
++clockid_t:i
++clock_t:i
++daddr_t:x
++dev_t:j
++fd_mask:l
++fsblkcnt64_t:y
++fsblkcnt_t:m
++fsfilcnt64_t:y
++fsfilcnt_t:m
++fsid_t:8__fsid_t
++gid_t:j
++id_t:j
++ino64_t:y
++ino_t:j
++int16_t:s
++int32_t:i
++int64_t:x
++int8_t:a
++intptr_t:i
++key_t:l
++loff_t:x
++mode_t:t
++nlink_t:t
++off64_t:x
++off_t:x
++pid_t:i
++pthread_attr_t:14pthread_attr_t
++pthread_barrier_t:17pthread_barrier_t
++pthread_barrierattr_t:21pthread_barrierattr_t
++pthread_cond_t:14pthread_cond_t
++pthread_condattr_t:18pthread_condattr_t
++pthread_key_t:j
++pthread_mutex_t:15pthread_mutex_t
++pthread_mutexattr_t:19pthread_mutexattr_t
++pthread_once_t:i
++pthread_rwlock_t:16pthread_rwlock_t
++pthread_rwlockattr_t:20pthread_rwlockattr_t
++pthread_spinlock_t:i
++pthread_t:m
++quad_t:x
++register_t:i
++rlim64_t:x
++rlim_t:x
++sigset_t:10__sigset_t
++size_t:j
++socklen_t:j
++ssize_t:i
++suseconds_t:l
++time_t:l
++u_char:h
++uid_t:j
++uint:j
++u_int:j
++u_int16_t:t
++u_int32_t:j
++u_int64_t:y
++u_int8_t:h
++ulong:m
++u_long:m
++u_quad_t:y
++useconds_t:j
++ushort:t
++u_short:t
+--- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/dl-machine.h
 @@ -0,0 +1,145 @@
 +/* Machine-dependent ELF dynamic relocation inline functions.
@@ -14729,13 +14789,10 @@
 @@ -0,0 +1 @@
 +#include <sysdeps/i386/dl-procinfo.h>
 --- /dev/null
-+++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/fbtl/Implies
-@@ -0,0 +1 @@
-+unix/bsd/bsd4.4/kfreebsd/x86/fbtl
---- /dev/null
-+++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/fbtl/exit-thread.S
-@@ -0,0 +1,33 @@
-+/* Copyright (C) 2013 Free Software Foundation, Inc.
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/exit-thread.h
+@@ -0,0 +1,49 @@
++/* Call to terminate the current thread.  GNU/kFreeBSD i386 version
++   Copyright (C) 2015 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -14753,21 +14810,40 @@
 +   <http://www.gnu.org/licenses/>.  */
 +
 +#include <sysdep.h>
-+	.text
-+ENTRY (__exit_thread)
-+        mov %gs:0, %edx
-+	mov 4(%esp), %ecx	/* we will need it later, 
-+                                %ecx is saved by kernel */
-+        add $TID,  %edx		/* should be KTID, but
-+                                they are at the same place anyway */
-+        mov %edx, 4(%esp)
-+        DO_CALL (thr_exit, 1)
-+	/* It does return only for last thread of process */
-+	mov %ecx, 4(%esp)	/* use saved value */
-+        DO_CALL (exit, 1)
-+        /* Shouldn't get here.  */
-+        hlt
-+END   (__exit_thread)
++
++/* This causes the current thread to exit, without affecting other
++   threads in the process if there are any.  If there are no other
++   threads left, then this has the effect of _exit (0).  */
++
++static inline void __attribute__ ((noreturn, always_inline, unused))
++__exit_thread (void)
++{
++  /* Doing this in a loop is mostly just to satisfy the compiler that the
++     function really qualifies as noreturn.  It also means that in some
++     pathological situation where the system call does not get made or does
++     not work, the thread will simply spin rather than running off the end
++     of the caller and doing unexpectedly strange things.  */
++  while (1)
++    {
++      asm volatile (
++	  "movl %%gs:0, %%edx\n\t"
++	  "addl %0, %%edx\n\t"    /* should be KTID, but they are at the same place anyway */
++	  "movl %%edx, 4(%%esp)\n\t"
++	  "movl %1, %%eax\n\t"
++	  "int $0x80\n\t"
++	  /* It does return only for last thread of process */
++	  "movl %2, %%eax\n\t"
++	  "movl $0, 4(%%esp)\n\t"
++	  "int $0x80\n\t"
++	  :
++	  : "i" (TID), "i" (SYS_ify(thr_exit)), "i" (SYS_ify(exit))
++	  : "memory", "cc");
++    }
++}
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/fbtl/Implies
+@@ -0,0 +1 @@
++unix/bsd/bsd4.4/kfreebsd/x86/fbtl
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/fbtl/pt-vfork.S
 @@ -0,0 +1,36 @@
@@ -14836,7 +14912,7 @@
 +# include <fbtl/pthreadP.h>
 +#endif
 +
-+#if !defined NOT_IN_libc || defined IS_IN_libpthread || defined IS_IN_librt
++#if IS_IN (libc) || IS_IN (libpthread) || IS_IN (librt)
 +
 +# undef PSEUDO
 +# define PSEUDO(name, syscall_name, args)				      \
@@ -14884,13 +14960,13 @@
 +# define PUSHRESULT	pushl %eax; cfi_adjust_cfa_offset (4);  pushfl;    cfi_adjust_cfa_offset (4)
 +# define POPRESULT	popfl;      cfi_adjust_cfa_offset (-4); popl %eax; cfi_adjust_cfa_offset (-4)
 +
-+# ifdef IS_IN_libpthread
++# if IS_IN (libpthread)
 +#  define CENABLE	call __pthread_enable_asynccancel;
 +#  define CDISABLE	call __pthread_disable_asynccancel
-+# elif !defined NOT_IN_libc
++# elif IS_IN (libc)
 +#  define CENABLE	call __libc_enable_asynccancel;
 +#  define CDISABLE	call __libc_disable_asynccancel
-+# elif defined IS_IN_librt
++# elif IS_IN (librt)
 +#  define CENABLE	call __librt_enable_asynccancel;
 +#  define CDISABLE	call __librt_disable_asynccancel
 +# else
@@ -14987,7 +15063,7 @@
 +
 +/*   The value of this macro is null if successful, or an error string.  */
 +
-+#  define TLS_INIT_TP(descr, secondcall)				      \
++#  define TLS_INIT_TP(descr)						      \
 +  ({									      \
 +    void *_descr = (descr);						      \
 +    tcbhead_t *head = _descr;						      \
@@ -15397,6 +15473,23 @@
 +      }
 +  }
 --- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/ld.abilist
+@@ -0,0 +1,14 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ ___tls_get_addr F
++ __libc_memalign F
++ __libc_stack_end D 0x4
++ __tls_get_addr F
++ _dl_mcount F
++ _r_debug D 0x14
++ calloc F
++ free F
++ malloc F
++ realloc F
++GLIBC_2.4
++ GLIBC_2.4 A
+--- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/ldconfig.h
 @@ -0,0 +1,37 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
@@ -15436,6 +15529,3265 @@
 +  { "libm.so.7", FLAG_ELF_LIBC5 },				\
 +  { "libc.so.8", FLAG_ELF_LIBC5 },				\
 +  { "libm.so.8", FLAG_ELF_LIBC5 },
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libBrokenLocale.abilist
+@@ -0,0 +1,3 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ __ctype_get_mb_cur_max F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libanl.abilist
+@@ -0,0 +1,6 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ gai_cancel F
++ gai_error F
++ gai_suspend F
++ getaddrinfo_a F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libc.abilist
+@@ -0,0 +1,2205 @@
++GLIBC_2.10
++ GLIBC_2.10 A
++ __cxa_at_quick_exit F
++ __posix_getopt F
++ accept4 F
++ devname F
++ devname_r F
++ endsgent F
++ fgetsgent F
++ fgetsgent_r F
++ getsgent F
++ getsgent_r F
++ getsgnam F
++ getsgnam_r F
++ kenv F
++ malloc_info F
++ preadv F
++ preadv64 F
++ psiginfo F
++ putsgent F
++ pwritev F
++ pwritev64 F
++ quick_exit F
++ register_printf_modifier F
++ register_printf_specifier F
++ register_printf_type F
++ setsgent F
++ sgetsgent F
++ sgetsgent_r F
++ sysctlnametomib F
++GLIBC_2.11
++ GLIBC_2.11 A
++ __longjmp_chk F
++ _sys_errlist D 0x178
++ _sys_nerr D 0x4
++ execvpe F
++ lchflags F
++ mkostemps F
++ mkostemps64 F
++ mkstemps F
++ mkstemps64 F
++ sys_errlist D 0x178
++ sys_nerr D 0x4
++GLIBC_2.13
++ GLIBC_2.13 A
++ __fentry__ F
++ jail_attach F
++ jail_get F
++ jail_remove F
++ jail_set F
++GLIBC_2.14
++ GLIBC_2.14 A
++ syncfs F
++GLIBC_2.15
++ GLIBC_2.15 A
++ __fdelt_chk F
++ __fdelt_warn F
++ posix_spawn F
++ posix_spawnp F
++ scandirat F
++ scandirat64 F
++GLIBC_2.16
++ GLIBC_2.16 A
++ __getauxval F
++ __poll_chk F
++ __ppoll_chk F
++ aligned_alloc F
++ c16rtomb F
++ c32rtomb F
++ getauxval F
++ mbrtoc16 F
++ mbrtoc32 F
++ timespec_get F
++GLIBC_2.17
++ GLIBC_2.17 A
++ clock_getcpuclockid F
++ clock_getres F
++ clock_gettime F
++ clock_nanosleep F
++ clock_settime F
++ recvmmsg F
++ secure_getenv F
++ sendmmsg F
++GLIBC_2.18
++ GLIBC_2.18 A
++ __cxa_thread_atexit_impl F
++ _sys_errlist D 0x184
++ _sys_nerr D 0x4
++ msgctl F
++ semctl F
++ shmctl F
++ sys_errlist D 0x184
++ sys_nerr D 0x4
++ waitid F
++GLIBC_2.21
++ GLIBC_2.21 A
++ __statfs F
++GLIBC_2.3
++ GLIBC_2.3 A
++ _Exit F
++ _IO_2_1_stderr_ D 0x9c
++ _IO_2_1_stdin_ D 0x9c
++ _IO_2_1_stdout_ D 0x9c
++ _IO_adjust_column F
++ _IO_adjust_wcolumn F
++ _IO_default_doallocate F
++ _IO_default_finish F
++ _IO_default_pbackfail F
++ _IO_default_uflow F
++ _IO_default_xsgetn F
++ _IO_default_xsputn F
++ _IO_do_write F
++ _IO_doallocbuf F
++ _IO_fclose F
++ _IO_fdopen F
++ _IO_feof F
++ _IO_ferror F
++ _IO_fflush F
++ _IO_fgetpos F
++ _IO_fgetpos64 F
++ _IO_fgets F
++ _IO_file_attach F
++ _IO_file_close F
++ _IO_file_close_it F
++ _IO_file_doallocate F
++ _IO_file_finish F
++ _IO_file_fopen F
++ _IO_file_init F
++ _IO_file_jumps D 0x54
++ _IO_file_open F
++ _IO_file_overflow F
++ _IO_file_read F
++ _IO_file_seek F
++ _IO_file_seekoff F
++ _IO_file_setbuf F
++ _IO_file_stat F
++ _IO_file_sync F
++ _IO_file_underflow F
++ _IO_file_write F
++ _IO_file_xsputn F
++ _IO_flockfile F
++ _IO_flush_all F
++ _IO_flush_all_linebuffered F
++ _IO_fopen F
++ _IO_fprintf F
++ _IO_fputs F
++ _IO_fread F
++ _IO_free_backup_area F
++ _IO_free_wbackup_area F
++ _IO_fsetpos F
++ _IO_fsetpos64 F
++ _IO_ftell F
++ _IO_ftrylockfile F
++ _IO_funlockfile F
++ _IO_fwrite F
++ _IO_getc F
++ _IO_getline F
++ _IO_getline_info F
++ _IO_gets F
++ _IO_init F
++ _IO_init_marker F
++ _IO_init_wmarker F
++ _IO_iter_begin F
++ _IO_iter_end F
++ _IO_iter_file F
++ _IO_iter_next F
++ _IO_least_wmarker F
++ _IO_link_in F
++ _IO_list_all D 0x4
++ _IO_list_lock F
++ _IO_list_resetlock F
++ _IO_list_unlock F
++ _IO_marker_delta F
++ _IO_marker_difference F
++ _IO_padn F
++ _IO_peekc_locked F
++ _IO_popen F
++ _IO_printf F
++ _IO_proc_close F
++ _IO_proc_open F
++ _IO_putc F
++ _IO_puts F
++ _IO_remove_marker F
++ _IO_seekmark F
++ _IO_seekoff F
++ _IO_seekpos F
++ _IO_seekwmark F
++ _IO_setb F
++ _IO_setbuffer F
++ _IO_setvbuf F
++ _IO_sgetn F
++ _IO_sprintf F
++ _IO_sputbackc F
++ _IO_sputbackwc F
++ _IO_sscanf F
++ _IO_str_init_readonly F
++ _IO_str_init_static F
++ _IO_str_overflow F
++ _IO_str_pbackfail F
++ _IO_str_seekoff F
++ _IO_str_underflow F
++ _IO_sungetc F
++ _IO_sungetwc F
++ _IO_switch_to_get_mode F
++ _IO_switch_to_main_wget_area F
++ _IO_switch_to_wbackup_area F
++ _IO_switch_to_wget_mode F
++ _IO_un_link F
++ _IO_ungetc F
++ _IO_unsave_markers F
++ _IO_unsave_wmarkers F
++ _IO_vfprintf F
++ _IO_vfscanf F
++ _IO_vsprintf F
++ _IO_wdefault_doallocate F
++ _IO_wdefault_finish F
++ _IO_wdefault_pbackfail F
++ _IO_wdefault_uflow F
++ _IO_wdefault_xsgetn F
++ _IO_wdefault_xsputn F
++ _IO_wdo_write F
++ _IO_wdoallocbuf F
++ _IO_wfile_jumps D 0x54
++ _IO_wfile_overflow F
++ _IO_wfile_seekoff F
++ _IO_wfile_sync F
++ _IO_wfile_underflow F
++ _IO_wfile_xsputn F
++ _IO_wmarker_delta F
++ _IO_wsetb F
++ __acl_aclcheck_fd F
++ __acl_aclcheck_file F
++ __acl_delete_fd F
++ __acl_delete_file F
++ __acl_get_fd F
++ __acl_get_file F
++ __acl_set_fd F
++ __acl_set_file F
++ __after_morecore_hook D 0x4
++ __argz_count F
++ __argz_next F
++ __argz_stringify F
++ __asprintf F
++ __assert F
++ __assert_fail F
++ __assert_perror_fail F
++ __backtrace F
++ __backtrace_symbols F
++ __backtrace_symbols_fd F
++ __bsd_getpgrp F
++ __bzero F
++ __check_rhosts_file D 0x4
++ __close F
++ __cmsg_nxthdr F
++ __connect F
++ __ctype_b_loc F
++ __ctype_get_mb_cur_max F
++ __ctype_tolower_loc F
++ __ctype_toupper_loc F
++ __curbrk D 0x4
++ __cxa_atexit F
++ __cxa_finalize F
++ __cyg_profile_func_enter F
++ __cyg_profile_func_exit F
++ __daylight D 0x4
++ __dcgettext F
++ __default_morecore F
++ __dgettext F
++ __divdi3 F
++ __dup2 F
++ __duplocale F
++ __environ D 0x4
++ __errno_location F
++ __fbufsize F
++ __fcntl F
++ __ffs F
++ __finite F
++ __finitef F
++ __finitel F
++ __flbf F
++ __fork F
++ __fpending F
++ __fpu_control D 0x2
++ __fpurge F
++ __freadable F
++ __freading F
++ __free_hook D 0x4
++ __freelocale F
++ __fsetlocking F
++ __fwritable F
++ __fwriting F
++ __fxstat F
++ __fxstat64 F
++ __getdelim F
++ __getpagesize F
++ __getpgid F
++ __getpid F
++ __gettimeofday F
++ __gmtime_r F
++ __h_errno_location F
++ __isalnum_l F
++ __isalpha_l F
++ __isascii_l F
++ __isblank_l F
++ __iscntrl_l F
++ __isctype F
++ __isdigit_l F
++ __isgraph_l F
++ __isinf F
++ __isinff F
++ __isinfl F
++ __islower_l F
++ __isnan F
++ __isnanf F
++ __isnanl F
++ __isprint_l F
++ __ispunct_l F
++ __isspace_l F
++ __isupper_l F
++ __iswalnum_l F
++ __iswalpha_l F
++ __iswblank_l F
++ __iswcntrl_l F
++ __iswctype F
++ __iswctype_l F
++ __iswdigit_l F
++ __iswgraph_l F
++ __iswlower_l F
++ __iswprint_l F
++ __iswpunct_l F
++ __iswspace_l F
++ __iswupper_l F
++ __iswxdigit_l F
++ __isxdigit_l F
++ __ivaliduser F
++ __key_decryptsession_pk_LOCAL D 0x4
++ __key_encryptsession_pk_LOCAL D 0x4
++ __key_gendes_LOCAL D 0x4
++ __libc_allocate_rtsig F
++ __libc_calloc F
++ __libc_current_sigrtmax F
++ __libc_current_sigrtmin F
++ __libc_free F
++ __libc_freeres F
++ __libc_init_first F
++ __libc_mallinfo F
++ __libc_malloc F
++ __libc_mallopt F
++ __libc_memalign F
++ __libc_pvalloc F
++ __libc_realloc F
++ __libc_start_main F
++ __libc_valloc F
++ __lseek F
++ __lxstat F
++ __lxstat64 F
++ __malloc_hook D 0x4
++ __malloc_initialize_hook D 0x4
++ __mbrlen F
++ __mbrtowc F
++ __memalign_hook D 0x4
++ __memcpy_by2 F
++ __memcpy_by4 F
++ __memcpy_c F
++ __memcpy_g F
++ __mempcpy F
++ __mempcpy_by2 F
++ __mempcpy_by4 F
++ __mempcpy_byn F
++ __mempcpy_small F
++ __memset_cc F
++ __memset_ccn_by2 F
++ __memset_ccn_by4 F
++ __memset_cg F
++ __memset_gcn_by2 F
++ __memset_gcn_by4 F
++ __memset_gg F
++ __moddi3 F
++ __monstartup F
++ __morecore D 0x4
++ __nanosleep F
++ __newlocale F
++ __nl_langinfo_l F
++ __nss_configure_lookup F
++ __nss_database_lookup F
++ __nss_group_lookup F
++ __nss_hostname_digits_dots F
++ __nss_hosts_lookup F
++ __nss_next F
++ __nss_passwd_lookup F
++ __open F
++ __overflow F
++ __pipe F
++ __poll F
++ __pread64 F
++ __printf_fp F
++ __profile_frequency F
++ __progname D 0x4
++ __progname_full D 0x4
++ __pwrite64 F
++ __rawmemchr F
++ __rcmd_errstr D 0x4
++ __read F
++ __realloc_hook D 0x4
++ __res_init F
++ __res_nclose F
++ __res_ninit F
++ __res_randomid F
++ __res_state F
++ __rpc_thread_createerr F
++ __rpc_thread_svc_fdset F
++ __rpc_thread_svc_max_pollfd F
++ __rpc_thread_svc_pollfd F
++ __sbrk F
++ __sched_get_priority_max F
++ __sched_get_priority_min F
++ __sched_getparam F
++ __sched_getscheduler F
++ __sched_setscheduler F
++ __sched_yield F
++ __secure_getenv F
++ __select F
++ __send F
++ __setpgid F
++ __sigaction F
++ __sigaddset F
++ __sigdelset F
++ __sigismember F
++ __signbit F
++ __signbitf F
++ __signbitl F
++ __sigpause F
++ __sigsetjmp F
++ __sigsuspend F
++ __stpcpy F
++ __stpcpy_g F
++ __stpcpy_small F
++ __stpncpy F
++ __strcasecmp F
++ __strcasecmp_l F
++ __strcasestr F
++ __strcat_c F
++ __strcat_g F
++ __strchr_c F
++ __strchr_g F
++ __strchrnul_c F
++ __strchrnul_g F
++ __strcmp_gg F
++ __strcoll_l F
++ __strcpy_g F
++ __strcpy_small F
++ __strcspn_c1 F
++ __strcspn_c2 F
++ __strcspn_c3 F
++ __strcspn_cg F
++ __strcspn_g F
++ __strdup F
++ __strerror_r F
++ __strfmon_l F
++ __strftime_l F
++ __strlen_g F
++ __strncasecmp_l F
++ __strncat_g F
++ __strncmp_g F
++ __strncpy_by2 F
++ __strncpy_by4 F
++ __strncpy_byn F
++ __strncpy_gg F
++ __strndup F
++ __strpbrk_c2 F
++ __strpbrk_c3 F
++ __strpbrk_cg F
++ __strpbrk_g F
++ __strrchr_c F
++ __strrchr_g F
++ __strsep_1c F
++ __strsep_2c F
++ __strsep_3c F
++ __strsep_g F
++ __strspn_c1 F
++ __strspn_c2 F
++ __strspn_c3 F
++ __strspn_cg F
++ __strspn_g F
++ __strstr_cg F
++ __strstr_g F
++ __strtod_internal F
++ __strtod_l F
++ __strtof_internal F
++ __strtof_l F
++ __strtok_r F
++ __strtok_r_1c F
++ __strtol_internal F
++ __strtol_l F
++ __strtold_internal F
++ __strtold_l F
++ __strtoll_internal F
++ __strtoll_l F
++ __strtoul_internal F
++ __strtoul_l F
++ __strtoull_internal F
++ __strtoull_l F
++ __strverscmp F
++ __strxfrm_l F
++ __syscall_aio_cancel F
++ __syscall_aio_error F
++ __syscall_aio_read F
++ __syscall_aio_return F
++ __syscall_aio_suspend F
++ __syscall_aio_waitcomplete F
++ __syscall_aio_write F
++ __syscall_lio_listio F
++ __syscall_obreak F
++ __syscall_yield F
++ __sysconf F
++ __sysctl F
++ __sysv_signal F
++ __timezone D 0x4
++ __toascii_l F
++ __tolower_l F
++ __toupper_l F
++ __towctrans F
++ __towctrans_l F
++ __towlower_l F
++ __towupper_l F
++ __tzname D 0x8
++ __udivdi3 F
++ __uflow F
++ __umoddi3 F
++ __underflow F
++ __uselocale F
++ __vfork F
++ __vfscanf F
++ __vsnprintf F
++ __vsscanf F
++ __wait F
++ __waitpid F
++ __wcscasecmp_l F
++ __wcscoll_l F
++ __wcsftime_l F
++ __wcsncasecmp_l F
++ __wcstod_internal F
++ __wcstod_l F
++ __wcstof_internal F
++ __wcstof_l F
++ __wcstol_internal F
++ __wcstol_l F
++ __wcstold_internal F
++ __wcstold_l F
++ __wcstoll_internal F
++ __wcstoll_l F
++ __wcstoul_internal F
++ __wcstoul_l F
++ __wcstoull_internal F
++ __wcstoull_l F
++ __wcsxfrm_l F
++ __wctrans_l F
++ __wctype_l F
++ __woverflow F
++ __write F
++ __wuflow F
++ __wunderflow F
++ __xmknod F
++ __xpg_basename F
++ __xpg_sigpause F
++ __xstat F
++ __xstat64 F
++ _authenticate F
++ _dl_mcount_wrapper F
++ _dl_mcount_wrapper_check F
++ _environ D 0x4
++ _exit F
++ _flushlbf F
++ _libc_intl_domainname D 0x5
++ _longjmp F
++ _mcleanup F
++ _mcount F
++ _nl_default_dirname D 0x12
++ _nl_domain_bindings D 0x4
++ _nl_msg_cat_cntr D 0x4
++ _null_auth D 0xc
++ _obstack D 0x4
++ _obstack_allocated_p F
++ _obstack_begin F
++ _obstack_begin_1 F
++ _obstack_free F
++ _obstack_memory_used F
++ _obstack_newchunk F
++ _res D 0x200
++ _res_hconf D 0x30
++ _rpc_dtablesize F
++ _seterr_reply F
++ _setjmp F
++ _sys_errlist D 0x15c
++ _sys_nerr D 0x4
++ _sys_siglist D 0x204
++ _tolower F
++ _toupper F
++ a64l F
++ abort F
++ abs F
++ accept F
++ access F
++ acct F
++ addmntent F
++ addseverity F
++ adjtime F
++ advance F
++ alarm F
++ alphasort F
++ alphasort64 F
++ argp_err_exit_status D 0x4
++ argp_error F
++ argp_failure F
++ argp_help F
++ argp_parse F
++ argp_program_bug_address D 0x4
++ argp_program_version D 0x4
++ argp_program_version_hook D 0x4
++ argp_state_help F
++ argp_usage F
++ argz_add F
++ argz_add_sep F
++ argz_append F
++ argz_count F
++ argz_create F
++ argz_create_sep F
++ argz_delete F
++ argz_extract F
++ argz_insert F
++ argz_next F
++ argz_replace F
++ argz_stringify F
++ asctime F
++ asctime_r F
++ asprintf F
++ atof F
++ atoi F
++ atol F
++ atoll F
++ authdes_create F
++ authdes_getucred F
++ authdes_pk_create F
++ authnone_create F
++ authunix_create F
++ authunix_create_default F
++ backtrace F
++ backtrace_symbols F
++ backtrace_symbols_fd F
++ basename F
++ bcmp F
++ bcopy F
++ bind F
++ bind_textdomain_codeset F
++ bindresvport F
++ bindtextdomain F
++ brk F
++ bsd_signal F
++ bsearch F
++ btowc F
++ bzero F
++ calloc F
++ callrpc F
++ canonicalize_file_name F
++ catclose F
++ catgets F
++ catopen F
++ cbc_crypt F
++ cfgetispeed F
++ cfgetospeed F
++ cfmakeraw F
++ cfree F
++ cfsetispeed F
++ cfsetospeed F
++ cfsetspeed F
++ chdir F
++ chflags F
++ chmod F
++ chown F
++ chroot F
++ clearenv F
++ clearerr F
++ clearerr_unlocked F
++ clnt_broadcast F
++ clnt_create F
++ clnt_pcreateerror F
++ clnt_perrno F
++ clnt_perror F
++ clnt_spcreateerror F
++ clnt_sperrno F
++ clnt_sperror F
++ clntraw_create F
++ clnttcp_create F
++ clntudp_bufcreate F
++ clntudp_create F
++ clntunix_create F
++ clock F
++ clone F
++ close F
++ closedir F
++ closelog F
++ confstr F
++ connect F
++ copysign F
++ copysignf F
++ copysignl F
++ creat F
++ creat64 F
++ ctermid F
++ ctime F
++ ctime_r F
++ cuserid F
++ daemon F
++ daylight D 0x4
++ dcgettext F
++ dcngettext F
++ des_setparity F
++ dgettext F
++ difftime F
++ dirfd F
++ dirname F
++ div F
++ dl_iterate_phdr F
++ dngettext F
++ dprintf F
++ drand48 F
++ drand48_r F
++ dup F
++ dup2 F
++ duplocale F
++ dysize F
++ ecb_crypt F
++ ecvt F
++ ecvt_r F
++ endaliasent F
++ endfsent F
++ endgrent F
++ endhostent F
++ endmntent F
++ endnetent F
++ endnetgrent F
++ endprotoent F
++ endpwent F
++ endrpcent F
++ endservent F
++ endspent F
++ endttyent F
++ endusershell F
++ endutent F
++ endutxent F
++ environ D 0x4
++ envz_add F
++ envz_entry F
++ envz_get F
++ envz_merge F
++ envz_remove F
++ envz_strip F
++ erand48 F
++ erand48_r F
++ err F
++ error F
++ error_at_line F
++ error_message_count D 0x4
++ error_one_per_line D 0x4
++ error_print_progname D 0x4
++ errx F
++ ether_aton F
++ ether_aton_r F
++ ether_hostton F
++ ether_line F
++ ether_ntoa F
++ ether_ntoa_r F
++ ether_ntohost F
++ euidaccess F
++ execl F
++ execle F
++ execlp F
++ execv F
++ execve F
++ execvp F
++ exit F
++ extattr_delete_file F
++ extattr_get_file F
++ extattr_set_file F
++ extattrctl F
++ fattach F
++ fchdir F
++ fchflags F
++ fchmod F
++ fchown F
++ fclose F
++ fcloseall F
++ fcntl F
++ fcvt F
++ fcvt_r F
++ fdatasync F
++ fdetach F
++ fdopen F
++ feof F
++ feof_unlocked F
++ ferror F
++ ferror_unlocked F
++ fexecve F
++ fflush F
++ fflush_unlocked F
++ ffs F
++ ffsl F
++ ffsll F
++ fgetc F
++ fgetc_unlocked F
++ fgetgrent F
++ fgetgrent_r F
++ fgetpos F
++ fgetpos64 F
++ fgetpwent F
++ fgetpwent_r F
++ fgets F
++ fgets_unlocked F
++ fgetspent F
++ fgetspent_r F
++ fgetwc F
++ fgetwc_unlocked F
++ fgetws F
++ fgetws_unlocked F
++ fgetxattr F
++ fhopen F
++ fhstat F
++ fhstatfs F
++ fileno F
++ fileno_unlocked F
++ finite F
++ finitef F
++ finitel F
++ flistxattr F
++ flock F
++ flockfile F
++ fmemopen F
++ fmtmsg F
++ fnmatch F
++ fopen F
++ fopen64 F
++ fopencookie F
++ fork F
++ fpathconf F
++ fprintf F
++ fputc F
++ fputc_unlocked F
++ fputs F
++ fputs_unlocked F
++ fputwc F
++ fputwc_unlocked F
++ fputws F
++ fputws_unlocked F
++ fread F
++ fread_unlocked F
++ free F
++ freeaddrinfo F
++ freeifaddrs F
++ freelocale F
++ fremovexattr F
++ freopen F
++ freopen64 F
++ frexp F
++ frexpf F
++ frexpl F
++ fscanf F
++ fseek F
++ fseeko F
++ fseeko64 F
++ fsetpos F
++ fsetpos64 F
++ fsetxattr F
++ fstatfs F
++ fstatfs64 F
++ fstatvfs F
++ fstatvfs64 F
++ fsync F
++ ftell F
++ ftello F
++ ftello64 F
++ ftime F
++ ftok F
++ ftruncate F
++ ftruncate64 F
++ ftrylockfile F
++ fts_children F
++ fts_close F
++ fts_open F
++ fts_read F
++ fts_set F
++ ftw F
++ ftw64 F
++ funlockfile F
++ futimes F
++ fwide F
++ fwprintf F
++ fwrite F
++ fwrite_unlocked F
++ fwscanf F
++ gai_strerror F
++ gcvt F
++ get_avphys_pages F
++ get_current_dir_name F
++ get_myaddress F
++ get_nprocs F
++ get_nprocs_conf F
++ get_phys_pages F
++ getaddrinfo F
++ getaliasbyname F
++ getaliasbyname_r F
++ getaliasent F
++ getaliasent_r F
++ getc F
++ getc_unlocked F
++ getchar F
++ getchar_unlocked F
++ getcontext F
++ getcwd F
++ getdate F
++ getdate_err D 0x4
++ getdate_r F
++ getdelim F
++ getdents F
++ getdirentries F
++ getdirentries64 F
++ getdomainname F
++ getdtablesize F
++ getegid F
++ getenv F
++ geteuid F
++ getfh F
++ getfsent F
++ getfsfile F
++ getfsspec F
++ getfsstat F
++ getfsstat64 F
++ getgid F
++ getgrent F
++ getgrent_r F
++ getgrgid F
++ getgrgid_r F
++ getgrnam F
++ getgrnam_r F
++ getgrouplist F
++ getgroups F
++ gethostbyaddr F
++ gethostbyaddr_r F
++ gethostbyname F
++ gethostbyname2 F
++ gethostbyname2_r F
++ gethostbyname_r F
++ gethostent F
++ gethostent_r F
++ gethostid F
++ gethostname F
++ getifaddrs F
++ getitimer F
++ getline F
++ getloadavg F
++ getlogin F
++ getlogin_r F
++ getmntent F
++ getmntent_r F
++ getmntinfo F
++ getmntinfo64 F
++ getmsg F
++ getnameinfo F
++ getnetbyaddr F
++ getnetbyaddr_r F
++ getnetbyname F
++ getnetbyname_r F
++ getnetent F
++ getnetent_r F
++ getnetgrent F
++ getnetgrent_r F
++ getnetname F
++ getopt F
++ getopt_long F
++ getopt_long_only F
++ getpagesize F
++ getpass F
++ getpeername F
++ getpgid F
++ getpgrp F
++ getpid F
++ getpmsg F
++ getppid F
++ getpriority F
++ getprotobyname F
++ getprotobyname_r F
++ getprotobynumber F
++ getprotobynumber_r F
++ getprotoent F
++ getprotoent_r F
++ getpt F
++ getpublickey F
++ getpw F
++ getpwent F
++ getpwent_r F
++ getpwnam F
++ getpwnam_r F
++ getpwuid F
++ getpwuid_r F
++ getresgid F
++ getresuid F
++ getrlimit F
++ getrlimit64 F
++ getrpcbyname F
++ getrpcbyname_r F
++ getrpcbynumber F
++ getrpcbynumber_r F
++ getrpcent F
++ getrpcent_r F
++ getrpcport F
++ getrusage F
++ gets F
++ getsecretkey F
++ getservbyname F
++ getservbyname_r F
++ getservbyport F
++ getservbyport_r F
++ getservent F
++ getservent_r F
++ getsid F
++ getsockname F
++ getsockopt F
++ getspent F
++ getspent_r F
++ getspnam F
++ getspnam_r F
++ getsubopt F
++ gettext F
++ gettimeofday F
++ getttyent F
++ getttynam F
++ getuid F
++ getusershell F
++ getutent F
++ getutent_r F
++ getutid F
++ getutid_r F
++ getutline F
++ getutline_r F
++ getutmp F
++ getutmpx F
++ getutxent F
++ getutxid F
++ getutxline F
++ getw F
++ getwc F
++ getwc_unlocked F
++ getwchar F
++ getwchar_unlocked F
++ getwd F
++ getxattr F
++ glob F
++ glob64 F
++ glob_pattern_p F
++ globfree F
++ globfree64 F
++ gmtime F
++ gmtime_r F
++ gnu_get_libc_release F
++ gnu_get_libc_version F
++ grantpt F
++ group_member F
++ gsignal F
++ gtty F
++ h_errlist D 0x14
++ h_nerr D 0x4
++ hasmntopt F
++ hcreate F
++ hcreate_r F
++ hdestroy F
++ hdestroy_r F
++ herror F
++ host2netname F
++ hsearch F
++ hsearch_r F
++ hstrerror F
++ htonl F
++ htons F
++ i386_get_ioperm F
++ i386_get_ldt F
++ i386_set_ioperm F
++ i386_set_ldt F
++ i386_vm86 F
++ iconv F
++ iconv_close F
++ iconv_open F
++ if_freenameindex F
++ if_indextoname F
++ if_nameindex F
++ if_nametoindex F
++ imaxabs F
++ imaxdiv F
++ in6addr_any D 0x10
++ in6addr_loopback D 0x10
++ index F
++ inet_addr F
++ inet_aton F
++ inet_lnaof F
++ inet_makeaddr F
++ inet_netof F
++ inet_network F
++ inet_nsap_addr F
++ inet_nsap_ntoa F
++ inet_ntoa F
++ inet_ntop F
++ inet_pton F
++ initgroups F
++ initstate F
++ initstate_r F
++ innetgr F
++ insque F
++ ioctl F
++ ioperm F
++ iopl F
++ iruserok F
++ iruserok_af F
++ isalnum F
++ isalnum_l F
++ isalpha F
++ isalpha_l F
++ isascii F
++ isastream F
++ isatty F
++ isblank F
++ isblank_l F
++ iscntrl F
++ iscntrl_l F
++ isctype F
++ isdigit F
++ isdigit_l F
++ isfdtype F
++ isgraph F
++ isgraph_l F
++ isinf F
++ isinff F
++ isinfl F
++ islower F
++ islower_l F
++ isnan F
++ isnanf F
++ isnanl F
++ isprint F
++ isprint_l F
++ ispunct F
++ ispunct_l F
++ issetugid F
++ isspace F
++ isspace_l F
++ isupper F
++ isupper_l F
++ iswalnum F
++ iswalnum_l F
++ iswalpha F
++ iswalpha_l F
++ iswblank F
++ iswblank_l F
++ iswcntrl F
++ iswcntrl_l F
++ iswctype F
++ iswctype_l F
++ iswdigit F
++ iswdigit_l F
++ iswgraph F
++ iswgraph_l F
++ iswlower F
++ iswlower_l F
++ iswprint F
++ iswprint_l F
++ iswpunct F
++ iswpunct_l F
++ iswspace F
++ iswspace_l F
++ iswupper F
++ iswupper_l F
++ iswxdigit F
++ iswxdigit_l F
++ isxdigit F
++ isxdigit_l F
++ jail F
++ jrand48 F
++ jrand48_r F
++ key_decryptsession F
++ key_decryptsession_pk F
++ key_encryptsession F
++ key_encryptsession_pk F
++ key_gendes F
++ key_get_conv F
++ key_secretkey_is_set F
++ key_setnet F
++ key_setsecret F
++ kill F
++ killpg F
++ kldfind F
++ kldfirstmod F
++ kldload F
++ kldnext F
++ kldstat F
++ kldsym F
++ kldunload F
++ kldunloadf F
++ ktrace F
++ l64a F
++ labs F
++ lchmod F
++ lchown F
++ lckpwdf F
++ lcong48 F
++ lcong48_r F
++ ldexp F
++ ldexpf F
++ ldexpl F
++ ldiv F
++ lfind F
++ lgetxattr F
++ link F
++ listen F
++ listxattr F
++ llabs F
++ lldiv F
++ llistxattr F
++ loc1 D 0x4
++ loc2 D 0x4
++ localeconv F
++ localtime F
++ localtime_r F
++ lockf F
++ lockf64 F
++ locs D 0x4
++ longjmp F
++ lrand48 F
++ lrand48_r F
++ lremovexattr F
++ lsearch F
++ lseek F
++ lseek64 F
++ lsetxattr F
++ lutimes F
++ madvise F
++ makecontext F
++ mallinfo F
++ malloc F
++ malloc_get_state F
++ malloc_set_state F
++ malloc_stats F
++ malloc_trim F
++ malloc_usable_size F
++ mallopt F
++ mallwatch D 0x4
++ mblen F
++ mbrlen F
++ mbrtowc F
++ mbsinit F
++ mbsnrtowcs F
++ mbsrtowcs F
++ mbstowcs F
++ mbtowc F
++ mcheck F
++ mcheck_check_all F
++ mcheck_pedantic F
++ mcount F
++ memalign F
++ memccpy F
++ memchr F
++ memcmp F
++ memcpy F
++ memfrob F
++ memmem F
++ memmove F
++ mempcpy F
++ memrchr F
++ memset F
++ mincore F
++ minherit F
++ mkdir F
++ mkdtemp F
++ mkfifo F
++ mkstemp F
++ mkstemp64 F
++ mktemp F
++ mktime F
++ mlock F
++ mlockall F
++ mmap F
++ mmap64 F
++ modf F
++ modff F
++ modfind F
++ modfl F
++ modfnext F
++ modnext F
++ modstat F
++ moncontrol F
++ monstartup F
++ mount F
++ mprobe F
++ mprotect F
++ mrand48 F
++ mrand48_r F
++ msgctl F
++ msgget F
++ msgrcv F
++ msgsnd F
++ msync F
++ mtrace F
++ munlock F
++ munlockall F
++ munmap F
++ muntrace F
++ nanosleep F
++ netname2host F
++ netname2user F
++ newlocale F
++ nftw F
++ nftw64 F
++ ngettext F
++ nice F
++ nl_langinfo F
++ nl_langinfo_l F
++ nmount F
++ nrand48 F
++ nrand48_r F
++ ntohl F
++ ntohs F
++ ntp_adjtime F
++ ntp_gettime F
++ obstack_alloc_failed_handler D 0x4
++ obstack_exit_failure D 0x4
++ obstack_free F
++ obstack_printf F
++ obstack_vprintf F
++ on_exit F
++ open F
++ open64 F
++ open_memstream F
++ opendir F
++ openlog F
++ optarg D 0x4
++ opterr D 0x4
++ optind D 0x4
++ optopt D 0x4
++ parse_printf_format F
++ passwd2des F
++ pathconf F
++ pause F
++ pclose F
++ perror F
++ pipe F
++ pmap_getmaps F
++ pmap_getport F
++ pmap_rmtcall F
++ pmap_set F
++ pmap_unset F
++ poll F
++ popen F
++ posix_fadvise F
++ posix_fadvise64 F
++ posix_fallocate F
++ posix_fallocate64 F
++ posix_madvise F
++ posix_memalign F
++ posix_openpt F
++ posix_spawn F
++ posix_spawn_file_actions_addclose F
++ posix_spawn_file_actions_adddup2 F
++ posix_spawn_file_actions_addopen F
++ posix_spawn_file_actions_destroy F
++ posix_spawn_file_actions_init F
++ posix_spawnattr_destroy F
++ posix_spawnattr_getflags F
++ posix_spawnattr_getpgroup F
++ posix_spawnattr_getschedparam F
++ posix_spawnattr_getschedpolicy F
++ posix_spawnattr_getsigdefault F
++ posix_spawnattr_getsigmask F
++ posix_spawnattr_init F
++ posix_spawnattr_setflags F
++ posix_spawnattr_setpgroup F
++ posix_spawnattr_setschedparam F
++ posix_spawnattr_setschedpolicy F
++ posix_spawnattr_setsigdefault F
++ posix_spawnattr_setsigmask F
++ posix_spawnp F
++ pread F
++ pread64 F
++ printf F
++ printf_size F
++ printf_size_info F
++ profil F
++ program_invocation_name D 0x4
++ program_invocation_short_name D 0x4
++ pselect F
++ psignal F
++ pthread_attr_destroy F
++ pthread_attr_getdetachstate F
++ pthread_attr_getinheritsched F
++ pthread_attr_getschedparam F
++ pthread_attr_getschedpolicy F
++ pthread_attr_getscope F
++ pthread_attr_init F
++ pthread_attr_setdetachstate F
++ pthread_attr_setinheritsched F
++ pthread_attr_setschedparam F
++ pthread_attr_setschedpolicy F
++ pthread_attr_setscope F
++ pthread_cond_broadcast F
++ pthread_cond_destroy F
++ pthread_cond_init F
++ pthread_cond_signal F
++ pthread_cond_timedwait F
++ pthread_cond_wait F
++ pthread_condattr_destroy F
++ pthread_condattr_init F
++ pthread_equal F
++ pthread_exit F
++ pthread_getschedparam F
++ pthread_mutex_destroy F
++ pthread_mutex_init F
++ pthread_mutex_lock F
++ pthread_mutex_unlock F
++ pthread_self F
++ pthread_setcancelstate F
++ pthread_setcanceltype F
++ pthread_setschedparam F
++ ptrace F
++ ptsname F
++ ptsname_r F
++ putc F
++ putc_unlocked F
++ putchar F
++ putchar_unlocked F
++ putenv F
++ putgrent F
++ putmsg F
++ putpmsg F
++ putpwent F
++ puts F
++ putspent F
++ pututline F
++ pututxline F
++ putw F
++ putwc F
++ putwc_unlocked F
++ putwchar F
++ putwchar_unlocked F
++ pvalloc F
++ pwrite F
++ pwrite64 F
++ qecvt F
++ qecvt_r F
++ qfcvt F
++ qfcvt_r F
++ qgcvt F
++ qsort F
++ quotactl F
++ raise F
++ rand F
++ rand_r F
++ random F
++ random_r F
++ rawmemchr F
++ rcmd F
++ rcmd_af F
++ re_comp F
++ re_compile_fastmap F
++ re_compile_pattern F
++ re_exec F
++ re_match F
++ re_match_2 F
++ re_search F
++ re_search_2 F
++ re_set_registers F
++ re_set_syntax F
++ re_syntax_options D 0x4
++ read F
++ readdir F
++ readdir64 F
++ readdir64_r F
++ readdir_r F
++ readlink F
++ readv F
++ realloc F
++ realpath F
++ reboot F
++ recv F
++ recvfrom F
++ recvmsg F
++ regcomp F
++ regerror F
++ regexec F
++ regfree F
++ register_printf_function F
++ registerrpc F
++ remove F
++ removexattr F
++ remque F
++ rename F
++ revoke F
++ rewind F
++ rewinddir F
++ rexec F
++ rexec_af F
++ rexecoptions D 0x4
++ rfork F
++ rindex F
++ rmdir F
++ rpc_createerr D 0x10
++ rpmatch F
++ rresvport F
++ rresvport_af F
++ rtime F
++ rtprio F
++ ruserok F
++ ruserok_af F
++ ruserpass F
++ sbrk F
++ scalbln F
++ scalblnf F
++ scalblnl F
++ scalbn F
++ scalbnf F
++ scalbnl F
++ scandir F
++ scandir64 F
++ scanf F
++ sched_get_priority_max F
++ sched_get_priority_min F
++ sched_getparam F
++ sched_getscheduler F
++ sched_rr_get_interval F
++ sched_setparam F
++ sched_setscheduler F
++ sched_yield F
++ seed48 F
++ seed48_r F
++ seekdir F
++ select F
++ semctl F
++ semget F
++ semop F
++ send F
++ sendfile F
++ sendfile64 F
++ sendmsg F
++ sendto F
++ setaliasent F
++ setbuf F
++ setbuffer F
++ setcontext F
++ setdomainname F
++ setegid F
++ setenv F
++ seteuid F
++ setfsent F
++ setgid F
++ setgrent F
++ setgroups F
++ sethostent F
++ sethostid F
++ sethostname F
++ setitimer F
++ setjmp F
++ setlinebuf F
++ setlocale F
++ setlogin F
++ setlogmask F
++ setmntent F
++ setnetent F
++ setnetgrent F
++ setpgid F
++ setpgrp F
++ setpriority F
++ setprotoent F
++ setpwent F
++ setregid F
++ setresgid F
++ setresuid F
++ setreuid F
++ setrlimit F
++ setrlimit64 F
++ setrpcent F
++ setservent F
++ setsid F
++ setsockopt F
++ setspent F
++ setstate F
++ setstate_r F
++ settimeofday F
++ setttyent F
++ setuid F
++ setusershell F
++ setutent F
++ setutxent F
++ setvbuf F
++ setxattr F
++ sgetspent F
++ sgetspent_r F
++ shmat F
++ shmctl F
++ shmdt F
++ shmget F
++ shutdown F
++ sigaction F
++ sigaddset F
++ sigaltstack F
++ sigandset F
++ sigblock F
++ sigdelset F
++ sigemptyset F
++ sigfillset F
++ siggetmask F
++ sighold F
++ sigignore F
++ siginterrupt F
++ sigisemptyset F
++ sigismember F
++ siglongjmp F
++ signal F
++ sigorset F
++ sigpause F
++ sigpending F
++ sigprocmask F
++ sigqueue F
++ sigrelse F
++ sigreturn F
++ sigset F
++ sigsetmask F
++ sigstack F
++ sigsuspend F
++ sigtimedwait F
++ sigvec F
++ sigwait F
++ sigwaitinfo F
++ sleep F
++ snprintf F
++ sockatmark F
++ socket F
++ socketpair F
++ sprintf F
++ sprofil F
++ srand F
++ srand48 F
++ srand48_r F
++ srandom F
++ srandom_r F
++ sscanf F
++ ssignal F
++ sstk F
++ statfs F
++ statfs64 F
++ statvfs F
++ statvfs64 F
++ stderr D 0x4
++ stdin D 0x4
++ stdout D 0x4
++ step F
++ stime F
++ stpcpy F
++ stpncpy F
++ strcasecmp F
++ strcasecmp_l F
++ strcasestr F
++ strcat F
++ strchr F
++ strchrnul F
++ strcmp F
++ strcoll F
++ strcoll_l F
++ strcpy F
++ strcspn F
++ strdup F
++ strerror F
++ strerror_r F
++ strfmon F
++ strfmon_l F
++ strfry F
++ strftime F
++ strftime_l F
++ strlen F
++ strncasecmp F
++ strncasecmp_l F
++ strncat F
++ strncmp F
++ strncpy F
++ strndup F
++ strnlen F
++ strpbrk F
++ strptime F
++ strrchr F
++ strsep F
++ strsignal F
++ strspn F
++ strstr F
++ strtod F
++ strtod_l F
++ strtof F
++ strtof_l F
++ strtoimax F
++ strtok F
++ strtok_r F
++ strtol F
++ strtol_l F
++ strtold F
++ strtold_l F
++ strtoll F
++ strtoll_l F
++ strtoq F
++ strtoul F
++ strtoul_l F
++ strtoull F
++ strtoull_l F
++ strtoumax F
++ strtouq F
++ strverscmp F
++ strxfrm F
++ strxfrm_l F
++ stty F
++ svc_exit F
++ svc_fdset D 0x80
++ svc_getreq F
++ svc_getreq_common F
++ svc_getreq_poll F
++ svc_getreqset F
++ svc_max_pollfd D 0x4
++ svc_pollfd D 0x4
++ svc_register F
++ svc_run F
++ svc_sendreply F
++ svc_unregister F
++ svcauthdes_stats D 0xc
++ svcerr_auth F
++ svcerr_decode F
++ svcerr_noproc F
++ svcerr_noprog F
++ svcerr_progvers F
++ svcerr_systemerr F
++ svcerr_weakauth F
++ svcfd_create F
++ svcraw_create F
++ svctcp_create F
++ svcudp_bufcreate F
++ svcudp_create F
++ svcudp_enablecache F
++ svcunix_create F
++ svcunixfd_create F
++ swab F
++ swapcontext F
++ swapoff F
++ swapon F
++ swprintf F
++ swscanf F
++ symlink F
++ sync F
++ sys_errlist D 0x15c
++ sys_nerr D 0x4
++ sys_sigabbrev D 0x204
++ sys_siglist D 0x204
++ sysarch F
++ syscall F
++ sysconf F
++ sysctl F
++ sysctlbyname F
++ syslog F
++ system F
++ sysv_signal F
++ tcdrain F
++ tcflow F
++ tcflush F
++ tcgetattr F
++ tcgetpgrp F
++ tcgetsid F
++ tcsendbreak F
++ tcsetattr F
++ tcsetpgrp F
++ tdelete F
++ tdestroy F
++ telldir F
++ tempnam F
++ textdomain F
++ tfind F
++ time F
++ timegm F
++ timelocal F
++ times F
++ timezone D 0x4
++ tmpfile F
++ tmpfile64 F
++ tmpnam F
++ tmpnam_r F
++ toascii F
++ tolower F
++ tolower_l F
++ toupper F
++ toupper_l F
++ towctrans F
++ towctrans_l F
++ towlower F
++ towlower_l F
++ towupper F
++ towupper_l F
++ tr_break F
++ truncate F
++ truncate64 F
++ tsearch F
++ ttyname F
++ ttyname_r F
++ ttyslot F
++ twalk F
++ tzname D 0x8
++ tzset F
++ ualarm F
++ ulckpwdf F
++ ulimit F
++ umask F
++ uname F
++ undelete F
++ ungetc F
++ ungetwc F
++ unlink F
++ unlockpt F
++ unmount F
++ unsetenv F
++ updwtmp F
++ updwtmpx F
++ uselocale F
++ user2netname F
++ usleep F
++ ustat F
++ utime F
++ utimes F
++ utmpname F
++ utmpxname F
++ utrace F
++ valloc F
++ vasprintf F
++ vdprintf F
++ verr F
++ verrx F
++ versionsort F
++ versionsort64 F
++ vfork F
++ vfprintf F
++ vfscanf F
++ vfwprintf F
++ vfwscanf F
++ vhangup F
++ vlimit F
++ vprintf F
++ vscanf F
++ vsnprintf F
++ vsprintf F
++ vsscanf F
++ vswprintf F
++ vswscanf F
++ vsyslog F
++ vtimes F
++ vwarn F
++ vwarnx F
++ vwprintf F
++ vwscanf F
++ wait F
++ wait3 F
++ wait4 F
++ waitid F
++ waitpid F
++ warn F
++ warnx F
++ wcpcpy F
++ wcpncpy F
++ wcrtomb F
++ wcscasecmp F
++ wcscasecmp_l F
++ wcscat F
++ wcschr F
++ wcschrnul F
++ wcscmp F
++ wcscoll F
++ wcscoll_l F
++ wcscpy F
++ wcscspn F
++ wcsdup F
++ wcsftime F
++ wcsftime_l F
++ wcslen F
++ wcsncasecmp F
++ wcsncasecmp_l F
++ wcsncat F
++ wcsncmp F
++ wcsncpy F
++ wcsnlen F
++ wcsnrtombs F
++ wcspbrk F
++ wcsrchr F
++ wcsrtombs F
++ wcsspn F
++ wcsstr F
++ wcstod F
++ wcstod_l F
++ wcstof F
++ wcstof_l F
++ wcstoimax F
++ wcstok F
++ wcstol F
++ wcstol_l F
++ wcstold F
++ wcstold_l F
++ wcstoll F
++ wcstoll_l F
++ wcstombs F
++ wcstoq F
++ wcstoul F
++ wcstoul_l F
++ wcstoull F
++ wcstoull_l F
++ wcstoumax F
++ wcstouq F
++ wcswcs F
++ wcswidth F
++ wcsxfrm F
++ wcsxfrm_l F
++ wctob F
++ wctomb F
++ wctrans F
++ wctrans_l F
++ wctype F
++ wctype_l F
++ wcwidth F
++ wmemchr F
++ wmemcmp F
++ wmemcpy F
++ wmemmove F
++ wmempcpy F
++ wmemset F
++ wordexp F
++ wordfree F
++ wprintf F
++ write F
++ writev F
++ wscanf F
++ xdecrypt F
++ xdr_accepted_reply F
++ xdr_array F
++ xdr_authdes_cred F
++ xdr_authdes_verf F
++ xdr_authunix_parms F
++ xdr_bool F
++ xdr_bytes F
++ xdr_callhdr F
++ xdr_callmsg F
++ xdr_char F
++ xdr_cryptkeyarg F
++ xdr_cryptkeyarg2 F
++ xdr_cryptkeyres F
++ xdr_des_block F
++ xdr_double F
++ xdr_enum F
++ xdr_float F
++ xdr_free F
++ xdr_getcredres F
++ xdr_hyper F
++ xdr_int F
++ xdr_int16_t F
++ xdr_int32_t F
++ xdr_int64_t F
++ xdr_int8_t F
++ xdr_key_netstarg F
++ xdr_key_netstres F
++ xdr_keybuf F
++ xdr_keystatus F
++ xdr_long F
++ xdr_longlong_t F
++ xdr_netnamestr F
++ xdr_netobj F
++ xdr_opaque F
++ xdr_opaque_auth F
++ xdr_pmap F
++ xdr_pmaplist F
++ xdr_pointer F
++ xdr_reference F
++ xdr_rejected_reply F
++ xdr_replymsg F
++ xdr_rmtcall_args F
++ xdr_rmtcallres F
++ xdr_short F
++ xdr_sizeof F
++ xdr_string F
++ xdr_u_char F
++ xdr_u_hyper F
++ xdr_u_int F
++ xdr_u_long F
++ xdr_u_longlong_t F
++ xdr_u_short F
++ xdr_uint16_t F
++ xdr_uint32_t F
++ xdr_uint64_t F
++ xdr_uint8_t F
++ xdr_union F
++ xdr_unixcred F
++ xdr_vector F
++ xdr_void F
++ xdr_wrapstring F
++ xdrmem_create F
++ xdrrec_create F
++ xdrrec_endofrecord F
++ xdrrec_eof F
++ xdrrec_skiprecord F
++ xdrstdio_create F
++ xencrypt F
++ xprt_register F
++ xprt_unregister F
++GLIBC_2.3.2
++ GLIBC_2.3.2 A
++ __register_atfork F
++ pthread_cond_broadcast F
++ pthread_cond_destroy F
++ pthread_cond_init F
++ pthread_cond_signal F
++ pthread_cond_timedwait F
++ pthread_cond_wait F
++ strptime_l F
++GLIBC_2.3.3
++ GLIBC_2.3.3 A
++ inet6_option_alloc F
++ inet6_option_append F
++ inet6_option_find F
++ inet6_option_init F
++ inet6_option_next F
++ inet6_option_space F
++ nftw F
++ nftw64 F
++ posix_fallocate64 F
++ remap_file_pages F
++ sched_getaffinity F
++ sched_setaffinity F
++ semtimedop F
++GLIBC_2.3.4
++ GLIBC_2.3.4 A
++ __chk_fail F
++ __fprintf_chk F
++ __gets_chk F
++ __libc_sa_len F
++ __memcpy_chk F
++ __memmove_chk F
++ __mempcpy_chk F
++ __memset_chk F
++ __printf_chk F
++ __snprintf_chk F
++ __sprintf_chk F
++ __stpcpy_chk F
++ __strcat_chk F
++ __strcpy_chk F
++ __strncat_chk F
++ __strncpy_chk F
++ __vfprintf_chk F
++ __vprintf_chk F
++ __vsnprintf_chk F
++ __vsprintf_chk F
++ __xpg_strerror_r F
++ _sys_errlist D 0x174
++ _sys_nerr D 0x4
++ fhstat64 F
++ fhstatfs64 F
++ getipv4sourcefilter F
++ getsourcefilter F
++ kevent F
++ kqueue F
++ regexec F
++ setipv4sourcefilter F
++ setsourcefilter F
++ sys_errlist D 0x174
++ sys_nerr D 0x4
++ xdr_quad_t F
++ xdr_u_quad_t F
++GLIBC_2.4
++ GLIBC_2.4 A
++ __confstr_chk F
++ __fgets_chk F
++ __fgets_unlocked_chk F
++ __fgetws_chk F
++ __fgetws_unlocked_chk F
++ __fwprintf_chk F
++ __fxstatat F
++ __fxstatat64 F
++ __getcwd_chk F
++ __getdomainname_chk F
++ __getgroups_chk F
++ __gethostname_chk F
++ __getlogin_r_chk F
++ __getwd_chk F
++ __mbsnrtowcs_chk F
++ __mbsrtowcs_chk F
++ __mbstowcs_chk F
++ __pread64_chk F
++ __pread_chk F
++ __ptsname_r_chk F
++ __read_chk F
++ __readlink_chk F
++ __realpath_chk F
++ __recv_chk F
++ __recvfrom_chk F
++ __stack_chk_fail F
++ __stpncpy_chk F
++ __swprintf_chk F
++ __syslog_chk F
++ __ttyname_r_chk F
++ __vfwprintf_chk F
++ __vswprintf_chk F
++ __vsyslog_chk F
++ __vwprintf_chk F
++ __wcpcpy_chk F
++ __wcpncpy_chk F
++ __wcrtomb_chk F
++ __wcscat_chk F
++ __wcscpy_chk F
++ __wcsncat_chk F
++ __wcsncpy_chk F
++ __wcsnrtombs_chk F
++ __wcsrtombs_chk F
++ __wcstombs_chk F
++ __wctomb_chk F
++ __wmemcpy_chk F
++ __wmemmove_chk F
++ __wmempcpy_chk F
++ __wmemset_chk F
++ __wprintf_chk F
++ __xmknodat F
++ eaccess F
++ faccessat F
++ fchmodat F
++ fchownat F
++ fdopendir F
++ futimesat F
++ linkat F
++ mkdirat F
++ mkfifoat F
++ open_wmemstream F
++ openat F
++ openat64 F
++ ppoll F
++ readlinkat F
++ renameat F
++ symlinkat F
++ unlinkat F
++GLIBC_2.5
++ GLIBC_2.5 A
++ __readlinkat_chk F
++ inet6_opt_append F
++ inet6_opt_find F
++ inet6_opt_finish F
++ inet6_opt_get_val F
++ inet6_opt_init F
++ inet6_opt_next F
++ inet6_opt_set_val F
++ inet6_rth_add F
++ inet6_rth_getaddr F
++ inet6_rth_init F
++ inet6_rth_reverse F
++ inet6_rth_segments F
++ inet6_rth_space F
++GLIBC_2.6
++ GLIBC_2.6 A
++ __sched_cpucount F
++ futimens F
++ strerror_l F
++ utimensat F
++GLIBC_2.7
++ GLIBC_2.7 A
++ __fread_chk F
++ __fread_unlocked_chk F
++ __isoc99_fscanf F
++ __isoc99_fwscanf F
++ __isoc99_scanf F
++ __isoc99_sscanf F
++ __isoc99_swscanf F
++ __isoc99_vfscanf F
++ __isoc99_vfwscanf F
++ __isoc99_vscanf F
++ __isoc99_vsscanf F
++ __isoc99_vswscanf F
++ __isoc99_vwscanf F
++ __isoc99_wscanf F
++ __open64_2 F
++ __open_2 F
++ __openat64_2 F
++ __openat_2 F
++ __sched_cpualloc F
++ __sched_cpufree F
++ mkostemp F
++ mkostemp64 F
++GLIBC_2.8
++ GLIBC_2.8 A
++ __asprintf_chk F
++ __dprintf_chk F
++ __obstack_printf_chk F
++ __obstack_vprintf_chk F
++ __vasprintf_chk F
++ __vdprintf_chk F
++ qsort_r F
++GLIBC_2.9
++ GLIBC_2.9 A
++ dup3 F
++ pipe2 F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libcrypt.abilist
+@@ -0,0 +1,9 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ crypt F
++ crypt_r F
++ encrypt F
++ encrypt_r F
++ fcrypt F
++ setkey F
++ setkey_r F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libdl.abilist
+@@ -0,0 +1,15 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ dladdr F
++ dlclose F
++ dlerror F
++ dlopen F
++ dlsym F
++ dlvsym F
++GLIBC_2.3.3
++ GLIBC_2.3.3 A
++ dladdr1 F
++ dlinfo F
++GLIBC_2.3.4
++ GLIBC_2.3.4 A
++ dlmopen F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libm.abilist
+@@ -0,0 +1,408 @@
++GLIBC_2.15
++ GLIBC_2.15 A
++ __acos_finite F
++ __acosf_finite F
++ __acosh_finite F
++ __acoshf_finite F
++ __acoshl_finite F
++ __acosl_finite F
++ __asin_finite F
++ __asinf_finite F
++ __asinl_finite F
++ __atan2_finite F
++ __atan2f_finite F
++ __atan2l_finite F
++ __atanh_finite F
++ __atanhf_finite F
++ __atanhl_finite F
++ __cosh_finite F
++ __coshf_finite F
++ __coshl_finite F
++ __exp10_finite F
++ __exp10f_finite F
++ __exp10l_finite F
++ __exp2_finite F
++ __exp2f_finite F
++ __exp2l_finite F
++ __exp_finite F
++ __expf_finite F
++ __expl_finite F
++ __fmod_finite F
++ __fmodf_finite F
++ __fmodl_finite F
++ __gamma_r_finite F
++ __gammaf_r_finite F
++ __gammal_r_finite F
++ __hypot_finite F
++ __hypotf_finite F
++ __hypotl_finite F
++ __j0_finite F
++ __j0f_finite F
++ __j0l_finite F
++ __j1_finite F
++ __j1f_finite F
++ __j1l_finite F
++ __jn_finite F
++ __jnf_finite F
++ __jnl_finite F
++ __lgamma_r_finite F
++ __lgammaf_r_finite F
++ __lgammal_r_finite F
++ __log10_finite F
++ __log10f_finite F
++ __log10l_finite F
++ __log2_finite F
++ __log2f_finite F
++ __log2l_finite F
++ __log_finite F
++ __logf_finite F
++ __logl_finite F
++ __pow_finite F
++ __powf_finite F
++ __powl_finite F
++ __remainder_finite F
++ __remainderf_finite F
++ __remainderl_finite F
++ __scalb_finite F
++ __scalbf_finite F
++ __scalbl_finite F
++ __sinh_finite F
++ __sinhf_finite F
++ __sinhl_finite F
++ __sqrt_finite F
++ __sqrtf_finite F
++ __sqrtl_finite F
++ __y0_finite F
++ __y0f_finite F
++ __y0l_finite F
++ __y1_finite F
++ __y1f_finite F
++ __y1l_finite F
++ __yn_finite F
++ __ynf_finite F
++ __ynl_finite F
++GLIBC_2.18
++ GLIBC_2.18 A
++ __issignaling F
++ __issignalingf F
++ __issignalingl F
++GLIBC_2.3
++ GLIBC_2.3 A
++ _LIB_VERSION D 0x4
++ __clog10 F
++ __clog10f F
++ __clog10l F
++ __expl F
++ __expm1l F
++ __finite F
++ __finitef F
++ __finitel F
++ __fpclassify F
++ __fpclassifyf F
++ __fpclassifyl F
++ __signbit F
++ __signbitf F
++ __signbitl F
++ acos F
++ acosf F
++ acosh F
++ acoshf F
++ acoshl F
++ acosl F
++ asin F
++ asinf F
++ asinh F
++ asinhf F
++ asinhl F
++ asinl F
++ atan F
++ atan2 F
++ atan2f F
++ atan2l F
++ atanf F
++ atanh F
++ atanhf F
++ atanhl F
++ atanl F
++ cabs F
++ cabsf F
++ cabsl F
++ cacos F
++ cacosf F
++ cacosh F
++ cacoshf F
++ cacoshl F
++ cacosl F
++ carg F
++ cargf F
++ cargl F
++ casin F
++ casinf F
++ casinh F
++ casinhf F
++ casinhl F
++ casinl F
++ catan F
++ catanf F
++ catanh F
++ catanhf F
++ catanhl F
++ catanl F
++ cbrt F
++ cbrtf F
++ cbrtl F
++ ccos F
++ ccosf F
++ ccosh F
++ ccoshf F
++ ccoshl F
++ ccosl F
++ ceil F
++ ceilf F
++ ceill F
++ cexp F
++ cexpf F
++ cexpl F
++ cimag F
++ cimagf F
++ cimagl F
++ clog F
++ clog10 F
++ clog10f F
++ clog10l F
++ clogf F
++ clogl F
++ conj F
++ conjf F
++ conjl F
++ copysign F
++ copysignf F
++ copysignl F
++ cos F
++ cosf F
++ cosh F
++ coshf F
++ coshl F
++ cosl F
++ cpow F
++ cpowf F
++ cpowl F
++ cproj F
++ cprojf F
++ cprojl F
++ creal F
++ crealf F
++ creall F
++ csin F
++ csinf F
++ csinh F
++ csinhf F
++ csinhl F
++ csinl F
++ csqrt F
++ csqrtf F
++ csqrtl F
++ ctan F
++ ctanf F
++ ctanh F
++ ctanhf F
++ ctanhl F
++ ctanl F
++ drem F
++ dremf F
++ dreml F
++ erf F
++ erfc F
++ erfcf F
++ erfcl F
++ erff F
++ erfl F
++ exp F
++ exp10 F
++ exp10f F
++ exp10l F
++ exp2 F
++ exp2f F
++ exp2l F
++ expf F
++ expl F
++ expm1 F
++ expm1f F
++ expm1l F
++ fabs F
++ fabsf F
++ fabsl F
++ fdim F
++ fdimf F
++ fdiml F
++ feclearexcept F
++ fedisableexcept F
++ feenableexcept F
++ fegetenv F
++ fegetexcept F
++ fegetexceptflag F
++ fegetround F
++ feholdexcept F
++ feraiseexcept F
++ fesetenv F
++ fesetexceptflag F
++ fesetround F
++ fetestexcept F
++ feupdateenv F
++ finite F
++ finitef F
++ finitel F
++ floor F
++ floorf F
++ floorl F
++ fma F
++ fmaf F
++ fmal F
++ fmax F
++ fmaxf F
++ fmaxl F
++ fmin F
++ fminf F
++ fminl F
++ fmod F
++ fmodf F
++ fmodl F
++ frexp F
++ frexpf F
++ frexpl F
++ gamma F
++ gammaf F
++ gammal F
++ hypot F
++ hypotf F
++ hypotl F
++ ilogb F
++ ilogbf F
++ ilogbl F
++ j0 F
++ j0f F
++ j0l F
++ j1 F
++ j1f F
++ j1l F
++ jn F
++ jnf F
++ jnl F
++ ldexp F
++ ldexpf F
++ ldexpl F
++ lgamma F
++ lgamma_r F
++ lgammaf F
++ lgammaf_r F
++ lgammal F
++ lgammal_r F
++ llrint F
++ llrintf F
++ llrintl F
++ llround F
++ llroundf F
++ llroundl F
++ log F
++ log10 F
++ log10f F
++ log10l F
++ log1p F
++ log1pf F
++ log1pl F
++ log2 F
++ log2f F
++ log2l F
++ logb F
++ logbf F
++ logbl F
++ logf F
++ logl F
++ lrint F
++ lrintf F
++ lrintl F
++ lround F
++ lroundf F
++ lroundl F
++ matherr F
++ modf F
++ modff F
++ modfl F
++ nan F
++ nanf F
++ nanl F
++ nearbyint F
++ nearbyintf F
++ nearbyintl F
++ nextafter F
++ nextafterf F
++ nextafterl F
++ nexttoward F
++ nexttowardf F
++ nexttowardl F
++ pow F
++ pow10 F
++ pow10f F
++ pow10l F
++ powf F
++ powl F
++ remainder F
++ remainderf F
++ remainderl F
++ remquo F
++ remquof F
++ remquol F
++ rint F
++ rintf F
++ rintl F
++ round F
++ roundf F
++ roundl F
++ scalb F
++ scalbf F
++ scalbl F
++ scalbln F
++ scalblnf F
++ scalblnl F
++ scalbn F
++ scalbnf F
++ scalbnl F
++ signgam D 0x4
++ significand F
++ significandf F
++ significandl F
++ sin F
++ sincos F
++ sincosf F
++ sincosl F
++ sinf F
++ sinh F
++ sinhf F
++ sinhl F
++ sinl F
++ sqrt F
++ sqrtf F
++ sqrtl F
++ tan F
++ tanf F
++ tanh F
++ tanhf F
++ tanhl F
++ tanl F
++ tgamma F
++ tgammaf F
++ tgammal F
++ trunc F
++ truncf F
++ truncl F
++ y0 F
++ y0f F
++ y0l F
++ y1 F
++ y1f F
++ y1l F
++ yn F
++ ynf F
++ ynl F
++GLIBC_2.4
++ GLIBC_2.4 A
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libnsl.abilist
+@@ -0,0 +1,123 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ __free_fdresult F
++ __nis_default_access F
++ __nis_default_group F
++ __nis_default_owner F
++ __nis_default_ttl F
++ __nis_finddirectory F
++ __nis_hash F
++ __nisbind_connect F
++ __nisbind_create F
++ __nisbind_destroy F
++ __nisbind_next F
++ __yp_check F
++ nis_add F
++ nis_add_entry F
++ nis_addmember F
++ nis_checkpoint F
++ nis_clone_directory F
++ nis_clone_object F
++ nis_clone_result F
++ nis_creategroup F
++ nis_destroy_object F
++ nis_destroygroup F
++ nis_dir_cmp F
++ nis_domain_of F
++ nis_domain_of_r F
++ nis_first_entry F
++ nis_free_directory F
++ nis_free_object F
++ nis_free_request F
++ nis_freenames F
++ nis_freeresult F
++ nis_freeservlist F
++ nis_freetags F
++ nis_getnames F
++ nis_getservlist F
++ nis_ismember F
++ nis_leaf_of F
++ nis_leaf_of_r F
++ nis_lerror F
++ nis_list F
++ nis_local_directory F
++ nis_local_group F
++ nis_local_host F
++ nis_local_principal F
++ nis_lookup F
++ nis_mkdir F
++ nis_modify F
++ nis_modify_entry F
++ nis_name_of F
++ nis_name_of_r F
++ nis_next_entry F
++ nis_perror F
++ nis_ping F
++ nis_print_directory F
++ nis_print_entry F
++ nis_print_group F
++ nis_print_group_entry F
++ nis_print_link F
++ nis_print_object F
++ nis_print_result F
++ nis_print_rights F
++ nis_print_table F
++ nis_read_obj F
++ nis_remove F
++ nis_remove_entry F
++ nis_removemember F
++ nis_rmdir F
++ nis_servstate F
++ nis_sperrno F
++ nis_sperror F
++ nis_sperror_r F
++ nis_stats F
++ nis_verifygroup F
++ nis_write_obj F
++ readColdStartFile F
++ writeColdStartFile F
++ xdr_cback_data F
++ xdr_domainname F
++ xdr_keydat F
++ xdr_mapname F
++ xdr_obj_p F
++ xdr_peername F
++ xdr_valdat F
++ xdr_yp_buf F
++ xdr_ypall F
++ xdr_ypbind_binding F
++ xdr_ypbind_resp F
++ xdr_ypbind_resptype F
++ xdr_ypbind_setdom F
++ xdr_ypdelete_args F
++ xdr_ypmap_parms F
++ xdr_ypmaplist F
++ xdr_yppush_status F
++ xdr_yppushresp_xfr F
++ xdr_ypreq_key F
++ xdr_ypreq_nokey F
++ xdr_ypreq_xfr F
++ xdr_ypresp_all F
++ xdr_ypresp_key_val F
++ xdr_ypresp_maplist F
++ xdr_ypresp_master F
++ xdr_ypresp_order F
++ xdr_ypresp_val F
++ xdr_ypresp_xfr F
++ xdr_ypstat F
++ xdr_ypupdate_args F
++ xdr_ypxfrstat F
++ yp_all F
++ yp_bind F
++ yp_first F
++ yp_get_default_domain F
++ yp_maplist F
++ yp_master F
++ yp_match F
++ yp_next F
++ yp_order F
++ yp_unbind F
++ yp_update F
++ ypbinderr_string F
++ yperr_string F
++ ypprot_err F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libpthread.abilist
+@@ -0,0 +1,233 @@
++GLIBC_2.12
++ GLIBC_2.12 A
++ pthread_getname_np F
++ pthread_setname_np F
++GLIBC_2.18
++ GLIBC_2.18 A
++ pthread_getattr_default_np F
++ pthread_setattr_default_np F
++GLIBC_2.3
++ GLIBC_2.3 A
++ _IO_flockfile F
++ _IO_ftrylockfile F
++ _IO_funlockfile F
++ __close F
++ __connect F
++ __errno_location F
++ __fcntl F
++ __fork F
++ __h_errno_location F
++ __libc_allocate_rtsig F
++ __libc_current_sigrtmax F
++ __libc_current_sigrtmin F
++ __lseek F
++ __nanosleep F
++ __open F
++ __open64 F
++ __pread64 F
++ __pthread_getspecific F
++ __pthread_key_create F
++ __pthread_mutex_destroy F
++ __pthread_mutex_init F
++ __pthread_mutex_lock F
++ __pthread_mutex_trylock F
++ __pthread_mutex_unlock F
++ __pthread_mutexattr_destroy F
++ __pthread_mutexattr_init F
++ __pthread_mutexattr_settype F
++ __pthread_once F
++ __pthread_rwlock_destroy F
++ __pthread_rwlock_init F
++ __pthread_rwlock_rdlock F
++ __pthread_rwlock_tryrdlock F
++ __pthread_rwlock_trywrlock F
++ __pthread_rwlock_unlock F
++ __pthread_rwlock_wrlock F
++ __pthread_setspecific F
++ __pwrite64 F
++ __read F
++ __res_state F
++ __send F
++ __sigaction F
++ __vfork F
++ __wait F
++ __write F
++ _pthread_cleanup_pop F
++ _pthread_cleanup_pop_restore F
++ _pthread_cleanup_push F
++ _pthread_cleanup_push_defer F
++ accept F
++ close F
++ connect F
++ fcntl F
++ flockfile F
++ fork F
++ fsync F
++ ftrylockfile F
++ funlockfile F
++ longjmp F
++ lseek F
++ lseek64 F
++ msync F
++ nanosleep F
++ open F
++ open64 F
++ pause F
++ pread F
++ pread64 F
++ pthread_atfork F
++ pthread_attr_destroy F
++ pthread_attr_getdetachstate F
++ pthread_attr_getguardsize F
++ pthread_attr_getinheritsched F
++ pthread_attr_getschedparam F
++ pthread_attr_getschedpolicy F
++ pthread_attr_getscope F
++ pthread_attr_getstack F
++ pthread_attr_getstackaddr F
++ pthread_attr_getstacksize F
++ pthread_attr_init F
++ pthread_attr_setdetachstate F
++ pthread_attr_setguardsize F
++ pthread_attr_setinheritsched F
++ pthread_attr_setschedparam F
++ pthread_attr_setschedpolicy F
++ pthread_attr_setscope F
++ pthread_attr_setstack F
++ pthread_attr_setstackaddr F
++ pthread_attr_setstacksize F
++ pthread_barrier_destroy F
++ pthread_barrier_init F
++ pthread_barrier_wait F
++ pthread_barrierattr_destroy F
++ pthread_barrierattr_init F
++ pthread_barrierattr_setpshared F
++ pthread_cancel F
++ pthread_cond_broadcast F
++ pthread_cond_destroy F
++ pthread_cond_init F
++ pthread_cond_signal F
++ pthread_cond_timedwait F
++ pthread_cond_wait F
++ pthread_condattr_destroy F
++ pthread_condattr_getpshared F
++ pthread_condattr_init F
++ pthread_condattr_setpshared F
++ pthread_create F
++ pthread_detach F
++ pthread_equal F
++ pthread_exit F
++ pthread_getattr_np F
++ pthread_getconcurrency F
++ pthread_getcpuclockid F
++ pthread_getschedparam F
++ pthread_getspecific F
++ pthread_join F
++ pthread_key_create F
++ pthread_key_delete F
++ pthread_kill F
++ pthread_kill_other_threads_np F
++ pthread_mutex_destroy F
++ pthread_mutex_init F
++ pthread_mutex_lock F
++ pthread_mutex_timedlock F
++ pthread_mutex_trylock F
++ pthread_mutex_unlock F
++ pthread_mutexattr_destroy F
++ pthread_mutexattr_getkind_np F
++ pthread_mutexattr_getpshared F
++ pthread_mutexattr_gettype F
++ pthread_mutexattr_init F
++ pthread_mutexattr_setkind_np F
++ pthread_mutexattr_setpshared F
++ pthread_mutexattr_settype F
++ pthread_once F
++ pthread_rwlock_destroy F
++ pthread_rwlock_init F
++ pthread_rwlock_rdlock F
++ pthread_rwlock_timedrdlock F
++ pthread_rwlock_timedwrlock F
++ pthread_rwlock_tryrdlock F
++ pthread_rwlock_trywrlock F
++ pthread_rwlock_unlock F
++ pthread_rwlock_wrlock F
++ pthread_rwlockattr_destroy F
++ pthread_rwlockattr_getkind_np F
++ pthread_rwlockattr_getpshared F
++ pthread_rwlockattr_init F
++ pthread_rwlockattr_setkind_np F
++ pthread_rwlockattr_setpshared F
++ pthread_self F
++ pthread_setcancelstate F
++ pthread_setcanceltype F
++ pthread_setconcurrency F
++ pthread_setschedparam F
++ pthread_setspecific F
++ pthread_sigmask F
++ pthread_spin_destroy F
++ pthread_spin_init F
++ pthread_spin_lock F
++ pthread_spin_trylock F
++ pthread_spin_unlock F
++ pthread_testcancel F
++ pthread_yield F
++ pwrite F
++ pwrite64 F
++ raise F
++ read F
++ recv F
++ recvfrom F
++ recvmsg F
++ sem_close F
++ sem_destroy F
++ sem_getvalue F
++ sem_init F
++ sem_open F
++ sem_post F
++ sem_timedwait F
++ sem_trywait F
++ sem_unlink F
++ sem_wait F
++ send F
++ sendmsg F
++ sendto F
++ sigaction F
++ siglongjmp F
++ sigwait F
++ system F
++ tcdrain F
++ vfork F
++ wait F
++ waitpid F
++ write F
++GLIBC_2.3.2
++ GLIBC_2.3.2 A
++ pthread_cond_broadcast F
++ pthread_cond_destroy F
++ pthread_cond_init F
++ pthread_cond_signal F
++ pthread_cond_timedwait F
++ pthread_cond_wait F
++GLIBC_2.3.3
++ GLIBC_2.3.3 A
++ __pthread_cleanup_routine F
++ __pthread_register_cancel F
++ __pthread_register_cancel_defer F
++ __pthread_unregister_cancel F
++ __pthread_unregister_cancel_restore F
++ __pthread_unwind_next F
++ pthread_attr_getaffinity_np F
++ pthread_attr_setaffinity_np F
++ pthread_barrierattr_getpshared F
++ pthread_condattr_getclock F
++ pthread_condattr_setclock F
++ pthread_getaffinity_np F
++ pthread_setaffinity_np F
++ pthread_timedjoin_np F
++ pthread_tryjoin_np F
++GLIBC_2.3.4
++ GLIBC_2.3.4 A
++ pthread_attr_getaffinity_np F
++ pthread_attr_setaffinity_np F
++ pthread_getaffinity_np F
++ pthread_setaffinity_np F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libresolv.abilist
+@@ -0,0 +1,97 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ __b64_ntop F
++ __b64_pton F
++ __dn_comp F
++ __dn_count_labels F
++ __dn_expand F
++ __dn_skipname F
++ __fp_nquery F
++ __fp_query F
++ __fp_resstat F
++ __hostalias F
++ __loc_aton F
++ __loc_ntoa F
++ __p_cdname F
++ __p_cdnname F
++ __p_class F
++ __p_class_syms D 0x54
++ __p_fqname F
++ __p_fqnname F
++ __p_option F
++ __p_query F
++ __p_secstodate F
++ __p_time F
++ __p_type F
++ __p_type_syms D 0x228
++ __putlong F
++ __putshort F
++ __res_close F
++ __res_dnok F
++ __res_hnok F
++ __res_hostalias F
++ __res_isourserver F
++ __res_mailok F
++ __res_mkquery F
++ __res_nameinquery F
++ __res_nmkquery F
++ __res_nquery F
++ __res_nquerydomain F
++ __res_nsearch F
++ __res_nsend F
++ __res_ownok F
++ __res_queriesmatch F
++ __res_query F
++ __res_querydomain F
++ __res_search F
++ __res_send F
++ __sym_ntop F
++ __sym_ntos F
++ __sym_ston F
++ _gethtbyaddr F
++ _gethtbyname F
++ _gethtbyname2 F
++ _gethtent F
++ _getlong F
++ _getshort F
++ _res_opcodes D 0x40
++ _sethtent F
++ inet_net_ntop F
++ inet_net_pton F
++ inet_neta F
++ res_gethostbyaddr F
++ res_gethostbyname F
++ res_gethostbyname2 F
++ res_send_setqhook F
++ res_send_setrhook F
++GLIBC_2.3.2
++ GLIBC_2.3.2 A
++ __p_rcode F
++GLIBC_2.9
++ GLIBC_2.9 A
++ ns_datetosecs F
++ ns_format_ttl F
++ ns_get16 F
++ ns_get32 F
++ ns_initparse F
++ ns_makecanon F
++ ns_msg_getflag F
++ ns_name_compress F
++ ns_name_ntol F
++ ns_name_ntop F
++ ns_name_pack F
++ ns_name_pton F
++ ns_name_rollback F
++ ns_name_skip F
++ ns_name_uncompress F
++ ns_name_unpack F
++ ns_parse_ttl F
++ ns_parserr F
++ ns_put16 F
++ ns_put32 F
++ ns_samedomain F
++ ns_samename F
++ ns_skiprr F
++ ns_sprintrr F
++ ns_sprintrrf F
++ ns_subdomain F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/librt.abilist
+@@ -0,0 +1,50 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ aio_cancel F
++ aio_cancel64 F
++ aio_error F
++ aio_error64 F
++ aio_fsync F
++ aio_fsync64 F
++ aio_init F
++ aio_read F
++ aio_read64 F
++ aio_return F
++ aio_return64 F
++ aio_suspend F
++ aio_suspend64 F
++ aio_write F
++ aio_write64 F
++ clock_getcpuclockid F
++ clock_getres F
++ clock_gettime F
++ clock_nanosleep F
++ clock_settime F
++ lio_listio F
++ lio_listio64 F
++ shm_open F
++ shm_unlink F
++ timer_create F
++ timer_delete F
++ timer_getoverrun F
++ timer_gettime F
++ timer_settime F
++GLIBC_2.3.4
++ GLIBC_2.3.4 A
++ mq_close F
++ mq_getattr F
++ mq_notify F
++ mq_open F
++ mq_receive F
++ mq_send F
++ mq_setattr F
++ mq_timedreceive F
++ mq_timedsend F
++ mq_unlink F
++GLIBC_2.4
++ GLIBC_2.4 A
++ lio_listio F
++ lio_listio64 F
++GLIBC_2.7
++ GLIBC_2.7 A
++ __mq_open_2 F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libthread_db.abilist
+@@ -0,0 +1,44 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ td_init F
++ td_log F
++ td_symbol_list F
++ td_ta_clear_event F
++ td_ta_delete F
++ td_ta_enable_stats F
++ td_ta_event_addr F
++ td_ta_event_getmsg F
++ td_ta_get_nthreads F
++ td_ta_get_ph F
++ td_ta_get_stats F
++ td_ta_map_id2thr F
++ td_ta_map_lwp2thr F
++ td_ta_new F
++ td_ta_reset_stats F
++ td_ta_set_event F
++ td_ta_setconcurrency F
++ td_ta_thr_iter F
++ td_ta_tsd_iter F
++ td_thr_clear_event F
++ td_thr_dbresume F
++ td_thr_dbsuspend F
++ td_thr_event_enable F
++ td_thr_event_getmsg F
++ td_thr_get_info F
++ td_thr_getfpregs F
++ td_thr_getgregs F
++ td_thr_getxregs F
++ td_thr_getxregsize F
++ td_thr_set_event F
++ td_thr_setfpregs F
++ td_thr_setgregs F
++ td_thr_setprio F
++ td_thr_setsigpending F
++ td_thr_setxregs F
++ td_thr_sigsetmask F
++ td_thr_tls_get_addr F
++ td_thr_tsd F
++ td_thr_validate F
++GLIBC_2.3.3
++ GLIBC_2.3.3 A
++ td_thr_tlsbase F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libutil.abilist
+@@ -0,0 +1,8 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ forkpty F
++ login F
++ login_tty F
++ logout F
++ logwtmp F
++ openpty F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/localplt.data
+@@ -0,0 +1,19 @@
++# See scripts/check-localplt.awk for how this file is processed.
++# PLT use is required for the malloc family and for matherr because
++# users can define their own functions and have library internals call them.
++# Linker in binutils 2.26 and newer consolidates R_386_JUMP_SLOT
++# relocation with R_386_GLOB_DAT relocation against the same symbol.
++libc.so: calloc
++libc.so: free + REL R_386_GLOB_DAT
++libc.so: malloc + REL R_386_GLOB_DAT
++libc.so: memalign
++libc.so: realloc
++libm.so: matherr
++# The dynamic loader uses __libc_memalign internally to allocate aligned
++# TLS storage. The other malloc family of functions are expected to allow
++# user symbol interposition.
++ld.so: __libc_memalign
++ld.so: malloc
++ld.so: calloc
++ld.so: realloc
++ld.so: free + REL R_386_GLOB_DAT
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/lseek.S
 @@ -0,0 +1,53 @@
@@ -15688,6 +19040,10 @@
 +
 +weak_alias (__rfork, rfork)
 +
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/shlib-versions
+@@ -0,0 +1 @@
++ld=ld.so.1
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/sigcontextinfo.h
 @@ -0,0 +1,35 @@
@@ -16867,7 +20223,7 @@
 +
 +# elif defined _LIBC_REENTRANT
 +
-+#  ifndef NOT_IN_libc
++#  if IS_IN (libc)
 +#   define SYSCALL_ERROR_ERRNO __libc_errno
 +#  else
 +#   define SYSCALL_ERROR_ERRNO errno
@@ -16949,7 +20305,7 @@
 +
 +
 +/* Pointer mangling support.  */
-+#if defined NOT_IN_libc && defined IS_IN_rtld
++#if IS_IN (rtld)
 +/* We cannot use the thread descriptor because in ld.so we use setjmp
 +   earlier than the descriptor is initialized.  Using a global variable
 +   is too complicated here since we have no PC-relative addressing mode.  */
@@ -17095,7 +20451,7 @@
 +weak_alias (__vfork, vfork)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/if_index.c
-@@ -0,0 +1,311 @@
+@@ -0,0 +1,317 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Bruno Haible <bruno@clisp.org>, 2002.
@@ -17228,7 +20584,7 @@
 +
 +/* Return the index of an interface given by name.  */
 +unsigned int
-+if_nametoindex (const char *ifname)
++__if_nametoindex (const char *ifname)
 +{
 +  struct nametoindex_locals l;
 +
@@ -17238,7 +20594,9 @@
 +
 +  return l.index;
 +}
-+libc_hidden_def (if_nametoindex)
++libc_hidden_def (__if_nametoindex)
++weak_alias (__if_nametoindex, if_nametoindex)
++libc_hidden_weak (if_nametoindex)
 +
 +/* ------------------------------------------------------------------------- */
 +
@@ -17265,7 +20623,7 @@
 +
 +/* Return the name of an interface given by name.  */
 +char *
-+if_indextoname (unsigned int ifindex, char *ifname)
++__if_indextoname (unsigned int ifindex, char *ifname)
 +{
 +  struct indextoname_locals l;
 +
@@ -17275,7 +20633,8 @@
 +  if_iterate (indextoname_aux, &l);
 +  return l.retval;
 +}
-+libc_hidden_def (if_indextoname)
++weak_alias (__if_indextoname, if_indextoname)
++libc_hidden_weak (if_indextoname)
 +
 +/* ------------------------------------------------------------------------- */
 +
@@ -17361,7 +20720,7 @@
 +/* Return an array of 'struct if_nameindex', one for each present
 +   interface.  */
 +struct if_nameindex *
-+if_nameindex (void)
++__if_nameindex (void)
 +{
 +  struct nameindex_locals l;
 +
@@ -17390,13 +20749,14 @@
 +    }
 +  return l.s_array;
 +}
-+libc_hidden_def (if_nameindex)
++weak_alias (__if_nameindex, if_nameindex)
++libc_hidden_weak (if_nameindex)
 +
 +/* ------------------------------------------------------------------------- */
 +
 +/* Free an array returned by if_nameindex().  */
 +void
-+if_freenameindex (struct if_nameindex *ifn)
++__if_freenameindex (struct if_nameindex *ifn)
 +{
 +  if (ifn != NULL)
 +    {
@@ -17406,7 +20766,9 @@
 +      free (ifn);
 +    }
 +}
-+libc_hidden_def (if_freenameindex)
++libc_hidden_def (__if_freenameindex)
++weak_alias (__if_freenameindex, if_freenameindex)
++libc_hidden_weak (if_freenameindex)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/ifaddrs.c
 @@ -0,0 +1,380 @@
@@ -18268,7 +21630,7 @@
 +
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/ldsodefs.h
-@@ -0,0 +1,58 @@
+@@ -0,0 +1,60 @@
 +/* Run-time dynamic linker data structures for loaded ELF shared objects.
 +   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -18309,9 +21671,11 @@
 +
 +/* Contrary to most kernels which use ELFOSABI_SYSV aka ELFOSABI_NONE,
 +   FreeBSD uses ELFOSABI_FREEBSD for the OSABI field. */
++#undef VALID_ELF_HEADER
 +#define VALID_ELF_HEADER(hdr,exp,size)	(memcmp (hdr, expected2, size) == 0)
++#undef VALID_ELF_OSABI
 +#define VALID_ELF_OSABI(osabi)		(osabi == ELFOSABI_FREEBSD)
-+#define VALID_ELF_ABIVERSION(osabi,ver) (ver == 0)
++#undef MORE_ELF_HEADER_DATA
 +#define MORE_ELF_HEADER_DATA \
 +  static const unsigned char expected2[EI_PAD] =	\
 +  {							\
@@ -18663,13 +22027,13 @@
 +	sll $7, $5, " STRINGXP (PTRLOG) "\n\
 +	" STRINGXP(PTR_ADDU) " $7, $7, $6\n\
 +	" STRINGXP(PTR_ADDU) " $7, $7, " STRINGXP (PTRSIZE) " \n\
-+	# Make sure the stack pointer is aligned for _dl_init_internal.\n\
++	# Make sure the stack pointer is aligned for _dl_init.\n\
 +	and $2, $29, -2 * " STRINGXP(SZREG) "\n\
 +	" STRINGXP(PTR_S) " $29, -" STRINGXP(SZREG) "($2)\n\
 +	" STRINGXP(PTR_SUBIU) " $29, $2, 32\n\
 +	" STRINGXP(SAVE_GP(16)) "\n\
 +	# Call the function to run the initializers.\n\
-+	jal _dl_init_internal\n\
++	jal _dl_init\n\
 +	# Restore the stack pointer for _start.\n\
 +	" STRINGXP(PTR_L)  " $29, 32-" STRINGXP(SZREG) "($29)\n\
 +	# Pass our finalizer function to the user in $2 as per ELF ABI.\n\
@@ -20800,7 +24164,7 @@
 +#include <sys/kglue/sys/types.h>
 +#include <net/if_ether.h>
 +
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +/*
 + * Copyright (c) 1982, 1986, 1993
 + *	The Regents of the University of California.  All rights reserved.
@@ -20909,7 +24273,7 @@
 +}
 +
 +__END_DECLS
-+#endif /* __USE_BSD */
++#endif /* __USE_MISC */
 +
 +#endif /* netinet/if_ether.h */
 --- /dev/null
@@ -21008,7 +24372,7 @@
 +#define ICMP_EXC_FRAGTIME	1	/* Fragment Reass time exceeded	*/
 +
 +
-+#ifdef __USE_BSD
++#ifdef __USE_MISC
 +/*
 + * Copyright (c) 1982, 1986, 1993
 + *	The Regents of the University of California.  All rights reserved.
@@ -21206,7 +24570,7 @@
 +	(type) == ICMP_IREQ || (type) == ICMP_IREQREPLY || \
 +	(type) == ICMP_MASKREQ || (type) == ICMP_MASKREPLY)
 +
-+#endif /* __USE_BSD */
++#endif /* __USE_MISC */
 +
 +__END_DECLS
 +
@@ -21522,7 +24886,7 @@
 +   INLINE_SYSCALL (open, 2, (const char *) (name), (flags))
 +
 +/* Uncancelable openat.  */
-+#if !defined NOT_IN_libc || defined IS_IN_libpthread || defined IS_IN_librt
++#if IS_IN (libc) || IS_IN (libpthread) || IS_IN (librt)
 +extern int __openat_nocancel (int fd, const char *fname, int oflag,
 +			      mode_t mode) attribute_hidden;
 +extern int __openat64_nocancel (int fd, const char *fname, int oflag,
@@ -21865,7 +25229,7 @@
 +    return rv;
 +}
 +
-+strong_alias (posix_fadvise, posix_fadvise64)
++weak_alias (posix_fadvise, posix_fadvise64)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/posix_fadvise64.c
 @@ -0,0 +1 @@
@@ -21952,7 +25316,7 @@
 +versioned_symbol (libc, __posix_fallocate, posix_fallocate64, GLIBC_2_3_3);
 +compat_symbol (libc, __posix_fallocate64_l32, posix_fallocate64, GLIBC_2_2);
 +#else
-+strong_alias (__posix_fallocate, posix_fallocate64)
++weak_alias (__posix_fallocate, posix_fallocate64)
 +#endif
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/posix_fallocate64.c
@@ -22060,7 +25424,7 @@
 +libc_hidden_def (__profile_frequency)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/ptsname.c
-@@ -0,0 +1,109 @@
+@@ -0,0 +1,110 @@
 +/* Copyright (C) 1998-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -22133,7 +25497,8 @@
 +  /* Check if FD really is a master pseudo terminal.  */
 +  if (0 != __isptymaster(fd))
 +  {
-+      return errno;
++      __set_errno (ENOTTY);
++      return ENOTTY;
 +  }
 +
 +  if (buflen < sizeof (_PATH_DEV) + 5) /* "/dev/" + "pts/"   */
@@ -22317,7 +25682,7 @@
 +}
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/readv.c
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,57 @@
 +/* readv for FreeBSD.
 +   Copyright (C) 1997-1998, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -22353,7 +25718,7 @@
 +					   int) internal_function;
 +
 +ssize_t
-+__libc_readv (int fd, const struct iovec *vector, int count)
++__readv (int fd, const struct iovec *vector, int count)
 +{
 +  if (count <= UIO_MAXIOV)
 +  {
@@ -22369,10 +25734,11 @@
 +  else
 +    return __atomic_readv_replacement (fd, vector, count);
 +}
-+strong_alias (__libc_readv, __readv)
-+weak_alias (__libc_readv, readv)
++weak_alias (__readv, readv)
 +
-+#define __libc_readv static internal_function __atomic_readv_replacement
++#undef weak_alias
++#define weak_alias(a,b)
++#define __readv static internal_function __atomic_readv_replacement
 +#include <sysdeps/posix/readv.c>
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/recv.c
@@ -23291,6 +26657,119 @@
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/setrlimit64.c
 @@ -0,0 +1 @@
 +/* 'setrlimit64' is the same as 'setrlimit', because __rlim64_t == __rlim_t.  */
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/shlib-versions
+@@ -0,0 +1,5 @@
++# DEFAULT			Earliest symbol set
++# ---------------		------------------------------
++DEFAULT				GLIBC_2.3
++libc=0.1       
++libm=1
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/shm-directory.c
+@@ -0,0 +1,102 @@
++/* Determine directory for shm/sem files.  GNU/kFreeBSD version.
++   Copyright (C) 2000-2015 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include "shm-directory.h"
++
++#include <errno.h>
++#include <mntent.h>
++#include <paths.h>
++#include <stdio.h>
++#include <string.h>
++#include <sys/statfs.h>
++#include <bits/libc-lock.h>
++
++/* Mount point of the shared memory filesystem.  */
++static struct
++{
++  char *dir;
++  size_t dirlen;
++} mountpoint;
++
++/* This is the default directory.  */
++static const char defaultdir[] = "/dev/shm/";
++
++/* This is the alternate debian directory.  */
++static const char alternatedir[] = "/run/shm";
++
++/* Protect the `mountpoint' variable above.  */
++__libc_once_define (static, once);
++
++
++/* Determine where the shmfs is mounted (if at all).  */
++static void
++where_is_shmfs (void)
++{
++  struct statfs f;
++
++  /* The canonical place is /dev/shm.  This is at least what the
++     documentation tells everybody to do.  */
++  if (__statfs (defaultdir, &f) == 0)
++    {
++      /* It is in the normal place.  */
++      mountpoint.dir = (char *) defaultdir;
++      mountpoint.dirlen = sizeof (defaultdir) - 1;
++
++      return;
++    }
++
++  /* The alternate place is /run/shm.  */
++  if (__statfs (alternatedir, &f) == 0)
++    {
++      /* It is in the normal place.  */
++      mountpoint.dir = (char *) alternatedir;
++      mountpoint.dirlen = sizeof (alternatedir) - 1;
++
++      return;
++    }
++}
++
++
++const char *
++__shm_directory (size_t *len)
++{
++  /* Determine where the shmfs is mounted.  */
++  __libc_once (once, where_is_shmfs);
++
++  /* If we don't know the mount points there is nothing we can do.  Ever.  */
++  if (__glibc_unlikely (mountpoint.dir == NULL))
++    {
++      __set_errno (ENOSYS);
++      return NULL;
++    }
++
++  *len = mountpoint.dirlen;
++  return mountpoint.dir;
++}
++#if IS_IN (libpthread)
++hidden_def (__shm_directory)
++#endif
++
++
++/* Make sure the table is freed if we want to free everything before
++   exiting.  */
++libc_freeres_fn (freeit)
++{
++  if (mountpoint.dir != defaultdir)
++    free (mountpoint.dir);
++}
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/shm_open.c
 @@ -0,0 +1,40 @@
@@ -25975,7 +29454,7 @@
 +int __syscall_thr_kill2(int pid, long id, int sig);
 +int __syscall_thr_new(void *arg, int size);
 +int __syscall_thr_self(long *id);
-+int __syscall_thr_set_name(long id, char*name);
++int __syscall_thr_set_name(long id, const char *name);
 +libc_hidden_proto (__syscall_thr_exit)
 +libc_hidden_proto (__syscall_thr_kill)
 +libc_hidden_proto (__syscall_thr_kill2)
@@ -25986,8 +29465,9 @@
 +#endif
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/syscalls.list
-@@ -0,0 +1,213 @@
+@@ -0,0 +1,214 @@
 +# File name		Caller	Syscall name		# args		Strong name	Weak names
++accept4			-	accept4			Ci:iBNi		accept4
 +sys_access		-	access			i:si		__syscall_access
 +acl_aclcheck_fd		-	acl_aclcheck_fd		i:iip		__acl_aclcheck_fd
 +acl_aclcheck_file	-	acl_aclcheck_file	i:sip		__acl_aclcheck_file
@@ -26014,7 +29494,7 @@
 +sys_connect		-	connect			i:ipi		__syscall_connect
 +sys_cpuset_getaffinity	-	cpuset_getaffinity	i:iiiip		__syscall_cpuset_getaffinity
 +sys_cpuset_setaffinity	-	cpuset_setaffinity	i:iiiip		__syscall_cpuset_setaffinity
-+sys_execve		-	execve			i:ppp		__syscall_execve
++execve			-	execve			i:spp		__execve execve
 +extattr_delete_file	-	extattr_delete_file	i:ss		extattr_delete_file
 +extattr_get_file	-	extattr_get_file	i:ssbn		extattr_get_file
 +extattr_set_file	-	extattr_set_file	i:ssbn		extattr_set_file
@@ -26036,7 +29516,7 @@
 +sys_futimesat		-	futimesat		i:isp		__syscall_futimesat
 +getcontext		-	getcontext		i:p		__getcontext getcontext
 +sys_getcwd		-	getcwd			i:bn		__syscall_getcwd
-+sys_getdents		-	getdents		i:ibn		__syscall_getdents
++sys_getdents		-	getdents		i:ibn		__syscall_getdents getdents
 +sys_getdirentries	-	getdirentries		i:ibnP		__syscall_getdirentries
 +getegid			-	getegid			i:		__getegid getegid
 +geteuid			-	geteuid			i:		__geteuid geteuid
@@ -27680,7 +31160,7 @@
 +#include <sysdeps/unix/sysv/linux/wait3.c>
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/waitid.c
-@@ -0,0 +1,107 @@
+@@ -0,0 +1,108 @@
 +/* 
 +   Copyright (C) 2004-2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -27701,6 +31181,7 @@
 +
 +#include <shlib-compat.h>
 +#include <stddef.h>
++#include <string.h>
 +#include <errno.h>
 +#include <sys/wait.h>
 +#include <sysdep.h>
@@ -27849,7 +31330,7 @@
 +weak_alias (__libc_waitpid, waitpid)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/writev.c
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,57 @@
 +/* writev for FreeBSD.
 +   Copyright (C) 1997-1998, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -27884,7 +31365,7 @@
 +					    int) internal_function;
 +
 +ssize_t
-+__libc_writev (int fd, const struct iovec *vector, int count)
++__writev (int fd, const struct iovec *vector, int count)
 +{
 +  if (count <= UIO_MAXIOV)
 +  {
@@ -27900,15 +31381,16 @@
 +  else
 +    return __atomic_writev_replacement (fd, vector, count);
 +}
-+strong_alias (__libc_writev, __writev)
-+weak_alias (__libc_writev, writev)
++weak_alias (__writev, writev)
 +
-+#define __libc_writev static internal_function __atomic_writev_replacement
++#undef weak_alias
++#define weak_alias(a,b)
++#define __writev static internal_function __atomic_writev_replacement
 +#include <sysdeps/posix/writev.c>
 +
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86/Makefile
-@@ -0,0 +1,11 @@
+@@ -0,0 +1,9 @@
 +# We don't need any header files.
 +abi-includes :=
 +
@@ -27916,10 +31398,8 @@
 +
 +abi-32-options := -D__i386__ -U__x86_64__
 +abi-32-condition := !defined __x86_64__
-+abi-32-ld-soname := ld.so.1
 +abi-64-options := -U__i386__ -D__x86_64__ -U__ILP32__ -D__LP64__
 +abi-64-condition := defined __x86_64__ && defined __LP64__
-+abi-64-ld-soname := ld-kfreebsd-x86-64.so.1
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86/fbtl/bits/pthreadtypes.h
 @@ -0,0 +1,240 @@
@@ -28616,6 +32096,76 @@
 +
 +#endif /* _BITS_SIGCONTEXT_H */
 --- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/c++-types.data
+@@ -0,0 +1,67 @@
++blkcnt64_t:l
++blkcnt_t:l
++blksize_t:j
++caddr_t:Pc
++clockid_t:i
++clock_t:i
++daddr_t:l
++dev_t:j
++fd_mask:l
++fsblkcnt64_t:m
++fsblkcnt_t:m
++fsfilcnt64_t:m
++fsfilcnt_t:m
++fsid_t:8__fsid_t
++gid_t:j
++id_t:j
++ino64_t:m
++ino_t:j
++int16_t:s
++int32_t:i
++int64_t:l
++int8_t:a
++intptr_t:l
++key_t:l
++loff_t:l
++mode_t:t
++nlink_t:t
++off64_t:l
++off_t:l
++pid_t:i
++pthread_attr_t:14pthread_attr_t
++pthread_barrier_t:17pthread_barrier_t
++pthread_barrierattr_t:21pthread_barrierattr_t
++pthread_cond_t:14pthread_cond_t
++pthread_condattr_t:18pthread_condattr_t
++pthread_key_t:j
++pthread_mutex_t:15pthread_mutex_t
++pthread_mutexattr_t:19pthread_mutexattr_t
++pthread_once_t:i
++pthread_rwlock_t:16pthread_rwlock_t
++pthread_rwlockattr_t:20pthread_rwlockattr_t
++pthread_spinlock_t:i
++pthread_t:m
++quad_t:l
++register_t:l
++rlim64_t:l
++rlim_t:l
++sigset_t:10__sigset_t
++size_t:m
++socklen_t:j
++ssize_t:l
++suseconds_t:l
++time_t:l
++u_char:h
++uid_t:j
++uint:j
++u_int:j
++u_int16_t:t
++u_int32_t:j
++u_int64_t:m
++u_int8_t:h
++ulong:m
++u_long:m
++u_quad_t:m
++useconds_t:j
++ushort:t
++u_short:t
+--- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-cache.h
 @@ -0,0 +1 @@
 +#include <sysdeps/unix/sysv/linux/x86_64/dl-cache.h>
@@ -28686,7 +32236,7 @@
 +	# Clear %rbp to mark outermost frame obviously even for constructors.\n\
 +	xorl %ebp, %ebp\n\
 +	# Call the function to run the initializers.\n\
-+	call _dl_init_internal@PLT\n\
++	call _dl_init@PLT\n\
 +	# Pass our finalizer function to the user in %rdx, as per ELF ABI draft.\n\
 +	leaq _dl_fini(%rip), %rdx\n\
 +	# And make sure %rdi points to argc stored on the stack.\n\
@@ -28762,11 +32312,63 @@
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/dl-procinfo.h
 @@ -0,0 +1,5 @@
-+#ifdef IS_IN_ldconfig
++#if IS_IN (ldconfig)
 +# include <sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/dl-procinfo.h>
 +#else
 +# include <sysdeps/generic/dl-procinfo.h>
 +#endif
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/exit-thread.h
+@@ -0,0 +1,49 @@
++/* Call to terminate the current thread.  GNU/kFreeBSD x86-64 version
++   Copyright (C) 2015 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <sysdep.h>
++
++/* This causes the current thread to exit, without affecting other
++   threads in the process if there are any.  If there are no other
++   threads left, then this has the effect of _exit (0).  */
++
++static inline void __attribute__ ((noreturn, always_inline, unused))
++__exit_thread (void)
++{
++  /* Doing this in a loop is mostly just to satisfy the compiler that the
++     function really qualifies as noreturn.  It also means that in some
++     pathological situation where the system call does not get made or does
++     not work, the thread will simply spin rather than running off the end
++     of the caller and doing unexpectedly strange things.  */
++  while (1)
++    {
++      asm volatile (
++	  "movq %%fs:0, %%rdi\n\t"
++	  "addq %0, %%rdi\n\t"    /* should be KTID, but they are at the same place anyway */
++	  "movl %1, %%eax\n\t"
++	  "syscall\n\t"
++	  /* It does return only for last thread of process */
++	  "movl %2, %%eax\n\t"
++	  "xorl %%edi, %%edi\n\t"
++	  "syscall\n\t"
++	  :
++	  : "i" (TID), "i" (SYS_ify(thr_exit)), "i" (SYS_ify(exit))
++	  : "memory", "cc", "cx", "dx", "r8", "r9", "r10", "r11");
++    }
++}
++
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/fbtl/Implies
 @@ -0,0 +1 @@
@@ -28801,7 +32403,7 @@
 +#include <kernel-features.h>
 +#include "lowlevellock.h"
 +
-+#ifdef IS_IN_libpthread
++#if IS_IN (libpthread)
 +# ifdef SHARED
 +#  define __pthread_unwind __GI___pthread_unwind
 +# endif
@@ -28897,42 +32499,6 @@
 +	movl	%fs:CANCELHANDLING, %eax
 +	jmp	3b
 +END(__pthread_disable_asynccancel)
---- /dev/null
-+++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/fbtl/exit-thread.S
-@@ -0,0 +1,33 @@
-+/* Copyright (C) 2013 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include <sysdep.h>
-+
-+	.text
-+ENTRY (__exit_thread)
-+        movq %rdi, %rsi		/* we will need it later, 
-+				%rsi is saved by kernel */
-+	mov %fs:0, %rdi
-+        addq $TID, %rdi		/* should be KTID, but
-+				they are at the same place anyway */
-+        DO_CALL (thr_exit, 1)
-+	/* It does return only for last thread of process */
-+	movq %rsi, %rdi /* use saved value */
-+	DO_CALL (exit, 1)
-+	/* Shouldn't get here.  */
-+	hlt
-+END   (__exit_thread)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/fbtl/libc-cancellation.S
 @@ -0,0 +1,21 @@
@@ -29042,7 +32608,7 @@
 +
 +/* Syscalls with more than 6 arguments are not supported here.  */
 +
-+#if !defined NOT_IN_libc || defined IS_IN_libpthread || defined IS_IN_librt
++#if IS_IN (libc) || IS_IN (libpthread) || IS_IN (librt)
 +
 +/* The code to disable cancellation depends on the fact that the called
 +   functions are special.  They don't modify registers other than %rax
@@ -29079,22 +32645,22 @@
 +    jb SYSCALL_ERROR_LABEL;						      \
 +  L(pseudo_end):							      \
 +
-+# ifdef IS_IN_libpthread
++# if IS_IN (libpthread)
 +#  define CENABLE	call __pthread_enable_asynccancel;
 +#  define CDISABLE	call __pthread_disable_asynccancel;
 +#  define __local_multiple_threads __pthread_multiple_threads
-+# elif !defined NOT_IN_libc
++# elif IS_IN (libc)
 +#  define CENABLE	call __libc_enable_asynccancel;
 +#  define CDISABLE	call __libc_disable_asynccancel;
 +#  define __local_multiple_threads __libc_multiple_threads
-+# elif defined IS_IN_librt
++# elif IS_IN (librt)
 +#  define CENABLE	call __librt_enable_asynccancel;
 +#  define CDISABLE	call __librt_disable_asynccancel;
 +# else
 +#  error Unsupported library
 +# endif
 +
-+# if defined IS_IN_libpthread || !defined NOT_IN_libc
++# if IS_IN (libpthread) || IS_IN (libc)
 +#  ifndef __ASSEMBLER__
 +extern int __local_multiple_threads attribute_hidden;
 +#   define SINGLE_THREAD_P \
@@ -29177,7 +32743,7 @@
 +   operation can cause a failure 'errno' must not be touched.  */
 +
 +# undef TLS_INIT_TP
-+# define TLS_INIT_TP(descr, secondcall)					      \
++# define TLS_INIT_TP(descr)						      \
 +  ({									      \
 +    void *_descr = (descr);						      \
 +    tcbhead_t *head = _descr;						      \
@@ -29322,6 +32888,22 @@
 @@ -0,0 +1 @@
 +#include "../i386/iopl.c"
 --- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ld.abilist
+@@ -0,0 +1,13 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ __libc_memalign F
++ __libc_stack_end D 0x8
++ __tls_get_addr F
++ _dl_mcount F
++ _r_debug D 0x28
++ calloc F
++ free F
++ malloc F
++ realloc F
++GLIBC_2.4
++ GLIBC_2.4 A
+--- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ldconfig.h
 @@ -0,0 +1,39 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
@@ -29369,6 +32951,3189 @@
 +/LD_TRACE_LOADED_OBJECTS=1/a\
 +add_env="$add_env LD_LIBRARY_VERSION=\\$verify_out"
 +s_^\(RTLDLIST=\)\(.*lib\)\(\|64\)\(/[^/]*\)\(-kfreebsd-x86-64\)\(\.so\.[0-9.]*\)[ 	]*$_\1"\2\4\6 \2\4\5\6"_
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libBrokenLocale.abilist
+@@ -0,0 +1,3 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ __ctype_get_mb_cur_max F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libanl.abilist
+@@ -0,0 +1,6 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ gai_cancel F
++ gai_error F
++ gai_suspend F
++ getaddrinfo_a F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libc.abilist
+@@ -0,0 +1,2153 @@
++GLIBC_2.10
++ GLIBC_2.10 A
++ __cxa_at_quick_exit F
++ __posix_getopt F
++ accept4 F
++ devname F
++ devname_r F
++ endsgent F
++ fgetsgent F
++ fgetsgent_r F
++ getsgent F
++ getsgent_r F
++ getsgnam F
++ getsgnam_r F
++ ioperm F
++ kenv F
++ malloc_info F
++ preadv F
++ preadv64 F
++ psiginfo F
++ putsgent F
++ pwritev F
++ pwritev64 F
++ quick_exit F
++ register_printf_modifier F
++ register_printf_specifier F
++ register_printf_type F
++ setsgent F
++ sgetsgent F
++ sgetsgent_r F
++ sysctlnametomib F
++GLIBC_2.11
++ GLIBC_2.11 A
++ __longjmp_chk F
++ _sys_errlist D 0x2f0
++ _sys_nerr D 0x4
++ execvpe F
++ lchflags F
++ mkostemps F
++ mkostemps64 F
++ mkstemps F
++ mkstemps64 F
++ sys_errlist D 0x2f0
++ sys_nerr D 0x4
++GLIBC_2.13
++ GLIBC_2.13 A
++ __fentry__ F
++ jail_attach F
++ jail_get F
++ jail_remove F
++ jail_set F
++GLIBC_2.14
++ GLIBC_2.14 A
++ memcpy F
++ syncfs F
++GLIBC_2.15
++ GLIBC_2.15 A
++ __fdelt_chk F
++ __fdelt_warn F
++ posix_spawn F
++ posix_spawnp F
++ scandirat F
++ scandirat64 F
++GLIBC_2.16
++ GLIBC_2.16 A
++ __getauxval F
++ __poll_chk F
++ __ppoll_chk F
++ aligned_alloc F
++ c16rtomb F
++ c32rtomb F
++ getauxval F
++ mbrtoc16 F
++ mbrtoc32 F
++ timespec_get F
++GLIBC_2.17
++ GLIBC_2.17 A
++ clock_getcpuclockid F
++ clock_getres F
++ clock_gettime F
++ clock_nanosleep F
++ clock_settime F
++ recvmmsg F
++ secure_getenv F
++ sendmmsg F
++GLIBC_2.18
++ GLIBC_2.18 A
++ __cxa_thread_atexit_impl F
++ _sys_errlist D 0x308
++ _sys_nerr D 0x4
++ msgctl F
++ semctl F
++ shmctl F
++ sys_errlist D 0x308
++ sys_nerr D 0x4
++ waitid F
++GLIBC_2.21
++ GLIBC_2.21 A
++ __statfs F
++GLIBC_2.3
++ GLIBC_2.3 A
++ _Exit F
++ _IO_2_1_stderr_ D 0xe0
++ _IO_2_1_stdin_ D 0xe0
++ _IO_2_1_stdout_ D 0xe0
++ _IO_adjust_column F
++ _IO_adjust_wcolumn F
++ _IO_default_doallocate F
++ _IO_default_finish F
++ _IO_default_pbackfail F
++ _IO_default_uflow F
++ _IO_default_xsgetn F
++ _IO_default_xsputn F
++ _IO_do_write F
++ _IO_doallocbuf F
++ _IO_fclose F
++ _IO_fdopen F
++ _IO_feof F
++ _IO_ferror F
++ _IO_fflush F
++ _IO_fgetpos F
++ _IO_fgetpos64 F
++ _IO_fgets F
++ _IO_file_attach F
++ _IO_file_close F
++ _IO_file_close_it F
++ _IO_file_doallocate F
++ _IO_file_finish F
++ _IO_file_fopen F
++ _IO_file_init F
++ _IO_file_jumps D 0xa8
++ _IO_file_open F
++ _IO_file_overflow F
++ _IO_file_read F
++ _IO_file_seek F
++ _IO_file_seekoff F
++ _IO_file_setbuf F
++ _IO_file_stat F
++ _IO_file_sync F
++ _IO_file_underflow F
++ _IO_file_write F
++ _IO_file_xsputn F
++ _IO_flockfile F
++ _IO_flush_all F
++ _IO_flush_all_linebuffered F
++ _IO_fopen F
++ _IO_fprintf F
++ _IO_fputs F
++ _IO_fread F
++ _IO_free_backup_area F
++ _IO_free_wbackup_area F
++ _IO_fsetpos F
++ _IO_fsetpos64 F
++ _IO_ftell F
++ _IO_ftrylockfile F
++ _IO_funlockfile F
++ _IO_fwrite F
++ _IO_getc F
++ _IO_getline F
++ _IO_getline_info F
++ _IO_gets F
++ _IO_init F
++ _IO_init_marker F
++ _IO_init_wmarker F
++ _IO_iter_begin F
++ _IO_iter_end F
++ _IO_iter_file F
++ _IO_iter_next F
++ _IO_least_wmarker F
++ _IO_link_in F
++ _IO_list_all D 0x8
++ _IO_list_lock F
++ _IO_list_resetlock F
++ _IO_list_unlock F
++ _IO_marker_delta F
++ _IO_marker_difference F
++ _IO_padn F
++ _IO_peekc_locked F
++ _IO_popen F
++ _IO_printf F
++ _IO_proc_close F
++ _IO_proc_open F
++ _IO_putc F
++ _IO_puts F
++ _IO_remove_marker F
++ _IO_seekmark F
++ _IO_seekoff F
++ _IO_seekpos F
++ _IO_seekwmark F
++ _IO_setb F
++ _IO_setbuffer F
++ _IO_setvbuf F
++ _IO_sgetn F
++ _IO_sprintf F
++ _IO_sputbackc F
++ _IO_sputbackwc F
++ _IO_sscanf F
++ _IO_str_init_readonly F
++ _IO_str_init_static F
++ _IO_str_overflow F
++ _IO_str_pbackfail F
++ _IO_str_seekoff F
++ _IO_str_underflow F
++ _IO_sungetc F
++ _IO_sungetwc F
++ _IO_switch_to_get_mode F
++ _IO_switch_to_main_wget_area F
++ _IO_switch_to_wbackup_area F
++ _IO_switch_to_wget_mode F
++ _IO_un_link F
++ _IO_ungetc F
++ _IO_unsave_markers F
++ _IO_unsave_wmarkers F
++ _IO_vfprintf F
++ _IO_vfscanf F
++ _IO_vsprintf F
++ _IO_wdefault_doallocate F
++ _IO_wdefault_finish F
++ _IO_wdefault_pbackfail F
++ _IO_wdefault_uflow F
++ _IO_wdefault_xsgetn F
++ _IO_wdefault_xsputn F
++ _IO_wdo_write F
++ _IO_wdoallocbuf F
++ _IO_wfile_jumps D 0xa8
++ _IO_wfile_overflow F
++ _IO_wfile_seekoff F
++ _IO_wfile_sync F
++ _IO_wfile_underflow F
++ _IO_wfile_xsputn F
++ _IO_wmarker_delta F
++ _IO_wsetb F
++ __acl_aclcheck_fd F
++ __acl_aclcheck_file F
++ __acl_delete_fd F
++ __acl_delete_file F
++ __acl_get_fd F
++ __acl_get_file F
++ __acl_set_fd F
++ __acl_set_file F
++ __after_morecore_hook D 0x8
++ __argz_count F
++ __argz_next F
++ __argz_stringify F
++ __asprintf F
++ __assert F
++ __assert_fail F
++ __assert_perror_fail F
++ __backtrace F
++ __backtrace_symbols F
++ __backtrace_symbols_fd F
++ __bsd_getpgrp F
++ __bzero F
++ __check_rhosts_file D 0x4
++ __close F
++ __cmsg_nxthdr F
++ __connect F
++ __ctype_b_loc F
++ __ctype_get_mb_cur_max F
++ __ctype_tolower_loc F
++ __ctype_toupper_loc F
++ __curbrk D 0x8
++ __cxa_atexit F
++ __cxa_finalize F
++ __cyg_profile_func_enter F
++ __cyg_profile_func_exit F
++ __daylight D 0x4
++ __dcgettext F
++ __default_morecore F
++ __dgettext F
++ __dup2 F
++ __duplocale F
++ __environ D 0x8
++ __errno_location F
++ __fbufsize F
++ __fcntl F
++ __ffs F
++ __finite F
++ __finitef F
++ __finitel F
++ __flbf F
++ __fork F
++ __fpending F
++ __fpu_control D 0x2
++ __fpurge F
++ __freadable F
++ __freading F
++ __free_hook D 0x8
++ __freelocale F
++ __fsetlocking F
++ __fwritable F
++ __fwriting F
++ __fxstat F
++ __fxstat64 F
++ __getdelim F
++ __getpagesize F
++ __getpgid F
++ __getpid F
++ __gettimeofday F
++ __gmtime_r F
++ __h_errno_location F
++ __isalnum_l F
++ __isalpha_l F
++ __isascii_l F
++ __isblank_l F
++ __iscntrl_l F
++ __isctype F
++ __isdigit_l F
++ __isgraph_l F
++ __isinf F
++ __isinff F
++ __isinfl F
++ __islower_l F
++ __isnan F
++ __isnanf F
++ __isnanl F
++ __isprint_l F
++ __ispunct_l F
++ __isspace_l F
++ __isupper_l F
++ __iswalnum_l F
++ __iswalpha_l F
++ __iswblank_l F
++ __iswcntrl_l F
++ __iswctype F
++ __iswctype_l F
++ __iswdigit_l F
++ __iswgraph_l F
++ __iswlower_l F
++ __iswprint_l F
++ __iswpunct_l F
++ __iswspace_l F
++ __iswupper_l F
++ __iswxdigit_l F
++ __isxdigit_l F
++ __ivaliduser F
++ __key_decryptsession_pk_LOCAL D 0x8
++ __key_encryptsession_pk_LOCAL D 0x8
++ __key_gendes_LOCAL D 0x8
++ __libc_allocate_rtsig F
++ __libc_calloc F
++ __libc_current_sigrtmax F
++ __libc_current_sigrtmin F
++ __libc_free F
++ __libc_freeres F
++ __libc_init_first F
++ __libc_mallinfo F
++ __libc_malloc F
++ __libc_mallopt F
++ __libc_memalign F
++ __libc_pvalloc F
++ __libc_realloc F
++ __libc_start_main F
++ __libc_valloc F
++ __lseek F
++ __lxstat F
++ __lxstat64 F
++ __malloc_hook D 0x8
++ __malloc_initialize_hook D 0x8
++ __mbrlen F
++ __mbrtowc F
++ __memalign_hook D 0x8
++ __mempcpy F
++ __mempcpy_small F
++ __monstartup F
++ __morecore D 0x8
++ __nanosleep F
++ __newlocale F
++ __nl_langinfo_l F
++ __nss_configure_lookup F
++ __nss_database_lookup F
++ __nss_group_lookup F
++ __nss_hostname_digits_dots F
++ __nss_hosts_lookup F
++ __nss_next F
++ __nss_passwd_lookup F
++ __open F
++ __overflow F
++ __pipe F
++ __poll F
++ __pread64 F
++ __printf_fp F
++ __profile_frequency F
++ __progname D 0x8
++ __progname_full D 0x8
++ __pwrite64 F
++ __rawmemchr F
++ __rcmd_errstr D 0x8
++ __read F
++ __realloc_hook D 0x8
++ __res_init F
++ __res_nclose F
++ __res_ninit F
++ __res_randomid F
++ __res_state F
++ __rpc_thread_createerr F
++ __rpc_thread_svc_fdset F
++ __rpc_thread_svc_max_pollfd F
++ __rpc_thread_svc_pollfd F
++ __sbrk F
++ __sched_get_priority_max F
++ __sched_get_priority_min F
++ __sched_getparam F
++ __sched_getscheduler F
++ __sched_setscheduler F
++ __sched_yield F
++ __secure_getenv F
++ __select F
++ __send F
++ __setpgid F
++ __sigaction F
++ __sigaddset F
++ __sigdelset F
++ __sigismember F
++ __signbit F
++ __signbitf F
++ __signbitl F
++ __sigpause F
++ __sigsetjmp F
++ __sigsuspend F
++ __stpcpy F
++ __stpcpy_small F
++ __stpncpy F
++ __strcasecmp F
++ __strcasecmp_l F
++ __strcasestr F
++ __strcoll_l F
++ __strcpy_small F
++ __strcspn_c1 F
++ __strcspn_c2 F
++ __strcspn_c3 F
++ __strdup F
++ __strerror_r F
++ __strfmon_l F
++ __strftime_l F
++ __strncasecmp_l F
++ __strndup F
++ __strpbrk_c2 F
++ __strpbrk_c3 F
++ __strsep_1c F
++ __strsep_2c F
++ __strsep_3c F
++ __strsep_g F
++ __strspn_c1 F
++ __strspn_c2 F
++ __strspn_c3 F
++ __strtod_internal F
++ __strtod_l F
++ __strtof_internal F
++ __strtof_l F
++ __strtok_r F
++ __strtok_r_1c F
++ __strtol_internal F
++ __strtol_l F
++ __strtold_internal F
++ __strtold_l F
++ __strtoll_internal F
++ __strtoll_l F
++ __strtoul_internal F
++ __strtoul_l F
++ __strtoull_internal F
++ __strtoull_l F
++ __strverscmp F
++ __strxfrm_l F
++ __syscall_aio_cancel F
++ __syscall_aio_error F
++ __syscall_aio_read F
++ __syscall_aio_return F
++ __syscall_aio_suspend F
++ __syscall_aio_waitcomplete F
++ __syscall_aio_write F
++ __syscall_lio_listio F
++ __syscall_obreak F
++ __syscall_yield F
++ __sysconf F
++ __sysctl F
++ __sysv_signal F
++ __timezone D 0x8
++ __toascii_l F
++ __tolower_l F
++ __toupper_l F
++ __towctrans F
++ __towctrans_l F
++ __towlower_l F
++ __towupper_l F
++ __tzname D 0x10
++ __uflow F
++ __underflow F
++ __uselocale F
++ __vfork F
++ __vfscanf F
++ __vsnprintf F
++ __vsscanf F
++ __wait F
++ __waitpid F
++ __wcscasecmp_l F
++ __wcscoll_l F
++ __wcsftime_l F
++ __wcsncasecmp_l F
++ __wcstod_internal F
++ __wcstod_l F
++ __wcstof_internal F
++ __wcstof_l F
++ __wcstol_internal F
++ __wcstol_l F
++ __wcstold_internal F
++ __wcstold_l F
++ __wcstoll_internal F
++ __wcstoll_l F
++ __wcstoul_internal F
++ __wcstoul_l F
++ __wcstoull_internal F
++ __wcstoull_l F
++ __wcsxfrm_l F
++ __wctrans_l F
++ __wctype_l F
++ __woverflow F
++ __write F
++ __wuflow F
++ __wunderflow F
++ __xmknod F
++ __xpg_basename F
++ __xpg_sigpause F
++ __xstat F
++ __xstat64 F
++ _authenticate F
++ _dl_mcount_wrapper F
++ _dl_mcount_wrapper_check F
++ _environ D 0x8
++ _exit F
++ _flushlbf F
++ _libc_intl_domainname D 0x5
++ _longjmp F
++ _mcleanup F
++ _mcount F
++ _nl_default_dirname D 0x12
++ _nl_domain_bindings D 0x8
++ _nl_msg_cat_cntr D 0x4
++ _null_auth D 0x18
++ _obstack D 0x8
++ _obstack_allocated_p F
++ _obstack_begin F
++ _obstack_begin_1 F
++ _obstack_free F
++ _obstack_memory_used F
++ _obstack_newchunk F
++ _res D 0x238
++ _res_hconf D 0x48
++ _rpc_dtablesize F
++ _seterr_reply F
++ _setjmp F
++ _sys_errlist D 0x2b8
++ _sys_nerr D 0x4
++ _sys_siglist D 0x408
++ _tolower F
++ _toupper F
++ a64l F
++ abort F
++ abs F
++ accept F
++ access F
++ acct F
++ addmntent F
++ addseverity F
++ adjtime F
++ advance F
++ alarm F
++ alphasort F
++ alphasort64 F
++ argp_err_exit_status D 0x4
++ argp_error F
++ argp_failure F
++ argp_help F
++ argp_parse F
++ argp_program_bug_address D 0x8
++ argp_program_version D 0x8
++ argp_program_version_hook D 0x8
++ argp_state_help F
++ argp_usage F
++ argz_add F
++ argz_add_sep F
++ argz_append F
++ argz_count F
++ argz_create F
++ argz_create_sep F
++ argz_delete F
++ argz_extract F
++ argz_insert F
++ argz_next F
++ argz_replace F
++ argz_stringify F
++ asctime F
++ asctime_r F
++ asprintf F
++ atof F
++ atoi F
++ atol F
++ atoll F
++ authdes_create F
++ authdes_getucred F
++ authdes_pk_create F
++ authnone_create F
++ authunix_create F
++ authunix_create_default F
++ backtrace F
++ backtrace_symbols F
++ backtrace_symbols_fd F
++ basename F
++ bcmp F
++ bcopy F
++ bind F
++ bind_textdomain_codeset F
++ bindresvport F
++ bindtextdomain F
++ brk F
++ bsd_signal F
++ bsearch F
++ btowc F
++ bzero F
++ calloc F
++ callrpc F
++ canonicalize_file_name F
++ catclose F
++ catgets F
++ catopen F
++ cbc_crypt F
++ cfgetispeed F
++ cfgetospeed F
++ cfmakeraw F
++ cfree F
++ cfsetispeed F
++ cfsetospeed F
++ cfsetspeed F
++ chdir F
++ chflags F
++ chmod F
++ chown F
++ chroot F
++ clearenv F
++ clearerr F
++ clearerr_unlocked F
++ clnt_broadcast F
++ clnt_create F
++ clnt_pcreateerror F
++ clnt_perrno F
++ clnt_perror F
++ clnt_spcreateerror F
++ clnt_sperrno F
++ clnt_sperror F
++ clntraw_create F
++ clnttcp_create F
++ clntudp_bufcreate F
++ clntudp_create F
++ clntunix_create F
++ clock F
++ clone F
++ close F
++ closedir F
++ closelog F
++ confstr F
++ connect F
++ copysign F
++ copysignf F
++ copysignl F
++ creat F
++ creat64 F
++ ctermid F
++ ctime F
++ ctime_r F
++ cuserid F
++ daemon F
++ daylight D 0x4
++ dcgettext F
++ dcngettext F
++ des_setparity F
++ dgettext F
++ difftime F
++ dirfd F
++ dirname F
++ div F
++ dl_iterate_phdr F
++ dngettext F
++ dprintf F
++ drand48 F
++ drand48_r F
++ dup F
++ dup2 F
++ duplocale F
++ dysize F
++ ecb_crypt F
++ ecvt F
++ ecvt_r F
++ endaliasent F
++ endfsent F
++ endgrent F
++ endhostent F
++ endmntent F
++ endnetent F
++ endnetgrent F
++ endprotoent F
++ endpwent F
++ endrpcent F
++ endservent F
++ endspent F
++ endttyent F
++ endusershell F
++ endutent F
++ endutxent F
++ environ D 0x8
++ envz_add F
++ envz_entry F
++ envz_get F
++ envz_merge F
++ envz_remove F
++ envz_strip F
++ erand48 F
++ erand48_r F
++ err F
++ error F
++ error_at_line F
++ error_message_count D 0x4
++ error_one_per_line D 0x4
++ error_print_progname D 0x8
++ errx F
++ ether_aton F
++ ether_aton_r F
++ ether_hostton F
++ ether_line F
++ ether_ntoa F
++ ether_ntoa_r F
++ ether_ntohost F
++ euidaccess F
++ execl F
++ execle F
++ execlp F
++ execv F
++ execve F
++ execvp F
++ exit F
++ extattr_delete_file F
++ extattr_get_file F
++ extattr_set_file F
++ extattrctl F
++ fattach F
++ fchdir F
++ fchflags F
++ fchmod F
++ fchown F
++ fclose F
++ fcloseall F
++ fcntl F
++ fcvt F
++ fcvt_r F
++ fdatasync F
++ fdetach F
++ fdopen F
++ feof F
++ feof_unlocked F
++ ferror F
++ ferror_unlocked F
++ fexecve F
++ fflush F
++ fflush_unlocked F
++ ffs F
++ ffsl F
++ ffsll F
++ fgetc F
++ fgetc_unlocked F
++ fgetgrent F
++ fgetgrent_r F
++ fgetpos F
++ fgetpos64 F
++ fgetpwent F
++ fgetpwent_r F
++ fgets F
++ fgets_unlocked F
++ fgetspent F
++ fgetspent_r F
++ fgetwc F
++ fgetwc_unlocked F
++ fgetws F
++ fgetws_unlocked F
++ fgetxattr F
++ fhopen F
++ fhstat F
++ fhstatfs F
++ fileno F
++ fileno_unlocked F
++ finite F
++ finitef F
++ finitel F
++ flistxattr F
++ flock F
++ flockfile F
++ fmemopen F
++ fmtmsg F
++ fnmatch F
++ fopen F
++ fopen64 F
++ fopencookie F
++ fork F
++ fpathconf F
++ fprintf F
++ fputc F
++ fputc_unlocked F
++ fputs F
++ fputs_unlocked F
++ fputwc F
++ fputwc_unlocked F
++ fputws F
++ fputws_unlocked F
++ fread F
++ fread_unlocked F
++ free F
++ freeaddrinfo F
++ freeifaddrs F
++ freelocale F
++ fremovexattr F
++ freopen F
++ freopen64 F
++ frexp F
++ frexpf F
++ frexpl F
++ fscanf F
++ fseek F
++ fseeko F
++ fseeko64 F
++ fsetpos F
++ fsetpos64 F
++ fsetxattr F
++ fstatfs F
++ fstatfs64 F
++ fstatvfs F
++ fstatvfs64 F
++ fsync F
++ ftell F
++ ftello F
++ ftello64 F
++ ftime F
++ ftok F
++ ftruncate F
++ ftruncate64 F
++ ftrylockfile F
++ fts_children F
++ fts_close F
++ fts_open F
++ fts_read F
++ fts_set F
++ ftw F
++ ftw64 F
++ funlockfile F
++ futimes F
++ fwide F
++ fwprintf F
++ fwrite F
++ fwrite_unlocked F
++ fwscanf F
++ gai_strerror F
++ gcvt F
++ get_avphys_pages F
++ get_current_dir_name F
++ get_myaddress F
++ get_nprocs F
++ get_nprocs_conf F
++ get_phys_pages F
++ getaddrinfo F
++ getaliasbyname F
++ getaliasbyname_r F
++ getaliasent F
++ getaliasent_r F
++ getc F
++ getc_unlocked F
++ getchar F
++ getchar_unlocked F
++ getcontext F
++ getcwd F
++ getdate F
++ getdate_err D 0x4
++ getdate_r F
++ getdelim F
++ getdents F
++ getdirentries F
++ getdirentries64 F
++ getdomainname F
++ getdtablesize F
++ getegid F
++ getenv F
++ geteuid F
++ getfh F
++ getfsent F
++ getfsfile F
++ getfsspec F
++ getfsstat F
++ getfsstat64 F
++ getgid F
++ getgrent F
++ getgrent_r F
++ getgrgid F
++ getgrgid_r F
++ getgrnam F
++ getgrnam_r F
++ getgrouplist F
++ getgroups F
++ gethostbyaddr F
++ gethostbyaddr_r F
++ gethostbyname F
++ gethostbyname2 F
++ gethostbyname2_r F
++ gethostbyname_r F
++ gethostent F
++ gethostent_r F
++ gethostid F
++ gethostname F
++ getifaddrs F
++ getitimer F
++ getline F
++ getloadavg F
++ getlogin F
++ getlogin_r F
++ getmntent F
++ getmntent_r F
++ getmntinfo F
++ getmntinfo64 F
++ getmsg F
++ getnameinfo F
++ getnetbyaddr F
++ getnetbyaddr_r F
++ getnetbyname F
++ getnetbyname_r F
++ getnetent F
++ getnetent_r F
++ getnetgrent F
++ getnetgrent_r F
++ getnetname F
++ getopt F
++ getopt_long F
++ getopt_long_only F
++ getpagesize F
++ getpass F
++ getpeername F
++ getpgid F
++ getpgrp F
++ getpid F
++ getpmsg F
++ getppid F
++ getpriority F
++ getprotobyname F
++ getprotobyname_r F
++ getprotobynumber F
++ getprotobynumber_r F
++ getprotoent F
++ getprotoent_r F
++ getpt F
++ getpublickey F
++ getpw F
++ getpwent F
++ getpwent_r F
++ getpwnam F
++ getpwnam_r F
++ getpwuid F
++ getpwuid_r F
++ getresgid F
++ getresuid F
++ getrlimit F
++ getrlimit64 F
++ getrpcbyname F
++ getrpcbyname_r F
++ getrpcbynumber F
++ getrpcbynumber_r F
++ getrpcent F
++ getrpcent_r F
++ getrpcport F
++ getrusage F
++ gets F
++ getsecretkey F
++ getservbyname F
++ getservbyname_r F
++ getservbyport F
++ getservbyport_r F
++ getservent F
++ getservent_r F
++ getsid F
++ getsockname F
++ getsockopt F
++ getspent F
++ getspent_r F
++ getspnam F
++ getspnam_r F
++ getsubopt F
++ gettext F
++ gettimeofday F
++ getttyent F
++ getttynam F
++ getuid F
++ getusershell F
++ getutent F
++ getutent_r F
++ getutid F
++ getutid_r F
++ getutline F
++ getutline_r F
++ getutmp F
++ getutmpx F
++ getutxent F
++ getutxid F
++ getutxline F
++ getw F
++ getwc F
++ getwc_unlocked F
++ getwchar F
++ getwchar_unlocked F
++ getwd F
++ getxattr F
++ glob F
++ glob64 F
++ glob_pattern_p F
++ globfree F
++ globfree64 F
++ gmtime F
++ gmtime_r F
++ gnu_get_libc_release F
++ gnu_get_libc_version F
++ grantpt F
++ group_member F
++ gsignal F
++ gtty F
++ h_errlist D 0x28
++ h_nerr D 0x4
++ hasmntopt F
++ hcreate F
++ hcreate_r F
++ hdestroy F
++ hdestroy_r F
++ herror F
++ host2netname F
++ hsearch F
++ hsearch_r F
++ hstrerror F
++ htonl F
++ htons F
++ iconv F
++ iconv_close F
++ iconv_open F
++ if_freenameindex F
++ if_indextoname F
++ if_nameindex F
++ if_nametoindex F
++ imaxabs F
++ imaxdiv F
++ in6addr_any D 0x10
++ in6addr_loopback D 0x10
++ index F
++ inet_addr F
++ inet_aton F
++ inet_lnaof F
++ inet_makeaddr F
++ inet_netof F
++ inet_network F
++ inet_nsap_addr F
++ inet_nsap_ntoa F
++ inet_ntoa F
++ inet_ntop F
++ inet_pton F
++ initgroups F
++ initstate F
++ initstate_r F
++ innetgr F
++ insque F
++ ioctl F
++ iruserok F
++ iruserok_af F
++ isalnum F
++ isalnum_l F
++ isalpha F
++ isalpha_l F
++ isascii F
++ isastream F
++ isatty F
++ isblank F
++ isblank_l F
++ iscntrl F
++ iscntrl_l F
++ isctype F
++ isdigit F
++ isdigit_l F
++ isfdtype F
++ isgraph F
++ isgraph_l F
++ isinf F
++ isinff F
++ isinfl F
++ islower F
++ islower_l F
++ isnan F
++ isnanf F
++ isnanl F
++ isprint F
++ isprint_l F
++ ispunct F
++ ispunct_l F
++ issetugid F
++ isspace F
++ isspace_l F
++ isupper F
++ isupper_l F
++ iswalnum F
++ iswalnum_l F
++ iswalpha F
++ iswalpha_l F
++ iswblank F
++ iswblank_l F
++ iswcntrl F
++ iswcntrl_l F
++ iswctype F
++ iswctype_l F
++ iswdigit F
++ iswdigit_l F
++ iswgraph F
++ iswgraph_l F
++ iswlower F
++ iswlower_l F
++ iswprint F
++ iswprint_l F
++ iswpunct F
++ iswpunct_l F
++ iswspace F
++ iswspace_l F
++ iswupper F
++ iswupper_l F
++ iswxdigit F
++ iswxdigit_l F
++ isxdigit F
++ isxdigit_l F
++ jail F
++ jrand48 F
++ jrand48_r F
++ key_decryptsession F
++ key_decryptsession_pk F
++ key_encryptsession F
++ key_encryptsession_pk F
++ key_gendes F
++ key_get_conv F
++ key_secretkey_is_set F
++ key_setnet F
++ key_setsecret F
++ kill F
++ killpg F
++ kldfind F
++ kldfirstmod F
++ kldload F
++ kldnext F
++ kldstat F
++ kldsym F
++ kldunload F
++ kldunloadf F
++ ktrace F
++ l64a F
++ labs F
++ lchmod F
++ lchown F
++ lckpwdf F
++ lcong48 F
++ lcong48_r F
++ ldexp F
++ ldexpf F
++ ldexpl F
++ ldiv F
++ lfind F
++ lgetxattr F
++ link F
++ listen F
++ listxattr F
++ llabs F
++ lldiv F
++ llistxattr F
++ loc1 D 0x8
++ loc2 D 0x8
++ localeconv F
++ localtime F
++ localtime_r F
++ lockf F
++ lockf64 F
++ locs D 0x8
++ longjmp F
++ lrand48 F
++ lrand48_r F
++ lremovexattr F
++ lsearch F
++ lseek F
++ lseek64 F
++ lsetxattr F
++ lutimes F
++ madvise F
++ makecontext F
++ mallinfo F
++ malloc F
++ malloc_get_state F
++ malloc_set_state F
++ malloc_stats F
++ malloc_trim F
++ malloc_usable_size F
++ mallopt F
++ mallwatch D 0x8
++ mblen F
++ mbrlen F
++ mbrtowc F
++ mbsinit F
++ mbsnrtowcs F
++ mbsrtowcs F
++ mbstowcs F
++ mbtowc F
++ mcheck F
++ mcheck_check_all F
++ mcheck_pedantic F
++ mcount F
++ memalign F
++ memccpy F
++ memchr F
++ memcmp F
++ memcpy F
++ memfrob F
++ memmem F
++ memmove F
++ mempcpy F
++ memrchr F
++ memset F
++ mincore F
++ minherit F
++ mkdir F
++ mkdtemp F
++ mkfifo F
++ mkstemp F
++ mkstemp64 F
++ mktemp F
++ mktime F
++ mlock F
++ mlockall F
++ mmap F
++ mmap64 F
++ modf F
++ modff F
++ modfind F
++ modfl F
++ modfnext F
++ modnext F
++ modstat F
++ moncontrol F
++ monstartup F
++ mount F
++ mprobe F
++ mprotect F
++ mrand48 F
++ mrand48_r F
++ msgctl F
++ msgget F
++ msgrcv F
++ msgsnd F
++ msync F
++ mtrace F
++ munlock F
++ munlockall F
++ munmap F
++ muntrace F
++ nanosleep F
++ netname2host F
++ netname2user F
++ newlocale F
++ nftw F
++ nftw64 F
++ ngettext F
++ nice F
++ nl_langinfo F
++ nl_langinfo_l F
++ nmount F
++ nrand48 F
++ nrand48_r F
++ ntohl F
++ ntohs F
++ ntp_adjtime F
++ ntp_gettime F
++ obstack_alloc_failed_handler D 0x8
++ obstack_exit_failure D 0x4
++ obstack_free F
++ obstack_printf F
++ obstack_vprintf F
++ on_exit F
++ open F
++ open64 F
++ open_memstream F
++ opendir F
++ openlog F
++ optarg D 0x8
++ opterr D 0x4
++ optind D 0x4
++ optopt D 0x4
++ parse_printf_format F
++ passwd2des F
++ pathconf F
++ pause F
++ pclose F
++ perror F
++ pipe F
++ pmap_getmaps F
++ pmap_getport F
++ pmap_rmtcall F
++ pmap_set F
++ pmap_unset F
++ poll F
++ popen F
++ posix_fadvise F
++ posix_fadvise64 F
++ posix_fallocate F
++ posix_fallocate64 F
++ posix_madvise F
++ posix_memalign F
++ posix_openpt F
++ posix_spawn F
++ posix_spawn_file_actions_addclose F
++ posix_spawn_file_actions_adddup2 F
++ posix_spawn_file_actions_addopen F
++ posix_spawn_file_actions_destroy F
++ posix_spawn_file_actions_init F
++ posix_spawnattr_destroy F
++ posix_spawnattr_getflags F
++ posix_spawnattr_getpgroup F
++ posix_spawnattr_getschedparam F
++ posix_spawnattr_getschedpolicy F
++ posix_spawnattr_getsigdefault F
++ posix_spawnattr_getsigmask F
++ posix_spawnattr_init F
++ posix_spawnattr_setflags F
++ posix_spawnattr_setpgroup F
++ posix_spawnattr_setschedparam F
++ posix_spawnattr_setschedpolicy F
++ posix_spawnattr_setsigdefault F
++ posix_spawnattr_setsigmask F
++ posix_spawnp F
++ pread F
++ pread64 F
++ printf F
++ printf_size F
++ printf_size_info F
++ profil F
++ program_invocation_name D 0x8
++ program_invocation_short_name D 0x8
++ pselect F
++ psignal F
++ pthread_attr_destroy F
++ pthread_attr_getdetachstate F
++ pthread_attr_getinheritsched F
++ pthread_attr_getschedparam F
++ pthread_attr_getschedpolicy F
++ pthread_attr_getscope F
++ pthread_attr_init F
++ pthread_attr_setdetachstate F
++ pthread_attr_setinheritsched F
++ pthread_attr_setschedparam F
++ pthread_attr_setschedpolicy F
++ pthread_attr_setscope F
++ pthread_cond_broadcast F
++ pthread_cond_destroy F
++ pthread_cond_init F
++ pthread_cond_signal F
++ pthread_cond_timedwait F
++ pthread_cond_wait F
++ pthread_condattr_destroy F
++ pthread_condattr_init F
++ pthread_equal F
++ pthread_exit F
++ pthread_getschedparam F
++ pthread_mutex_destroy F
++ pthread_mutex_init F
++ pthread_mutex_lock F
++ pthread_mutex_unlock F
++ pthread_self F
++ pthread_setcancelstate F
++ pthread_setcanceltype F
++ pthread_setschedparam F
++ ptrace F
++ ptsname F
++ ptsname_r F
++ putc F
++ putc_unlocked F
++ putchar F
++ putchar_unlocked F
++ putenv F
++ putgrent F
++ putmsg F
++ putpmsg F
++ putpwent F
++ puts F
++ putspent F
++ pututline F
++ pututxline F
++ putw F
++ putwc F
++ putwc_unlocked F
++ putwchar F
++ putwchar_unlocked F
++ pvalloc F
++ pwrite F
++ pwrite64 F
++ qecvt F
++ qecvt_r F
++ qfcvt F
++ qfcvt_r F
++ qgcvt F
++ qsort F
++ quotactl F
++ raise F
++ rand F
++ rand_r F
++ random F
++ random_r F
++ rawmemchr F
++ rcmd F
++ rcmd_af F
++ re_comp F
++ re_compile_fastmap F
++ re_compile_pattern F
++ re_exec F
++ re_match F
++ re_match_2 F
++ re_search F
++ re_search_2 F
++ re_set_registers F
++ re_set_syntax F
++ re_syntax_options D 0x8
++ read F
++ readdir F
++ readdir64 F
++ readdir64_r F
++ readdir_r F
++ readlink F
++ readv F
++ realloc F
++ realpath F
++ reboot F
++ recv F
++ recvfrom F
++ recvmsg F
++ regcomp F
++ regerror F
++ regexec F
++ regfree F
++ register_printf_function F
++ registerrpc F
++ remove F
++ removexattr F
++ remque F
++ rename F
++ revoke F
++ rewind F
++ rewinddir F
++ rexec F
++ rexec_af F
++ rexecoptions D 0x4
++ rfork F
++ rindex F
++ rmdir F
++ rpc_createerr D 0x20
++ rpmatch F
++ rresvport F
++ rresvport_af F
++ rtime F
++ rtprio F
++ ruserok F
++ ruserok_af F
++ ruserpass F
++ sbrk F
++ scalbn F
++ scalbnf F
++ scalbnl F
++ scandir F
++ scandir64 F
++ scanf F
++ sched_get_priority_max F
++ sched_get_priority_min F
++ sched_getparam F
++ sched_getscheduler F
++ sched_rr_get_interval F
++ sched_setparam F
++ sched_setscheduler F
++ sched_yield F
++ seed48 F
++ seed48_r F
++ seekdir F
++ select F
++ semctl F
++ semget F
++ semop F
++ send F
++ sendfile F
++ sendfile64 F
++ sendmsg F
++ sendto F
++ setaliasent F
++ setbuf F
++ setbuffer F
++ setcontext F
++ setdomainname F
++ setegid F
++ setenv F
++ seteuid F
++ setfsent F
++ setgid F
++ setgrent F
++ setgroups F
++ sethostent F
++ sethostid F
++ sethostname F
++ setitimer F
++ setjmp F
++ setlinebuf F
++ setlocale F
++ setlogin F
++ setlogmask F
++ setmntent F
++ setnetent F
++ setnetgrent F
++ setpgid F
++ setpgrp F
++ setpriority F
++ setprotoent F
++ setpwent F
++ setregid F
++ setresgid F
++ setresuid F
++ setreuid F
++ setrlimit F
++ setrlimit64 F
++ setrpcent F
++ setservent F
++ setsid F
++ setsockopt F
++ setspent F
++ setstate F
++ setstate_r F
++ settimeofday F
++ setttyent F
++ setuid F
++ setusershell F
++ setutent F
++ setutxent F
++ setvbuf F
++ setxattr F
++ sgetspent F
++ sgetspent_r F
++ shmat F
++ shmctl F
++ shmdt F
++ shmget F
++ shutdown F
++ sigaction F
++ sigaddset F
++ sigaltstack F
++ sigandset F
++ sigblock F
++ sigdelset F
++ sigemptyset F
++ sigfillset F
++ siggetmask F
++ sighold F
++ sigignore F
++ siginterrupt F
++ sigisemptyset F
++ sigismember F
++ siglongjmp F
++ signal F
++ sigorset F
++ sigpause F
++ sigpending F
++ sigprocmask F
++ sigqueue F
++ sigrelse F
++ sigreturn F
++ sigset F
++ sigsetmask F
++ sigstack F
++ sigsuspend F
++ sigtimedwait F
++ sigvec F
++ sigwait F
++ sigwaitinfo F
++ sleep F
++ snprintf F
++ sockatmark F
++ socket F
++ socketpair F
++ sprintf F
++ sprofil F
++ srand F
++ srand48 F
++ srand48_r F
++ srandom F
++ srandom_r F
++ sscanf F
++ ssignal F
++ sstk F
++ statfs F
++ statfs64 F
++ statvfs F
++ statvfs64 F
++ stderr D 0x8
++ stdin D 0x8
++ stdout D 0x8
++ step F
++ stime F
++ stpcpy F
++ stpncpy F
++ strcasecmp F
++ strcasecmp_l F
++ strcasestr F
++ strcat F
++ strchr F
++ strchrnul F
++ strcmp F
++ strcoll F
++ strcoll_l F
++ strcpy F
++ strcspn F
++ strdup F
++ strerror F
++ strerror_r F
++ strfmon F
++ strfmon_l F
++ strfry F
++ strftime F
++ strftime_l F
++ strlen F
++ strncasecmp F
++ strncasecmp_l F
++ strncat F
++ strncmp F
++ strncpy F
++ strndup F
++ strnlen F
++ strpbrk F
++ strptime F
++ strrchr F
++ strsep F
++ strsignal F
++ strspn F
++ strstr F
++ strtod F
++ strtod_l F
++ strtof F
++ strtof_l F
++ strtoimax F
++ strtok F
++ strtok_r F
++ strtol F
++ strtol_l F
++ strtold F
++ strtold_l F
++ strtoll F
++ strtoq F
++ strtoul F
++ strtoul_l F
++ strtoull F
++ strtoumax F
++ strtouq F
++ strverscmp F
++ strxfrm F
++ strxfrm_l F
++ stty F
++ svc_exit F
++ svc_fdset D 0x80
++ svc_getreq F
++ svc_getreq_common F
++ svc_getreq_poll F
++ svc_getreqset F
++ svc_max_pollfd D 0x4
++ svc_pollfd D 0x8
++ svc_register F
++ svc_run F
++ svc_sendreply F
++ svc_unregister F
++ svcauthdes_stats D 0x18
++ svcerr_auth F
++ svcerr_decode F
++ svcerr_noproc F
++ svcerr_noprog F
++ svcerr_progvers F
++ svcerr_systemerr F
++ svcerr_weakauth F
++ svcfd_create F
++ svcraw_create F
++ svctcp_create F
++ svcudp_bufcreate F
++ svcudp_create F
++ svcudp_enablecache F
++ svcunix_create F
++ svcunixfd_create F
++ swab F
++ swapcontext F
++ swapoff F
++ swapon F
++ swprintf F
++ swscanf F
++ symlink F
++ sync F
++ sys_errlist D 0x2b8
++ sys_nerr D 0x4
++ sys_sigabbrev D 0x408
++ sys_siglist D 0x408
++ sysarch F
++ syscall F
++ sysconf F
++ sysctl F
++ sysctlbyname F
++ syslog F
++ system F
++ sysv_signal F
++ tcdrain F
++ tcflow F
++ tcflush F
++ tcgetattr F
++ tcgetpgrp F
++ tcgetsid F
++ tcsendbreak F
++ tcsetattr F
++ tcsetpgrp F
++ tdelete F
++ tdestroy F
++ telldir F
++ tempnam F
++ textdomain F
++ tfind F
++ time F
++ timegm F
++ timelocal F
++ times F
++ timezone D 0x8
++ tmpfile F
++ tmpfile64 F
++ tmpnam F
++ tmpnam_r F
++ toascii F
++ tolower F
++ tolower_l F
++ toupper F
++ toupper_l F
++ towctrans F
++ towctrans_l F
++ towlower F
++ towlower_l F
++ towupper F
++ towupper_l F
++ tr_break F
++ truncate F
++ truncate64 F
++ tsearch F
++ ttyname F
++ ttyname_r F
++ ttyslot F
++ twalk F
++ tzname D 0x10
++ tzset F
++ ualarm F
++ ulckpwdf F
++ ulimit F
++ umask F
++ uname F
++ undelete F
++ ungetc F
++ ungetwc F
++ unlink F
++ unlockpt F
++ unmount F
++ unsetenv F
++ updwtmp F
++ updwtmpx F
++ uselocale F
++ user2netname F
++ usleep F
++ ustat F
++ utime F
++ utimes F
++ utmpname F
++ utmpxname F
++ utrace F
++ valloc F
++ vasprintf F
++ vdprintf F
++ verr F
++ verrx F
++ versionsort F
++ versionsort64 F
++ vfork F
++ vfprintf F
++ vfscanf F
++ vfwprintf F
++ vfwscanf F
++ vhangup F
++ vlimit F
++ vprintf F
++ vscanf F
++ vsnprintf F
++ vsprintf F
++ vsscanf F
++ vswprintf F
++ vswscanf F
++ vsyslog F
++ vtimes F
++ vwarn F
++ vwarnx F
++ vwprintf F
++ vwscanf F
++ wait F
++ wait3 F
++ wait4 F
++ waitid F
++ waitpid F
++ warn F
++ warnx F
++ wcpcpy F
++ wcpncpy F
++ wcrtomb F
++ wcscasecmp F
++ wcscasecmp_l F
++ wcscat F
++ wcschr F
++ wcschrnul F
++ wcscmp F
++ wcscoll F
++ wcscoll_l F
++ wcscpy F
++ wcscspn F
++ wcsdup F
++ wcsftime F
++ wcsftime_l F
++ wcslen F
++ wcsncasecmp F
++ wcsncasecmp_l F
++ wcsncat F
++ wcsncmp F
++ wcsncpy F
++ wcsnlen F
++ wcsnrtombs F
++ wcspbrk F
++ wcsrchr F
++ wcsrtombs F
++ wcsspn F
++ wcsstr F
++ wcstod F
++ wcstod_l F
++ wcstof F
++ wcstof_l F
++ wcstoimax F
++ wcstok F
++ wcstol F
++ wcstol_l F
++ wcstold F
++ wcstold_l F
++ wcstoll F
++ wcstoll_l F
++ wcstombs F
++ wcstoq F
++ wcstoul F
++ wcstoul_l F
++ wcstoull F
++ wcstoull_l F
++ wcstoumax F
++ wcstouq F
++ wcswcs F
++ wcswidth F
++ wcsxfrm F
++ wcsxfrm_l F
++ wctob F
++ wctomb F
++ wctrans F
++ wctrans_l F
++ wctype F
++ wctype_l F
++ wcwidth F
++ wmemchr F
++ wmemcmp F
++ wmemcpy F
++ wmemmove F
++ wmempcpy F
++ wmemset F
++ wordexp F
++ wordfree F
++ wprintf F
++ write F
++ writev F
++ wscanf F
++ xdecrypt F
++ xdr_accepted_reply F
++ xdr_array F
++ xdr_authdes_cred F
++ xdr_authdes_verf F
++ xdr_authunix_parms F
++ xdr_bool F
++ xdr_bytes F
++ xdr_callhdr F
++ xdr_callmsg F
++ xdr_char F
++ xdr_cryptkeyarg F
++ xdr_cryptkeyarg2 F
++ xdr_cryptkeyres F
++ xdr_des_block F
++ xdr_double F
++ xdr_enum F
++ xdr_float F
++ xdr_free F
++ xdr_getcredres F
++ xdr_hyper F
++ xdr_int F
++ xdr_int16_t F
++ xdr_int32_t F
++ xdr_int64_t F
++ xdr_int8_t F
++ xdr_key_netstarg F
++ xdr_key_netstres F
++ xdr_keybuf F
++ xdr_keystatus F
++ xdr_long F
++ xdr_longlong_t F
++ xdr_netnamestr F
++ xdr_netobj F
++ xdr_opaque F
++ xdr_opaque_auth F
++ xdr_pmap F
++ xdr_pmaplist F
++ xdr_pointer F
++ xdr_reference F
++ xdr_rejected_reply F
++ xdr_replymsg F
++ xdr_rmtcall_args F
++ xdr_rmtcallres F
++ xdr_short F
++ xdr_sizeof F
++ xdr_string F
++ xdr_u_char F
++ xdr_u_hyper F
++ xdr_u_int F
++ xdr_u_long F
++ xdr_u_longlong_t F
++ xdr_u_short F
++ xdr_uint16_t F
++ xdr_uint32_t F
++ xdr_uint64_t F
++ xdr_uint8_t F
++ xdr_union F
++ xdr_unixcred F
++ xdr_vector F
++ xdr_void F
++ xdr_wrapstring F
++ xdrmem_create F
++ xdrrec_create F
++ xdrrec_endofrecord F
++ xdrrec_eof F
++ xdrrec_skiprecord F
++ xdrstdio_create F
++ xencrypt F
++ xprt_register F
++ xprt_unregister F
++GLIBC_2.3.2
++ GLIBC_2.3.2 A
++ __register_atfork F
++ pthread_cond_broadcast F
++ pthread_cond_destroy F
++ pthread_cond_init F
++ pthread_cond_signal F
++ pthread_cond_timedwait F
++ pthread_cond_wait F
++ strptime_l F
++GLIBC_2.3.3
++ GLIBC_2.3.3 A
++ inet6_option_alloc F
++ inet6_option_append F
++ inet6_option_find F
++ inet6_option_init F
++ inet6_option_next F
++ inet6_option_space F
++ nftw F
++ nftw64 F
++ remap_file_pages F
++ sched_getaffinity F
++ sched_setaffinity F
++ semtimedop F
++ strtoll_l F
++ strtoull_l F
++GLIBC_2.3.4
++ GLIBC_2.3.4 A
++ __chk_fail F
++ __fprintf_chk F
++ __gets_chk F
++ __libc_sa_len F
++ __memcpy_chk F
++ __memmove_chk F
++ __mempcpy_chk F
++ __memset_chk F
++ __printf_chk F
++ __snprintf_chk F
++ __sprintf_chk F
++ __stpcpy_chk F
++ __strcat_chk F
++ __strcpy_chk F
++ __strncat_chk F
++ __strncpy_chk F
++ __vfprintf_chk F
++ __vprintf_chk F
++ __vsnprintf_chk F
++ __vsprintf_chk F
++ __xpg_strerror_r F
++ _sys_errlist D 0x2e8
++ _sys_nerr D 0x4
++ fhstat64 F
++ fhstatfs64 F
++ getipv4sourcefilter F
++ getsourcefilter F
++ iopl F
++ kevent F
++ kqueue F
++ regexec F
++ setipv4sourcefilter F
++ setsourcefilter F
++ sys_errlist D 0x2e8
++ sys_nerr D 0x4
++ xdr_quad_t F
++ xdr_u_quad_t F
++GLIBC_2.4
++ GLIBC_2.4 A
++ __confstr_chk F
++ __fgets_chk F
++ __fgets_unlocked_chk F
++ __fgetws_chk F
++ __fgetws_unlocked_chk F
++ __fwprintf_chk F
++ __fxstatat F
++ __fxstatat64 F
++ __getcwd_chk F
++ __getdomainname_chk F
++ __getgroups_chk F
++ __gethostname_chk F
++ __getlogin_r_chk F
++ __getwd_chk F
++ __mbsnrtowcs_chk F
++ __mbsrtowcs_chk F
++ __mbstowcs_chk F
++ __pread64_chk F
++ __pread_chk F
++ __ptsname_r_chk F
++ __read_chk F
++ __readlink_chk F
++ __realpath_chk F
++ __recv_chk F
++ __recvfrom_chk F
++ __stack_chk_fail F
++ __stpncpy_chk F
++ __swprintf_chk F
++ __syslog_chk F
++ __ttyname_r_chk F
++ __vfwprintf_chk F
++ __vswprintf_chk F
++ __vsyslog_chk F
++ __vwprintf_chk F
++ __wcpcpy_chk F
++ __wcpncpy_chk F
++ __wcrtomb_chk F
++ __wcscat_chk F
++ __wcscpy_chk F
++ __wcsncat_chk F
++ __wcsncpy_chk F
++ __wcsnrtombs_chk F
++ __wcsrtombs_chk F
++ __wcstombs_chk F
++ __wctomb_chk F
++ __wmemcpy_chk F
++ __wmemmove_chk F
++ __wmempcpy_chk F
++ __wmemset_chk F
++ __wprintf_chk F
++ __xmknodat F
++ eaccess F
++ faccessat F
++ fchmodat F
++ fchownat F
++ fdopendir F
++ futimesat F
++ linkat F
++ mkdirat F
++ mkfifoat F
++ open_wmemstream F
++ openat F
++ openat64 F
++ ppoll F
++ readlinkat F
++ renameat F
++ symlinkat F
++ unlinkat F
++GLIBC_2.5
++ GLIBC_2.5 A
++ __readlinkat_chk F
++ inet6_opt_append F
++ inet6_opt_find F
++ inet6_opt_finish F
++ inet6_opt_get_val F
++ inet6_opt_init F
++ inet6_opt_next F
++ inet6_opt_set_val F
++ inet6_rth_add F
++ inet6_rth_getaddr F
++ inet6_rth_init F
++ inet6_rth_reverse F
++ inet6_rth_segments F
++ inet6_rth_space F
++GLIBC_2.6
++ GLIBC_2.6 A
++ __sched_cpucount F
++ futimens F
++ strerror_l F
++ utimensat F
++GLIBC_2.7
++ GLIBC_2.7 A
++ __fread_chk F
++ __fread_unlocked_chk F
++ __isoc99_fscanf F
++ __isoc99_fwscanf F
++ __isoc99_scanf F
++ __isoc99_sscanf F
++ __isoc99_swscanf F
++ __isoc99_vfscanf F
++ __isoc99_vfwscanf F
++ __isoc99_vscanf F
++ __isoc99_vsscanf F
++ __isoc99_vswscanf F
++ __isoc99_vwscanf F
++ __isoc99_wscanf F
++ __open64_2 F
++ __open_2 F
++ __openat64_2 F
++ __openat_2 F
++ __sched_cpualloc F
++ __sched_cpufree F
++ mkostemp F
++ mkostemp64 F
++GLIBC_2.8
++ GLIBC_2.8 A
++ __asprintf_chk F
++ __dprintf_chk F
++ __obstack_printf_chk F
++ __obstack_vprintf_chk F
++ __vasprintf_chk F
++ __vdprintf_chk F
++ qsort_r F
++GLIBC_2.9
++ GLIBC_2.9 A
++ dup3 F
++ pipe2 F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libcrypt.abilist
+@@ -0,0 +1,9 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ crypt F
++ crypt_r F
++ encrypt F
++ encrypt_r F
++ fcrypt F
++ setkey F
++ setkey_r F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libdl.abilist
+@@ -0,0 +1,15 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ dladdr F
++ dlclose F
++ dlerror F
++ dlopen F
++ dlsym F
++ dlvsym F
++GLIBC_2.3.3
++ GLIBC_2.3.3 A
++ dladdr1 F
++ dlinfo F
++GLIBC_2.3.4
++ GLIBC_2.3.4 A
++ dlmopen F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libm.abilist
+@@ -0,0 +1,406 @@
++GLIBC_2.15
++ GLIBC_2.15 A
++ __acos_finite F
++ __acosf_finite F
++ __acosh_finite F
++ __acoshf_finite F
++ __acoshl_finite F
++ __acosl_finite F
++ __asin_finite F
++ __asinf_finite F
++ __asinl_finite F
++ __atan2_finite F
++ __atan2f_finite F
++ __atan2l_finite F
++ __atanh_finite F
++ __atanhf_finite F
++ __atanhl_finite F
++ __cosh_finite F
++ __coshf_finite F
++ __coshl_finite F
++ __exp10_finite F
++ __exp10f_finite F
++ __exp10l_finite F
++ __exp2_finite F
++ __exp2f_finite F
++ __exp2l_finite F
++ __exp_finite F
++ __expf_finite F
++ __expl_finite F
++ __fmod_finite F
++ __fmodf_finite F
++ __fmodl_finite F
++ __gamma_r_finite F
++ __gammaf_r_finite F
++ __gammal_r_finite F
++ __hypot_finite F
++ __hypotf_finite F
++ __hypotl_finite F
++ __j0_finite F
++ __j0f_finite F
++ __j0l_finite F
++ __j1_finite F
++ __j1f_finite F
++ __j1l_finite F
++ __jn_finite F
++ __jnf_finite F
++ __jnl_finite F
++ __lgamma_r_finite F
++ __lgammaf_r_finite F
++ __lgammal_r_finite F
++ __log10_finite F
++ __log10f_finite F
++ __log10l_finite F
++ __log2_finite F
++ __log2f_finite F
++ __log2l_finite F
++ __log_finite F
++ __logf_finite F
++ __logl_finite F
++ __pow_finite F
++ __powf_finite F
++ __powl_finite F
++ __remainder_finite F
++ __remainderf_finite F
++ __remainderl_finite F
++ __scalb_finite F
++ __scalbf_finite F
++ __scalbl_finite F
++ __sinh_finite F
++ __sinhf_finite F
++ __sinhl_finite F
++ __sqrt_finite F
++ __sqrtf_finite F
++ __sqrtl_finite F
++ __y0_finite F
++ __y0f_finite F
++ __y0l_finite F
++ __y1_finite F
++ __y1f_finite F
++ __y1l_finite F
++ __yn_finite F
++ __ynf_finite F
++ __ynl_finite F
++GLIBC_2.18
++ GLIBC_2.18 A
++ __issignaling F
++ __issignalingf F
++ __issignalingl F
++GLIBC_2.3
++ GLIBC_2.3 A
++ _LIB_VERSION D 0x4
++ __clog10 F
++ __clog10f F
++ __clog10l F
++ __finite F
++ __finitef F
++ __finitel F
++ __fpclassify F
++ __fpclassifyf F
++ __fpclassifyl F
++ __signbit F
++ __signbitf F
++ __signbitl F
++ acos F
++ acosf F
++ acosh F
++ acoshf F
++ acoshl F
++ acosl F
++ asin F
++ asinf F
++ asinh F
++ asinhf F
++ asinhl F
++ asinl F
++ atan F
++ atan2 F
++ atan2f F
++ atan2l F
++ atanf F
++ atanh F
++ atanhf F
++ atanhl F
++ atanl F
++ cabs F
++ cabsf F
++ cabsl F
++ cacos F
++ cacosf F
++ cacosh F
++ cacoshf F
++ cacoshl F
++ cacosl F
++ carg F
++ cargf F
++ cargl F
++ casin F
++ casinf F
++ casinh F
++ casinhf F
++ casinhl F
++ casinl F
++ catan F
++ catanf F
++ catanh F
++ catanhf F
++ catanhl F
++ catanl F
++ cbrt F
++ cbrtf F
++ cbrtl F
++ ccos F
++ ccosf F
++ ccosh F
++ ccoshf F
++ ccoshl F
++ ccosl F
++ ceil F
++ ceilf F
++ ceill F
++ cexp F
++ cexpf F
++ cexpl F
++ cimag F
++ cimagf F
++ cimagl F
++ clog F
++ clog10 F
++ clog10f F
++ clog10l F
++ clogf F
++ clogl F
++ conj F
++ conjf F
++ conjl F
++ copysign F
++ copysignf F
++ copysignl F
++ cos F
++ cosf F
++ cosh F
++ coshf F
++ coshl F
++ cosl F
++ cpow F
++ cpowf F
++ cpowl F
++ cproj F
++ cprojf F
++ cprojl F
++ creal F
++ crealf F
++ creall F
++ csin F
++ csinf F
++ csinh F
++ csinhf F
++ csinhl F
++ csinl F
++ csqrt F
++ csqrtf F
++ csqrtl F
++ ctan F
++ ctanf F
++ ctanh F
++ ctanhf F
++ ctanhl F
++ ctanl F
++ drem F
++ dremf F
++ dreml F
++ erf F
++ erfc F
++ erfcf F
++ erfcl F
++ erff F
++ erfl F
++ exp F
++ exp10 F
++ exp10f F
++ exp10l F
++ exp2 F
++ exp2f F
++ exp2l F
++ expf F
++ expl F
++ expm1 F
++ expm1f F
++ expm1l F
++ fabs F
++ fabsf F
++ fabsl F
++ fdim F
++ fdimf F
++ fdiml F
++ feclearexcept F
++ fedisableexcept F
++ feenableexcept F
++ fegetenv F
++ fegetexcept F
++ fegetexceptflag F
++ fegetround F
++ feholdexcept F
++ feraiseexcept F
++ fesetenv F
++ fesetexceptflag F
++ fesetround F
++ fetestexcept F
++ feupdateenv F
++ finite F
++ finitef F
++ finitel F
++ floor F
++ floorf F
++ floorl F
++ fma F
++ fmaf F
++ fmal F
++ fmax F
++ fmaxf F
++ fmaxl F
++ fmin F
++ fminf F
++ fminl F
++ fmod F
++ fmodf F
++ fmodl F
++ frexp F
++ frexpf F
++ frexpl F
++ gamma F
++ gammaf F
++ gammal F
++ hypot F
++ hypotf F
++ hypotl F
++ ilogb F
++ ilogbf F
++ ilogbl F
++ j0 F
++ j0f F
++ j0l F
++ j1 F
++ j1f F
++ j1l F
++ jn F
++ jnf F
++ jnl F
++ ldexp F
++ ldexpf F
++ ldexpl F
++ lgamma F
++ lgamma_r F
++ lgammaf F
++ lgammaf_r F
++ lgammal F
++ lgammal_r F
++ llrint F
++ llrintf F
++ llrintl F
++ llround F
++ llroundf F
++ llroundl F
++ log F
++ log10 F
++ log10f F
++ log10l F
++ log1p F
++ log1pf F
++ log1pl F
++ log2 F
++ log2f F
++ log2l F
++ logb F
++ logbf F
++ logbl F
++ logf F
++ logl F
++ lrint F
++ lrintf F
++ lrintl F
++ lround F
++ lroundf F
++ lroundl F
++ matherr F
++ modf F
++ modff F
++ modfl F
++ nan F
++ nanf F
++ nanl F
++ nearbyint F
++ nearbyintf F
++ nearbyintl F
++ nextafter F
++ nextafterf F
++ nextafterl F
++ nexttoward F
++ nexttowardf F
++ nexttowardl F
++ pow F
++ pow10 F
++ pow10f F
++ pow10l F
++ powf F
++ powl F
++ remainder F
++ remainderf F
++ remainderl F
++ remquo F
++ remquof F
++ remquol F
++ rint F
++ rintf F
++ rintl F
++ round F
++ roundf F
++ roundl F
++ scalb F
++ scalbf F
++ scalbl F
++ scalbln F
++ scalblnf F
++ scalblnl F
++ scalbn F
++ scalbnf F
++ scalbnl F
++ signgam D 0x4
++ significand F
++ significandf F
++ significandl F
++ sin F
++ sincos F
++ sincosf F
++ sincosl F
++ sinf F
++ sinh F
++ sinhf F
++ sinhl F
++ sinl F
++ sqrt F
++ sqrtf F
++ sqrtl F
++ tan F
++ tanf F
++ tanh F
++ tanhf F
++ tanhl F
++ tanl F
++ tgamma F
++ tgammaf F
++ tgammal F
++ trunc F
++ truncf F
++ truncl F
++ y0 F
++ y0f F
++ y0l F
++ y1 F
++ y1f F
++ y1l F
++ yn F
++ ynf F
++ ynl F
++GLIBC_2.4
++ GLIBC_2.4 A
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libnsl.abilist
+@@ -0,0 +1,123 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ __free_fdresult F
++ __nis_default_access F
++ __nis_default_group F
++ __nis_default_owner F
++ __nis_default_ttl F
++ __nis_finddirectory F
++ __nis_hash F
++ __nisbind_connect F
++ __nisbind_create F
++ __nisbind_destroy F
++ __nisbind_next F
++ __yp_check F
++ nis_add F
++ nis_add_entry F
++ nis_addmember F
++ nis_checkpoint F
++ nis_clone_directory F
++ nis_clone_object F
++ nis_clone_result F
++ nis_creategroup F
++ nis_destroy_object F
++ nis_destroygroup F
++ nis_dir_cmp F
++ nis_domain_of F
++ nis_domain_of_r F
++ nis_first_entry F
++ nis_free_directory F
++ nis_free_object F
++ nis_free_request F
++ nis_freenames F
++ nis_freeresult F
++ nis_freeservlist F
++ nis_freetags F
++ nis_getnames F
++ nis_getservlist F
++ nis_ismember F
++ nis_leaf_of F
++ nis_leaf_of_r F
++ nis_lerror F
++ nis_list F
++ nis_local_directory F
++ nis_local_group F
++ nis_local_host F
++ nis_local_principal F
++ nis_lookup F
++ nis_mkdir F
++ nis_modify F
++ nis_modify_entry F
++ nis_name_of F
++ nis_name_of_r F
++ nis_next_entry F
++ nis_perror F
++ nis_ping F
++ nis_print_directory F
++ nis_print_entry F
++ nis_print_group F
++ nis_print_group_entry F
++ nis_print_link F
++ nis_print_object F
++ nis_print_result F
++ nis_print_rights F
++ nis_print_table F
++ nis_read_obj F
++ nis_remove F
++ nis_remove_entry F
++ nis_removemember F
++ nis_rmdir F
++ nis_servstate F
++ nis_sperrno F
++ nis_sperror F
++ nis_sperror_r F
++ nis_stats F
++ nis_verifygroup F
++ nis_write_obj F
++ readColdStartFile F
++ writeColdStartFile F
++ xdr_cback_data F
++ xdr_domainname F
++ xdr_keydat F
++ xdr_mapname F
++ xdr_obj_p F
++ xdr_peername F
++ xdr_valdat F
++ xdr_yp_buf F
++ xdr_ypall F
++ xdr_ypbind_binding F
++ xdr_ypbind_resp F
++ xdr_ypbind_resptype F
++ xdr_ypbind_setdom F
++ xdr_ypdelete_args F
++ xdr_ypmap_parms F
++ xdr_ypmaplist F
++ xdr_yppush_status F
++ xdr_yppushresp_xfr F
++ xdr_ypreq_key F
++ xdr_ypreq_nokey F
++ xdr_ypreq_xfr F
++ xdr_ypresp_all F
++ xdr_ypresp_key_val F
++ xdr_ypresp_maplist F
++ xdr_ypresp_master F
++ xdr_ypresp_order F
++ xdr_ypresp_val F
++ xdr_ypresp_xfr F
++ xdr_ypstat F
++ xdr_ypupdate_args F
++ xdr_ypxfrstat F
++ yp_all F
++ yp_bind F
++ yp_first F
++ yp_get_default_domain F
++ yp_maplist F
++ yp_master F
++ yp_match F
++ yp_next F
++ yp_order F
++ yp_unbind F
++ yp_update F
++ ypbinderr_string F
++ yperr_string F
++ ypprot_err F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libpthread.abilist
+@@ -0,0 +1,233 @@
++GLIBC_2.12
++ GLIBC_2.12 A
++ pthread_getname_np F
++ pthread_setname_np F
++GLIBC_2.18
++ GLIBC_2.18 A
++ pthread_getattr_default_np F
++ pthread_setattr_default_np F
++GLIBC_2.3
++ GLIBC_2.3 A
++ _IO_flockfile F
++ _IO_ftrylockfile F
++ _IO_funlockfile F
++ __close F
++ __connect F
++ __errno_location F
++ __fcntl F
++ __fork F
++ __h_errno_location F
++ __libc_allocate_rtsig F
++ __libc_current_sigrtmax F
++ __libc_current_sigrtmin F
++ __lseek F
++ __nanosleep F
++ __open F
++ __open64 F
++ __pread64 F
++ __pthread_getspecific F
++ __pthread_key_create F
++ __pthread_mutex_destroy F
++ __pthread_mutex_init F
++ __pthread_mutex_lock F
++ __pthread_mutex_trylock F
++ __pthread_mutex_unlock F
++ __pthread_mutexattr_destroy F
++ __pthread_mutexattr_init F
++ __pthread_mutexattr_settype F
++ __pthread_once F
++ __pthread_rwlock_destroy F
++ __pthread_rwlock_init F
++ __pthread_rwlock_rdlock F
++ __pthread_rwlock_tryrdlock F
++ __pthread_rwlock_trywrlock F
++ __pthread_rwlock_unlock F
++ __pthread_rwlock_wrlock F
++ __pthread_setspecific F
++ __pwrite64 F
++ __read F
++ __res_state F
++ __send F
++ __sigaction F
++ __vfork F
++ __wait F
++ __write F
++ _pthread_cleanup_pop F
++ _pthread_cleanup_pop_restore F
++ _pthread_cleanup_push F
++ _pthread_cleanup_push_defer F
++ accept F
++ close F
++ connect F
++ fcntl F
++ flockfile F
++ fork F
++ fsync F
++ ftrylockfile F
++ funlockfile F
++ longjmp F
++ lseek F
++ lseek64 F
++ msync F
++ nanosleep F
++ open F
++ open64 F
++ pause F
++ pread F
++ pread64 F
++ pthread_atfork F
++ pthread_attr_destroy F
++ pthread_attr_getdetachstate F
++ pthread_attr_getguardsize F
++ pthread_attr_getinheritsched F
++ pthread_attr_getschedparam F
++ pthread_attr_getschedpolicy F
++ pthread_attr_getscope F
++ pthread_attr_getstack F
++ pthread_attr_getstackaddr F
++ pthread_attr_getstacksize F
++ pthread_attr_init F
++ pthread_attr_setdetachstate F
++ pthread_attr_setguardsize F
++ pthread_attr_setinheritsched F
++ pthread_attr_setschedparam F
++ pthread_attr_setschedpolicy F
++ pthread_attr_setscope F
++ pthread_attr_setstack F
++ pthread_attr_setstackaddr F
++ pthread_attr_setstacksize F
++ pthread_barrier_destroy F
++ pthread_barrier_init F
++ pthread_barrier_wait F
++ pthread_barrierattr_destroy F
++ pthread_barrierattr_init F
++ pthread_barrierattr_setpshared F
++ pthread_cancel F
++ pthread_cond_broadcast F
++ pthread_cond_destroy F
++ pthread_cond_init F
++ pthread_cond_signal F
++ pthread_cond_timedwait F
++ pthread_cond_wait F
++ pthread_condattr_destroy F
++ pthread_condattr_getpshared F
++ pthread_condattr_init F
++ pthread_condattr_setpshared F
++ pthread_create F
++ pthread_detach F
++ pthread_equal F
++ pthread_exit F
++ pthread_getattr_np F
++ pthread_getconcurrency F
++ pthread_getcpuclockid F
++ pthread_getschedparam F
++ pthread_getspecific F
++ pthread_join F
++ pthread_key_create F
++ pthread_key_delete F
++ pthread_kill F
++ pthread_kill_other_threads_np F
++ pthread_mutex_destroy F
++ pthread_mutex_init F
++ pthread_mutex_lock F
++ pthread_mutex_timedlock F
++ pthread_mutex_trylock F
++ pthread_mutex_unlock F
++ pthread_mutexattr_destroy F
++ pthread_mutexattr_getkind_np F
++ pthread_mutexattr_getpshared F
++ pthread_mutexattr_gettype F
++ pthread_mutexattr_init F
++ pthread_mutexattr_setkind_np F
++ pthread_mutexattr_setpshared F
++ pthread_mutexattr_settype F
++ pthread_once F
++ pthread_rwlock_destroy F
++ pthread_rwlock_init F
++ pthread_rwlock_rdlock F
++ pthread_rwlock_timedrdlock F
++ pthread_rwlock_timedwrlock F
++ pthread_rwlock_tryrdlock F
++ pthread_rwlock_trywrlock F
++ pthread_rwlock_unlock F
++ pthread_rwlock_wrlock F
++ pthread_rwlockattr_destroy F
++ pthread_rwlockattr_getkind_np F
++ pthread_rwlockattr_getpshared F
++ pthread_rwlockattr_init F
++ pthread_rwlockattr_setkind_np F
++ pthread_rwlockattr_setpshared F
++ pthread_self F
++ pthread_setcancelstate F
++ pthread_setcanceltype F
++ pthread_setconcurrency F
++ pthread_setschedparam F
++ pthread_setspecific F
++ pthread_sigmask F
++ pthread_spin_destroy F
++ pthread_spin_init F
++ pthread_spin_lock F
++ pthread_spin_trylock F
++ pthread_spin_unlock F
++ pthread_testcancel F
++ pthread_yield F
++ pwrite F
++ pwrite64 F
++ raise F
++ read F
++ recv F
++ recvfrom F
++ recvmsg F
++ sem_close F
++ sem_destroy F
++ sem_getvalue F
++ sem_init F
++ sem_open F
++ sem_post F
++ sem_timedwait F
++ sem_trywait F
++ sem_unlink F
++ sem_wait F
++ send F
++ sendmsg F
++ sendto F
++ sigaction F
++ siglongjmp F
++ sigwait F
++ system F
++ tcdrain F
++ vfork F
++ wait F
++ waitpid F
++ write F
++GLIBC_2.3.2
++ GLIBC_2.3.2 A
++ pthread_cond_broadcast F
++ pthread_cond_destroy F
++ pthread_cond_init F
++ pthread_cond_signal F
++ pthread_cond_timedwait F
++ pthread_cond_wait F
++GLIBC_2.3.3
++ GLIBC_2.3.3 A
++ __pthread_cleanup_routine F
++ __pthread_register_cancel F
++ __pthread_register_cancel_defer F
++ __pthread_unregister_cancel F
++ __pthread_unregister_cancel_restore F
++ __pthread_unwind_next F
++ pthread_attr_getaffinity_np F
++ pthread_attr_setaffinity_np F
++ pthread_barrierattr_getpshared F
++ pthread_condattr_getclock F
++ pthread_condattr_setclock F
++ pthread_getaffinity_np F
++ pthread_setaffinity_np F
++ pthread_timedjoin_np F
++ pthread_tryjoin_np F
++GLIBC_2.3.4
++ GLIBC_2.3.4 A
++ pthread_attr_getaffinity_np F
++ pthread_attr_setaffinity_np F
++ pthread_getaffinity_np F
++ pthread_setaffinity_np F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libresolv.abilist
+@@ -0,0 +1,97 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ __b64_ntop F
++ __b64_pton F
++ __dn_comp F
++ __dn_count_labels F
++ __dn_expand F
++ __dn_skipname F
++ __fp_nquery F
++ __fp_query F
++ __fp_resstat F
++ __hostalias F
++ __loc_aton F
++ __loc_ntoa F
++ __p_cdname F
++ __p_cdnname F
++ __p_class F
++ __p_class_syms D 0xa8
++ __p_fqname F
++ __p_fqnname F
++ __p_option F
++ __p_query F
++ __p_secstodate F
++ __p_time F
++ __p_type F
++ __p_type_syms D 0x450
++ __putlong F
++ __putshort F
++ __res_close F
++ __res_dnok F
++ __res_hnok F
++ __res_hostalias F
++ __res_isourserver F
++ __res_mailok F
++ __res_mkquery F
++ __res_nameinquery F
++ __res_nmkquery F
++ __res_nquery F
++ __res_nquerydomain F
++ __res_nsearch F
++ __res_nsend F
++ __res_ownok F
++ __res_queriesmatch F
++ __res_query F
++ __res_querydomain F
++ __res_search F
++ __res_send F
++ __sym_ntop F
++ __sym_ntos F
++ __sym_ston F
++ _gethtbyaddr F
++ _gethtbyname F
++ _gethtbyname2 F
++ _gethtent F
++ _getlong F
++ _getshort F
++ _res_opcodes D 0x80
++ _sethtent F
++ inet_net_ntop F
++ inet_net_pton F
++ inet_neta F
++ res_gethostbyaddr F
++ res_gethostbyname F
++ res_gethostbyname2 F
++ res_send_setqhook F
++ res_send_setrhook F
++GLIBC_2.3.2
++ GLIBC_2.3.2 A
++ __p_rcode F
++GLIBC_2.9
++ GLIBC_2.9 A
++ ns_datetosecs F
++ ns_format_ttl F
++ ns_get16 F
++ ns_get32 F
++ ns_initparse F
++ ns_makecanon F
++ ns_msg_getflag F
++ ns_name_compress F
++ ns_name_ntol F
++ ns_name_ntop F
++ ns_name_pack F
++ ns_name_pton F
++ ns_name_rollback F
++ ns_name_skip F
++ ns_name_uncompress F
++ ns_name_unpack F
++ ns_parse_ttl F
++ ns_parserr F
++ ns_put16 F
++ ns_put32 F
++ ns_samedomain F
++ ns_samename F
++ ns_skiprr F
++ ns_sprintrr F
++ ns_sprintrrf F
++ ns_subdomain F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/librt.abilist
+@@ -0,0 +1,50 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ aio_cancel F
++ aio_cancel64 F
++ aio_error F
++ aio_error64 F
++ aio_fsync F
++ aio_fsync64 F
++ aio_init F
++ aio_read F
++ aio_read64 F
++ aio_return F
++ aio_return64 F
++ aio_suspend F
++ aio_suspend64 F
++ aio_write F
++ aio_write64 F
++ clock_getcpuclockid F
++ clock_getres F
++ clock_gettime F
++ clock_nanosleep F
++ clock_settime F
++ lio_listio F
++ lio_listio64 F
++ shm_open F
++ shm_unlink F
++ timer_create F
++ timer_delete F
++ timer_getoverrun F
++ timer_gettime F
++ timer_settime F
++GLIBC_2.3.4
++ GLIBC_2.3.4 A
++ mq_close F
++ mq_getattr F
++ mq_notify F
++ mq_open F
++ mq_receive F
++ mq_send F
++ mq_setattr F
++ mq_timedreceive F
++ mq_timedsend F
++ mq_unlink F
++GLIBC_2.4
++ GLIBC_2.4 A
++ lio_listio F
++ lio_listio64 F
++GLIBC_2.7
++ GLIBC_2.7 A
++ __mq_open_2 F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libthread_db.abilist
+@@ -0,0 +1,44 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ td_init F
++ td_log F
++ td_symbol_list F
++ td_ta_clear_event F
++ td_ta_delete F
++ td_ta_enable_stats F
++ td_ta_event_addr F
++ td_ta_event_getmsg F
++ td_ta_get_nthreads F
++ td_ta_get_ph F
++ td_ta_get_stats F
++ td_ta_map_id2thr F
++ td_ta_map_lwp2thr F
++ td_ta_new F
++ td_ta_reset_stats F
++ td_ta_set_event F
++ td_ta_setconcurrency F
++ td_ta_thr_iter F
++ td_ta_tsd_iter F
++ td_thr_clear_event F
++ td_thr_dbresume F
++ td_thr_dbsuspend F
++ td_thr_event_enable F
++ td_thr_event_getmsg F
++ td_thr_get_info F
++ td_thr_getfpregs F
++ td_thr_getgregs F
++ td_thr_getxregs F
++ td_thr_getxregsize F
++ td_thr_set_event F
++ td_thr_setfpregs F
++ td_thr_setgregs F
++ td_thr_setprio F
++ td_thr_setsigpending F
++ td_thr_setxregs F
++ td_thr_sigsetmask F
++ td_thr_tls_get_addr F
++ td_thr_tsd F
++ td_thr_validate F
++GLIBC_2.3.3
++ GLIBC_2.3.3 A
++ td_thr_tlsbase F
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libutil.abilist
+@@ -0,0 +1,8 @@
++GLIBC_2.3
++ GLIBC_2.3 A
++ forkpty F
++ login F
++ login_tty F
++ logout F
++ logwtmp F
++ openpty F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/makecontext.S
 @@ -0,0 +1,146 @@
@@ -29665,6 +36430,10 @@
 +
 +weak_alias (__rfork, rfork)
 +
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/shlib-versions
+@@ -0,0 +1 @@
++ld=ld-kfreebsd-x86-64.so.1
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sigcontextinfo.h
 @@ -0,0 +1,35 @@
@@ -30674,7 +37443,7 @@
 +#include <sysdeps/unix/x86_64/sysdep.h>
 +#include <tls.h>
 +
-+#ifdef IS_IN_rtld
++#if IS_IN (rtld)
 +# include <dl-sysdep.h>		/* Defines RTLD_PRIVATE_ERRNO.  */
 +#endif
 +
@@ -30736,7 +37505,7 @@
 +  orq $-1, %rax;				\
 +  jmp L(pseudo_end);
 +#else
-+# ifndef NOT_IN_libc
++# if IS_IN (libc)
 +#  define SYSCALL_ERROR_ERRNO __libc_errno
 +# else
 +#  define SYSCALL_ERROR_ERRNO errno
@@ -30816,7 +37585,7 @@
 +
 +
 +/* Pointer mangling support.  */
-+#if defined NOT_IN_libc && defined IS_IN_rtld
++#if IS_IN (rtld)
 +/* We cannot use the thread descriptor because in ld.so we use setjmp
 +   earlier than the descriptor is initialized.  */
 +# ifdef __ASSEMBLER__

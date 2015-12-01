@@ -13481,7 +13481,7 @@
 +sysd-rules-patterns += ptw-%:%
 --- /dev/null
 +++ b/fbtl/Makefile
-@@ -0,0 +1,636 @@
+@@ -0,0 +1,644 @@
 +# Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +# This file is part of the GNU C Library.
 +
@@ -13576,6 +13576,7 @@
 +		      old_pthread_atfork pthread_atfork \
 +		      pthread_getcpuclockid \
 +		      pthread_clock_gettime pthread_clock_settime \
++		      shm-directory \
 +		      sem_init sem_destroy \
 +		      sem_open sem_close sem_unlink \
 +		      sem_getvalue \
@@ -13627,8 +13628,6 @@
 +
 +libpthread-shared-only-routines = version pt-allocrtsig unwind-forcedunwind
 +libpthread-static-only-routines = pthread_atfork
-+
-+CFLAGS-pthread_atfork.c = -DNOT_IN_libc
 +
 +# Since cancellation handling is in large parts handled using exceptions
 +# we have to compile some files with exception handling enabled, some
@@ -13698,19 +13697,11 @@
 +	tst-attr1 tst-attr2 tst-attr3 tst-default-attr \
 +	tst-mutex1 tst-mutex2 tst-mutex3 tst-mutex4 tst-mutex5 tst-mutex6 \
 +	tst-mutex7 tst-mutex8 tst-mutex9 tst-mutex5a tst-mutex7a \
-+	tst-mutexpi1 tst-mutexpi2 tst-mutexpi3 tst-mutexpi4 tst-mutexpi5 \
-+	tst-mutexpi5a tst-mutexpi6 tst-mutexpi7 tst-mutexpi7a tst-mutexpi8 \
-+	tst-mutexpi9 \
 +	tst-spin1 tst-spin2 tst-spin3 \
 +	tst-cond1 tst-cond2 tst-cond3 tst-cond4 tst-cond5 tst-cond6 tst-cond7 \
 +	tst-cond8 tst-cond9 tst-cond10 tst-cond11 tst-cond12 tst-cond13 \
 +	tst-cond14 tst-cond15 tst-cond16 tst-cond17 tst-cond18 tst-cond19 \
-+	tst-cond20 tst-cond21 tst-cond22 tst-cond23 tst-cond24 tst-cond25 \
-+	tst-cond-except \
-+	tst-robust1 tst-robust2 tst-robust3 tst-robust4 tst-robust5 \
-+	tst-robust6 tst-robust7 tst-robust8 tst-robust9 \
-+	tst-robustpi1 tst-robustpi2 tst-robustpi3 tst-robustpi4 tst-robustpi5 \
-+	tst-robustpi6 tst-robustpi7 tst-robustpi8 tst-robustpi9 \
++	tst-cond20 tst-cond21 tst-cond22 tst-cond23 \
 +	tst-rwlock1 tst-rwlock2 tst-rwlock2a tst-rwlock3 tst-rwlock4 \
 +	tst-rwlock5 tst-rwlock6 tst-rwlock7 tst-rwlock8 tst-rwlock9 \
 +	tst-rwlock10 tst-rwlock11 tst-rwlock12 tst-rwlock13 tst-rwlock14 \
@@ -13761,6 +13752,18 @@
 +	tst-vfork1 tst-vfork2 tst-vfork1x tst-vfork2x \
 +	tst-getpid1 tst-getpid2 tst-getpid3 \
 +	tst-initializers1 $(patsubst %,tst-initializers1-%,c89 gnu89 c99 gnu99)
++
++# These tests do not even compile due to missing pthread_* functions
++#	tst-mutexpi1 tst-mutexpi2 tst-mutexpi3 tst-mutexpi4 tst-mutexpi5 \
++#	tst-mutexpi5a tst-mutexpi6 tst-mutexpi7 tst-mutexpi7a tst-mutexpi8 \
++#	tst-mutexpi9 \
++#	tst-cond24 tst-cond25 \
++#	tst-cond-except \
++#	tst-robust1 tst-robust2 tst-robust3 tst-robust4 tst-robust5 \
++#	tst-robust6 tst-robust7 tst-robust8 tst-robust9 \
++#	tst-robustpi1 tst-robustpi2 tst-robustpi3 tst-robustpi4 tst-robustpi5 \
++#	tst-robustpi6 tst-robustpi7 tst-robustpi8 tst-robustpi9 \
++
 +xtests = tst-setuid1 tst-setuid1-static tst-mutexpp1 tst-mutexpp6 tst-mutexpp10
 +test-srcs = tst-oddstacklimit
 +
@@ -13846,11 +13849,16 @@
 +
 +tests-static += tst-locale1 tst-locale2 tst-stackguard1-static \
 +		tst-cancel21-static tst-cancel24-static tst-cond8-static \
-+		tst-mutex8-static tst-mutexpi8-static tst-sem11-static \
++		tst-mutex8-static tst-sem11-static \
 +		tst-sem12-static
++# This test does not even compile due to missing pthread_* functions
++#		tst-mutexpi8-static
 +tests += tst-stackguard1-static tst-cancel21-static tst-cancel24-static \
-+	 tst-cond8-static tst-mutex8-static tst-mutexpi8-static \
++	 tst-cond8-static tst-mutex8-static \
 +	 tst-sem11-static tst-sem12-static
++# This test does not even compile due to missing pthread_* functions
++#	 tst-mutexpi8-static
++
 +xtests-static += tst-setuid1-static
 +
 +# These tests are linked with libc before libpthread
@@ -14119,625 +14127,6 @@
 +.NOTPARALLEL:
 +endif
 --- /dev/null
-+++ b/fbtl/Makefile.glibc_2.18
-@@ -0,0 +1,616 @@
-+# Copyright (C) 2002-2013 Free Software Foundation, Inc.
-+# This file is part of the GNU C Library.
-+
-+# The GNU C Library is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU Lesser General Public
-+# License as published by the Free Software Foundation; either
-+# version 2.1 of the License, or (at your option) any later version.
-+
-+# The GNU C Library is distributed in the hope that it will be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+# Lesser General Public License for more details.
-+
-+# You should have received a copy of the GNU Lesser General Public
-+# License along with the GNU C Library; if not, see
-+# <http://www.gnu.org/licenses/>.
-+
-+#
-+#	Sub-makefile for NPTL portion of the library.
-+#
-+subdir	:= fbtl
-+
-+headers := pthread.h semaphore.h bits/semaphore.h
-+
-+extra-libs := libpthread
-+extra-libs-others := $(extra-libs)
-+install-lib-ldscripts := libpthread.so
-+
-+routines = alloca_cutoff forward libc-lowlevellock libc-cancellation \
-+	   libc-cleanup
-+shared-only-routines = forward
-+
-+libpthread-routines = nptl-init vars events version \
-+		      pthread_create pthread_exit pthread_detach \
-+		      pthread_join pthread_tryjoin pthread_timedjoin \
-+		      pthread_self pthread_equal pthread_yield \
-+		      pthread_getconcurrency pthread_setconcurrency \
-+		      pthread_getschedparam pthread_setschedparam \
-+		      pthread_setschedprio \
-+		      pthread_attr_init pthread_attr_destroy \
-+		      pthread_attr_getdetachstate pthread_attr_setdetachstate \
-+		      pthread_attr_getguardsize pthread_attr_setguardsize \
-+		      pthread_attr_getschedparam pthread_attr_setschedparam \
-+		      pthread_attr_getschedpolicy pthread_attr_setschedpolicy \
-+		      pthread_attr_getinheritsched \
-+		      pthread_attr_setinheritsched \
-+		      pthread_attr_getscope pthread_attr_setscope \
-+		      pthread_attr_getstackaddr pthread_attr_setstackaddr \
-+		      pthread_attr_getstacksize pthread_attr_setstacksize \
-+		      pthread_attr_getstack pthread_attr_setstack \
-+		      pthread_getattr_np \
-+		      pthread_mutex_init pthread_mutex_destroy \
-+		      pthread_mutex_lock pthread_mutex_trylock \
-+		      pthread_mutex_timedlock pthread_mutex_unlock \
-+		      pthread_mutexattr_init pthread_mutexattr_destroy \
-+		      pthread_mutexattr_getpshared \
-+		      pthread_mutexattr_setpshared \
-+		      pthread_mutexattr_gettype pthread_mutexattr_settype \
-+		      pthread_rwlock_init pthread_rwlock_destroy \
-+		      pthread_rwlock_rdlock pthread_rwlock_timedrdlock \
-+		      pthread_rwlock_wrlock pthread_rwlock_timedwrlock \
-+		      pthread_rwlock_tryrdlock pthread_rwlock_trywrlock \
-+		      pthread_rwlock_unlock \
-+		      pthread_rwlockattr_init pthread_rwlockattr_destroy \
-+		      pthread_rwlockattr_getpshared \
-+		      pthread_rwlockattr_setpshared \
-+		      pthread_rwlockattr_getkind_np \
-+		      pthread_rwlockattr_setkind_np \
-+		      pthread_cond_init pthread_cond_destroy \
-+		      pthread_cond_wait pthread_cond_timedwait \
-+		      pthread_cond_signal pthread_cond_broadcast \
-+		      old_pthread_cond_init old_pthread_cond_destroy \
-+		      old_pthread_cond_wait old_pthread_cond_timedwait \
-+		      old_pthread_cond_signal old_pthread_cond_broadcast \
-+		      pthread_condattr_init pthread_condattr_destroy \
-+		      pthread_condattr_getpshared pthread_condattr_setpshared \
-+		      pthread_condattr_getclock pthread_condattr_setclock \
-+		      pthread_spin_init pthread_spin_destroy \
-+		      pthread_spin_lock pthread_spin_trylock \
-+		      pthread_spin_unlock \
-+		      pthread_barrier_init pthread_barrier_destroy \
-+		      pthread_barrier_wait \
-+		      pthread_barrierattr_init pthread_barrierattr_destroy \
-+		      pthread_barrierattr_getpshared \
-+		      pthread_barrierattr_setpshared \
-+		      pthread_key_create pthread_key_delete \
-+		      pthread_getspecific pthread_setspecific \
-+		      pthread_sigmask pthread_kill \
-+		      pthread_cancel pthread_testcancel \
-+		      pthread_setcancelstate pthread_setcanceltype \
-+		      pthread_once \
-+		      old_pthread_atfork pthread_atfork \
-+		      pthread_getcpuclockid \
-+		      pthread_clock_gettime pthread_clock_settime \
-+		      sem_init sem_destroy \
-+		      sem_open sem_close sem_unlink \
-+		      sem_getvalue \
-+		      sem_wait sem_trywait sem_timedwait sem_post \
-+		      cleanup cleanup_defer cleanup_compat \
-+		      cleanup_defer_compat unwind \
-+		      pt-longjmp pt-cleanup\
-+		      cancellation \
-+		      lowlevellock \
-+		      pt-vfork \
-+		      ptw-write ptw-read ptw-close ptw-fcntl ptw-accept \
-+		      ptw-connect ptw-recv ptw-recvfrom ptw-recvmsg ptw-send \
-+		      ptw-sendmsg ptw-sendto ptw-fsync ptw-lseek ptw-llseek \
-+		      ptw-msync ptw-nanosleep ptw-open ptw-open64 ptw-pause \
-+		      ptw-pread ptw-pread64 ptw-pwrite ptw-pwrite64 \
-+		      ptw-tcdrain ptw-wait ptw-waitpid ptw-msgrcv ptw-msgsnd \
-+		      ptw-sigwait ptw-sigsuspend \
-+		      pt-raise pt-system \
-+		      flockfile ftrylockfile funlockfile \
-+		      sigaction \
-+		      herrno res pt-allocrtsig \
-+		      pthread_kill_other_threads \
-+		      cleanup_routine unwind-forcedunwind \
-+
-+# 		lowlevelrobustlock
-+#		pthread_sigqueue
-+		      
-+# post linuxthreads interfaces
-+#		      pthread_getaffinity pthread_setaffinity \
-+#		      pthread_attr_getaffinity pthread_attr_setaffinity \
-+#		      pthread_mutexattr_getrobust pthread_mutexattr_setrobust \
-+#		      pthread_mutex_consistent \
-+#		      pthread_mutexattr_getprotocol \
-+#		      pthread_mutexattr_setprotocol \
-+#		      pthread_mutexattr_getprioceiling \
-+#		      pthread_mutexattr_setprioceiling tpp \
-+#		      pthread_mutex_getprioceiling \
-+#		      pthread_mutex_setprioceiling \
-+#		      pthread_setname pthread_getname \
-+#		      pthread_setattr_default_np pthread_getattr_default_np
-+		      
-+		      
-+# commented out also in nptl
-+#		      pthread_setuid pthread_seteuid pthread_setreuid \
-+#		      pthread_setresuid \
-+#		      pthread_setgid pthread_setegid pthread_setregid \
-+#		      pthread_setresgid
-+
-+libpthread-shared-only-routines = version pt-allocrtsig unwind-forcedunwind
-+libpthread-static-only-routines = pthread_atfork
-+
-+CFLAGS-pthread_atfork.c = -DNOT_IN_libc
-+
-+# Since cancellation handling is in large parts handled using exceptions
-+# we have to compile some files with exception handling enabled, some
-+# even with asynchronous unwind tables.
-+
-+# nptl-init.c contains sigcancel_handler().
-+CFLAGS-nptl-init.c = -fexceptions -fasynchronous-unwind-tables
-+# The unwind code itself,
-+CFLAGS-unwind.c = -fexceptions
-+CFLAGS-unwind-forcedunwind.c = -fexceptions -fasynchronous-unwind-tables
-+
-+# The following three functions must be async-cancel safe.
-+CFLAGS-pthread_cancel.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-pthread_setcancelstate.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-pthread_setcanceltype.c = -fexceptions -fasynchronous-unwind-tables
-+
-+# These are internal functions which similar functionality as setcancelstate
-+# and setcanceltype.
-+CFLAGS-cancellation.c = -fasynchronous-unwind-tables
-+CFLAGS-libc-cancellation.c = -fasynchronous-unwind-tables
-+
-+# Calling pthread_exit() must cause the registered cancel handlers to
-+# be executed.  Therefore exceptions have to be thrown through this
-+# function.
-+CFLAGS-pthread_exit.c = -fexceptions
-+
-+# Among others, __pthread_unwind is forwarded.  This function must handle
-+# exceptions.
-+CFLAGS-forward.c = -fexceptions
-+
-+# The following are cancellation points.  Some of the functions can
-+# block and therefore temporarily enable asynchronous cancellation.
-+# Those must be compiled asynchronous unwind tables.
-+CFLAGS-pthread_testcancel.c = -fexceptions
-+CFLAGS-pthread_join.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-pthread_timedjoin.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-pthread_once.c = $(uses-callbacks) -fexceptions \
-+			-fasynchronous-unwind-tables
-+CFLAGS-pthread_cond_wait.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-pthread_cond_timedwait.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-sem_wait.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-sem_timedwait.c = -fexceptions -fasynchronous-unwind-tables
-+
-+# These are the function wrappers we have to duplicate here.
-+CFLAGS-fcntl.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-lockf.c = -fexceptions
-+CFLAGS-pread.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-pread64.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-pwrite.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-pwrite64.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-wait.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-waitpid.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-sigwait.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-msgrcv.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-msgsnd.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-tcdrain.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-open.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-open64.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-pause.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-recv.c = -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-send.c = -fexceptions -fasynchronous-unwind-tables
-+
-+CFLAGS-pt-system.c = -fexceptions
-+
-+
-+tests = tst-typesizes \
-+	tst-attr1 tst-attr2 tst-attr3 tst-default-attr \
-+	tst-mutex1 tst-mutex2 tst-mutex3 tst-mutex4 tst-mutex5 tst-mutex6 \
-+	tst-mutex7 tst-mutex8 tst-mutex9 tst-mutex5a tst-mutex7a \
-+	tst-mutexpi1 tst-mutexpi2 tst-mutexpi3 tst-mutexpi4 tst-mutexpi5 \
-+	tst-mutexpi5a tst-mutexpi6 tst-mutexpi7 tst-mutexpi7a tst-mutexpi8 \
-+	tst-mutexpi9 \
-+	tst-spin1 tst-spin2 tst-spin3 \
-+	tst-cond1 tst-cond2 tst-cond3 tst-cond4 tst-cond5 tst-cond6 tst-cond7 \
-+	tst-cond8 tst-cond9 tst-cond10 tst-cond11 tst-cond12 tst-cond13 \
-+	tst-cond14 tst-cond15 tst-cond16 tst-cond17 tst-cond18 tst-cond19 \
-+	tst-cond20 tst-cond21 tst-cond22 tst-cond23 tst-cond24 tst-cond25 \
-+	tst-cond-except \
-+	tst-robust1 tst-robust2 tst-robust3 tst-robust4 tst-robust5 \
-+	tst-robust6 tst-robust7 tst-robust8 tst-robust9 \
-+	tst-robustpi1 tst-robustpi2 tst-robustpi3 tst-robustpi4 tst-robustpi5 \
-+	tst-robustpi6 tst-robustpi7 tst-robustpi8 tst-robustpi9 \
-+	tst-rwlock1 tst-rwlock2 tst-rwlock2a tst-rwlock3 tst-rwlock4 \
-+	tst-rwlock5 tst-rwlock6 tst-rwlock7 tst-rwlock8 tst-rwlock9 \
-+	tst-rwlock10 tst-rwlock11 tst-rwlock12 tst-rwlock13 tst-rwlock14 \
-+	tst-once1 tst-once2 tst-once3 tst-once4 \
-+	tst-key1 tst-key2 tst-key3 tst-key4 \
-+	tst-sem1 tst-sem2 tst-sem3 tst-sem4 tst-sem5 tst-sem6 tst-sem7 \
-+	tst-sem8 tst-sem9 tst-sem10 tst-sem11 tst-sem12 tst-sem13 tst-sem14 \
-+	tst-barrier1 tst-barrier2 tst-barrier3 tst-barrier4 \
-+	tst-align tst-align2 tst-align3 \
-+	tst-basic1 tst-basic2 tst-basic3 tst-basic4 tst-basic5 tst-basic6 \
-+	tst-basic7 \
-+	tst-kill1 tst-kill2 tst-kill3 tst-kill4 tst-kill5 tst-kill6 \
-+	tst-raise1 \
-+	tst-join1 tst-join2 tst-join3 tst-join4 tst-join5 tst-join6 \
-+	tst-detach1 \
-+	tst-eintr1 tst-eintr2 tst-eintr3 tst-eintr4 tst-eintr5 \
-+	tst-tsd1 tst-tsd2 tst-tsd3 tst-tsd4 tst-tsd5 tst-tsd6 \
-+	tst-tls1 tst-tls2 \
-+	tst-fork1 tst-fork2 tst-fork3 tst-fork4 \
-+	tst-atfork1 \
-+	tst-cancel1 tst-cancel2 tst-cancel3 tst-cancel4 tst-cancel5 \
-+	tst-cancel6 tst-cancel7 tst-cancel8 tst-cancel9 tst-cancel10 \
-+	tst-cancel11 tst-cancel12 tst-cancel13 tst-cancel14 tst-cancel15 \
-+	tst-cancel16 tst-cancel17 tst-cancel18 tst-cancel19 tst-cancel20 \
-+	tst-cancel21 tst-cancel22 tst-cancel23 tst-cancel24 tst-cancel25 \
-+	tst-cancel-self tst-cancel-self-cancelstate \
-+	tst-cancel-self-canceltype tst-cancel-self-testcancel \
-+	tst-cleanup0 tst-cleanup1 tst-cleanup2 tst-cleanup3 tst-cleanup4 \
-+	tst-flock1 tst-flock2 \
-+	tst-signal1 tst-signal2 tst-signal3 tst-signal4 tst-signal5 \
-+	tst-signal6 tst-signal7 \
-+	tst-exec1 tst-exec2 tst-exec3 tst-exec4 \
-+	tst-exit1 tst-exit2 tst-exit3 \
-+	tst-stdio1 tst-stdio2 \
-+	tst-stack1 tst-stack2 tst-stack3 tst-pthread-getattr \
-+	tst-pthread-attr-affinity \
-+	tst-unload \
-+	tst-dlsym1 \
-+	tst-sysconf \
-+	tst-locale1 tst-locale2 \
-+	tst-umask1 \
-+	tst-popen1 \
-+	tst-clock1 \
-+	tst-context1 \
-+	tst-sched1 \
-+	tst-backtrace1 \
-+	tst-abstime \
-+	tst-vfork1 tst-vfork2 tst-vfork1x tst-vfork2x \
-+	tst-getpid1 tst-getpid2 tst-getpid3 \
-+	tst-initializers1 $(patsubst %,tst-initializers1-%,c89 gnu89 c99 gnu99)
-+xtests = tst-setuid1 tst-setuid1-static tst-mutexpp1 tst-mutexpp6 tst-mutexpp10
-+test-srcs = tst-oddstacklimit
-+
-+# Files which must not be linked with libpthread.
-+tests-nolibpthread = tst-unload
-+
-+gen-as-const-headers = pthread-errnos.sym
-+
-+LDFLAGS-pthread.so = -Wl,--enable-new-dtags,-z,nodelete,-z,initfirst
-+
-+include ../Makeconfig
-+
-+ifeq ($(have-forced-unwind),yes)
-+tests += tst-cancelx2 tst-cancelx3 tst-cancelx4 tst-cancelx5 \
-+	 tst-cancelx6 tst-cancelx7 tst-cancelx8 tst-cancelx9 tst-cancelx10 \
-+	 tst-cancelx11 tst-cancelx12 tst-cancelx13 tst-cancelx14 tst-cancelx15 \
-+	 tst-cancelx16 tst-cancelx17 tst-cancelx18 tst-cancelx20 tst-cancelx21 \
-+	 tst-cleanupx0 tst-cleanupx1 tst-cleanupx2 tst-cleanupx3 tst-cleanupx4 \
-+	 tst-oncex3 tst-oncex4
-+endif
-+ifeq ($(build-shared),yes)
-+tests += tst-atfork2 tst-tls3 tst-tls4 tst-tls5 tst-_res1 tst-fini1 \
-+	 tst-stackguard1
-+tests-nolibpthread += tst-fini1
-+ifeq ($(have-z-execstack),yes)
-+tests += tst-execstack
-+endif
-+endif
-+
-+modules-names = tst-atfork2mod tst-tls3mod tst-tls4moda tst-tls4modb \
-+		tst-tls5mod tst-tls5moda tst-tls5modb tst-tls5modc \
-+		tst-tls5modd tst-tls5mode tst-tls5modf \
-+		tst-_res1mod1 tst-_res1mod2 tst-execstack-mod tst-fini1mod
-+extra-test-objs += $(addsuffix .os,$(strip $(modules-names))) tst-cleanup4aux.o
-+test-extras += $(modules-names) tst-cleanup4aux
-+test-modules = $(addprefix $(objpfx),$(addsuffix .so,$(modules-names)))
-+
-+tst-atfork2mod.so-no-z-defs = yes
-+tst-tls3mod.so-no-z-defs = yes
-+tst-tls5mod.so-no-z-defs = yes
-+tst-tls5moda.so-no-z-defs = yes
-+tst-tls5modb.so-no-z-defs = yes
-+tst-tls5modc.so-no-z-defs = yes
-+tst-tls5modd.so-no-z-defs = yes
-+tst-tls5mode.so-no-z-defs = yes
-+tst-tls5modf.so-no-z-defs = yes
-+
-+ifeq ($(build-shared),yes)
-+# Build all the modules even when not actually running test programs.
-+tests: $(test-modules)
-+endif
-+
-+ifeq ($(build-shared),yes)
-+
-+# Set the `multidir' variable by grabbing the variable from the compiler.
-+# We do it once and save the result in a generated makefile.
-+-include $(objpfx)multidir.mk
-+$(objpfx)multidir.mk: $(common-objpfx)config.make
-+	$(make-target-directory)
-+	dir=`$(CC) $(CFLAGS) $(CPPFLAGS) -print-multi-directory`; \
-+	echo "multidir := $$dir" > $@T
-+	mv -f $@T $@
-+
-+crti-objs := crti.o
-+crtn-objs := crtn.o
-+ifneq (,$(patsubst .,,$(multidir)))
-+generated-dirs := $(firstword $(subst /, , $(multidir)))
-+crti-objs += $(multidir)/crti.o
-+crtn-objs += $(multidir)/crtn.o
-+$(objpfx)$(multidir):
-+	mkdir -p $@
-+endif
-+extra-objs += $(crti-objs) $(crtn-objs)
-+extra-objs += pt-crti.o
-+endif
-+
-+CFLAGS-flockfile.c = $(libio-mtsafe)
-+CFLAGS-ftrylockfile.c = $(libio-mtsafe)
-+CFLAGS-funlockfile.c = $(libio-mtsafe)
-+
-+link-libc-static := $(common-objpfx)libc.a $(static-gnulib) \
-+		    $(common-objpfx)libc.a
-+
-+tests-static += tst-locale1 tst-locale2 tst-stackguard1-static \
-+		tst-cancel21-static tst-cancel24-static tst-cond8-static \
-+		tst-mutex8-static tst-mutexpi8-static tst-sem11-static \
-+		tst-sem12-static
-+tests += tst-stackguard1-static tst-cancel21-static tst-cancel24-static \
-+	 tst-cond8-static tst-mutex8-static tst-mutexpi8-static \
-+	 tst-sem11-static tst-sem12-static
-+xtests-static += tst-setuid1-static
-+
-+# These tests are linked with libc before libpthread
-+tests-reverse += tst-cancel5 tst-cancel23 tst-vfork1x tst-vfork2x
-+
-+include ../Rules
-+
-+ifeq (yes,$(build-shared))
-+# Make sure these things are built in the `make lib' pass so they can be used
-+# to run programs during the `make others' pass.
-+lib-noranlib: $(addprefix $(objpfx),$(extra-objs))
-+
-+# What we install as libpthread.so for programs to link against is in fact a
-+# link script.  It contains references for the various libraries we need.
-+# The libpthread.so object is not complete since some functions are only
-+# defined in libpthread_nonshared.a.
-+# We need to use absolute paths since otherwise local copies (if they exist)
-+# of the files are taken by the linker.
-+install: $(inst_libdir)/libpthread.so
-+
-+$(inst_libdir)/libpthread.so: $(common-objpfx)format.lds \
-+			      $(objpfx)libpthread.so$(libpthread.so-version) \
-+			      $(inst_libdir)/$(patsubst %,$(libtype.oS),\
-+							$(libprefix)pthread) \
-+			      $(+force)
-+	(echo '/* GNU ld script';\
-+	 echo '   Use the shared library, but some functions are only in';\
-+	 echo '   the static library, so try that secondarily.  */';\
-+	 cat $<; \
-+	 echo 'GROUP ( $(slibdir)/libpthread.so$(libpthread.so-version)' \
-+	      '$(libdir)/$(patsubst %,$(libtype.oS),$(libprefix)pthread)'\
-+	      ')' \
-+	) > $@.new
-+	mv -f $@.new $@
-+endif
-+
-+
-+# 'pthread_self' is a simple memory or register load.  Setting up the
-+# stack frame is more work than the actual operation.  Disable the
-+# frame creation entirely.  This will help applications which call the
-+# function frequently to get a thread-specific handle.
-+CFLAGS-pthread_self.os += -fomit-frame-pointer
-+
-+# Run the cancellation and cleanup tests also for the modern, exception-based
-+# implementation.  For this we have to pass the -fexceptions parameter.
-+CFLAGS-tst-cancelx2.c += -fexceptions
-+CFLAGS-tst-cancelx3.c += -fexceptions
-+CFLAGS-tst-cancelx4.c += -fexceptions
-+CFLAGS-tst-cancelx5.c += -fexceptions
-+CFLAGS-tst-cancelx6.c += -fexceptions
-+CFLAGS-tst-cancelx7.c += -fexceptions
-+CFLAGS-tst-cancelx8.c += -fexceptions
-+CFLAGS-tst-cancelx9.c += -fexceptions
-+CFLAGS-tst-cancelx10.c += -fexceptions
-+CFLAGS-tst-cancelx11.c += -fexceptions
-+CFLAGS-tst-cancelx12.c += -fexceptions
-+CFLAGS-tst-cancelx13.c += -fexceptions
-+CFLAGS-tst-cancelx14.c += -fexceptions
-+CFLAGS-tst-cancelx15.c += -fexceptions
-+CFLAGS-tst-cancelx16.c += -fexceptions
-+CFLAGS-tst-cancelx17.c += -fexceptions
-+CFLAGS-tst-cancelx18.c += -fexceptions
-+CFLAGS-tst-cancelx20.c += -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-tst-cancelx21.c += -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-tst-cleanupx0.c += -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-tst-cleanupx1.c += -fexceptions -fasynchronous-unwind-tables
-+CFLAGS-tst-cleanupx2.c += -fexceptions
-+CFLAGS-tst-cleanupx3.c += -fexceptions
-+CFLAGS-tst-cleanupx4.c += -fexceptions
-+CFLAGS-tst-oncex3.c += -fexceptions
-+CFLAGS-tst-oncex4.c += -fexceptions
-+CFLAGS-tst-align.c += $(stack-align-test-flags)
-+CFLAGS-tst-align3.c += $(stack-align-test-flags)
-+CFLAGS-tst-initializers1.c = -W -Wall -Werror
-+CFLAGS-tst-initializers1-< = $(CFLAGS-tst-initializers1.c) \
-+			     $(patsubst tst-initializers1-%.c,-std=%,$<)
-+CFLAGS-tst-initializers1-c89.c = $(CFLAGS-tst-initializers1-<)
-+CFLAGS-tst-initializers1-c99.c = $(CFLAGS-tst-initializers1-<)
-+CFLAGS-tst-initializers1-gnu89.c = $(CFLAGS-tst-initializers1-<)
-+CFLAGS-tst-initializers1-gnu99.c = $(CFLAGS-tst-initializers1-<)
-+
-+tst-cancel7-ARGS = --command "exec $(host-test-program-cmd)"
-+tst-cancelx7-ARGS = $(tst-cancel7-ARGS)
-+tst-umask1-ARGS = $(objpfx)tst-umask1.temp
-+
-+$(objpfx)tst-atfork2: $(libdl) $(shared-thread-library)
-+LDFLAGS-tst-atfork2 = -rdynamic
-+tst-atfork2-ENV = MALLOC_TRACE=$(objpfx)tst-atfork2.mtrace
-+$(objpfx)tst-atfork2mod.so: $(shared-thread-library)
-+
-+ifeq ($(run-built-tests),yes)
-+tests: $(objpfx)tst-stack3-mem
-+endif
-+tst-stack3-ENV = MALLOC_TRACE=$(objpfx)tst-stack3.mtrace
-+$(objpfx)tst-stack3-mem: $(objpfx)tst-stack3.out
-+	$(common-objpfx)malloc/mtrace $(objpfx)tst-stack3.mtrace > $@
-+generated += tst-stack3-mem tst-stack3.mtrace
-+
-+$(objpfx)tst-cleanup4: $(objpfx)tst-cleanup4aux.o $(shared-thread-library)
-+$(objpfx)tst-cleanupx4: $(objpfx)tst-cleanup4aux.o $(shared-thread-library)
-+
-+$(objpfx)tst-tls3: $(libdl) $(shared-thread-library)
-+LDFLAGS-tst-tls3 = -rdynamic
-+$(objpfx)tst-tls3.out: $(objpfx)tst-tls3mod.so
-+$(objpfx)tst-tls3mod.so: $(shared-thread-library)
-+
-+$(objpfx)tst-tls4: $(libdl) $(shared-thread-library)
-+$(objpfx)tst-tls4.out: $(objpfx)tst-tls4moda.so $(objpfx)tst-tls4modb.so
-+
-+$(objpfx)tst-tls5: $(objpfx)tst-tls5mod.so $(shared-thread-library)
-+LDFLAGS-tst-tls5 = $(no-as-needed)
-+LDFLAGS-tst-tls5mod.so = -Wl,-soname,tst-tls5mod.so
-+
-+ifeq ($(build-shared),yes)
-+ifeq ($(run-built-tests),yes)
-+tests: $(objpfx)tst-tls6.out
-+endif
-+$(objpfx)tst-tls6.out: tst-tls6.sh $(objpfx)tst-tls5 \
-+		       $(objpfx)tst-tls5moda.so $(objpfx)tst-tls5modb.so \
-+		       $(objpfx)tst-tls5modc.so $(objpfx)tst-tls5modd.so \
-+		       $(objpfx)tst-tls5mode.so $(objpfx)tst-tls5modf.so
-+	$(BASH) $< $(common-objpfx) '$(test-via-rtld-prefix)' \
-+	  '$(test-wrapper-env)'
-+endif
-+
-+$(objpfx)tst-dlsym1: $(libdl) $(shared-thread-library)
-+
-+$(objpfx)tst-fini1: $(shared-thread-library) $(objpfx)tst-fini1mod.so
-+
-+ifeq (yes,$(build-shared))
-+librt = $(common-objpfx)rt/librt.so
-+else
-+librt = $(common-objpfx)rt/librt.a
-+endif
-+
-+$(objpfx)tst-cancel17: $(librt)
-+$(objpfx)tst-cancelx17: $(librt)
-+$(objpfx)tst-_res1mod2.so: $(objpfx)tst-_res1mod1.so
-+LDFLAGS-tst-_res1mod1.so = -Wl,-soname,tst-_res1mod1.so
-+LDFLAGS-tst-_res1mod2.so = -Wl,-soname,tst-_res1mod2.so
-+$(objpfx)tst-_res1: $(objpfx)tst-_res1mod1.so $(objpfx)tst-_res1mod2.so \
-+		    $(shared-thread-library)
-+
-+LDLIBS-tst-cancel24 = $(no-as-needed) -lstdc++
-+LDLIBS-tst-cancel24-static = $(LDLIBS-tst-cancel24)
-+
-+extra-B-pthread.so = -B$(common-objpfx)fbtl/
-+$(objpfx)libpthread.so: $(addprefix $(objpfx),$(crti-objs) $(crtn-objs))
-+$(objpfx)libpthread.so: +preinit += $(addprefix $(objpfx),$(crti-objs))
-+$(objpfx)libpthread.so: +postinit += $(addprefix $(objpfx),$(crtn-objs))
-+
-+# the next rule is pre-2.18 only
-+# Depend on libc.so so a DT_NEEDED is generated in the shared objects.
-+# This ensures they will load libc.so for needed symbols if loaded by
-+# a statically-linked program that hasn't already loaded it.
-+# Depend on ld.so too to get proper versions of ld.so symbols.
-+$(objpfx)libpthread.so: $(common-objpfx)libc.so \
-+			$(common-objpfx)libc_nonshared.a \
-+			$(elfobjdir)/ld.so
-+
-+
-+# Make sure we link with the thread library.
-+ifeq ($(build-shared),yes)
-+$(addprefix $(objpfx), \
-+  $(filter-out $(tests-static) $(xtests-static) $(tests-reverse) \
-+    $(tests-nolibpthread), \
-+    $(tests) $(xtests) $(test-srcs))): $(objpfx)libpthread.so \
-+				       $(objpfx)libpthread_nonshared.a
-+$(objpfx)tst-unload: $(common-objpfx)dlfcn/libdl.so
-+# $(objpfx)../libc.so is used instead of $(common-objpfx)libc.so,
-+# since otherwise libpthread.so comes before libc.so when linking.
-+$(addprefix $(objpfx), $(tests-reverse)): \
-+  $(objpfx)../libc.so $(objpfx)libpthread.so \
-+  $(objpfx)libpthread_nonshared.a
-+$(objpfx)../libc.so: $(common-objpfx)libc.so ;
-+$(addprefix $(objpfx),$(tests-static) $(xtests-static)): $(objpfx)libpthread.a
-+
-+$(objpfx)tst-atfork2.out: $(objpfx)tst-atfork2mod.so
-+else
-+$(addprefix $(objpfx),$(tests) $(test-srcs)): $(objpfx)libpthread.a
-+endif
-+
-+ifeq ($(build-shared),yes)
-+
-+$(objpfx)tst-cleanup0.out: /dev/null $(objpfx)tst-cleanup0
-+	$(make-test-out) 2>&1 | cmp - tst-cleanup0.expect > $@
-+
-+$(objpfx)crti.o: $(objpfx)pt-crti.o
-+	ln -f $< $@
-+
-+ifneq ($(multidir),.)
-+$(objpfx)$(multidir)/crti.o: $(objpfx)crti.o $(objpfx)$(multidir)/
-+	ln -f $< $@
-+
-+$(objpfx)$(multidir)/crtn.o: $(objpfx)crtn.o $(objpfx)$(multidir)/
-+	ln -f $< $@
-+endif
-+
-+generated += libpthread_nonshared.a \
-+	     multidir.mk tst-atfork2.mtrace tst-cancel-wrappers.out \
-+	     tst-tls6.out
-+
-+generated += $(objpfx)tst-atfork2.mtrace \
-+	     $(addsuffix .so,$(strip $(modules-names)))
-+
-+$(objpfx)version.d: $(objpfx)banner.h
-+$(objpfx)version.os: $(objpfx)banner.h
-+$(objpfx)banner.h: Banner
-+	sed 's/\(.*\)/"\1\\n"/' $< > $@
-+generated += banner.h
-+# Give libpthread.so an entry point and make it directly runnable itself.
-+LDFLAGS-pthread.so += -e __nptl_main
-+endif
-+
-+ifeq ($(run-built-tests),yes)
-+ifeq (yes,$(build-shared))
-+tests: $(objpfx)tst-cancel-wrappers.out
-+$(objpfx)tst-cancel-wrappers.out: tst-cancel-wrappers.sh
-+	$(SHELL) $< '$(NM)' \
-+		    $(common-objpfx)libc_pic.a \
-+		    $(common-objpfx)libc.a \
-+		    $(objpfx)libpthread_pic.a \
-+		    $(objpfx)libpthread.a > $@
-+endif
-+endif
-+
-+tst-exec4-ARGS = $(host-test-program-cmd)
-+
-+$(objpfx)tst-execstack: $(libdl)
-+$(objpfx)tst-execstack.out: $(objpfx)tst-execstack-mod.so
-+LDFLAGS-tst-execstack = -Wl,-z,noexecstack
-+
-+$(objpfx)tst-fini1mod.so: $(shared-thread-library)
-+
-+tst-stackguard1-ARGS = --command "$(host-test-program-cmd) --child"
-+tst-stackguard1-static-ARGS = --command "$(objpfx)tst-stackguard1-static --child"
-+
-+ifeq ($(run-built-tests),yes)
-+tests: $(objpfx)tst-oddstacklimit.out
-+
-+$(objpfx)tst-oddstacklimit.out: $(objpfx)tst-oddstacklimit $(objpfx)tst-basic1
-+	$(test-program-prefix) $< --command '$(host-test-program-cmd)' > $@
-+endif
-+
-+# The tests here better do not run in parallel
-+ifneq ($(filter %tests,$(MAKECMDGOALS)),)
-+.NOTPARALLEL:
-+endif
---- /dev/null
 +++ b/fbtl/TODO
 @@ -0,0 +1,31 @@
 +- we should probably extend pthread_mutexattr_t with a field to create a
@@ -14819,7 +14208,7 @@
 +  what to test?
 --- /dev/null
 +++ b/fbtl/Versions
-@@ -0,0 +1,250 @@
+@@ -0,0 +1,251 @@
 +libc {
 +  GLIBC_2.0 {
 +    pthread_attr_destroy; pthread_attr_init;
@@ -15068,6 +14457,7 @@
 +    __pthread_initialize_minimal;
 +    __pthread_clock_gettime; __pthread_clock_settime;
 +    __pthread_unwind; __pthread_get_minstack;
++    __shm_directory;
 +  }
 +}
 --- /dev/null
@@ -18171,7 +17561,7 @@
 +  lll_futex_wake (&self->setxid_futex, 1, LLL_PRIVATE);
 +
 +  if (atomic_decrement_val (&__xidcmd->cntr) == 0)
-+    lll_futex_wake (&__xidcmd->cntr, 1, LLL_PRIVATE);
++    lll_futex_wake ((unsigned int *)&__xidcmd->cntr, 1, LLL_PRIVATE);
 +}
 +
 +
@@ -18316,7 +17706,7 @@
 +  /* Determine the default allowed stack size.  This is the size used
 +     in case the user does not specify one.  */
 +  struct rlimit limit;
-+  if (getrlimit (RLIMIT_STACK, &limit) != 0
++  if (__getrlimit (RLIMIT_STACK, &limit) != 0
 +      || limit.rlim_cur == RLIM_INFINITY)
 +    /* The system limit is not usable.  Use an architecture-specific
 +       default.  */
@@ -19989,7 +19379,7 @@
 +
 +extern void __pthread_unwind (__pthread_unwind_buf_t *__buf)
 +     __cleanup_fct_attribute __attribute ((__noreturn__))
-+#if !defined SHARED && !defined IS_IN_libpthread
++#if !defined SHARED && !IS_IN (libpthread)
 +     weak_function
 +#endif
 +     ;
@@ -20003,7 +19393,7 @@
 +     __cleanup_fct_attribute;
 +extern void __pthread_unregister_cancel (__pthread_unwind_buf_t *__buf)
 +     __cleanup_fct_attribute;
-+#if defined NOT_IN_libc && defined IS_IN_libpthread
++#if IS_IN (libpthread)
 +hidden_proto (__pthread_unwind)
 +hidden_proto (__pthread_unwind_next)
 +hidden_proto (__pthread_register_cancel)
@@ -20037,7 +19427,7 @@
 +#define CANCEL_RESET(oldtype) \
 +  __pthread_disable_asynccancel (oldtype)
 +
-+#if !defined NOT_IN_libc
++#if IS_IN (libc)
 +/* Same as CANCEL_ASYNC, but for use in libc.so.  */
 +# define LIBC_CANCEL_ASYNC() \
 +  __libc_enable_asynccancel ()
@@ -20047,13 +19437,13 @@
 +# define LIBC_CANCEL_HANDLED() \
 +  __asm (".globl " __SYMBOL_PREFIX "__libc_enable_asynccancel"); \
 +  __asm (".globl " __SYMBOL_PREFIX "__libc_disable_asynccancel")
-+#elif defined NOT_IN_libc && defined IS_IN_libpthread
++#elif IS_IN (libpthread)
 +# define LIBC_CANCEL_ASYNC() CANCEL_ASYNC ()
 +# define LIBC_CANCEL_RESET(val) CANCEL_RESET (val)
 +# define LIBC_CANCEL_HANDLED() \
 +  __asm (".globl " __SYMBOL_PREFIX "__pthread_enable_asynccancel"); \
 +  __asm (".globl " __SYMBOL_PREFIX "__pthread_disable_asynccancel")
-+#elif defined NOT_IN_libc && defined IS_IN_librt
++#elif IS_IN (librt)
 +# define LIBC_CANCEL_ASYNC() \
 +  __librt_enable_asynccancel ()
 +# define LIBC_CANCEL_RESET(val) \
@@ -20112,7 +19502,7 @@
 +
 +/* longjmp handling.  */
 +extern void __pthread_cleanup_upto (__jmp_buf target, char *targetframe);
-+#if defined NOT_IN_libc && defined IS_IN_libpthread
++#if IS_IN (libpthread)
 +hidden_proto (__pthread_cleanup_upto)
 +#endif
 +
@@ -20257,7 +19647,7 @@
 +extern void __pthread_disable_asynccancel (int oldtype)
 +     internal_function attribute_hidden;
 +
-+#if defined NOT_IN_libc && defined IS_IN_libpthread
++#if IS_IN (libpthread)
 +hidden_proto (__pthread_mutex_init)
 +hidden_proto (__pthread_mutex_destroy)
 +hidden_proto (__pthread_mutex_lock)
@@ -20296,7 +19686,7 @@
 +extern void __librt_disable_asynccancel (int oldtype)
 +     internal_function attribute_hidden;
 +
-+#ifdef IS_IN_libpthread
++#if IS_IN (libpthread)
 +/* Special versions which use non-exported functions.  */
 +extern void __pthread_cleanup_push (struct _pthread_cleanup_buffer *buffer,
 +				    void (*routine) (void *), void *arg)
@@ -22588,7 +21978,7 @@
 +# else
 +	/* Get the current time.  So far we support only one clock.  */
 +	struct timeval tv;
-+	(void) gettimeofday (&tv, NULL);
++	(void) __gettimeofday (&tv, NULL);
 +
 +	/* Convert the absolute timeout value to a relative timeout.  */
 +	rt.tv_sec = abstime->tv_sec - tv.tv_sec;
@@ -23190,7 +22580,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_create.c
-@@ -0,0 +1,672 @@
+@@ -0,0 +1,673 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -23222,6 +22612,7 @@
 +#include <libc-internal.h>
 +#include <resolv.h>
 +#include <kernel-features.h>
++#include <exit-thread.h>
 +
 +#include <shlib-compat.h>
 +
@@ -23630,7 +23021,7 @@
 +
 +     The exit code is zero since in case all threads exit by calling
 +     'pthread_exit' the exit status must be 0 (zero).  */
-+  __exit_thread (0);
++  __exit_thread ();
 +
 +  /* NOTREACHED */
 +  return 0;
@@ -27695,7 +27086,7 @@
 +     || !defined lll_futex_timed_wait_bitset)
 +      /* Get the current time.  So far we support only one clock.  */
 +      struct timeval tv;
-+      (void) gettimeofday (&tv, NULL);
++      (void) __gettimeofday (&tv, NULL);
 +
 +      /* Convert the absolute timeout value to a relative timeout.  */
 +      struct timespec rt;
@@ -27845,7 +27236,7 @@
 +     || !defined lll_futex_timed_wait_bitset)
 +      /* Get the current time.  So far we support only one clock.  */
 +      struct timeval tv;
-+      (void) gettimeofday (&tv, NULL);
++      (void) __gettimeofday (&tv, NULL);
 +
 +      /* Convert the absolute timeout value to a relative timeout.  */
 +      struct timespec rt;
@@ -29718,7 +29109,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/sem_open.c
-@@ -0,0 +1,461 @@
+@@ -0,0 +1,299 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -29739,8 +29130,6 @@
 +
 +#include <errno.h>
 +#include <fcntl.h>
-+#include <mntent.h>
-+#include <paths.h>
 +#include <pthread.h>
 +#include <search.h>
 +#include <semaphore.h>
@@ -29751,140 +29140,9 @@
 +#include <unistd.h>
 +#include <sys/mman.h>
 +#include <sys/stat.h>
-+#include <sys/statfs.h>
-+#if 0
-+#include <linux_fsinfo.h>
-+#endif
 +#include "semaphoreP.h"
++#include <shm-directory.h>
 +
-+
-+
-+/* Information about the mount point.  */
-+struct mountpoint_info mountpoint attribute_hidden;
-+
-+/* This is the default mount point.  */
-+static const char defaultmount[] = "/dev/shm";
-+/* This is the default directory.  */
-+static const char defaultdir[] = "/dev/shm/sem.";
-+
-+/* Protect the `mountpoint' variable above.  */
-+pthread_once_t __namedsem_once attribute_hidden = PTHREAD_ONCE_INIT;
-+
-+#if 1
-+
-+/* This is the alternate debian mount point.  */
-+static const char alternatemount[] = "/run/shm";
-+/* This is the alternate debian directory.  */
-+static const char alternatedir[] = "/run/shm/sem.";
-+
-+/* Determine where the shmfs is mounted (if at all).  */
-+void
-+attribute_hidden
-+__where_is_shmfs (void)
-+{
-+  struct statfs f;
-+
-+  /* The canonical place is /dev/shm.  This is at least what the
-+     documentation tells everybody to do.  */
-+  if (statfs (defaultmount, &f) == 0)
-+    {
-+      /* It is in the normal place.  */
-+      mountpoint.dir = (char *) defaultdir;
-+      mountpoint.dirlen = sizeof (defaultdir) - 1;
-+
-+      return;
-+    }
-+
-+  /* The alternate place is /run/shm.  */
-+  if (statfs (alternatemount, &f) == 0)
-+    {
-+      /* It is in the normal place.  */
-+      mountpoint.dir = (char *) alternatedir;
-+      mountpoint.dirlen = sizeof (alternatedir) - 1;
-+
-+      return;
-+    }
-+    
-+  /* Not configured => not supported */  
-+}
-+
-+#else
-+
-+
-+/* Determine where the shmfs is mounted (if at all).  */
-+void
-+attribute_hidden
-+__where_is_shmfs (void)
-+{
-+  char buf[512];
-+  struct statfs f;
-+  struct mntent resmem;
-+  struct mntent *mp;
-+  FILE *fp;
-+
-+  /* The canonical place is /dev/shm.  This is at least what the
-+     documentation tells everybody to do.  */
-+  if (__statfs (defaultmount, &f) == 0 && f.f_type == SHMFS_SUPER_MAGIC)
-+    {
-+      /* It is in the normal place.  */
-+      mountpoint.dir = (char *) defaultdir;
-+      mountpoint.dirlen = sizeof (defaultdir) - 1;
-+
-+      return;
-+    }
-+
-+  /* OK, do it the hard way.  Look through the /proc/mounts file and if
-+     this does not exist through /etc/fstab to find the mount point.  */
-+  fp = __setmntent ("/proc/mounts", "r");
-+  if (__builtin_expect (fp == NULL, 0))
-+    {
-+      fp = __setmntent (_PATH_MNTTAB, "r");
-+      if (__builtin_expect (fp == NULL, 0))
-+	/* There is nothing we can do.  Blind guesses are not helpful.  */
-+	return;
-+    }
-+
-+  /* Now read the entries.  */
-+  while ((mp = __getmntent_r (fp, &resmem, buf, sizeof buf)) != NULL)
-+    /* The original name is "shm" but this got changed in early Linux
-+       2.4.x to "tmpfs".  */
-+    if (strcmp (mp->mnt_type, "tmpfs") == 0
-+	|| strcmp (mp->mnt_type, "shm") == 0)
-+      {
-+	/* Found it.  There might be more than one place where the
-+           filesystem is mounted but one is enough for us.  */
-+	size_t namelen;
-+
-+	/* First make sure this really is the correct entry.  At least
-+	   some versions of the kernel give wrong information because
-+	   of the implicit mount of the shmfs for SysV IPC.  */
-+	if (__statfs (mp->mnt_dir, &f) != 0 || f.f_type != SHMFS_SUPER_MAGIC)
-+	  continue;
-+
-+	namelen = strlen (mp->mnt_dir);
-+
-+	if (namelen == 0)
-+	  /* Hum, maybe some crippled entry.  Keep on searching.  */
-+	  continue;
-+
-+	mountpoint.dir = (char *) malloc (namelen + 4 + 2);
-+	if (mountpoint.dir != NULL)
-+	  {
-+	    char *cp = __mempcpy (mountpoint.dir, mp->mnt_dir, namelen);
-+	    if (cp[-1] != '/')
-+	      *cp++ = '/';
-+	    cp = stpcpy (cp, "sem.");
-+	    mountpoint.dirlen = cp - mountpoint.dir;
-+	  }
-+
-+	break;
-+      }
-+
-+  /* Close the stream.  */
-+  __endmntent (fp);
-+}
-+
-+#endif
 +
 +/* Comparison function for search of existing mapping.  */
 +int
@@ -29979,14 +29237,9 @@
 +  if (result != existing && existing != SEM_FAILED && existing != MAP_FAILED)
 +    {
 +      /* Do not disturb errno.  */
-+#if 1
 +      int saved_errno = errno;
 +      munmap(existing, sizeof (sem_t));
 +      errno = saved_errno; 
-+#else    
-+      INTERNAL_SYSCALL_DECL (err);
-+      INTERNAL_SYSCALL (munmap, err, 2, existing, sizeof (sem_t));
-+#endif
 +    }
 +
 +  return result;
@@ -29996,42 +29249,17 @@
 +sem_t *
 +sem_open (const char *name, int oflag, ...)
 +{
-+  char *finalname;
-+  sem_t *result = SEM_FAILED;
 +  int fd;
++  sem_t *result;
 +
-+  /* Determine where the shmfs is mounted.  */
-+  __pthread_once (&__namedsem_once, __where_is_shmfs);
-+
-+  /* If we don't know the mount points there is nothing we can do.  Ever.  */
-+  if (mountpoint.dir == NULL)
-+    {
-+      __set_errno (ENOSYS);
-+      return SEM_FAILED;
-+    }
-+
-+  /* Construct the filename.  */
-+  while (name[0] == '/')
-+    ++name;
-+
-+  if (name[0] == '\0')
-+    {
-+      /* The name "/" is not supported.  */
-+      __set_errno (EINVAL);
-+      return SEM_FAILED;
-+    }
-+  size_t namelen = strlen (name) + 1;
-+
-+  /* Create the name of the final file.  */
-+  finalname = (char *) alloca (mountpoint.dirlen + namelen);
-+  __mempcpy (__mempcpy (finalname, mountpoint.dir, mountpoint.dirlen),
-+	     name, namelen);
++  /* Create the name of the final file in local variable SHM_NAME.  */
++  SHM_GET_NAME (EINVAL, SEM_FAILED, SEM_SHM_PREFIX);
 +
 +  /* If the semaphore object has to exist simply open it.  */
 +  if ((oflag & O_CREAT) == 0 || (oflag & O_EXCL) == 0)
 +    {
 +    try_again:
-+      fd = __libc_open (finalname,
++      fd = __libc_open (shm_name,
 +			(oflag & ~(O_CREAT|O_ACCMODE)) | O_NOFOLLOW | O_RDWR);
 +
 +      if (fd == -1)
@@ -30089,8 +29317,8 @@
 +      memset ((char *) &sem.initsem + sizeof (struct new_sem), '\0',
 +	      sizeof (sem_t) - sizeof (struct new_sem));
 +
-+      tmpfname = (char *) alloca (mountpoint.dirlen + 6 + 1);
-+      char *xxxxxx = __mempcpy (tmpfname, mountpoint.dir, mountpoint.dirlen);
++      tmpfname = (char *) alloca (shm_dirlen + sizeof SEM_SHM_PREFIX + 6);
++      char *xxxxxx = __mempcpy (tmpfname, shm_dir, shm_dirlen);
 +
 +      int retries = 0;
 +#define NRETRIES 50
@@ -30133,7 +29361,7 @@
 +				       fd, 0)) != MAP_FAILED)
 +	{
 +	  /* Create the file.  Don't overwrite an existing file.  */
-+	  if (link (tmpfname, finalname) != 0)
++	  if (link (tmpfname, shm_name) != 0)
 +	    {
 +	      /* Undo the mapping.  */
 +	      (void) munmap (result, sizeof (sem_t));
@@ -30174,15 +29402,16 @@
 +  if (fd != -1)
 +    {
 +      /* Do not disturb errno.  */
-+      INTERNAL_SYSCALL_DECL (err);
-+      INTERNAL_SYSCALL (close, err, 1, fd);
++      int save = errno;
++      __libc_close (fd);
++      errno = save;
 +    }
 +
 +  return result;
 +}
 --- /dev/null
 +++ b/fbtl/sem_unlink.c
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,38 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -30207,44 +29436,16 @@
 +#include <string.h>
 +#include <unistd.h>
 +#include "semaphoreP.h"
-+
++#include <shm-directory.h>
 +
 +int
-+sem_unlink (name)
-+     const char *name;
++sem_unlink (const char *name)
 +{
-+  char *fname;
-+  size_t namelen;
-+
-+  /* Determine where the shmfs is mounted.  */
-+  __pthread_once (&__namedsem_once, __where_is_shmfs);
-+
-+  /* If we don't know the mount points there is nothing we can do.  Ever.  */
-+  if (mountpoint.dir == NULL)
-+    {
-+      __set_errno (ENOSYS);
-+      return -1;
-+    }
-+
 +  /* Construct the filename.  */
-+  while (name[0] == '/')
-+    ++name;
-+
-+  if (name[0] == '\0')
-+    {
-+      /* The name "/" is not supported.  */
-+      __set_errno (ENOENT);
-+      return -1;
-+    }
-+  namelen = strlen (name);
-+
-+  /* Create the name of the file.  */
-+  fname = (char *) alloca (mountpoint.dirlen + namelen + 1);
-+  __mempcpy (__mempcpy (fname, mountpoint.dir, mountpoint.dirlen),
-+	     name, namelen + 1);
++  SHM_GET_NAME (ENOENT, -1, SEM_SHM_PREFIX);
 +
 +  /* Now try removing it.  */
-+  int ret = unlink (fname);
++  int ret = unlink (shm_name);
 +  if (ret < 0 && errno == EPERM)
 +    __set_errno (EACCES);
 +  return ret;
@@ -30332,7 +29533,7 @@
 +#endif	/* semaphore.h */
 --- /dev/null
 +++ b/fbtl/semaphoreP.h
-@@ -0,0 +1,68 @@
+@@ -0,0 +1,54 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -30354,13 +29555,7 @@
 +#include <semaphore.h>
 +#include "pthreadP.h"
 +
-+
-+/* Mount point of the shared memory filesystem.  */
-+struct mountpoint_info
-+{
-+  char *dir;
-+  size_t dirlen;
-+};
++#define SEM_SHM_PREFIX  "sem."
 +
 +/* Keeping track of currently used mappings.  */
 +struct inuse_sem
@@ -30373,20 +29568,12 @@
 +};
 +
 +
-+/* Variables used in multiple interfaces.  */
-+extern struct mountpoint_info mountpoint attribute_hidden;
-+
-+extern pthread_once_t __namedsem_once attribute_hidden;
-+
 +/* The search tree for existing mappings.  */
 +extern void *__sem_mappings attribute_hidden;
 +
 +/* Lock to protect the search tree.  */
 +extern int __sem_mappings_lock attribute_hidden;
 +
-+
-+/* Initializer for mountpoint.  */
-+extern void __where_is_shmfs (void) attribute_hidden;
 +
 +/* Comparison function for search in tree with existing mappings.  */
 +extern int __sem_search (const void *a, const void *b) attribute_hidden;
@@ -30403,8 +29590,8 @@
 +extern int __new_sem_getvalue (sem_t *sem, int *sval);
 --- /dev/null
 +++ b/fbtl/shlib-versions
-@@ -0,0 +1,1 @@
-+libpthread=0
+@@ -0,0 +1 @@
++libpthread=0		GLIBC_2.3
 --- /dev/null
 +++ b/fbtl/sigaction.c
 @@ -0,0 +1,46 @@
@@ -31344,7 +30531,7 @@
 +pthread_spin_init = pthread_spin_unlock
 --- /dev/null
 +++ b/fbtl/sysdeps/i386/pthreaddef.h
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,40 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -31385,19 +30572,6 @@
 +
 +/* Location of current stack frame.  */
 +#define CURRENT_STACK_FRAME	__builtin_frame_address (0)
-+
-+
-+/* XXX Until we have a better place keep the definitions here.  */
-+
-+/* While there is no such syscall.  */
-+#define __exit_thread_inline(val) \
-+  while (1) {								      \
-+    if (__builtin_constant_p (val) && (val) == 0)			      \
-+      asm volatile ("xorl %%ebx, %%ebx; int $0x80" :: "a" (__NR_exit));	      \
-+    else								      \
-+      asm volatile ("movl %1, %%ebx; int $0x80"				      \
-+		    :: "a" (__NR_exit), "r" (val));			      \
-+  }
 --- /dev/null
 +++ b/fbtl/sysdeps/i386/tcb-offsets.sym
 @@ -0,0 +1,17 @@
@@ -31420,7 +30594,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/sysdeps/i386/tls.h
-@@ -0,0 +1,473 @@
+@@ -0,0 +1,471 @@
 +/* Definition for thread-local data handling.  nptl/i386 version.
 +   Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -31527,9 +30701,6 @@
 +};
 +
 +
-+/* Get the thread descriptor definition.  */
-+# include <fbtl/descr.h>
-+
 +/* This is the size of the initial TCB.  Can't be just sizeof (tcbhead_t),
 +   because NPTL getpid, __libc_alloca_cutoff etc. need (almost) the whole
 +   struct pthread even when not linked with -lpthread.  */
@@ -31547,6 +30718,10 @@
 +/* The TCB can have any size and the memory following the address the
 +   thread pointer points to is unspecified.  Allocate the TCB there.  */
 +# define TLS_TCB_AT_TP	1
++# define TLS_DTV_AT_TP  0
++
++/* Get the thread descriptor definition.  */
++# include <fbtl/descr.h>
 +
 +
 +/* Install the dtv pointer.  The pointer passed is to the element with
@@ -31617,7 +30792,7 @@
 +/* Code to initially initialize the thread pointer.  This might need
 +   special attention since 'errno' is not yet available and if the
 +   operation can cause a failure 'errno' must not be touched.  */
-+# define TLS_INIT_TP(thrdescr, secondcall) \
++# define TLS_INIT_TP(thrdescr) \
 +  ({ void *_thrdescr = (thrdescr);					      \
 +     tcbhead_t *_head = _thrdescr;					      \
 +     union user_desc_init _segdescr;					      \
@@ -31630,10 +30805,7 @@
 +     INIT_SYSINFO;							      \
 +									      \
 +     /* The 'entry_number' field.  Let the kernel pick a value.  */	      \
-+     if (secondcall)							      \
-+       _segdescr.vals[0] = TLS_GET_GS () >> 3;				      \
-+     else								      \
-+       _segdescr.vals[0] = -1;						      \
++     _segdescr.vals[0] = -1;						      \
 +     /* The 'base_addr' field.  Pointer to the TCB.  */			      \
 +     _segdescr.vals[1] = (unsigned long int) _thrdescr;			      \
 +     /* The 'limit' field.  We use 4GB which is 0xfffff pages.  */	      \
@@ -32054,7 +31226,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/sysdeps/pthread/bits/libc-lock.h
-@@ -0,0 +1,192 @@
+@@ -0,0 +1,187 @@
 +/* libc-internal interface for mutex locks.  NPTL version.
 +   Copyright (C) 1996-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -32083,7 +31255,7 @@
 +
 +/* Mutex type.  */
 +#if defined _LIBC || defined _IO_MTSAFE_IO
-+# if (defined NOT_IN_libc && !defined IS_IN_libpthread) || !defined _LIBC
++# if (!IS_IN (libc) && !IS_IN (libpthread)) || !defined _LIBC
 +typedef struct { pthread_mutex_t mutex; } __libc_lock_recursive_t;
 +# else
 +typedef struct { int lock; int cnt; void *owner; } __libc_lock_recursive_t;
@@ -32104,14 +31276,9 @@
 +
 +/* Define an initialized recursive lock variable NAME with storage
 +   class CLASS.  */
-+#if defined _LIBC && (!defined NOT_IN_libc || defined IS_IN_libpthread)
-+# if LLL_LOCK_INITIALIZER == 0
-+#  define __libc_lock_define_initialized_recursive(CLASS,NAME) \
-+  CLASS __libc_lock_recursive_t NAME;
-+# else
-+#  define __libc_lock_define_initialized_recursive(CLASS,NAME) \
++#if defined _LIBC && (IS_IN (libc) || IS_IN (libpthread))
++# define __libc_lock_define_initialized_recursive(CLASS,NAME) \
 +  CLASS __libc_lock_recursive_t NAME = _LIBC_LOCK_RECURSIVE_INITIALIZER;
-+# endif
 +# define _LIBC_LOCK_RECURSIVE_INITIALIZER \
 +  { LLL_LOCK_INITIALIZER, 0, NULL }
 +#else
@@ -32122,9 +31289,9 @@
 +#endif
 +
 +/* Initialize a recursive mutex.  */
-+#if defined _LIBC && (!defined NOT_IN_libc || defined IS_IN_libpthread)
++#if defined _LIBC && (IS_IN (libc) || IS_IN (libpthread))
 +# define __libc_lock_init_recursive(NAME) \
-+  ((NAME) = (__libc_lock_recursive_t) _LIBC_LOCK_RECURSIVE_INITIALIZER, 0)
++  ((void) ((NAME) = (__libc_lock_recursive_t) _LIBC_LOCK_RECURSIVE_INITIALIZER))
 +#else
 +# define __libc_lock_init_recursive(NAME) \
 +  do {									      \
@@ -32140,7 +31307,7 @@
 +#endif
 +
 +/* Finalize recursive named lock.  */
-+#if defined _LIBC && (!defined NOT_IN_libc || defined IS_IN_libpthread)
++#if defined _LIBC && (IS_IN (libc) || IS_IN (libpthread))
 +# define __libc_lock_fini_recursive(NAME) ((void) 0)
 +#else
 +# define __libc_lock_fini_recursive(NAME) \
@@ -32148,7 +31315,7 @@
 +#endif
 +
 +/* Lock the recursive named lock variable.  */
-+#if defined _LIBC && (!defined NOT_IN_libc || defined IS_IN_libpthread)
++#if defined _LIBC && (IS_IN (libc) || IS_IN (libpthread))
 +# define __libc_lock_lock_recursive(NAME) \
 +  do {									      \
 +    void *self = THREAD_SELF;						      \
@@ -32165,7 +31332,7 @@
 +#endif
 +
 +/* Try to lock the recursive named lock variable.  */
-+#if defined _LIBC && (!defined NOT_IN_libc || defined IS_IN_libpthread)
++#if defined _LIBC && (IS_IN (libc) || IS_IN (libpthread))
 +# define __libc_lock_trylock_recursive(NAME) \
 +  ({									      \
 +    int result = 0;							      \
@@ -32190,7 +31357,7 @@
 +#endif
 +
 +/* Unlock the recursive named lock variable.  */
-+#if defined _LIBC && (!defined NOT_IN_libc || defined IS_IN_libpthread)
++#if defined _LIBC && (IS_IN (libc) || IS_IN (libpthread))
 +/* We do no error checking here.  */
 +# define __libc_lock_unlock_recursive(NAME) \
 +  do {									      \
@@ -32249,7 +31416,7 @@
 +#endif	/* bits/libc-lock.h */
 --- /dev/null
 +++ b/fbtl/sysdeps/pthread/bits/libc-lockP.h
-@@ -0,0 +1,429 @@
+@@ -0,0 +1,436 @@
 +/* Private libc-internal interface for mutex locks.  NPTL version.
 +   Copyright (C) 1996-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -32286,8 +31453,14 @@
 +#include <tls.h>
 +#include <pthread-functions.h>
 +
++#if IS_IN (libpthread)
++/* This gets us the declarations of the __pthread_* internal names,
++   and hidden_proto for them.  */
++# include <fbtl/pthreadP.h>
++#endif
++
 +/* Mutex type.  */
-+#if defined NOT_IN_libc && !defined IS_IN_libpthread
++#if !IS_IN (libc) && !IS_IN (libpthread)
 +typedef pthread_mutex_t __libc_lock_t;
 +#else
 +typedef int __libc_lock_t;
@@ -32321,7 +31494,7 @@
 +   initialized locks must be set to one due to the lack of normal
 +   atomic operations.) */
 +
-+#if !defined NOT_IN_libc || defined IS_IN_libpthread
++#if IS_IN (libc) || IS_IN (libpthread)
 +# if LLL_LOCK_INITIALIZER == 0
 +#  define __libc_lock_define_initialized(CLASS,NAME) \
 +  CLASS __libc_lock_t NAME;
@@ -32330,13 +31503,8 @@
 +  CLASS __libc_lock_t NAME = LLL_LOCK_INITIALIZER;
 +# endif
 +#else
-+# if __LT_SPINLOCK_INIT == 0
-+#  define __libc_lock_define_initialized(CLASS,NAME) \
++# define __libc_lock_define_initialized(CLASS,NAME) \
 +  CLASS __libc_lock_t NAME;
-+# else
-+#  define __libc_lock_define_initialized(CLASS,NAME) \
-+  CLASS __libc_lock_t NAME = PTHREAD_MUTEX_INITIALIZER;
-+# endif
 +#endif
 +
 +#define __libc_rwlock_define_initialized(CLASS,NAME) \
@@ -32365,12 +31533,18 @@
 +#endif
 +
 +/* Call thread functions through the function pointer table.  */
-+#if defined SHARED && !defined NOT_IN_libc
++#if defined SHARED && IS_IN (libc)
 +# define PTFAVAIL(NAME) __libc_pthread_functions_init
 +# define __libc_ptf_call(FUNC, ARGS, ELSE) \
 +  (__libc_pthread_functions_init ? PTHFCT_CALL (ptr_##FUNC, ARGS) : ELSE)
 +# define __libc_ptf_call_always(FUNC, ARGS) \
 +  PTHFCT_CALL (ptr_##FUNC, ARGS)
++#elif IS_IN (libpthread)
++# define PTFAVAIL(NAME) 1
++# define __libc_ptf_call(FUNC, ARGS, ELSE) \
++  FUNC ARGS
++# define __libc_ptf_call_always(FUNC, ARGS) \
++  FUNC ARGS
 +#else
 +# define PTFAVAIL(NAME) (NAME != NULL)
 +# define __libc_ptf_call(FUNC, ARGS, ELSE) \
@@ -32382,17 +31556,17 @@
 +
 +/* Initialize the named lock variable, leaving it in a consistent, unlocked
 +   state.  */
-+#if !defined NOT_IN_libc || defined IS_IN_libpthread
-+# define __libc_lock_init(NAME) ((NAME) = LLL_LOCK_INITIALIZER, 0)
++#if IS_IN (libc) || IS_IN (libpthread)
++# define __libc_lock_init(NAME) \
++  ((void) ((NAME) = LLL_LOCK_INITIALIZER)) 
 +#else
 +# define __libc_lock_init(NAME) \
 +  __libc_maybe_call (__pthread_mutex_init, (&(NAME), NULL), 0)
 +#endif
-+#if defined SHARED && !defined NOT_IN_libc
-+/* ((NAME) = (__libc_rwlock_t) PTHREAD_RWLOCK_INITIALIZER, 0) is
-+   inefficient.  */
++#if defined SHARED && IS_IN (libc)
++/* ((NAME) = (__libc_rwlock_t) PTHREAD_RWLOCK_INITIALIZER) is inefficient.  */
 +# define __libc_rwlock_init(NAME) \
-+  (__builtin_memset (&(NAME), '\0', sizeof (NAME)), 0)
++  ((void) __builtin_memset (&(NAME), '\0', sizeof (NAME))) 
 +#else
 +# define __libc_rwlock_init(NAME) \
 +  __libc_maybe_call (__pthread_rwlock_init, (&(NAME), NULL), 0)
@@ -32401,13 +31575,13 @@
 +/* Finalize the named lock variable, which must be locked.  It cannot be
 +   used again until __libc_lock_init is called again on it.  This must be
 +   called on a lock variable before the containing storage is reused.  */
-+#if !defined NOT_IN_libc || defined IS_IN_libpthread
++#if IS_IN (libc) || IS_IN (libpthread)
 +# define __libc_lock_fini(NAME) ((void) 0)
 +#else
 +# define __libc_lock_fini(NAME) \
 +  __libc_maybe_call (__pthread_mutex_destroy, (&(NAME)), 0)
 +#endif
-+#if defined SHARED && !defined NOT_IN_libc
++#if defined SHARED && IS_IN (libc)
 +# define __libc_rwlock_fini(NAME) ((void) 0)
 +#else
 +# define __libc_rwlock_fini(NAME) \
@@ -32415,7 +31589,7 @@
 +#endif
 +
 +/* Lock the named lock variable.  */
-+#if !defined NOT_IN_libc || defined IS_IN_libpthread
++#if IS_IN (libc) || IS_IN (libpthread)
 +# ifndef __libc_lock_lock
 +#  define __libc_lock_lock(NAME) \
 +  ({ lll_lock (NAME, LLL_PRIVATE); 0; })
@@ -32431,7 +31605,7 @@
 +  __libc_ptf_call (__pthread_rwlock_wrlock, (&(NAME)), 0)
 +
 +/* Try to lock the named lock variable.  */
-+#if !defined NOT_IN_libc || defined IS_IN_libpthread
++#if IS_IN (libc) || IS_IN (libpthread)
 +# ifndef __libc_lock_trylock
 +#  define __libc_lock_trylock(NAME) \
 +  lll_trylock (NAME)
@@ -32450,7 +31624,7 @@
 +  __libc_maybe_call (__pthread_mutex_trylock, (&(NAME).mutex), 0)
 +
 +/* Unlock the named lock variable.  */
-+#if !defined NOT_IN_libc || defined IS_IN_libpthread
++#if IS_IN (libc) || IS_IN (libpthread)
 +# define __libc_lock_unlock(NAME) \
 +  lll_unlock (NAME, LLL_PRIVATE)
 +#else
@@ -32761,7 +31935,7 @@
 +#define _IO_lock_initializer { LLL_LOCK_INITIALIZER, 0, NULL }
 +
 +#define _IO_lock_init(_name) \
-+  ((_name) = (_IO_lock_t) _IO_lock_initializer , 0)
++  ((void) ((_name) = (_IO_lock_t) _IO_lock_initializer))
 +
 +#define _IO_lock_fini(_name) \
 +  ((void) 0)
@@ -32814,7 +31988,7 @@
 +#define _IO_cleanup_region_end(_doit) \
 +  __libc_cleanup_region_end (_doit)
 +
-+#if defined _LIBC && !defined NOT_IN_libc
++#if defined _LIBC && IS_IN (libc)
 +
 +# ifdef __EXCEPTIONS
 +#  define _IO_acquire_lock(_fp) \
@@ -32840,7 +32014,7 @@
 +#endif /* bits/stdio-lock.h */
 --- /dev/null
 +++ b/fbtl/sysdeps/pthread/configure
-@@ -0,0 +1,89 @@
+@@ -0,0 +1,80 @@
 +# This file is generated from configure.in by Autoconf.  DO NOT EDIT!
 +
 +if test "x$libc_cv_gcc___thread" != xyes; then
@@ -32851,15 +32025,6 @@
 +   test "x${libc_cv_broken_visibility_attribute}" != xno; then
 +  as_fn_error $? "working compiler support for visibility attribute is required" "$LINENO" 5
 +fi
-+
-+if test "x$libc_cv_asm_cfi_directives" != xyes; then
-+    case "$base_machine" in
-+    i386 | x86_64 | powerpc | s390)
-+      as_fn_error $? "CFI directive support in assembler is required" "$LINENO" 5 ;;
-+    *) ;;
-+  esac
-+fi
-+
 +
 +{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for forced unwind support" >&5
 +$as_echo_n "checking for forced unwind support... " >&6; }
@@ -32932,7 +32097,7 @@
 +fi
 --- /dev/null
 +++ b/fbtl/sysdeps/pthread/configure.in
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,40 @@
 +dnl configure fragment for new libpthread implementation.
 +GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
 +
@@ -32943,15 +32108,6 @@
 +if test "x${libc_cv_visibility_attribute}" != xyes ||
 +   test "x${libc_cv_broken_visibility_attribute}" != xno; then
 +  AC_MSG_ERROR(working compiler support for visibility attribute is required)
-+fi
-+
-+if test "x$libc_cv_asm_cfi_directives" != xyes; then
-+  dnl We need this only for some architectures.
-+  case "$base_machine" in
-+    i386 | x86_64 | powerpc | s390)
-+      AC_MSG_ERROR(CFI directive support in assembler is required) ;;
-+    *) ;;
-+  esac
 +fi
 +
 +dnl Iff <unwind.h> is available, make sure it is the right one and it
@@ -33423,7 +32579,7 @@
 +#define GAI_MISC_NOTIFY(waitlist) \
 +  do {									      \
 +    if (*waitlist->counterp > 0 && --*waitlist->counterp == 0)		      \
-+      lll_futex_wake (waitlist->counterp, 1, LLL_PRIVATE);		      \
++      lll_futex_wake ((unsigned int *) waitlist->counterp, 1, LLL_PRIVATE);   \
 +  } while (0)
 +
 +#define GAI_MISC_WAIT(result, futex, timeout, cancel) \
@@ -33442,8 +32598,8 @@
 +	int status;							      \
 +	do								      \
 +	  {								      \
-+	    status = lll_futex_timed_wait (futexaddr, oldval, timeout,	      \
-+					   LLL_PRIVATE);		      \
++	    status = lll_futex_timed_wait ((unsigned int *) futexaddr, oldval,\
++					   timeout, LLL_PRIVATE);	      \
 +	    if (status != EWOULDBLOCK)					      \
 +	      break;							      \
 +									      \
@@ -35391,6 +34547,40 @@
 +   })
 +#endif
 --- /dev/null
++++ b/fbtl/sysdeps/pthread/shm-directory.h
+@@ -0,0 +1,31 @@
++/* Header for directory for shm/sem files.  NPTL version.
++   Copyright (C) 2014-2015 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef _SHM_DIRECTORY_H
++
++#include <sysdeps/posix/shm-directory.h>
++
++/* For NPTL the __shm_directory function lives in libpthread.
++   We don't want PLT calls from there.  But it's also used from
++   librt, so it cannot just be declared hidden.  */
++
++#if IS_IN (libpthread)
++hidden_proto (__shm_directory)
++#endif
++
++#endif  /* shm-directory.h */
+--- /dev/null
 +++ b/fbtl/sysdeps/pthread/sigfillset.c
 @@ -0,0 +1,20 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
@@ -37061,7 +36251,7 @@
 +pthread_spin_init = pthread_spin_unlock
 --- /dev/null
 +++ b/fbtl/sysdeps/x86_64/pthreaddef.h
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,44 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -37106,13 +36296,6 @@
 +/* Location of current stack frame.  The frame pointer is not usable.  */
 +#define CURRENT_STACK_FRAME \
 +  ({ register char *frame __asm__("rsp"); frame; })
-+
-+
-+/* XXX Until we have a better place keep the definitions here.  */
-+
-+/* While there is no such syscall.  */
-+#define __exit_thread_inline(val) \
-+  asm volatile ("syscall" :: "a" (__NR_exit), "D" (val))
 --- /dev/null
 +++ b/fbtl/sysdeps/x86_64/tcb-offsets.sym
 @@ -0,0 +1,28 @@
@@ -37146,7 +36329,7 @@
 +TCB_PTHREAD_CANCELED	 PTHREAD_CANCELED
 --- /dev/null
 +++ b/fbtl/sysdeps/x86_64/tls.h
-@@ -0,0 +1,422 @@
+@@ -0,0 +1,423 @@
 +/* Definition for thread-local data handling.  nptl/x86_64 version.
 +   Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -37242,9 +36425,6 @@
 +# include <sysdep.h>
 +
 +
-+/* Get the thread descriptor definition.  */
-+# include <fbtl/descr.h>
-+
 +#ifndef LOCK_PREFIX
 +# ifdef UP
 +#  define LOCK_PREFIX	/* nothing */
@@ -37270,6 +36450,10 @@
 +/* The TCB can have any size and the memory following the address the
 +   thread pointer points to is unspecified.  Allocate the TCB there.  */
 +# define TLS_TCB_AT_TP	1
++# define TLS_DTV_AT_TP  0
++
++/* Get the thread descriptor definition.  */
++# include <fbtl/descr.h>
 +
 +
 +/* Install the dtv pointer.  The pointer passed is to the element with
@@ -37293,7 +36477,7 @@
 +
 +   We have to make the syscall for both uses of the macro since the
 +   address might be (and probably is) different.  */
-+# define TLS_INIT_TP(thrdescr, secondcall) \
++# define TLS_INIT_TP(thrdescr) \
 +  ({ void *_thrdescr = (thrdescr);					      \
 +     tcbhead_t *_head = _thrdescr;					      \
 +     int _result;							      \
@@ -71919,10 +71103,9 @@
 +extern ps_err_e ps_lcontinue (const struct ps_prochandle *, lwpid_t);
 --- /dev/null
 +++ b/fbtl_db/shlib-versions
-@@ -0,0 +1,3 @@
+@@ -0,0 +1,2 @@
 +# The thread debug library
-+.*-.*-linux.*		libthread_db=1
-+.*-.*-kfreebsd.*	libthread_db=1
++libthread_db=1
 --- /dev/null
 +++ b/fbtl_db/structs.def
 @@ -0,0 +1,85 @@
@@ -72002,7 +71185,7 @@
 +DB_STRUCT_ARRAY_FIELD (dtv, dtv)
 +#define pointer_val pointer.val /* Field of anonymous struct in dtv_t.  */
 +DB_STRUCT_FIELD (dtv_t, pointer_val)
-+#if !defined IS_IN_libpthread || TLS_TCB_AT_TP
++#if !IS_IN (libpthread) || TLS_TCB_AT_TP
 +DB_STRUCT_FIELD (pthread, dtvp)
 +#endif
 +

@@ -2,21 +2,22 @@
 # Copyright (C) 2007 THE glibc'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the glibc package.
 # Felipe Augusto van de Wiel (faw) <faw@debian.org>, 2007-2008.
+# Fernando Ike de Oliveira (fike) <fike@midstorm.org>, 2013.
+# Adriano Rafael Gomes <adrianorg@arg.eti.br>, 2014-2015.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: libc6\n"
+"Project-Id-Version: glibc\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
 "POT-Creation-Date: 2014-05-21 00:04+0200\n"
-"PO-Revision-Date: 2008-06-09 01:17-0300\n"
-"Last-Translator: Felipe Augusto van de Wiel (faw) <faw@debian.org>\n"
+"PO-Revision-Date: 2015-09-18 20:29-0300\n"
+"Last-Translator: Adriano Rafael Gomes <adrianorg@arg.eti.br>\n"
 "Language-Team: Brazilian Portuguese <debian-l10n-portuguese@lists.debian."
 "org>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"pt_BR utf-8\n"
 
 #. Type: multiselect
 #. Choices
@@ -37,9 +38,9 @@ msgid ""
 "Locales are a framework to switch between multiple languages and allow users "
 "to use their language, country, characters, collation order, etc."
 msgstr ""
-"Locales são uma infra-estrutura para alternar entre múltiplos idiomas e "
-"permite aos usuários utilizar o seu idioma, país, caracteres, ordem de "
-"colação, etc."
+"Locales são uma infraestrutura para alternar entre múltiplos idiomas e "
+"permitem aos usuários utilizar o seu idioma, país, caracteres, ordenação, "
+"etc."
 
 #. Type: multiselect
 #. Description
@@ -88,7 +89,7 @@ msgid ""
 msgstr ""
 "Isto selecionará o idioma padrão para o sistema inteiro. Se este sistema é "
 "um sistema multiusuário no qual nem todos os usuários são capazes de falar o "
-"idioma padrão, eles vão enfrentar dificuldades."
+"idioma padrão, eles enfrentarão dificuldades."
 
 #. Type: boolean
 #. Description
@@ -108,12 +109,13 @@ msgid ""
 "yourself is xdm - because automatic restart might disconnect your active X11 "
 "sessions."
 msgstr ""
-"Serviços em execução e programas que usam NSS precisam ser reiniciados, caso "
-"contrário eles podem não ser capazes de realizar consultas ou autenticação. "
+"Serviços e programas em execução que usam NSS precisam ser reiniciados, caso "
+"contrário, eles podem não ser capazes de realizar consultas ou autenticação. "
 "O processo de instalação é capaz de reiniciar alguns desses serviços (como "
-"ssh, isto pode afetar sua habilidade de fazer login). Por favor, reveja a "
-"seguinte lista separada por espaços de scripts init.d que serão reiniciados "
-"agora, e corrija-a se necessário."
+"ssh ou telnetd), mas outros programas não podem ser reiniciados "
+"automaticamente. Um programa que precisa ser parado e reiniciado manualmente "
+"por você depois da atualização da glibc é o xdm - porque reiniciar "
+"automaticamente pode desconectar suas sessões ativas do X11."
 
 #. Type: boolean
 #. Description
@@ -139,8 +141,7 @@ msgstr ""
 #. Description
 #: ../debhelper.in/libc.templates:2001
 msgid "Services to restart for GNU libc library upgrade:"
-msgstr ""
-"Serviços para reiniciar por causa da atualização da biblioteca GNU libc:"
+msgstr "Serviços a serem reiniciados para atualização da biblioteca GNU libc:"
 
 #. Type: string
 #. Description
@@ -152,11 +153,11 @@ msgid ""
 "review the following space-separated list of init.d scripts for services to "
 "be restarted now, and correct it if needed."
 msgstr ""
-"Serviços em execução e programas que usam NSS precisam ser reiniciados, caso "
-"contrário eles podem não ser capazes de realizar consultas ou autenticação "
+"Serviços e programas em execução que usam NSS precisam ser reiniciados, caso "
+"contrário, eles podem não ser capazes de realizar consultas ou autenticação "
 "(para serviços como ssh, isto pode afetar sua habilidade de fazer login). "
-"Por favor, reveja a seguinte lista separada por espaços de scripts init.d "
-"que serão reiniciados agora, e corrija se necessário."
+"Por favor, revise a seguinte lista separada por espaços de scripts init.d de "
+"serviços que serão reiniciados agora, e a corrija, se necessário."
 
 #. Type: string
 #. Description
@@ -171,8 +172,7 @@ msgstr ""
 #. Description
 #: ../debhelper.in/libc.templates:3001
 msgid "Failure restarting some services for GNU libc upgrade"
-msgstr ""
-"Falha ao reiniciar alguns serviços por causa da atualização da GNU libc"
+msgstr "Falha ao reiniciar alguns serviços para atualização da GNU libc"
 
 #. Type: error
 #. Description
@@ -181,8 +181,8 @@ msgid ""
 "The following services could not be restarted for the GNU libc library "
 "upgrade:"
 msgstr ""
-"Os seguintes serviços não puderam ser reiniciados por causa da atualização "
-"da biblioteca GNU libc:"
+"Os seguintes serviços não puderam ser reiniciados para a atualização da "
+"biblioteca GNU libc:"
 
 #. Type: error
 #. Description
@@ -191,14 +191,14 @@ msgid ""
 "You will need to start these manually by running '/etc/init.d/<service> "
 "start'."
 msgstr ""
-"Você terá que iniciar esses serviços manualmente executando '/etc/init.d/"
-"<serviço> start'."
+"Você deverá iniciá-los manualmente executando \"/etc/init.d/<serviço> start"
+"\"."
 
 #. Type: error
 #. Description
 #: ../debhelper.in/libc.templates:4001
 msgid "xscreensaver and xlockmore must be restarted before upgrading"
-msgstr ""
+msgstr "xscreensaver e xlockmore devem ser reiniciados antes da atualização"
 
 #. Type: error
 #. Description
@@ -211,12 +211,18 @@ msgid ""
 "stopped before continuing this upgrade, to avoid locking your users out of "
 "their current sessions."
 msgstr ""
+"Uma ou mais instâncias do xscreensaver ou do xlockmore foram detectadas em "
+"execução neste sistema. Por causa de modificações incompatíveis de "
+"biblioteca, a atualização da biblioteca GNU libc impossibilitará você de se "
+"autenticar nestes programas. Você deve providenciar que estes programas "
+"sejam reiniciados ou parados antes de continuar com esta atualização, para "
+"evitar bloquear seus usuários fora de suas sessões atuais."
 
 #. Type: boolean
 #. Description
 #: ../debhelper.in/libc.templates:5001
 msgid "Restart services during package upgrades without asking?"
-msgstr ""
+msgstr "Reiniciar serviços durante a atualização de pacotes sem perguntar?"
 
 #. Type: boolean
 #. Description
@@ -230,3 +236,11 @@ msgid ""
 "necessary restarts will be done for you automatically so you can avoid being "
 "asked questions on each library upgrade."
 msgstr ""
+"Existem serviços instalados no seu sistema que precisam ser reiniciados "
+"quando determinadas bibliotecas, tais como libpam, libc e libssl são "
+"atualizadas. Uma vez que essas reinicializações podem causar interrupções de "
+"serviços para o sistema, normalmente você terá que responder a cada "
+"atualização qual será a lista de serviços que quiser reiniciar. Você pode "
+"escolher esta opção para evitar novas solicitações; ao invés disso, todas as "
+"reinicializações necessárias serão realizadas automaticamente, para evitar "
+"que você responda a cada atualização de biblioteca."
