@@ -55,8 +55,8 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	        -e "s#^.*Build ID: \([0-9a-f]\{2\}\)\([0-9a-f]\+\)#\1/\2.debug#") ;	\
 	      dbgpath=debian/$(libc)-dbg/usr/lib/debug/.build-id/$$dbgfile ;		\
 	      mkdir -p $$(dirname $$dbgpath) ;						\
-	      objcopy --only-keep-debug $$f $$dbgpath ;					\
-	      objcopy --add-gnu-debuglink=$$dbgpath $$f ;				\
+	      $(DEB_HOST_GNU_TYPE)-objcopy --only-keep-debug $$f $$dbgpath ;		\
+	      $(DEB_HOST_GNU_TYPE)-objcopy --add-gnu-debuglink=$$dbgpath $$f ;		\
 	      strip --strip-debug --remove-section=.comment --remove-section=.note $$f ;\
 	    done ;									\
 	  else										\
