@@ -57,7 +57,8 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	      mkdir -p $$(dirname $$dbgpath) ;						\
 	      $(DEB_HOST_GNU_TYPE)-objcopy --only-keep-debug $$f $$dbgpath ;		\
 	      $(DEB_HOST_GNU_TYPE)-objcopy --add-gnu-debuglink=$$dbgpath $$f ;		\
-	      strip --strip-debug --remove-section=.comment --remove-section=.note $$f ;\
+	      $(DEB_HOST_GNU_TYPE)-strip --strip-debug --remove-section=.comment	\
+	                                 --remove-section=.note $$f ;			\
 	    done ;									\
 	  else										\
 	    dh_strip -p$(curpass) -Xlibpthread;						\
