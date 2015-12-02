@@ -319,7 +319,7 @@
 +}
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/_exit.S
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,26 @@
 +/* Copyright (C) 1991,92,97,99,2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -344,6 +344,7 @@
 +	/* Shouldn't get here.  */
 +PSEUDO_END(_exit)
 +libc_hidden_def (_exit)
++rtld_hidden_def (_exit)
 +weak_alias (_exit, _Exit)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/a.out.h
@@ -13634,7 +13635,7 @@
 +}
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin_r.c
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,73 @@
 +/* Reentrant function to return the current login name.  FreeBSD version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13678,7 +13679,7 @@
 +   but SUSV2 wants a return type of 'int'.  */
 +
 +int
-+getlogin_r (char *name, size_t name_len)
++__getlogin_r (char *name, size_t name_len)
 +{
 +  size_t len;
 +
@@ -13704,7 +13705,10 @@
 +      return ERANGE;
 +    }
 +}
-+libc_hidden_def (getlogin_r)
++libc_hidden_def (__getlogin_r)
++weak_alias (__getlogin_r, getlogin_r)
++libc_hidden_weak (getlogin_r)
++
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/getmntinfo.c
 @@ -0,0 +1,80 @@
@@ -29528,7 +29532,7 @@
 +getppid			-	getppid			i:		__getppid getppid
 +getresgid		-	getresgid		i:ppp		getresgid
 +getresuid		-	getresuid		i:ppp		getresuid
-+getrlimit		-	getrlimit		i:ip		__getrlimit getrlimit getrlimit64
++getrlimit		-	getrlimit		i:ip		__getrlimit getrlimit getrlimit64 __getrlimit64
 +getsid			-	getsid			i:i		getsid
 +issetugid		-	issetugid		i:		issetugid
 +jail			-	jail			i:p		jail
