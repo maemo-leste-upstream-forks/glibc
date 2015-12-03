@@ -60,6 +60,10 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	      $(DEB_HOST_GNU_TYPE)-strip --strip-debug --remove-section=.comment	\
 	                                 --remove-section=.note $$f ;			\
 	    done ;									\
+	    for f in $$(find debian/$(curpass) -name \*crt\*.o) ; do			\
+	      $(DEB_HOST_GNU_TYPE)-strip --strip-debug --remove-section=.comment	\
+	                                 --remove-section=.note $$f ;			\
+	    done ;									\
 	  else										\
 	    dh_strip -p$(curpass) -Xlibpthread;						\
 	  fi										\
