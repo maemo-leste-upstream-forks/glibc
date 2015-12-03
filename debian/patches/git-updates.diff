@@ -1,10 +1,15 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.22/master from glibc-2.22
 
 diff --git a/ChangeLog b/ChangeLog
-index cb9124e..842a7c6 100644
+index cb9124e..5c92a3e 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,235 @@
+@@ -1,3 +1,240 @@
++2015-12-03  Andrew Senkevich  <andrew.senkevich@intel.com>
++
++	* math/Makefile ($(inst_libdir)/libm.so): Corrected path to
++	libmvec_nonshared.a
++
 +2015-11-27  Andrew Senkevich  <andrew.senkevich@intel.com>
 +
 +	[BZ #19058]
@@ -966,7 +971,7 @@ index 6388bae..76f99fb 100644
  	 cat $<; \
  	 echo 'GROUP ( $(slibdir)/libm.so$(libm.so-version) ' \
 -	      'AS_NEEDED ( $(slibdir)/libmvec.so$(libmvec.so-version) ) )' \
-+	      'AS_NEEDED ( $(slibdir)/libmvec_nonshared.a $(slibdir)/libmvec.so$(libmvec.so-version) ) )' \
++	      'AS_NEEDED ( $(libdir)/libmvec_nonshared.a $(slibdir)/libmvec.so$(libmvec.so-version) ) )' \
  	) > $@
  endif
  
