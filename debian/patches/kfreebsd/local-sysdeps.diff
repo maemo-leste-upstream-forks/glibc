@@ -18853,7 +18853,7 @@
 +libc_hidden_weak (llseek)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/makecontext.S
-@@ -0,0 +1,113 @@
+@@ -0,0 +1,120 @@
 +/* Create new context.
 +   Copyright (C) 2001,02 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -18924,12 +18924,18 @@
 +	   below).  */
 +#ifdef PIC
 +	call	1f
++	cfi_adjust_cfa_offset (4)
 +1:	popl	%ecx
++	cfi_adjust_cfa_offset (-4)
 +	addl	$L(exitcode)-1b, %ecx
 +	movl	%ecx, (%edx)
 +#else
 +	movl	$L(exitcode), (%edx)
 +#endif
++	/* We need to terminate the FDE here instead of after ret because
++	   the unwinder looks at ra-1 for unwind information.  */
++	cfi_endproc
++
 +	/* 'makecontext' returns no value.  */
 +	ret
 +
@@ -18964,6 +18970,7 @@
 +	/* The 'exit' call should never return.  In case it does cause
 +	   the process to terminate.  */
 +	hlt
++	cfi_startproc
 +END(__makecontext)
 +
 +weak_alias(__makecontext, makecontext)
@@ -20778,7 +20785,7 @@
 +libc_hidden_weak (if_freenameindex)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/ifaddrs.c
-@@ -0,0 +1,380 @@
+@@ -0,0 +1,382 @@
 +/*	$KAME: getifaddrs.c,v 1.9 2001/08/20 02:31:20 itojun Exp $	*/
 +
 +/*
@@ -20858,7 +20865,7 @@
 +#define MAX_SYSCTL_TRY 5
 +
 +int
-+getifaddrs(struct ifaddrs **pif)
++__getifaddrs(struct ifaddrs **pif)
 +{
 +	int icnt = 1;
 +	int dcnt = 0;
@@ -21150,15 +21157,17 @@
 +	}
 +	return (0);
 +}
-+libc_hidden_def (getifaddrs)
++weak_alias (__getifaddrs, getifaddrs)
++libc_hidden_weak (getifaddrs)
 +
 +void
-+freeifaddrs(struct ifaddrs *ifp)
++__freeifaddrs(struct ifaddrs *ifp)
 +{
 +
 +	free(ifp);
 +}
-+libc_hidden_def (freeifaddrs)
++weak_alias (__freeifaddrs, freeifaddrs)
++libc_hidden_weak (freeifaddrs)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/ifreq.c
 @@ -0,0 +1,93 @@
