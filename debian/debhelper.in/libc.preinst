@@ -101,6 +101,11 @@ check_dir () {
 
 if [ "$type" != abort-upgrade ]
 then
+    # Load debconf module if available
+    if [ -f /usr/share/debconf/confmodule ] ; then
+        . /usr/share/debconf/confmodule
+    fi
+
     # See if LD_LIBRARY_PATH contains the traditional /lib, but not the
     # multiarch path
     dirs=$(echo $LD_LIBRARY_PATH | sed 's/:/ /g')
@@ -163,29 +168,65 @@ then
 
         if linux_compare_versions "$kernel_ver" lt $kernel_ver_min
         then
-            echo "ERROR: This version of the GNU libc requires kernel version"
-            echo "$kernel_ver_rec or later.  Please upgrade your kernel before installing"
-            echo "glibc."
-            echo
+            if [ -f /usr/share/debconf/confmodule ]
+            then
+                db_version 2.0
+                db_fset glibc/kernel-too-old seen false
+                db_reset glibc/kernel-too-old
+                db_subst glibc/kernel-too-old kernel_ver $kernel_ver_rec
+                db_input critical glibc/kernel-too-old || true
+                db_go
+                db_stop
+            else
+                echo "ERROR: This version of the GNU libc requires kernel version"
+                echo "$kernel_ver_rec or later.  Please upgrade your kernel before installing"
+                echo "glibc."
+                echo
+            fi
             exit 1
         fi
 
         if linux_compare_versions "$kernel_ver" lt $kernel_ver_rec
         then
-            echo "WARNING: This version of the GNU libc requires kernel version"
-            echo "$kernel_ver_rec or later.  Older versions might work but are not officially"
-            echo "supported.  Please consider upgrading your kernel."
+            if [ -f /usr/share/debconf/confmodule ]
+            then
+                db_version 2.0
+                db_fset glibc/kernel-not-supported seen false
+                db_reset glibc/kernel-not-supported
+                db_subst glibc/kernel-not-supported kernel_ver $kernel_ver_rec
+                db_input critical glibc/kernel-not-supported || true
+                db_go
+                db_stop
+            else
+                echo "WARNING: This version of the GNU libc requires kernel version"
+                echo "$kernel_ver_rec or later.  Older versions might work but are not officially"
+                echo "supported.  Please consider upgrading your kernel."
+                echo
+            fi
         fi
 
-    elif [ $system = "GNU/kFreeBSD" ] ; then
+    elif [ $system = "GNU/kFreeBSD" ]
+    then
         kernel_ver=`uname -r`
         kernel_ver_min=8.3
         if kfreebsd_compare_versions "$kernel_ver" lt $kernel_ver_min
         then
-            echo "ERROR: This version of the GNU libc requires kernel version"
-            echo "$kernel_ver_min or later.  Please upgrade your kernel before installing"
-            echo "glibc."
-            echo
+            if [ -f /usr/share/debconf/confmodule ]
+            then
+                db_version 2.0
+                db_version 2.0
+                db_fset glibc/kernel-too-old seen false
+                db_reset glibc/kernel-too-old
+                db_subst glibc/kernel-too-old kernel_ver $kernel_ver_min
+                db_input critical glibc/kernel-too-old || true
+                db_go
+                db_stop
+            else
+                echo "ERROR: This version of the GNU libc requires kernel version"
+                echo "$kernel_ver_min or later.  Please upgrade your kernel before installing"
+                echo "glibc."
+                echo
+            fi
             exit 1
         fi
     fi
@@ -193,11 +234,6 @@ fi
 
 if [ "$type" = upgrade ]
 then
-    # Load debconf module if available
-    if [ -f /usr/share/debconf/confmodule ] ; then
-        . /usr/share/debconf/confmodule
-    fi
-
     # Try to detect copies of the libc library in the various places
     # the dynamic linker uses.
     ldfile=$(readlink -m RTLD_SO)
