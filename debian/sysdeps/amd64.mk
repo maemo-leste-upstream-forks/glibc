@@ -1,5 +1,6 @@
 libc_rtlddir = /lib64
 extra_config_options = --enable-multi-arch --enable-lock-elision
+MIN_KERNEL_SUPPORTED := 2.6.32
 
 # build 32-bit (i386) alternative library
 GLIBC_MULTILIB_PASSES += i386

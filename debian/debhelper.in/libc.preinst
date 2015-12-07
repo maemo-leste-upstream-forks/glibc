@@ -147,23 +147,43 @@ then
 
         # sanity checking for the appropriate kernel on each architecture.
         kernel_ver=`uname -r`
+        case ${DPKG_MAINTSCRIPT_ARCH:-$(dpkg --print-architecture)} in
+            amd64|i386)
+                # The GNU libc requires a >= 2.6.32 kernel, found in squeeze or RHEL6
+                kernel_ver_min=2.6.32
+                # But we don't officially support kernels before 3.2
+                kernel_ver_rec=3.2
+                ;;
+            *)
+                # The GNU libc requires a >= 3.2 kernel, found in wheezy
+                kernel_ver_min=3.2
+                kernel_ver_rec=3.2
+                ;;
+        esac
 
-        # The GNU libc requires a >= 3.2 kernel, found in wheezy
-        if linux_compare_versions "$kernel_ver" lt 3.2
+        if linux_compare_versions "$kernel_ver" lt $kernel_ver_min
         then
-            echo WARNING: this version of the GNU libc requires kernel version
-            echo 3.2 or later.  Please upgrade your kernel before installing
-            echo glibc.
+            echo "ERROR: This version of the GNU libc requires kernel version"
+            echo "$kernel_ver_rec or later.  Please upgrade your kernel before installing"
+            echo "glibc."
             exit 1
+        fi
+
+        if linux_compare_versions "$kernel_ver" lt $kernel_ver_rec
+        then
+            echo "WARNING: This version of the GNU libc requires kernel version"
+            echo "$kernel_ver_rec or later.  Older versions might work but are not officially"
+            echo "supported.  Please consider upgrading your kernel."
         fi
 
     elif [ $system = "GNU/kFreeBSD" ] ; then
         kernel_ver=`uname -r`
-        if kfreebsd_compare_versions "$kernel_ver" lt 8.3
+        kernel_ver_min=8.3
+        if kfreebsd_compare_versions "$kernel_ver" lt $kernel_ver_min
         then
-            echo WARNING: this version of the GNU libc requires kernel version
-            echo 8.3 or later.  Please upgrade your kernel before installing
-            echo glibc.
+            echo "ERROR: This version of the GNU libc requires kernel version"
+            echo "$kernel_ver_min or later.  Please upgrade your kernel before installing"
+            echo "glibc."
             exit 1
         fi
     fi
