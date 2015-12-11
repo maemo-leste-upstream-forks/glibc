@@ -259,9 +259,9 @@
 --- a/sysdeps/m68k/Makefile
 +++ b/sysdeps/m68k/Makefile
 @@ -36,3 +36,11 @@
- # Build objects in libc_nonshared.a with -fPIC (instead of -fpic) to avoid
- # possible linkage problems.
- CFLAGS-.oS += -fPIC
+ ifeq ($(subdir),elf)
+ CFLAGS-rtld.c += -Wno-uninitialized -Wno-unused
+ endif
 + 
 +ifeq ($(subdir),csu)
 +ifeq (yes,$(build-shared))
