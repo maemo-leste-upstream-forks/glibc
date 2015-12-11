@@ -1,3 +1,12 @@
+commit 907fab424120059d09aebaa083ddc0557d13f2ef
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Fri Dec 11 17:46:36 2015 +0100
+
+    Add throw specification to inlines
+    
+    * include/pthread/pthread.h: Add __THROW and __THROWNL specification to
+    extern inlines definitions.
+
 commit 577a738522d34a64cb3cd5bb8368c8b1a344f38e
 Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Date:   Sun Dec 6 01:22:01 2015 +0100
@@ -237,7 +246,7 @@ Date:   Mon Sep 21 00:04:15 2015 +0200
  
  /* Make calling thread wait for termination of thread THREAD.  Return
     the exit status of the thread in *STATUS.  */
-@@ -209,7 +229,7 @@ extern int pthread_detach (pthread_t __t
+@@ -209,12 +229,12 @@ extern int pthread_detach (pthread_t __t
  
  /* Compare thread IDs T1 and T2.  Return nonzero if they are equal, 0
     if they are not.  */
@@ -246,6 +255,12 @@ Date:   Mon Sep 21 00:04:15 2015 +0200
  
  # ifdef __USE_EXTERN_INLINES
  
+ __extern_inline int
+-pthread_equal (pthread_t __t1, pthread_t __t2)
++pthread_equal (pthread_t __t1, pthread_t __t2) __THROW
+ {
+   return __pthread_equal (__t1, __t2);
+ }
 @@ -223,7 +243,7 @@ pthread_equal (pthread_t __t1, pthread_t
  
  
@@ -495,7 +510,7 @@ Date:   Mon Sep 21 00:04:15 2015 +0200
  
  
  /* Spin locks.  */
-@@ -439,22 +489,27 @@ extern int pthread_cond_timedwait (pthre
+@@ -439,53 +489,58 @@ extern int pthread_cond_timedwait (pthre
  #define PTHREAD_SPINLOCK_INITIALIZER __PTHREAD_SPIN_LOCK_INITIALIZER
  
  /* Destroy the spin lock object LOCK.  */
@@ -528,6 +543,42 @@ Date:   Mon Sep 21 00:04:15 2015 +0200
  
  # ifdef __USE_EXTERN_INLINES
  
+ # include <bits/spin-lock-inline.h>
+ 
+ __extern_inline int
+-pthread_spin_destroy (pthread_spinlock_t *__lock)
++pthread_spin_destroy (pthread_spinlock_t *__lock) __THROW
+ {
+   return __pthread_spin_destroy (__lock);
+ }
+ 
+ __extern_inline int
+-pthread_spin_init (pthread_spinlock_t *__lock, int __pshared)
++pthread_spin_init (pthread_spinlock_t *__lock, int __pshared) __THROW
+ {
+   return __pthread_spin_init (__lock, __pshared);
+ }
+ 
+ __extern_inline int
+-pthread_spin_lock (pthread_spinlock_t *__lock)
++pthread_spin_lock (pthread_spinlock_t *__lock) __THROWNL
+ {
+   return __pthread_spin_lock (__lock);
+ }
+ 
+ __extern_inline int
+-pthread_spin_trylock (pthread_spinlock_t *__lock)
++pthread_spin_trylock (pthread_spinlock_t *__lock) __THROWNL
+ {
+   return __pthread_spin_trylock (__lock);
+ }
+ 
+ __extern_inline int
+-pthread_spin_unlock (pthread_spinlock_t *__lock)
++pthread_spin_unlock (pthread_spinlock_t *__lock) __THROWNL
+ {
+   return __pthread_spin_unlock (__lock);
+ }
 @@ -503,21 +558,25 @@ pthread_spin_unlock (pthread_spinlock_t
  
  /* Initialize rwlock attribute object in *ATTR to the default
