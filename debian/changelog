@@ -25,6 +25,13 @@ glibc (2.22-0experimental2) UNRELEASED; urgency=medium
   * debian/control, debian/rules.d/control.mk, debian/sysdeps/arm.mk: remove
     support for the ARM old-ABI architecture, it is not supported upstream
     anymore.
+  * debian/sysdeps/*.mk: cleanup and homogenize:
+    - define options common to all flavours using the non-flavour specific
+      variable.
+    - reorganize to not mix generic variables with flavour specific variables.
+    - move -march and -mtune options from extra_cflags to CC and CXX as they
+      might slightly change the ABI and the configure script needs to detect
+      that.
 
  -- Aurelien Jarno <aurel32@debian.org>  Thu, 10 Dec 2015 23:41:13 +0100
 

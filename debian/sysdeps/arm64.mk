@@ -1,2 +1,2 @@
-libc_add-ons = $(add-ons)
+# configuration options for all flavours
 extra_config_options = --enable-multi-arch

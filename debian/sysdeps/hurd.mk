@@ -13,7 +13,6 @@ threads = no
 libc_add-ons = libpthread $(add-ons)
 # MIG generates a lot of warnings
 extra_config_options = --disable-werror
-libc_extra_config_options := $(extra_config_options)
 
 ifndef HURD_SOURCE
   HURD_HEADERS := /usr/include
