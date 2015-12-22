@@ -1,3 +1,24 @@
+commit f1039fbd8370797880deedf95a2aa7717e922102
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Dec 22 13:00:18 2015 +0100
+
+    Remove __THROW* from extern inlines
+    
+    They pose more problems than they solve.
+    
+    * include/pthread/pthread.h (pthread_equal, pthread_spin_destroy,
+    pthread_spin_init, pthread_spin_lock, pthread_spin_trylock,
+    pthread_spin_unlock): Remove __THROW or __THROWNL attribute.
+
+commit 907fab424120059d09aebaa083ddc0557d13f2ef
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Fri Dec 11 17:46:36 2015 +0100
+
+    Add throw specification to inlines
+    
+    * include/pthread/pthread.h: Add __THROW and __THROWNL specification to
+    extern inlines definitions.
+
 commit 577a738522d34a64cb3cd5bb8368c8b1a344f38e
 Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Date:   Sun Dec 6 01:22:01 2015 +0100
@@ -47,8 +68,10 @@ Date:   Mon Sep 21 00:04:15 2015 +0200
     * include/pthread/pthread.h: Prepend '__' to parameter names.
     * sysdeps/mach/hurd/bits/pthread-np.h: Likewise.
 
---- a/libpthread/include/pthread/pthread.h
-+++ b/libpthread/include/pthread/pthread.h
+Index: glibc-2.21/libpthread/include/pthread/pthread.h
+===================================================================
+--- glibc-2.21.orig/libpthread/include/pthread/pthread.h
++++ glibc-2.21/libpthread/include/pthread/pthread.h
 @@ -79,112 +79,132 @@ __BEGIN_DECLS
  
  /* Initialize the thread attribute object in *ATTR to the default
@@ -237,15 +260,6 @@ Date:   Mon Sep 21 00:04:15 2015 +0200
  
  /* Make calling thread wait for termination of thread THREAD.  Return
     the exit status of the thread in *STATUS.  */
-@@ -209,7 +229,7 @@ extern int pthread_detach (pthread_t __t
- 
- /* Compare thread IDs T1 and T2.  Return nonzero if they are equal, 0
-    if they are not.  */
--extern int pthread_equal (pthread_t __t1, pthread_t __t2);
-+extern int pthread_equal (pthread_t __t1, pthread_t __t2) __THROW;
- 
- # ifdef __USE_EXTERN_INLINES
- 
 @@ -223,7 +243,7 @@ pthread_equal (pthread_t __t1, pthread_t
  
  
@@ -501,30 +515,30 @@ Date:   Mon Sep 21 00:04:15 2015 +0200
  /* Destroy the spin lock object LOCK.  */
 -extern int pthread_spin_destroy (pthread_spinlock_t *__lock);
 +extern int pthread_spin_destroy (pthread_spinlock_t *__lock)
-+	__THROW __nonnull ((1));
++	__nonnull ((1));
  
  /* Initialize the spin lock object LOCK.  PSHARED determines whether
     the spin lock can be operated upon by multiple processes.  */
 -extern int pthread_spin_init (pthread_spinlock_t *__lock, int __pshared);
 +extern int pthread_spin_init (pthread_spinlock_t *__lock, int __pshared)
-+	__THROW __nonnull ((1));
++	__nonnull ((1));
  
  /* Lock the spin lock object LOCK.  If the lock is held by another
     thread spin until it becomes available.  */
 -extern int pthread_spin_lock (pthread_spinlock_t *__lock);
 +extern int pthread_spin_lock (pthread_spinlock_t *__lock)
-+	__THROWNL __nonnull ((1));
++	__nonnull ((1));
  
  /* Lock the spin lock object LOCK.  Fail if the lock is held by
     another thread.  */
 -extern int pthread_spin_trylock (pthread_spinlock_t *__lock);
 +extern int pthread_spin_trylock (pthread_spinlock_t *__lock)
-+	__THROWNL __nonnull ((1));
++	__nonnull ((1));
  
  /* Unlock the spin lock object LOCK.  */
 -extern int pthread_spin_unlock (pthread_spinlock_t *__lock);
 +extern int pthread_spin_unlock (pthread_spinlock_t *__lock)
-+	__THROWNL __nonnull ((1));
++	__nonnull ((1));
  
  # ifdef __USE_EXTERN_INLINES
  
@@ -822,8 +836,10 @@ Date:   Mon Sep 21 00:04:15 2015 +0200
  #endif
  
  
---- a/libpthread/sysdeps/mach/hurd/bits/pthread-np.h
-+++ b/libpthread/sysdeps/mach/hurd/bits/pthread-np.h
+Index: glibc-2.21/libpthread/sysdeps/mach/hurd/bits/pthread-np.h
+===================================================================
+--- glibc-2.21.orig/libpthread/sysdeps/mach/hurd/bits/pthread-np.h
++++ glibc-2.21/libpthread/sysdeps/mach/hurd/bits/pthread-np.h
 @@ -33,6 +33,6 @@ extern int pthread_hurd_cond_wait_np (pt
     See hurd_thread_cancel.  */
  extern int pthread_hurd_cond_timedwait_np (pthread_cond_t *__restrict __cond,
