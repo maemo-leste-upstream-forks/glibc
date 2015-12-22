@@ -1,5 +1,5 @@
 libc_add-ons = $(add-ons)
-extra_config_options = --enable-multi-arch
+extra_config_options = --disable-multi-arch
 
 # Install a compat symlink so old binaries keep working:
 define libc6_extra_pkg_install
