@@ -13,3 +13,7 @@ LIBC-FLAVOR: shlib-with-executable-bit */ld-GLIBC_VERSION.so 0755
 # It is normal that the ELF dynamic linker does not need any other 
 # library
 LIBC-FLAVOR: shared-lib-without-dependency-information */ld-GLIBC_VERSION.so
+
+# we indeed embed a fork of libidn. We don't want a loop between libc and libidn
+# anyway
+LIBC-FLAVOR: embedded-library */libcidn-GLIBC_VERSION.so: libidn

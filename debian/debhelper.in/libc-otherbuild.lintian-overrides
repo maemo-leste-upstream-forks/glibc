@@ -13,3 +13,7 @@ LIBC-FLAVOR: shared-lib-without-dependency-information */ld-GLIBC_VERSION.so
 # to what lintian thinks, is controlled by ldconfig
 LIBC-FLAVOR: postinst-has-useless-call-to-ldconfig
 LIBC-FLAVOR: postrm-has-useless-call-to-ldconfig
+
+# we indeed embed a fork of libidn. We don't want a loop between libc and libidn
+# anyway
+LIBC-FLAVOR: embedded-library */libcidn-GLIBC_VERSION.so: libidn

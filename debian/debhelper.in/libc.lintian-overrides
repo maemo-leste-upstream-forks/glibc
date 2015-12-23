@@ -14,3 +14,7 @@ LIBC: missing-debconf-dependency-for-preinst
 
 # this is a false positive because the string "ldconfig" is in preinst
 LIBC: preinst-calls-ldconfig
+
+# we indeed embed a fork of libidn. We don't want a loop between libc and libidn
+# anyway
+LIBC: embedded-library */libcidn-GLIBC_VERSION.so: libidn
