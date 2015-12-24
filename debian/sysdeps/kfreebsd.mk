@@ -43,13 +43,13 @@ $(stamp)mkincludedir:
 
 	mkdir -p debian/include/sys
 	# Link to any headers found in the old locations first
-	if test -d $(KFREEBSD_HEADERS) ; then \
+	if test -d $(KFREEBSD_HEADERS)/sys ; then \
 	    find $(KFREEBSD_HEADERS)/sys -mindepth 1 \
 		-exec ln -sf '{}' debian/include/sys ';' ; \
 	fi
 	# Link to any headers found at the new multiarch location,
 	# replacing any existing links
-	if test -d $(KFREEBSD_ARCH_HEADERS) ; then \
+	if test -d $(KFREEBSD_ARCH_HEADERS)/sys ; then \
 	    find $(KFREEBSD_ARCH_HEADERS)/sys -mindepth 1 \
 		-exec ln -sf '{}' debian/include/sys ';' ; \
 	fi
