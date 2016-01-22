@@ -31,13 +31,6 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	dh_link -p$(curpass)
 	dh_bugfiles -p$(curpass)
 
-	if test "$(curpass)" = "libc-bin"; then			\
-	  mv debian/$(curpass)/sbin/ldconfig			\
-	    debian/$(curpass)/sbin/ldconfig.real;		\
-	  install -m755 -o0 -g0 debian/local/sbin/ldconfig	\
-	    debian/$(curpass)/sbin/ldconfig;			\
-	fi
-
 	# when you want to install extra packages, use extra_pkg_install.
 	$(call xx,extra_pkg_install)
 
