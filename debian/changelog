@@ -206,6 +206,43 @@ glibc (2.22-0experimental0) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Wed, 02 Dec 2015 00:06:13 +0100
 
+glibc (2.21-7) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * patches/localedata/cvs-bg_BG-t_fmt.diff: new patch from upstream to
+    use colon as time separator in the Bulgarian locale.  Closes:
+    #808143.
+  * Update French debconf translation, by Christian Perrier.  Closes:
+    #809636.
+  * Update Brazilian Portuguese debconf translation, by Adriano Rafael
+    Gomes.  Closes: #809741.
+  * patches/hppa/cvs-update-mman.h.diff: new patch from upstream to add huge
+    pages support on hppa.  Closes: #809776.
+  * patches/hppa/submitted-dladdr.diff: new patch from John David Anglin to
+    fix dladdr issues on hppa.  Closes: #810053.
+  * sysdeps/armel.mk, sysdeps/armhf.mk: re-enable IFUNC support now that
+    binutils has been fixed.
+  * debian/control.in/main: update Vcs-* fields to point to the new git
+    repository.
+  * Update Dutch debconf translation, by Frans Spiesschaert.  Closes: #812351.
+  * Update from upstream stable branch:
+    - Fix segmentation fault caused by passing out-of-range data to strftime()
+      (CVE-2015-8776).
+    - Fix multiple unbounded stack allocations in catopen() (CVE-2015-8779).
+  * patches/any/submitted-hle-checking-mutex.diff: add proposed patch to fix
+    a wrong assertion in pthread_mutex_unlock() on systems with hardware lock
+    elision.  Closes: #810322.
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/cvs-libpthread-sigstate.diff: New patch to fix spurious
+    signal blocking leading to sigill.  Fixes rsyslog tests.
+  * patches/hurd-i386/cvs-raise-longjump.diff: New patch to fix longjump from
+    signal handler.  Closes: #800900.
+  * patches/hurd-i386/cvs-O_DIRECTORY.diff: New patch to fix O_DIRECTORY lookup
+    on trivial translators.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 24 Jan 2016 00:21:18 +0100
+
 glibc (2.21-6) unstable; urgency=medium
 
   [ Aurelien Jarno ]

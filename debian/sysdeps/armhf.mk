@@ -1,5 +1,5 @@
 # configuration options for all flavours
-extra_config_options = --disable-multi-arch
+extra_config_options = --enable-multi-arch
 
 # Install a compat symlink so old binaries keep working:
 define libc6_extra_pkg_install

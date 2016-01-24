@@ -1,5 +1,5 @@
 # configuration options for all flavours
-extra_config_options = --disable-multi-arch
+extra_config_options = --enable-multi-arch
 
 # build hard-float (armhf) alternative library
 #GLIBC_MULTILIB_PASSES += armhf
