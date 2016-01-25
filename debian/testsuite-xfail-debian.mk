@@ -896,12 +896,8 @@ endif
 ######################################################################
 ifneq (,$(filter $(config-machine)-$(config-os), i586-kfreebsd-gnu i686-kfreebsd-gnu))
 test-xfail-check-local-headers = yes
-test-xfail-tst-longjmp_chk = yes
-test-xfail-tst-renameat = yes
-test-xfail-tst-waitid = yes
 test-xfail-tst-aio10 = yes
 test-xfail-tst-aio9 = yes
-test-xfail-tst-shm = yes
 test-xfail-tst-attr2 = yes
 test-xfail-tst-attr3 = yes
 test-xfail-tst-cancel7 = yes
@@ -910,6 +906,10 @@ test-xfail-tst-cleanupx4 = yes
 test-xfail-tst-default-attr = yes
 test-xfail-tst-getpid1 = yes
 test-xfail-tst-getpid2 = yes
+test-xfail-tst-longjmp_chk = yes
+test-xfail-tst-renameat = yes
+test-xfail-tst-shm = yes
+test-xfail-tst-waitid = yes
 endif
 
 
