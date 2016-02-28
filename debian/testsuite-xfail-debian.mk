@@ -84,7 +84,7 @@ endif
 
 
 ######################################################################
-# hppa 
+# hppa
 ######################################################################
 ifeq ($(config-machine)-$(config-os),hppa-linux-gnu)
 test-xfail-POSIX/aio.h/conform = yes
@@ -175,13 +175,13 @@ ifneq (,$(filter $(config-machine)-$(config-os), i586-gnu i686-gnu))
 test-xfail-tst-null-argv = yes
 
 # Need actual porting
-test-xfail-exe = yes                                                                                                                                  
-test-xfail-tst-cputimer1 = yes                                                                                                                        
-test-xfail-tst-cputimer2 = yes                                                                                                                        
-test-xfail-tst-cputimer3 = yes                                                                                                                        
-test-xfail-tst-mqueue5 = yes                                                                                                                          
-test-xfail-tst-pselect = yes                                                                                                                          
-test-xfail-tst-ptrguard1-static = yes                                                                                                                 
+test-xfail-exe = yes
+test-xfail-tst-cputimer1 = yes
+test-xfail-tst-cputimer2 = yes
+test-xfail-tst-cputimer3 = yes
+test-xfail-tst-mqueue5 = yes
+test-xfail-tst-pselect = yes
+test-xfail-tst-ptrguard1-static = yes
 test-xfail-tst-ptrguard1 = yes
 test-xfail-tst-secure-getenv = yes
 test-xfail-tst-timer2 = yes
