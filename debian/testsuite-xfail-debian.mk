@@ -174,19 +174,24 @@ ifneq (,$(filter $(config-machine)-$(config-os), i586-gnu-gnu-gnu i686-gnu-gnu-g
 # creating files.
 test-xfail-tst-null-argv = yes
 
+# Tests failing to build
+tests-unsupported += test-as-const-signal-defines
+tests-unsupported += tst-cputimer1
+tests-unsupported += tst-cputimer2
+tests-unsupported += tst-cputimer3
+tests-unsupported += tst-cputimer4
+tests-unsupported += tst-timer4
+tests-unsupported += tst-timer5
+tests-unsupported += tst-malloc-backtrace
+
 # Need actual porting
 test-xfail-exe = yes
-test-xfail-tst-cputimer1 = yes
-test-xfail-tst-cputimer2 = yes
-test-xfail-tst-cputimer3 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-pselect = yes
 test-xfail-tst-ptrguard1-static = yes
 test-xfail-tst-ptrguard1 = yes
 test-xfail-tst-secure-getenv = yes
 test-xfail-tst-timer2 = yes
-test-xfail-tst-timer4 = yes
-test-xfail-tst-timer5 = yes
 
 # We don't have auxv yet
 test-xfail-tst-auxv = yes
