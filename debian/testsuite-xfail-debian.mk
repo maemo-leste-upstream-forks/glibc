@@ -159,10 +159,16 @@ test-xfail-tst-cleanupx4 = yes
 test-xfail-tst-cputimer2 = yes
 test-xfail-tst-cputimer3 = yes
 test-xfail-tst-longjmp_chk2 = yes
+test-xfail-tst-makecontext = yes
 test-xfail-tst-mqueue8 = yes
 test-xfail-tst-mqueue8x = yes
+test-xfail-tst-protected1a = yes
+test-xfail-tst-protected1b = yes
+test-xfail-tst-setcontext2 = yes
+test-xfail-tst-setcontext3 = yes
 test-xfail-tst-stack1 = yes
 test-xfail-tst-stack4 = yes
+test-xfail-tst-trim1 = yes
 endif
 
 
