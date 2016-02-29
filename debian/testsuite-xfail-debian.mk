@@ -1111,7 +1111,7 @@ endif
 ######################################################################
 # mips*
 ######################################################################
-ifneq (,$(filter $(config-machine)-$(config-os), mips-linux-gnu mipsel-linux-gnu mips64-linux-gnu mips64el-linux-gnu mips64-linux-gnuabin32 mips64el-linux-gnuabin32))
+ifneq (,$(filter $(config-machine)-$(config-os), mips-linux-gnu mipsel-linux-gnu mips64-linux-gnuabi64 mips64el-linux-gnuabi64 mips64-linux-gnuabin32 mips64el-linux-gnuabin32))
 # MIPS GCC does not use PT_GNU_STACK markers (this is a GCC issue)
 test-xfail-check-execstack = yes
 
@@ -1182,7 +1182,7 @@ endif
 ######################################################################
 # mips64el
 ######################################################################
-ifeq ($(config-machine)-$(config-os),mips64el-linux-gnu)
+ifeq ($(config-machine)-$(config-os),mips64el-linux-gnuabi64)
 test-xfail-tst-audit1 = yes
 test-xfail-tst-audit2 = yes
 test-xfail-tst-audit8 = yes
