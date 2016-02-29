@@ -19,12 +19,12 @@ test-xfail-check-localplt = yes
 test-xfail-test-double = yes
 test-xfail-test-float = yes
 test-xfail-test-snan = yes
-test-xfail-tst-writev = yes
 test-xfail-tst-eintr1 = yes
-test-xfail-tst-signal3 = yes
-test-xfail-tst-waitid = yes
 test-xfail-tst-mqueue5 = yes
+test-xfail-tst-signal3 = yes
 test-xfail-tst-timer4 = yes
+test-xfail-tst-waitid = yes
+test-xfail-tst-writev = yes
 endif
 
 
