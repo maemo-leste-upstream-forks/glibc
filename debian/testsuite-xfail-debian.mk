@@ -21,10 +21,13 @@ test-xfail-test-float = yes
 test-xfail-test-snan = yes
 test-xfail-tst-eintr1 = yes
 test-xfail-tst-mqueue5 = yes
+test-xfail-tst-prelink-cmp = yes
 test-xfail-tst-signal3 = yes
 test-xfail-tst-timer4 = yes
 test-xfail-tst-waitid = yes
 test-xfail-tst-writev = yes
+test-xfail-XOPEN2K8/netdb.h/conform = yes
+test-xfail-XOPEN2K/netdb.h/conform = yes
 endif
 
 
