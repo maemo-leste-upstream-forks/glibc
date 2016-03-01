@@ -748,6 +748,12 @@ test-xfail-XPG4/sys/timeb.h/linknamespace = yes
 test-xfail-XPG4/unistd.h/linknamespace = yes
 test-xfail-XPG4/wordexp.h/linknamespace = yes
 
+# changed in 2.22, tests were run directly, now using threads
+test-xfail-test-fpucw = yes
+test-xfail-test-fpucw-ieee = yes
+test-xfail-test-fpucw-static = yes
+test-xfail-test-static = yes
+
 # newly failing in 2.21, real regression
 test-xfail-tst-backtrace2 = yes
 test-xfail-tst-backtrace3 = yes
