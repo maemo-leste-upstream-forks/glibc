@@ -756,6 +756,7 @@ test-xfail-XPG4/wordexp.h/linknamespace = yes
 # TODO: should be succeeding again with gnumach >= 2016-03-06
 test-xfail-test-fpucw = yes
 test-xfail-test-fpucw-ieee = yes
+test-xfail-test-fpucw-ieee-static = yes
 test-xfail-test-fpucw-static = yes
 test-xfail-test-static = yes
 
