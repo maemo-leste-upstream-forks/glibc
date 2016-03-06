@@ -15,9 +15,12 @@ test-xfail-tst-cancel24-static = yes
 # alpha (including optimized flavours)
 ######################################################################
 ifneq (,$(filter $(config-machine)-$(config-os), alpha-linux-gnu alphaev67-linux-gnu))
+test-xfail-tst-backtrace5 = yes
+test-xfail-tst-backtrace6 = yes
 test-xfail-check-localplt = yes
 test-xfail-test-double = yes
 test-xfail-test-float = yes
+test-xfail-test-fenv-return = yes
 test-xfail-test-snan = yes
 test-xfail-tst-eintr1 = yes
 test-xfail-tst-mqueue5 = yes
