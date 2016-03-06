@@ -17,6 +17,7 @@ test-xfail-tst-cancel24-static = yes
 ifneq (,$(filter $(config-machine)-$(config-os), alpha-linux-gnu alphaev67-linux-gnu))
 test-xfail-tst-backtrace5 = yes
 test-xfail-tst-backtrace6 = yes
+test-xfail-tst-cancel19 = yes
 test-xfail-check-localplt = yes
 test-xfail-test-double = yes
 test-xfail-test-float = yes
