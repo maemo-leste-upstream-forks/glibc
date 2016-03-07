@@ -63,6 +63,9 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	# overwrite system headers.
 	echo "install_root = $(CURDIR)/debian/tmp-$(curpass)" >> $(DEB_BUILDDIR)/configparms
 
+	# Per architecture debian specific tests whitelist
+	echo "include $(CURDIR)/debian/testsuite-xfail-debian.mk" >> $(DEB_BUILDDIR)/configparms
+
 	# Prevent autoconf from running unexpectedly by setting it to false.
 	# Also explicitly pass CC down - this is needed to get -m64 on
 	# Sparc, et cetera.
@@ -93,6 +96,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		--with-bugurl="http://www.debian.org/Bugs/" \
 		$(if $(filter $(pt_chown),yes),--enable-pt_chown) \
 		$(if $(filter $(threads),no),--disable-nscd) \
+		$(if $(filter $(mvec),no),--disable-mathvec) \
 		$(call xx,with_headers) $(call xx,extra_config_options))
 	touch $@
 
@@ -123,34 +127,44 @@ $(patsubst %,check_%,$(GLIBC_PASSES)) :: check_% : $(stamp)check_%
 $(stamp)check_%: $(stamp)build_%
 	@set -e ; \
 	if [ -n "$(findstring nocheck,$(DEB_BUILD_OPTIONS))" ]; then \
-	  echo "Tests have been disabled via DEB_BUILD_OPTIONS." | tee $(log_results) ; \
+	  echo "Tests have been disabled via DEB_BUILD_OPTIONS." ; \
 	elif [ $(call xx,configure_build) != $(call xx,configure_target) ] && \
 	     ! $(DEB_BUILDDIR)/elf/ld.so $(DEB_BUILDDIR)/libc.so >/dev/null 2>&1 ; then \
-	  echo "Flavour cross-compiled, tests have been skipped." | tee $(log_results) ; \
+	  echo "Flavour cross-compiled, tests have been skipped." ; \
 	elif ! $(call kernel_check,$(call xx,MIN_KERNEL_SUPPORTED)); then \
-	  echo "Kernel too old, tests have been skipped." | tee $(log_results) ; \
+	  echo "Kernel too old, tests have been skipped." ; \
 	elif [ $(call xx,RUN_TESTSUITE) != "yes" ]; then \
 	  echo "Testsuite disabled for $(curpass), skipping tests."; \
-	  echo "Tests have been disabled." > $(log_results) ; \
 	else \
-	  echo Testing $(curpass) / $(log_results); \
-	  find $(DEB_BUILDDIR) -name '*.out' -exec rm {} ';' ; \
-	  LD_PRELOAD="" LANG="" TIMEOUTFACTOR="50" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) check 2>&1 | tee $(log_test); \
-	  chmod +x debian/testsuite-checking/convertlog.sh ; \
-	  debian/testsuite-checking/convertlog.sh $(log_test) | tee $(log_results) ; \
-	  if test -f $(log_expected) ; then \
-	    chmod +x debian/testsuite-checking/compare.sh ; \
-	    debian/testsuite-checking/compare.sh $(log_expected) $(log_results) $(DEB_BUILDDIR) ; \
+	  find $(DEB_BUILDDIR) -name '*.out' -delete ; \
+	  LD_PRELOAD="" LANG="" TIMEOUTFACTOR="50" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) check 2>&1 | tee $(log_test) ; \
+	  if ! test -f $(DEB_BUILDDIR)/tests.sum ; then \
+	    echo "+---------------------------------------------------------------------+" ; \
+	    echo "|                     Testsuite failed to build.                      |" ; \
+	    echo "+---------------------------------------------------------------------+" ; \
+	    exit 1 ; \
+	  fi ; \
+	  echo "+---------------------------------------------------------------------+" ; \
+	  echo "|                             Testsuite summary                       |" ; \
+	  echo "+---------------------------------------------------------------------+" ; \
+	  grep -E '^(FAIL|XFAIL|XPASS):' $(DEB_BUILDDIR)/tests.sum | sort ; \
+	  for test in $$(sed -e '/^\(FAIL\|XFAIL\): /!d;s/^.*: //' $(DEB_BUILDDIR)/tests.sum) ; do \
+	    echo "----------" ; \
+	    cat $(DEB_BUILDDIR)/$$test.test-result ; \
+	    cat $(DEB_BUILDDIR)/$$test.out ; \
+	    echo "----------" ; \
+	  done ; \
+	  if grep -q '^FAIL:' $(DEB_BUILDDIR)/tests.sum ; then \
+	    echo "+---------------------------------------------------------------------+" ; \
+	    echo "|     Encountered regressions that don't match expected failures.     |" ; \
+	    echo "+---------------------------------------------------------------------+" ; \
+	    exit 1 ; \
 	  else \
-	    echo "*************************** WARNING ***************************" ; \
-	    echo "Please generate expected testsuite results for this arch ($(log_expected))!" ; \
-	    echo "*************************** WARNING ***************************" ; \
+	    echo "+---------------------------------------------------------------------+" ; \
+	    echo "| Passed regression testing.  Give yourself a hearty pat on the back. |" ; \
+	    echo "+---------------------------------------------------------------------+" ; \
 	  fi ; \
 	fi
-	@n=$$(grep '^FAIL: ' $(log_test) | wc -l || true); \
-	  echo "TEST SUMMARY $(log_test) ($$n matching lines)"; \
-	  grep '^FAIL: ' $(log_test) || true; \
-	  echo "END TEST SUMMARY $(log_test)"
 	touch $@
 
 $(patsubst %,install_%,$(GLIBC_PASSES)) :: install_% : $(stamp)install_%

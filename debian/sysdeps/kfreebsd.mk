@@ -6,11 +6,13 @@ libc = libc0.1
 pt_chown = yes
 # Expect pldd on this platform
 pldd = no
+# Expect the mvec library on this platform
+mvec = no
 
 # NPTL Config
 threads = yes
+extra_config_options = --disable-compatible-utmp --disable-multi-arch --disable-werror
 libc_add-ons = fbtl $(add-ons)
-libc_extra_config_options = $(extra_config_options)
 
 ifndef KFREEBSD_SOURCE
   ifeq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))

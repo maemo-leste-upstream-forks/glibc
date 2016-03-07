@@ -181,7 +181,7 @@ Samuel Thibault  <samuel.thibault@ens-lyon.org>
  
 --- a/sysdeps/mach/hurd/sendmsg.c
 +++ b/sysdeps/mach/hurd/sendmsg.c
-@@ -111,6 +111,8 @@ __libc_sendmsg (int fd, const struct msg
+@@ -112,6 +112,8 @@ __libc_sendmsg (int fd, const struct msg
      if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS)
        nports += (cmsg->cmsg_len - CMSG_ALIGN (sizeof (struct cmsghdr)))
  		/ sizeof (int);
@@ -190,7 +190,7 @@ Samuel Thibault  <samuel.thibault@ens-lyon.org>
  
    if (nports)
      ports = __alloca (nports * sizeof (mach_port_t));
-@@ -145,6 +147,38 @@ __libc_sendmsg (int fd, const struct msg
+@@ -146,6 +148,38 @@ __libc_sendmsg (int fd, const struct msg
  		goto out;
  	    }
  	}

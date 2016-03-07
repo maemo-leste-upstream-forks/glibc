@@ -8,8 +8,10 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
  sysdeps/mach/hurd/sendmsg.c | 73 +++++++++++++++++++++++++++++------
  2 files changed, 152 insertions(+), 13 deletions(-)
 
---- a/sysdeps/mach/hurd/recvmsg.c
-+++ b/sysdeps/mach/hurd/recvmsg.c
+Index: glibc-2.19/sysdeps/mach/hurd/recvmsg.c
+===================================================================
+--- glibc-2.19.orig/sysdeps/mach/hurd/recvmsg.c
++++ glibc-2.19/sysdeps/mach/hurd/recvmsg.c
 @@ -32,13 +32,33 @@ __libc_recvmsg (int fd, struct msghdr *m
    addr_port_t aport;
    char *data = NULL;
@@ -124,9 +126,11 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
  }
  
  weak_alias (__libc_recvmsg, recvmsg)
---- a/sysdeps/mach/hurd/sendmsg.c
-+++ b/sysdeps/mach/hurd/sendmsg.c
-@@ -31,6 +31,10 @@ ssize_t
+Index: glibc-2.19/sysdeps/mach/hurd/sendmsg.c
+===================================================================
+--- glibc-2.19.orig/sysdeps/mach/hurd/sendmsg.c
++++ glibc-2.19/sysdeps/mach/hurd/sendmsg.c
+@@ -32,6 +32,10 @@ ssize_t
  __libc_sendmsg (int fd, const struct msghdr *message, int flags)
  {
    error_t err = 0;
@@ -137,7 +141,7 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
    struct sockaddr_un *addr = message->msg_name;
    socklen_t addr_len = message->msg_namelen;
    addr_port_t aport = MACH_PORT_NULL;
-@@ -43,6 +47,7 @@ __libc_sendmsg (int fd, const struct msg
+@@ -44,6 +48,7 @@ __libc_sendmsg (int fd, const struct msg
    mach_msg_type_number_t len;
    mach_msg_type_number_t amount;
    int dealloc = 0;
@@ -145,7 +149,7 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
    int i;
  
    /* Find the total number of bytes to be written.  */
-@@ -100,6 +105,48 @@ __libc_sendmsg (int fd, const struct msg
+@@ -101,6 +106,48 @@ __libc_sendmsg (int fd, const struct msg
  	}
      }
  
@@ -194,8 +198,8 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
    if (addr)
      {
        if (addr->sun_family == AF_LOCAL)
-@@ -109,9 +156,8 @@ __libc_sendmsg (int fd, const struct msg
- 	  file_t file = __file_name_lookup (addr->sun_path, 0, 0);
+@@ -111,9 +158,8 @@ __libc_sendmsg (int fd, const struct msg
+ 	  file_t file = __file_name_lookup (name, 0, 0);
  	  if (file == MACH_PORT_NULL)
  	    {
 -	      if (dealloc)
@@ -206,7 +210,7 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
  	    }
  	  err = __ifsock_getsockaddr (file, &aport);
  	  __mach_port_deallocate (__mach_task_self (), file);
-@@ -119,11 +165,7 @@ __libc_sendmsg (int fd, const struct msg
+@@ -121,11 +167,7 @@ __libc_sendmsg (int fd, const struct msg
  	    /* The file did not grok the ifsock protocol.  */
  	    err = ENOTSOCK;
  	  if (err)
@@ -219,7 +223,7 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
  	}
        else
  	err = EIEIO;
-@@ -142,8 +184,9 @@ __libc_sendmsg (int fd, const struct msg
+@@ -144,8 +186,9 @@ __libc_sendmsg (int fd, const struct msg
  			      /* Send the data.  */
  			      err = __socket_send (port, aport,
  						   flags, data.ptr, len,
@@ -231,7 +235,7 @@ Subject: [PATCH] Add support to send file descriptors over Unix sockets
  						   message->msg_control,
  						   message->msg_controllen,
  						   &amount);
-@@ -152,11 +195,19 @@ __libc_sendmsg (int fd, const struct msg
+@@ -154,11 +197,19 @@ __libc_sendmsg (int fd, const struct msg
  			    }
  			  err;
  			}));

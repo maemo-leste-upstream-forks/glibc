@@ -319,7 +319,7 @@
 +}
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/_exit.S
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,26 @@
 +/* Copyright (C) 1991,92,97,99,2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -344,6 +344,7 @@
 +	/* Shouldn't get here.  */
 +PSEUDO_END(_exit)
 +libc_hidden_def (_exit)
++rtld_hidden_def (_exit)
 +weak_alias (_exit, _Exit)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/a.out.h
@@ -1116,14 +1117,14 @@
 +#define F_SETLK64	12	/* Set record locking info (non-blocking).  */
 +#define F_SETLKW64	13	/* Set record locking info (blocking).	*/
 +
-+#if defined __USE_MISC || __POSIX_VISIBLE >= 200809
++#ifdef __USE_XOPEN2K8
 +#define	F_DUPFD_CLOEXEC	17	/* Like F_DUPFD, but FD_CLOEXEC is set */
 +#endif
 +#if defined __USE_MISC
 +#define F_DUP2FD_CLOEXEC 18	/* Like F_DUP2FD, but FD_CLOEXEC is set */
 +#endif
 +
-+#if defined __USE_MISC || defined __USE_UNIX98
++#if defined __USE_UNIX98 || defined __USE_XOPEN2K8
 +# define F_GETOWN	5	/* Get owner of socket (receiver of SIGIO).  */
 +# define F_SETOWN	6	/* Set owner of socket (receiver of SIGIO).  */
 +#endif
@@ -13634,7 +13635,7 @@
 +}
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/getlogin_r.c
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,73 @@
 +/* Reentrant function to return the current login name.  FreeBSD version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -13678,7 +13679,7 @@
 +   but SUSV2 wants a return type of 'int'.  */
 +
 +int
-+getlogin_r (char *name, size_t name_len)
++__getlogin_r (char *name, size_t name_len)
 +{
 +  size_t len;
 +
@@ -13704,7 +13705,10 @@
 +      return ERANGE;
 +    }
 +}
-+libc_hidden_def (getlogin_r)
++libc_hidden_def (__getlogin_r)
++weak_alias (__getlogin_r, getlogin_r)
++libc_hidden_weak (getlogin_r)
++
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/getmntinfo.c
 @@ -0,0 +1,80 @@
@@ -15546,7 +15550,7 @@
 + getaddrinfo_a F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libc.abilist
-@@ -0,0 +1,2205 @@
+@@ -0,0 +1,2208 @@
 +GLIBC_2.10
 + GLIBC_2.10 A
 + __cxa_at_quick_exit F
@@ -15644,6 +15648,9 @@
 +GLIBC_2.21
 + GLIBC_2.21 A
 + __statfs F
++GLIBC_2.22
++ GLIBC_2.22 A
++ fmemopen F
 +GLIBC_2.3
 + GLIBC_2.3 A
 + _Exit F
@@ -18846,7 +18853,7 @@
 +libc_hidden_weak (llseek)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/makecontext.S
-@@ -0,0 +1,113 @@
+@@ -0,0 +1,120 @@
 +/* Create new context.
 +   Copyright (C) 2001,02 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -18917,12 +18924,18 @@
 +	   below).  */
 +#ifdef PIC
 +	call	1f
++	cfi_adjust_cfa_offset (4)
 +1:	popl	%ecx
++	cfi_adjust_cfa_offset (-4)
 +	addl	$L(exitcode)-1b, %ecx
 +	movl	%ecx, (%edx)
 +#else
 +	movl	$L(exitcode), (%edx)
 +#endif
++	/* We need to terminate the FDE here instead of after ret because
++	   the unwinder looks at ra-1 for unwind information.  */
++	cfi_endproc
++
 +	/* 'makecontext' returns no value.  */
 +	ret
 +
@@ -18957,6 +18970,7 @@
 +	/* The 'exit' call should never return.  In case it does cause
 +	   the process to terminate.  */
 +	hlt
++	cfi_startproc
 +END(__makecontext)
 +
 +weak_alias(__makecontext, makecontext)
@@ -20771,7 +20785,7 @@
 +libc_hidden_weak (if_freenameindex)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/ifaddrs.c
-@@ -0,0 +1,380 @@
+@@ -0,0 +1,382 @@
 +/*	$KAME: getifaddrs.c,v 1.9 2001/08/20 02:31:20 itojun Exp $	*/
 +
 +/*
@@ -20851,7 +20865,7 @@
 +#define MAX_SYSCTL_TRY 5
 +
 +int
-+getifaddrs(struct ifaddrs **pif)
++__getifaddrs(struct ifaddrs **pif)
 +{
 +	int icnt = 1;
 +	int dcnt = 0;
@@ -21143,15 +21157,17 @@
 +	}
 +	return (0);
 +}
-+libc_hidden_def (getifaddrs)
++weak_alias (__getifaddrs, getifaddrs)
++libc_hidden_weak (getifaddrs)
 +
 +void
-+freeifaddrs(struct ifaddrs *ifp)
++__freeifaddrs(struct ifaddrs *ifp)
 +{
 +
 +	free(ifp);
 +}
-+libc_hidden_def (freeifaddrs)
++weak_alias (__freeifaddrs, freeifaddrs)
++libc_hidden_weak (freeifaddrs)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/ifreq.c
 @@ -0,0 +1,93 @@
@@ -29528,7 +29544,7 @@
 +getppid			-	getppid			i:		__getppid getppid
 +getresgid		-	getresgid		i:ppp		getresgid
 +getresuid		-	getresuid		i:ppp		getresuid
-+getrlimit		-	getrlimit		i:ip		__getrlimit getrlimit getrlimit64
++getrlimit		-	getrlimit		i:ip		__getrlimit getrlimit getrlimit64 __getrlimit64
 +getsid			-	getsid			i:i		getsid
 +issetugid		-	issetugid		i:		issetugid
 +jail			-	jail			i:p		jail
@@ -32968,7 +32984,7 @@
 + getaddrinfo_a F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libc.abilist
-@@ -0,0 +1,2153 @@
+@@ -0,0 +1,2156 @@
 +GLIBC_2.10
 + GLIBC_2.10 A
 + __cxa_at_quick_exit F
@@ -33068,6 +33084,9 @@
 +GLIBC_2.21
 + GLIBC_2.21 A
 + __statfs F
++GLIBC_2.22
++ GLIBC_2.22 A
++ fmemopen F
 +GLIBC_2.3
 + GLIBC_2.3 A
 + _Exit F
@@ -37416,7 +37435,7 @@
 +#endif	/* !PIC */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/sysdep.h
-@@ -0,0 +1,207 @@
+@@ -0,0 +1,204 @@
 +/* Copyright (C) 2001,02,03,04 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Modification for FreeBSD contributed by Petr Salinger, 2006.
@@ -37441,12 +37460,9 @@
 +
 +/* There is some commonality.  */
 +#include <sysdeps/unix/x86_64/sysdep.h>
++/* Defines RTLD_PRIVATE_ERRNO and USE_DL_SYSINFO.  */
++#include <dl-sysdep.h>
 +#include <tls.h>
-+
-+#if IS_IN (rtld)
-+# include <dl-sysdep.h>		/* Defines RTLD_PRIVATE_ERRNO.  */
-+#endif
-+
 +
 +#ifdef __ASSEMBLER__
 +

@@ -6,14 +6,13 @@ libc = libc6
 pt_chown = no
 # Expect pldd on this platform
 pldd = yes
+# Expect the mvec library on this platform
+mvec = no
 
 # NPTL Config
 threads = yes
-libc_add-ons = $(add-ons)
 
-ifneq ($(filter stage1 stage2,$(DEB_BUILD_PROFILES)),)
-  libc_extra_config_options = $(extra_config_options)
-else
+ifeq ($(filter stage1 stage2,$(DEB_BUILD_PROFILES)),)
   libc_extra_config_options = --with-selinux $(extra_config_options)
 endif
 

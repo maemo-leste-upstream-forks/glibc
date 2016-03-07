@@ -269,15 +269,6 @@ glibc-2.8/debian/patches/hurd-i386/submitted-extern_inline.diff 3057
  _HURD_SIGNAL_H_EXTERN_INLINE void
  _hurd_critical_section_unlock (void *our_lock)
  {
-@@ -203,7 +212,7 @@ _hurd_critical_section_unlock (void *our
-   else
-     {
-       /* It was us who acquired the critical section lock.  Unlock it.  */
--      struct hurd_sigstate *ss = our_lock;
-+      struct hurd_sigstate *ss = (struct hurd_sigstate *) our_lock;
-       sigset_t pending;
-       __spin_lock (&ss->lock);
-       __spin_unlock (&ss->critical_section_lock);
 @@ -216,6 +225,7 @@ _hurd_critical_section_unlock (void *our
  	__msg_sig_post (_hurd_msgport, 0, 0, __mach_task_self ());
      }

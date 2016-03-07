@@ -9,21 +9,33 @@
 
 --- a/sysdeps/hppa/dl-fptr.c
 +++ b/sysdeps/hppa/dl-fptr.c
-@@ -315,23 +315,54 @@ _dl_unmap (struct link_map *map)
+@@ -321,23 +321,54 @@
    map->l_mach.fptr_table = NULL;
  }
  
 +extern ElfW(Addr) _dl_fixup (struct link_map *, ElfW(Word)) attribute_hidden;
- 
--ElfW(Addr)
--_dl_lookup_address (const void *address)
++
 +static inline Elf32_Addr
 +elf_machine_resolve (void)
++{
++  Elf32_Addr addr;
++
++  asm ("b,l     1f,%0\n"
++"	depi	0,31,2,%0\n"
++"1:	addil	L'_dl_runtime_resolve - ($PIC_pcrel$0 - 8),%0\n"
++"	ldo	R'_dl_runtime_resolve - ($PIC_pcrel$0 - 12)(%%r1),%0\n"
++       : "=r" (addr) : : "r1");
++
++  return addr;
++}
+ 
+ ElfW(Addr)
+ _dl_lookup_address (const void *address)
  {
--  ElfW(Addr) addr = (ElfW(Addr)) address;
+   ElfW(Addr) addr = (ElfW(Addr)) address;
 -  struct fdesc_table *t;
 -  unsigned long int i;
-+  Elf32_Addr addr;
++  unsigned int *desc, *gptr;
  
 -  for (t = local.root; t != NULL; t = t->next)
 -    {
@@ -34,27 +46,13 @@
 -	  break;
 -	}
 -    }
-+  asm ("b,l     1f,%0\n"
-+"	depi	0,31,2,%0\n"
-+"1:	addil	L'_dl_runtime_resolve - ($PIC_pcrel$0 - 8),%0\n"
-+"	ldo	R'_dl_runtime_resolve - ($PIC_pcrel$0 - 12)(%%r1),%0\n"
-+       : "=r" (addr) : : "r1");
- 
-   return addr;
- }
-+
-+ElfW(Addr)
-+_dl_lookup_address (const void *address)
-+{
-+  ElfW(Addr) addr = (ElfW(Addr)) address;
-+  unsigned int *desc, *gptr;
-+
 +  /* Check for special cases.  */
 +  if ((int) addr == -1
 +      || (unsigned int) addr < 4096
 +      || !((unsigned int) addr & 2))
 +    return addr;
-+
+ 
+-  return addr;
 +  /* Clear least-significant two bits from descriptor address.  */
 +  desc = (unsigned int *) ((unsigned int) addr & ~3);
 +
@@ -77,10 +75,10 @@
 +    _dl_fixup ((struct link_map *) gptr[5], (ElfW(Word)) desc[1]);
 +
 +  return (ElfW(Addr)) desc[0];
-+}
+ }
 --- a/sysdeps/hppa/dl-lookupcfg.h
 +++ b/sysdeps/hppa/dl-lookupcfg.h
-@@ -30,9 +30,7 @@
+@@ -31,9 +31,7 @@
  
  Elf32_Addr _dl_lookup_address (const void *address);
  
@@ -89,5 +87,5 @@
 -  (_dl_lookup_address ((void *)((unsigned long)addr & ~3)))
 +#define DL_LOOKUP_ADDRESS(addr) _dl_lookup_address ((const void *) addr)
  
- void _dl_unmap (struct link_map *map);
+ void attribute_hidden _dl_unmap (struct link_map *map);
  

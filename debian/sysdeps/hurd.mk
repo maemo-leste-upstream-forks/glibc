@@ -5,13 +5,14 @@ libc = libc0.3
 pt_chown = yes
 # Expect pldd on this platform
 pldd = no
+# Expect the mvec library on this platform
+mvec = no
 
 # Linuxthreads Config (we claim "no threads" as nptl keys off this)
 threads = no
 libc_add-ons = libpthread $(add-ons)
 # MIG generates a lot of warnings
 extra_config_options = --disable-werror
-libc_extra_config_options := $(extra_config_options)
 
 ifndef HURD_SOURCE
   HURD_HEADERS := /usr/include

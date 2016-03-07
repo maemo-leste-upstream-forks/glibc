@@ -1,33 +1,31 @@
-libc_add-ons = $(add-ons)
-extra_cflags = -mno-plt -march=mips2 -mtune=mips32r2
+# configuration options for all flavours
+extra_cflags = -mno-plt
+
+# main library
+libc_CC = $(CC) -march=mips2 -mtune=mips32r2
+libc_CXX = $(CXX) -march=mips2 -mtune=mips32r2
 
 # build 32-bit (n32) alternative library
 GLIBC_MULTILIB_PASSES += mipsn32
 DEB_ARCH_MULTILIB_PACKAGES += libc6-mipsn32 libc6-dev-mipsn32
-mipsn32_add-ons = $(add-ons)
-mipsn32_configure_target = mips64el-linux-gnuabin32
-mipsn32_extra_cflags = -mno-plt -march=mips3 -mtune=mips64r2
-mipsn32_CC = $(CC) -mabi=n32
-mipsn32_CXX = $(CXX) -mabi=n32
 libc6-mipsn32_shlib_dep = libc6-mipsn32 (>= $(shlib_dep_ver))
+mipsn32_configure_target = mips64el-linux-gnuabin32
+mipsn32_CC = $(CC) -mabi=n32 -march=mips3 -mtune=mips64r2
+mipsn32_CXX = $(CXX) -mabi=n32 -march=mips3 -mtune=mips64r2
 mipsn32_rtlddir = /lib32
 mipsn32_slibdir = /lib32
 mipsn32_libdir = /usr/lib32
-mipsn32_extra_config_options := $(extra_config_options)
 
 # build 64-bit alternative library
 GLIBC_MULTILIB_PASSES += mips64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-mips64 libc6-dev-mips64
-mips64_add-ons = $(add-ons)
-mips64_configure_target = mips64el-linux-gnuabi64
-mips64_extra_cflags = -mno-plt -march=mips3 -mtune=mips64r2
-mips64_CC = $(CC) -mabi=64
-mips64_CXX = $(CXX) -mabi=64
 libc6-mips64_shlib_dep = libc6-mips64 (>= $(shlib_dep_ver))
+mips64_configure_target = mips64el-linux-gnuabi64
+mips64_CC = $(CC) -mabi=64 -march=mips3 -mtune=mips64r2
+mips64_CXX = $(CXX) -mabi=64 -march=mips3 -mtune=mips64r2
 mips64_rtlddir = /lib64
 mips64_slibdir = /lib64
 mips64_libdir = /usr/lib64
-mips64_extra_config_options := $(extra_config_options)
 
 define libc6-dev-mips64_extra_pkg_install
 

@@ -1,14 +1,16 @@
-libc_rtlddir = /lib
+# configuration options for all flavours
 extra_config_options = --enable-multi-arch --enable-lock-elision
+
+# main library
+libc_rtlddir = /lib
 
 # build 32-bit (s390) alternative library
 GLIBC_MULTILIB_PASSES += s390
 DEB_ARCH_MULTILIB_PACKAGES += libc6-s390 libc6-dev-s390
-s390_add-ons = $(add-ons)
+libc6-s390_shlib_dep = libc6-s390 (>= $(shlib_dep_ver))
 s390_configure_target = s390-linux-gnu
 s390_CC = $(CC) -m31
 s390_CXX = $(CXX) -m31
-s390_extra_config_options := $(extra_config_options)
 s390_slibdir = /lib32
 s390_libdir = /usr/lib32
 

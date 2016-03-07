@@ -7,13 +7,11 @@ Date:   Wed Feb 11 23:27:50 2015 +0000
     	* configure.ac, configure: Revert ba90e05: modify gnu-* host_os back
     	into gnu-gnu, and update comment to refer to abi-tags.
 
-diff --git a/configure b/configure
-index ce0c6a0..7337823 100755
 --- a/configure
 +++ b/configure
-@@ -3742,6 +3742,18 @@ if test "$build_pt_chown" = yes; then
- 
+@@ -3857,6 +3857,18 @@ else
  fi
+ 
  
 +# The abi-tags file uses a fairly simplistic model for name recognition that
 +# can't distinguish i486-pc-linux-gnu fully from i486-pc-gnu.  So we mutate a
@@ -30,13 +28,11 @@ index ce0c6a0..7337823 100755
  # We keep the original values in `$config_*' and never modify them, so we
  # can write them unchanged into config.make.  Everything else uses
  # $machine, $vendor, and $os, and changes them whenever convenient.
-diff --git a/configure.ac b/configure.ac
-index d89aaf0..8043a27 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -360,6 +360,18 @@ if test "$build_pt_chown" = yes; then
-   AC_DEFINE(HAVE_PT_CHOWN)
- fi
+@@ -387,6 +387,18 @@ AC_ARG_ENABLE([mathvec],
+ 	      [build_mathvec=$enableval],
+ 	      [build_mathvec=notset])
  
 +# The abi-tags file uses a fairly simplistic model for name recognition that
 +# can't distinguish i486-pc-linux-gnu fully from i486-pc-gnu.  So we mutate a

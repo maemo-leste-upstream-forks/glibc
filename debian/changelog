@@ -1,10 +1,258 @@
-glibc (2.21-10) UNRELEASED; urgency=medium
+glibc (2.22-0experimental4) UNRELEASED; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/testsuite-xfail-debian.mk (alpha): mark a few failures which
+    are not a regression compared to 2.21 as xfail.
+  * debian/testsuite-xfail-debian.mk (hurd): mark another failure which
+    is not a regression compared to 2.21 as xfail.
 
   [ Samuel Thibault ]
   * control: Accept hurd-headers-dev and libihash-dev as alternatives to
     hurd-dev for bootstrapping.
 
- -- Aurelien Jarno <aurel32@debian.org>  Wed, 17 Feb 2016 19:01:13 +0100
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 01 Mar 2016 21:37:40 +0100
+
+glibc (2.22-0experimental3) experimental; urgency=medium
+
+  [ Aurelien Jarno ]
+  * Update from upstream stable branch:
+    - debian/patches/any/local-CVE-2015-7547.diff: drop, merged upstream.
+  * debian/testsuite-xfail-debian.mk (hurd): correctly detect Hurd. Mark tests
+    failing to build as unsupported. Update for glibc 2.22.
+  * debian/patches/hurd-i386/submitted-hurd-abilist.diff: new patch to get the
+    abilist tests buildable on Hurd.
+  * debian/testsuite-xfail-debian.mk (mips): correctly detect 64-bit mips
+    flavours.
+  * debian/testsuite-xfail-debian.mk (hppa): mark new tests which fail as
+    xfail.
+  * debian/testsuite-xfail-debian.mk (alpha): mark new tests which fail as
+    xfail.
+  * control.in/main: Bump Standards-Version to 3.9.7 (no changes).
+  * debian/patches/sparc/submitted-sparc64-socketcall.diff: new patch to fix
+    bind(), listen() and setsockopt()when built against 4.4+ kernel headers.
+  * Update German debconf translation, by Helge Kreutzman.  Closes: #815697.
+  * Update Japanese debconf translation, by Takuma Yamada.  Closes: #815858.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 01 Mar 2016 18:56:42 +0100
+
+glibc (2.22-0experimental2) experimental; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/patches/m68k/local-fpic.diff: drop, obsolete.
+  * debian/patches/m68k/local-mathinline_h.diff: drop, not applied for a
+    lot of time, obsolete.
+  * debian/patches/sparc/submitted-timing.diff: drop, obsolete, not
+    needed anymore since libc6-sparcv9 has been removed.
+  * debian/patches/any/local-no-malloc-backtrace.diff: drop, the real bug
+    has been fixed upstream.
+  * debian/patches/any/local-no-SOCK_NONBLOCK.diff: drop, both GNU/Hurd
+    and GNU/kFreeBSD now support SOCK_NONBLOCK.
+  * debian/patches/any/local-libgcc-compat-ports.diff: refresh.
+  * debian/patches/any/local-disable-test-tgmath2.diff: drop, 8 years have
+    passed, the build daemons should now have enough resources to build
+    and run this test.
+  * debian/patches/s390/submitted-nexttowardf.diff: drop, fixed upstream
+    another way.
+  * debian/patches/alpha/submitted-rtld-fPIC.diff: drop, fixed upstream
+    another way.
+  * debian/patches/any/unsubmitted-scanf-includes.diff: replace the hack by
+    the upstream fix patches/any/cvs-bits-libc-stdio-lock.diff. This also
+    stop installing <bits/libc-lock.h> and <bits/stdio-lock.h>.  Closes:
+    #404532, #639697.
+  * debian/control, debian/rules.d/control.mk, debian/sysdeps/arm.mk: remove
+    support for the ARM old-ABI architecture, it is not supported upstream
+    anymore.
+  * debian/sysdeps/*.mk: cleanup and homogenize:
+    - define options common to all flavours using the non-flavour specific
+      variable.
+    - reorganize to not mix generic variables with flavour specific variables.
+    - move -march and -mtune options from extra_cflags to CC and CXX as they
+      might slightly change the ABI and the configure script needs to detect
+      that.
+  * debian/testsuite-checking/expected-results-sparc64-linux-gnu-libc: allow
+    new tests to fail, cleanup resolved issues.
+  * Replace debian/patches/i386/submitted-i586-ulps.diff by
+    debian/patches/i386/local-i386-ulps.diff. The actual math precision
+    depends on the CPU manufacturer and on the ability to use SSE2
+    instructions or not. Change the i386 ULPs to the lowest precision
+    produced by AMD and Intel CPU with and without SSE2 until upstream can
+    figure out a better solution.
+  * debian/testsuite-checking/expected-results-powerpc64le-linux-gnu-libc:
+    allow nptl/tst-cancel17 and nptl/tst-cancelx17, this is a know upstream
+    race condition.
+  * debian/testsuite-checking/*, debian/testsuite-xfail-debian.mk,
+    debian/rules.d/build.mk: rework testsuite system by extending upstream.
+  * debian/debhelper.in/libc{,-alt,otherbuild).install: stop shipping
+    testsuite results as it make the package build non-reproducible in case
+    of different kernels and race conditions in the testsuite.
+  * debian/testsuite-xfail-debian.mk: allow stdlib/tst-makecontext to fail
+    on armel and armhf, as it is a new test introduced with glibc 2.22 and
+    not a regression.
+  * debian/patches/git-updates.diff: update to the latest commit of the
+    2.22 branch.
+  * debian/patches/alpha/submitted-abilist.diff: drop, merged upstream.
+  * debian/patches/hppa/cvs-inline-syscall.diff: drop, merged upstream.
+  * debian/patches/hppa/cvs-start.diff: drop, merged upstream.
+  * debian/control.in/main: update VCS fields to the canonical location.
+  * debian/control.in/{libc,libnss-dns-udeb,libnss-files-udeb}: rename
+    XC-Package-Type into Package-Type.
+  * debian/control.in/libc: drop conflicts on prelink (<= 0.0.20090311-1) as
+    we don't support Lenny to Stretch upgrades.
+  * debian/debhelper.in/libc-bin.{postinst,lintian-overrides},
+    debian/rules.d/debhelper.mk, debian/local/sbin/ldconfig: remove ldconfig
+    wrapper as new debhelper versions use the trigger instead of an explicit
+    call to ldconfig.
+  * debian/testsuite-xfail-debian.mk: allow POSIX2008/netdb.h/linknamespace
+    and -XOPEN2K/netdb.h/linknamespace to fail on kfreebsd-* (new tests).
+  * debian/testsuite-xfail-debian.mk: allow tst-setcontext2 to fail on
+    kfreebsd-* (new test also failing on native FreeBSD).
+
+  [ Adam Conrad ]
+  * debian/patches/any/cvs-gawk-gensub.diff: Fix scary output from newer gawk.
+  * debian/debhelper.in/libc-bin.postinst: Call ldconfig during configure as
+    well, or major version upgrades will leave us without due to dep ordering.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 15 Feb 2016 21:48:56 +0100
+
+glibc (2.22-0experimental1) experimental; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/debhelper.in/libc-dev.install: install libmvec_nonshared.a.
+    Closes: #806910.
+  * debian/control.in/main, debian/rules: build with gcc-5.
+  * patches/kfreebsd/local-sysdeps.diff, patches/kfreebsd/local-fbtl.diff:
+    update to revision 5856 (from glibc-bsd):
+    - Update to glibc 2.22.
+  * debian/patches/kfreebsd/local-tst-malloc-backtrace.diff: new patch to fix
+    tst-malloc-backtrace on GNU/kFreeBSD.
+  * debian/sysdeps/ppc64el.mk: default to POWER8 and use default gcc options.
+  * debian/rules.d/build.mk: explicitly disable mathvec when mvec=no.
+  * debian/testsuite-checking/expected-results-s390x-linux-gnu-libc:
+    allow elf/tst-protected1a and elf/tst-protected1b to fail as they are
+    new tests. Cleanup resolved issues.
+  * debian/testsuite-checking/expected-results-aarch64-linux-gnu-libc:
+    cleanup resolved issues.
+  * debian/rules.d/build.mk: abort if the log file does not contain any
+    testsuite result.
+  * debian/patches/localedata/submitted-locale-bo.diff: drop, now useless.
+  * debian/patches/any/submitted-resolv-ipv6-nameservers.diff: drop, now
+    useless.
+  * debian/testsuite-checking/expected-results-powerpc-linux-gnu-libc,
+    debian/testsuite-checking/expected-results-powerpc64-linux-gnu-ppc64:
+    cleanup resolved issues.
+  * debian/testsuite-checking/expected-results-powerpc-linux-gnu-powerpc,
+    debian/testsuite-checking/expected-results-powerpc64-linux-gnu-libc:
+    new files.
+  * debian/patches/i386/submitted-i586-ulps.diff: new patch to provide
+    i586 ULPs.
+  * debian/patches/git-updates.diff: update to the latest commit of the
+    2.22 branch.
+  * debian/testsuite-checking/expected-results-i?86-linux-gnu-*: cleanup
+    resolved issues.
+  * debian/testsuite-checking/expected-results-x86_64-linux-gnu-*: cleanup
+    resolved issues.
+  * debian/testsuite-checking/expected-results-x86_64-linux-gnux32-*:
+    update and cleanup resolved issues.
+  * debian/testsuite-checking/expected-results-powerpc64le-linux-gnu-libc:
+    update and cleanup resolved issues.
+  * debian/testsuite-checking/expected-results-mips*: update and cleanup
+    resolved issues.
+  * debian/testsuite-checking/expected-results-*kfreebsd-gnu*: update and
+    cleanup resolved issues.
+  * debian/patches/mips/local-r10k.diff: dropped, we don't support systems
+    with a MIPS R10K CPU since the ISA has been switched to MIPS R2.
+  * debian/patches/mips/cvs-testsuite-o32-fp.diff: new patch to fix testsuite
+    build on pre-R2 ISA.
+  * debian/patcheS/any/cvs-grantpt-namespace.diff: new patch to fix the
+    grantpt link namespace when built without pt_chown.
+  * debian/patches/alpha/submitted-abilist.diff: new patch to fix alpha ABI
+    baseline sorting.
+  * debian/patches/alpha/submitted-fegetenv-namespace.diff: new patch to fix
+    the fegetenv link namespace on alpha.
+  * debian/patches/alpha/submitted-termios_h.diff: new patch to fix
+    visibility issues in termios.h on alpha.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 10 Dec 2015 23:29:06 +0100
+
+glibc (2.22-0experimental0) experimental; urgency=medium
+
+  [ Adam Conrad ]
+  * New upstream release: version 2.22, with git updates up to 2015-11-27:
+    - debian/patches/all/local-alias-UTF-8.diff: Fixed upstream.
+    - debian/patches/any/cvs-ldconfig-aux-cache.diff: Upstreamed.
+    - debian/patches/any/cvs-localplt-new-readelf.diff: Upstreamed.
+    - debian/patches/any/cvs-logbl-accuracy.diff: Upstreamed.
+    - debian/patches/any/cvs-vismain-pie.diff: Upstreamed.
+    - debian/patches/any/local-xfail-stdlib-linkns.diff: Dropped.
+    - debian/patches/any/local-tester-gcc-4.9.diff: Dropped.
+    - debian/patches/arm/cvs-arm-sfi_breg.diff: Upstreamed.
+    - debian/patches/arm/cvs-memcpy-memmove-always-bx.diff: Upstreamed.
+    - debian/patches/hppa/cvs-alloca-werror.diff: Upstreamed.
+    - debian/patches/hppa/cvs-fpu-r2.diff: Upstreamed.
+    - debian/patches/hppa/cvs-fpu2.diff: Upstreamed.
+    - debian/patches/hppa/local-fcntl-osync.diff: Fixed upstream.
+    - debian/patches/hppa/local-setcontext.diff: Fixed upstream.
+    - debian/patches/powerpc/cvs-power7-strncpy.diff: Upstreamed.
+    - debian/patches/powerpc/cvs-ppc-feraiseexcept.diff: Upstreamed.
+    - debian/patches/powerpc/cvs-ppc-pow.diff: Upstreamed.
+    - debian/patches/powerpc/cvs-ppc-sqrt.diff: Upstreamed.
+    - debian/patches/powerpc/cvs-ppc-sqrtf.diff: Upstreamed.
+    - debian/patches/powerpc/cvs-ppc-tabort-le.diff: Upstreamed.
+    - debian/patches/all/local-alias-et_EE.diff: Rebased.
+    - debian/patches/amd64/local-blacklist-for-Intel-TSX.diff: Rebased.
+    - debian/patches/any/local-libgcc-compat-ports.diff: Rebased.
+    - debian/patches/any/local-libpic.diff: Rebased.
+    - debian/patches/any/local-no-pagesize.diff: Rebased.
+    - debian/patches/any/submitted-longdouble.diff: Rebased.
+    - debian/patches/any/submitted-missing-etc-hosts.diff: Rebased.
+    - debian/patches/any/submitted-resolv-ipv6-nameservers.diff: Rebased.
+    - debian/patches/i386/submitted-i686-timing.diff: Rebased.
+    - debian/patches/localedata/local-all-no-archive.diff: Rebased.
+    - debian/patches/localedata/submitted-locale-bo.diff: Rebased.
+    - debian/patches/mips/submitted-rld_map.diff: Rebased.
+  * debian/{control,symbols.wildcards,copyright}: Updated strings for 2.22.
+  * debian/libc6*.symbols: Add libmvec.so.1 to the amd64/x32 symbols files.
+  * debian/*: Conditionally add libmvec to libc-udeb only on amd64 and x32.
+
+  [ Samuel Thibault ]
+  * debian/patches/hurd-i386/tg-tls.diff: Rebased.
+  * debian/patches/hurd-i386/tg-tls-threadvar.diff: Rebased.
+  * debian/patches/hurd-i386/tg-ioctl-base-types.diff: Upstreamed.
+  * debian/patches/hurd-i386/tg-extern_inline.diff: Rebased.
+  * debian/patches/hurd-i386/tg-aio_misc.diff: Upstreamed.
+  * debian/patches/hurd-i386/tg-chflags.diff: Upstreamed.
+  * debian/patches/hurd-i386/tg-select-EINTR.diff: Upstreamed.
+  * debian/patches/hurd-i386/tg-af_local_strlen.diff: Upstreamed.
+  * debian/patches/hurd-i386/tg-nice.diff: Upstreamed.
+  * debian/patches/hurd-i386/tg-nfds-poll.diff: Upstreamed.
+  * debian/patches/hurd-i386/tg-sigstate_locking.diff: Upstreamed.
+  * debian/patches/hurd-i386/tg-mmap_file_prot_none_fix.diff: Upstreamed.
+  * debian/patches/hurd-i386/cvs-unwind-resume.diff: Upstreamed.
+  * debian/patches/hurd-i386/cvs-libc-modules.h.diff: Upstreamed.
+  * debian/patches/hurd-i386/cvs-warnings.diff: Upstreamed.
+  * debian/patches/hurd-i386/cvs-check-local-headers.diff: Upstreamed.
+  * debian/patches/hurd-i386/cvs-mlock.diff: Upstreamed.
+  * debian/patches/hurd-i386/cvs-csu_crt0.diff: New patch, fixes gcrt0.o
+    build.
+  * debian/patches/hurd-i386/cvs-s_scalbn.diff: New patch, fixes s_scalbn.S
+    build.
+  * debian/patches/hurd-i386/tg-tls-threadvar.diff: Update.
+  * patches/hurd-i386/tg-posix_thread.diff: Update, to define
+    _POSIX_THREAD_KEYS_MAX, _POSIX_THREAD_DESTRUCTOR_ITERATIONS and
+    _POSIX_THREAD_THREADS_MAX.
+
+  [ Aurelien Jarno ]
+  * debian/patches/hppa/cvs-atomic.diff: Upstreamed.
+  * debian/patches/hppa/cvs-sysdep-errno.diff: Upstreamed.
+  * debian/patches/hppa/cvs-inline-syscall-rewrite.diff: Upstreamed.
+  * debian/patches/any/cvs-mangle-tls_dtor_list.diff: Rebased.
+  * debian/patches/any/cvs-tls-dtv.diff: Upstreamed.
+  * debian/patches/any/cvs-rfc3542-advanced-api.diff: Upstreamed.
+  * debian/patches/any/cvs-check-localplt.diff: Upstreamed.
+  * debian/patches/any/cvs-ld_pointer_guard.diff: Upstreamed.
+  * debian/patches/any/cvs-mangle-tls_dtor_list.diff: Upstream.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Wed, 02 Dec 2015 00:06:13 +0100
 
 glibc (2.21-9) unstable; urgency=medium
 
@@ -325,7 +573,7 @@ glibc (2.21-0experimental2) experimental; urgency=medium
     support for futex_atomic_cmpxchg_inatomic to restore the  previous state
     and fix the pulsesink (and others) regression on ARM (closes: #788799)
 
-  [ Henrique de Moraes Holschuh ]
+  [ Henrique de Moraes Holschuh ]
   * Replace patches/amd64/local-blacklist-on-TSX-Haswell.diff by 
     local-blacklist-for-Intel-TSX.diff also blacklisting some Broadwell
     models.  Closes: #800574.
@@ -586,7 +834,7 @@ glibc (2.19-21) unstable; urgency=medium
 
 glibc (2.19-20) unstable; urgency=medium
 
-  [ Samuel Thibault ]
+  [ Samuel Thibault ]
   * patches/hurd-i386/tg-mmap32th_bit.diff: New patch to fix libpciaccess
     mapping of BARs above 2GiB. Closes: #793543.
   * rules.d/build.mk: Also install crt0.o in stage1, if any.
@@ -1341,7 +1589,7 @@ eglibc (2.18-2) unstable; urgency=medium
 
 eglibc (2.18-1) unstable; urgency=medium
 
-  [ Adam Conrad ]
+  [ Adam Conrad ]
   * debian/patches/hurd-i386/libpthread_version.diff: Remove stderr vomit.
   * debian/patches/arm/cvs-arm__{longjmp,sigsetjmp}-thumb.diff: Pull patch
     from upstream to allow building longjmp and sigsetjmp code with Thumb.
@@ -1371,7 +1619,7 @@ eglibc (2.18-1) unstable; urgency=medium
 
 eglibc (2.18-0experimental1) experimental; urgency=low
 
-  [ Adam Conrad ]
+  [ Adam Conrad ]
   * debian/patches/i386/cvs-nonascii-case-strcmp.diff: Pull upstream patch
     to fix LC_CTYPE nonascii-case fallback in i686 strcasecmp/strncasecmp.
   * debian/testsuite-checking/*: Update 686 targets to match the 586 ones.
@@ -4209,7 +4457,7 @@ eglibc (2.11.1-1) unstable; urgency=low
 
 eglibc (2.10.2-9) unstable; urgency=low
 
-  [ Aurelien Jarno ]
+  [ Aurelien Jarno ]
   * Add powerpcspe port support. Closes: #579778.
 
   [ Petr Salinger ]

@@ -35,14 +35,14 @@ localedata/locale-C.diff
 localedata/locale-nb_NO.diff
 localedata/submitted-en_AU-date_fmt.diff
 localedata/submitted-es_MX-decimal_point.diff
-localedata/submitted-locale-bo.diff
 localedata/submitted-it_IT-thousands_sep.diff
 localedata/cvs-bg_BG-t_fmt.diff
 
 alpha/local-gcc4.1.diff
 alpha/submitted-dl-support.diff
-alpha/submitted-rtld-fPIC.diff
 alpha/local-string-functions.diff
+alpha/submitted-fegetenv-namespace.diff
+alpha/submitted-termios_h.diff
 
 amd64/local-blacklist-for-Intel-TSX.diff
 
@@ -53,29 +53,17 @@ arm/unsubmitted-ldso-abi-check.diff
 arm/local-soname-hack.diff
 arm/local-vfp-sysdeps.diff
 arm/unsubmitted-ldso-multilib.diff
-arm/cvs-arm-sfi_breg.diff
-arm/cvs-memcpy-memmove-always-bx.diff
 arm/local-arm-futex.diff
 
 hppa/cvs-allocatestack-stacktop.diff
 hppa/local-inlining.diff
 hppa/local-stack-grows-up.diff
 hppa/local-elf-make-cflags.diff
-hppa/local-fcntl-osync.diff
 hppa/local-shmlba.diff
 hppa/local-pthread_spin_unlock.diff
-hppa/cvs-fpu-r2.diff
-hppa/cvs-fpu2.diff
 hppa/local-fptr-table-size.diff
-hppa/local-setcontext.diff
-hppa/cvs-start.diff
-hppa/cvs-alloca-werror.diff
-hppa/cvs-atomic.diff
 hppa/submitted-gmon-start.diff
 hppa/submitted-mathdef.diff
-hppa/cvs-sysdep-errno.diff
-hppa/cvs-inline-syscall-rewrite.diff
-hppa/cvs-inline-syscall.diff
 hppa/cvs-update-mman.h.diff
 hppa/submitted-dladdr.diff
 
@@ -85,7 +73,6 @@ hurd-i386/tg-tls.diff
 hurd-i386/tg-tls-threadvar.diff
 hurd-i386/tg-tlsdesc.sym.diff
 hurd-i386/tg-sysvshm.diff
-hurd-i386/tg-ioctl-base-types.diff
 hurd-i386/tg-extern_inline.diff
 hurd-i386/tg-_dl_random.diff
 hurd-i386/tg-thread-cancel.diff
@@ -109,7 +96,6 @@ hurd-i386/tg-hurdsig-fixes-2.diff
 hurd-i386/tg-hooks.diff
 hurd-i386/cvs-libpthread.diff
 hurd-i386/libpthread_spin-lock.diff
-hurd-i386/tg-aio_misc.diff
 hurd-i386/libpthread_build.diff
 hurd-i386/libpthread_sigmask.diff
 hurd-i386/libpthread_clean.diff
@@ -117,19 +103,15 @@ hurd-i386/cvs-libpthread_clean2.diff
 hurd-i386/cvs-libpthread_build.diff
 hurd-i386/tg-libpthread_depends.diff
 hurd-i386/libpthread_version.diff
-hurd-i386/tg-chflags.diff
 hurd-i386/submitted-exec_filename.diff
 hurd-i386/unsubmitted-gnumach.defs.diff
 hurd-i386/submitted-fork_port_leak.diff
 hurd-i386/tg-hurdsig-boot-fix.diff
 hurd-i386/tg-single-select-timeout.diff
 hurd-i386/tg-setitimer.diff
-hurd-i386/tg-select-EINTR.diff
 hurd-i386/tg-pie-sbrk.diff
 hurd-i386/tg-ifaddrs_v6.diff
 hurd-i386/tg-remap_getcwd.diff
-hurd-i386/tg-af_local_strlen.diff
-hurd-i386/tg-nice.diff
 hurd-i386/tg-exec-static.diff
 hurd-i386/tg-EIEIO-fr.diff
 hurd-i386/tg-io_select_timeout.diff
@@ -142,11 +124,8 @@ hurd-i386/tg-socketpair_flags.diff
 hurd-i386/tg-pipe2.diff
 hurd-i386/tg-libc_getspecific.diff
 hurd-i386/tg-futimens.diff
-hurd-i386/tg-nfds-poll.diff
-hurd-i386/tg-sigstate_locking.diff
 hurd-i386/tg-sigstate_thread_reference.diff
 hurd-i386/tg-tls_thread_leak.diff
-hurd-i386/tg-mmap_file_prot_none_fix.diff
 hurd-i386/submitted-bind_umask2.diff
 hurd-i386/local-libpthread-stacksize.diff
 hurd-i386/tg-WRLCK-upgrade.diff
@@ -156,28 +135,26 @@ hurd-i386/libpthread-versions.diff
 hurd-i386/cvs-revert-gnu-gnu-cleanup.diff
 hurd-i386/unsubmitted-libc_alloca_cutoff.diff
 hurd-i386/libpthread_pthread_types.diff
-hurd-i386/cvs-unwind-resume.diff
 hurd-i386/unsubmitted-libpthread-semaphore.h.diff
-hurd-i386/cvs-libc-modules.h.diff
-hurd-i386/cvs-warnings.diff
-hurd-i386/cvs-check-local-headers.diff
-hurd-i386/cvs-mlock.diff
 hurd-i386/tg-mmap32th_bit.diff
 hurd-i386/tg-sysheaders.diff
 hurd-i386/cvs-bootstrap.diff
 hurd-i386/local-bootstrap.diff
 hurd-i386/cvs-cache-mach_host_self.diff
+hurd-i386/cvs-csu_crt0.diff
+hurd-i386/cvs-s_scalbn.diff
 hurd-i386/local-mach_print.diff
 hurd-i386/cvs-hidden.diff
 hurd-i386/cvs-libpthread-api.diff
 hurd-i386/cvs-libpthread-sigstate.diff
 hurd-i386/cvs-O_DIRECTORY.diff
 hurd-i386/cvs-raise-longjump.diff
+hurd-i386/submitted-hurd-abilist.diff
 
 i386/local-biarch.diff
 i386/local-cmov.diff
 i386/local-cpuid-level2.diff
-#i386/local-i586-ulps.diff
+i386/local-i386-ulps.diff
 i386/submitted-i686-timing.diff
 i386/unsubmitted-quiet-ldconfig.diff
 
@@ -193,31 +170,21 @@ kfreebsd/local-getaddrinfo-freebsd-kernel.diff
 kfreebsd/local-no-execfn.diff
 
 m68k/local-dwarf2-buildfix.diff
-m68k/local-fpic.diff
-# m68k/local-mathinline_h.diff
 m68k/local-reloc.diff
 m68k/submitted-gcc34-seccomment.diff
 
-mips/local-r10k.diff
 mips/submitted-rld_map.diff
+mips/cvs-testsuite-o32-fp.diff
 
 powerpc/local-powerpc8xx-dcbz.diff
-powerpc/cvs-ppc-sqrt.diff
-powerpc/cvs-ppc-sqrtf.diff
-powerpc/cvs-ppc-pow.diff
-powerpc/cvs-ppc-feraiseexcept.diff
-powerpc/cvs-power7-strncpy.diff
-powerpc/cvs-ppc-tabort-le.diff
 
-s390/submitted-nexttowardf.diff
 s390/submitted-socketcall.diff
 
 sh4/local-fpscr_values.diff
 
 sparc/local-sparcv9-target.diff
-sparc/submitted-timing.diff
+sparc/submitted-sparc64-socketcall.diff
 
-all/local-alias-UTF-8.diff
 all/local-alias-et_EE.diff
 all/local-remove-manual.diff
 all/local-ru_RU.diff
@@ -246,7 +213,6 @@ any/local-nss-upgrade.diff
 any/local-stubs_h.diff
 any/cvs-stdio-lock.diff
 any/local-tcsetaddr.diff
-any/local-disable-test-tgmath2.diff
 any/local-tst-mktime2.diff
 any/submitted-nis-netgrp.diff
 any/submitted-longdouble.diff
@@ -255,7 +221,6 @@ any/local-nss-overflow.diff
 #any/local-disable-gethostbyname4.diff
 any/submitted-missing-etc-hosts.diff
 any/submitted-bits-fcntl_h-at.diff
-any/local-no-SOCK_NONBLOCK.diff
 any/submitted-nptl-invalid-td.patch
 any/local-dlfptr.diff
 any/submitted-string2-strcmp.diff
@@ -266,27 +231,15 @@ any/local-revert-bz13979.diff
 any/local-tst-eintr1-eagain.diff
 any/unsubmitted-ldso-machine-mismatch.diff
 any/unsubmitted-dlopen-static-crash.diff
-any/unsubmitted-scanf-includes.diff
 any/local-ldconfig-ignore-ld.so.diff
-any/local-no-malloc-backtrace.diff
 any/local-dynamic-resolvconf.diff
 any/local-libpic.diff
 any/local-bootstrap-headers.diff
 any/submitted-argp-attribute.diff
-any/submitted-resolv-ipv6-nameservers.diff
 any/local-static-dlopen-search-path.diff
-any/cvs-ldconfig-aux-cache.diff
-any/cvs-vismain-pie.diff
-any/local-tester-gcc-4.9.diff
-any/local-xfail-stdlib-linkns.diff
-any/cvs-localplt-new-readelf.diff
-any/cvs-logbl-accuracy.diff
 any/local-math-logb.diff
-any/cvs-ld_pointer_guard.diff
-any/cvs-mangle-tls_dtor_list.diff
-any/cvs-tls-dtv.diff
-any/cvs-rfc3542-advanced-api.diff
-any/cvs-check-localplt.diff
+any/cvs-gawk-gensub.diff
+any/cvs-grantpt-namespace.diff
 any/cvs-grantpt-pty-owner.diff
+any/cvs-bits-libc-stdio-lock.diff
 any/submitted-hle-checking-mutex.diff
-any/local-CVE-2015-7547.diff

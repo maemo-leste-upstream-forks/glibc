@@ -1,4 +1,4 @@
-libc_add-ons = $(add-ons)
+# configuration options for all flavours
 extra_config_options = --enable-multi-arch
 
 # Install a compat symlink so old binaries keep working:
@@ -12,9 +12,9 @@ mkdir -p debian/libc6-udeb/lib/arm-linux-gnueabihf
 ln -sf /lib/ld-linux-armhf.so.3 debian/libc6-udeb/lib/arm-linux-gnueabihf/ld-linux.so.3
 endef
 
+# build soft-float (armel) alternative library
 #GLIBC_MULTILIB_PASSES += armel
 #DEB_ARCH_MULTILIB_PACKAGES += libc6-armel libc6-dev-armel
-#armel_add-ons = $(add-ons)
 #armel_configure_target = arm-linux-gnueabi
 #armel_CC = $(CC) -mfloat-abi=soft
 #armel_CXX = $(CXX) -mfloat-abi=soft

@@ -17129,14 +17129,14 @@
 +
 +/* We need to have the error status variable of the resolver
 +   accessible in the libc.  */
-+extern __thread int h_errno;
++extern __thread int __h_errno;
 +
 +
 +/* When threaded, h_errno may be a per-thread variable.  */
 +int *
 +__h_errno_location (void)
 +{
-+  return &h_errno;
++  return &__h_errno;
 +}
 --- /dev/null
 +++ b/fbtl/libc-cancellation.c
@@ -28906,7 +28906,7 @@
 +  /* Locate the entry for the mapping the caller provided.  */
 +  rec = NULL;
 +  the_sem = sem;
-+  twalk (__sem_mappings, walker);
++  __twalk (__sem_mappings, walker);
 +  if  (rec != NULL)
 +    {
 +      /* Check the reference counter.  If it is going to be zero, free
@@ -28914,7 +28914,7 @@
 +      if (--rec->refcnt == 0)
 +	{
 +	  /* Remove the record from the tree.  */
-+	  (void) tdelete (rec, &__sem_mappings, __sem_search);
++	  (void) __tdelete (rec, &__sem_mappings, __sem_search);
 +
 +	  result = munmap (rec->sem, sizeof (sem_t));
 +
@@ -29109,7 +29109,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/sem_open.c
-@@ -0,0 +1,299 @@
+@@ -0,0 +1,300 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -29191,7 +29191,8 @@
 +      fake->dev = st.st_dev;
 +      fake->ino = st.st_ino;
 +
-+      struct inuse_sem **foundp = tfind (fake, &__sem_mappings, __sem_search);
++      struct inuse_sem **foundp = __tfind (fake, &__sem_mappings,
++					   __sem_search);
 +      if (foundp != NULL)
 +	{
 +	  /* There is already a mapping.  Use it.  */
@@ -29220,7 +29221,7 @@
 +
 +	      /* Insert the new value.  */
 +	      if (existing != MAP_FAILED
-+		  && tsearch (newp, &__sem_mappings, __sem_search) != NULL)
++		  && __tsearch (newp, &__sem_mappings, __sem_search) != NULL)
 +		/* Successful.  */
 +		result = existing;
 +	      else
