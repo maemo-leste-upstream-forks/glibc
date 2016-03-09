@@ -40,6 +40,7 @@ amd64_configure_target = x86_64-linux-gnu
 # /usr/include/asm wrappers need that symbol.
 amd64_CC = $(CC) -m64 -D__x86_64__
 amd64_CXX = $(CXX) -m64 -D__x86_64__
+amd64_mvec = yes
 amd64_rtlddir = /lib64
 amd64_slibdir = /lib64
 amd64_libdir = /usr/lib64
@@ -82,6 +83,7 @@ libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
 x32_configure_target = x86_64-linux-gnux32
 x32_CC = $(CC) -mx32
 x32_CXX = $(CXX) -mx32
+x32_mvec = yes
 x32_rtlddir = /libx32
 x32_slibdir = /libx32
 x32_libdir = /usr/libx32

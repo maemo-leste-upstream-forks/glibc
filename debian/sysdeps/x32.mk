@@ -1,8 +1,8 @@
 # configuration options for all flavours
 extra_config_options = --enable-multi-arch --enable-lock-elision
-mvec = yes
 
 # main library
+libc_mvec = yes
 libc_rtlddir = /libx32
 
 # build 64-bit (amd64) alternative library
@@ -12,6 +12,7 @@ libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
 amd64_configure_target = x86_64-linux-gnu
 amd64_CC = $(CC) -m64
 amd64_CXX = $(CXX) -m64
+amd64_mvec = yes
 amd64_rtlddir = /lib64
 amd64_slibdir = /lib64
 amd64_libdir = /usr/lib64
@@ -41,6 +42,7 @@ libc6-i386_shlib_dep = libc6-i386 (>= $(shlib_dep_ver))
 i386_configure_target = i686-linux-gnu
 i386_CC = $(CC) -m32 -march=pentium4 -mtune=generic
 i386_CXX = $(CXX) -m32 -march=pentium4 -mtune=generic
+i386_mvec = no
 i386_slibdir = /lib32
 i386_libdir = /usr/lib32
 

@@ -1,9 +1,9 @@
 # configuration options for all flavours
 extra_config_options = --enable-multi-arch --enable-lock-elision
-mvec = yes
 MIN_KERNEL_SUPPORTED := 2.6.32
 
 # main library
+libc_mvec = yes
 libc_rtlddir = /lib64
 
 # build 32-bit (i386) alternative library
@@ -46,6 +46,7 @@ libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
 x32_configure_target = x86_64-linux-gnux32
 x32_CC = $(CC) -mx32
 x32_CXX = $(CXX) -mx32
+x32_mvec = yes
 x32_rtlddir = /libx32
 x32_slibdir = /libx32
 x32_libdir = /usr/libx32

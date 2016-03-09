@@ -5,8 +5,6 @@ libc = libc0.3
 pt_chown = yes
 # Expect pldd on this platform
 pldd = no
-# Expect the mvec library on this platform
-mvec = no
 
 # Linuxthreads Config (we claim "no threads" as nptl keys off this)
 threads = no
