@@ -1,10 +1,17 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.22/master from glibc-2.22
 
 diff --git a/ChangeLog b/ChangeLog
-index cb9124e..6e42a1e 100644
+index cb9124e..b224f46 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,372 @@
+@@ -1,3 +1,379 @@
++2016-02-17  Andrew Senkevich  <andrew.senkevich@intel.com>
++	    H.J. Lu  <hongjiu.lu@intel.com>
++
++	[BZ #19590]
++	* sysdeps/x86_64/fpu/svml_finite_alias.S (ALIAS_IMPL): Use PIC
++	relocation.
++
 +2015-09-24  Joseph Myers  <joseph@codesourcery.com>
 +
 +	[BZ #19003]
@@ -378,7 +385,7 @@ index cb9124e..6e42a1e 100644
  
  	* version.h (RELEASE): Set to "stable".
 diff --git a/NEWS b/NEWS
-index 4c31de7..4679258 100644
+index 4c31de7..93c46af 100644
 --- a/NEWS
 +++ b/NEWS
 @@ -5,6 +5,31 @@ See the end for copying conditions.
@@ -405,7 +412,7 @@ index 4c31de7..4679258 100644
 +
 +  17905, 18420, 18421, 18480, 18589, 18743, 18778, 18781, 18787, 18796,
 +  18870, 18887, 18921, 18928, 18969, 18985, 19003, 19018, 19058, 19174,
-+  19178, 19682.
++  19178, 19590, 19682.
 +
 +* The LD_POINTER_GUARD environment variable can no longer be used to
 +  disable the pointer guard feature.  It is always enabled.
@@ -3635,10 +3642,10 @@ index 86ea473..631534a 100644
  CFLAGS-mpatan-fma4.c = -mfma4
 diff --git a/sysdeps/x86_64/fpu/svml_finite_alias.S b/sysdeps/x86_64/fpu/svml_finite_alias.S
 new file mode 100644
-index 0000000..f8bcfeb
+index 0000000..aed1661
 --- /dev/null
 +++ b/sysdeps/x86_64/fpu/svml_finite_alias.S
-@@ -0,0 +1,59 @@
+@@ -0,0 +1,58 @@
 +/* These aliases added as workaround to exclude unnecessary symbol
 +   aliases in libmvec.so while compiler creates the vector names
 +   based on scalar asm name.  Corresponding discussion is at
@@ -3664,8 +3671,7 @@ index 0000000..f8bcfeb
 +
 +#define ALIAS_IMPL(alias, target) \
 +ENTRY (alias); \
-+	call target; \
-+	ret; \
++	jmp *target@GOTPCREL(%rip); \
 +END (alias)
 +
 +	.text
