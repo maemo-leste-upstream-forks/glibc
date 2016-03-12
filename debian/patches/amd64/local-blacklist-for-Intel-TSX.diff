@@ -17,52 +17,55 @@ misbehavior and live-update of microcode hazards.
 
 Author: Henrique de Moraes Holschuh <hmh@debian.org>
 
---- a/sysdeps/x86_64/multiarch/init-arch.c
-+++ b/sysdeps/x86_64/multiarch/init-arch.c
-@@ -26,7 +26,7 @@
- 
- 
- static void
--get_common_indeces (unsigned int *family, unsigned int *model)
-+get_common_indeces (unsigned int *family, unsigned int *model, unsigned int *stepping)
+--- a/sysdeps/x86/cpu-features.c
++++ b/sysdeps/x86/cpu-features.c
+@@ -22,7 +22,8 @@
+ static inline void
+ get_common_indeces (struct cpu_features *cpu_features,
+ 		    unsigned int *family, unsigned int *model,
+-		    unsigned int *extended_model)
++		    unsigned int *extended_model,
++		    unsigned int *stepping)
  {
-   __cpuid (1, __cpu_features.cpuid[COMMON_CPUID_INDEX_1].eax,
- 	   __cpu_features.cpuid[COMMON_CPUID_INDEX_1].ebx,
-@@ -36,6 +36,7 @@
-   unsigned int eax = __cpu_features.cpuid[COMMON_CPUID_INDEX_1].eax;
-   *family = (eax >> 8) & 0x0f;
-   *model = (eax >> 4) & 0x0f;
+   unsigned int eax;
+   __cpuid (1, eax, cpu_features->cpuid[COMMON_CPUID_INDEX_1].ebx,
+@@ -37,6 +38,7 @@
+       *family += (eax >> 20) & 0xff;
+       *model += *extended_model;
+     }
 +  *stepping = eax & 0x0f;
  }
  
- 
-@@ -47,6 +48,7 @@
-   unsigned int edx;
+ static inline void
+@@ -45,6 +47,7 @@
+   unsigned int ebx, ecx, edx;
    unsigned int family = 0;
    unsigned int model = 0;
 +  unsigned int stepping = 0;
    enum cpu_features_kind kind;
  
-   __cpuid (0, __cpu_features.max_cpuid, ebx, ecx, edx);
-@@ -56,7 +58,7 @@
-     {
+ #if !HAS_CPUID
+@@ -64,7 +67,8 @@
+ 
        kind = arch_kind_intel;
  
--      get_common_indeces (&family, &model);
-+      get_common_indeces (&family, &model, &stepping);
+-      get_common_indeces (cpu_features, &family, &model, &extended_model);
++      get_common_indeces (cpu_features, &family, &model,
++		          &extended_model, &stepping);
  
-       unsigned int eax = __cpu_features.cpuid[COMMON_CPUID_INDEX_1].eax;
-       unsigned int extended_family = (eax >> 20) & 0xff;
-@@ -135,7 +137,7 @@
-     {
+       if (family == 0x06)
+ 	{
+@@ -142,7 +146,8 @@
+ 
        kind = arch_kind_amd;
  
--      get_common_indeces (&family, &model);
-+      get_common_indeces (&family, &model, &stepping);
+-      get_common_indeces (cpu_features, &family, &model, &extended_model);
++      get_common_indeces (cpu_features, &family, &model,
++		          &extended_model, &stepping);
  
-       ecx = __cpu_features.cpuid[COMMON_CPUID_INDEX_1].ecx;
+       ecx = cpu_features->cpuid[COMMON_CPUID_INDEX_1].ecx;
  
-@@ -205,6 +207,24 @@
+@@ -228,6 +233,24 @@
  	}
      }
  
@@ -82,14 +85,14 @@ Author: Henrique de Moraes Holschuh <hmh@debian.org>
 +       (model == 69 && stepping <= 1) || (model == 70 && stepping <= 1) ||
 +       (model == 61 && stepping <= 4) || (model == 71 && stepping <= 1) ||
 +       (model == 86 && stepping <= 2) ))
-+    __cpu_features.cpuid[COMMON_CPUID_INDEX_7].ebx &= ~(bit_RTM | bit_HLE);
++    cpu_features->cpuid[COMMON_CPUID_INDEX_7].ebx &= ~(bit_RTM | bit_HLE);
 +
-   __cpu_features.family = family;
-   __cpu_features.model = model;
-   atomic_write_barrier ();
---- a/sysdeps/x86_64/multiarch/init-arch.h
-+++ b/sysdeps/x86_64/multiarch/init-arch.h
-@@ -44,6 +44,7 @@
+ #if !HAS_CPUID
+ no_cpuid:
+ #endif
+--- a/sysdeps/x86/cpu-features.h
++++ b/sysdeps/x86/cpu-features.h
+@@ -53,6 +53,7 @@
  
  /* COMMON_CPUID_INDEX_7.  */
  #define bit_RTM		(1 << 11)

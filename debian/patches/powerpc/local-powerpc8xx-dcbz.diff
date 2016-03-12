@@ -33,12 +33,12 @@
  #include <sysdeps/unix/sysv/linux/dl-sysdep.c>
 --- a/sysdeps/unix/sysv/linux/powerpc/libc-start.c
 +++ b/sysdeps/unix/sysv/linux/powerpc/libc-start.c
-@@ -68,11 +68,25 @@
-       rtld_fini = NULL;
-     }
+@@ -73,11 +73,25 @@
  
--  /* Initialize the __cache_line_size variable from the aux vector.  */
-+  /* Initialize the __cache_line_size variable from the aux vector.
+   /* Initialize the __cache_line_size variable from the aux vector.  For the
+      static case, we also need _dl_hwcap, _dl_hwcap2 and _dl_platform, so we
+-     can call __tcb_parse_hwcap_and_convert_at_platform ().  */
++     can call __tcb_parse_hwcap_and_convert_at_platform ().
 +     This is used by memset to optimize setting to zero.  We have to
 +     detect 8xx processors, which have buggy dcbz implementations that
 +     cannot report page faults correctly.  That requires reading SPR,
@@ -59,4 +59,4 @@
 +#endif
  	__cache_line_size = av->a_un.a_val;
  	break;
-       }
+ #ifndef SHARED

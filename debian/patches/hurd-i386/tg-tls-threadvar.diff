@@ -15,8 +15,8 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  hurd/sigunwind.c                            |  4 +-
  include/errno.h                     |  2 +-
  sysdeps/mach/hurd/Versions                  |  6 ++-
- sysdeps/mach/hurd/bits/libc-lock.h          |  5 +-
- sysdeps/mach/hurd/bits/libc-tsd.h           | 34 ------------
+ sysdeps/mach/hurd/libc-lock.h               |  5 +-
+ sysdeps/mach/hurd/libc-tsd.h                | 34 ------------
  sysdeps/mach/hurd/cthreads.c                |  3 ++
  sysdeps/mach/hurd/dl-sysdep.c               | 19 -------
  sysdeps/mach/hurd/errno-loc.c               | 24 ++++++---
@@ -407,8 +407,8 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
 +    __libc_lock_self0;
    }
  }
---- a/sysdeps/mach/hurd/bits/libc-lock.h
-+++ b/sysdeps/mach/hurd/bits/libc-lock.h
+--- a/sysdeps/mach/hurd/libc-lock.h
++++ b/sysdeps/mach/hurd/libc-lock.h
 @@ -24,7 +24,6 @@
  #include <tls.h>
  #endif
@@ -427,11 +427,11 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  
  #else
  typedef struct __libc_lock_opaque__ __libc_lock_t;
---- a/sysdeps/mach/hurd/bits/libc-tsd.h
+--- a/sysdeps/mach/hurd/libc-tsd.h
 +++ /dev/null
 @@ -1,34 +0,0 @@
 -/* libc-internal interface for thread-specific data.  Hurd version.
--   Copyright (C) 1998-2015 Free Software Foundation, Inc.
+-   Copyright (C) 1998-2016 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -448,8 +448,8 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
 -   License along with the GNU C Library; if not, see
 -   <http://www.gnu.org/licenses/>.  */
 -
--#ifndef _BITS_LIBC_TSD_H
--#define _BITS_LIBC_TSD_H 1
+-#ifndef _LIBC_TSD_H
+-#define _LIBC_TSD_H 1
 -
 -#include <hurd/threadvar.h>
 -
@@ -463,7 +463,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
 -#define __libc_tsd_set(TYPE, KEY, VALUE) \
 -  (*__libc_tsd_address (TYPE, KEY) = (VALUE))
 -
--#endif	/* bits/libc-tsd.h */
+-#endif	/* libc-tsd.h */
 --- a/sysdeps/mach/hurd/cthreads.c
 +++ b/sysdeps/mach/hurd/cthreads.c
 @@ -19,6 +19,8 @@ 

@@ -837,9 +837,9 @@ during/around the time __proc_dostop executes.
 --- a/sysdeps/mach/hurd/fork.c
 +++ b/sysdeps/mach/hurd/fork.c
 @@ -465,6 +465,7 @@ __fork (void)
- 	 function, accounted for by mach_port_names (and which will thus be
- 	 accounted for in the child below).  This extra right gets consumed
- 	 in the child by the store into _hurd_sigthread in the child fork.  */
+ 	  (err = __mach_port_insert_right (newtask, ss->thread,
+ 					   thread, MACH_MSG_TYPE_COPY_SEND)))
+ 	LOSE;
 +      /* XXX consumed? (_hurd_sigthread is no more) */
        if (thread_refs > 1 &&
  	  (err = __mach_port_mod_refs (newtask, ss->thread,

@@ -10,23 +10,22 @@
 ---
  elf/ldconfig.c                 |    4 ++++
  sysdeps/mach/hurd/configure    |    2 ++
- sysdeps/mach/hurd/configure.in |    2 ++
- sysdeps/mach/hurd/dl-cache.c   |   28 ----------------------------
- 4 files changed, 8 insertions(+), 28 deletions(-)
+ sysdeps/mach/hurd/configure.ac |    2 ++
+ 3 files changed, 8 insertions(+)
 
 --- a/sysdeps/mach/hurd/configure
 +++ b/sysdeps/mach/hurd/configure
-@@ -50,3 +50,5 @@ $as_echo "$libc_cv_hurd_version" >&6; }
- if test "x$libc_cv_hurd_version" != xok; then
-   as_fn_error $? "Hurd headers not installed or too old" "$LINENO" 5
+@@ -45,3 +45,5 @@
+ if test -n "$sysheaders"; then
+   CPPFLAGS=$OLD_CPPFLAGS
  fi
 +
 +use_ldconfig=yes
 --- a/sysdeps/mach/hurd/configure.ac
 +++ b/sysdeps/mach/hurd/configure.ac
-@@ -29,3 +29,5 @@ AC_TRY_COMPILE(dnl
- if test "x$libc_cv_hurd_version" != xok; then
-   AC_MSG_ERROR(Hurd headers not installed or too old)
+@@ -24,3 +24,5 @@
+ if test -n "$sysheaders"; then
+   CPPFLAGS=$OLD_CPPFLAGS
  fi
 +
 +use_ldconfig=yes
