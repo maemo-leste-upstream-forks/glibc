@@ -63,6 +63,23 @@ glibc (2.23-0experimental0) UNRELEASED; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Sat, 12 Mar 2016 12:00:31 +0100
 
+glibc (2.22-3) unstable; urgency=medium
+
+  * Update from upstream stable branch:
+    - Fix linking shared objects that use libmvec.so functions.  Closes:
+      #817879.
+  * debian/sysdeps/sh4.mk: build with -fno-delete-null-pointer-checks to
+    workaround a missing SH4 specific __builtin_trap implementation in GCC.
+  * debian/patches/localedata/locale-C.diff: fix LC_TIME week and d_t_fmt
+    fields in C.UTF-8 locale.  Closes: #817895.
+  * debian/sysdeps/powerpcspe.mk: pass --without-fp to the configure script
+    on powerpcspe.  Closes: #817926.
+  * debian/rules.d/control.mk: add nios2 architecture.  Closes: #817944.
+  * debian/patches/any/submitted-dlopen-noload.diff: new patch to fix a crash
+    in dlopen() with RTLD_NOLOAD.  Closes: #817900.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sat, 12 Mar 2016 22:40:15 +0100
+
 glibc (2.22-2) unstable; urgency=medium
 
   [ Aurelien Jarno ]
