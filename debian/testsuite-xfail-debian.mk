@@ -1197,6 +1197,11 @@ test-xfail-tst-cond16 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-stack4 = yes
 test-xfail-tst-waitid = yes
+
+# These failures are due to a bug in the Loongson 3A FPU
+test-xfail-test-double = yes
+test-xfail-test-double-finite = yes
+test-xfail-test-idouble = yes
 endif
 
 
