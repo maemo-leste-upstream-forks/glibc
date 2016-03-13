@@ -1284,6 +1284,9 @@ test-xfail-tst-backtrace5 = yes
 test-xfail-tst-backtrace6 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
+
+# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=6527
+tst-xfail-tst-malloc-thread-exit = yes
 endif
 
 
@@ -1297,7 +1300,7 @@ test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
 
 # Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=6527
-tst-malloc-thread-fail = yes
+tst-xfail-tst-malloc-thread-exit = yes
 
 # Failures due to a GCC bug, see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59412
 #                            and http://gcc.gnu.org/bugzilla/show_bug.cgi?id=64811
