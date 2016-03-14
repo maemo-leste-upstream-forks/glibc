@@ -151,7 +151,7 @@ index 0200b13..b66e5b5 100644
     Returns the number of bytes read or -1 for errors.  */
  ssize_t
 @@ -191,6 +308,21 @@ __libc_recvmsg (int fd, struct msghdr *message, int flags)
- 	    i++;
+ 	    newfds++;
  	  }
        }
 +    else if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_CREDS)
