@@ -395,7 +395,7 @@ Index: glibc-2.21/libpthread/forward.c
 +FORWARD2 (pthread_self, pthread_t, (void), (), return 0)
 +
 +
-+FORWARD (pthread_setcancelstate, (int state, int *oldstate), (state, oldstate),
++FORWARD (__pthread_setcancelstate, (int state, int *oldstate), (state, oldstate),
 +	 0)
 +
 +FORWARD (pthread_setcanceltype, (int type, int *oldtype), (type, oldtype), 0)
@@ -14834,7 +14834,7 @@ Index: glibc-2.21/libpthread/sysdeps/pthread/libc-lockP.h
 +weak_extern (__pthread_once)
 +weak_extern (__pthread_initialize)
 +weak_extern (__pthread_atfork)
-+weak_extern (pthread_setcancelstate)
++weak_extern (__pthread_setcancelstate)
 +# else
 +#  pragma weak __pthread_mutex_init
 +#  pragma weak __pthread_mutex_destroy
@@ -14856,7 +14856,7 @@ Index: glibc-2.21/libpthread/sysdeps/pthread/libc-lockP.h
 +#  pragma weak __pthread_once
 +#  pragma weak __pthread_initialize
 +#  pragma weak __pthread_atfork
-+#  pragma weak pthread_setcancelstate
++#  pragma weak __pthread_setcancelstate
 +# endif
 +#endif
 +
