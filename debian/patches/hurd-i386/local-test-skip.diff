@@ -1,0 +1,17 @@
+RLIMIT_AS is not supported yet. Running this test would thus just overflow
+memory.
+
+Index: glibc-2.23/malloc/tst-malloc-thread-fail.c
+===================================================================
+--- glibc-2.23.orig/malloc/tst-malloc-thread-fail.c
++++ glibc-2.23/malloc/tst-malloc-thread-fail.c
+@@ -309,6 +309,9 @@ run_allocation_functions (void)
+ int
+ do_test (void)
+ {
++  puts("RLIMIT_AS not supported, test skipped");
++  return 0;
++
+   /* Limit the number of malloc arenas.  We use a very low number so
+      that despute the address space limit configured below, all
+      requested arenas a can be created.  */

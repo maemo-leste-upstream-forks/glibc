@@ -1,0 +1,27 @@
+Hardcoded nptl path...
+
+https://sourceware.org/ml/libc-alpha/2016-03/msg00437.html
+
+Index: glibc-2.23/malloc/Makefile
+===================================================================
+--- glibc-2.23.orig/malloc/Makefile
++++ glibc-2.23/malloc/Makefile
+@@ -46,12 +46,12 @@ extra-libs-others = $(extra-libs)
+ libmemusage-routines = memusage
+ libmemusage-inhibit-o = $(filter-out .os,$(object-suffixes))
+ 
+-$(objpfx)tst-malloc-backtrace: $(common-objpfx)nptl/libpthread.so \
+-			       $(common-objpfx)nptl/libpthread_nonshared.a
+-$(objpfx)tst-malloc-thread-exit: $(common-objpfx)nptl/libpthread.so \
+-			       $(common-objpfx)nptl/libpthread_nonshared.a
+-$(objpfx)tst-malloc-thread-fail: $(common-objpfx)nptl/libpthread.so \
+-			       $(common-objpfx)nptl/libpthread_nonshared.a
++$(objpfx)tst-malloc-backtrace: $(common-objpfx)libpthread/libpthread.so \
++			       $(common-objpfx)libpthread/libpthread.a
++$(objpfx)tst-malloc-thread-exit: $(common-objpfx)libpthread/libpthread.so \
++			       $(common-objpfx)libpthread/libpthread.a
++$(objpfx)tst-malloc-thread-fail: $(common-objpfx)libpthread/libpthread.so \
++			       $(common-objpfx)libpthread/libpthread.a
+ 
+ # These should be removed by `make clean'.
+ extra-objs = mcheck-init.o libmcheck.a
