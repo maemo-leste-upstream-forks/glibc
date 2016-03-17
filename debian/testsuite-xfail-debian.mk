@@ -197,6 +197,9 @@ tests-unsupported += tst-timer4
 tests-unsupported += tst-timer5
 tests-unsupported += tst-malloc-backtrace
 
+# bounding memory allocation is not supported yet
+tests-unsupported += tst-malloc-thread-fail
+
 # Need actual porting
 test-xfail-exe = yes
 test-xfail-tst-mqueue5 = yes
