@@ -395,7 +395,7 @@ Index: glibc-2.21/libpthread/forward.c
 +FORWARD2 (pthread_self, pthread_t, (void), (), return 0)
 +
 +
-+FORWARD (__pthread_setcancelstate, (int state, int *oldstate), (state, oldstate),
++FORWARD (pthread_setcancelstate, (int state, int *oldstate), (state, oldstate),
 +	 0)
 +
 +FORWARD (pthread_setcanceltype, (int type, int *oldtype), (type, oldtype), 0)
@@ -3599,7 +3599,7 @@ Index: glibc-2.21/libpthread/pthread/pt-initialize.c
 +    .ptr_pthread_mutex_trylock = __pthread_mutex_trylock,
 +    .ptr_pthread_mutex_unlock = __pthread_mutex_unlock,
 +    .ptr_pthread_self = __pthread_self,
-+    .ptr___pthread_setcancelstate = __pthread_setcancelstate,
++    .ptr_pthread_setcancelstate = __pthread_setcancelstate,
 +    .ptr_pthread_setcanceltype = __pthread_setcanceltype,
 +    .ptr___pthread_get_cleanup_stack = __pthread_get_cleanup_stack,
 +    .ptr_pthread_once = __pthread_once,
@@ -14605,7 +14605,7 @@ Index: glibc-2.21/libpthread/sysdeps/pthread/flockfile.c
 +
 +#include <stdio.h>
 +#include <libio.h>
-+#include <libc-lock.h>
++#include <bits/libc-lock.h>
 +
 +
 +void
@@ -14644,7 +14644,7 @@ Index: glibc-2.21/libpthread/sysdeps/pthread/ftrylockfile.c
 +#include <errno.h>
 +#include <pthread.h>
 +#include <stdio.h>
-+#include <stdio-lock.h>
++#include <bits/stdio-lock.h>
 +
 +
 +int
@@ -14685,7 +14685,7 @@ Index: glibc-2.21/libpthread/sysdeps/pthread/funlockfile.c
 +#include <pthread.h>
 +#include <stdio.h>
 +#include <libio.h>
-+#include <stdio-lock.h>
++#include <bits/stdio-lock.h>
 +
 +
 +void
@@ -14698,10 +14698,10 @@ Index: glibc-2.21/libpthread/sysdeps/pthread/funlockfile.c
 +}
 +weak_alias (__funlockfile, _IO_funlockfile)
 +weak_alias (__funlockfile, funlockfile)
-Index: glibc-2.21/libpthread/sysdeps/pthread/libc-lockP.h
+Index: glibc-2.21/libpthread/sysdeps/pthread/bits/libc-lockP.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.21/libpthread/sysdeps/pthread/libc-lockP.h
++++ glibc-2.21/libpthread/sysdeps/pthread/bits/libc-lockP.h
 @@ -0,0 +1,158 @@
 +/* Private libc-internal interface for mutex locks.
 +   Copyright (C) 2015 Free Software Foundation, Inc.
@@ -14834,7 +14834,7 @@ Index: glibc-2.21/libpthread/sysdeps/pthread/libc-lockP.h
 +weak_extern (__pthread_once)
 +weak_extern (__pthread_initialize)
 +weak_extern (__pthread_atfork)
-+weak_extern (__pthread_setcancelstate)
++weak_extern (pthread_setcancelstate)
 +# else
 +#  pragma weak __pthread_mutex_init
 +#  pragma weak __pthread_mutex_destroy
@@ -14856,7 +14856,7 @@ Index: glibc-2.21/libpthread/sysdeps/pthread/libc-lockP.h
 +#  pragma weak __pthread_once
 +#  pragma weak __pthread_initialize
 +#  pragma weak __pthread_atfork
-+#  pragma weak __pthread_setcancelstate
++#  pragma weak pthread_setcancelstate
 +# endif
 +#endif
 +
@@ -14982,7 +14982,7 @@ Index: glibc-2.21/libpthread/sysdeps/pthread/pthread-functions.h
 +  int (*ptr_pthread_mutex_trylock) (pthread_mutex_t *);
 +  int (*ptr_pthread_mutex_unlock) (pthread_mutex_t *);
 +  pthread_t (*ptr_pthread_self) (void);
-+  int (*ptr___pthread_setcancelstate) (int, int *);
++  int (*ptr_pthread_setcancelstate) (int, int *);
 +  int (*ptr_pthread_setcanceltype) (int, int *);
 +  struct __pthread_cancelation_handler **(*ptr___pthread_get_cleanup_stack) (void);
 +  int (*ptr_pthread_once) (pthread_once_t *, void (*) (void));
