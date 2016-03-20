@@ -1,10 +1,16 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.22/master from glibc-2.22
 
 diff --git a/ChangeLog b/ChangeLog
-index cb9124e..b224f46 100644
+index cb9124e..ba4a3f2 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,379 @@
+@@ -1,3 +1,385 @@
++2016-03-15  Andreas Schwab  <schwab@suse.de>
++
++	[BZ #19257]
++	* resolv/res_init.c (__res_iclose): Use statp->nscount instead of
++	statp->_u._ext.nscount as loop count.
++
 +2016-02-17  Andrew Senkevich  <andrew.senkevich@intel.com>
 +	    H.J. Lu  <hongjiu.lu@intel.com>
 +
@@ -1890,6 +1896,19 @@ index 357ac04..a0fe9a8 100644
      }
  
    return status;
+diff --git a/resolv/res_init.c b/resolv/res_init.c
+index 66561ff..77873c1 100644
+--- a/resolv/res_init.c
++++ b/resolv/res_init.c
+@@ -593,7 +593,7 @@ __res_iclose(res_state statp, bool free_addr) {
+ 		statp->_vcsock = -1;
+ 		statp->_flags &= ~(RES_F_VC | RES_F_CONN);
+ 	}
+-	for (ns = 0; ns < statp->_u._ext.nscount; ns++)
++	for (ns = 0; ns < statp->nscount; ns++)
+ 		if (statp->_u._ext.nsaddrs[ns]) {
+ 			if (statp->_u._ext.nssocks[ns] != -1) {
+ 				close_not_cancel_no_status(statp->_u._ext.nssocks[ns]);
 diff --git a/resolv/res_query.c b/resolv/res_query.c
 index 4a9b3b3..95470a9 100644
 --- a/resolv/res_query.c
