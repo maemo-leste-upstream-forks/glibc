@@ -285,7 +285,7 @@ endif
 # build-dependency makes sure that the correct version is used, as
 # the format might change between upstream versions.
 #
-ifeq ($(DEB_BUILD_ARCH),a$(DEB_HOST_ARCH))
+ifeq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
 LOCALEDEF = I18NPATH=$(CURDIR)/localedata \
 	    GCONV_PATH=$(CURDIR)/$(DEB_BUILDDIRLIBC)/iconvdata \
 	    LC_ALL=C \
