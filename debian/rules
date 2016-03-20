@@ -220,9 +220,11 @@ clean:: unpatch
 # Required Debian targets
 build-arch: $(stamp)info \
 	$(patsubst %,$(stamp)build_%,$(GLIBC_PASSES)) \
-	$(patsubst %,$(stamp)check_%,$(GLIBC_PASSES)) \
-	$(stamp)build_C.UTF-8 \
+	$(patsubst %,$(stamp)check_%,$(GLIBC_PASSES))
+ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
+build-arch: $(stamp)build_C.UTF-8 \
 	$(stamp)build_locales-all
+endif
 
 build-indep: $(stamp)source
 
