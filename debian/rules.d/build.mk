@@ -109,17 +109,6 @@ ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 else
 	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS))
 	$(call logme, -a $(log_build), echo "---------------" ; echo -n "Build ended: " ; date --rfc-2822)
-	if [ $(curpass) = libc ]; then \
-	    I18NPATH=$(CURDIR)/localedata GCONV_PATH=$(DEB_BUILDDIR)/iconvdata localedef --quiet -c -f UTF-8 -i C $(CURDIR)/build-tree/C.UTF-8 ; \
-	fi
-	if [ $(curpass) = libc ]; then \
-	  $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) \
-	    objdir=$(DEB_BUILDDIR) install_root=$(CURDIR)/build-tree/locales-all \
-	    localedata/install-locales; \
-	  sync; \
-	  rdfind -outputname /dev/null -makesymlinks true -removeidentinode false $(CURDIR)/build-tree/locales-all/usr/lib/locale ; \
-	  symlinks -r -s -c $(CURDIR)/build-tree/locales-all/usr/lib/locale ; \
-	fi
 endif
 	touch $@
 
@@ -287,6 +276,21 @@ ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	
 	$(call xx,extra_install)
 endif
+	touch $@
+
+$(stamp)build_C.UTF-8: $(stamp)/build_libc
+	I18NPATH=$(CURDIR)/localedata GCONV_PATH=$(DEB_BUILDDIR)/iconvdata \
+		 localedef --quiet -c -f UTF-8 -i C $(CURDIR)/build-tree/C.UTF-8
+	touch $@
+
+$(stamp)build_locales-all: $(stamp)/build_libc
+	$(MAKE) -C $(build-tree)/$(DEB_HOST_ARCH)-libc $(NJOBS) \
+		objdir=$(build-tree)/$(DEB_HOST_ARCH)-libc \
+		install_root=$(CURDIR)/build-tree/locales-all \
+		localedata/install-locales
+	rdfind -outputname /dev/null -makesymlinks true -removeidentinode false \
+		$(CURDIR)/build-tree/locales-all/usr/lib/locale
+	symlinks -r -s -c $(CURDIR)/build-tree/locales-all/usr/lib/locale
 	touch $@
 
 $(stamp)source: $(stamp)patch
