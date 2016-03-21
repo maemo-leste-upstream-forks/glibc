@@ -36,6 +36,7 @@ DUMMY := $(shell mkdir -p $(stamp))
 export SHELL          = /bin/bash -e
 
 DEB_HOST_ARCH         ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_HOST_ARCH_ENDIAN  ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_ENDIAN)
 DEB_HOST_ARCH_OS      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_GNU_CPU      ?= $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
 DEB_HOST_GNU_TYPE     ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
@@ -59,6 +60,7 @@ shlib_dep_ver = $(GLIBC_VERSION)
 shlib_dep = $(libc) (>= $(shlib_dep_ver))
 
 DEB_BUILDDIR ?= $(build-tree)/$(DEB_HOST_ARCH)-$(curpass)
+DEB_BUILDDIRLIBC ?= $(build-tree)/$(DEB_HOST_ARCH)-libc
 
 GLIBC_SOURCES = $(addprefix $(shell basename $(CURDIR))/, \
 		 $(filter-out debian $(shell basename $(stamp)) $(build-tree), $(wildcard *)))
@@ -219,6 +221,10 @@ clean:: unpatch
 build-arch: $(stamp)info \
 	$(patsubst %,$(stamp)build_%,$(GLIBC_PASSES)) \
 	$(patsubst %,$(stamp)check_%,$(GLIBC_PASSES))
+ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
+build-arch: $(stamp)build_C.UTF-8 \
+	$(stamp)build_locales-all
+endif
 
 build-indep: $(stamp)source
 

@@ -1,6 +1,7 @@
 glibc (2.23-0experimental1) UNRELEASED; urgency=medium
 
   [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch.
   * debian/testsuite-xfail-debian.mk (powerpc) really mark
     tst-malloc-thread-exit as xfail.
   * debian/testsuite-xfail-debian.mk (ppc64) mark tst-malloc-thread-exit
@@ -20,14 +21,14 @@ glibc (2.23-0experimental1) UNRELEASED; urgency=medium
   * hurd-i386/cvs-pt-kill.diff: Fix pthread_kill locking.
   * hurd-i386/cvs-open.diff: Fix __open in ld.so, thus fixing dlopen().
   * hurd-i386/cvs-c++-types.diff: Add expected c++-types.data.
+  * hurd-i386/local-ihash-use.diff: Note that libpthread uses ihash.h.
+  * testsuite-xfail-debian.mk: Add failing new tests. Disable the problematic
+    test-lfs test.
   * hurd-i386/local-versions.diff: New patch to fix symbol version.
 
   [ Adam Conrad ]
   * debian/patches/any/cvs-tst-malloc-thread-exit.diff: Backport fix from
     upstream to make tst-malloc-thread-exit use fewer system resources.
-  * debian/patches/any/cvs-resolver-leak.diff: Backport upstream patch by
-    Andreas Schwab to fix a memory leak in the resolver (Closes: #818178)
-  * debian/glibc-source.filelist: Refresh list of source files and sort.
   * debian/control.in/i386: Remove list of Breaks that predate oldstable.
   * debian/control.in/*: Drop long obsolete file overlap Breaks/Replaces.
 
@@ -115,6 +116,34 @@ glibc (2.23-0experimental0) experimental; urgency=medium
     glibc-bsd).
 
  -- Aurelien Jarno <aurel32@debian.org>  Sun, 13 Mar 2016 19:22:45 +0100
+
+glibc (2.22-4) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * Update from upstream stable branch:
+    - Fix a memory leak in the resolver.  Closes: #818178.
+  * debian/patches/localedata/fr_CA-first_weekday.diff: drop.  Closes:
+    #769051.
+  * debian/rules, debian/rules.d/build.mk: move the C.UTF-8 locale and
+    locales-all generation to a separate target instead of building them
+    in the build_libc target.
+  * debian/control.in/main, debian/rules, debian/rules.d/build.mk: make sure
+    to use the just built localedef when building locales. When
+    cross-compiling use the system localedef with the correct endianness and
+    build-depends on the correct version.
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/tg-sendmsg-SCM_RIGHTS.diff,tg-sendmsg-SCM_CREDS.diff:
+    Update.
+  * patches/hurd-i386/cvs-errnos.d.diff: New patch to fix build dependency
+    loop.
+  * patches/hurd-i386/cvs-mach-syscalls.mk.diff: New patch to fix missing
+    dependency.
+
+  [ Adam Conrad ]
+  * debian/glibc-source.filelist: Refresh list of source files and sort.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 21 Mar 2016 18:41:37 +0100
 
 glibc (2.22-3) unstable; urgency=medium
 
