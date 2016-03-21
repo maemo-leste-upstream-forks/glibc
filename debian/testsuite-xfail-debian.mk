@@ -242,7 +242,6 @@ test-xfail-check-textrel = yes
 test-xfail-opendir-tst1 = yes
 test-xfail-test-idouble = yes
 test-xfail-test-ifloat = yes
-test-xfail-test-lfs = yes
 test-xfail-tst-aio10 = yes
 test-xfail-tst-aio9 = yes
 test-xfail-tst-audit1 = yes
@@ -280,6 +279,10 @@ test-xfail-tst-strtod-round = yes
 test-xfail-tst-sysconf = yes
 test-xfail-tst-tls9-static = yes
 test-xfail-tst-vfork3-mem = yes
+
+# This generates GiBs of data instead of sparse files, putting build box on its knees
+tests-unsupported += test-lfs
+#test-xfail-test-lfs = yes
 
 # happens seldomly
 test-xfail-tst-clock_nanosleep = yes
@@ -764,6 +767,13 @@ test-xfail-test-fpucw-ieee = yes
 test-xfail-test-fpucw-ieee-static = yes
 test-xfail-test-fpucw-static = yes
 test-xfail-test-static = yes
+
+# new in 2.23
+test-xfail-test-fenv-sse-2 = yes
+test-xfail-test-fenv-x87 = yes
+test-xfail-tst-audit11 = yes
+test-xfail-tst-audit12 = yes
+test-xfail-tst-get-cpu-features = yes
 
 # newly failing in 2.21, real regression
 test-xfail-tst-backtrace2 = yes
