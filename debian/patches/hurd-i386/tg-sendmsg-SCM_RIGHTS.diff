@@ -4,15 +4,15 @@ Date: Sat, 17 Jul 2010 22:09:13 +0200
 Subject: [PATCH] Add support to send file descriptors over Unix sockets
 
 ---
- sysdeps/mach/hurd/recvmsg.c | 92 ++++++++++++++++++++++++++++++++++++++++++++-
- sysdeps/mach/hurd/sendmsg.c | 73 +++++++++++++++++++++++++++++------
- 2 files changed, 152 insertions(+), 13 deletions(-)
+ sysdeps/mach/hurd/recvmsg.c | 97 ++++++++++++++++++++++++++++++++++++++++++++-
+ sysdeps/mach/hurd/sendmsg.c | 73 +++++++++++++++++++++++++++++-----
+ 2 files changed, 157 insertions(+), 13 deletions(-)
 
-Index: glibc-2.19/sysdeps/mach/hurd/recvmsg.c
-===================================================================
---- glibc-2.19.orig/sysdeps/mach/hurd/recvmsg.c
-+++ glibc-2.19/sysdeps/mach/hurd/recvmsg.c
-@@ -32,13 +32,33 @@ __libc_recvmsg (int fd, struct msghdr *m
+diff --git a/sysdeps/mach/hurd/recvmsg.c b/sysdeps/mach/hurd/recvmsg.c
+index 5d7b1ee..dfd4145 100644
+--- a/sysdeps/mach/hurd/recvmsg.c
++++ b/sysdeps/mach/hurd/recvmsg.c
+@@ -32,13 +32,34 @@ __libc_recvmsg (int fd, struct msghdr *message, int flags)
    addr_port_t aport;
    char *data = NULL;
    mach_msg_type_number_t len = 0;
@@ -27,6 +27,7 @@ Index: glibc-2.19/sysdeps/mach/hurd/recvmsg.c
 -  int i;
 +  int nfds, *opened_fds = NULL;
 +  int i, ii, j;
++  int newfds;
 +
 +  error_t reauthenticate (mach_port_t port, mach_port_t *result)
 +    {
@@ -48,7 +49,7 @@ Index: glibc-2.19/sysdeps/mach/hurd/recvmsg.c
  
    /* Find the total number of bytes to be read.  */
    amount = 0;
-@@ -135,9 +155,77 @@ __libc_recvmsg (int fd, struct msghdr *m
+@@ -135,9 +156,81 @@ __libc_recvmsg (int fd, struct msghdr *message, int flags)
      message->msg_controllen = clen;
    memcpy (message->msg_control, cdata, message->msg_controllen);
  
@@ -60,6 +61,8 @@ Index: glibc-2.19/sysdeps/mach/hurd/recvmsg.c
 +
 +  /* This counts how many ports we processed completely.  */
 +  i = 0;
++  /* This counts how many new fds we create.  */
++  newfds = 0;
 +
 +  for (cmsg = CMSG_FIRSTHDR (message);
 +       cmsg;
@@ -75,17 +78,19 @@ Index: glibc-2.19/sysdeps/mach/hurd/recvmsg.c
 +
 +	for (j = 0; j < nfds; j++)
 +	  {
-+	    err = reauthenticate (ports[i], &newports[i]);
++	    err = reauthenticate (ports[i], &newports[newfds]);
 +	    if (err)
 +	      goto cleanup;
-+	    fds[j] = opened_fds[i] = _hurd_intern_fd (newports[i], fds[j], 0);
++	    fds[j] = opened_fds[newfds] = _hurd_intern_fd (newports[newfds],
++							   fds[j], 0);
 +	    if (fds[j] == -1)
 +	      {
 +		err = errno;
-+		__mach_port_deallocate (__mach_task_self (), newports[i]);
++		__mach_port_deallocate (__mach_task_self (), newports[newfds]);
 +		goto cleanup;
 +	      }
 +	    i++;
++	    newfds++;
 +	  }
 +      }
 +  }
@@ -102,7 +107,7 @@ Index: glibc-2.19/sysdeps/mach/hurd/recvmsg.c
 +  if (nports > 0)
 +    {
 +      ii = 0;
-+      j = 0;
++      newfds = 0;
 +      for (cmsg = CMSG_FIRSTHDR (message);
 +	   cmsg;
 +	   cmsg = CMSG_NXTHDR (message, cmsg))
@@ -111,10 +116,10 @@ Index: glibc-2.19/sysdeps/mach/hurd/recvmsg.c
 +	    {
 +	      nfds = (cmsg->cmsg_len - CMSG_ALIGN (sizeof (struct cmsghdr)))
 +		     / sizeof (int);
-+	      for (j = 0; j < nfds && ii < i; j++, ii++)
++	      for (j = 0; j < nfds && ii < i; j++, ii++, newfds++)
 +	      {
-+		_hurd_fd_close (_hurd_fd_get (opened_fds[ii]));
-+		__mach_port_deallocate (__mach_task_self (), newports[ii]);
++		_hurd_fd_close (_hurd_fd_get (opened_fds[newfds]));
++		__mach_port_deallocate (__mach_task_self (), newports[newfds]);
 +		__mach_port_deallocate (__mach_task_self (), ports[ii]);
 +	      }
 +	    }
@@ -126,11 +131,11 @@ Index: glibc-2.19/sysdeps/mach/hurd/recvmsg.c
  }
  
  weak_alias (__libc_recvmsg, recvmsg)
-Index: glibc-2.19/sysdeps/mach/hurd/sendmsg.c
-===================================================================
---- glibc-2.19.orig/sysdeps/mach/hurd/sendmsg.c
-+++ glibc-2.19/sysdeps/mach/hurd/sendmsg.c
-@@ -32,6 +32,10 @@ ssize_t
+diff --git a/sysdeps/mach/hurd/sendmsg.c b/sysdeps/mach/hurd/sendmsg.c
+index 5a93c63..612581c 100644
+--- a/sysdeps/mach/hurd/sendmsg.c
++++ b/sysdeps/mach/hurd/sendmsg.c
+@@ -31,6 +31,10 @@ ssize_t
  __libc_sendmsg (int fd, const struct msghdr *message, int flags)
  {
    error_t err = 0;
@@ -141,7 +146,7 @@ Index: glibc-2.19/sysdeps/mach/hurd/sendmsg.c
    struct sockaddr_un *addr = message->msg_name;
    socklen_t addr_len = message->msg_namelen;
    addr_port_t aport = MACH_PORT_NULL;
-@@ -44,6 +48,7 @@ __libc_sendmsg (int fd, const struct msg
+@@ -43,6 +47,7 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
    mach_msg_type_number_t len;
    mach_msg_type_number_t amount;
    int dealloc = 0;
@@ -149,7 +154,7 @@ Index: glibc-2.19/sysdeps/mach/hurd/sendmsg.c
    int i;
  
    /* Find the total number of bytes to be written.  */
-@@ -101,6 +106,48 @@ __libc_sendmsg (int fd, const struct msg
+@@ -100,6 +105,48 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
  	}
      }
  
@@ -198,7 +203,7 @@ Index: glibc-2.19/sysdeps/mach/hurd/sendmsg.c
    if (addr)
      {
        if (addr->sun_family == AF_LOCAL)
-@@ -111,9 +158,8 @@ __libc_sendmsg (int fd, const struct msg
+@@ -109,9 +156,8 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
  	  file_t file = __file_name_lookup (name, 0, 0);
  	  if (file == MACH_PORT_NULL)
  	    {
@@ -210,7 +215,7 @@ Index: glibc-2.19/sysdeps/mach/hurd/sendmsg.c
  	    }
  	  err = __ifsock_getsockaddr (file, &aport);
  	  __mach_port_deallocate (__mach_task_self (), file);
-@@ -121,11 +167,7 @@ __libc_sendmsg (int fd, const struct msg
+@@ -119,11 +165,7 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
  	    /* The file did not grok the ifsock protocol.  */
  	    err = ENOTSOCK;
  	  if (err)
@@ -223,7 +228,7 @@ Index: glibc-2.19/sysdeps/mach/hurd/sendmsg.c
  	}
        else
  	err = EIEIO;
-@@ -144,8 +186,9 @@ __libc_sendmsg (int fd, const struct msg
+@@ -142,8 +184,9 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
  			      /* Send the data.  */
  			      err = __socket_send (port, aport,
  						   flags, data.ptr, len,
@@ -235,7 +240,7 @@ Index: glibc-2.19/sysdeps/mach/hurd/sendmsg.c
  						   message->msg_control,
  						   message->msg_controllen,
  						   &amount);
-@@ -154,11 +197,19 @@ __libc_sendmsg (int fd, const struct msg
+@@ -152,11 +195,19 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
  			    }
  			  err;
  			}));
@@ -256,3 +261,5 @@ Index: glibc-2.19/sysdeps/mach/hurd/sendmsg.c
  }
  
  weak_alias (__libc_sendmsg, sendmsg)
+-- 
+tg: (b4578ba..) t/sendmsg-SCM_RIGHTS (depends on: 64a17f1adde4715bb6607f64decd73b2df9e6852)

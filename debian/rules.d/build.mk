@@ -109,17 +109,6 @@ ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 else
 	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS))
 	$(call logme, -a $(log_build), echo "---------------" ; echo -n "Build ended: " ; date --rfc-2822)
-	if [ $(curpass) = libc ]; then \
-	    I18NPATH=$(CURDIR)/localedata GCONV_PATH=$(DEB_BUILDDIR)/iconvdata localedef --quiet -c -f UTF-8 -i C $(CURDIR)/build-tree/C.UTF-8 ; \
-	fi
-	if [ $(curpass) = libc ]; then \
-	  $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) \
-	    objdir=$(DEB_BUILDDIR) install_root=$(CURDIR)/build-tree/locales-all \
-	    localedata/install-locales; \
-	  sync; \
-	  rdfind -outputname /dev/null -makesymlinks true -removeidentinode false $(CURDIR)/build-tree/locales-all/usr/lib/locale ; \
-	  symlinks -r -s -c $(CURDIR)/build-tree/locales-all/usr/lib/locale ; \
-	fi
 endif
 	touch $@
 
@@ -287,6 +276,40 @@ ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	
 	$(call xx,extra_install)
 endif
+	touch $@
+
+#
+# Make sure to use the just built localedef for native builds. When
+# cross-compiling use the system localedef passing --little-endian
+# or --big-endian to select the correct endianess. A cross-specific
+# build-dependency makes sure that the correct version is used, as
+# the format might change between upstream versions.
+#
+ifeq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
+LOCALEDEF = I18NPATH=$(CURDIR)/localedata \
+	    GCONV_PATH=$(CURDIR)/$(DEB_BUILDDIRLIBC)/iconvdata \
+	    LC_ALL=C \
+	    $(CURDIR)/$(DEB_BUILDDIRLIBC)/elf/ld.so --library-path $(CURDIR)/$(DEB_BUILDDIRLIBC) \
+	    $(CURDIR)/$(DEB_BUILDDIRLIBC)/locale/localedef
+else
+LOCALEDEF = I18NPATH=$(CURDIR)/localedata \
+	    GCONV_PATH=$(CURDIR)/$(DEB_BUILDDIRLIBC)/iconvdata \
+	    LC_ALL=C \
+	    localedef --$(DEB_HOST_ARCH_ENDIAN)-endian
+endif
+
+$(stamp)build_C.UTF-8: $(stamp)/build_libc
+	$(LOCALEDEF) --quiet -c -f UTF-8 -i C $(CURDIR)/build-tree/C.UTF-8
+	touch $@
+
+$(stamp)build_locales-all: $(stamp)/build_libc
+	$(MAKE) -C $(DEB_BUILDDIRLIBC) $(NJOBS) \
+		objdir=$(DEB_BUILDDIRLIBC) \
+		install_root=$(CURDIR)/build-tree/locales-all \
+		localedata/install-locales LOCALEDEF="$(LOCALEDEF)"
+	rdfind -outputname /dev/null -makesymlinks true -removeidentinode false \
+		$(CURDIR)/build-tree/locales-all/usr/lib/locale
+	symlinks -r -s -c $(CURDIR)/build-tree/locales-all/usr/lib/locale
 	touch $@
 
 $(stamp)source: $(stamp)patch
