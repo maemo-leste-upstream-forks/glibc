@@ -212,8 +212,10 @@ test-xfail-tst-timer2 = yes
 # We don't have auxv yet
 test-xfail-tst-auxv = yes
 
+# check-c++-types.sh support will be fixed in hurd (>> 1:0.7.git20160316-1)
+test-xfail-c++-types-check = yes
+
 # We don't provide ABI reference yet
-test-xfail-c++-types-check= yes
 test-xfail-check-abi-libcrypt = yes
 test-xfail-check-abi-libdl = yes
 test-xfail-check-abi-ld = yes
