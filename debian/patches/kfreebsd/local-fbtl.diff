@@ -13481,7 +13481,7 @@
 +sysd-rules-patterns += ptw-%:%
 --- /dev/null
 +++ b/fbtl/Makefile
-@@ -0,0 +1,644 @@
+@@ -0,0 +1,642 @@
 +# Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +# This file is part of the GNU C Library.
 +
@@ -13776,14 +13776,12 @@
 +
 +include ../Makeconfig
 +
-+ifeq ($(have-forced-unwind),yes)
 +tests += tst-cancelx2 tst-cancelx3 tst-cancelx4 tst-cancelx5 \
 +	 tst-cancelx6 tst-cancelx7 tst-cancelx8 tst-cancelx9 tst-cancelx10 \
 +	 tst-cancelx11 tst-cancelx12 tst-cancelx13 tst-cancelx14 tst-cancelx15 \
 +	 tst-cancelx16 tst-cancelx17 tst-cancelx18 tst-cancelx20 tst-cancelx21 \
 +	 tst-cleanupx0 tst-cleanupx1 tst-cleanupx2 tst-cleanupx3 tst-cleanupx4 \
 +	 tst-oncex3 tst-oncex4
-+endif
 +ifeq ($(build-shared),yes)
 +tests += tst-atfork2 tst-tls3 tst-tls4 tst-tls5 tst-_res1 tst-fini1 \
 +	 tst-stackguard1
@@ -15935,7 +15933,7 @@
 +hidden_def (__pthread_unregister_cancel)
 --- /dev/null
 +++ b/fbtl/cleanup_compat.c
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,50 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -15959,10 +15957,8 @@
 +
 +
 +void
-+_pthread_cleanup_push (buffer, routine, arg)
-+     struct _pthread_cleanup_buffer *buffer;
-+     void (*routine) (void *);
-+     void *arg;
++_pthread_cleanup_push (struct _pthread_cleanup_buffer *buffer,
++		       void (*routine) (void *), void *arg)
 +{
 +  struct pthread *self = THREAD_SELF;
 +
@@ -15976,9 +15972,7 @@
 +
 +
 +void
-+_pthread_cleanup_pop (buffer, execute)
-+     struct _pthread_cleanup_buffer *buffer;
-+     int execute;
++_pthread_cleanup_pop (struct _pthread_cleanup_buffer *buffer, int execute)
 +{
 +  struct pthread *self __attribute ((unused)) = THREAD_SELF;
 +
@@ -16086,7 +16080,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/cleanup_defer_compat.c
-@@ -0,0 +1,97 @@
+@@ -0,0 +1,94 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -16109,10 +16103,8 @@
 +
 +
 +void
-+_pthread_cleanup_push_defer (buffer, routine, arg)
-+     struct _pthread_cleanup_buffer *buffer;
-+     void (*routine) (void *);
-+     void *arg;
++_pthread_cleanup_push_defer (struct _pthread_cleanup_buffer *buffer,
++			     void (*routine) (void *), void *arg)
 +{
 +  struct pthread *self = THREAD_SELF;
 +
@@ -16148,9 +16140,8 @@
 +
 +
 +void
-+_pthread_cleanup_pop_restore (buffer, execute)
-+     struct _pthread_cleanup_buffer *buffer;
-+     int execute;
++_pthread_cleanup_pop_restore (struct _pthread_cleanup_buffer *buffer,
++			      int execute)
 +{
 +  struct pthread *self = THREAD_SELF;
 +
@@ -16338,7 +16329,7 @@
 +fi
 --- /dev/null
 +++ b/fbtl/descr.h
-@@ -0,0 +1,410 @@
+@@ -0,0 +1,406 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -16373,9 +16364,7 @@
 +#include <dl-sysdep.h>
 +#include "../fbtl_db/thread_db.h"
 +#include <tls.h>
-+#ifdef HAVE_FORCED_UNWIND
-+# include <unwind.h>
-+#endif
++#include <unwind.h>
 +#define __need_res_state
 +#include <resolv.h>
 +#include <kernel-features.h>
@@ -16717,10 +16706,8 @@
 +  /* Next descriptor with a pending event.  */
 +  struct pthread *nextevent;
 +
-+#ifdef HAVE_FORCED_UNWIND
 +  /* Machine-specific unwind info.  */
 +  struct _Unwind_Exception exc;
-+#endif
 +
 +  /* If nonzero pointer to area allocated for the stack and its
 +     size.  */
@@ -17809,7 +17796,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/old_pthread_cond_broadcast.c
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,56 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -17837,8 +17824,7 @@
 +
 +#if SHLIB_COMPAT(libpthread, GLIBC_2_0, GLIBC_2_3_2)
 +int
-+__pthread_cond_broadcast_2_0 (cond)
-+     pthread_cond_2_0_t *cond;
++__pthread_cond_broadcast_2_0 (pthread_cond_2_0_t *cond)
 +{
 +  if (cond->cond == NULL)
 +    {
@@ -17869,7 +17855,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/old_pthread_cond_destroy.c
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,35 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -17895,8 +17881,7 @@
 +
 +#if SHLIB_COMPAT(libpthread, GLIBC_2_0, GLIBC_2_3_2)
 +int
-+__pthread_cond_destroy_2_0 (cond)
-+     pthread_cond_2_0_t *cond;
++__pthread_cond_destroy_2_0 (pthread_cond_2_0_t *cond)
 +{
 +  /* Free the memory which was eventually allocated.  */
 +  free (cond->cond);
@@ -17908,7 +17893,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/old_pthread_cond_init.c
-@@ -0,0 +1,46 @@
+@@ -0,0 +1,45 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -17934,9 +17919,8 @@
 +
 +#if SHLIB_COMPAT(libpthread, GLIBC_2_0, GLIBC_2_3_2)
 +int
-+__pthread_cond_init_2_0 (cond, cond_attr)
-+     pthread_cond_2_0_t *cond;
-+     const pthread_condattr_t *cond_attr;
++__pthread_cond_init_2_0 (pthread_cond_2_0_t *cond,
++			 const pthread_condattr_t *cond_attr)
 +{
 +  struct pthread_condattr *icond_attr = (struct pthread_condattr *) cond_attr;
 +
@@ -17957,7 +17941,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/old_pthread_cond_signal.c
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,56 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -17985,8 +17969,7 @@
 +
 +#if SHLIB_COMPAT(libpthread, GLIBC_2_0, GLIBC_2_3_2)
 +int
-+__pthread_cond_signal_2_0 (cond)
-+     pthread_cond_2_0_t *cond;
++__pthread_cond_signal_2_0 (pthread_cond_2_0_t *cond)
 +{
 +  if (cond->cond == NULL)
 +    {
@@ -18017,7 +18000,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/old_pthread_cond_timedwait.c
-@@ -0,0 +1,59 @@
+@@ -0,0 +1,57 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -18045,10 +18028,8 @@
 +
 +#if SHLIB_COMPAT(libpthread, GLIBC_2_0, GLIBC_2_3_2)
 +int
-+__pthread_cond_timedwait_2_0 (cond, mutex, abstime)
-+     pthread_cond_2_0_t *cond;
-+     pthread_mutex_t *mutex;
-+     const struct timespec *abstime;
++__pthread_cond_timedwait_2_0 (pthread_cond_2_0_t *cond, pthread_mutex_t *mutex,
++			      const struct timespec *abstime)
 +{
 +  if (cond->cond == NULL)
 +    {
@@ -18079,7 +18060,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/old_pthread_cond_wait.c
-@@ -0,0 +1,58 @@
+@@ -0,0 +1,56 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -18107,9 +18088,7 @@
 +
 +#if SHLIB_COMPAT(libpthread, GLIBC_2_0, GLIBC_2_3_2)
 +int
-+__pthread_cond_wait_2_0 (cond, mutex)
-+     pthread_cond_2_0_t *cond;
-+     pthread_mutex_t *mutex;
++__pthread_cond_wait_2_0 (pthread_cond_2_0_t *cond, pthread_mutex_t *mutex)
 +{
 +  if (cond->cond == NULL)
 +    {
@@ -19066,7 +19045,7 @@
 +#include <crti.S>
 --- /dev/null
 +++ b/fbtl/pt-raise.c
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,29 @@
 +/* ISO C raise function for libpthread.
 +   Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -19091,8 +19070,7 @@
 +
 +
 +int
-+raise (sig)
-+     int sig;
++raise (int sig)
 +{
 +  /* This is what POSIX says must happen.  */
 +  return pthread_kill (pthread_self (), sig);
@@ -19814,7 +19792,7 @@
 +#endif	/* pthreadP.h */
 --- /dev/null
 +++ b/fbtl/pthread_atfork.c
-@@ -0,0 +1,63 @@
+@@ -0,0 +1,61 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -19865,10 +19843,8 @@
 +/* Don't mark the compatibility function as hidden.  */
 +attribute_hidden
 +#endif
-+__pthread_atfork (prepare, parent, child)
-+     void (*prepare) (void);
-+     void (*parent) (void);
-+     void (*child) (void);
++__pthread_atfork (void (*prepare) (void), void (*parent) (void),
++		  void (*child) (void))
 +{
 +  return __register_atfork (prepare, parent, child,
 +			    &__dso_handle == NULL ? NULL : __dso_handle);
@@ -19880,7 +19856,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/pthread_attr_destroy.c
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,44 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -19907,8 +19883,7 @@
 +#include <shlib-compat.h>
 +
 +int
-+__pthread_attr_destroy (attr)
-+     pthread_attr_t *attr;
++__pthread_attr_destroy (pthread_attr_t *attr)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -19928,47 +19903,6 @@
 +strong_alias (__pthread_attr_destroy, pthread_attr_destroy)
 --- /dev/null
 +++ b/fbtl/pthread_attr_getdetachstate.c
-@@ -0,0 +1,38 @@
-+/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include <assert.h>
-+#include "pthreadP.h"
-+
-+
-+int
-+__pthread_attr_getdetachstate (attr, detachstate)
-+     const pthread_attr_t *attr;
-+     int *detachstate;
-+{
-+  struct pthread_attr *iattr;
-+
-+  assert (sizeof (*attr) >= sizeof (struct pthread_attr));
-+  iattr = (struct pthread_attr *) attr;
-+
-+  *detachstate = (iattr->flags & ATTR_FLAG_DETACHSTATE
-+		  ? PTHREAD_CREATE_DETACHED : PTHREAD_CREATE_JOINABLE);
-+
-+  return 0;
-+}
-+strong_alias (__pthread_attr_getdetachstate, pthread_attr_getdetachstate)
---- /dev/null
-+++ b/fbtl/pthread_attr_getguardsize.c
 @@ -0,0 +1,36 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -19993,22 +19927,22 @@
 +
 +
 +int
-+pthread_attr_getguardsize (attr, guardsize)
-+     const pthread_attr_t *attr;
-+     size_t *guardsize;
++__pthread_attr_getdetachstate (const pthread_attr_t *attr, int *detachstate)
 +{
 +  struct pthread_attr *iattr;
 +
 +  assert (sizeof (*attr) >= sizeof (struct pthread_attr));
 +  iattr = (struct pthread_attr *) attr;
 +
-+  *guardsize = iattr->guardsize;
++  *detachstate = (iattr->flags & ATTR_FLAG_DETACHSTATE
++		  ? PTHREAD_CREATE_DETACHED : PTHREAD_CREATE_JOINABLE);
 +
 +  return 0;
 +}
++strong_alias (__pthread_attr_getdetachstate, pthread_attr_getdetachstate)
 --- /dev/null
-+++ b/fbtl/pthread_attr_getinheritsched.c
-@@ -0,0 +1,39 @@
++++ b/fbtl/pthread_attr_getguardsize.c
+@@ -0,0 +1,34 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20032,9 +19966,44 @@
 +
 +
 +int
-+__pthread_attr_getinheritsched (attr, inherit)
-+     const pthread_attr_t *attr;
-+     int *inherit;
++pthread_attr_getguardsize (const pthread_attr_t *attr, size_t *guardsize)
++{
++  struct pthread_attr *iattr;
++
++  assert (sizeof (*attr) >= sizeof (struct pthread_attr));
++  iattr = (struct pthread_attr *) attr;
++
++  *guardsize = iattr->guardsize;
++
++  return 0;
++}
+--- /dev/null
++++ b/fbtl/pthread_attr_getinheritsched.c
+@@ -0,0 +1,37 @@
++/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <assert.h>
++#include "pthreadP.h"
++
++
++int
++__pthread_attr_getinheritsched (const pthread_attr_t *attr, int *inherit)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20050,7 +20019,7 @@
 +strong_alias (__pthread_attr_getinheritsched, pthread_attr_getinheritsched)
 --- /dev/null
 +++ b/fbtl/pthread_attr_getschedparam.c
-@@ -0,0 +1,39 @@
+@@ -0,0 +1,38 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20075,9 +20044,8 @@
 +
 +
 +int
-+__pthread_attr_getschedparam (attr, param)
-+     const pthread_attr_t *attr;
-+     struct sched_param *param;
++__pthread_attr_getschedparam (const pthread_attr_t *attr,
++			      struct sched_param *param)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20092,6 +20060,85 @@
 +strong_alias (__pthread_attr_getschedparam, pthread_attr_getschedparam)
 --- /dev/null
 +++ b/fbtl/pthread_attr_getschedpolicy.c
+@@ -0,0 +1,36 @@
++/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <assert.h>
++#include "pthreadP.h"
++
++
++int
++__pthread_attr_getschedpolicy (const pthread_attr_t *attr, int *policy)
++{
++  struct pthread_attr *iattr;
++
++  assert (sizeof (*attr) >= sizeof (struct pthread_attr));
++  iattr = (struct pthread_attr *) attr;
++
++  /* Store the current values.  */
++  *policy = iattr->schedpolicy;
++
++  return 0;
++}
++strong_alias (__pthread_attr_getschedpolicy, pthread_attr_getschedpolicy)
+--- /dev/null
++++ b/fbtl/pthread_attr_getscope.c
+@@ -0,0 +1,37 @@
++/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <assert.h>
++#include "pthreadP.h"
++
++
++int
++__pthread_attr_getscope (const pthread_attr_t *attr, int *scope)
++{
++  struct pthread_attr *iattr;
++
++  assert (sizeof (*attr) >= sizeof (struct pthread_attr));
++  iattr = (struct pthread_attr *) attr;
++
++  /* Store the current values.  */
++  *scope = (iattr->flags & ATTR_FLAG_SCOPEPROCESS
++	      ? PTHREAD_SCOPE_PROCESS : PTHREAD_SCOPE_SYSTEM);
++
++  return 0;
++}
++strong_alias (__pthread_attr_getscope, pthread_attr_getscope)
+--- /dev/null
++++ b/fbtl/pthread_attr_getstack.c
 @@ -0,0 +1,38 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -20116,93 +20163,8 @@
 +
 +
 +int
-+__pthread_attr_getschedpolicy (attr, policy)
-+     const pthread_attr_t *attr;
-+     int *policy;
-+{
-+  struct pthread_attr *iattr;
-+
-+  assert (sizeof (*attr) >= sizeof (struct pthread_attr));
-+  iattr = (struct pthread_attr *) attr;
-+
-+  /* Store the current values.  */
-+  *policy = iattr->schedpolicy;
-+
-+  return 0;
-+}
-+strong_alias (__pthread_attr_getschedpolicy, pthread_attr_getschedpolicy)
---- /dev/null
-+++ b/fbtl/pthread_attr_getscope.c
-@@ -0,0 +1,39 @@
-+/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include <assert.h>
-+#include "pthreadP.h"
-+
-+
-+int
-+__pthread_attr_getscope (attr, scope)
-+     const pthread_attr_t *attr;
-+     int *scope;
-+{
-+  struct pthread_attr *iattr;
-+
-+  assert (sizeof (*attr) >= sizeof (struct pthread_attr));
-+  iattr = (struct pthread_attr *) attr;
-+
-+  /* Store the current values.  */
-+  *scope = (iattr->flags & ATTR_FLAG_SCOPEPROCESS
-+	      ? PTHREAD_SCOPE_PROCESS : PTHREAD_SCOPE_SYSTEM);
-+
-+  return 0;
-+}
-+strong_alias (__pthread_attr_getscope, pthread_attr_getscope)
---- /dev/null
-+++ b/fbtl/pthread_attr_getstack.c
-@@ -0,0 +1,40 @@
-+/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include <assert.h>
-+#include "pthreadP.h"
-+
-+
-+int
-+__pthread_attr_getstack (attr, stackaddr, stacksize)
-+     const pthread_attr_t *attr;
-+     void **stackaddr;
-+     size_t *stacksize;
++__pthread_attr_getstack (const pthread_attr_t *attr, void **stackaddr,
++			 size_t *stacksize)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20218,7 +20180,7 @@
 +strong_alias (__pthread_attr_getstack, pthread_attr_getstack)
 --- /dev/null
 +++ b/fbtl/pthread_attr_getstackaddr.c
-@@ -0,0 +1,44 @@
+@@ -0,0 +1,42 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20243,9 +20205,7 @@
 +
 +
 +int
-+__pthread_attr_getstackaddr (attr, stackaddr)
-+     const pthread_attr_t *attr;
-+     void **stackaddr;
++__pthread_attr_getstackaddr (const pthread_attr_t *attr, void **stackaddr)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20265,7 +20225,7 @@
 +              "the use of `pthread_attr_getstackaddr' is deprecated, use `pthread_attr_getstack'")
 --- /dev/null
 +++ b/fbtl/pthread_attr_getstacksize.c
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,45 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20289,9 +20249,7 @@
 +
 +
 +int
-+__pthread_attr_getstacksize (attr, stacksize)
-+     const pthread_attr_t *attr;
-+     size_t *stacksize;
++__pthread_attr_getstacksize (const pthread_attr_t *attr, size_t *stacksize)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20315,7 +20273,7 @@
 +strong_alias (__pthread_attr_getstacksize, pthread_attr_getstacksize)
 --- /dev/null
 +++ b/fbtl/pthread_attr_init.c
-@@ -0,0 +1,87 @@
+@@ -0,0 +1,85 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20348,8 +20306,7 @@
 +
 +
 +int
-+__pthread_attr_init_2_1 (attr)
-+     pthread_attr_t *attr;
++__pthread_attr_init_2_1 (pthread_attr_t *attr)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20372,8 +20329,7 @@
 +
 +#if SHLIB_COMPAT(libpthread, GLIBC_2_0, GLIBC_2_1)
 +int
-+__pthread_attr_init_2_0 (attr)
-+     pthread_attr_t *attr;
++__pthread_attr_init_2_0 (pthread_attr_t *attr)
 +{
 +  /* This code is specific to the old LinuxThread code which has a too
 +     small pthread_attr_t definition.  The struct looked like
@@ -20405,7 +20361,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/pthread_attr_setdetachstate.c
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,45 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20430,9 +20386,7 @@
 +
 +
 +int
-+__pthread_attr_setdetachstate (attr, detachstate)
-+     pthread_attr_t *attr;
-+     int detachstate;
++__pthread_attr_setdetachstate (pthread_attr_t *attr, int detachstate)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20455,7 +20409,7 @@
 +strong_alias (__pthread_attr_setdetachstate, pthread_attr_setdetachstate)
 --- /dev/null
 +++ b/fbtl/pthread_attr_setguardsize.c
-@@ -0,0 +1,39 @@
+@@ -0,0 +1,37 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20479,9 +20433,7 @@
 +
 +
 +int
-+pthread_attr_setguardsize (attr, guardsize)
-+     pthread_attr_t *attr;
-+     size_t guardsize;
++pthread_attr_setguardsize (pthread_attr_t *attr, size_t guardsize)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20497,7 +20449,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_attr_setinheritsched.c
-@@ -0,0 +1,46 @@
+@@ -0,0 +1,44 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20522,9 +20474,7 @@
 +
 +
 +int
-+__pthread_attr_setinheritsched (attr, inherit)
-+     pthread_attr_t *attr;
-+     int inherit;
++__pthread_attr_setinheritsched (pthread_attr_t *attr, int inherit)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20546,7 +20496,7 @@
 +strong_alias (__pthread_attr_setinheritsched, pthread_attr_setinheritsched)
 --- /dev/null
 +++ b/fbtl/pthread_attr_setschedparam.c
-@@ -0,0 +1,46 @@
+@@ -0,0 +1,45 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20572,9 +20522,8 @@
 +
 +
 +int
-+__pthread_attr_setschedparam (attr, param)
-+     pthread_attr_t *attr;
-+     const struct sched_param *param;
++__pthread_attr_setschedparam (pthread_attr_t *attr,
++			      const struct sched_param *param)
 +{
 +  assert (sizeof (*attr) >= sizeof (struct pthread_attr));
 +  struct pthread_attr *iattr = (struct pthread_attr *) attr;
@@ -20595,7 +20544,7 @@
 +strong_alias (__pthread_attr_setschedparam, pthread_attr_setschedparam)
 --- /dev/null
 +++ b/fbtl/pthread_attr_setschedpolicy.c
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,45 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20620,9 +20569,7 @@
 +
 +
 +int
-+__pthread_attr_setschedpolicy (attr, policy)
-+     pthread_attr_t *attr;
-+     int policy;
++__pthread_attr_setschedpolicy (pthread_attr_t *attr, int policy)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20645,7 +20592,7 @@
 +strong_alias (__pthread_attr_setschedpolicy, pthread_attr_setschedpolicy)
 --- /dev/null
 +++ b/fbtl/pthread_attr_setscope.c
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,48 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20670,9 +20617,7 @@
 +
 +
 +int
-+__pthread_attr_setscope (attr, scope)
-+     pthread_attr_t *attr;
-+     int scope;
++__pthread_attr_setscope (pthread_attr_t *attr, int scope)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20698,7 +20643,7 @@
 +strong_alias (__pthread_attr_setscope, pthread_attr_setscope)
 --- /dev/null
 +++ b/fbtl/pthread_attr_setstack.c
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,92 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20729,10 +20674,8 @@
 +
 +
 +int
-+__pthread_attr_setstack (attr, stackaddr, stacksize)
-+     pthread_attr_t *attr;
-+     void *stackaddr;
-+     size_t stacksize;
++__pthread_attr_setstack (pthread_attr_t *attr, void *stackaddr,
++			 size_t stacksize)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20795,7 +20738,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/pthread_attr_setstackaddr.c
-@@ -0,0 +1,46 @@
+@@ -0,0 +1,44 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20820,9 +20763,7 @@
 +
 +
 +int
-+__pthread_attr_setstackaddr (attr, stackaddr)
-+     pthread_attr_t *attr;
-+     void *stackaddr;
++__pthread_attr_setstackaddr (pthread_attr_t *attr, void *stackaddr)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20844,7 +20785,7 @@
 +              "the use of `pthread_attr_setstackaddr' is deprecated, use `pthread_attr_setstack'")
 --- /dev/null
 +++ b/fbtl/pthread_attr_setstacksize.c
-@@ -0,0 +1,83 @@
+@@ -0,0 +1,81 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20874,9 +20815,7 @@
 +
 +
 +int
-+__pthread_attr_setstacksize (attr, stacksize)
-+     pthread_attr_t *attr;
-+     size_t stacksize;
++__pthread_attr_setstacksize (pthread_attr_t *attr, size_t stacksize)
 +{
 +  struct pthread_attr *iattr;
 +
@@ -20930,7 +20869,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/pthread_barrier_destroy.c
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,42 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -20955,8 +20894,7 @@
 +
 +
 +int
-+pthread_barrier_destroy (barrier)
-+     pthread_barrier_t *barrier;
++pthread_barrier_destroy (pthread_barrier_t *barrier)
 +{
 +  struct pthread_barrier *ibarrier;
 +  int result = EBUSY;
@@ -20976,7 +20914,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_barrier_init.c
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,69 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -21008,10 +20946,9 @@
 +
 +
 +int
-+pthread_barrier_init (barrier, attr, count)
-+     pthread_barrier_t *barrier;
-+     const pthread_barrierattr_t *attr;
-+     unsigned int count;
++pthread_barrier_init (pthread_barrier_t *barrier,
++		      const pthread_barrierattr_t *attr,
++		      unsigned int count)
 +{
 +  struct pthread_barrier *ibarrier;
 +
@@ -21049,7 +20986,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_barrier_wait.c
-@@ -0,0 +1,78 @@
+@@ -0,0 +1,77 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
@@ -21076,8 +21013,7 @@
 +
 +/* Wait on barrier.  */
 +int
-+pthread_barrier_wait (barrier)
-+     pthread_barrier_t *barrier;
++pthread_barrier_wait (pthread_barrier_t *barrier)
 +{
 +  struct pthread_barrier *ibarrier = (struct pthread_barrier *) barrier;
 +  int result = 0;
@@ -21130,7 +21066,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_barrierattr_destroy.c
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -21153,8 +21089,7 @@
 +
 +
 +int
-+pthread_barrierattr_destroy (attr)
-+     pthread_barrierattr_t *attr;
++pthread_barrierattr_destroy (pthread_barrierattr_t *attr)
 +{
 +  /* Nothing to do.  */
 +
@@ -21162,39 +21097,6 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_barrierattr_getpshared.c
-@@ -0,0 +1,30 @@
-+/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include "pthreadP.h"
-+
-+
-+int
-+pthread_barrierattr_getpshared (attr, pshared)
-+     const pthread_barrierattr_t *attr;
-+     int *pshared;
-+{
-+  *pshared = ((const struct pthread_barrierattr *) attr)->pshared;
-+
-+  return 0;
-+}
---- /dev/null
-+++ b/fbtl/pthread_barrierattr_init.c
 @@ -0,0 +1,29 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -21218,8 +21120,39 @@
 +
 +
 +int
-+pthread_barrierattr_init (attr)
-+     pthread_barrierattr_t *attr;
++pthread_barrierattr_getpshared (const pthread_barrierattr_t *attr,
++				int *pshared)
++{
++  *pshared = ((const struct pthread_barrierattr *) attr)->pshared;
++
++  return 0;
++}
+--- /dev/null
++++ b/fbtl/pthread_barrierattr_init.c
+@@ -0,0 +1,28 @@
++/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include "pthreadP.h"
++
++
++int
++pthread_barrierattr_init (pthread_barrierattr_t *attr)
 +{
 +  ((struct pthread_barrierattr *) attr)->pshared = PTHREAD_PROCESS_PRIVATE;
 +
@@ -21227,7 +21160,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_barrierattr_setpshared.c
-@@ -0,0 +1,39 @@
+@@ -0,0 +1,37 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -21251,9 +21184,7 @@
 +
 +
 +int
-+pthread_barrierattr_setpshared (attr, pshared)
-+     pthread_barrierattr_t *attr;
-+     int pshared;
++pthread_barrierattr_setpshared (pthread_barrierattr_t *attr, int pshared)
 +{
 +  struct pthread_barrierattr *iattr;
 +
@@ -21269,7 +21200,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_cancel.c
-@@ -0,0 +1,109 @@
+@@ -0,0 +1,108 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -21297,8 +21228,7 @@
 +
 +
 +int
-+pthread_cancel (th)
-+     pthread_t th;
++pthread_cancel (pthread_t th)
 +{
 +  volatile struct pthread *pd = (volatile struct pthread *) th;
 +
@@ -21510,7 +21440,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/pthread_cond_broadcast.c
-@@ -0,0 +1,98 @@
+@@ -0,0 +1,97 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
@@ -21542,8 +21472,7 @@
 +
 +
 +int
-+__pthread_cond_broadcast (cond)
-+     pthread_cond_t *cond;
++__pthread_cond_broadcast (pthread_cond_t *cond)
 +{
 +  LIBC_PROBE (cond_broadcast, 1, cond);
 +
@@ -21611,7 +21540,7 @@
 +		  GLIBC_2_3_2);
 --- /dev/null
 +++ b/fbtl/pthread_cond_destroy.c
-@@ -0,0 +1,87 @@
+@@ -0,0 +1,86 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -21637,8 +21566,7 @@
 +
 +
 +int
-+__pthread_cond_destroy (cond)
-+     pthread_cond_t *cond;
++__pthread_cond_destroy (pthread_cond_t *cond)
 +{
 +  int pshared = (cond->__data.__mutex == (void *) ~0l)
 +		? LLL_SHARED : LLL_PRIVATE;
@@ -21701,7 +21629,7 @@
 +		  pthread_cond_destroy, GLIBC_2_3_2);
 --- /dev/null
 +++ b/fbtl/pthread_cond_init.c
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,47 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -21726,9 +21654,7 @@
 +
 +
 +int
-+__pthread_cond_init (cond, cond_attr)
-+     pthread_cond_t *cond;
-+     const pthread_condattr_t *cond_attr;
++__pthread_cond_init (pthread_cond_t *cond, const pthread_condattr_t *cond_attr)
 +{
 +  struct pthread_condattr *icond_attr = (struct pthread_condattr *) cond_attr;
 +
@@ -21753,7 +21679,7 @@
 +		  pthread_cond_init, GLIBC_2_3_2);
 --- /dev/null
 +++ b/fbtl/pthread_cond_signal.c
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,90 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
@@ -21785,8 +21711,7 @@
 +
 +
 +int
-+__pthread_cond_signal (cond)
-+     pthread_cond_t *cond;
++__pthread_cond_signal (pthread_cond_t *cond)
 +{
 +  int pshared = (cond->__data.__mutex == (void *) ~0l)
 +		? LLL_SHARED : LLL_PRIVATE;
@@ -21847,7 +21772,7 @@
 +		  GLIBC_2_3_2);
 --- /dev/null
 +++ b/fbtl/pthread_cond_timedwait.c
-@@ -0,0 +1,269 @@
+@@ -0,0 +1,267 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
@@ -21898,10 +21823,8 @@
 +};
 +
 +int
-+__pthread_cond_timedwait (cond, mutex, abstime)
-+     pthread_cond_t *cond;
-+     pthread_mutex_t *mutex;
-+     const struct timespec *abstime;
++__pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex,
++			  const struct timespec *abstime)
 +{
 +  struct _pthread_cleanup_buffer buffer;
 +  struct _condvar_cleanup_buffer cbuffer;
@@ -22119,7 +22042,7 @@
 +		  GLIBC_2_3_2);
 --- /dev/null
 +++ b/fbtl/pthread_cond_wait.c
-@@ -0,0 +1,238 @@
+@@ -0,0 +1,236 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
@@ -22219,9 +22142,7 @@
 +
 +
 +int
-+__pthread_cond_wait (cond, mutex)
-+     pthread_cond_t *cond;
-+     pthread_mutex_t *mutex;
++__pthread_cond_wait (pthread_cond_t *cond, pthread_mutex_t *mutex)
 +{
 +  struct _pthread_cleanup_buffer buffer;
 +  struct _condvar_cleanup_buffer cbuffer;
@@ -22360,7 +22281,7 @@
 +		  GLIBC_2_3_2);
 --- /dev/null
 +++ b/fbtl/pthread_condattr_destroy.c
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -22383,8 +22304,7 @@
 +
 +
 +int
-+__pthread_condattr_destroy (attr)
-+     pthread_condattr_t *attr;
++__pthread_condattr_destroy (pthread_condattr_t *attr)
 +{
 +  /* Nothing to be done.  */
 +  return 0;
@@ -22392,7 +22312,7 @@
 +strong_alias (__pthread_condattr_destroy, pthread_condattr_destroy)
 --- /dev/null
 +++ b/fbtl/pthread_condattr_getclock.c
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,28 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -22415,9 +22335,7 @@
 +
 +
 +int
-+pthread_condattr_getclock (attr, clock_id)
-+     const pthread_condattr_t *attr;
-+     clockid_t *clock_id;
++pthread_condattr_getclock (const pthread_condattr_t *attr, clockid_t *clock_id)
 +{
 +  *clock_id = (((((const struct pthread_condattr *) attr)->value) >> 1)
 +	       & ((1 << COND_NWAITERS_SHIFT) - 1));
@@ -22425,7 +22343,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_condattr_getpshared.c
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,28 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -22448,9 +22366,7 @@
 +
 +
 +int
-+pthread_condattr_getpshared (attr, pshared)
-+     const pthread_condattr_t *attr;
-+     int *pshared;
++pthread_condattr_getpshared (const pthread_condattr_t *attr, int *pshared)
 +{
 +  *pshared = ((const struct pthread_condattr *) attr)->value & 1;
 +
@@ -22458,7 +22374,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_condattr_init.c
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -22482,8 +22398,7 @@
 +
 +
 +int
-+__pthread_condattr_init (attr)
-+     pthread_condattr_t *attr;
++__pthread_condattr_init (pthread_condattr_t *attr)
 +{
 +  memset (attr, '\0', sizeof (*attr));
 +
@@ -22492,7 +22407,7 @@
 +strong_alias (__pthread_condattr_init, pthread_condattr_init)
 --- /dev/null
 +++ b/fbtl/pthread_condattr_setclock.c
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,46 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -22521,9 +22436,7 @@
 +
 +
 +int
-+pthread_condattr_setclock (attr, clock_id)
-+     pthread_condattr_t *attr;
-+     clockid_t clock_id;
++pthread_condattr_setclock (pthread_condattr_t *attr, clockid_t clock_id)
 +{
 +  /* Only a few clocks are allowed.  */
 +  if (clock_id != CLOCK_MONOTONIC && clock_id != CLOCK_REALTIME)
@@ -22543,7 +22456,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_condattr_setpshared.c
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,34 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -22566,9 +22479,7 @@
 +#include <pthreadP.h>
 +
 +int
-+pthread_condattr_setpshared (attr, pshared)
-+     pthread_condattr_t *attr;
-+     int pshared;
++pthread_condattr_setpshared (pthread_condattr_t *attr, int pshared)
 +{
 +  if (pshared != PTHREAD_PROCESS_PRIVATE
 +      && __builtin_expect (pshared != PTHREAD_PROCESS_SHARED, 0))
@@ -22582,7 +22493,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_create.c
-@@ -0,0 +1,673 @@
+@@ -0,0 +1,669 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -22647,8 +22558,7 @@
 +
 +struct pthread *
 +internal_function
-+__find_in_stack_list (pd)
-+     struct pthread *pd;
++__find_in_stack_list (struct pthread *pd)
 +{
 +  list_t *entry;
 +  struct pthread *result = NULL;
@@ -23031,11 +22941,8 @@
 +
 +
 +int
-+__pthread_create_2_1 (newthread, attr, start_routine, arg)
-+     pthread_t *newthread;
-+     const pthread_attr_t *attr;
-+     void *(*start_routine) (void *);
-+     void *arg;
++__pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
++		      void *(*start_routine) (void *), void *arg)
 +{
 +  STACK_VARIABLES;
 +
@@ -23258,7 +23165,7 @@
 +PTHREAD_STATIC_FN_REQUIRE (pthread_getspecific)
 --- /dev/null
 +++ b/fbtl/pthread_detach.c
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,55 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -23283,8 +23190,7 @@
 +
 +
 +int
-+pthread_detach (th)
-+     pthread_t th;
++pthread_detach (pthread_t th)
 +{
 +  struct pthread *pd = (struct pthread *) th;
 +
@@ -23317,7 +23223,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_equal.c
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,27 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -23340,16 +23246,14 @@
 +
 +
 +int
-+__pthread_equal (thread1, thread2)
-+     pthread_t thread1;
-+     pthread_t thread2;
++__pthread_equal (pthread_t thread1, pthread_t thread2)
 +{
 +  return thread1 == thread2;
 +}
 +strong_alias (__pthread_equal, pthread_equal)
 --- /dev/null
 +++ b/fbtl/pthread_exit.c
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,34 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -23373,8 +23277,7 @@
 +
 +
 +void
-+__pthread_exit (value)
-+     void *value;
++__pthread_exit (void *value)
 +{
 +  THREAD_SETMEM (THREAD_SELF, result, value);
 +
@@ -23427,7 +23330,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_getattr_np.c
-@@ -0,0 +1,202 @@
+@@ -0,0 +1,200 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -23460,9 +23363,7 @@
 +
 +
 +int
-+pthread_getattr_np (thread_id, attr)
-+     pthread_t thread_id;
-+     pthread_attr_t *attr;
++pthread_getattr_np (pthread_t thread_id, pthread_attr_t *attr)
 +{
 +  struct pthread *thread = (struct pthread *) thread_id;
 +  struct pthread_attr *iattr = (struct pthread_attr *) attr;
@@ -23661,7 +23562,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_getcpuclockid.c
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,54 @@
 +/* Copyright (C) 2000-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -23686,9 +23587,7 @@
 +
 +
 +int
-+pthread_getcpuclockid (threadid, clockid)
-+     pthread_t threadid;
-+     clockid_t *clockid;
++pthread_getcpuclockid (pthread_t threadid, clockid_t *clockid)
 +{
 +  struct pthread *pd = (struct pthread *) threadid;
 +
@@ -23720,7 +23619,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_getschedparam.c
-@@ -0,0 +1,74 @@
+@@ -0,0 +1,72 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -23746,10 +23645,8 @@
 +
 +
 +int
-+__pthread_getschedparam (threadid, policy, param)
-+     pthread_t threadid;
-+     int *policy;
-+     struct sched_param *param;
++__pthread_getschedparam (pthread_t threadid, int *policy,
++			 struct sched_param *param)
 +{
 +  struct pthread *pd = (struct pthread *) threadid;
 +
@@ -23797,7 +23694,7 @@
 +strong_alias (__pthread_getschedparam, pthread_getschedparam)
 --- /dev/null
 +++ b/fbtl/pthread_getspecific.c
-@@ -0,0 +1,68 @@
+@@ -0,0 +1,67 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -23821,8 +23718,7 @@
 +
 +
 +void *
-+__pthread_getspecific (key)
-+     pthread_key_t key;
++__pthread_getspecific (pthread_key_t key)
 +{
 +  struct pthread_key_data *data;
 +
@@ -23868,7 +23764,7 @@
 +hidden_def (__pthread_getspecific)
 --- /dev/null
 +++ b/fbtl/pthread_join.c
-@@ -0,0 +1,119 @@
+@@ -0,0 +1,117 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -23908,9 +23804,7 @@
 +
 +
 +int
-+pthread_join (threadid, thread_return)
-+     pthread_t threadid;
-+     void **thread_return;
++pthread_join (pthread_t threadid, void **thread_return)
 +{
 +  struct pthread *pd = (struct pthread *) threadid;
 +
@@ -23990,7 +23884,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_key_create.c
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,51 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -24015,9 +23909,7 @@
 +
 +
 +int
-+__pthread_key_create (key, destr)
-+     pthread_key_t *key;
-+     void (*destr) (void *);
++__pthread_key_create (pthread_key_t *key, void (*destr) (void *))
 +{
 +  /* Find a slot in __pthread_kyes which is unused.  */
 +  for (size_t cnt = 0; cnt < PTHREAD_KEYS_MAX; ++cnt)
@@ -24046,7 +23938,7 @@
 +hidden_def (__pthread_key_create)
 --- /dev/null
 +++ b/fbtl/pthread_key_delete.c
-@@ -0,0 +1,42 @@
+@@ -0,0 +1,41 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -24071,8 +23963,7 @@
 +
 +
 +int
-+pthread_key_delete (key)
-+     pthread_key_t key;
++pthread_key_delete (pthread_key_t key)
 +{
 +  int result = EINVAL;
 +
@@ -24130,7 +24021,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/pthread_mutex_consistent.c
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,35 @@
 +/* Copyright (C) 2005-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2005.
@@ -24154,8 +24045,7 @@
 +
 +
 +int
-+pthread_mutex_consistent (mutex)
-+     pthread_mutex_t *mutex;
++pthread_mutex_consistent (pthread_mutex_t *mutex)
 +{
 +  /* Test whether this is a robust mutex with a dead owner.  */
 +  if ((mutex->__data.__kind & PTHREAD_MUTEX_ROBUST_NORMAL_NP) == 0
@@ -24169,7 +24059,7 @@
 +weak_alias (pthread_mutex_consistent, pthread_mutex_consistent_np)
 --- /dev/null
 +++ b/fbtl/pthread_mutex_destroy.c
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,40 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -24195,8 +24085,7 @@
 +
 +
 +int
-+__pthread_mutex_destroy (mutex)
-+     pthread_mutex_t *mutex;
++__pthread_mutex_destroy (pthread_mutex_t *mutex)
 +{
 +  LIBC_PROBE (mutex_destroy, 1, mutex);
 +
@@ -24213,7 +24102,7 @@
 +hidden_def (__pthread_mutex_destroy)
 --- /dev/null
 +++ b/fbtl/pthread_mutex_getprioceiling.c
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,35 @@
 +/* Get current priority ceiling of pthread_mutex_t.
 +   Copyright (C) 2006-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -24238,9 +24127,7 @@
 +
 +
 +int
-+pthread_mutex_getprioceiling (mutex, prioceiling)
-+     const pthread_mutex_t *mutex;
-+     int *prioceiling;
++pthread_mutex_getprioceiling (const pthread_mutex_t *mutex, int *prioceiling)
 +{
 +  if (__builtin_expect ((mutex->__data.__kind
 +			 & PTHREAD_MUTEX_PRIO_PROTECT_NP) == 0, 0))
@@ -24253,7 +24140,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_mutex_init.c
-@@ -0,0 +1,150 @@
+@@ -0,0 +1,149 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -24293,9 +24180,8 @@
 +
 +
 +int
-+__pthread_mutex_init (mutex, mutexattr)
-+     pthread_mutex_t *mutex;
-+     const pthread_mutexattr_t *mutexattr;
++__pthread_mutex_init (pthread_mutex_t *mutex,
++		      const pthread_mutexattr_t *mutexattr)
 +{
 +  const struct pthread_mutexattr *imutexattr;
 +
@@ -24406,7 +24292,7 @@
 +hidden_def (__pthread_mutex_init)
 --- /dev/null
 +++ b/fbtl/pthread_mutex_lock.c
-@@ -0,0 +1,505 @@
+@@ -0,0 +1,504 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -24451,8 +24337,7 @@
 +
 +
 +int
-+__pthread_mutex_lock (mutex)
-+     pthread_mutex_t *mutex;
++__pthread_mutex_lock (pthread_mutex_t *mutex)
 +{
 +  assert (sizeof (mutex->__size) >= sizeof (mutex->__data));
 +
@@ -24897,8 +24782,8 @@
 +
 +#ifdef NO_INCR
 +void
-+__pthread_mutex_cond_lock_adjust (mutex)
-+     pthread_mutex_t *mutex;
++internal_function
++__pthread_mutex_cond_lock_adjust (pthread_mutex_t *mutex)
 +{
 +  assert ((mutex->__data.__kind & PTHREAD_MUTEX_PRIO_INHERIT_NP) != 0);
 +  assert ((mutex->__data.__kind & PTHREAD_MUTEX_ROBUST_NORMAL_NP) == 0);
@@ -24914,7 +24799,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/pthread_mutex_setprioceiling.c
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,116 @@
 +/* Set current priority ceiling of pthread_mutex_t.
 +   Copyright (C) 2006-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -24940,10 +24825,8 @@
 +
 +
 +int
-+pthread_mutex_setprioceiling (mutex, prioceiling, old_ceiling)
-+     pthread_mutex_t *mutex;
-+     int prioceiling;
-+     int *old_ceiling;
++pthread_mutex_setprioceiling (pthread_mutex_t *mutex, int prioceiling,
++			      int *old_ceiling)
 +{
 +  /* The low bits of __kind aren't ever changed after pthread_mutex_init,
 +     so we don't need a lock yet.  */
@@ -25035,7 +24918,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_mutex_timedlock.c
-@@ -0,0 +1,496 @@
+@@ -0,0 +1,495 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -25065,9 +24948,8 @@
 +
 +
 +int
-+pthread_mutex_timedlock (mutex, abstime)
-+     pthread_mutex_t *mutex;
-+     const struct timespec *abstime;
++pthread_mutex_timedlock (pthread_mutex_t *mutex,
++			 const struct timespec *abstime)
 +{
 +  int oldval;
 +  pid_t id = THREAD_GETMEM (THREAD_SELF, tid);
@@ -25534,7 +25416,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_mutex_trylock.c
-@@ -0,0 +1,381 @@
+@@ -0,0 +1,380 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -25561,8 +25443,7 @@
 +
 +
 +int
-+__pthread_mutex_trylock (mutex)
-+     pthread_mutex_t *mutex;
++__pthread_mutex_trylock (pthread_mutex_t *mutex)
 +{
 +  int oldval;
 +  pid_t id = THREAD_GETMEM (THREAD_SELF, tid);
@@ -25918,7 +25799,7 @@
 +strong_alias (__pthread_mutex_trylock, pthread_mutex_trylock)
 --- /dev/null
 +++ b/fbtl/pthread_mutex_unlock.c
-@@ -0,0 +1,304 @@
+@@ -0,0 +1,301 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -25951,9 +25832,7 @@
 +
 +int
 +internal_function attribute_hidden
-+__pthread_mutex_unlock_usercnt (mutex, decr)
-+     pthread_mutex_t *mutex;
-+     int decr;
++__pthread_mutex_unlock_usercnt (pthread_mutex_t *mutex, int decr)
 +{
 +  int type = PTHREAD_MUTEX_TYPE (mutex);
 +  if (__builtin_expect (type & ~PTHREAD_MUTEX_KIND_MASK_NP, 0))
@@ -26216,8 +26095,7 @@
 +
 +
 +int
-+__pthread_mutex_unlock (mutex)
-+     pthread_mutex_t *mutex;
++__pthread_mutex_unlock (pthread_mutex_t *mutex)
 +{
 +  return __pthread_mutex_unlock_usercnt (mutex, 1);
 +}
@@ -26225,7 +26103,7 @@
 +hidden_def (__pthread_mutex_unlock)
 --- /dev/null
 +++ b/fbtl/pthread_mutexattr_destroy.c
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,27 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -26248,15 +26126,14 @@
 +
 +
 +int
-+__pthread_mutexattr_destroy (attr)
-+     pthread_mutexattr_t *attr;
++__pthread_mutexattr_destroy (pthread_mutexattr_t *attr)
 +{
 +  return 0;
 +}
 +strong_alias (__pthread_mutexattr_destroy, pthread_mutexattr_destroy)
 --- /dev/null
 +++ b/fbtl/pthread_mutexattr_getprioceiling.c
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,46 @@
 +/* Get priority ceiling setting from pthread_mutexattr_t.
 +   Copyright (C) 2006-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -26280,9 +26157,8 @@
 +
 +
 +int
-+pthread_mutexattr_getprioceiling (attr, prioceiling)
-+     const pthread_mutexattr_t *attr;
-+     int *prioceiling;
++pthread_mutexattr_getprioceiling (const pthread_mutexattr_t *attr,
++				  int *prioceiling)
 +{
 +  const struct pthread_mutexattr *iattr;
 +  int ceiling;
@@ -26306,7 +26182,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_mutexattr_getprotocol.c
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,34 @@
 +/* Get priority protocol setting from pthread_mutexattr_t.
 +   Copyright (C) 2006-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -26330,9 +26206,7 @@
 +
 +
 +int
-+pthread_mutexattr_getprotocol (attr, protocol)
-+     const pthread_mutexattr_t *attr;
-+     int *protocol;
++pthread_mutexattr_getprotocol (const pthread_mutexattr_t *attr, int *protocol)
 +{
 +  const struct pthread_mutexattr *iattr;
 +
@@ -26345,7 +26219,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_mutexattr_getpshared.c
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,33 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -26368,9 +26242,7 @@
 +
 +
 +int
-+pthread_mutexattr_getpshared (attr, pshared)
-+     const pthread_mutexattr_t *attr;
-+     int *pshared;
++pthread_mutexattr_getpshared (const pthread_mutexattr_t *attr, int *pshared)
 +{
 +  const struct pthread_mutexattr *iattr;
 +
@@ -26383,7 +26255,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_mutexattr_getrobust.c
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,34 @@
 +/* Copyright (C) 2005-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2005.
@@ -26406,9 +26278,7 @@
 +
 +
 +int
-+pthread_mutexattr_getrobust (attr, robustness)
-+     const pthread_mutexattr_t *attr;
-+     int *robustness;
++pthread_mutexattr_getrobust (const pthread_mutexattr_t *attr, int *robustness)
 +{
 +  const struct pthread_mutexattr *iattr;
 +
@@ -26422,7 +26292,7 @@
 +weak_alias (pthread_mutexattr_getrobust, pthread_mutexattr_getrobust_np)
 --- /dev/null
 +++ b/fbtl/pthread_mutexattr_gettype.c
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,33 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -26445,9 +26315,7 @@
 +
 +
 +int
-+pthread_mutexattr_gettype (attr, kind)
-+     const pthread_mutexattr_t *attr;
-+     int *kind;
++pthread_mutexattr_gettype (const pthread_mutexattr_t *attr, int *kind)
 +{
 +  const struct pthread_mutexattr *iattr;
 +
@@ -26460,7 +26328,7 @@
 +weak_alias (pthread_mutexattr_gettype, pthread_mutexattr_getkind_np)
 --- /dev/null
 +++ b/fbtl/pthread_mutexattr_init.c
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,36 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -26484,8 +26352,7 @@
 +
 +
 +int
-+__pthread_mutexattr_init (attr)
-+     pthread_mutexattr_t *attr;
++__pthread_mutexattr_init (pthread_mutexattr_t *attr)
 +{
 +  if (sizeof (struct pthread_mutexattr) != sizeof (pthread_mutexattr_t))
 +    memset (attr, '\0', sizeof (*attr));
@@ -26500,7 +26367,7 @@
 +strong_alias (__pthread_mutexattr_init, pthread_mutexattr_init)
 --- /dev/null
 +++ b/fbtl/pthread_mutexattr_setprioceiling.c
-@@ -0,0 +1,46 @@
+@@ -0,0 +1,44 @@
 +/* Change priority ceiling setting in pthread_mutexattr_t.
 +   Copyright (C) 2006-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -26525,9 +26392,7 @@
 +
 +
 +int
-+pthread_mutexattr_setprioceiling (attr, prioceiling)
-+     pthread_mutexattr_t *attr;
-+     int prioceiling;
++pthread_mutexattr_setprioceiling (pthread_mutexattr_t *attr, int prioceiling)
 +{
 +  if (__sched_fifo_min_prio == -1)
 +    __init_sched_fifo_prio ();
@@ -26549,7 +26414,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_mutexattr_setprotocol.c
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,38 @@
 +/* Change priority protocol setting in pthread_mutexattr_t.
 +   Copyright (C) 2006-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -26574,9 +26439,7 @@
 +
 +
 +int
-+pthread_mutexattr_setprotocol (attr, protocol)
-+     pthread_mutexattr_t *attr;
-+     int protocol;
++pthread_mutexattr_setprotocol (pthread_mutexattr_t *attr, int protocol)
 +{
 +  if (protocol != PTHREAD_PRIO_NONE
 +      && protocol != PTHREAD_PRIO_INHERIT
@@ -26592,97 +26455,6 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_mutexattr_setpshared.c
-@@ -0,0 +1,42 @@
-+/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include <errno.h>
-+#include <pthreadP.h>
-+
-+
-+int
-+pthread_mutexattr_setpshared (attr, pshared)
-+     pthread_mutexattr_t *attr;
-+     int pshared;
-+{
-+  struct pthread_mutexattr *iattr;
-+
-+  if (pshared != PTHREAD_PROCESS_PRIVATE
-+      && __builtin_expect (pshared != PTHREAD_PROCESS_SHARED, 0))
-+    return EINVAL;
-+
-+  iattr = (struct pthread_mutexattr *) attr;
-+
-+  if (pshared == PTHREAD_PROCESS_PRIVATE)
-+    iattr->mutexkind &= ~PTHREAD_MUTEXATTR_FLAG_PSHARED;
-+  else
-+    iattr->mutexkind |= PTHREAD_MUTEXATTR_FLAG_PSHARED;
-+
-+  return 0;
-+}
---- /dev/null
-+++ b/fbtl/pthread_mutexattr_setrobust.c
-@@ -0,0 +1,43 @@
-+/* Copyright (C) 2005-2013 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+   Contributed by Ulrich Drepper <drepper@redhat.com>, 2005.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include <errno.h>
-+#include <pthreadP.h>
-+
-+
-+int
-+pthread_mutexattr_setrobust (attr, robustness)
-+     pthread_mutexattr_t *attr;
-+     int robustness;
-+{
-+  if (robustness != PTHREAD_MUTEX_STALLED_NP
-+      && __builtin_expect (robustness != PTHREAD_MUTEX_ROBUST_NP, 0))
-+    return EINVAL;
-+
-+  struct pthread_mutexattr *iattr = (struct pthread_mutexattr *) attr;
-+
-+  /* We use bit 30 to signal whether the mutex is going to be
-+     robust or not.  */
-+  if (robustness == PTHREAD_MUTEX_STALLED_NP)
-+    iattr->mutexkind &= ~PTHREAD_MUTEXATTR_FLAG_ROBUST;
-+  else
-+    iattr->mutexkind |= PTHREAD_MUTEXATTR_FLAG_ROBUST;
-+
-+  return 0;
-+}
-+weak_alias (pthread_mutexattr_setrobust, pthread_mutexattr_setrobust_np)
---- /dev/null
-+++ b/fbtl/pthread_mutexattr_settype.c
 @@ -0,0 +1,40 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -26707,9 +26479,94 @@
 +
 +
 +int
-+__pthread_mutexattr_settype (attr, kind)
-+     pthread_mutexattr_t *attr;
-+     int kind;
++pthread_mutexattr_setpshared (pthread_mutexattr_t *attr, int pshared)
++{
++  struct pthread_mutexattr *iattr;
++
++  if (pshared != PTHREAD_PROCESS_PRIVATE
++      && __builtin_expect (pshared != PTHREAD_PROCESS_SHARED, 0))
++    return EINVAL;
++
++  iattr = (struct pthread_mutexattr *) attr;
++
++  if (pshared == PTHREAD_PROCESS_PRIVATE)
++    iattr->mutexkind &= ~PTHREAD_MUTEXATTR_FLAG_PSHARED;
++  else
++    iattr->mutexkind |= PTHREAD_MUTEXATTR_FLAG_PSHARED;
++
++  return 0;
++}
+--- /dev/null
++++ b/fbtl/pthread_mutexattr_setrobust.c
+@@ -0,0 +1,41 @@
++/* Copyright (C) 2005-2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2005.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <pthreadP.h>
++
++
++int
++pthread_mutexattr_setrobust (pthread_mutexattr_t *attr, int robustness)
++{
++  if (robustness != PTHREAD_MUTEX_STALLED_NP
++      && __builtin_expect (robustness != PTHREAD_MUTEX_ROBUST_NP, 0))
++    return EINVAL;
++
++  struct pthread_mutexattr *iattr = (struct pthread_mutexattr *) attr;
++
++  /* We use bit 30 to signal whether the mutex is going to be
++     robust or not.  */
++  if (robustness == PTHREAD_MUTEX_STALLED_NP)
++    iattr->mutexkind &= ~PTHREAD_MUTEXATTR_FLAG_ROBUST;
++  else
++    iattr->mutexkind |= PTHREAD_MUTEXATTR_FLAG_ROBUST;
++
++  return 0;
++}
++weak_alias (pthread_mutexattr_setrobust, pthread_mutexattr_setrobust_np)
+--- /dev/null
++++ b/fbtl/pthread_mutexattr_settype.c
+@@ -0,0 +1,38 @@
++/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <pthreadP.h>
++
++
++int
++__pthread_mutexattr_settype (pthread_mutexattr_t *attr, int kind)
 +{
 +  struct pthread_mutexattr *iattr;
 +
@@ -26783,7 +26640,7 @@
 +hidden_def (__pthread_once)
 --- /dev/null
 +++ b/fbtl/pthread_rwlock_destroy.c
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,31 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -26807,8 +26664,7 @@
 +
 +
 +int
-+__pthread_rwlock_destroy (rwlock)
-+     pthread_rwlock_t *rwlock;
++__pthread_rwlock_destroy (pthread_rwlock_t *rwlock)
 +{
 +  LIBC_PROBE (rwlock_destroy, 1, rwlock);
 +
@@ -26818,7 +26674,7 @@
 +strong_alias (__pthread_rwlock_destroy, pthread_rwlock_destroy)
 --- /dev/null
 +++ b/fbtl/pthread_rwlock_init.c
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,72 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -26850,9 +26706,8 @@
 +
 +
 +int
-+__pthread_rwlock_init (rwlock, attr)
-+     pthread_rwlock_t *rwlock;
-+     const pthread_rwlockattr_t *attr;
++__pthread_rwlock_init (pthread_rwlock_t *rwlock,
++		       const pthread_rwlockattr_t *attr)
 +{
 +  const struct pthread_rwlockattr *iattr;
 +
@@ -26894,7 +26749,7 @@
 +strong_alias (__pthread_rwlock_init, pthread_rwlock_init)
 --- /dev/null
 +++ b/fbtl/pthread_rwlock_rdlock.c
-@@ -0,0 +1,100 @@
+@@ -0,0 +1,99 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
@@ -26923,8 +26778,7 @@
 +
 +/* Acquire read lock for RWLOCK.  */
 +int
-+__pthread_rwlock_rdlock (rwlock)
-+     pthread_rwlock_t *rwlock;
++__pthread_rwlock_rdlock (pthread_rwlock_t *rwlock)
 +{
 +  int result = 0;
 +
@@ -26997,7 +26851,7 @@
 +hidden_def (__pthread_rwlock_rdlock)
 --- /dev/null
 +++ b/fbtl/pthread_rwlock_timedrdlock.c
-@@ -0,0 +1,155 @@
+@@ -0,0 +1,154 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
@@ -27025,9 +26879,8 @@
 +
 +/* Try to acquire read lock for RWLOCK or return after specfied time.  */
 +int
-+pthread_rwlock_timedrdlock (rwlock, abstime)
-+     pthread_rwlock_t *rwlock;
-+     const struct timespec *abstime;
++pthread_rwlock_timedrdlock (pthread_rwlock_t *rwlock,
++			    const struct timespec *abstime)
 +{
 +  int result = 0;
 +
@@ -27155,7 +27008,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_rwlock_timedwrlock.c
-@@ -0,0 +1,146 @@
+@@ -0,0 +1,145 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
@@ -27184,9 +27037,8 @@
 +
 +/* Try to acquire write lock for RWLOCK or return after specfied time.	*/
 +int
-+pthread_rwlock_timedwrlock (rwlock, abstime)
-+     pthread_rwlock_t *rwlock;
-+     const struct timespec *abstime;
++pthread_rwlock_timedwrlock (pthread_rwlock_t *rwlock,
++			    const struct timespec *abstime)
 +{
 +  int result = 0;
 +
@@ -27463,7 +27315,7 @@
 +hidden_def (__pthread_rwlock_unlock)
 --- /dev/null
 +++ b/fbtl/pthread_rwlock_wrlock.c
-@@ -0,0 +1,92 @@
+@@ -0,0 +1,91 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
@@ -27492,8 +27344,7 @@
 +
 +/* Acquire write lock for RWLOCK.  */
 +int
-+__pthread_rwlock_wrlock (rwlock)
-+     pthread_rwlock_t *rwlock;
++__pthread_rwlock_wrlock (pthread_rwlock_t *rwlock)
 +{
 +  int result = 0;
 +
@@ -27558,7 +27409,7 @@
 +hidden_def (__pthread_rwlock_wrlock)
 --- /dev/null
 +++ b/fbtl/pthread_rwlockattr_destroy.c
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -27581,8 +27432,7 @@
 +
 +
 +int
-+pthread_rwlockattr_destroy (attr)
-+     pthread_rwlockattr_t *attr;
++pthread_rwlockattr_destroy (pthread_rwlockattr_t *attr)
 +{
 +  /* Nothing to do.  For now.  */
 +
@@ -27590,7 +27440,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_rwlockattr_getkind_np.c
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,28 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -27613,9 +27463,7 @@
 +
 +
 +int
-+pthread_rwlockattr_getkind_np (attr, pref)
-+     const pthread_rwlockattr_t *attr;
-+     int *pref;
++pthread_rwlockattr_getkind_np (const pthread_rwlockattr_t *attr, int *pref)
 +{
 +  *pref = ((const struct pthread_rwlockattr *) attr)->lockkind;
 +
@@ -27623,7 +27471,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_rwlockattr_getpshared.c
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,28 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -27646,9 +27494,7 @@
 +
 +
 +int
-+pthread_rwlockattr_getpshared (attr, pshared)
-+     const pthread_rwlockattr_t *attr;
-+     int *pshared;
++pthread_rwlockattr_getpshared (const pthread_rwlockattr_t *attr, int *pshared)
 +{
 +  *pshared = ((const struct pthread_rwlockattr *) attr)->pshared;
 +
@@ -27656,7 +27502,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_rwlockattr_init.c
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,33 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -27679,8 +27525,7 @@
 +
 +
 +int
-+pthread_rwlockattr_init (attr)
-+     pthread_rwlockattr_t *attr;
++pthread_rwlockattr_init (pthread_rwlockattr_t *attr)
 +{
 +  struct pthread_rwlockattr *iattr;
 +
@@ -27693,7 +27538,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_rwlockattr_setkind_np.c
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,38 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -27717,9 +27562,7 @@
 +
 +
 +int
-+pthread_rwlockattr_setkind_np (attr, pref)
-+     pthread_rwlockattr_t *attr;
-+     int pref;
++pthread_rwlockattr_setkind_np (pthread_rwlockattr_t *attr, int pref)
 +{
 +  struct pthread_rwlockattr *iattr;
 +
@@ -27736,7 +27579,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_rwlockattr_setpshared.c
-@@ -0,0 +1,39 @@
+@@ -0,0 +1,37 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -27760,9 +27603,7 @@
 +
 +
 +int
-+pthread_rwlockattr_setpshared (attr, pshared)
-+     pthread_rwlockattr_t *attr;
-+     int pshared;
++pthread_rwlockattr_setpshared (pthread_rwlockattr_t *attr, int pshared)
 +{
 +  struct pthread_rwlockattr *iattr;
 +
@@ -27928,7 +27769,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_setcancelstate.c
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,71 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -27953,9 +27794,7 @@
 +
 +
 +int
-+__pthread_setcancelstate (state, oldstate)
-+     int state;
-+     int *oldstate;
++__pthread_setcancelstate (int state, int *oldstate)
 +{
 +  volatile struct pthread *self;
 +
@@ -28004,7 +27843,7 @@
 +hidden_def (__pthread_setcancelstate)
 --- /dev/null
 +++ b/fbtl/pthread_setcanceltype.c
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,73 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -28029,9 +27868,7 @@
 +
 +
 +int
-+__pthread_setcanceltype (type, oldtype)
-+     int type;
-+     int *oldtype;
++__pthread_setcanceltype (int type, int *oldtype)
 +{
 +  volatile struct pthread *self;
 +
@@ -28082,7 +27919,7 @@
 +strong_alias (__pthread_setcanceltype, pthread_setcanceltype)
 --- /dev/null
 +++ b/fbtl/pthread_setconcurrency.c
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,39 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -28110,8 +27947,7 @@
 +
 +
 +int
-+pthread_setconcurrency (level)
-+     int level;
++pthread_setconcurrency (int level)
 +{
 +  if (level < 0)
 +    return EINVAL;
@@ -28167,7 +28003,7 @@
 +#include <setreuid.c>
 --- /dev/null
 +++ b/fbtl/pthread_setschedparam.c
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,71 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -28194,10 +28030,8 @@
 +
 +
 +int
-+__pthread_setschedparam (threadid, policy, param)
-+     pthread_t threadid;
-+     int policy;
-+     const struct sched_param *param;
++__pthread_setschedparam (pthread_t threadid, int policy,
++			 const struct sched_param *param)
 +{
 +  struct pthread *pd = (struct pthread *) threadid;
 +
@@ -28243,7 +28077,7 @@
 +strong_alias (__pthread_setschedparam, pthread_setschedparam)
 --- /dev/null
 +++ b/fbtl/pthread_setschedprio.c
-@@ -0,0 +1,65 @@
+@@ -0,0 +1,63 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -28271,9 +28105,7 @@
 +
 +
 +int
-+pthread_setschedprio (threadid, prio)
-+     pthread_t threadid;
-+     int prio;
++pthread_setschedprio (pthread_t threadid, int prio)
 +{
 +  struct pthread *pd = (struct pthread *) threadid;
 +
@@ -28311,7 +28143,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_setspecific.c
-@@ -0,0 +1,95 @@
+@@ -0,0 +1,93 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -28336,9 +28168,7 @@
 +
 +
 +int
-+__pthread_setspecific (key, value)
-+     pthread_key_t key;
-+     const void *value;
++__pthread_setspecific (pthread_key_t key, const void *value)
 +{
 +  struct pthread *self;
 +  unsigned int idx1st;
@@ -28415,7 +28245,7 @@
 +#include <setuid.c>
 --- /dev/null
 +++ b/fbtl/pthread_spin_destroy.c
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,27 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -28438,8 +28268,7 @@
 +
 +
 +int
-+pthread_spin_destroy (lock)
-+     pthread_spinlock_t *lock;
++pthread_spin_destroy (pthread_spinlock_t *lock)
 +{
 +  /* Nothing to do.  */
 +  return 0;
@@ -28640,7 +28469,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_timedjoin.c
-@@ -0,0 +1,106 @@
+@@ -0,0 +1,104 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -28673,10 +28502,8 @@
 +
 +
 +int
-+pthread_timedjoin_np (threadid, thread_return, abstime)
-+     pthread_t threadid;
-+     void **thread_return;
-+     const struct timespec *abstime;
++pthread_timedjoin_np (pthread_t threadid, void **thread_return,
++		      const struct timespec *abstime)
 +{
 +  struct pthread *self;
 +  struct pthread *pd = (struct pthread *) threadid;
@@ -28749,7 +28576,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_tryjoin.c
-@@ -0,0 +1,74 @@
+@@ -0,0 +1,72 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -28776,9 +28603,7 @@
 +
 +
 +int
-+pthread_tryjoin_np (threadid, thread_return)
-+     pthread_t threadid;
-+     void **thread_return;
++pthread_tryjoin_np (pthread_t threadid, void **thread_return)
 +{
 +  struct pthread *self;
 +  struct pthread *pd = (struct pthread *) threadid;
@@ -28855,7 +28680,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/sem_close.c
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,79 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -28898,8 +28723,7 @@
 +
 +
 +int
-+sem_close (sem)
-+     sem_t *sem;
++sem_close (sem_t *sem)
 +{
 +  int result = 0;
 +
@@ -28938,7 +28762,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/sem_destroy.c
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,36 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -28963,8 +28787,7 @@
 +
 +
 +int
-+__new_sem_destroy (sem)
-+     sem_t *sem;
++__new_sem_destroy (sem_t *sem)
 +{
 +  /* XXX Check for valid parameter.  */
 +
@@ -28978,7 +28801,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/sem_getvalue.c
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,39 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -29003,9 +28826,7 @@
 +
 +
 +int
-+__new_sem_getvalue (sem, sval)
-+     sem_t *sem;
-+     int *sval;
++__new_sem_getvalue (sem_t *sem, int *sval)
 +{
 +  struct new_sem *isem = (struct new_sem *) sem;
 +
@@ -29022,7 +28843,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/sem_init.c
-@@ -0,0 +1,87 @@
+@@ -0,0 +1,81 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -29050,10 +28871,7 @@
 +
 +
 +int
-+__new_sem_init (sem, pshared, value)
-+     sem_t *sem;
-+     int pshared;
-+     unsigned int value;
++__new_sem_init (sem_t *sem, int pshared, unsigned int value)
 +{
 +  /* Parameter sanity check.  */
 +  if (__builtin_expect (value > SEM_VALUE_MAX, 0))
@@ -29085,10 +28903,7 @@
 +#if SHLIB_COMPAT(libpthread, GLIBC_2_0, GLIBC_2_1)
 +int
 +attribute_compat_text_section
-+__old_sem_init (sem, pshared, value)
-+     sem_t *sem;
-+     int pshared;
-+     unsigned int value;
++__old_sem_init (sem_t *sem, int pshared, unsigned int value)
 +{
 +  /* Parameter sanity check.  */
 +  if (__builtin_expect (value > SEM_VALUE_MAX, 0))
@@ -29598,7 +29413,7 @@
 +libpthread=0		GLIBC_2.3
 --- /dev/null
 +++ b/fbtl/sigaction.c
-@@ -0,0 +1,46 @@
+@@ -0,0 +1,43 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -29630,10 +29445,7 @@
 +
 +
 +int
-+__sigaction (sig, act, oact)
-+     int sig;
-+     const struct sigaction *act;
-+     struct sigaction *oact;
++__sigaction (int sig, const struct sigaction *act, struct sigaction *oact)
 +{
 +  if (__builtin_expect (sig == SIGCANCEL || sig == SIGSETXID, 0))
 +    {
@@ -31072,7 +30884,7 @@
 +#endif	/* tls.h */
 --- /dev/null
 +++ b/fbtl/sysdeps/pthread/Makefile
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,39 @@
 +# Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +# This file is part of the GNU C Library.
 +# Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -31105,10 +30917,8 @@
 +$(objpfx)tst-timer: $(objpfx)librt.a $(static-thread-library)
 +endif
 +
-+ifeq ($(have-forced-unwind),yes)
 +tests += tst-mqueue8x
 +CFLAGS-tst-mqueue8x.c += -fexceptions
-+endif
 +endif
 +
 +ifeq ($(subdir),posix)
@@ -31825,8 +31635,8 @@
 +   License along with the GNU C Library; see the file COPYING.LIB.  If
 +   not, see <http://www.gnu.org/licenses/>.  */
 +
-+#ifndef _BITS_LIBC_LOCK_H
-+#define _BITS_LIBC_LOCK_H 1
++#ifndef _LIBC_LOCK_H
++#define _LIBC_LOCK_H 1
 +
 +#include <pthread.h>
 +#define __need_NULL
@@ -31857,7 +31667,7 @@
 +/* Define an initialized recursive lock variable NAME with storage
 +   class CLASS.  */
 +#if defined _LIBC && (IS_IN (libc) || IS_IN (libpthread))
-+# define __libc_lock_define_initialized_recursive(CLASS,NAME) \
++# define __libc_lock_define_initialized_recursive(CLASS, NAME) \
 +  CLASS __libc_lock_recursive_t NAME = _LIBC_LOCK_RECURSIVE_INITIALIZER;
 +# define _LIBC_LOCK_RECURSIVE_INITIALIZER \
 +  { LLL_LOCK_INITIALIZER, 0, NULL }
@@ -31891,7 +31701,7 @@
 +# define __libc_lock_fini_recursive(NAME) ((void) 0)
 +#else
 +# define __libc_lock_fini_recursive(NAME) \
-+  __libc_maybe_call (__pthread_mutex_destroy, (&(NAME)), 0)
++  __libc_maybe_call (__pthread_mutex_destroy, (&(NAME).mutex), 0)
 +#endif
 +
 +/* Lock the recursive named lock variable.  */
@@ -31933,7 +31743,7 @@
 +  })
 +#else
 +# define __libc_lock_trylock_recursive(NAME) \
-+  __libc_maybe_call (__pthread_mutex_trylock, (&(NAME)), 0)
++  __libc_maybe_call (__pthread_mutex_trylock, (&(NAME).mutex), 0)
 +#endif
 +
 +/* Unlock the recursive named lock variable.  */
@@ -31949,7 +31759,7 @@
 +  } while (0)
 +#else
 +# define __libc_lock_unlock_recursive(NAME) \
-+  __libc_maybe_call (__pthread_mutex_unlock, (&(NAME)), 0)
++  __libc_maybe_call (__pthread_mutex_unlock, (&(NAME).mutex), 0)
 +#endif
 +
 +/* Note that for I/O cleanup handling we are using the old-style
@@ -32015,8 +31825,8 @@
 +   License along with the GNU C Library; see the file COPYING.LIB.  If
 +   not, see <http://www.gnu.org/licenses/>.  */
 +
-+#ifndef _BITS_LIBC_LOCKP_H
-+#define _BITS_LIBC_LOCKP_H 1
++#ifndef _LIBC_LOCKP_H
++#define _LIBC_LOCKP_H 1
 +
 +#include <pthread.h>
 +#define __need_NULL
@@ -32139,7 +31949,7 @@
 +   state.  */
 +#if IS_IN (libc) || IS_IN (libpthread)
 +# define __libc_lock_init(NAME) \
-+  ((void) ((NAME) = LLL_LOCK_INITIALIZER)) 
++  ((void) ((NAME) = LLL_LOCK_INITIALIZER))
 +#else
 +# define __libc_lock_init(NAME) \
 +  __libc_maybe_call (__pthread_mutex_init, (&(NAME), NULL), 0)
@@ -32147,7 +31957,7 @@
 +#if defined SHARED && IS_IN (libc)
 +/* ((NAME) = (__libc_rwlock_t) PTHREAD_RWLOCK_INITIALIZER) is inefficient.  */
 +# define __libc_rwlock_init(NAME) \
-+  ((void) __builtin_memset (&(NAME), '\0', sizeof (NAME))) 
++  ((void) __builtin_memset (&(NAME), '\0', sizeof (NAME)))
 +#else
 +# define __libc_rwlock_init(NAME) \
 +  __libc_maybe_call (__pthread_rwlock_init, (&(NAME), NULL), 0)
@@ -36524,30 +36334,6 @@
 +#endif /* __ASSEMBLER__ */
 +
 +#endif	/* tls.h */
---- /dev/null
-+++ b/fbtl/sysdeps/x86_64/tls.h.rej
-@@ -0,0 +1,21 @@
-+--- fbtl/sysdeps/x86_64/tls.h
-++++ fbtl/sysdeps/x86_64/tls.h
-+@@ -67,14 +67,15 @@ typedef struct
-+ # else
-+   int __glibc_reserved1;
-+ # endif
-+-  int rtld_must_xmm_save;
-++  int __glibc_unused1;
-+   /* Reservation of some values for the TM ABI.  */
-+   void *__private_tm[4];
-+   /* GCC split stack support.  */
-+   void *__private_ss;
-+   long int __glibc_reserved2;
-+-  /* Have space for the post-AVX register size.  */
-+-  __128bits rtld_savespace_sse[8][4] __attribute__ ((aligned (32)));
-++  /* Must be kept even if it is no longer used by glibc since programs,
-++     like AddressSanitizer, depend on the size of tcbhead_t.  */
-++  __128bits __glibc_unused2[8][4] __attribute__ ((aligned (32)));
-+ 
-+   void *__padding[8];
-+ } tcbhead_t;
 --- /dev/null
 +++ b/fbtl/tpp.c
 @@ -0,0 +1,171 @@
@@ -69605,7 +69391,7 @@
 +#include <posix/tst-vfork2.c>
 --- /dev/null
 +++ b/fbtl/unwind.c
-@@ -0,0 +1,182 @@
+@@ -0,0 +1,148 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>
@@ -69631,8 +69417,6 @@
 +#include <unistd.h>
 +#include "pthreadP.h"
 +#include <jmpbuf-unwind.h>
-+
-+#ifdef HAVE_FORCED_UNWIND
 +
 +#ifdef _STACK_GROWS_DOWN
 +# define FRAME_LEFT(frame, other, adj) \
@@ -69725,8 +69509,6 @@
 +  abort ();
 +}
 +
-+#endif	/* have forced unwind */
-+
 +
 +void
 +__cleanup_fct_attribute __attribute ((noreturn))
@@ -69735,42 +69517,12 @@
 +  struct pthread_unwind_buf *ibuf = (struct pthread_unwind_buf *) buf;
 +  struct pthread *self = THREAD_SELF;
 +
-+#ifdef HAVE_FORCED_UNWIND
 +  /* This is not a catchable exception, so don't provide any details about
 +     the exception type.  We do need to initialize the field though.  */
 +  THREAD_SETMEM (self, exc.exception_class, 0);
 +  THREAD_SETMEM (self, exc.exception_cleanup, &unwind_cleanup);
 +
 +  _Unwind_ForcedUnwind (&self->exc, unwind_stop, ibuf);
-+#else
-+  /* Handle the compatibility stuff first.  Execute all handlers
-+     registered with the old method.  We don't execute them in order,
-+     instead, they will run first.  */
-+  struct _pthread_cleanup_buffer *oldp = ibuf->priv.data.cleanup;
-+  struct _pthread_cleanup_buffer *curp = THREAD_GETMEM (self, cleanup);
-+
-+  if (curp != oldp)
-+    {
-+      do
-+	{
-+	  /* Pointer to the next element.  */
-+	  struct _pthread_cleanup_buffer *nextp = curp->__prev;
-+
-+	  /* Call the handler.  */
-+	  curp->__routine (curp->__arg);
-+
-+	  /* To the next.  */
-+	  curp = nextp;
-+	}
-+      while (curp != oldp);
-+
-+      /* Mark the current element as handled.  */
-+      THREAD_SETMEM (self, cleanup, curp);
-+    }
-+
-+  /* We simply jump to the registered setjmp buffer.  */
-+  __libc_unwind_longjmp ((struct __jmp_buf_tag *) ibuf->cancel_jmp_buf, 1);
-+#endif
 +  /* NOTREACHED */
 +
 +  /* We better do not get here.  */
@@ -69836,7 +69588,7 @@
 +hidden_data_def (__pthread_keys)
 --- /dev/null
 +++ b/fbtl/version.c
-@@ -0,0 +1,44 @@
+@@ -0,0 +1,42 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -69865,9 +69617,7 @@
 +This is free software; see the source for copying conditions.\n\
 +There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A\n\
 +PARTICULAR PURPOSE.\n"
-+#ifdef HAVE_FORCED_UNWIND
 +"Forced unwind support included.\n"
-+#endif
 +;
 +
 +
@@ -71122,7 +70872,7 @@
 +}
 --- /dev/null
 +++ b/fbtl_db/td_ta_clear_event.c
-@@ -0,0 +1,79 @@
+@@ -0,0 +1,77 @@
 +/* Globally disable events.
 +   Copyright (C) 1999-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -71147,9 +70897,7 @@
 +
 +
 +td_err_e
-+td_ta_clear_event (ta_arg, event)
-+     const td_thragent_t *ta_arg;
-+     td_thr_events_t *event;
++td_ta_clear_event (const td_thragent_t *ta_arg, td_thr_events_t *event)
 +{
 +  td_thragent_t *const ta = (td_thragent_t *) ta_arg;
 +  td_err_e err;
@@ -71929,7 +71677,7 @@
 +}
 --- /dev/null
 +++ b/fbtl_db/td_ta_set_event.c
-@@ -0,0 +1,79 @@
+@@ -0,0 +1,77 @@
 +/* Globally enable events.
 +   Copyright (C) 1999-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -71954,9 +71702,7 @@
 +
 +
 +td_err_e
-+td_ta_set_event (ta_arg, event)
-+     const td_thragent_t *ta_arg;
-+     td_thr_events_t *event;
++td_ta_set_event (const td_thragent_t *ta_arg, td_thr_events_t *event)
 +{
 +  td_thragent_t *const ta = (td_thragent_t *) ta_arg;
 +  td_err_e err;
@@ -72305,7 +72051,7 @@
 +}
 --- /dev/null
 +++ b/fbtl_db/td_thr_clear_event.c
-@@ -0,0 +1,77 @@
+@@ -0,0 +1,75 @@
 +/* Disable specific event for thread.
 +   Copyright (C) 1999-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -72332,9 +72078,7 @@
 +
 +
 +td_err_e
-+td_thr_clear_event (th, event)
-+     const td_thrhandle_t *th;
-+     td_thr_events_t *event;
++td_thr_clear_event (const td_thrhandle_t *th, td_thr_events_t *event)
 +{
 +  td_err_e err;
 +  psaddr_t eventmask;
@@ -72449,7 +72193,7 @@
 +}
 --- /dev/null
 +++ b/fbtl_db/td_thr_event_enable.c
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,49 @@
 +/* Enable event process-wide.
 +   Copyright (C) 1999-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -72473,9 +72217,7 @@
 +
 +
 +td_err_e
-+td_thr_event_enable (th, onoff)
-+     const td_thrhandle_t *th;
-+     int onoff;
++td_thr_event_enable (const td_thrhandle_t *th, int onoff)
 +{
 +  LOG ("td_thr_event_enable");
 +
@@ -72937,7 +72679,7 @@
 +}
 --- /dev/null
 +++ b/fbtl_db/td_thr_set_event.c
-@@ -0,0 +1,77 @@
+@@ -0,0 +1,75 @@
 +/* Enable specific event for thread.
 +   Copyright (C) 1999-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -72964,9 +72706,7 @@
 +
 +
 +td_err_e
-+td_thr_set_event (th, event)
-+     const td_thrhandle_t *th;
-+     td_thr_events_t *event;
++td_thr_set_event (const td_thrhandle_t *th, td_thr_events_t *event)
 +{
 +  td_err_e err;
 +  psaddr_t eventmask;
