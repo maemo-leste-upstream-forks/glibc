@@ -1302,6 +1302,7 @@ test-xfail-tst-waitid = yes
 
 # Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=6527
 test-xfail-tst-malloc-thread-exit = yes
+test-xfail-tst-malloc-thread-fail = yes
 endif
 
 
@@ -1316,6 +1317,7 @@ test-xfail-tst-waitid = yes
 
 # Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=6527
 test-xfail-tst-malloc-thread-exit = yes
+test-xfail-tst-malloc-thread-fail = yes
 
 # Failures due to a GCC bug, see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59412
 #                            and http://gcc.gnu.org/bugzilla/show_bug.cgi?id=64811
