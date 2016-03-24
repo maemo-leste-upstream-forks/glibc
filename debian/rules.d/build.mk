@@ -45,7 +45,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	echo "LIBGD = no"                         >> $(DEB_BUILDDIR)/configparms
 	echo "bindir = $(bindir)"                 >> $(DEB_BUILDDIR)/configparms
 	echo "datadir = $(datadir)"               >> $(DEB_BUILDDIR)/configparms
-	echo "localedir = $(localedir)"           >> $(DEB_BUILDDIR)/configparms
+	echo "complocaledir = $(complocaledir)"   >> $(DEB_BUILDDIR)/configparms
 	echo "sysconfdir = $(sysconfdir)"         >> $(DEB_BUILDDIR)/configparms
 	echo "libexecdir = $(libexecdir)"         >> $(DEB_BUILDDIR)/configparms
 	echo "rootsbindir = $(rootsbindir)"       >> $(DEB_BUILDDIR)/configparms
