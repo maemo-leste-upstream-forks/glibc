@@ -17,9 +17,8 @@ https://sourceware.org/bugzilla/show_bug.cgi?id=15794
      return GLRO(dl_hwcap2);
 +#endif
  
-  if (GLRO(dl_auxv))
+ #ifdef HAVE_AUX_VECTOR
    for (p = GLRO(dl_auxv); p->a_type != AT_NULL; p++)
-     if (p->a_type == type)
 diff --git a/bits/auxv.h b/bits/auxv.h
 new file mode 100644
 index 0000000..76701c3
