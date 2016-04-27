@@ -1,10 +1,89 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.22/master from glibc-2.22
 
 diff --git a/ChangeLog b/ChangeLog
-index cb9124e..0b6deab 100644
+index cb9124e..fa02ac9 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,465 @@
+@@ -1,3 +1,544 @@
++2016-04-13  Florian Weimer  <fweimer@redhat.com>
++
++	* malloc/arena.c (list_lock): Update comment.
++
++2016-04-13  Florian Weimer  <fweimer@redhat.com>
++
++	* malloc/tst-malloc-thread-exit.c: Include test-skeleton.c early.
++	(do_test): Limit the number of arenas, so that we can use fewer
++	outer threads.  Limit timeout to 3 seconds, in preparation for a
++	larger TIMEOUT value.
++
++2016-04-13  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19182]
++	* malloc/arena.c (list_lock): Document lock ordering requirements.
++	(free_list_lock): New lock.
++	(ptmalloc_lock_all): Comment on free_list_lock.
++	(ptmalloc_unlock_all2): Reinitialize free_list_lock.
++	(detach_arena): Update comment.  free_list_lock is now needed.
++	(_int_new_arena): Use free_list_lock around detach_arena call.
++	Acquire arena lock after list_lock.  Add comment, including FIXME
++	about incorrect synchronization.
++	(get_free_list): Switch to free_list_lock.
++	(reused_arena): Acquire free_list_lock around detach_arena call
++	and attached threads counter update.  Add two FIXMEs about
++	incorrect synchronization.
++	(arena_thread_freeres): Switch to free_list_lock.
++	* malloc/malloc.c (struct malloc_state): Update comments to
++	mention free_list_lock.
++
++2016-04-13  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19243]
++	* malloc/arena.c (get_free_list): Remove assert and adjust
++	reference count handling.  Add comment about reused_arena
++	interaction.
++	(reused_arena): Add comments abount get_free_list interaction.
++	* malloc/tst-malloc-thread-exit.c: New file.
++	* malloc/Makefile (tests): Add tst-malloc-thread-exit.
++	(tst-malloc-thread-exit): Link against libpthread.
++
++2016-04-13  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ# 19048]
++	* malloc/malloc.c (struct malloc_state): Update comment.  Add
++	attached_threads member.
++	(main_arena): Initialize attached_threads.
++	* malloc/arena.c (list_lock): Update comment.
++	(ptmalloc_lock_all, ptmalloc_unlock_all): Likewise.
++	(ptmalloc_unlock_all2): Reinitialize arena reference counts.
++	(deattach_arena): New function.
++	(_int_new_arena): Initialize arena reference count and deattach
++	replaced arena.
++	(get_free_list, reused_arena): Update reference count and deattach
++	replaced arena.
++	(arena_thread_freeres): Update arena reference count and only put
++	unreferenced arenas on the free list.
++
++2016-04-12  Paul E. Murphy  <murphyp@linux.vnet.ibm.com>
++
++	[BZ #19853]
++	* stdio-common/tst-sprintf3.c [TEST_N]: Refactor
++	TEST to take significant digits as second parameter.
++	[TEST]: Redefine in terms of TEST_N taking 30
++	significant digits.
++	(do_test): Add test case to demonstrate precision
++	failure in the ldbl-128ibm printf.
++	* sysdeps/ieee754/ldbl-128ibm/ldbl2pm.c:
++	(__mpn_extract_long_double): Carry 7 extra intermediate
++	bits of precision to aide computing difference when
++	signs differ.
++
++2016-04-09  Mike Frysinger  <vapier@gentoo.org>
++
++	* sysdeps/i386/configure.ac: Change == to = when calling test.
++	* sysdeps/x86_64/configure.ac: Likewise.
++	* sysdeps/i386/configure: Regenerated.
++	* sysdeps/x86_64/configure: Likewise.
++
 +2015-08-25  Paul E. Murphy  <murphyp@linux.vnet.ibm.com>
 +
 +	* sysdeps/powerpc/powerpc32/sysdep.h (ABORT_TRANSACTION): Use
@@ -471,10 +550,10 @@ index cb9124e..0b6deab 100644
  
  	* version.h (RELEASE): Set to "stable".
 diff --git a/NEWS b/NEWS
-index 4c31de7..8aa1206 100644
+index 4c31de7..7b13178 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,36 @@ See the end for copying conditions.
+@@ -5,6 +5,45 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <http://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
@@ -497,8 +576,8 @@ index 4c31de7..8aa1206 100644
 +* The following bugs are resolved with this release:
 +
 +  17905, 18420, 18421, 18480, 18589, 18743, 18778, 18781, 18787, 18796,
-+  18870, 18887, 18921, 18928, 18969, 18985, 19003, 19018, 19058, 19174,
-+  19178, 19590, 19682, 19791, 19822, 19879.
++  18870, 18887, 18921, 18928, 18969, 18985, 19003, 19018, 19048, 19058,
++  19174, 19178, 19182, 19243, 19590, 19682, 19791, 19822, 19853, 19879.
 +
 +* The getnetbyname implementation in nss_dns had a potentially unbounded
 +  alloca call (in the form of a call to strdupa), leading to a stack
@@ -507,11 +586,20 @@ index 4c31de7..8aa1206 100644
 +
 +* The LD_POINTER_GUARD environment variable can no longer be used to
 +  disable the pointer guard feature.  It is always enabled.
++
++* A defect in the malloc implementation, present since glibc 2.15 (2012) or
++  glibc 2.10 via --enable-experimental-malloc (2009), could result in the
++  unnecessary serialization of memory allocation requests across threads.
++  The defect is now corrected.  Users should see a substantial increase in
++  the concurent throughput of allocation requests for applications which
++  trigger this bug.  Affected applications typically create create and
++  destroy threads frequently.  (Bug 19048 was reported and analyzed by
++  Ericsson.)
 +
  Version 2.22
  
  * The following bugs are resolved with this release:
-@@ -84,7 +114,7 @@ Version 2.22
+@@ -84,7 +123,7 @@ Version 2.22
    release.  Use of this header will trigger a deprecation warning.
    Application developers should update their code to use <regex.h> instead.
  
@@ -1468,6 +1556,543 @@ index a39a94f..dc0fe30 100644
    write_locale_data (output_path, LC_COLLATE, "LC_COLLATE", &file);
  
    obstack_free (&weightpool, NULL);
+diff --git a/malloc/Makefile b/malloc/Makefile
+index 67ed293..aa0579c 100644
+--- a/malloc/Makefile
++++ b/malloc/Makefile
+@@ -28,7 +28,7 @@ tests := mallocbug tst-malloc tst-valloc tst-calloc tst-obstack \
+ 	 tst-mallocstate tst-mcheck tst-mallocfork tst-trim1 \
+ 	 tst-malloc-usable tst-realloc tst-posix_memalign \
+ 	 tst-pvalloc tst-memalign tst-mallopt tst-scratch_buffer \
+-	 tst-malloc-backtrace
++	 tst-malloc-backtrace tst-malloc-thread-exit
+ test-srcs = tst-mtrace
+ 
+ routines = malloc morecore mcheck mtrace obstack \
+@@ -47,6 +47,8 @@ libmemusage-inhibit-o = $(filter-out .os,$(object-suffixes))
+ 
+ $(objpfx)tst-malloc-backtrace: $(common-objpfx)nptl/libpthread.so \
+ 			       $(common-objpfx)nptl/libpthread_nonshared.a
++$(objpfx)tst-malloc-thread-exit: $(common-objpfx)nptl/libpthread.so \
++			       $(common-objpfx)nptl/libpthread_nonshared.a
+ 
+ # These should be removed by `make clean'.
+ extra-objs = mcheck-init.o libmcheck.a
+diff --git a/malloc/arena.c b/malloc/arena.c
+index 21ecc5a1..f03dcb2 100644
+--- a/malloc/arena.c
++++ b/malloc/arena.c
+@@ -67,10 +67,30 @@ extern int sanity_check_heap_info_alignment[(sizeof (heap_info)
+ /* Thread specific data */
+ 
+ static tsd_key_t arena_key;
+-static mutex_t list_lock = MUTEX_INITIALIZER;
++
++/* Arena free list.  free_list_lock synchronizes access to the
++   free_list variable below, and the next_free and attached_threads
++   members of struct malloc_state objects.  No other locks must be
++   acquired after free_list_lock has been acquired.  */
++
++static mutex_t free_list_lock = MUTEX_INITIALIZER;
+ static size_t narenas = 1;
+ static mstate free_list;
+ 
++/* list_lock prevents concurrent writes to the next member of struct
++   malloc_state objects.
++
++   Read access to the next member is supposed to synchronize with the
++   atomic_write_barrier and the write to the next member in
++   _int_new_arena.  This suffers from data races; see the FIXME
++   comments in _int_new_arena and reused_arena.
++
++   list_lock also prevents concurrent forks.  At the time list_lock is
++   acquired, no arena lock must have been acquired, but it is
++   permitted to acquire arena locks subsequently, while list_lock is
++   acquired.  */
++static mutex_t list_lock = MUTEX_INITIALIZER;
++
+ /* Mapped memory in non-main arenas (reliable only for NO_THREADS). */
+ static unsigned long arena_mem;
+ 
+@@ -210,6 +230,9 @@ ptmalloc_lock_all (void)
+   if (__malloc_initialized < 1)
+     return;
+ 
++  /* We do not acquire free_list_lock here because we completely
++     reconstruct free_list in ptmalloc_unlock_all2.  */
++
+   if (mutex_trylock (&list_lock))
+     {
+       void *my_arena;
+@@ -233,7 +256,10 @@ ptmalloc_lock_all (void)
+   save_free_hook = __free_hook;
+   __malloc_hook = malloc_atfork;
+   __free_hook = free_atfork;
+-  /* Only the current thread may perform malloc/free calls now. */
++  /* Only the current thread may perform malloc/free calls now.
++     save_arena will be reattached to the current thread, in
++     ptmalloc_lock_all, so save_arena->attached_threads is not
++     updated.  */
+   tsd_getspecific (arena_key, save_arena);
+   tsd_setspecific (arena_key, ATFORK_ARENA_PTR);
+ out:
+@@ -251,6 +277,9 @@ ptmalloc_unlock_all (void)
+   if (--atfork_recursive_cntr != 0)
+     return;
+ 
++  /* Replace ATFORK_ARENA_PTR with save_arena.
++     save_arena->attached_threads was not changed in ptmalloc_lock_all
++     and is still correct.  */
+   tsd_setspecific (arena_key, save_arena);
+   __malloc_hook = save_malloc_hook;
+   __free_hook = save_free_hook;
+@@ -282,12 +311,20 @@ ptmalloc_unlock_all2 (void)
+   tsd_setspecific (arena_key, save_arena);
+   __malloc_hook = save_malloc_hook;
+   __free_hook = save_free_hook;
++
++  /* Push all arenas to the free list, except save_arena, which is
++     attached to the current thread.  */
++  mutex_init (&free_list_lock);
++  if (save_arena != NULL)
++    ((mstate) save_arena)->attached_threads = 1;
+   free_list = NULL;
+   for (ar_ptr = &main_arena;; )
+     {
+       mutex_init (&ar_ptr->mutex);
+       if (ar_ptr != save_arena)
+         {
++	  /* This arena is no longer attached to any thread.  */
++	  ar_ptr->attached_threads = 0;
+           ar_ptr->next_free = free_list;
+           free_list = ar_ptr;
+         }
+@@ -295,6 +332,7 @@ ptmalloc_unlock_all2 (void)
+       if (ar_ptr == &main_arena)
+         break;
+     }
++
+   mutex_init (&list_lock);
+   atfork_recursive_cntr = 0;
+ }
+@@ -721,6 +759,22 @@ heap_trim (heap_info *heap, size_t pad)
+ 
+ /* Create a new arena with initial size "size".  */
+ 
++/* If REPLACED_ARENA is not NULL, detach it from this thread.  Must be
++   called while free_list_lock is held.  */
++static void
++detach_arena (mstate replaced_arena)
++{
++  if (replaced_arena != NULL)
++    {
++      assert (replaced_arena->attached_threads > 0);
++      /* The current implementation only detaches from main_arena in
++	 case of allocation failure.  This means that it is likely not
++	 beneficial to put the arena on free_list even if the
++	 reference count reaches zero.  */
++      --replaced_arena->attached_threads;
++    }
++}
++
+ static mstate
+ _int_new_arena (size_t size)
+ {
+@@ -742,6 +796,7 @@ _int_new_arena (size_t size)
+     }
+   a = h->ar_ptr = (mstate) (h + 1);
+   malloc_init_state (a);
++  a->attached_threads = 1;
+   /*a->next = NULL;*/
+   a->system_mem = a->max_system_mem = h->size;
+   arena_mem += h->size;
+@@ -755,34 +810,66 @@ _int_new_arena (size_t size)
+   set_head (top (a), (((char *) h + h->size) - ptr) | PREV_INUSE);
+ 
+   LIBC_PROBE (memory_arena_new, 2, a, size);
++  mstate replaced_arena;
++  tsd_getspecific (arena_key, replaced_arena);
+   tsd_setspecific (arena_key, (void *) a);
+   mutex_init (&a->mutex);
+-  (void) mutex_lock (&a->mutex);
+ 
+   (void) mutex_lock (&list_lock);
+ 
+   /* Add the new arena to the global list.  */
+   a->next = main_arena.next;
++  /* FIXME: The barrier is an attempt to synchronize with read access
++     in reused_arena, which does not acquire list_lock while
++     traversing the list.  */
+   atomic_write_barrier ();
+   main_arena.next = a;
+ 
+   (void) mutex_unlock (&list_lock);
+ 
++  (void) mutex_lock (&free_list_lock);
++  detach_arena (replaced_arena);
++  (void) mutex_unlock (&free_list_lock);
++
++  /* Lock this arena.  NB: Another thread may have been attached to
++     this arena because the arena is now accessible from the
++     main_arena.next list and could have been picked by reused_arena.
++     This can only happen for the last arena created (before the arena
++     limit is reached).  At this point, some arena has to be attached
++     to two threads.  We could acquire the arena lock before list_lock
++     to make it less likely that reused_arena picks this new arena,
++     but this could result in a deadlock with ptmalloc_lock_all.  */
++
++  (void) mutex_lock (&a->mutex);
++
+   return a;
+ }
+ 
+ 
++/* Remove an arena from free_list.  The arena may be in use because it
++   was attached concurrently to a thread by reused_arena below.  */
+ static mstate
+ get_free_list (void)
+ {
++  mstate replaced_arena;
+   mstate result = free_list;
++
++  tsd_getspecific (arena, replaced_arena);
++
+   if (result != NULL)
+     {
+-      (void) mutex_lock (&list_lock);
++      (void) mutex_lock (&free_list_lock);
+       result = free_list;
+       if (result != NULL)
+-        free_list = result->next_free;
+-      (void) mutex_unlock (&list_lock);
++	{
++	  free_list = result->next_free;
++
++	  /* The arena will be attached to this thread.  */
++	  ++result->attached_threads;
++
++	  detach_arena (replaced_arena);
++	}
++      (void) mutex_unlock (&free_list_lock);
+ 
+       if (result != NULL)
+         {
+@@ -802,16 +889,20 @@ static mstate
+ reused_arena (mstate avoid_arena)
+ {
+   mstate result;
++  /* FIXME: Access to next_to_use suffers from data races.  */
+   static mstate next_to_use;
+   if (next_to_use == NULL)
+     next_to_use = &main_arena;
+ 
++  /* Iterate over all arenas (including those linked from
++     free_list).  */
+   result = next_to_use;
+   do
+     {
+       if (!arena_is_corrupt (result) && !mutex_trylock (&result->mutex))
+         goto out;
+ 
++      /* FIXME: This is a data race, see _int_new_arena.  */
+       result = result->next;
+     }
+   while (result != next_to_use);
+@@ -840,6 +931,18 @@ reused_arena (mstate avoid_arena)
+   (void) mutex_lock (&result->mutex);
+ 
+ out:
++  /* Attach the arena to the current thread.  Note that we may have
++     selected an arena which was on free_list.  */
++  {
++    mstate replaced_arena;
++
++    tsd_getspecific (arena, replaced_arena);
++    (void) mutex_lock (&free_list_lock);
++    detach_arena (replaced_arena);
++    ++result->attached_threads;
++    (void) mutex_unlock (&free_list_lock);
++  }
++
+   LIBC_PROBE (memory_arena_reuse, 2, result, avoid_arena);
+   tsd_setspecific (arena_key, (void *) result);
+   next_to_use = result->next;
+@@ -932,10 +1035,16 @@ arena_thread_freeres (void)
+ 
+   if (a != NULL)
+     {
+-      (void) mutex_lock (&list_lock);
+-      a->next_free = free_list;
+-      free_list = a;
+-      (void) mutex_unlock (&list_lock);
++      (void) mutex_lock (&free_list_lock);
++      /* If this was the last attached thread for this arena, put the
++	 arena on the free list.  */
++      assert (a->attached_threads > 0);
++      if (--a->attached_threads == 0)
++	{
++	  a->next_free = free_list;
++	  free_list = a;
++	}
++      (void) mutex_unlock (&free_list_lock);
+     }
+ }
+ text_set_element (__libc_thread_subfreeres, arena_thread_freeres);
+diff --git a/malloc/malloc.c b/malloc/malloc.c
+index 452f036..5c84e62 100644
+--- a/malloc/malloc.c
++++ b/malloc/malloc.c
+@@ -1709,9 +1709,15 @@ struct malloc_state
+   /* Linked list */
+   struct malloc_state *next;
+ 
+-  /* Linked list for free arenas.  */
++  /* Linked list for free arenas.  Access to this field is serialized
++     by free_list_lock in arena.c.  */
+   struct malloc_state *next_free;
+ 
++  /* Number of threads attached to this arena.  0 if the arena is on
++     the free list.  Access to this field is serialized by
++     free_list_lock in arena.c.  */
++  INTERNAL_SIZE_T attached_threads;
++
+   /* Memory allocated from the system in this arena.  */
+   INTERNAL_SIZE_T system_mem;
+   INTERNAL_SIZE_T max_system_mem;
+@@ -1755,7 +1761,8 @@ struct malloc_par
+ static struct malloc_state main_arena =
+ {
+   .mutex = MUTEX_INITIALIZER,
+-  .next = &main_arena
++  .next = &main_arena,
++  .attached_threads = 1
+ };
+ 
+ /* There is only one instance of the malloc parameters.  */
+diff --git a/malloc/tst-malloc-thread-exit.c b/malloc/tst-malloc-thread-exit.c
+new file mode 100644
+index 0000000..7bce012
+--- /dev/null
++++ b/malloc/tst-malloc-thread-exit.c
+@@ -0,0 +1,218 @@
++/* Test malloc with concurrent thread termination.
++   Copyright (C) 2015 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* This thread spawns a number of outer threads, equal to the arena
++   limit.  The outer threads run a loop which start and join two
++   different kinds of threads: the first kind allocates (attaching an
++   arena to the thread; malloc_first_thread) and waits, the second
++   kind waits and allocates (wait_first_threads).  Both kinds of
++   threads exit immediately after waiting.  The hope is that this will
++   exhibit races in thread termination and arena management,
++   particularly related to the arena free list.  */
++
++#include <errno.h>
++#include <malloc.h>
++#include <pthread.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
++
++static bool termination_requested;
++static int inner_thread_count = 4;
++static size_t malloc_size = 32;
++
++static void
++__attribute__ ((noinline, noclone))
++unoptimized_free (void *ptr)
++{
++  free (ptr);
++}
++
++static void *
++malloc_first_thread (void * closure)
++{
++  pthread_barrier_t *barrier = closure;
++  void *ptr = malloc (malloc_size);
++  if (ptr == NULL)
++    {
++      printf ("error: malloc: %m\n");
++      abort ();
++    }
++  int ret = pthread_barrier_wait (barrier);
++  if (ret != 0 && ret != PTHREAD_BARRIER_SERIAL_THREAD)
++    {
++      errno = ret;
++      printf ("error: pthread_barrier_wait: %m\n");
++      abort ();
++    }
++  unoptimized_free (ptr);
++  return NULL;
++}
++
++static void *
++wait_first_thread (void * closure)
++{
++  pthread_barrier_t *barrier = closure;
++  int ret = pthread_barrier_wait (barrier);
++  if (ret != 0 && ret != PTHREAD_BARRIER_SERIAL_THREAD)
++    {
++      errno = ret;
++      printf ("error: pthread_barrier_wait: %m\n");
++      abort ();
++    }
++  void *ptr = malloc (malloc_size);
++  if (ptr == NULL)
++    {
++      printf ("error: malloc: %m\n");
++      abort ();
++    }
++  unoptimized_free (ptr);
++  return NULL;
++}
++
++static void *
++outer_thread (void *closure)
++{
++  pthread_t *threads = calloc (sizeof (*threads), inner_thread_count);
++  if (threads == NULL)
++    {
++      printf ("error: calloc: %m\n");
++      abort ();
++    }
++
++  while (!__atomic_load_n (&termination_requested, __ATOMIC_RELAXED))
++    {
++      pthread_barrier_t barrier;
++      int ret = pthread_barrier_init (&barrier, NULL, inner_thread_count + 1);
++      if (ret != 0)
++        {
++          errno = ret;
++          printf ("pthread_barrier_init: %m\n");
++          abort ();
++        }
++      for (int i = 0; i < inner_thread_count; ++i)
++        {
++          void *(*func) (void *);
++          if ((i  % 2) == 0)
++            func = malloc_first_thread;
++          else
++            func = wait_first_thread;
++          ret = pthread_create (threads + i, NULL, func, &barrier);
++          if (ret != 0)
++            {
++              errno = ret;
++              printf ("error: pthread_create: %m\n");
++              abort ();
++            }
++        }
++      ret = pthread_barrier_wait (&barrier);
++      if (ret != 0 && ret != PTHREAD_BARRIER_SERIAL_THREAD)
++        {
++          errno = ret;
++          printf ("pthread_wait: %m\n");
++          abort ();
++        }
++      for (int i = 0; i < inner_thread_count; ++i)
++        {
++          ret = pthread_join (threads[i], NULL);
++          if (ret != 0)
++            {
++              ret = errno;
++              printf ("error: pthread_join: %m\n");
++              abort ();
++            }
++        }
++      ret = pthread_barrier_destroy (&barrier);
++      if (ret != 0)
++        {
++          ret = errno;
++          printf ("pthread_barrier_destroy: %m\n");
++          abort ();
++        }
++    }
++
++  free (threads);
++
++  return NULL;
++}
++
++static int
++do_test (void)
++{
++  /* The number of threads should be smaller than the number of
++     arenas, so that there will be some free arenas to add to the
++     arena free list.  */
++  enum { outer_thread_count = 2 };
++  if (mallopt (M_ARENA_MAX, 8) == 0)
++    {
++      printf ("error: mallopt (M_ARENA_MAX) failed\n");
++      return 1;
++    }
++
++  /* Leave some room for shutting down all threads gracefully.  */
++  int timeout = 3;
++  if (timeout > TIMEOUT)
++    timeout = TIMEOUT - 1;
++
++  pthread_t *threads = calloc (sizeof (*threads), outer_thread_count);
++  if (threads == NULL)
++    {
++      printf ("error: calloc: %m\n");
++      abort ();
++    }
++
++  for (long i = 0; i < outer_thread_count; ++i)
++    {
++      int ret = pthread_create (threads + i, NULL, outer_thread, NULL);
++      if (ret != 0)
++        {
++          errno = ret;
++          printf ("error: pthread_create: %m\n");
++          abort ();
++        }
++    }
++
++  struct timespec ts = {timeout, 0};
++  if (nanosleep (&ts, NULL))
++    {
++      printf ("error: error: nanosleep: %m\n");
++      abort ();
++    }
++
++  __atomic_store_n (&termination_requested, true, __ATOMIC_RELAXED);
++
++  for (long i = 0; i < outer_thread_count; ++i)
++    {
++      int ret = pthread_join (threads[i], NULL);
++      if (ret != 0)
++        {
++          errno = ret;
++          printf ("error: pthread_join: %m\n");
++          abort ();
++        }
++    }
++  free (threads);
++
++  return 0;
++}
 diff --git a/math/Makefile b/math/Makefile
 index 6388bae..84b4ded 100644
 --- a/math/Makefile
@@ -2629,6 +3254,52 @@ index cac1562..79b2b3e 100755
      if ($name ne "nss_ldap" && $name ne "db1"
  	&& !($name =~/^nss1_/) && $name ne "thread_db"
  	&& $name ne "nss_test1" && $name ne "libgcc_s") {
+diff --git a/stdio-common/tst-sprintf3.c b/stdio-common/tst-sprintf3.c
+index e1e5317..cae8ed1 100644
+--- a/stdio-common/tst-sprintf3.c
++++ b/stdio-common/tst-sprintf3.c
+@@ -38,11 +38,11 @@ do_test (void)
+ # define COMPARE_LDBL(u, v) ((u).l == (v).l)
+ #endif
+ 
+-#define TEST(val) \
++#define TEST_N(val, n) \
+   do									   \
+     {									   \
+       u.l = (val);							   \
+-      snprintf (buf, sizeof buf, "%.30LgL", u.l);			   \
++      snprintf (buf, sizeof buf, "%." #n "LgL", u.l);			   \
+       if (strcmp (buf, #val) != 0)					   \
+ 	{								   \
+ 	  printf ("Error on line %d: %s != %s\n", __LINE__, buf, #val);	   \
+@@ -50,19 +50,25 @@ do_test (void)
+ 	}								   \
+       if (sscanf (#val, "%Lg", &v.l) != 1 || !COMPARE_LDBL (u, v))	   \
+ 	{								   \
+-	  printf ("Error sscanf on line %d: %.30Lg != %.30Lg\n", __LINE__, \
+-		  u.l, v.l);						   \
++	  printf ("Error sscanf on line %d: %." #n "Lg != %." #n "Lg\n",   \
++		  __LINE__, u.l, v.l);					   \
+ 	  result = 1;							   \
+ 	}								   \
+       /* printf ("%s %Lg %016Lx %016Lx\n", #val, u.l, u.x[0], u.x[1]); */  \
+     }									   \
+   while (0)
+ 
++#define TEST(val) TEST_N (val,30)
++
+ #if LDBL_MANT_DIG >= 106
+ # if LDBL_MANT_DIG == 106
+   TEST (2.22507385850719347803989925739e-308L);
+   TEST (2.22507385850719397210554509863e-308L);
+   TEST (2.22507385850720088902458687609e-308L);
++
++  /* Verify precision is not lost for long doubles
++     of the form +1.pN,-1.pM.  */
++  TEST_N (3.32306998946228968225951765070082e+35L, 34);
+ # endif
+   TEST (2.22507385850720138309023271733e-308L);
+   TEST (2.22507385850720187715587855858e-308L);
 diff --git a/stdlib/cxa_thread_atexit_impl.c b/stdlib/cxa_thread_atexit_impl.c
 index 2d5d56a..5717f09 100644
 --- a/stdlib/cxa_thread_atexit_impl.c
@@ -3077,6 +3748,100 @@ index 64d8c3e..cc4f243 100644
  	bl	__libc_start_main,%r2
  	nop
  	/* die horribly if it returned (it shouldn't) */
+diff --git a/sysdeps/i386/configure b/sysdeps/i386/configure
+index ab66c08..b0ef1fc 100644
+--- a/sysdeps/i386/configure
++++ b/sysdeps/i386/configure
+@@ -262,7 +262,7 @@ rm -f conftest*
+ fi
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_asm_mpx" >&5
+ $as_echo "$libc_cv_asm_mpx" >&6; }
+-if test $libc_cv_asm_mpx == yes; then
++if test $libc_cv_asm_mpx = yes; then
+   $as_echo "#define HAVE_MPX_SUPPORT 1" >>confdefs.h
+ 
+ fi
+diff --git a/sysdeps/i386/configure.ac b/sysdeps/i386/configure.ac
+index a3f3067..5647cb0 100644
+--- a/sysdeps/i386/configure.ac
++++ b/sysdeps/i386/configure.ac
+@@ -99,7 +99,7 @@ else
+   libc_cv_asm_mpx=no
+ fi
+ rm -f conftest*])
+-if test $libc_cv_asm_mpx == yes; then
++if test $libc_cv_asm_mpx = yes; then
+   AC_DEFINE(HAVE_MPX_SUPPORT)
+ fi
+ 
+diff --git a/sysdeps/ieee754/ldbl-128ibm/ldbl2mpn.c b/sysdeps/ieee754/ldbl-128ibm/ldbl2mpn.c
+index e9b5803..030a2aa 100644
+--- a/sysdeps/ieee754/ldbl-128ibm/ldbl2mpn.c
++++ b/sysdeps/ieee754/ldbl-128ibm/ldbl2mpn.c
+@@ -28,6 +28,12 @@
+    bits (106 for long double) and an integral power of two (MPN
+    frexpl). */
+ 
++
++/* When signs differ, the actual value is the difference between the
++   significant double and the less significant double.  Sometimes a
++   bit can be lost when we borrow from the significant mantissa.  */
++#define EXTRA_INTERNAL_PRECISION (7)
++
+ mp_size_t
+ __mpn_extract_long_double (mp_ptr res_ptr, mp_size_t size,
+ 			   int *expt, int *is_neg,
+@@ -45,10 +51,15 @@ __mpn_extract_long_double (mp_ptr res_ptr, mp_size_t size,
+   lo = ((long long) u.d[1].ieee.mantissa0 << 32) | u.d[1].ieee.mantissa1;
+   hi = ((long long) u.d[0].ieee.mantissa0 << 32) | u.d[0].ieee.mantissa1;
+ 
++  /* Hold 7 extra bits of precision in the mantissa.  This allows
++     the normalizing shifts below to prevent losing precision when
++     the signs differ and the exponents are sufficiently far apart.  */
++  lo <<= EXTRA_INTERNAL_PRECISION;
++
+   /* If the lower double is not a denormal or zero then set the hidden
+      53rd bit.  */
+   if (u.d[1].ieee.exponent != 0)
+-    lo |= 1ULL << 52;
++    lo |= 1ULL << (52 + EXTRA_INTERNAL_PRECISION);
+   else
+     lo = lo << 1;
+ 
+@@ -72,12 +83,12 @@ __mpn_extract_long_double (mp_ptr res_ptr, mp_size_t size,
+   if (u.d[0].ieee.negative != u.d[1].ieee.negative
+       && lo != 0)
+     {
+-      lo = (1ULL << 53) - lo;
++      lo = (1ULL << (53 + EXTRA_INTERNAL_PRECISION)) - lo;
+       if (hi == 0)
+ 	{
+ 	  /* we have a borrow from the hidden bit, so shift left 1.  */
+-	  hi = 0x0ffffffffffffeLL | (lo >> 51);
+-	  lo = 0x1fffffffffffffLL & (lo << 1);
++	  hi = 0x000ffffffffffffeLL | (lo >> (52 + EXTRA_INTERNAL_PRECISION));
++	  lo = 0x0fffffffffffffffLL & (lo << 1);
+ 	  (*expt)--;
+ 	}
+       else
+@@ -85,14 +96,14 @@ __mpn_extract_long_double (mp_ptr res_ptr, mp_size_t size,
+     }
+ #if BITS_PER_MP_LIMB == 32
+   /* Combine the mantissas to be contiguous.  */
+-  res_ptr[0] = lo;
+-  res_ptr[1] = (hi << (53 - 32)) | (lo >> 32);
++  res_ptr[0] = lo >> EXTRA_INTERNAL_PRECISION;
++  res_ptr[1] = (hi << (53 - 32)) | (lo >> (32 + EXTRA_INTERNAL_PRECISION));
+   res_ptr[2] = hi >> 11;
+   res_ptr[3] = hi >> (32 + 11);
+   #define N 4
+ #elif BITS_PER_MP_LIMB == 64
+   /* Combine the two mantissas to be contiguous.  */
+-  res_ptr[0] = (hi << 53) | lo;
++  res_ptr[0] = (hi << 53) | (lo >> EXTRA_INTERNAL_PRECISION);
+   res_ptr[1] = hi >> 11;
+   #define N 2
+ #else
 diff --git a/sysdeps/nacl/Makefile b/sysdeps/nacl/Makefile
 index 6749a44..1748886 100644
 --- a/sysdeps/nacl/Makefile
@@ -5040,6 +5805,50 @@ index f9e798b..f3bfb86 100644
 -
  # endif
  #endif
+diff --git a/sysdeps/x86_64/configure b/sysdeps/x86_64/configure
+index 552f535..e6a9651 100644
+--- a/sysdeps/x86_64/configure
++++ b/sysdeps/x86_64/configure
+@@ -118,7 +118,7 @@ rm -f conftest*
+ fi
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_asm_avx512" >&5
+ $as_echo "$libc_cv_asm_avx512" >&6; }
+-if test $libc_cv_asm_avx512 == yes; then
++if test $libc_cv_asm_avx512 = yes; then
+   $as_echo "#define HAVE_AVX512_ASM_SUPPORT 1" >>confdefs.h
+ 
+ fi
+@@ -245,7 +245,7 @@ rm -f conftest*
+ fi
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_asm_mpx" >&5
+ $as_echo "$libc_cv_asm_mpx" >&6; }
+-if test $libc_cv_asm_mpx == yes; then
++if test $libc_cv_asm_mpx = yes; then
+   $as_echo "#define HAVE_MPX_SUPPORT 1" >>confdefs.h
+ 
+ fi
+diff --git a/sysdeps/x86_64/configure.ac b/sysdeps/x86_64/configure.ac
+index e7208c9..b721173 100644
+--- a/sysdeps/x86_64/configure.ac
++++ b/sysdeps/x86_64/configure.ac
+@@ -35,7 +35,7 @@ else
+   libc_cv_asm_avx512=no
+ fi
+ rm -f conftest*])
+-if test $libc_cv_asm_avx512 == yes; then
++if test $libc_cv_asm_avx512 = yes; then
+   AC_DEFINE(HAVE_AVX512_ASM_SUPPORT)
+ fi
+ 
+@@ -87,7 +87,7 @@ else
+   libc_cv_asm_mpx=no
+ fi
+ rm -f conftest*])
+-if test $libc_cv_asm_mpx == yes; then
++if test $libc_cv_asm_mpx = yes; then
+   AC_DEFINE(HAVE_MPX_SUPPORT)
+ fi
+ 
 diff --git a/sysdeps/x86_64/fpu/Makefile b/sysdeps/x86_64/fpu/Makefile
 index 1ebe511..b32b852 100644
 --- a/sysdeps/x86_64/fpu/Makefile
