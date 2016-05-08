@@ -17,6 +17,17 @@ glibc (2.22-8) UNRELEASED; urgency=medium
     wrong though, glibc should not be a special case: either we don't
     support partial upgrades or we do that for all libraries. With that
     let's hope people will stop reporting bugs, sigh.  Closes: #819165.
+  * Drop libc*-i686 packages as GCC now defaults to i686:
+    - debian/control: drop packages, add provides and build-depends on
+      g++-5 (>= 5.3.1-17).
+    - debian/rules: convert i586 into i686 until the default is changed
+      in dpkg-dev.
+    - debian/sysdeps/hurd-i386.mk: stop building libc0.3-i686. Use the
+      default compiler options to build libc0.3-xen.
+    - debian/sysdeps/i386.mk: stop building libc6-i686.
+    - debian/sysdeps/kfreebsd-i386.mk: drop.
+    - debian/patches/i386/submitted-i686-timing.diff: drop.  Closes:
+      #218519.
 
  -- Samuel Thibault <sthibault@debian.org>  Tue, 19 Apr 2016 23:28:29 +0200
 

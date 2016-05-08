@@ -2,22 +2,10 @@
 extra_config_options = --enable-multi-arch --enable-lock-elision
 MIN_KERNEL_SUPPORTED := 2.6.32
 
-# We use -march=i686 and glibc's i686 routines use cmov, so require it.
-# A Debian-local glibc patch adds cmov to the search path.
-GLIBC_PASSES += i686
-DEB_ARCH_REGULAR_PACKAGES += libc6-i686
-i686_configure_target=i686-linux-gnu
-i686_CC = $(CC) -march=i686 -mtune=generic
-i686_CXX = $(CXX) -march=i686 -mtune=generic
-i686_slibdir = /lib/$(DEB_HOST_MULTIARCH)/i686/cmov
-
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
 # greatly increase the speed when running under the 32bit Xen hypervisor.
 GLIBC_PASSES += xen
 DEB_ARCH_REGULAR_PACKAGES += libc6-xen
-xen_configure_target=i686-linux-gnu
-xen_CC = $(CC) -march=i686 -mtune=generic
-xen_CXX = $(CXX) -march=i686 -mtune=generic
 xen_extra_cflags = -mno-tls-direct-seg-refs
 xen_slibdir = /lib/$(DEB_HOST_MULTIARCH)/i686/nosegneg
 

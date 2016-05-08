@@ -11,6 +11,7 @@ Build-Depends: gettext, dpkg-dev (>= 1.17.14), xz-utils, file, quilt,
  kfreebsd-kernel-headers [kfreebsd-any],
  binutils (>= 2.21),
  g++-5, g++-5-multilib [amd64 i386 kfreebsd-amd64 mips mipsel mipsn32 mipsn32el mips64 mips64el powerpc ppc64 s390x sparc sparc64 x32],
+ g++-5 (>= 5.3.1-17) [hurd-i386 i386 kfreebsd-i386],
  libc-bin (>= 2.22) <cross>
 Build-Depends-Indep: perl, po-debconf (>= 1.0)
 Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
@@ -164,9 +165,8 @@ Section: libs
 Priority: required
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${libgcc:Depends}
-Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386] 
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-i386]
-Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64]
+Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Conflicts: libc6-loongson2f [mipsel]
 Breaks: nscd (<< 2.22), locales (<< 2.22), locales-all (<< 2.22), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
 Replaces: libc6-amd64 [amd64],
@@ -250,9 +250,8 @@ Section: libs
 Priority: required
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${libgcc:Depends}
-Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386] 
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-i386]
-Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64]
+Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Conflicts: libc6-loongson2f [mipsel]
 Breaks: nscd (<< 2.22), locales (<< 2.22), locales-all (<< 2.22), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
 Replaces: libc6-amd64 [amd64],
@@ -336,9 +335,8 @@ Section: libs
 Priority: required
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${libgcc:Depends}
-Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386] 
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-i386]
-Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64]
+Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Conflicts: libc6-loongson2f [mipsel]
 Breaks: nscd (<< 2.22), locales (<< 2.22), locales-all (<< 2.22), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
 Replaces: libc6-amd64 [amd64],
@@ -422,9 +420,8 @@ Section: libs
 Priority: required
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${libgcc:Depends}
-Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386] 
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-i386]
-Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64]
+Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Conflicts: libc6-loongson2f [mipsel]
 Breaks: nscd (<< 2.22), locales (<< 2.22), locales-all (<< 2.22), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
 Replaces: libc6-amd64 [amd64],
@@ -815,25 +812,6 @@ Description: GNU C Library: X32 ABI Development Libraries for AMD64
  which use the standard C library. This is the X32 ABI version of the
  library, meant for amd64 systems.
 
-Package: libc6-i686
-Architecture: i386
-Section: libs
-Priority: extra
-Multi-Arch: same
-Pre-Depends: libc6 (= ${binary:Version})
-Depends: ${misc:Depends}
-Build-Profiles: <!stage1>
-Description: GNU C Library: Shared libraries [i686 optimized]
- Contains the standard libraries that are used by nearly all programs on
- the system. This package includes shared versions of the standard C
- library and the standard math library, as well as many others.
- .
- This set of libraries is optimized for i686 machines, and will only be
- used on an i686 class CPU (check the output of `uname -m').  This includes 
- Pentium Pro, Pentium II/III/IV, Celeron CPU's and similar class CPU's
- (including clones such as AMD Athlon/Opteron, VIA C3 Nehemiah, but not VIA 
- C3 Ezra).  
-
 Package: libc6-xen
 Architecture: i386
 Section: libs
@@ -849,25 +827,6 @@ Description: GNU C Library: Shared libraries [Xen version]
  .
  This set of libraries is optimized for the Xen hypervisor, and will be
  selected instead when running under Xen.
-
-Package: libc0.1-i686
-Architecture: kfreebsd-i386
-Section: libs
-Priority: extra
-Multi-Arch: same
-Pre-Depends: libc0.1 (= ${binary:Version})
-Depends: ${misc:Depends}
-Build-Profiles: <!stage1>
-Description: GNU C Library: Shared libraries [i686 optimized]
- Contains the standard libraries that are used by nearly all programs on
- the system. This package includes shared versions of the standard C
- library and the standard math library, as well as many others.
- .
- This set of libraries is optimized for i686 machines, and will only be
- used on an i686 class CPU (check the output of `uname -m').  This includes 
- Pentium Pro, Pentium II/III/IV, Celeron CPU's and similar class CPU's
- (including clones such as AMD Athlon/Opteron, VIA C3 Nehemiah, but not VIA 
- C3 Ezra).  
 
 Package: libc6.1-alphaev67
 Architecture: alpha
