@@ -36,8 +36,8 @@ Subject: [PATCH] Small signal fixes
 +      __sigemptyset (&_hurd_global_sigstate->pending);
 +      __sigemptyset (&ss->pending);
  
-       /* Run things that want to run in the child task to set up.  */
-       RUN_HOOK (_hurd_fork_child_hook, ());
+       /* Release malloc locks.  */
+       __malloc_fork_unlock_child ();
 --- a/sysdeps/mach/hurd/spawni.c
 +++ b/sysdeps/mach/hurd/spawni.c
 @@ -239,7 +239,7 @@ __spawni (pid_t *pid, const char *file,

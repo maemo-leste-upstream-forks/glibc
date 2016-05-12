@@ -1,10 +1,320 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.23/master from glibc-2.23
 
 diff --git a/ChangeLog b/ChangeLog
-index 2e4afb7..4a0461d 100644
+index 2e4afb7..47f0b8a 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,5 +1,170 @@
+@@ -1,5 +1,480 @@
++2016-04-14  Stefan Liebler  <stli@linux.vnet.ibm.com>
++
++	* stdio-common/printf_fp.c (__printf_fp_l):
++	Rename ___printf_fp_l to __printf_fp_l and
++	remove strong alias. Use libc_hidden_def instead
++	of ldbl_hidden_def macro.
++
++2016-04-29  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #20010]
++	CVE-2016-3706
++	* sysdeps/posix/getaddrinfo.c
++	(convert_hostent_to_gaih_addrtuple): New function.
++	(gethosts): Call convert_hostent_to_gaih_addrtuple.
++	(gaih_inet): Use convert_hostent_to_gaih_addrtuple to convert
++	AF_INET data.
++
++2016-03-07  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19610]
++	* elf/ldconfig.c (opt_link): Update comment.
++	(options): Update help string for option -X.
++	(search_dir): Unlink stale symbolic link only if updating symbolic
++	links.
++	* elf/tst-ldconfig-X.sh: New file.
++	* elf/Makefile (tests-special): Add tst-ldconfig-X.out.
++	(tst-ldconfig-X.out): New rule to run tst-ldconfig-X.sh.
++
++2016-05-04  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19779]
++	CVE-2016-1234
++	Avoid copying names of directory entries.
++	* posix/glob.c (DIRENT_MUST_BE, DIRENT_MIGHT_BE_SYMLINK)
++	(DIRENT_MIGHT_BE_DIR, CONVERT_D_INO, CONVERT_D_TYPE)
++	(CONVERT_DIRENT_DIRENT64, REAL_DIR_ENTRY): Remove macros.
++	(struct readdir_result): New type.
++	(D_TYPE_TO_RESULT, D_INO_TO_RESULT, READDIR_RESULT_INITIALIZER)
++	(GL_READDIR): New macros.
++	(readdir_result_might_be_symlink, readdir_result_might_be_dir)
++	(convert_dirent, convert_dirent64): New functions.
++	(glob_in_dir): Use struct readdir_result.  Call convert_dirent or
++	convert_dirent64.  Adjust references to the readdir result.
++	* sysdeps/unix/sysv/linux/i386/glob64.c:
++	(convert_dirent, GL_READDIR): Redefine for second file inclusion.
++	* posix/bug-glob2.c (LONG_NAME): Define.
++	(filesystem): Add LONG_NAME.
++	(my_DIR): Increase the size of room_for_dirent.
++
++2016-04-29  Florian Weimer  <fweimer@redhat.com>
++
++	glob: Simplify and document the interface for the GLOB_ALTDIRFUNC
++	callback function gl_readdir.
++	* posix/glob.c (NAMELEN, CONVERT_D_NAMLEN): Remove.
++	(CONVERT_DIRENT_DIRENT64): Use strcpy instead of memcpy.
++	(glob_in_dir): Remove len.  Use strdup instead of malloc and
++	memcpy to copy the name.
++	* manual/pattern.texi (Calling Glob): Document requirements for
++	implementations of the gl_readdir callback function.
++	* manual/examples/mkdirent.c: New example.
++	* posix/bug-glob2.c (my_readdir): Set d_ino to 1 unconditionally,
++	per the manual guidance.
++	* posix/tst-gnuglob.c (my_readdir): Likewise.
++
++2016-04-04  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19633]
++	Use specified locale for number formatting in strfmon_l.
++	* locale/localeinfo.h (__nl_lookup, _nl_lookup_wstr)
++	(__nl_lookup_word): New inline functions.
++	* include/printf.h (__print_fp_l): Declare.
++	* stdio-common/printf_fp.c (___printf_fp_l): Renamed from
++	___printf_fp.  Add locale argument.  Replace _NL_CURRENT with
++	_nl_lookup and _NL_CURRENT_WORD with _nl_lookup_word.
++	(___printf_fp): New function.
++	* stdlib/strfmon_l.c (__printf_fp): Remove declaration.
++	(__vstrfmon_l): Call __printf_fp_l instead of printf_fp.
++	* stdlib/tst-strfmon_l.c (do_test): New test.
++	* stdlib/Makefile (tests): Add kt.
++	(LOCALES): Build additional locales.
++	(tst-strfmon_l.out): Require locales.
++
++2016-03-25  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ# 19860]
++	* sysdeps/x86_64/tst-audit10.c (avx512_enabled): Always return
++	zero if the compiler does not provide the AVX512F bit.
++
++2016-03-08  Roland McGrath  <roland@hack.frob.com>
++
++	* sysdeps/x86_64/tst-audit10.c: #include <cpu-features.h>.
++	* sysdeps/x86_64/tst-audit10-aux.c: Move audit_test extern decl ...
++	(tst_audit10_aux) [__AVX512F__]: ... here.
++
++2016-03-07  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19269]
++	* sysdeps/x86_64/Makefile (tst-audit4): Depend on
++	tst-audit4-aux.o.
++	(tst-audit10): Depend on tst-audit10-aux.o.
++	(CFLAGS-tst-audit4-aux.c): Compile with AVX enabled.
++	(CFLAGS-tst-audit10-aux.c): Compile with AVX512 enabled.
++	* sysdeps/x86_64/tst-audit4.c (do_test): Call tst_audit4_aux
++	instead of inline AVX code.
++	* sysdeps/x86_64/tst-audit10.c (do_test): Call tst_audit10_aux
++	instead of inline AVX512 code.
++	* sysdeps/x86_64/tst-audit4-aux.c: New file
++	* sysdeps/x86_64/tst-audit10-aux.c: New file
++
++2016-04-27  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19825]
++	* resolv/res_send.c (send_vc): Remove early *resplen2
++	initialization.  Set *resplen2 on socket error.  Call
++	close_and_return_error for other errors.
++
++2016-03-25  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19868]
++	* resolv/nss_dns/dns-network.c (getanswer_r): Implement additional
++	DNS packet syntax checks (which were not needed before).  Skip
++	over non-PTR records.
++
++2016-04-27  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19831]
++	* resolv/nss_dns/dns-host.c (rrtype_to_rdata_length): New
++	function.
++	(getanswer_r): Check RDATA length against RRTYPE and QTYPE.
++	(gaih_getanswer_slice): Check RDATA length against RRTYPE.
++
++2016-04-27  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19862]
++	* resolv/nss_dns/dns-host.c (AskedForGot): Remove.
++	(getanswer_r): Do not call syslog.
++	(gaih_getanswer_slice): Likewise.
++	* resolv/gethnamaddr.c (AskedForGot): Remove.
++	(getanswer): Do not call syslog.
++	(gethostbyaddr): Likewise.
++
++2016-04-27  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19830]
++	* resolv/nss_dns/dns-host.c (getanswer_r): Check RDATA length.
++	(gaih_getanswer_slice): Likewise.
++	* resolv/nss_dns/dns-canon.c (_nss_dns_getcanonname_r): Likewise.
++	Also check for availability of RR metadata.
++
++2016-04-11  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19865]
++	* resolv/nss_dns/dns-canon.c (_nss_dns_getcanonname_r): Restore
++	original buffer before retry.
++
++2016-04-14  Florian Weimer  <fweimer@redhat.com>
++
++	* malloc/arena.c (__malloc_fork_lock_parent)
++	(__malloc_fork_unlock_parent, __malloc_fork_unlock_child): Add
++	internal_function attribute.
++
++2016-04-14  Florian Weimer  <fweimer@redhat.com>
++
++	Remove malloc hooks from fork handler.  They are no longer needed
++	because malloc runs right before fork, and no malloc calls from
++	other fork handlers are not possible anymore.
++	* malloc/malloc.c (malloc_atfork, free_atfork): Remove
++	declarations.
++	* malloc/arena.c (save_malloc_hook, save_free_hook, save_arena)
++	(ATFORK_ARENA_PTR, malloc_atfork, free_atfork)
++	(atfork_recursive_cntr): Remove.
++	(__malloc_fork_lock_parent): Do not override malloc hooks and
++	thread_arena.
++	(__malloc_fork_unlock_parent): Do not restore malloc hooks and
++	thread_arena.
++	(__malloc_fork_unlock_child): Do not restore malloc hooks.  Use
++	thread_arena instead of save_arena.
++
++2016-04-14  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19431]
++	Run the malloc fork handler as late as possible to avoid deadlocks.
++	* malloc/malloc-internal.h: New file.
++	* malloc/malloc.c: Include it.
++	* malloc/arena.c (ATFORK_MEM): Remove.
++	(__malloc_fork_lock_parent): Rename from ptmalloc_lock_all.
++	Update comment.
++	(__malloc_fork_unlock_parent): Rename from ptmalloc_unlock_all.
++	(__malloc_fork_unlock_child): Rename from ptmalloc_unlock_all2.
++	Remove outdated comment.
++	(ptmalloc_init): Do not call thread_atfork.  Remove
++	thread_atfork_static.
++	* malloc/tst-malloc-fork-deadlock.c: New file.
++	* Makefile (tests): Add tst-malloc-fork-deadlock.
++	(tst-malloc-fork-deadlock): Link against libpthread.
++	* manual/memory.texi (Aligned Memory Blocks): Update safety
++	annotation comments.
++	* sysdeps/nptl/fork.c (__libc_fork): Call
++	__malloc_fork_lock_parent, __malloc_fork_unlock_parent,
++	__malloc_fork_unlock_child.
++	* sysdeps/mach/hurd/fork.c (__fork): Likewise.
++
++2016-03-22  Samuel Thibault  <samuel.thibault@ens-lyon.org>
++
++	* malloc/Makefile ($(objpfx)tst-malloc-backtrace,
++	$(objpfx)tst-malloc-thread-exit, $(objpfx)tst-malloc-thread-fail): Use
++	$(shared-thread-library) instead of hardcoding the path to libpthread.
++
++2016-02-19  Florian Weimer  <fweimer@redhat.com>
++
++	* sysdeps/generic/malloc-machine.h: Assume mutex_init is always
++	available.  Do not define NO_THREADS.
++	* malloc/malloc.c: Do not check NO_THREADS.
++	* malloc/arena.c: Likewise.
++
++2016-05-02  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #20031]
++	* hesiod/hesiod.c (get_txt_records): Return error if TXT record is
++	completely empty.
++
++2016-05-02  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19573]
++	* hesiod/Makefile (libnss_hesiod-routines): Remove hesiod-init.
++	* hesiod/nss_hesiod/hesiod-init.c: Remove file.
++	* hesiod/nss_hesiod/nss_hesiod.h: Likewise.
++	* hesiod/hesiod.h (__hesiod_res_get, __hesiod_res_set): Remove.
++	(hesiod_init, hesiod_end, hesiod_to_bind, hesiod_resolve)
++	(hesiod_free_list): Mark as hidden.
++	* hesiod/hesiod_p (struct hesiod_p): Remove res, free_res,
++	res_set, res_get.
++	* hesiod/hesiod.c: Remove unnecessary forward declarations.
++	(init, __hesiod_res_get, __hesiod_res_set): Remove.
++	(hesiod_init): Remove obsolete res_ninit call.
++	(hesiod_end): Do not free resolver state.  Do not invoke callback.
++	(hesiod_bind): Do not call init.
++	(get_txt_records): Use res_mkquery, res_send instead of
++	res_nmkquery, res_nsend.
++	* hesiod/nss_hesiod/hesiod-grp.c (lookup): Call hesiod_init
++	instead of _nss_hesiod_init.
++	(_nss_hesiod_initgroups_dyn): Likewise.
++	* hesiod/nss_hesiod/hesiod-proto.c (lookup): Likewise.
++	* hesiod/nss_hesiod/hesiod-pwd.c (lookup): Likewise.
++	* hesiod/nss_hesiod/hesiod-service.c (lookup): Likewise.
++
++2016-05-02  Florian Weimer  <fweimer@redhat.com>
++
++	* hesiod/hesiod.h: Remove RCS keyword.
++	* hesiod/hesiod_p.h: Likewise.
++	* hesiod/hesiod.c: Likewise.
++
++2016-05-04  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19787]
++	* inet/getnameinfo.c (check_sprintf_result): New function.
++	(CHECKED_SNPRINTF): New macro.
++	(gni_host_inet_numeric): Use CHECKED_SNPRINTF to write the scope
++	to the host buffer.
++	(gni_host_local): Use checked_copy to copy the host name.
++	(gni_serv_inet): Use CHECKED_SNPRINTF to write the service name.
++	(gni_serv_local): Use checked_copy to copy the service name.
++	(getnameinfo): Remove unnecessary truncation of result buffers.
++
++2016-05-04  Florian Weimer  <fweimer@redhat.com>
++
++	* inet/getnameinfo.c (gni_host_inet_numeric): Return EAI_OVERFLOW
++	in case of inet_ntop failure.
++
++2016-05-04  Florian Weimer  <fweimer@redhat.com>
++
++	* inet/getnameinfo.c (gni_host_inet_name): Use temporaries to
++	avoid long lines.
++	(gni_host_inet_numeric): Likewise.  Reduce scope of local
++	variables.
++	(gni_host_inet, gni_host_local): Add comment.
++	(gni_host): Add comment.  Use temporary to avoid long lines.
++
++2016-04-29  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19642]
++	* inet/getnameinfo.c (gni_host_inet_name, gni_host_inet_numeric)
++	(gni_host_inet, gni_host_local, gni_host, gni_serv_inet)
++	(gni_serv_local, gni_serv): New functions extracted from
++	getnameinfo.
++	(getnameinfo): Call gni_host and gni_serv to perform the
++	processing.  Always free scratch buffer.
++
++2016-04-28  Florian Weimer  <fweimer@redhat.com>
++
++	* inet/getnameinfo.c (getnameinfo): Do not preserve errno.
++
++2016-03-29  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19837]
++	* nss/nss_db/db-XXX.c (_nss_db_getENTNAME_r): Propagate ERANGE
++	error if parse_line fails.
++
++2016-04-20  Yvan Roux  <yvan.roux@linaro.org>
++
++	* stdlib/setenv.c (unsetenv): Fix ambiguous 'else'.
++	* nis/nis_call.c (nis_server_cache_add): Likewise.
++
++2016-04-09  Mike Frysinger  <vapier@gentoo.org>
++
++	* sysdeps/i386/configure.ac: Change == to = when calling test.
++	* sysdeps/x86_64/configure.ac: Likewise.
++	* sysdeps/i386/configure: Regenerated.
++	* sysdeps/x86_64/configure: Likewise.
++
 +2016-04-01  Florian Weimer  <fweimer@redhat.com>
 +
 +	[BZ #19879]
@@ -176,10 +486,10 @@ index 2e4afb7..4a0461d 100644
  	(VERSION): Set to 2.23.
  	* include/feature.h (__GLIBC_MINOR__): Set to 23.
 diff --git a/NEWS b/NEWS
-index c0276cf..a08f96b 100644
+index c0276cf..9c1c638 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,29 @@ See the end for copying conditions.
+@@ -5,6 +5,33 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <http://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
@@ -191,6 +501,10 @@ index c0276cf..a08f96b 100644
 +  alloca call (in the form of a call to strdupa), leading to a stack
 +  overflow (stack exhaustion) and a crash if getnetbyname is invoked
 +  on a very long name.  (CVE-2016-3075)
++
++* The glob function suffered from a stack-based buffer overflow when it was
++  called with the GLOB_ALTDIRFUNC flag and encountered a long file name.
++  Reported by Alexander Cherepanov.  (CVE-2016-1234)
 +
 +The following bugs are resolved with this release:
 +
@@ -209,7 +523,7 @@ index c0276cf..a08f96b 100644
  Version 2.23
  
  * Unicode 8.0.0 Support: Character encoding, character type info, and
-@@ -38,7 +61,7 @@ Version 2.23
+@@ -38,7 +65,7 @@ Version 2.23
    unnecessary serialization of memory allocation requests across threads.
    The defect is now corrected.  Users should see a substantial increase in
    the concurent throughput of allocation requests for applications which
@@ -231,6 +545,60 @@ index 06ea87e..8fe5937 100755
  *** and join the community!" "$LINENO" 5
      ;;
    esac
+diff --git a/elf/Makefile b/elf/Makefile
+index 63a5355..ae99f65 100644
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -163,7 +163,8 @@ endif
+ endif
+ ifeq ($(run-built-tests),yes)
+ tests-special += $(objpfx)tst-leaks1-mem.out \
+-		 $(objpfx)tst-leaks1-static-mem.out $(objpfx)noload-mem.out
++		 $(objpfx)tst-leaks1-static-mem.out $(objpfx)noload-mem.out \
++		 $(objpfx)tst-ldconfig-X.out
+ endif
+ tlsmod17a-suffixes = 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
+ tlsmod18a-suffixes = 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
+@@ -1252,3 +1253,7 @@ $(objpfx)tst-prelink-cmp.out: tst-prelink.exp \
+ 			      $(objpfx)tst-prelink-conflict.out
+ 	cmp $^ > $@; \
+ 	$(evaluate-test)
++
++$(objpfx)tst-ldconfig-X.out : tst-ldconfig-X.sh $(objpfx)ldconfig
++	$(SHELL) $< '$(common-objpfx)' '$(test-wrapper)' '$(test-wrapper-env)' > $@; \
++	$(evaluate-test)
+diff --git a/elf/ldconfig.c b/elf/ldconfig.c
+index 9c6f2ba..467ca82 100644
+--- a/elf/ldconfig.c
++++ b/elf/ldconfig.c
+@@ -100,7 +100,8 @@ int opt_format = 1;
+ /* Build cache.  */
+ static int opt_build_cache = 1;
+ 
+-/* Generate links.  */
++/* Enable symbolic link processing.  If set, create or update symbolic
++   links, and remove stale symbolic links.  */
+ static int opt_link = 1;
+ 
+ /* Only process directories specified on the command line.  */
+@@ -141,7 +142,7 @@ static const struct argp_option options[] =
+   { "print-cache", 'p', NULL, 0, N_("Print cache"), 0},
+   { "verbose", 'v', NULL, 0, N_("Generate verbose messages"), 0},
+   { NULL, 'N', NULL, 0, N_("Don't build cache"), 0},
+-  { NULL, 'X', NULL, 0, N_("Don't generate links"), 0},
++  { NULL, 'X', NULL, 0, N_("Don't update symbolic links"), 0},
+   { NULL, 'r', N_("ROOT"), 0, N_("Change to and use ROOT as root directory"), 0},
+   { NULL, 'C', N_("CACHE"), 0, N_("Use CACHE as cache file"), 0},
+   { NULL, 'f', N_("CONF"), 0, N_("Use CONF as configuration file"), 0},
+@@ -800,7 +801,7 @@ search_dir (const struct dir_entry *entry)
+ 		error (0, errno, _("Cannot stat %s"), file_name);
+ 
+ 	      /* Remove stale symlinks.  */
+-	      if (strstr (direntry->d_name, ".so."))
++	      if (opt_link && strstr (direntry->d_name, ".so."))
+ 		unlink (real_file_name);
+ 	      continue;
+ 	    }
 diff --git a/elf/sln.c b/elf/sln.c
 index 9d57be2..f52cb9f 100644
 --- a/elf/sln.c
@@ -249,6 +617,541 @@ index 9d57be2..f52cb9f 100644
      {
        if (S_ISDIR (stats.st_mode))
  	{
+diff --git a/elf/tst-ldconfig-X.sh b/elf/tst-ldconfig-X.sh
+new file mode 100644
+index 0000000..0c122a5
+--- /dev/null
++++ b/elf/tst-ldconfig-X.sh
+@@ -0,0 +1,62 @@
++#!/bin/sh
++# Test that ldconfig -X does not remove stale symbolic links.
++# Copyright (C) 2000-2016 Free Software Foundation, Inc.
++# This file is part of the GNU C Library.
++
++# The GNU C Library is free software; you can redistribute it and/or
++# modify it under the terms of the GNU Lesser General Public
++# License as published by the Free Software Foundation; either
++# version 2.1 of the License, or (at your option) any later version.
++
++# The GNU C Library is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# Lesser General Public License for more details.
++
++# You should have received a copy of the GNU Lesser General Public
++# License along with the GNU C Library; if not, see
++# <http://www.gnu.org/licenses/>.
++
++set -ex
++
++common_objpfx=$1
++test_wrapper_env=$2
++run_program_env=$3
++
++testroot="${common_objpfx}elf/bug19610-test-directory"
++cleanup () {
++    rm -rf "$testroot"
++}
++trap cleanup 0
++
++rm -rf "$testroot"
++mkdir -p $testroot/lib $testroot/etc
++
++# Relative symbolic link target.
++ln -s libdoesnotexist.so.1.1 $testroot/lib/libdoesnotexist.so.1
++
++# Absolute symbolic link target.
++ln -s $testroot/opt/sw/lib/libdoesnotexist2.so.1.1 $testroot/lib/
++
++errors=0
++check_files () {
++    for name in libdoesnotexist.so.1 libdoesnotexist2.so.1.1 ; do
++	path="$testroot/lib/$name"
++	if test ! -h $path ; then
++	    echo "error: missing file: $path"
++	    errors=1
++	fi
++    done
++}
++
++check_files
++
++${test_wrapper_env} \
++${run_program_env} \
++${common_objpfx}elf/ldconfig -X -f /dev/null \
++  -C $testroot/etc/ld.so.cache \
++  $testroot/lib
++
++check_files
++
++exit $errors
+diff --git a/hesiod/Makefile b/hesiod/Makefile
+index d68a859..2d1966c 100644
+--- a/hesiod/Makefile
++++ b/hesiod/Makefile
+@@ -28,7 +28,7 @@ extra-libs-others = $(extra-libs)
+ subdir-dirs = nss_hesiod
+ vpath %.c nss_hesiod
+ 
+-libnss_hesiod-routines	:= hesiod hesiod-grp hesiod-init hesiod-proto \
++libnss_hesiod-routines	:= hesiod hesiod-grp hesiod-proto \
+ 			   hesiod-pwd hesiod-service
+ # Build only shared library
+ libnss_hesiod-inhibit-o	= $(filter-out .os,$(object-suffixes))
+diff --git a/hesiod/hesiod.c b/hesiod/hesiod.c
+index 657dabe..98ddee3 100644
+--- a/hesiod/hesiod.c
++++ b/hesiod/hesiod.c
+@@ -1,6 +1,19 @@
+-#if defined(LIBC_SCCS) && !defined(lint)
+-static const char rcsid[] = "$BINDId: hesiod.c,v 1.21 2000/02/28 14:51:08 vixie Exp $";
+-#endif
++/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
+ 
+ /*
+  * Copyright (c) 1996,1999 by Internet Software Consortium.
+@@ -52,18 +65,9 @@ static const char rcsid[] = "$BINDId: hesiod.c,v 1.21 2000/02/28 14:51:08 vixie
+ 
+ /* Forward */
+ 
+-int		hesiod_init(void **context);
+-void		hesiod_end(void *context);
+-char *		hesiod_to_bind(void *context, const char *name,
+-			       const char *type);
+-char **		hesiod_resolve(void *context, const char *name,
+-			       const char *type);
+-void		hesiod_free_list(void *context, char **list);
+-
+ static int	parse_config_file(struct hesiod_p *ctx, const char *filename);
+ static char **	get_txt_records(struct hesiod_p *ctx, int class,
+ 				const char *name);
+-static int	init(struct hesiod_p *ctx);
+ 
+ /* Public */
+ 
+@@ -82,7 +86,6 @@ hesiod_init(void **context) {
+ 
+ 	ctx->LHS = NULL;
+ 	ctx->RHS = NULL;
+-	ctx->res = NULL;
+ 	/* Set default query classes. */
+ 	ctx->classes[0] = C_IN;
+ 	ctx->classes[1] = C_HS;
+@@ -131,11 +134,6 @@ hesiod_init(void **context) {
+ 		goto cleanup;
+ 	}
+ 
+-#if 0
+-	if (res_ninit(ctx->res) < 0)
+-		goto cleanup;
+-#endif
+-
+ 	*context = ctx;
+ 	return (0);
+ 
+@@ -152,12 +150,8 @@ hesiod_end(void *context) {
+ 	struct hesiod_p *ctx = (struct hesiod_p *) context;
+ 	int save_errno = errno;
+ 
+-	if (ctx->res)
+-		res_nclose(ctx->res);
+ 	free(ctx->RHS);
+ 	free(ctx->LHS);
+-	if (ctx->res && ctx->free_res)
+-		(*ctx->free_res)(ctx->res);
+ 	free(ctx);
+ 	__set_errno(save_errno);
+ }
+@@ -232,10 +226,6 @@ hesiod_resolve(void *context, const char *name, const char *type) {
+ 
+ 	if (bindname == NULL)
+ 		return (NULL);
+-	if (init(ctx) == -1) {
+-		free(bindname);
+-		return (NULL);
+-	}
+ 
+ 	retvec = get_txt_records(ctx, ctx->classes[0], bindname);
+ 
+@@ -365,13 +355,13 @@ get_txt_records(struct hesiod_p *ctx, int class, const char *name) {
+ 	/*
+ 	 * Construct the query and send it.
+ 	 */
+-	n = res_nmkquery(ctx->res, QUERY, name, class, T_TXT, NULL, 0,
++	n = res_mkquery(QUERY, name, class, T_TXT, NULL, 0,
+ 			 NULL, qbuf, MAX_HESRESP);
+ 	if (n < 0) {
+ 		__set_errno(EMSGSIZE);
+ 		return (NULL);
+ 	}
+-	n = res_nsend(ctx->res, qbuf, n, abuf, MAX_HESRESP);
++	n = res_send(qbuf, n, abuf, MAX_HESRESP);
+ 	if (n < 0) {
+ 		__set_errno(ECONNREFUSED);
+ 		return (NULL);
+@@ -421,7 +411,7 @@ get_txt_records(struct hesiod_p *ctx, int class, const char *name) {
+ 		cp += INT16SZ + INT32SZ;	/* skip the ttl, too */
+ 		rr.dlen = ns_get16(cp);
+ 		cp += INT16SZ;
+-		if (cp + rr.dlen > eom) {
++		if (rr.dlen == 0 || cp + rr.dlen > eom) {
+ 			__set_errno(EMSGSIZE);
+ 			goto cleanup;
+ 		}
+@@ -464,44 +454,3 @@ get_txt_records(struct hesiod_p *ctx, int class, const char *name) {
+ 	free(list);
+ 	return (NULL);
+ }
+-
+-struct __res_state *
+-__hesiod_res_get(void *context) {
+-	struct hesiod_p *ctx = context;
+-
+-	if (!ctx->res) {
+-		struct __res_state *res;
+-		res = (struct __res_state *)calloc(1, sizeof *res);
+-		if (res == NULL)
+-			return (NULL);
+-		__hesiod_res_set(ctx, res, free);
+-	}
+-
+-	return (ctx->res);
+-}
+-
+-void
+-__hesiod_res_set(void *context, struct __res_state *res,
+-		 void (*free_res)(void *)) {
+-	struct hesiod_p *ctx = context;
+-
+-	if (ctx->res && ctx->free_res) {
+-		res_nclose(ctx->res);
+-		(*ctx->free_res)(ctx->res);
+-	}
+-
+-	ctx->res = res;
+-	ctx->free_res = free_res;
+-}
+-
+-static int
+-init(struct hesiod_p *ctx) {
+-
+-	if (!ctx->res && !__hesiod_res_get(ctx))
+-		return (-1);
+-
+-	if (__res_maybe_init (ctx->res, 0) == -1)
+-		return (-1);
+-
+-	return (0);
+-}
+diff --git a/hesiod/hesiod.h b/hesiod/hesiod.h
+index 82fce30..c4f5356 100644
+--- a/hesiod/hesiod.h
++++ b/hesiod/hesiod.h
+@@ -1,3 +1,20 @@
++/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
+ /*
+  * Copyright (c) 1996,1999 by Internet Software Consortium.
+  *
+@@ -19,22 +36,15 @@
+  * This file is primarily maintained by <tytso@mit.edu> and <ghudson@mit.edu>.
+  */
+ 
+-/*
+- * $BINDId: hesiod.h,v 1.7 1999/01/08 19:22:45 vixie Exp $
+- */
+-
+ #ifndef _HESIOD_H_INCLUDED
+ #define _HESIOD_H_INCLUDED
+ 
+-int		hesiod_init (void **context);
+-void		hesiod_end (void *context);
++int		hesiod_init (void **context) attribute_hidden;
++void		hesiod_end (void *context) attribute_hidden;
+ char *		hesiod_to_bind (void *context, const char *name,
+-				const char *type);
++				const char *type) attribute_hidden;
+ char **		hesiod_resolve (void *context, const char *name,
+-				const char *type);
+-void		hesiod_free_list (void *context, char **list);
+-struct __res_state * __hesiod_res_get (void *context);
+-void		__hesiod_res_set (void *context, struct __res_state *,
+-				  void (*)(void *));
++				const char *type) attribute_hidden;
++void		hesiod_free_list (void *context, char **list) attribute_hidden;
+ 
+ #endif /*_HESIOD_H_INCLUDED*/
+diff --git a/hesiod/hesiod_p.h b/hesiod/hesiod_p.h
+index 5010d71..1d6d826 100644
+--- a/hesiod/hesiod_p.h
++++ b/hesiod/hesiod_p.h
+@@ -1,3 +1,20 @@
++/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
+ /*
+  * Copyright (c) 1996,1999 by Internet Software Consortium.
+  *
+@@ -20,10 +37,6 @@
+  */
+ 
+ /*
+- * $BINDId: hesiod_p.h,v 1.9 1999/01/08 19:24:39 vixie Exp $
+- */
+-
+-/*
+  * hesiod_p.h -- private definitions for the hesiod library
+  */
+ 
+@@ -36,11 +49,6 @@
+ struct hesiod_p {
+ 	char *		LHS;		/* normally ".ns" */
+ 	char *		RHS;		/* AKA the default hesiod domain */
+-	struct __res_state * res;	/* resolver context */
+-	void		(*free_res)(void *);
+-	void		(*res_set)(struct hesiod_p *, struct __res_state *,
+-				   void (*)(void *));
+-	struct __res_state * (*res_get)(struct hesiod_p *);
+ 	int		classes[2];	/* The class search order. */
+ };
+ 
+diff --git a/hesiod/nss_hesiod/hesiod-grp.c b/hesiod/nss_hesiod/hesiod-grp.c
+index 7e4ecb4..944e5e0 100644
+--- a/hesiod/nss_hesiod/hesiod-grp.c
++++ b/hesiod/nss_hesiod/hesiod-grp.c
+@@ -26,8 +26,6 @@
+ #include <string.h>
+ #include <sys/param.h>
+ 
+-#include "nss_hesiod.h"
+-
+ /* Get the declaration of the parser function.  */
+ #define ENTNAME grent
+ #define STRUCTURE group
+@@ -58,8 +56,7 @@ lookup (const char *name, const char *type, struct group *grp,
+   size_t len;
+   int olderr = errno;
+ 
+-  context = _nss_hesiod_init ();
+-  if (context == NULL)
++  if (hesiod_init (&context) < 0)
+     return NSS_STATUS_UNAVAIL;
+ 
+   list = hesiod_resolve (context, name, type);
+@@ -179,8 +176,7 @@ _nss_hesiod_initgroups_dyn (const char *user, gid_t group, long int *start,
+   gid_t *groups = *groupsp;
+   int save_errno;
+ 
+-  context = _nss_hesiod_init ();
+-  if (context == NULL)
++  if (hesiod_init (&context) < 0)
+     return NSS_STATUS_UNAVAIL;
+ 
+   list = hesiod_resolve (context, user, "grplist");
+diff --git a/hesiod/nss_hesiod/hesiod-init.c b/hesiod/nss_hesiod/hesiod-init.c
+deleted file mode 100644
+index 2315040..0000000
+--- a/hesiod/nss_hesiod/hesiod-init.c
++++ /dev/null
+@@ -1,38 +0,0 @@
+-/* Copyright (C) 2000-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Mark Kettenis <kettenis@phys.uva.nl>, 2000.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sys/cdefs.h>		/* Needs to come before <hesiod.h>.  */
+-#include <hesiod.h>
+-#include <resolv.h>
+-#include <stddef.h>
+-
+-#include "nss_hesiod.h"
+-
+-void *
+-_nss_hesiod_init (void)
+-{
+-  void *context;
+-
+-  if (hesiod_init (&context) == -1)
+-    return NULL;
+-
+-  /* Use the default (per-thread) resolver state.  */
+-  __hesiod_res_set (context, &_res, NULL);
+-
+-  return context;
+-}
+diff --git a/hesiod/nss_hesiod/hesiod-proto.c b/hesiod/nss_hesiod/hesiod-proto.c
+index 3c59e73..8a13bba 100644
+--- a/hesiod/nss_hesiod/hesiod-proto.c
++++ b/hesiod/nss_hesiod/hesiod-proto.c
+@@ -25,8 +25,6 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
+-#include "nss_hesiod.h"
+-
+ /* Declare a parser for Hesiod protocol entries.  Although the format
+    of the entries is identical to those in /etc/protocols, here is no
+    predefined parser for us to use.  */
+@@ -68,8 +66,7 @@ lookup (const char *name, const char *type, struct protoent *proto,
+   int found;
+   int olderr = errno;
+ 
+-  context = _nss_hesiod_init ();
+-  if (context == NULL)
++  if (hesiod_init (&context) < 0)
+     return NSS_STATUS_UNAVAIL;
+ 
+   list = hesiod_resolve (context, name, type);
+diff --git a/hesiod/nss_hesiod/hesiod-pwd.c b/hesiod/nss_hesiod/hesiod-pwd.c
+index 1ddf3e3..c119167 100644
+--- a/hesiod/nss_hesiod/hesiod-pwd.c
++++ b/hesiod/nss_hesiod/hesiod-pwd.c
+@@ -24,8 +24,6 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
+-#include "nss_hesiod.h"
+-
+ /* Get the declaration of the parser function.  */
+ #define ENTNAME pwent
+ #define STRUCTURE passwd
+@@ -56,8 +54,7 @@ lookup (const char *name, const char *type, struct passwd *pwd,
+   size_t len;
+   int olderr = errno;
+ 
+-  context = _nss_hesiod_init ();
+-  if (context == NULL)
++  if (hesiod_init (&context) < 0)
+     return NSS_STATUS_UNAVAIL;
+ 
+   list = hesiod_resolve (context, name, type);
+diff --git a/hesiod/nss_hesiod/hesiod-service.c b/hesiod/nss_hesiod/hesiod-service.c
+index 756345f..2df9cbb 100644
+--- a/hesiod/nss_hesiod/hesiod-service.c
++++ b/hesiod/nss_hesiod/hesiod-service.c
+@@ -25,8 +25,6 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
+-#include "nss_hesiod.h"
+-
+ /* Hesiod uses a format for service entries that differs from the
+    traditional format.  We therefore declare our own parser.  */
+ 
+@@ -69,8 +67,7 @@ lookup (const char *name, const char *type, const char *protocol,
+   int found;
+   int olderr = errno;
+ 
+-  context = _nss_hesiod_init ();
+-  if (context == NULL)
++  if (hesiod_init (&context) < 0)
+     return NSS_STATUS_UNAVAIL;
+ 
+   list = hesiod_resolve (context, name, type);
+diff --git a/hesiod/nss_hesiod/nss_hesiod.h b/hesiod/nss_hesiod/nss_hesiod.h
+deleted file mode 100644
+index a6ed8ee..0000000
+--- a/hesiod/nss_hesiod/nss_hesiod.h
++++ /dev/null
+@@ -1,20 +0,0 @@
+-/* Copyright (C) 2000-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Mark Kettenis <kettenis@phys.uva.nl>, 2000.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/* Initialize a Hesiod context.  */
+-extern void *_nss_hesiod_init (void);
+diff --git a/include/printf.h b/include/printf.h
+index c0bd2d2..b12b5dc 100644
+--- a/include/printf.h
++++ b/include/printf.h
+@@ -1,6 +1,7 @@
+ #ifndef	_PRINTF_H
+ 
+ #include <stdio-common/printf.h>
++#include <xlocale.h>
+ 
+ /* Now define the internal interfaces.  */
+ extern int __printf_fphex (FILE *, const struct printf_info *,
+@@ -8,5 +9,8 @@ extern int __printf_fphex (FILE *, const struct printf_info *,
+ extern int __printf_fp (FILE *, const struct printf_info *,
+ 			const void *const *);
+ libc_hidden_proto (__printf_fp)
++extern int __printf_fp_l (FILE *, locale_t, const struct printf_info *,
++			  const void *const *);
++libc_hidden_proto (__printf_fp_l)
+ 
+ #endif
 diff --git a/include/sys/auxv.h b/include/sys/auxv.h
 new file mode 100644
 index 0000000..dede2c3
@@ -256,6 +1159,1306 @@ index 0000000..dede2c3
 +++ b/include/sys/auxv.h
 @@ -0,0 +1 @@
 +#include <misc/sys/auxv.h>
+diff --git a/inet/getnameinfo.c b/inet/getnameinfo.c
+index 40f67f0..283da55 100644
+--- a/inet/getnameinfo.c
++++ b/inet/getnameinfo.c
+@@ -1,3 +1,21 @@
++/* Convert socket address to string using Name Service Switch modules.
++   Copyright (C) 1997-2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
+ /* The Inner Net License, Version 2.00
+ 
+   The author(s) grant permission for redistribution and use in source and
+@@ -169,20 +187,322 @@ nrl_domainname (void)
+   return domain;
+ };
+ 
++/* Copy a string to a destination buffer with length checking.  Return
++   EAI_OVERFLOW if the buffer is not large enough, and 0 on
++   success.  */
++static int
++checked_copy (char *dest, size_t destlen, const char *source)
++{
++  size_t source_length = strlen (source);
++  if (source_length + 1 > destlen)
++    return EAI_OVERFLOW;
++  memcpy (dest, source, source_length + 1);
++  return 0;
++}
+ 
+-int
+-getnameinfo (const struct sockaddr *sa, socklen_t addrlen, char *host,
+-	     socklen_t hostlen, char *serv, socklen_t servlen,
+-	     int flags)
++/* Helper function for CHECKED_SNPRINTF below.  */
++static int
++check_sprintf_result (int result, size_t destlen)
++{
++  if (result < 0)
++    return EAI_SYSTEM;
++  if ((size_t) result >= destlen)
++    /* If ret == destlen, there was no room for the terminating NUL
++       character.  */
++    return EAI_OVERFLOW;
++  return 0;
++}
++
++/* Format a string in the destination buffer.  Return 0 on success,
++   EAI_OVERFLOW in case the buffer is too small, or EAI_SYSTEM on any
++   other error.  */
++#define CHECKED_SNPRINTF(dest, destlen, format, ...)			\
++  check_sprintf_result							\
++    (__snprintf (dest, destlen, format, __VA_ARGS__), destlen)
++
++/* Convert host name, AF_INET/AF_INET6 case, name only.  */
++static int
++gni_host_inet_name (struct scratch_buffer *tmpbuf,
++		    const struct sockaddr *sa, socklen_t addrlen,
++		    char *host, socklen_t hostlen, int flags)
+ {
+-  int serrno = errno;
+   int herrno;
+   struct hostent th;
+-  int ok = 0;
+-  struct scratch_buffer tmpbuf;
++  struct hostent *h = NULL;
++  if (sa->sa_family == AF_INET6)
++    {
++      const struct sockaddr_in6 *sin6p = (const struct sockaddr_in6 *) sa;
++      while (__gethostbyaddr_r (&sin6p->sin6_addr, sizeof(struct in6_addr),
++				AF_INET6, &th, tmpbuf->data, tmpbuf->length,
++				&h, &herrno))
++	if (herrno == NETDB_INTERNAL && errno == ERANGE)
++	  {
++	    if (!scratch_buffer_grow (tmpbuf))
++	      {
++		__set_h_errno (herrno);
++		return EAI_MEMORY;
++	      }
++	  }
++	else
++	  break;
++    }
++  else
++    {
++      const struct sockaddr_in *sinp = (const struct sockaddr_in *) sa;
++      while (__gethostbyaddr_r (&sinp->sin_addr, sizeof(struct in_addr),
++				AF_INET, &th, tmpbuf->data, tmpbuf->length,
++				&h, &herrno))
++	if (herrno == NETDB_INTERNAL && errno == ERANGE)
++	    {
++	      if (!scratch_buffer_grow (tmpbuf))
++		{
++		  __set_h_errno (herrno);
++		  return EAI_MEMORY;
++		}
++	    }
++	else
++	  break;
++    }
+ 
+-  scratch_buffer_init (&tmpbuf);
++  if (h == NULL)
++    {
++      if (herrno == NETDB_INTERNAL)
++	{
++	  __set_h_errno (herrno);
++	  return EAI_SYSTEM;
++	}
++      if (herrno == TRY_AGAIN)
++	{
++	  __set_h_errno (herrno);
++	  return EAI_AGAIN;
++	}
++    }
++
++  if (h)
++    {
++      char *c;
++      if ((flags & NI_NOFQDN)
++	  && (c = nrl_domainname ())
++	  && (c = strstr (h->h_name, c))
++	  && (c != h->h_name) && (*(--c) == '.'))
++	/* Terminate the string after the prefix.  */
++	*c = '\0';
++
++#ifdef HAVE_LIBIDN
++      /* If requested, convert from the IDN format.  */
++      if (flags & NI_IDN)
++	{
++	  int idn_flags = 0;
++	  if  (flags & NI_IDN_ALLOW_UNASSIGNED)
++	    idn_flags |= IDNA_ALLOW_UNASSIGNED;
++	  if (flags & NI_IDN_USE_STD3_ASCII_RULES)
++	    idn_flags |= IDNA_USE_STD3_ASCII_RULES;
++
++	  char *out;
++	  int rc = __idna_to_unicode_lzlz (h->h_name, &out,
++					   idn_flags);
++	  if (rc != IDNA_SUCCESS)
++	    {
++	      if (rc == IDNA_MALLOC_ERROR)
++		return EAI_MEMORY;
++	      if (rc == IDNA_DLOPEN_ERROR)
++		return EAI_SYSTEM;
++	      return EAI_IDN_ENCODE;
++	    }
++
++	  if (out != h->h_name)
++	    {
++	      h->h_name = strdupa (out);
++	      free (out);
++	    }
++	}
++#endif
++
++      size_t len = strlen (h->h_name) + 1;
++      if (len > hostlen)
++	return EAI_OVERFLOW;
+ 
++      memcpy (host, h->h_name, len);
++
++      return 0;
++    }
++
++  return EAI_NONAME;
++}
++
++/* Convert host name, AF_INET/AF_INET6 case, numeric conversion.  */
++static int
++gni_host_inet_numeric (struct scratch_buffer *tmpbuf,
++		       const struct sockaddr *sa, socklen_t addrlen,
++		       char *host, socklen_t hostlen, int flags)
++{
++  if (sa->sa_family == AF_INET6)
++    {
++      const struct sockaddr_in6 *sin6p = (const struct sockaddr_in6 *) sa;
++      if (inet_ntop (AF_INET6, &sin6p->sin6_addr, host, hostlen) == NULL)
++	return EAI_OVERFLOW;
++
++      uint32_t scopeid = sin6p->sin6_scope_id;
++      if (scopeid != 0)
++	{
++	  size_t used_hostlen = __strnlen (host, hostlen);
++	  /* Location of the scope string in the host buffer.  */
++	  char *scope_start = host + used_hostlen;
++	  size_t scope_length = hostlen - used_hostlen;
++
++	  if (IN6_IS_ADDR_LINKLOCAL (&sin6p->sin6_addr)
++	      || IN6_IS_ADDR_MC_LINKLOCAL (&sin6p->sin6_addr))
++	    {
++	      char scopebuf[IFNAMSIZ];
++	      if (if_indextoname (scopeid, scopebuf) != NULL)
++		return CHECKED_SNPRINTF
++		  (scope_start, scope_length,
++		   "%c%s", SCOPE_DELIMITER, scopebuf);
++	    }
++	  return CHECKED_SNPRINTF
++	    (scope_start, scope_length, "%c%u", SCOPE_DELIMITER, scopeid);
++	}
++    }
++  else
++    {
++      const struct sockaddr_in *sinp = (const struct sockaddr_in *) sa;
++      if (inet_ntop (AF_INET, &sinp->sin_addr, host, hostlen) == NULL)
++	return EAI_OVERFLOW;
++    }
++  return 0;
++}
++
++/* Convert AF_INET or AF_INET6 socket address, host part.  */
++static int
++gni_host_inet (struct scratch_buffer *tmpbuf,
++	       const struct sockaddr *sa, socklen_t addrlen,
++	       char *host, socklen_t hostlen, int flags)
++{
++  if (!(flags & NI_NUMERICHOST))
++    {
++      int result = gni_host_inet_name
++	(tmpbuf, sa, addrlen, host, hostlen, flags);
++      if (result != EAI_NONAME)
++	return result;
++    }
++
++  if (flags & NI_NAMEREQD)
++    return EAI_NONAME;
++  else
++    return gni_host_inet_numeric
++      (tmpbuf, sa, addrlen, host, hostlen, flags);
++}
++
++/* Convert AF_LOCAL socket address, host part.   */
++static int
++gni_host_local (struct scratch_buffer *tmpbuf,
++		const struct sockaddr *sa, socklen_t addrlen,
++		char *host, socklen_t hostlen, int flags)
++{
++  if (!(flags & NI_NUMERICHOST))
++    {
++      struct utsname utsname;
++      if (uname (&utsname) == 0)
++	return checked_copy (host, hostlen, utsname.nodename);
++    }
++
++  if (flags & NI_NAMEREQD)
++    return EAI_NONAME;
++
++  return checked_copy (host, hostlen, "localhost");
++}
++
++/* Convert the host part of an AF_LOCAK socket address.   */
++static int
++gni_host (struct scratch_buffer *tmpbuf,
++	  const struct sockaddr *sa, socklen_t addrlen,
++	  char *host, socklen_t hostlen, int flags)
++{
++  switch (sa->sa_family)
++    {
++    case AF_INET:
++    case AF_INET6:
++      return gni_host_inet (tmpbuf, sa, addrlen, host, hostlen, flags);
++
++    case AF_LOCAL:
++      return gni_host_local (tmpbuf, sa, addrlen, host, hostlen, flags);
++
++    default:
++      return EAI_FAMILY;
++    }
++}
++
++/* Convert service to string, AF_INET and AF_INET6 variant.  */
++static int
++gni_serv_inet (struct scratch_buffer *tmpbuf,
++	       const struct sockaddr *sa, socklen_t addrlen,
++	       char *serv, socklen_t servlen, int flags)
++{
++  _Static_assert
++    (offsetof (struct sockaddr_in, sin_port)
++     == offsetof (struct sockaddr_in6, sin6_port)
++     && sizeof (((struct sockaddr_in) {}).sin_port) == sizeof (in_port_t)
++     && sizeof (((struct sockaddr_in6) {}).sin6_port) == sizeof (in_port_t),
++     "AF_INET and AF_INET6 port consistency");
++  const struct sockaddr_in *sinp = (const struct sockaddr_in *) sa;
++  if (!(flags & NI_NUMERICSERV))
++    {
++      struct servent *s, ts;
++      int e;
++      while ((e = __getservbyport_r (sinp->sin_port,
++				     ((flags & NI_DGRAM)
++				      ? "udp" : "tcp"), &ts,
++				     tmpbuf->data, tmpbuf->length, &s)))
++	{
++	  if (e == ERANGE)
++	    {
++	      if (!scratch_buffer_grow (tmpbuf))
++		return EAI_MEMORY;
++	    }
++	  else
++	    break;
++	}
++      if (s)
++	return checked_copy (serv, servlen, s->s_name);
++      /* Fall through to numeric conversion.  */
++    }
++  return CHECKED_SNPRINTF (serv, servlen, "%d", ntohs (sinp->sin_port));
++}
++
++/* Convert service to string, AF_LOCAL variant.  */
++static int
++gni_serv_local (struct scratch_buffer *tmpbuf,
++	       const struct sockaddr *sa, socklen_t addrlen,
++	       char *serv, socklen_t servlen, int flags)
++{
++  return checked_copy
++    (serv, servlen, ((const struct sockaddr_un *) sa)->sun_path);
++}
++
++/* Convert service to string, dispatching to the implementations
++   above.  */
++static int
++gni_serv (struct scratch_buffer *tmpbuf,
++	  const struct sockaddr *sa, socklen_t addrlen,
++	  char *serv, socklen_t servlen, int flags)
++{
++  switch (sa->sa_family)
++    {
++    case AF_INET:
++    case AF_INET6:
++      return gni_serv_inet (tmpbuf, sa, addrlen, serv, servlen, flags);
++    case AF_LOCAL:
++      return gni_serv_local (tmpbuf, sa, addrlen, serv, servlen, flags);
++    default:
++      return EAI_FAMILY;
++    }
++}
++
++int
++getnameinfo (const struct sockaddr *sa, socklen_t addrlen, char *host,
++	     socklen_t hostlen, char *serv, socklen_t servlen,
++	     int flags)
++{
+   if (flags & ~(NI_NUMERICHOST|NI_NUMERICSERV|NI_NOFQDN|NI_NAMEREQD|NI_DGRAM
+ #ifdef HAVE_LIBIDN
+ 		|NI_IDN|NI_IDN_ALLOW_UNASSIGNED|NI_IDN_USE_STD3_ASCII_RULES
+@@ -214,256 +534,30 @@ getnameinfo (const struct sockaddr *sa, socklen_t addrlen, char *host,
+       return EAI_FAMILY;
+     }
+ 
+-  if (host != NULL && hostlen > 0)
+-    switch (sa->sa_family)
+-      {
+-      case AF_INET:
+-      case AF_INET6:
+-	if (!(flags & NI_NUMERICHOST))
+-	  {
+-	    struct hostent *h = NULL;
+-	    if (sa->sa_family == AF_INET6)
+-	      {
+-		while (__gethostbyaddr_r ((const void *) &(((const struct sockaddr_in6 *) sa)->sin6_addr),
+-					  sizeof(struct in6_addr),
+-					  AF_INET6, &th,
+-					  tmpbuf.data, tmpbuf.length,
+-					  &h, &herrno))
+-		  if (herrno == NETDB_INTERNAL && errno == ERANGE)
+-		    {
+-		      if (!scratch_buffer_grow (&tmpbuf))
+-			{
+-			  __set_h_errno (herrno);
+-			  return EAI_MEMORY;
+-			}
+-		    }
+-		  else
+-		    break;
+-	      }
+-	    else
+-	      {
+-		while (__gethostbyaddr_r ((const void *) &(((const struct sockaddr_in *)sa)->sin_addr),
+-					  sizeof(struct in_addr),
+-					  AF_INET, &th,
+-					  tmpbuf.data, tmpbuf.length,
+-					  &h, &herrno))
+-		  if (herrno == NETDB_INTERNAL && errno == ERANGE)
+-		    {
+-		      if (!scratch_buffer_grow (&tmpbuf))
+-			{
+-			  __set_h_errno (herrno);
+-			  return EAI_MEMORY;
+-			}
+-		    }
+-		  else
+-		    break;
+-	      }
+-
+-	    if (h == NULL)
+-	      {
+-		if (herrno == NETDB_INTERNAL)
+-		  {
+-		    __set_h_errno (herrno);
+-		    return EAI_SYSTEM;
+-		  }
+-		if (herrno == TRY_AGAIN)
+-		  {
+-		    __set_h_errno (herrno);
+-		    return EAI_AGAIN;
+-		  }
+-	      }
+-
+-	    if (h)
+-	      {
+-		char *c;
+-		if ((flags & NI_NOFQDN)
+-		    && (c = nrl_domainname ())
+-		    && (c = strstr (h->h_name, c))
+-		    && (c != h->h_name) && (*(--c) == '.'))
+-		  /* Terminate the string after the prefix.  */
+-		  *c = '\0';
+-
+-#ifdef HAVE_LIBIDN
+-		/* If requested, convert from the IDN format.  */
+-		if (flags & NI_IDN)
+-		  {
+-		    int idn_flags = 0;
+-		    if  (flags & NI_IDN_ALLOW_UNASSIGNED)
+-		      idn_flags |= IDNA_ALLOW_UNASSIGNED;
+-		    if (flags & NI_IDN_USE_STD3_ASCII_RULES)
+-		      idn_flags |= IDNA_USE_STD3_ASCII_RULES;
+-
+-		    char *out;
+-		    int rc = __idna_to_unicode_lzlz (h->h_name, &out,
+-						     idn_flags);
+-		    if (rc != IDNA_SUCCESS)
+-		      {
+-			if (rc == IDNA_MALLOC_ERROR)
+-			  return EAI_MEMORY;
+-			if (rc == IDNA_DLOPEN_ERROR)
+-			  return EAI_SYSTEM;
+-			return EAI_IDN_ENCODE;
+-		      }
+-
+-		    if (out != h->h_name)
+-		      {
+-			h->h_name = strdupa (out);
+-			free (out);
+-		      }
+-		  }
+-#endif
+-
+-		size_t len = strlen (h->h_name) + 1;
+-		if (len > hostlen)
+-		  return EAI_OVERFLOW;
+-
+-		memcpy (host, h->h_name, len);
+-
+-		ok = 1;
+-	      }
+-	  }
+-
+-	if (!ok)
+-	  {
+-	    if (flags & NI_NAMEREQD)
+-	      {
+-		__set_errno (serrno);
+-		return EAI_NONAME;
+-	      }
+-	    else
+-	      {
+-		const char *c;
+-		if (sa->sa_family == AF_INET6)
+-		  {
+-		    const struct sockaddr_in6 *sin6p;
+-		    uint32_t scopeid;
+-
+-		    sin6p = (const struct sockaddr_in6 *) sa;
+-
+-		    c = inet_ntop (AF_INET6,
+-				   (const void *) &sin6p->sin6_addr, host, hostlen);
+-		    scopeid = sin6p->sin6_scope_id;
+-		    if (scopeid != 0)
+-		      {
+-			/* Buffer is >= IFNAMSIZ+1.  */
+-			char scopebuf[IFNAMSIZ + 1];
+-			char *scopeptr;
+-			int ni_numericscope = 0;
+-			size_t real_hostlen = __strnlen (host, hostlen);
+-			size_t scopelen = 0;
+-
+-			scopebuf[0] = SCOPE_DELIMITER;
+-			scopebuf[1] = '\0';
+-			scopeptr = &scopebuf[1];
+-
+-			if (IN6_IS_ADDR_LINKLOCAL (&sin6p->sin6_addr)
+-			    || IN6_IS_ADDR_MC_LINKLOCAL (&sin6p->sin6_addr))
+-			  {
+-			    if (if_indextoname (scopeid, scopeptr) == NULL)
+-			      ++ni_numericscope;
+-			    else
+-			      scopelen = strlen (scopebuf);
+-			  }
+-			else
+-			  ++ni_numericscope;
+-
+-			if (ni_numericscope)
+-			  scopelen = 1 + __snprintf (scopeptr,
+-						     (scopebuf
+-						      + sizeof scopebuf
+-						      - scopeptr),
+-						     "%u", scopeid);
+-
+-			if (real_hostlen + scopelen + 1 > hostlen)
+-			  /* Signal the buffer is too small.  This is
+-			     what inet_ntop does.  */
+-			  c = NULL;
+-			else
+-			  memcpy (host + real_hostlen, scopebuf, scopelen + 1);
+-		      }
+-		  }
+-		else
+-		  c = inet_ntop (AF_INET,
+-				 (const void *) &(((const struct sockaddr_in *) sa)->sin_addr),
+-				 host, hostlen);
+-		if (c == NULL)
+-		  return EAI_OVERFLOW;
+-	      }
+-	    ok = 1;
+-	  }
+-	break;
+-
+-      case AF_LOCAL:
+-	if (!(flags & NI_NUMERICHOST))
+-	  {
+-	    struct utsname utsname;
+-
+-	    if (!uname (&utsname))
+-	      {
+-		strncpy (host, utsname.nodename, hostlen);
+-		break;
+-	      };
+-	  };
+-
+-	if (flags & NI_NAMEREQD)
+-	   {
+-	    __set_errno (serrno);
+-	    return EAI_NONAME;
+-	  }
+-
+-	strncpy (host, "localhost", hostlen);
+-	break;
++  struct scratch_buffer tmpbuf;
++  scratch_buffer_init (&tmpbuf);
+ 
+-      default:
+-	return EAI_FAMILY;
++  if (host != NULL && hostlen > 0)
++    {
++      int result = gni_host (&tmpbuf, sa, addrlen, host, hostlen, flags);
++      if (result != 0)
++	{
++	  scratch_buffer_free (&tmpbuf);
++	  return result;
++	}
+     }
+ 
+   if (serv && (servlen > 0))
+-    switch (sa->sa_family)
+-      {
+-      case AF_INET:
+-      case AF_INET6:
+-	if (!(flags & NI_NUMERICSERV))
+-	  {
+-	    struct servent *s, ts;
+-	    int e;
+-	    while ((e = __getservbyport_r (((const struct sockaddr_in *) sa)->sin_port,
+-					   ((flags & NI_DGRAM)
+-					    ? "udp" : "tcp"), &ts,
+-					   tmpbuf.data, tmpbuf.length, &s)))
+-	      {
+-		if (e == ERANGE)
+-		  {
+-		    if (!scratch_buffer_grow (&tmpbuf))
+-		      return EAI_MEMORY;
+-		  }
+-		else
+-		  break;
+-	      }
+-	    if (s)
+-	      {
+-		strncpy (serv, s->s_name, servlen);
+-		break;
+-	      }
+-	  }
+-
+-	if (__snprintf (serv, servlen, "%d",
+-			ntohs (((const struct sockaddr_in *) sa)->sin_port))
+-	    + 1 > servlen)
+-	  return EAI_OVERFLOW;
+-
+-	break;
+-
+-      case AF_LOCAL:
+-	strncpy (serv, ((const struct sockaddr_un *) sa)->sun_path, servlen);
+-	break;
++    {
++      int result = gni_serv (&tmpbuf, sa, addrlen, serv, servlen, flags);
++      if (result != 0)
++	{
++	  scratch_buffer_free (&tmpbuf);
++	  return result;
++	}
+     }
+ 
+-  if (host && (hostlen > 0))
+-    host[hostlen-1] = 0;
+-  if (serv && (servlen > 0))
+-    serv[servlen-1] = 0;
+-  errno = serrno;
++  scratch_buffer_free (&tmpbuf);
+   return 0;
+ }
+ libc_hidden_def (getnameinfo)
+diff --git a/locale/localeinfo.h b/locale/localeinfo.h
+index 5c4e6ef..94627f3 100644
+--- a/locale/localeinfo.h
++++ b/locale/localeinfo.h
+@@ -299,6 +299,27 @@ extern __thread struct __locale_data *const *_nl_current_##category \
+ 
+ #endif
+ 
++/* Extract CATEGORY locale's string for ITEM.  */
++static inline const char *
++_nl_lookup (locale_t l, int category, int item)
++{
++  return l->__locales[category]->values[_NL_ITEM_INDEX (item)].string;
++}
++
++/* Extract CATEGORY locale's wide string for ITEM.  */
++static inline const wchar_t *
++_nl_lookup_wstr (locale_t l, int category, int item)
++{
++  return (wchar_t *) l->__locales[category]
++    ->values[_NL_ITEM_INDEX (item)].wstr;
++}
++
++/* Extract the CATEGORY locale's word for ITEM.  */
++static inline uint32_t
++_nl_lookup_word (locale_t l, int category, int item)
++{
++  return l->__locales[category]->values[_NL_ITEM_INDEX (item)].word;
++}
+ 
+ /* Default search path if no LOCPATH environment variable.  */
+ extern const char _nl_default_locale_path[] attribute_hidden;
+diff --git a/localedata/ChangeLog b/localedata/ChangeLog
+index 05ccd90..dd1c2b1 100644
+--- a/localedata/ChangeLog
++++ b/localedata/ChangeLog
+@@ -1,3 +1,10 @@
++2016-02-19  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19581]
++	* locales/sr_ME (date_fmt): Remove newline.
++	* locales/sr_RS (date_fmt): Likewise.
++	* locales/sr_RS@latin (date_fmt): Likewise.
++
+ 2016-02-08  Mike Frysinger  <vapier@gentoo.org>
+ 
+ 	* locales/an_ES: Convert to UTF-8 encodings.
+diff --git a/localedata/locales/sr_ME b/localedata/locales/sr_ME
+index 4f243dc..dd68df8 100644
+--- a/localedata/locales/sr_ME
++++ b/localedata/locales/sr_ME
+@@ -119,7 +119,7 @@ am_pm   "";""
+ t_fmt_ampm "<U0025><U0054>"
+ date_fmt  "<U0025><U0061><U002c><U0020><U0025><U0065><U002E><U0020>/
+ <U0025><U0062><U0020><U0025><U0059><U002E><U0020><U0020><U0025><U0048>/
+-<U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U005A><U000A>"
++<U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U005A>"
+ week    7;19971130;4
+ first_weekday 2
+ first_workday 2
+diff --git a/localedata/locales/sr_RS b/localedata/locales/sr_RS
+index 2ae085b..ffea86f 100644
+--- a/localedata/locales/sr_RS
++++ b/localedata/locales/sr_RS
+@@ -300,7 +300,7 @@ am_pm   "";""
+ t_fmt_ampm "<U0025><U0054>"
+ date_fmt  "<U0025><U0061><U002C><U0020><U0025><U0065><U002E><U0020>/
+ <U0025><U0062><U0020><U0025><U0059><U002E><U0020><U0020><U0025><U0048>/
+-<U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U005A><U000A>"
++<U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U005A>"
+ week    7;19971130;4
+ first_weekday 2
+ first_workday 2
+diff --git a/localedata/locales/sr_RS@latin b/localedata/locales/sr_RS@latin
+index da6628b..fd10ea6 100644
+--- a/localedata/locales/sr_RS@latin
++++ b/localedata/locales/sr_RS@latin
+@@ -120,7 +120,7 @@ am_pm   "";""
+ t_fmt_ampm "<U0025><U0054>"
+ date_fmt  "<U0025><U0061><U002c><U0020><U0025><U0065><U002E><U0020>/
+ <U0025><U0062><U0020><U0025><U0059><U002E><U0020><U0020><U0025><U0048>/
+-<U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U005A><U000A>"
++<U003A><U0025><U004D><U003A><U0025><U0053><U0020><U0025><U005A>"
+ week    7;19971130;4
+ first_weekday 2
+ first_workday 2
+diff --git a/malloc/Makefile b/malloc/Makefile
+index 360288b..3283f4f 100644
+--- a/malloc/Makefile
++++ b/malloc/Makefile
+@@ -29,7 +29,7 @@ tests := mallocbug tst-malloc tst-valloc tst-calloc tst-obstack \
+ 	 tst-malloc-usable tst-realloc tst-posix_memalign \
+ 	 tst-pvalloc tst-memalign tst-mallopt tst-scratch_buffer \
+ 	 tst-malloc-backtrace tst-malloc-thread-exit \
+-	 tst-malloc-thread-fail
++	 tst-malloc-thread-fail tst-malloc-fork-deadlock
+ test-srcs = tst-mtrace
+ 
+ routines = malloc morecore mcheck mtrace obstack \
+@@ -46,12 +46,10 @@ extra-libs-others = $(extra-libs)
+ libmemusage-routines = memusage
+ libmemusage-inhibit-o = $(filter-out .os,$(object-suffixes))
+ 
+-$(objpfx)tst-malloc-backtrace: $(common-objpfx)nptl/libpthread.so \
+-			       $(common-objpfx)nptl/libpthread_nonshared.a
+-$(objpfx)tst-malloc-thread-exit: $(common-objpfx)nptl/libpthread.so \
+-			       $(common-objpfx)nptl/libpthread_nonshared.a
+-$(objpfx)tst-malloc-thread-fail: $(common-objpfx)nptl/libpthread.so \
+-			       $(common-objpfx)nptl/libpthread_nonshared.a
++$(objpfx)tst-malloc-backtrace: $(shared-thread-library)
++$(objpfx)tst-malloc-thread-exit: $(shared-thread-library)
++$(objpfx)tst-malloc-thread-fail: $(shared-thread-library)
++$(objpfx)tst-malloc-fork-deadlock: $(shared-thread-library)
+ 
+ # These should be removed by `make clean'.
+ extra-objs = mcheck-init.o libmcheck.a
+diff --git a/malloc/arena.c b/malloc/arena.c
+index 1edb4d4..47715b6 100644
+--- a/malloc/arena.c
++++ b/malloc/arena.c
+@@ -130,149 +130,43 @@ int __malloc_initialized = -1;
+ 
+ /**************************************************************************/
+ 
+-#ifndef NO_THREADS
+-
+ /* atfork support.  */
+ 
+-static void *(*save_malloc_hook)(size_t __size, const void *);
+-static void (*save_free_hook) (void *__ptr, const void *);
+-static void *save_arena;
+-
+-# ifdef ATFORK_MEM
+-ATFORK_MEM;
+-# endif
+-
+-/* Magic value for the thread-specific arena pointer when
+-   malloc_atfork() is in use.  */
+-
+-# define ATFORK_ARENA_PTR ((void *) -1)
+-
+-/* The following hooks are used while the `atfork' handling mechanism
+-   is active. */
+-
+-static void *
+-malloc_atfork (size_t sz, const void *caller)
+-{
+-  void *victim;
+-
+-  if (thread_arena == ATFORK_ARENA_PTR)
+-    {
+-      /* We are the only thread that may allocate at all.  */
+-      if (save_malloc_hook != malloc_check)
+-        {
+-          return _int_malloc (&main_arena, sz);
+-        }
+-      else
+-        {
+-          if (top_check () < 0)
+-            return 0;
+-
+-          victim = _int_malloc (&main_arena, sz + 1);
+-          return mem2mem_check (victim, sz);
+-        }
+-    }
+-  else
+-    {
+-      /* Suspend the thread until the `atfork' handlers have completed.
+-         By that time, the hooks will have been reset as well, so that
+-         mALLOc() can be used again. */
+-      (void) mutex_lock (&list_lock);
+-      (void) mutex_unlock (&list_lock);
+-      return __libc_malloc (sz);
+-    }
+-}
+-
+-static void
+-free_atfork (void *mem, const void *caller)
+-{
+-  mstate ar_ptr;
+-  mchunkptr p;                          /* chunk corresponding to mem */
+-
+-  if (mem == 0)                              /* free(0) has no effect */
+-    return;
+-
+-  p = mem2chunk (mem);         /* do not bother to replicate free_check here */
+-
+-  if (chunk_is_mmapped (p))                       /* release mmapped memory. */
+-    {
+-      munmap_chunk (p);
+-      return;
+-    }
+-
+-  ar_ptr = arena_for_chunk (p);
+-  _int_free (ar_ptr, p, thread_arena == ATFORK_ARENA_PTR);
+-}
+-
+-
+-/* Counter for number of times the list is locked by the same thread.  */
+-static unsigned int atfork_recursive_cntr;
++/* The following three functions are called around fork from a
++   multi-threaded process.  We do not use the general fork handler
++   mechanism to make sure that our handlers are the last ones being
++   called, so that other fork handlers can use the malloc
++   subsystem.  */
+ 
+-/* The following two functions are registered via thread_atfork() to
+-   make sure that the mutexes remain in a consistent state in the
+-   fork()ed version of a thread.  Also adapt the malloc and free hooks
+-   temporarily, because the `atfork' handler mechanism may use
+-   malloc/free internally (e.g. in LinuxThreads). */
+-
+-static void
+-ptmalloc_lock_all (void)
++void
++internal_function
++__malloc_fork_lock_parent (void)
+ {
+-  mstate ar_ptr;
+-
+   if (__malloc_initialized < 1)
+     return;
+ 
+   /* We do not acquire free_list_lock here because we completely
+-     reconstruct free_list in ptmalloc_unlock_all2.  */
++     reconstruct free_list in __malloc_fork_unlock_child.  */
+ 
+-  if (mutex_trylock (&list_lock))
+-    {
+-      if (thread_arena == ATFORK_ARENA_PTR)
+-        /* This is the same thread which already locks the global list.
+-           Just bump the counter.  */
+-        goto out;
++  (void) mutex_lock (&list_lock);
+ 
+-      /* This thread has to wait its turn.  */
+-      (void) mutex_lock (&list_lock);
+-    }
+-  for (ar_ptr = &main_arena;; )
++  for (mstate ar_ptr = &main_arena;; )
+     {
+       (void) mutex_lock (&ar_ptr->mutex);
+       ar_ptr = ar_ptr->next;
+       if (ar_ptr == &main_arena)
+         break;
+     }
+-  save_malloc_hook = __malloc_hook;
+-  save_free_hook = __free_hook;
+-  __malloc_hook = malloc_atfork;
+-  __free_hook = free_atfork;
+-  /* Only the current thread may perform malloc/free calls now.
+-     save_arena will be reattached to the current thread, in
+-     ptmalloc_lock_all, so save_arena->attached_threads is not
+-     updated.  */
+-  save_arena = thread_arena;
+-  thread_arena = ATFORK_ARENA_PTR;
+-out:
+-  ++atfork_recursive_cntr;
+ }
+ 
+-static void
+-ptmalloc_unlock_all (void)
++void
++internal_function
++__malloc_fork_unlock_parent (void)
+ {
+-  mstate ar_ptr;
+-
+   if (__malloc_initialized < 1)
+     return;
+ 
+-  if (--atfork_recursive_cntr != 0)
+-    return;
+-
+-  /* Replace ATFORK_ARENA_PTR with save_arena.
+-     save_arena->attached_threads was not changed in ptmalloc_lock_all
+-     and is still correct.  */
+-  thread_arena = save_arena;
+-  __malloc_hook = save_malloc_hook;
+-  __free_hook = save_free_hook;
+-  for (ar_ptr = &main_arena;; )
++  for (mstate ar_ptr = &main_arena;; )
+     {
+       (void) mutex_unlock (&ar_ptr->mutex);
+       ar_ptr = ar_ptr->next;
+@@ -282,35 +176,23 @@ ptmalloc_unlock_all (void)
+   (void) mutex_unlock (&list_lock);
+ }
+ 
+-# ifdef __linux__
+-
+-/* In NPTL, unlocking a mutex in the child process after a
+-   fork() is currently unsafe, whereas re-initializing it is safe and
+-   does not leak resources.  Therefore, a special atfork handler is
+-   installed for the child. */
+-
+-static void
+-ptmalloc_unlock_all2 (void)
++void
++internal_function
++__malloc_fork_unlock_child (void)
+ {
+-  mstate ar_ptr;
+-
+   if (__malloc_initialized < 1)
+     return;
+ 
+-  thread_arena = save_arena;
+-  __malloc_hook = save_malloc_hook;
+-  __free_hook = save_free_hook;
+-
+-  /* Push all arenas to the free list, except save_arena, which is
++  /* Push all arenas to the free list, except thread_arena, which is
+      attached to the current thread.  */
+   mutex_init (&free_list_lock);
+-  if (save_arena != NULL)
+-    ((mstate) save_arena)->attached_threads = 1;
++  if (thread_arena != NULL)
++    thread_arena->attached_threads = 1;
+   free_list = NULL;
+-  for (ar_ptr = &main_arena;; )
++  for (mstate ar_ptr = &main_arena;; )
+     {
+       mutex_init (&ar_ptr->mutex);
+-      if (ar_ptr != save_arena)
++      if (ar_ptr != thread_arena)
+         {
+ 	  /* This arena is no longer attached to any thread.  */
+ 	  ar_ptr->attached_threads = 0;
+@@ -323,15 +205,8 @@ ptmalloc_unlock_all2 (void)
+     }
+ 
+   mutex_init (&list_lock);
+-  atfork_recursive_cntr = 0;
+ }
+ 
+-# else
+-
+-#  define ptmalloc_unlock_all2 ptmalloc_unlock_all
+-# endif
+-#endif  /* !NO_THREADS */
+-
+ /* Initialization routine. */
+ #include <string.h>
+ extern char **_environ;
+@@ -400,7 +275,6 @@ ptmalloc_init (void)
+ #endif
+ 
+   thread_arena = &main_arena;
+-  thread_atfork (ptmalloc_lock_all, ptmalloc_unlock_all, ptmalloc_unlock_all2);
+   const char *s = NULL;
+   if (__glibc_likely (_environ != NULL))
+     {
+@@ -475,14 +349,6 @@ ptmalloc_init (void)
+   __malloc_initialized = 1;
+ }
+ 
+-/* There are platforms (e.g. Hurd) with a link-time hook mechanism. */
+-#ifdef thread_atfork_static
+-thread_atfork_static (ptmalloc_lock_all, ptmalloc_unlock_all,		      \
+-                      ptmalloc_unlock_all2)
+-#endif
+-
+-
+-
+ /* Managing heaps and arenas (for concurrent threads) */
+ 
+ #if MALLOC_DEBUG > 1
+@@ -831,7 +697,8 @@ _int_new_arena (size_t size)
+      limit is reached).  At this point, some arena has to be attached
+      to two threads.  We could acquire the arena lock before list_lock
+      to make it less likely that reused_arena picks this new arena,
+-     but this could result in a deadlock with ptmalloc_lock_all.  */
++     but this could result in a deadlock with
++     __malloc_fork_lock_parent.  */
+ 
+   (void) mutex_lock (&a->mutex);
+ 
+diff --git a/malloc/malloc-internal.h b/malloc/malloc-internal.h
+new file mode 100644
+index 0000000..b830d3f
+--- /dev/null
++++ b/malloc/malloc-internal.h
+@@ -0,0 +1,32 @@
++/* Internal declarations for malloc, for use within libc.
++   Copyright (C) 2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If
++   not, see <http://www.gnu.org/licenses/>.  */
++
++#ifndef _MALLOC_PRIVATE_H
++#define _MALLOC_PRIVATE_H
++
++/* Called in the parent process before a fork.  */
++void __malloc_fork_lock_parent (void) internal_function attribute_hidden;
++
++/* Called in the parent process after a fork.  */
++void __malloc_fork_unlock_parent (void) internal_function attribute_hidden;
++
++/* Called in the child process after a fork.  */
++void __malloc_fork_unlock_child (void) internal_function attribute_hidden;
++
++
++#endif /* _MALLOC_PRIVATE_H */
+diff --git a/malloc/malloc.c b/malloc/malloc.c
+index d20d595..39e4298 100644
+--- a/malloc/malloc.c
++++ b/malloc/malloc.c
+@@ -244,6 +244,7 @@
+ /* For ALIGN_UP et. al.  */
+ #include <libc-internal.h>
+ 
++#include <malloc/malloc-internal.h>
+ 
+ /*
+   Debugging:
+@@ -1074,10 +1075,6 @@ static void*   realloc_check(void* oldmem, size_t bytes,
+ 			       const void *caller);
+ static void*   memalign_check(size_t alignment, size_t bytes,
+ 				const void *caller);
+-#ifndef NO_THREADS
+-static void*   malloc_atfork(size_t sz, const void *caller);
+-static void      free_atfork(void* mem, const void *caller);
+-#endif
+ 
+ /* ------------------ MMAP support ------------------  */
+ 
+diff --git a/malloc/tst-malloc-fork-deadlock.c b/malloc/tst-malloc-fork-deadlock.c
+new file mode 100644
+index 0000000..94549ca
+--- /dev/null
++++ b/malloc/tst-malloc-fork-deadlock.c
+@@ -0,0 +1,220 @@
++/* Test concurrent fork, getline, and fflush (NULL).
++   Copyright (C) 2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If
++   not, see <http://www.gnu.org/licenses/>.  */
++
++#include <sys/wait.h>
++#include <unistd.h>
++#include <errno.h>
++#include <stdio.h>
++#include <pthread.h>
++#include <stdbool.h>
++#include <stdlib.h>
++#include <malloc.h>
++#include <time.h>
++#include <string.h>
++#include <signal.h>
++
++static int do_test (void);
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
++
++enum {
++  /* Number of threads which call fork.  */
++  fork_thread_count = 4,
++  /* Number of threads which call getline (and, indirectly,
++     malloc).  */
++  read_thread_count = 8,
++};
++
++static bool termination_requested;
++
++static void *
++fork_thread_function (void *closure)
++{
++  while (!__atomic_load_n (&termination_requested, __ATOMIC_RELAXED))
++    {
++      pid_t pid = fork ();
++      if (pid < 0)
++        {
++          printf ("error: fork: %m\n");
++          abort ();
++        }
++      else if (pid == 0)
++        _exit (17);
++
++      int status;
++      if (waitpid (pid, &status, 0) < 0)
++        {
++          printf ("error: waitpid: %m\n");
++          abort ();
++        }
++      if (!WIFEXITED (status) || WEXITSTATUS (status) != 17)
++        {
++          printf ("error: waitpid returned invalid status: %d\n", status);
++          abort ();
++        }
++    }
++  return NULL;
++}
++
++static char *file_to_read;
++
++static void *
++read_thread_function (void *closure)
++{
++  FILE *f = fopen (file_to_read, "r");
++  if (f == NULL)
++    {
++      printf ("error: fopen (%s): %m\n", file_to_read);
++      abort ();
++    }
++
++  while (!__atomic_load_n (&termination_requested, __ATOMIC_RELAXED))
++    {
++      rewind (f);
++      char *line = NULL;
++      size_t line_allocated = 0;
++      ssize_t ret = getline (&line, &line_allocated, f);
++      if (ret < 0)
++        {
++          printf ("error: getline: %m\n");
++          abort ();
++        }
++      free (line);
++    }
++  fclose (f);
++
++  return NULL;
++}
++
++static void *
++flushall_thread_function (void *closure)
++{
++  while (!__atomic_load_n (&termination_requested, __ATOMIC_RELAXED))
++    if (fflush (NULL) != 0)
++      {
++        printf ("error: fflush (NULL): %m\n");
++        abort ();
++      }
++  return NULL;
++}
++
++static void
++create_threads (pthread_t *threads, size_t count, void *(*func) (void *))
++{
++  for (size_t i = 0; i < count; ++i)
++    {
++      int ret = pthread_create (threads + i, NULL, func, NULL);
++      if (ret != 0)
++        {
++          errno = ret;
++          printf ("error: pthread_create: %m\n");
++          abort ();
++        }
++    }
++}
++
++static void
++join_threads (pthread_t *threads, size_t count)
++{
++  for (size_t i = 0; i < count; ++i)
++    {
++      int ret = pthread_join (threads[i], NULL);
++      if (ret != 0)
++        {
++          errno = ret;
++          printf ("error: pthread_join: %m\n");
++          abort ();
++        }
++    }
++}
++
++/* Create a file which consists of a single long line, and assigns
++   file_to_read.  The hope is that this triggers an allocation in
++   getline which needs a lock.  */
++static void
++create_file_with_large_line (void)
++{
++  int fd = create_temp_file ("bug19431-large-line", &file_to_read);
++  if (fd < 0)
++    {
++      printf ("error: create_temp_file: %m\n");
++      abort ();
++    }
++  FILE *f = fdopen (fd, "w+");
++  if (f == NULL)
++    {
++      printf ("error: fdopen: %m\n");
++      abort ();
++    }
++  for (int i = 0; i < 50000; ++i)
++    fputc ('x', f);
++  fputc ('\n', f);
++  if (ferror (f))
++    {
++      printf ("error: fputc: %m\n");
++      abort ();
++    }
++  if (fclose (f) != 0)
++    {
++      printf ("error: fclose: %m\n");
++      abort ();
++    }
++}
++
++static int
++do_test (void)
++{
++  /* Make sure that we do not exceed the arena limit with the number
++     of threads we configured.  */
++  if (mallopt (M_ARENA_MAX, 400) == 0)
++    {
++      printf ("error: mallopt (M_ARENA_MAX) failed\n");
++      return 1;
++    }
++
++  /* Leave some room for shutting down all threads gracefully.  */
++  int timeout = 3;
++  if (timeout > TIMEOUT)
++    timeout = TIMEOUT - 1;
++
++  create_file_with_large_line ();
++
++  pthread_t fork_threads[fork_thread_count];
++  create_threads (fork_threads, fork_thread_count, fork_thread_function);
++  pthread_t read_threads[read_thread_count];
++  create_threads (read_threads, read_thread_count, read_thread_function);
++  pthread_t flushall_threads[1];
++  create_threads (flushall_threads, 1, flushall_thread_function);
++
++  struct timespec ts = {timeout, 0};
++  if (nanosleep (&ts, NULL))
++    {
++      printf ("error: error: nanosleep: %m\n");
++      abort ();
++    }
++
++  __atomic_store_n (&termination_requested, true, __ATOMIC_RELAXED);
++
++  join_threads (flushall_threads, 1);
++  join_threads (read_threads, read_thread_count);
++  join_threads (fork_threads, fork_thread_count);
++
++  free (file_to_read);
++
++  return 0;
++}
+diff --git a/manual/examples/mkdirent.c b/manual/examples/mkdirent.c
+new file mode 100644
+index 0000000..f8400f4
 diff --git a/math/Makefile b/math/Makefile
 index 7d573a0..6aa87f9 100644
 --- a/math/Makefile
@@ -293,6 +2496,53 @@ index 195d753..ecff1dc 100644
      {
        printf ("FAIL: Failed to call is* functions.\n");
        exit (1);
+diff --git a/nis/nis_call.c b/nis/nis_call.c
+index 3fa37e4..cb7839a 100644
+--- a/nis/nis_call.c
++++ b/nis/nis_call.c
+@@ -680,16 +680,18 @@ nis_server_cache_add (const_nis_name name, int search_parent,
+   /* Choose which entry should be evicted from the cache.  */
+   loc = &nis_server_cache[0];
+   if (*loc != NULL)
+-    for (i = 1; i < 16; ++i)
+-      if (nis_server_cache[i] == NULL)
+-	{
++    {
++      for (i = 1; i < 16; ++i)
++	if (nis_server_cache[i] == NULL)
++	  {
++	    loc = &nis_server_cache[i];
++	    break;
++	  }
++	else if ((*loc)->uses > nis_server_cache[i]->uses
++		 || ((*loc)->uses == nis_server_cache[i]->uses
++		     && (*loc)->expires > nis_server_cache[i]->expires))
+ 	  loc = &nis_server_cache[i];
+-	  break;
+-	}
+-      else if ((*loc)->uses > nis_server_cache[i]->uses
+-	       || ((*loc)->uses == nis_server_cache[i]->uses
+-		   && (*loc)->expires > nis_server_cache[i]->expires))
+-	loc = &nis_server_cache[i];
++    }
+   old = *loc;
+   *loc = new;
+ 
+diff --git a/nss/nss_db/db-XXX.c b/nss/nss_db/db-XXX.c
+index 03c18d7..125a5e9 100644
+--- a/nss/nss_db/db-XXX.c
++++ b/nss/nss_db/db-XXX.c
+@@ -288,8 +288,8 @@ CONCAT(_nss_db_get,ENTNAME_r) (struct STRUCTURE *result, char *buffer,
+ 	    }
+ 	  if (err < 0)
+ 	    {
+-	      H_ERRNO_SET (HOST_NOT_FOUND);
+-	      status = NSS_STATUS_NOTFOUND;
++	      H_ERRNO_SET (NETDB_INTERNAL);
++	      status = NSS_STATUS_TRYAGAIN;
+ 	      break;
+ 	    }
+ 
 diff --git a/po/be.po b/po/be.po
 index 66d1235..ffb39b4 100644
 --- a/po/be.po
@@ -55285,8 +57535,674 @@ index 90c47e4..9ca8cb1 100644
  #~ msgid "compile-time support for database policy missing"
  #~ msgstr "compile-time 支援用於資料庫策略缺少"
  
+diff --git a/posix/bug-glob2.c b/posix/bug-glob2.c
+index ddf5ec9..5873e08 100644
+--- a/posix/bug-glob2.c
++++ b/posix/bug-glob2.c
+@@ -40,6 +40,17 @@
+ # define PRINTF(fmt, args...)
+ #endif
+ 
++#define LONG_NAME \
++  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
++  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
++  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
++  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
++  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
++  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
++  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
++  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
++  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
++  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+ 
+ static struct
+ {
+@@ -58,6 +69,7 @@ static struct
+       { ".", 3, DT_DIR, 0755 },
+       { "..", 3, DT_DIR, 0755 },
+       { "a", 3, DT_REG, 0644 },
++      { LONG_NAME, 3, DT_REG, 0644 },
+     { "unreadable", 2, DT_DIR, 0111 },
+       { ".", 3, DT_DIR, 0111 },
+       { "..", 3, DT_DIR, 0755 },
+@@ -75,7 +87,7 @@ typedef struct
+   int level;
+   int idx;
+   struct dirent d;
+-  char room_for_dirent[NAME_MAX];
++  char room_for_dirent[sizeof (LONG_NAME)];
+ } my_DIR;
+ 
+ 
+@@ -193,7 +205,7 @@ my_readdir (void *gdir)
+       return NULL;
+     }
+ 
+-  dir->d.d_ino = dir->idx;
++  dir->d.d_ino = 1;		/* glob should not skip this entry.  */
+ 
+ #ifdef _DIRENT_HAVE_D_TYPE
+   dir->d.d_type = filesystem[dir->idx].type;
+diff --git a/posix/glob.c b/posix/glob.c
+index 0c04c3c..ea4b0b6 100644
+--- a/posix/glob.c
++++ b/posix/glob.c
+@@ -24,7 +24,9 @@
+ #include <errno.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#include <stdbool.h>
+ #include <stddef.h>
++#include <stdint.h>
+ 
+ /* Outcomment the following line for production quality code.  */
+ /* #define NDEBUG 1 */
+@@ -57,10 +59,8 @@
+ 
+ #if defined HAVE_DIRENT_H || defined __GNU_LIBRARY__
+ # include <dirent.h>
+-# define NAMLEN(dirent) strlen((dirent)->d_name)
+ #else
+ # define dirent direct
+-# define NAMLEN(dirent) (dirent)->d_namlen
+ # ifdef HAVE_SYS_NDIR_H
+ #  include <sys/ndir.h>
+ # endif
+@@ -75,82 +75,8 @@
+ # endif /* HAVE_VMSDIR_H */
+ #endif
+ 
+-
+-/* In GNU systems, <dirent.h> defines this macro for us.  */
+-#ifdef _D_NAMLEN
+-# undef NAMLEN
+-# define NAMLEN(d) _D_NAMLEN(d)
+-#endif
+-
+-/* When used in the GNU libc the symbol _DIRENT_HAVE_D_TYPE is available
+-   if the `d_type' member for `struct dirent' is available.
+-   HAVE_STRUCT_DIRENT_D_TYPE plays the same role in GNULIB.  */
+-#if defined _DIRENT_HAVE_D_TYPE || defined HAVE_STRUCT_DIRENT_D_TYPE
+-/* True if the directory entry D must be of type T.  */
+-# define DIRENT_MUST_BE(d, t)	((d)->d_type == (t))
+-
+-/* True if the directory entry D might be a symbolic link.  */
+-# define DIRENT_MIGHT_BE_SYMLINK(d) \
+-    ((d)->d_type == DT_UNKNOWN || (d)->d_type == DT_LNK)
+-
+-/* True if the directory entry D might be a directory.  */
+-# define DIRENT_MIGHT_BE_DIR(d)	 \
+-    ((d)->d_type == DT_DIR || DIRENT_MIGHT_BE_SYMLINK (d))
+-
+-#else /* !HAVE_D_TYPE */
+-# define DIRENT_MUST_BE(d, t)		false
+-# define DIRENT_MIGHT_BE_SYMLINK(d)	true
+-# define DIRENT_MIGHT_BE_DIR(d)		true
+-#endif /* HAVE_D_TYPE */
+-
+-/* If the system has the `struct dirent64' type we use it internally.  */
+-#if defined _LIBC && !defined COMPILE_GLOB64
+-# if defined HAVE_DIRENT_H || defined __GNU_LIBRARY__
+-#  define CONVERT_D_NAMLEN(d64, d32)
+-# else
+-#  define CONVERT_D_NAMLEN(d64, d32) \
+-  (d64)->d_namlen = (d32)->d_namlen;
+-# endif
+-
+-# if (defined POSIX || defined WINDOWS32) && !defined __GNU_LIBRARY__
+-#  define CONVERT_D_INO(d64, d32)
+-# else
+-#  define CONVERT_D_INO(d64, d32) \
+-  (d64)->d_ino = (d32)->d_ino;
+-# endif
+-
+-# ifdef _DIRENT_HAVE_D_TYPE
+-#  define CONVERT_D_TYPE(d64, d32) \
+-  (d64)->d_type = (d32)->d_type;
+-# else
+-#  define CONVERT_D_TYPE(d64, d32)
+-# endif
+-
+-# define CONVERT_DIRENT_DIRENT64(d64, d32) \
+-  memcpy ((d64)->d_name, (d32)->d_name, NAMLEN (d32) + 1);		      \
+-  CONVERT_D_NAMLEN (d64, d32)						      \
+-  CONVERT_D_INO (d64, d32)						      \
+-  CONVERT_D_TYPE (d64, d32)
+-#endif
+-
+-
+-#if (defined POSIX || defined WINDOWS32) && !defined __GNU_LIBRARY__
+-/* Posix does not require that the d_ino field be present, and some
+-   systems do not provide it. */
+-# define REAL_DIR_ENTRY(dp) 1
+-#else
+-# define REAL_DIR_ENTRY(dp) (dp->d_ino != 0)
+-#endif /* POSIX */
+-
+ #include <stdlib.h>
+ #include <string.h>
+-
+-/* NAME_MAX is usually defined in <dirent.h> or <limits.h>.  */
+-#include <limits.h>
+-#ifndef NAME_MAX
+-# define NAME_MAX (sizeof (((struct dirent *) 0)->d_name))
+-#endif
+-
+ #include <alloca.h>
+ 
+ #ifdef _LIBC
+@@ -195,8 +121,111 @@
+ 
+ static const char *next_brace_sub (const char *begin, int flags) __THROWNL;
+ 
++/* A representation of a directory entry which does not depend on the
++   layout of struct dirent, or the size of ino_t.  */
++struct readdir_result
++{
++  const char *name;
++# if defined _DIRENT_HAVE_D_TYPE || defined HAVE_STRUCT_DIRENT_D_TYPE
++  uint8_t type;
++# endif
++  bool skip_entry;
++};
++
++# if defined _DIRENT_HAVE_D_TYPE || defined HAVE_STRUCT_DIRENT_D_TYPE
++/* Initializer based on the d_type member of struct dirent.  */
++#  define D_TYPE_TO_RESULT(source) (source)->d_type,
++
++/* True if the directory entry D might be a symbolic link.  */
++static bool
++readdir_result_might_be_symlink (struct readdir_result d)
++{
++  return d.type == DT_UNKNOWN || d.type == DT_LNK;
++}
++
++/* True if the directory entry D might be a directory.  */
++static bool
++readdir_result_might_be_dir (struct readdir_result d)
++{
++  return d.type == DT_DIR || readdir_result_might_be_symlink (d);
++}
++# else /* defined _DIRENT_HAVE_D_TYPE || defined HAVE_STRUCT_DIRENT_D_TYPE */
++#  define D_TYPE_TO_RESULT(source)
++
++/* If we do not have type information, symbolic links and directories
++   are always a possibility.  */
++
++static bool
++readdir_result_might_be_symlink (struct readdir_result d)
++{
++  return true;
++}
++
++static bool
++readdir_result_might_be_dir (struct readdir_result d)
++{
++  return true;
++}
++
++# endif /* defined _DIRENT_HAVE_D_TYPE || defined HAVE_STRUCT_DIRENT_D_TYPE */
++
++# if (defined POSIX || defined WINDOWS32) && !defined __GNU_LIBRARY__
++/* Initializer for skip_entry.  POSIX does not require that the d_ino
++   field be present, and some systems do not provide it. */
++#  define D_INO_TO_RESULT(source) false,
++# else
++#  define D_INO_TO_RESULT(source) (source)->d_ino == 0,
++# endif
++
++/* Construct an initializer for a struct readdir_result object from a
++   struct dirent *.  No copy of the name is made.  */
++#define READDIR_RESULT_INITIALIZER(source) \
++  {					   \
++    source->d_name,			   \
++    D_TYPE_TO_RESULT (source)		   \
++    D_INO_TO_RESULT (source)		   \
++  }
++
+ #endif /* !defined _LIBC || !defined GLOB_ONLY_P */
+ 
++/* Call gl_readdir on STREAM.  This macro can be overridden to reduce
++   type safety if an old interface version needs to be supported.  */
++#ifndef GL_READDIR
++# define GL_READDIR(pglob, stream) ((pglob)->gl_readdir (stream))
++#endif
++
++/* Extract name and type from directory entry.  No copy of the name is
++   made.  If SOURCE is NULL, result name is NULL.  Keep in sync with
++   convert_dirent64 below.  */
++static struct readdir_result
++convert_dirent (const struct dirent *source)
++{
++  if (source == NULL)
++    {
++      struct readdir_result result = { NULL, };
++      return result;
++    }
++  struct readdir_result result = READDIR_RESULT_INITIALIZER (source);
++  return result;
++}
++
++#ifndef COMPILE_GLOB64
++/* Like convert_dirent, but works on struct dirent64 instead.  Keep in
++   sync with convert_dirent above.  */
++static struct readdir_result
++convert_dirent64 (const struct dirent64 *source)
++{
++  if (source == NULL)
++    {
++      struct readdir_result result = { NULL, };
++      return result;
++    }
++  struct readdir_result result = READDIR_RESULT_INITIALIZER (source);
++  return result;
++}
++#endif
++
++
+ #ifndef attribute_hidden
+ # define attribute_hidden
+ #endif
+@@ -1553,56 +1582,36 @@ glob_in_dir (const char *pattern, const char *directory, int flags,
+ 
+ 	  while (1)
+ 	    {
+-	      const char *name;
+-	      size_t len;
+-#if defined _LIBC && !defined COMPILE_GLOB64
+-	      struct dirent64 *d;
+-	      union
+-		{
+-		  struct dirent64 d64;
+-		  char room [offsetof (struct dirent64, d_name[0])
+-			     + NAME_MAX + 1];
+-		}
+-	      d64buf;
+-
+-	      if (__glibc_unlikely (flags & GLOB_ALTDIRFUNC))
+-		{
+-		  struct dirent *d32 = (*pglob->gl_readdir) (stream);
+-		  if (d32 != NULL)
+-		    {
+-		      CONVERT_DIRENT_DIRENT64 (&d64buf.d64, d32);
+-		      d = &d64buf.d64;
+-		    }
+-		  else
+-		    d = NULL;
+-		}
+-	      else
+-		d = __readdir64 (stream);
++	      struct readdir_result d;
++	      {
++		if (__builtin_expect (flags & GLOB_ALTDIRFUNC, 0))
++		  d = convert_dirent (GL_READDIR (pglob, stream));
++		else
++		  {
++#ifdef COMPILE_GLOB64
++		    d = convert_dirent (__readdir (stream));
+ #else
+-	      struct dirent *d = (__builtin_expect (flags & GLOB_ALTDIRFUNC, 0)
+-				  ? ((struct dirent *)
+-				     (*pglob->gl_readdir) (stream))
+-				  : __readdir (stream));
++		    d = convert_dirent64 (__readdir64 (stream));
+ #endif
+-	      if (d == NULL)
++		  }
++	      }
++	      if (d.name == NULL)
+ 		break;
+-	      if (! REAL_DIR_ENTRY (d))
++	      if (d.skip_entry)
+ 		continue;
+ 
+ 	      /* If we shall match only directories use the information
+ 		 provided by the dirent call if possible.  */
+-	      if ((flags & GLOB_ONLYDIR) && !DIRENT_MIGHT_BE_DIR (d))
++	      if ((flags & GLOB_ONLYDIR) && !readdir_result_might_be_dir (d))
+ 		continue;
+ 
+-	      name = d->d_name;
+-
+-	      if (fnmatch (pattern, name, fnm_flags) == 0)
++	      if (fnmatch (pattern, d.name, fnm_flags) == 0)
+ 		{
+ 		  /* If the file we found is a symlink we have to
+ 		     make sure the target file exists.  */
+-		  if (!DIRENT_MIGHT_BE_SYMLINK (d)
+-		      || link_exists_p (dfd, directory, dirlen, name, pglob,
+-					flags))
++		  if (!readdir_result_might_be_symlink (d)
++		      || link_exists_p (dfd, directory, dirlen, d.name,
++					pglob, flags))
+ 		    {
+ 		      if (cur == names->count)
+ 			{
+@@ -1622,12 +1631,10 @@ glob_in_dir (const char *pattern, const char *directory, int flags,
+ 			  names = newnames;
+ 			  cur = 0;
+ 			}
+-		      len = NAMLEN (d);
+-		      names->name[cur] = (char *) malloc (len + 1);
++		      names->name[cur] = strdup (d.name);
+ 		      if (names->name[cur] == NULL)
+ 			goto memory_error;
+-		      *((char *) mempcpy (names->name[cur++], name, len))
+-			= '\0';
++		      ++cur;
+ 		      ++nfound;
+ 		    }
+ 		}
+diff --git a/posix/tst-gnuglob.c b/posix/tst-gnuglob.c
+index 992b997..b7b859b 100644
+--- a/posix/tst-gnuglob.c
++++ b/posix/tst-gnuglob.c
+@@ -211,7 +211,7 @@ my_readdir (void *gdir)
+       return NULL;
+     }
+ 
+-  dir->d.d_ino = dir->idx;
++  dir->d.d_ino = 1;		/* glob should not skip this entry.  */
+ 
+ #ifdef _DIRENT_HAVE_D_TYPE
+   dir->d.d_type = filesystem[dir->idx].type;
+diff --git a/resolv/gethnamaddr.c b/resolv/gethnamaddr.c
+index 3a8e9b1..4720fc8 100644
+--- a/resolv/gethnamaddr.c
++++ b/resolv/gethnamaddr.c
+@@ -70,7 +70,6 @@ static char sccsid[] = "@(#)gethostnamadr.c	8.1 (Berkeley) 6/4/93";
+ #include <resolv.h>
+ #include <ctype.h>
+ #include <errno.h>
+-#include <syslog.h>
+ 
+ #define RESOLVSORT
+ 
+@@ -100,9 +99,6 @@ static char sccsid[] = "@(#)gethostnamadr.c	8.1 (Berkeley) 6/4/93";
+ #define	MAXALIASES	35
+ #define	MAXADDRS	35
+ 
+-static const char AskedForGot[] =
+-			  "gethostby*.getanswer: asked for \"%s\", got \"%s\"";
+-
+ static char *h_addr_ptrs[MAXADDRS + 1];
+ 
+ static struct hostent host;
+@@ -335,20 +331,12 @@ getanswer (const querybuf *answer, int anslen, const char *qname, int qtype)
+ 			 * uses many different types in responses that do not
+ 			 * match QTYPE.
+ 			 */
+-			if ((_res.options & RES_USE_DNSSEC) == 0) {
+-				syslog(LOG_NOTICE|LOG_AUTH,
+-	       "gethostby*.getanswer: asked for \"%s %s %s\", got type \"%s\"",
+-					qname, p_class(C_IN), p_type(qtype),
+-					p_type(type));
+-			}
+ 			cp += n;
+ 			continue;		/* XXX - had_error++ ? */
+ 		}
+ 		switch (type) {
+ 		case T_PTR:
+ 			if (strcasecmp(tname, bp) != 0) {
+-				syslog(LOG_NOTICE|LOG_AUTH,
+-				       AskedForGot, qname, bp);
+ 				cp += n;
+ 				continue;	/* XXX - had_error++ ? */
+ 			}
+@@ -397,8 +385,6 @@ getanswer (const querybuf *answer, int anslen, const char *qname, int qtype)
+ 		case T_A:
+ 		case T_AAAA:
+ 			if (strcasecmp(host.h_name, bp) != 0) {
+-				syslog(LOG_NOTICE|LOG_AUTH,
+-				       AskedForGot, host.h_name, bp);
+ 				cp += n;
+ 				continue;	/* XXX - had_error++ ? */
+ 			}
+@@ -740,9 +726,6 @@ gethostbyaddr (const void *addr, socklen_t len, int af)
+ 	    _res.options &= ~RES_DNSRCH;
+ 	    _res.options |= RES_DEFNAMES;
+ 	    if (!(rhp = gethostbyname(hname2))) {
+-		syslog(LOG_NOTICE|LOG_AUTH,
+-		       "gethostbyaddr: No A record for %s (verifying [%s])",
+-		       hname2, inet_ntoa(*((struct in_addr *)addr)));
+ 		_res.options = old_options;
+ 		__set_h_errno (HOST_NOT_FOUND);
+ 		return (NULL);
+@@ -752,9 +735,6 @@ gethostbyaddr (const void *addr, socklen_t len, int af)
+ 		if (!memcmp(*haddr, addr, INADDRSZ))
+ 			break;
+ 	    if (!*haddr) {
+-		syslog(LOG_NOTICE|LOG_AUTH,
+-		       "gethostbyaddr: A record of %s != PTR record [%s]",
+-		       hname2, inet_ntoa(*((struct in_addr *)addr)));
+ 		__set_h_errno (HOST_NOT_FOUND);
+ 		return (NULL);
+ 	    }
+diff --git a/resolv/nss_dns/dns-canon.c b/resolv/nss_dns/dns-canon.c
+index 27255fd..072104f 100644
+--- a/resolv/nss_dns/dns-canon.c
++++ b/resolv/nss_dns/dns-canon.c
+@@ -103,6 +103,11 @@ _nss_dns_getcanonname_r (const char *name, char *buffer, size_t buflen,
+ 
+ 	      ptr += s;
+ 
++	      /* Check that there are enough bytes for the RR
++		 metadata.  */
++	      if (endptr - ptr < 10)
++		goto unavail;
++
+ 	      /* Check whether type and class match.  */
+ 	      uint_fast16_t type;
+ 	      NS_GET16 (type, ptr);
+@@ -137,13 +142,25 @@ _nss_dns_getcanonname_r (const char *name, char *buffer, size_t buflen,
+ 	      if (__ns_get16 (ptr) != ns_c_in)
+ 		goto unavail;
+ 
+-	      /* Also skip over the TTL.  */
++	      /* Also skip over class and TTL.  */
+ 	      ptr += sizeof (uint16_t) + sizeof (uint32_t);
+ 
+-	      /* Skip over the data length and data.  */
+-	      ptr += sizeof (uint16_t) + __ns_get16 (ptr);
++	      /* Skip over RDATA length and RDATA itself.  */
++	      uint16_t rdatalen = __ns_get16 (ptr);
++	      ptr += sizeof (uint16_t);
++	      /* Not enough room for RDATA.  */
++	      if (endptr - ptr < rdatalen)
++		goto unavail;
++	      ptr += rdatalen;
+ 	    }
+ 	}
++
++      /* Restore original buffer before retry.  */
++      if (ansp.ptr != buf)
++	{
++	  free (ansp.ptr);
++	  ansp.ptr = buf;
++	}
+     }
+ 
+  out:
+diff --git a/resolv/nss_dns/dns-host.c b/resolv/nss_dns/dns-host.c
+index 8599f4c..403a005 100644
+--- a/resolv/nss_dns/dns-host.c
++++ b/resolv/nss_dns/dns-host.c
+@@ -78,7 +78,6 @@
+ #include <stdlib.h>
+ #include <stddef.h>
+ #include <string.h>
+-#include <sys/syslog.h>
+ 
+ #include "nsswitch.h"
+ 
+@@ -99,10 +98,6 @@
+ #endif
+ #define MAXHOSTNAMELEN 256
+ 
+-static const char AskedForGot[] = "\
+-gethostby*.getanswer: asked for \"%s\", got \"%s\"";
+-
+-
+ /* We need this time later.  */
+ typedef union querybuf
+ {
+@@ -139,6 +134,22 @@ extern enum nss_status _nss_dns_gethostbyname3_r (const char *name, int af,
+ 						  char **canonp);
+ hidden_proto (_nss_dns_gethostbyname3_r)
+ 
++/* Return the expected RDATA length for an address record type (A or
++   AAAA).  */
++static int
++rrtype_to_rdata_length (int type)
++{
++  switch (type)
++    {
++    case T_A:
++      return INADDRSZ;
++    case T_AAAA:
++      return IN6ADDRSZ;
++    default:
++      return -1;
++    }
++}
++
+ enum nss_status
+ _nss_dns_gethostbyname3_r (const char *name, int af, struct hostent *result,
+ 			   char *buffer, size_t buflen, int *errnop,
+@@ -751,6 +762,14 @@ getanswer_r (const querybuf *answer, int anslen, const char *qname, int qtype,
+       cp += INT32SZ;			/* TTL */
+       n = __ns_get16 (cp);
+       cp += INT16SZ;			/* len */
++
++      if (end_of_message - cp < n)
++	{
++	  /* RDATA extends beyond the end of the packet.  */
++	  ++had_error;
++	  continue;
++	}
++
+       if (__glibc_unlikely (class != C_IN))
+ 	{
+ 	  /* XXX - debug? syslog? */
+@@ -830,14 +849,6 @@ getanswer_r (const querybuf *answer, int anslen, const char *qname, int qtype,
+ 	have_to_map = 1;
+       else if (__glibc_unlikely (type != qtype))
+ 	{
+-	  /* Log a low priority message if we get an unexpected record, but
+-	     skip it if we are using DNSSEC since it uses many different types
+-	     in responses that do not match QTYPE.  */
+-	  if ((_res.options & RES_USE_DNSSEC) == 0)
+-	    syslog (LOG_NOTICE | LOG_AUTH,
+-		    "gethostby*.getanswer: asked for \"%s %s %s\", "
+-		    "got type \"%s\"",
+-		    qname, p_class (C_IN), p_type (qtype), p_type (type));
+ 	  cp += n;
+ 	  continue;			/* XXX - had_error++ ? */
+ 	}
+@@ -847,7 +858,6 @@ getanswer_r (const querybuf *answer, int anslen, const char *qname, int qtype,
+ 	case T_PTR:
+ 	  if (__glibc_unlikely (strcasecmp (tname, bp) != 0))
+ 	    {
+-	      syslog (LOG_NOTICE | LOG_AUTH, AskedForGot, qname, bp);
+ 	      cp += n;
+ 	      continue;			/* XXX - had_error++ ? */
+ 	    }
+@@ -891,10 +901,18 @@ getanswer_r (const querybuf *answer, int anslen, const char *qname, int qtype,
+ 	case T_AAAA:
+ 	  if (__builtin_expect (strcasecmp (result->h_name, bp), 0) != 0)
+ 	    {
+-	      syslog (LOG_NOTICE | LOG_AUTH, AskedForGot, result->h_name, bp);
+ 	      cp += n;
+ 	      continue;			/* XXX - had_error++ ? */
+ 	    }
++
++	  /* Stop parsing at a record whose length is incorrect.  */
++	  if (n != rrtype_to_rdata_length (type))
++	    {
++	      ++had_error;
++	      break;
++	    }
++
++	  /* Skip records of the wrong type.  */
+ 	  if (n != result->h_length)
+ 	    {
+ 	      cp += n;
+@@ -1077,6 +1095,13 @@ gaih_getanswer_slice (const querybuf *answer, int anslen, const char *qname,
+       n = __ns_get16 (cp);
+       cp += INT16SZ;			/* len */
+ 
++      if (end_of_message - cp < n)
++	{
++	  /* RDATA extends beyond the end of the packet.  */
++	  ++had_error;
++	  continue;
++	}
++
+       if (class != C_IN)
+ 	{
+ 	  cp += n;
+@@ -1124,32 +1149,25 @@ gaih_getanswer_slice (const querybuf *answer, int anslen, const char *qname,
+ 	    }
+ 	  continue;
+ 	}
+-#if 1
+-      // We should not see any types other than those explicitly listed
+-      // below.  Some types sent by server seem missing, though.  Just
+-      // collect the data for now.
+-      if (__glibc_unlikely (type != T_A && type != T_AAAA))
+-#else
+-      if (__builtin_expect (type == T_SIG, 0)
+-	  || __builtin_expect (type == T_KEY, 0)
+-	  || __builtin_expect (type == T_NXT, 0)
+-	  || __builtin_expect (type == T_PTR, 0)
+-	  || __builtin_expect (type == T_DNAME, 0))
+-#endif
+-	{
+-	  /* We don't support DNSSEC yet.  For now, ignore the record
+-	     and send a low priority message to syslog.
+ 
+-	     We also don't expect T_PTR or T_DNAME messages.  */
+-	  syslog (LOG_DEBUG | LOG_AUTH,
+-		  "getaddrinfo*.gaih_getanswer: got type \"%s\"",
+-		  p_type (type));
++      /* Stop parsing if we encounter a record with incorrect RDATA
++	 length.  */
++      if (type == T_A || type == T_AAAA)
++	{
++	  if (n != rrtype_to_rdata_length (type))
++	    {
++	      ++had_error;
++	      continue;
++	    }
++	}
++      else
++	{
++	  /* Skip unknown records.  */
+ 	  cp += n;
+ 	  continue;
+ 	}
+-      if (type != T_A && type != T_AAAA)
+-	abort ();
+ 
++      assert (type == T_A || type == T_AAAA);
+       if (*pat == NULL)
+ 	{
+ 	  uintptr_t pad = (-(uintptr_t) buffer
+@@ -1183,12 +1201,6 @@ gaih_getanswer_slice (const querybuf *answer, int anslen, const char *qname,
+ 	}
+ 
+       (*pat)->family = type == T_A ? AF_INET : AF_INET6;
+-      if (__builtin_expect ((type == T_A && n != INADDRSZ)
+-			    || (type == T_AAAA && n != IN6ADDRSZ), 0))
+-	{
+-	  ++had_error;
+-	  continue;
+-	}
+       memcpy ((*pat)->addr, cp, n);
+       cp += n;
+       (*pat)->scopeid = 0;
 diff --git a/resolv/nss_dns/dns-network.c b/resolv/nss_dns/dns-network.c
-index 2eb2f67..8f301a7 100644
+index 2eb2f67..ad6acff 100644
 --- a/resolv/nss_dns/dns-network.c
 +++ b/resolv/nss_dns/dns-network.c
 @@ -118,17 +118,14 @@ _nss_dns_getnetbyname_r (const char *name, struct netent *result,
@@ -55308,6 +58224,50 @@ index 2eb2f67..8f301a7 100644
  			       1024, &net_buffer.ptr, NULL, NULL, NULL, NULL);
    if (anslen < 0)
      {
+@@ -348,10 +345,23 @@ getanswer_r (const querybuf *answer, int anslen, struct netent *result,
+       if (n < 0 || res_dnok (bp) == 0)
+ 	break;
+       cp += n;
++
++      if (end_of_message - cp < 10)
++	{
++	  __set_h_errno (NO_RECOVERY);
++	  return NSS_STATUS_UNAVAIL;
++	}
++
+       GETSHORT (type, cp);
+       GETSHORT (class, cp);
+       cp += INT32SZ;		/* TTL */
+-      GETSHORT (n, cp);
++      uint16_t rdatalen;
++      GETSHORT (rdatalen, cp);
++      if (end_of_message - cp < rdatalen)
++	{
++	  __set_h_errno (NO_RECOVERY);
++	  return NSS_STATUS_UNAVAIL;
++	}
+ 
+       if (class == C_IN && type == T_PTR)
+ 	{
+@@ -373,7 +383,7 @@ getanswer_r (const querybuf *answer, int anslen, struct netent *result,
+ 	      cp += n;
+ 	      return NSS_STATUS_UNAVAIL;
+ 	    }
+-	  cp += n;
++	  cp += rdatalen;
+          if (alias_pointer + 2 < &net_data->aliases[MAX_NR_ALIASES])
+            {
+              *alias_pointer++ = bp;
+@@ -384,6 +394,9 @@ getanswer_r (const querybuf *answer, int anslen, struct netent *result,
+              ++have_answer;
+            }
+ 	}
++      else
++	/* Skip over unknown record data.  */
++	cp += rdatalen;
+     }
+ 
+   if (have_answer)
 diff --git a/resolv/res_init.c b/resolv/res_init.c
 index e0b6a80..6c951f5 100644
 --- a/resolv/res_init.c
@@ -55322,7 +58282,7 @@ index e0b6a80..6c951f5 100644
  			if (statp->_u._ext.nssocks[ns] != -1) {
  				close_not_cancel_no_status(statp->_u._ext.nssocks[ns]);
 diff --git a/resolv/res_send.c b/resolv/res_send.c
-index 25c19f1..b4efcb6 100644
+index 25c19f1..2c0bae1 100644
 --- a/resolv/res_send.c
 +++ b/resolv/res_send.c
 @@ -649,6 +649,18 @@ get_nsaddr (res_state statp, int n)
@@ -55344,7 +58304,109 @@ index 25c19f1..b4efcb6 100644
  /* The send_vc function is responsible for sending a DNS query over TCP
     to the nameserver numbered NS from the res_state STATP i.e.
     EXT(statp).nssocks[ns].  The function supports sending both IPv4 and
-@@ -1114,7 +1126,11 @@ send_dg(res_state statp,
+@@ -750,8 +762,6 @@ send_vc(res_state statp,
+ 	u_short len2;
+ 	u_char *cp;
+ 
+-	if (resplen2 != NULL)
+-	  *resplen2 = 0;
+ 	connreset = 0;
+  same_ns:
+ 	truncating = 0;
+@@ -777,6 +787,8 @@ send_vc(res_state statp,
+ 		if (statp->_vcsock < 0) {
+ 			*terrno = errno;
+ 			Perror(statp, stderr, "socket(vc)", errno);
++			if (resplen2 != NULL)
++			  *resplen2 = 0;
+ 			return (-1);
+ 		}
+ 		__set_errno (0);
+@@ -786,8 +798,7 @@ send_vc(res_state statp,
+ 			    : sizeof (struct sockaddr_in6)) < 0) {
+ 			*terrno = errno;
+ 			Aerror(statp, stderr, "connect/vc", errno, nsap);
+-			__res_iclose(statp, false);
+-			return (0);
++			return close_and_return_error (statp, resplen2);
+ 		}
+ 		statp->_flags |= RES_F_VC;
+ 	}
+@@ -810,8 +821,7 @@ send_vc(res_state statp,
+ 	if (TEMP_FAILURE_RETRY (writev(statp->_vcsock, iov, niov)) != explen) {
+ 		*terrno = errno;
+ 		Perror(statp, stderr, "write failed", errno);
+-		__res_iclose(statp, false);
+-		return (0);
++		return close_and_return_error (statp, resplen2);
+ 	}
+ 	/*
+ 	 * Receive length & response
+@@ -833,7 +843,6 @@ send_vc(res_state statp,
+ 	if (n <= 0) {
+ 		*terrno = errno;
+ 		Perror(statp, stderr, "read failed", errno);
+-		__res_iclose(statp, false);
+ 		/*
+ 		 * A long running process might get its TCP
+ 		 * connection reset if the remote server was
+@@ -843,11 +852,13 @@ send_vc(res_state statp,
+ 		 * instead of failing.  We only allow one reset
+ 		 * per query to prevent looping.
+ 		 */
+-		if (*terrno == ECONNRESET && !connreset) {
+-			connreset = 1;
+-			goto same_ns;
+-		}
+-		return (0);
++		if (*terrno == ECONNRESET && !connreset)
++		  {
++		    __res_iclose (statp, false);
++		    connreset = 1;
++		    goto same_ns;
++		  }
++		return close_and_return_error (statp, resplen2);
+ 	}
+ 	int rlen = ntohs (rlen16);
+ 
+@@ -879,11 +890,11 @@ send_vc(res_state statp,
+ 			/* Always allocate MAXPACKET, callers expect
+ 			   this specific size.  */
+ 			u_char *newp = malloc (MAXPACKET);
+-			if (newp == NULL) {
+-				*terrno = ENOMEM;
+-				__res_iclose(statp, false);
+-				return (0);
+-			}
++			if (newp == NULL)
++			  {
++			    *terrno = ENOMEM;
++			    return close_and_return_error (statp, resplen2);
++			  }
+ 			*thisanssizp = MAXPACKET;
+ 			*thisansp = newp;
+ 			if (thisansp == ansp2)
+@@ -910,8 +921,7 @@ send_vc(res_state statp,
+ 		Dprint(statp->options & RES_DEBUG,
+ 		       (stdout, ";; undersized: %d\n", len));
+ 		*terrno = EMSGSIZE;
+-		__res_iclose(statp, false);
+-		return (0);
++		return close_and_return_error (statp, resplen2);
+ 	}
+ 
+ 	cp = *thisansp;
+@@ -922,8 +932,7 @@ send_vc(res_state statp,
+ 	if (__glibc_unlikely (n <= 0))       {
+ 		*terrno = errno;
+ 		Perror(statp, stderr, "read(vc)", errno);
+-		__res_iclose(statp, false);
+-		return (0);
++		return close_and_return_error (statp, resplen2);
+ 	}
+ 	if (__glibc_unlikely (truncating))       {
+ 		/*
+@@ -1114,7 +1123,11 @@ send_dg(res_state statp,
   retry_reopen:
  	retval = reopen (statp, terrno, ns);
  	if (retval <= 0)
@@ -55357,7 +58419,7 @@ index 25c19f1..b4efcb6 100644
   retry:
  	evNowTime(&now);
  	evConsTime(&timeout, seconds, 0);
-@@ -1127,8 +1143,6 @@ send_dg(res_state statp,
+@@ -1127,8 +1140,6 @@ send_dg(res_state statp,
  	int recvresp2 = buf2 == NULL;
  	pfd[0].fd = EXT(statp).nssocks[ns];
  	pfd[0].events = POLLOUT;
@@ -55366,7 +58428,7 @@ index 25c19f1..b4efcb6 100644
   wait:
  	if (need_recompute) {
  	recompute_resend:
-@@ -1136,9 +1150,7 @@ send_dg(res_state statp,
+@@ -1136,9 +1147,7 @@ send_dg(res_state statp,
  		if (evCmpTime(finish, now) <= 0) {
  		poll_err_out:
  			Perror(statp, stderr, "poll", errno);
@@ -55377,7 +58439,7 @@ index 25c19f1..b4efcb6 100644
  		}
  		evSubTime(&timeout, &finish, &now);
  		need_recompute = 0;
-@@ -1185,7 +1197,9 @@ send_dg(res_state statp,
+@@ -1185,7 +1194,9 @@ send_dg(res_state statp,
  		  }
  
  		*gotsomewhere = 1;
@@ -55388,7 +58450,7 @@ index 25c19f1..b4efcb6 100644
  	}
  	if (n < 0) {
  		if (errno == EINTR)
-@@ -1253,7 +1267,7 @@ send_dg(res_state statp,
+@@ -1253,7 +1264,7 @@ send_dg(res_state statp,
  
  		      fail_sendmmsg:
  			Perror(statp, stderr, "sendmmsg", errno);
@@ -55397,7 +58459,7 @@ index 25c19f1..b4efcb6 100644
  		      }
  		  }
  		else
-@@ -1271,7 +1285,7 @@ send_dg(res_state statp,
+@@ -1271,7 +1282,7 @@ send_dg(res_state statp,
  		      if (errno == EINTR || errno == EAGAIN)
  			goto recompute_resend;
  		      Perror(statp, stderr, "send", errno);
@@ -55406,7 +58468,7 @@ index 25c19f1..b4efcb6 100644
  		    }
  		  just_one:
  		    if (nwritten != 0 || buf2 == NULL || single_request)
-@@ -1349,7 +1363,7 @@ send_dg(res_state statp,
+@@ -1349,7 +1360,7 @@ send_dg(res_state statp,
  				goto wait;
  			}
  			Perror(statp, stderr, "recvfrom", errno);
@@ -55415,7 +58477,7 @@ index 25c19f1..b4efcb6 100644
  		}
  		*gotsomewhere = 1;
  		if (__glibc_unlikely (*thisresplenp < HFIXEDSZ))       {
-@@ -1360,7 +1374,7 @@ send_dg(res_state statp,
+@@ -1360,7 +1371,7 @@ send_dg(res_state statp,
  			       (stdout, ";; undersized: %d\n",
  				*thisresplenp));
  			*terrno = EMSGSIZE;
@@ -55424,7 +58486,7 @@ index 25c19f1..b4efcb6 100644
  		}
  		if ((recvresp1 || hp->id != anhp->id)
  		    && (recvresp2 || hp2->id != anhp->id)) {
-@@ -1409,7 +1423,7 @@ send_dg(res_state statp,
+@@ -1409,7 +1420,7 @@ send_dg(res_state statp,
  				? *thisanssizp : *thisresplenp);
  			/* record the error */
  			statp->_flags |= RES_F_EDNS0ERR;
@@ -55433,7 +58495,7 @@ index 25c19f1..b4efcb6 100644
  	}
  #endif
  		if (!(statp->options & RES_INSECURE2)
-@@ -1461,10 +1475,10 @@ send_dg(res_state statp,
+@@ -1461,10 +1472,10 @@ send_dg(res_state statp,
  			    goto wait;
  			  }
  
@@ -55446,7 +58508,7 @@ index 25c19f1..b4efcb6 100644
  		}
  		if (anhp->rcode == NOERROR && anhp->ancount == 0
  		    && anhp->aa == 0 && anhp->ra == 0 && anhp->arcount == 0) {
-@@ -1486,6 +1500,8 @@ send_dg(res_state statp,
+@@ -1486,6 +1497,8 @@ send_dg(res_state statp,
  			__res_iclose(statp, false);
  			// XXX if we have received one reply we could
  			// XXX use it and not repeat it over TCP...
@@ -55455,7 +58517,7 @@ index 25c19f1..b4efcb6 100644
  			return (1);
  		}
  		/* Mark which reply we received.  */
-@@ -1501,21 +1517,22 @@ send_dg(res_state statp,
+@@ -1501,21 +1514,22 @@ send_dg(res_state statp,
  					__res_iclose (statp, false);
  					retval = reopen (statp, terrno, ns);
  					if (retval <= 0)
@@ -55487,6 +58549,437 @@ index 25c19f1..b4efcb6 100644
  	else {
  		/* poll should not have returned > 0 in this case.  */
  		abort ();
+diff --git a/stdio-common/printf_fp.c b/stdio-common/printf_fp.c
+index 4134f8a..fdfe06b 100644
+--- a/stdio-common/printf_fp.c
++++ b/stdio-common/printf_fp.c
+@@ -209,9 +209,9 @@ hack_digit (struct hack_digit_param *p)
+ }
+ 
+ int
+-___printf_fp (FILE *fp,
+-	      const struct printf_info *info,
+-	      const void *const *args)
++__printf_fp_l (FILE *fp, locale_t loc,
++	       const struct printf_info *info,
++	       const void *const *args)
+ {
+   /* The floating-point value to output.  */
+   union
+@@ -263,18 +263,19 @@ ___printf_fp (FILE *fp,
+   /* Figure out the decimal point character.  */
+   if (info->extra == 0)
+     {
+-      decimal = _NL_CURRENT (LC_NUMERIC, DECIMAL_POINT);
+-      decimalwc = _NL_CURRENT_WORD (LC_NUMERIC, _NL_NUMERIC_DECIMAL_POINT_WC);
++      decimal = _nl_lookup (loc, LC_NUMERIC, DECIMAL_POINT);
++      decimalwc = _nl_lookup_word
++	(loc, LC_NUMERIC, _NL_NUMERIC_DECIMAL_POINT_WC);
+     }
+   else
+     {
+-      decimal = _NL_CURRENT (LC_MONETARY, MON_DECIMAL_POINT);
++      decimal = _nl_lookup (loc, LC_MONETARY, MON_DECIMAL_POINT);
+       if (*decimal == '\0')
+-	decimal = _NL_CURRENT (LC_NUMERIC, DECIMAL_POINT);
+-      decimalwc = _NL_CURRENT_WORD (LC_MONETARY,
++	decimal = _nl_lookup (loc, LC_NUMERIC, DECIMAL_POINT);
++      decimalwc = _nl_lookup_word (loc, LC_MONETARY,
+ 				    _NL_MONETARY_DECIMAL_POINT_WC);
+       if (decimalwc == L'\0')
+-	decimalwc = _NL_CURRENT_WORD (LC_NUMERIC,
++	decimalwc = _nl_lookup_word (loc, LC_NUMERIC,
+ 				      _NL_NUMERIC_DECIMAL_POINT_WC);
+     }
+   /* The decimal point character must not be zero.  */
+@@ -284,9 +285,9 @@ ___printf_fp (FILE *fp,
+   if (info->group)
+     {
+       if (info->extra == 0)
+-	grouping = _NL_CURRENT (LC_NUMERIC, GROUPING);
++	grouping = _nl_lookup (loc, LC_NUMERIC, GROUPING);
+       else
+-	grouping = _NL_CURRENT (LC_MONETARY, MON_GROUPING);
++	grouping = _nl_lookup (loc, LC_MONETARY, MON_GROUPING);
+ 
+       if (*grouping <= 0 || *grouping == CHAR_MAX)
+ 	grouping = NULL;
+@@ -296,19 +297,20 @@ ___printf_fp (FILE *fp,
+ 	  if (wide)
+ 	    {
+ 	      if (info->extra == 0)
+-		thousands_sepwc =
+-		  _NL_CURRENT_WORD (LC_NUMERIC, _NL_NUMERIC_THOUSANDS_SEP_WC);
++		thousands_sepwc = _nl_lookup_word
++		  (loc, LC_NUMERIC, _NL_NUMERIC_THOUSANDS_SEP_WC);
+ 	      else
+ 		thousands_sepwc =
+-		  _NL_CURRENT_WORD (LC_MONETARY,
++		  _nl_lookup_word (loc, LC_MONETARY,
+ 				    _NL_MONETARY_THOUSANDS_SEP_WC);
+ 	    }
+ 	  else
+ 	    {
+ 	      if (info->extra == 0)
+-		thousands_sep = _NL_CURRENT (LC_NUMERIC, THOUSANDS_SEP);
++		thousands_sep = _nl_lookup (loc, LC_NUMERIC, THOUSANDS_SEP);
+ 	      else
+-		thousands_sep = _NL_CURRENT (LC_MONETARY, MON_THOUSANDS_SEP);
++		thousands_sep = _nl_lookup
++		  (loc, LC_MONETARY, MON_THOUSANDS_SEP);
+ 	    }
+ 
+ 	  if ((wide && thousands_sepwc == L'\0')
+@@ -1171,9 +1173,11 @@ ___printf_fp (FILE *fp,
+ 	  size_t decimal_len;
+ 	  size_t thousands_sep_len;
+ 	  wchar_t *copywc;
+-	  size_t factor = (info->i18n
+-			   ? _NL_CURRENT_WORD (LC_CTYPE, _NL_CTYPE_MB_CUR_MAX)
+-			   : 1);
++	  size_t factor;
++	  if (info->i18n)
++	    factor = _nl_lookup_word (loc, LC_CTYPE, _NL_CTYPE_MB_CUR_MAX);
++	  else
++	    factor = 1;
+ 
+ 	  decimal_len = strlen (decimal);
+ 
+@@ -1244,8 +1248,17 @@ ___printf_fp (FILE *fp,
+   }
+   return done;
+ }
++libc_hidden_def (__printf_fp_l)
++
++int
++___printf_fp (FILE *fp, const struct printf_info *info,
++	      const void *const *args)
++{
++  return __printf_fp_l (fp, _NL_CURRENT_LOCALE, info, args);
++}
+ ldbl_hidden_def (___printf_fp, __printf_fp)
+ ldbl_strong_alias (___printf_fp, __printf_fp)
++
+ 
+ /* Return the number of extra grouping characters that will be inserted
+    into a number with INTDIG_MAX integer digits.  */
+diff --git a/stdlib/Makefile b/stdlib/Makefile
+index 26fe67a..d978774 100644
+--- a/stdlib/Makefile
++++ b/stdlib/Makefile
+@@ -76,7 +76,7 @@ tests		:= tst-strtol tst-strtod testmb testrand testsort testdiv   \
+ 		   tst-secure-getenv tst-strtod-overflow tst-strtod-round   \
+ 		   tst-tininess tst-strtod-underflow tst-tls-atexit	    \
+ 		   tst-setcontext3 tst-tls-atexit-nodelete		    \
+-		   tst-strtol-locale tst-strtod-nan-locale
++		   tst-strtol-locale tst-strtod-nan-locale tst-strfmon_l
+ tests-static	:= tst-secure-getenv
+ 
+ modules-names	= tst-tls-atexit-lib
+@@ -126,7 +126,8 @@ include ../Rules
+ 
+ ifeq ($(run-built-tests),yes)
+ LOCALES := cs_CZ.UTF-8 de_DE.UTF-8 en_US.ISO-8859-1 tr_TR.UTF-8 \
+-	   tr_TR.ISO-8859-9
++	   tr_TR.ISO-8859-9 tg_TJ.UTF-8 te_IN.UTF-8 bn_IN.UTF-8 \
++	   el_GR.UTF-8
+ include ../gen-locales.mk
+ 
+ $(objpfx)bug-strtod2.out: $(gen-locales)
+@@ -137,6 +138,7 @@ $(objpfx)tst-strtod4.out: $(gen-locales)
+ $(objpfx)tst-strtod5.out: $(gen-locales)
+ $(objpfx)tst-strtol-locale.out: $(gen-locales)
+ $(objpfx)tst-strtod-nan-locale.out: $(gen-locales)
++$(objpfx)tst-strfmon_l.out: $(gen-locales)
+ endif
+ 
+ # Testdir has to be named stdlib and needs to be writable
+diff --git a/stdlib/setenv.c b/stdlib/setenv.c
+index da61ee0..e66045f 100644
+--- a/stdlib/setenv.c
++++ b/stdlib/setenv.c
+@@ -278,18 +278,20 @@ unsetenv (const char *name)
+   ep = __environ;
+   if (ep != NULL)
+     while (*ep != NULL)
+-      if (!strncmp (*ep, name, len) && (*ep)[len] == '=')
+-	{
+-	  /* Found it.  Remove this pointer by moving later ones back.  */
+-	  char **dp = ep;
+-
+-	  do
+-	    dp[0] = dp[1];
+-	  while (*dp++);
+-	  /* Continue the loop in case NAME appears again.  */
+-	}
+-      else
+-	++ep;
++      {
++	if (!strncmp (*ep, name, len) && (*ep)[len] == '=')
++	  {
++	    /* Found it.  Remove this pointer by moving later ones back.  */
++	    char **dp = ep;
++
++	    do
++		dp[0] = dp[1];
++	    while (*dp++);
++	    /* Continue the loop in case NAME appears again.  */
++	  }
++	else
++	  ++ep;
++      }
+ 
+   UNLOCK;
+ 
+diff --git a/stdlib/strfmon_l.c b/stdlib/strfmon_l.c
+index b357020..5851a5b 100644
+--- a/stdlib/strfmon_l.c
++++ b/stdlib/strfmon_l.c
+@@ -68,9 +68,6 @@
+ #define _NL_CURRENT(category, item) \
+   (current->values[_NL_ITEM_INDEX (item)].string)
+ 
+-extern int __printf_fp (FILE *, const struct printf_info *,
+-			const void *const *);
+-libc_hidden_proto (__printf_fp)
+ /* This function determines the number of digit groups in the output.
+    The definition is in printf_fp.c.  */
+ extern unsigned int __guess_grouping (unsigned int intdig_max,
+@@ -532,7 +529,7 @@ __vstrfmon_l (char *s, size_t maxsize, __locale_t loc, const char *format,
+       info.extra = 1;		/* This means use values from LC_MONETARY.  */
+ 
+       ptr = &fpnum;
+-      done = __printf_fp (&f._sbf._f, &info, &ptr);
++      done = __printf_fp_l (&f._sbf._f, loc, &info, &ptr);
+       if (done < 0)
+ 	return -1;
+ 
+diff --git a/stdlib/tst-strfmon_l.c b/stdlib/tst-strfmon_l.c
+new file mode 100644
+index 0000000..6841511
+--- /dev/null
++++ b/stdlib/tst-strfmon_l.c
+@@ -0,0 +1,220 @@
++/* Test locale dependence of strfmon_l.
++   Copyright (C) 2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdbool.h>
++#include <stdio.h>
++#include <monetary.h>
++#include <string.h>
++#include <stdlib.h>
++#include <locale.h>
++
++static const char *const en_us_name = "en_US.ISO-8859-1";
++
++/* Locale value to be used by tests.  */
++static locale_t loc;
++static const char *loc_name;
++
++/* Set the global locale to GLOBAL_NAME, and the locale referenced by
++   the loc variable above to LOCAL_NAME.  */
++static void
++init_loc (const char *global_name, const char *local_name)
++{
++  loc = newlocale (LC_ALL_MASK, local_name, 0);
++  if (loc == 0)
++    {
++      printf ("error: newlocale (%s): %m\n", local_name);
++      abort ();
++    }
++  loc_name = local_name;
++
++  if (setlocale (LC_ALL, global_name) == NULL)
++    {
++      printf ("error: setlocale (%s): %m\n", global_name);
++      abort ();
++    }
++}
++
++/* Expected strings for a positive or negative value.  */
++struct testcase
++{
++  const char *i;                /* %i */
++  const char *n;                /* %n */
++  const char *i_ungrouped;      /* %^i */
++  const char *n_ungrouped;      /* %^n */
++};
++
++/* Collected expected strings for both positive and negative
++   values.  */
++struct testcase_pair
++{
++  struct testcase positive;     /* 1234567.89 */
++  struct testcase negative;     /* -1234567.89 */
++};
++
++static bool errors;
++
++/* Test one value using the locale loc.  */
++static void
++test_one (const char *format, double value, const char *expected)
++{
++  static char actual[64];
++  int result = strfmon_l (actual, sizeof (actual), loc, format, value);
++  if (result < 0)
++    {
++      printf ("error: locale %s, format \"%s\", value %g: strfmon_l: %m\n",
++              loc_name, format, value);
++      errors = true;
++    }
++  else if (strcmp (actual, expected) != 0)
++    {
++      printf ("error: locale %s, format \"%s\", value %g: mismatch\n",
++              loc_name, format, value);
++      printf ("error:   expected: \"%s\"\n", expected);
++      printf ("error:   actual:   \"%s\"\n", actual);
++      errors = true;
++    }
++}
++
++static void
++test_pair (const struct testcase_pair *pair)
++{
++  double positive = 1234567.89;
++  test_one ("%i", positive, pair->positive.i);
++  test_one ("%n", positive, pair->positive.n);
++  test_one ("%^i", positive, pair->positive.i_ungrouped);
++  test_one ("%^n", positive, pair->positive.n_ungrouped);
++  double negative = -1234567.89;
++  test_one ("%i", negative, pair->negative.i);
++  test_one ("%n", negative, pair->negative.n);
++  test_one ("%^i", negative, pair->negative.i_ungrouped);
++  test_one ("%^n", negative, pair->negative.n_ungrouped);
++}
++
++static const struct testcase_pair en_us =
++  {
++    {
++      "USD 1,234,567.89", "$1,234,567.89",
++      "USD 1234567.89", "$1234567.89"
++    },
++    {
++      "-USD 1,234,567.89", "-$1,234,567.89",
++      "-USD 1234567.89", "-$1234567.89"
++    }
++  };
++
++static void
++test_en_us (const char *other_name)
++{
++  init_loc (other_name, en_us_name);
++  test_pair (&en_us);
++  freelocale (loc);
++}
++
++struct locale_pair
++{
++  const char *locale_name;
++  struct testcase_pair pair;
++};
++
++static const struct locale_pair tests[] =
++  {
++    {
++      "de_DE.UTF-8",
++      {
++        {
++         "1.234.567,89 EUR", "1.234.567,89 \u20ac",
++         "1234567,89 EUR", "1234567,89 \u20ac"
++        },
++        {
++         "-1.234.567,89 EUR", "-1.234.567,89 \u20ac",
++         "-1234567,89 EUR", "-1234567,89 \u20ac"
++        }
++      },
++    },
++    {
++      "tg_TJ.UTF-8",
++      {
++        {
++          "1 234 567.89 TJS", "1 234 567.89 \u0440\u0443\u0431",
++          "1234567.89 TJS", "1234567.89 \u0440\u0443\u0431"
++        },
++        {
++          "-1 234 567.89 TJS", "-1 234 567.89 \u0440\u0443\u0431",
++          "-1234567.89 TJS", "-1234567.89 \u0440\u0443\u0431"
++        }
++      }
++    },
++    {
++      "te_IN.UTF-8",
++      {
++        {
++          "INR12,34,567.89", "\u20b912,34,567.89",
++          "INR1234567.89", "\u20b91234567.89"
++        },
++        {
++          "-INR12,34,567.89", "-\u20b912,34,567.89",
++          "-INR1234567.89", "-\u20b91234567.89"
++        }
++      }
++    },
++    {
++      "bn_IN.UTF-8",
++      {
++        {
++          "INR 12,345,67.89", "\u20b9 12,345,67.89",
++          "INR 1234567.89", "\u20b9 1234567.89"
++        },
++        {
++          "-INR 12,345,67.89", "-\u20b9 12,345,67.89",
++          "-INR 1234567.89", "-\u20b9 1234567.89"
++        }
++      }
++    },
++    {
++      "el_GR.UTF-8",
++      {
++        {
++          "1.234.567,89EUR", "1.234.567,89\u20ac",
++          "1234567,89EUR", "1234567,89\u20ac"
++        },
++        {
++          "-EUR1.234.567,89", "-\u20ac1.234.567,89",
++          "-EUR1234567,89", "-\u20ac1234567,89",
++        }
++      }
++    },
++    {}
++  };
++
++static int
++do_test (void)
++{
++  for (const struct locale_pair *test = tests;
++       test->locale_name != NULL; ++test)
++    {
++      init_loc (en_us_name, test->locale_name);
++      test_pair (&test->pair);
++      freelocale (loc);
++      test_en_us (test->locale_name);
++    }
++
++  return errors;
++}
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 diff --git a/sysdeps/arm/nacl/libc.abilist b/sysdeps/arm/nacl/libc.abilist
 index 561441e..0560510 100644
 --- a/sysdeps/arm/nacl/libc.abilist
@@ -55501,6 +58994,62 @@ index 561441e..0560510 100644
 +GLIBC_2.23 fts64_open F
 +GLIBC_2.23 fts64_read F
 +GLIBC_2.23 fts64_set F
+diff --git a/sysdeps/generic/malloc-machine.h b/sysdeps/generic/malloc-machine.h
+index 1ed2d50..71b95c2 100644
+--- a/sysdeps/generic/malloc-machine.h
++++ b/sysdeps/generic/malloc-machine.h
+@@ -22,25 +22,6 @@
+ 
+ #include <atomic.h>
+ 
+-#ifndef mutex_init /* No threads, provide dummy macros */
+-
+-# define NO_THREADS
+-
+-/* The mutex functions used to do absolutely nothing, i.e. lock,
+-   trylock and unlock would always just return 0.  However, even
+-   without any concurrently active threads, a mutex can be used
+-   legitimately as an `in use' flag.  To make the code that is
+-   protected by a mutex async-signal safe, these macros would have to
+-   be based on atomic test-and-set operations, for example. */
+-typedef int mutex_t;
+-
+-# define mutex_init(m)          (*(m) = 0)
+-# define mutex_lock(m)          ({ *(m) = 1; 0; })
+-# define mutex_trylock(m)       (*(m) ? 1 : ((*(m) = 1), 0))
+-# define mutex_unlock(m)        (*(m) = 0)
+-
+-#endif /* !defined mutex_init */
+-
+ #ifndef atomic_full_barrier
+ # define atomic_full_barrier() __asm ("" ::: "memory")
+ #endif
+diff --git a/sysdeps/i386/configure b/sysdeps/i386/configure
+index 9515719..5b55c5a 100644
+--- a/sysdeps/i386/configure
++++ b/sysdeps/i386/configure
+@@ -72,7 +72,7 @@ rm -f conftest*
+ fi
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_asm_mpx" >&5
+ $as_echo "$libc_cv_asm_mpx" >&6; }
+-if test $libc_cv_asm_mpx == yes; then
++if test $libc_cv_asm_mpx = yes; then
+   $as_echo "#define HAVE_MPX_SUPPORT 1" >>confdefs.h
+ 
+ fi
+diff --git a/sysdeps/i386/configure.ac b/sysdeps/i386/configure.ac
+index f8f9e44..19ef33f 100644
+--- a/sysdeps/i386/configure.ac
++++ b/sysdeps/i386/configure.ac
+@@ -41,7 +41,7 @@ else
+   libc_cv_asm_mpx=no
+ fi
+ rm -f conftest*])
+-if test $libc_cv_asm_mpx == yes; then
++if test $libc_cv_asm_mpx = yes; then
+   AC_DEFINE(HAVE_MPX_SUPPORT)
+ fi
+ 
 diff --git a/sysdeps/i386/i686/multiarch/bcopy.S b/sysdeps/i386/i686/multiarch/bcopy.S
 index d5b408d..ce6661b 100644
 --- a/sysdeps/i386/i686/multiarch/bcopy.S
@@ -55618,6 +59167,261 @@ index d18b53f..d73f202 100644
  	jz	2f
  	LOAD_FUNC_GOT_EAX (__memset_chk_sse2_rep)
  2:	ret
+diff --git a/sysdeps/mach/hurd/fork.c b/sysdeps/mach/hurd/fork.c
+index ad09fd7..2e8b59e 100644
+--- a/sysdeps/mach/hurd/fork.c
++++ b/sysdeps/mach/hurd/fork.c
+@@ -26,6 +26,7 @@
+ #include <assert.h>
+ #include "hurdmalloc.h"		/* XXX */
+ #include <tls.h>
++#include <malloc/malloc-internal.h>
+ 
+ #undef __fork
+ 
+@@ -107,6 +108,12 @@ __fork (void)
+       /* Run things that prepare for forking before we create the task.  */
+       RUN_HOOK (_hurd_fork_prepare_hook, ());
+ 
++      /* Acquire malloc locks.  This needs to come last because fork
++	 handlers may use malloc, and the libio list lock has an
++	 indirect malloc dependency as well (via the getdelim
++	 function).  */
++      __malloc_fork_lock_parent ();
++
+       /* Lock things that want to be locked before we fork.  */
+       {
+ 	void *const *p;
+@@ -604,6 +611,9 @@ __fork (void)
+ 			   nthreads * sizeof (*threads));
+ 	}
+ 
++      /* Release malloc locks.  */
++      __malloc_fork_unlock_parent ();
++
+       /* Run things that want to run in the parent to restore it to
+ 	 normality.  Usually prepare hooks and parent hooks are
+ 	 symmetrical: the prepare hook arrests state in some way for the
+@@ -655,6 +665,9 @@ __fork (void)
+       /* Forking clears the trace flag.  */
+       __sigemptyset (&_hurdsig_traced);
+ 
++      /* Release malloc locks.  */
++      __malloc_fork_unlock_child ();
++
+       /* Run things that want to run in the child task to set up.  */
+       RUN_HOOK (_hurd_fork_child_hook, ());
+ 
+diff --git a/sysdeps/nptl/fork.c b/sysdeps/nptl/fork.c
+index 27f8d52..1a68cbd 100644
+--- a/sysdeps/nptl/fork.c
++++ b/sysdeps/nptl/fork.c
+@@ -31,7 +31,7 @@
+ #include <fork.h>
+ #include <arch-fork.h>
+ #include <futex-internal.h>
+-
++#include <malloc/malloc-internal.h>
+ 
+ static void
+ fresetlockfiles (void)
+@@ -111,6 +111,11 @@ __libc_fork (void)
+ 
+   _IO_list_lock ();
+ 
++  /* Acquire malloc locks.  This needs to come last because fork
++     handlers may use malloc, and the libio list lock has an indirect
++     malloc dependency as well (via the getdelim function).  */
++  __malloc_fork_lock_parent ();
++
+ #ifndef NDEBUG
+   pid_t ppid = THREAD_GETMEM (THREAD_SELF, tid);
+ #endif
+@@ -168,6 +173,9 @@ __libc_fork (void)
+ # endif
+ #endif
+ 
++      /* Release malloc locks.  */
++      __malloc_fork_unlock_child ();
++
+       /* Reset the file list.  These are recursive mutexes.  */
+       fresetlockfiles ();
+ 
+@@ -209,6 +217,9 @@ __libc_fork (void)
+       /* Restore the PID value.  */
+       THREAD_SETMEM (THREAD_SELF, pid, parentpid);
+ 
++      /* Release malloc locks, parent process variant.  */
++      __malloc_fork_unlock_parent ();
++
+       /* We execute this even if the 'fork' call failed.  */
+       _IO_list_unlock ();
+ 
+diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
+index 1ef3f20..fed2d3b 100644
+--- a/sysdeps/posix/getaddrinfo.c
++++ b/sysdeps/posix/getaddrinfo.c
+@@ -168,9 +168,58 @@ gaih_inet_serv (const char *servicename, const struct gaih_typeproto *tp,
+   return 0;
+ }
+ 
++/* Convert struct hostent to a list of struct gaih_addrtuple objects.
++   h_name is not copied, and the struct hostent object must not be
++   deallocated prematurely.  *RESULT must be NULL or a pointer to an
++   object allocated using malloc, which is freed.  */
++static bool
++convert_hostent_to_gaih_addrtuple (const struct addrinfo *req,
++				   int family,
++				   struct hostent *h,
++				   struct gaih_addrtuple **result)
++{
++  free (*result);
++  *result = NULL;
++
++  /* Count the number of addresses in h->h_addr_list.  */
++  size_t count = 0;
++  for (char **p = h->h_addr_list; *p != NULL; ++p)
++    ++count;
++
++  /* Report no data if no addresses are available, or if the incoming
++     address size is larger than what we can store.  */
++  if (count == 0 || h->h_length > sizeof (((struct gaih_addrtuple) {}).addr))
++    return true;
++
++  struct gaih_addrtuple *array = calloc (count, sizeof (*array));
++  if (array == NULL)
++    return false;
++
++  for (size_t i = 0; i < count; ++i)
++    {
++      if (family == AF_INET && req->ai_family == AF_INET6)
++	{
++	  /* Perform address mapping. */
++	  array[i].family = AF_INET6;
++	  memcpy(array[i].addr + 3, h->h_addr_list[i], sizeof (uint32_t));
++	  array[i].addr[2] = htonl (0xffff);
++	}
++      else
++	{
++	  array[i].family = family;
++	  memcpy (array[i].addr, h->h_addr_list[i], h->h_length);
++	}
++      array[i].next = array + i + 1;
++    }
++  array[0].name = h->h_name;
++  array[count - 1].next = NULL;
++
++  *result = array;
++  return true;
++}
++
+ #define gethosts(_family, _type) \
+  {									      \
+-  int i;								      \
+   int herrno;								      \
+   struct hostent th;							      \
+   struct hostent *h;							      \
+@@ -219,36 +268,23 @@ gaih_inet_serv (const char *servicename, const struct gaih_typeproto *tp,
+     }									      \
+   else if (h != NULL)							      \
+     {									      \
+-      for (i = 0; h->h_addr_list[i]; i++)				      \
++      /* Make sure that addrmem can be freed.  */			      \
++      if (!malloc_addrmem)						      \
++	addrmem = NULL;							      \
++      if (!convert_hostent_to_gaih_addrtuple (req, _family,h, &addrmem))      \
+ 	{								      \
+-	  if (*pat == NULL)						      \
+-	    {								      \
+-	      *pat = __alloca (sizeof (struct gaih_addrtuple));		      \
+-	      (*pat)->scopeid = 0;					      \
+-	    }								      \
+-	  uint32_t *addr = (*pat)->addr;				      \
+-	  (*pat)->next = NULL;						      \
+-	  (*pat)->name = i == 0 ? strdupa (h->h_name) : NULL;		      \
+-	  if (_family == AF_INET && req->ai_family == AF_INET6)		      \
+-	    {								      \
+-	      (*pat)->family = AF_INET6;				      \
+-	      addr[3] = *(uint32_t *) h->h_addr_list[i];		      \
+-	      addr[2] = htonl (0xffff);					      \
+-	      addr[1] = 0;						      \
+-	      addr[0] = 0;						      \
+-	    }								      \
+-	  else								      \
+-	    {								      \
+-	      (*pat)->family = _family;					      \
+-	      memcpy (addr, h->h_addr_list[i], sizeof(_type));		      \
+-	    }								      \
+-	  pat = &((*pat)->next);					      \
++	  _res.options |= old_res_options & RES_USE_INET6;		      \
++	  result = -EAI_SYSTEM;						      \
++	  goto free_and_return;						      \
+ 	}								      \
++      *pat = addrmem;							      \
++      /* The conversion uses malloc unconditionally.  */		      \
++      malloc_addrmem = true;						      \
+ 									      \
+       if (localcanon !=	NULL && canon == NULL)				      \
+ 	canon = strdupa (localcanon);					      \
+ 									      \
+-      if (_family == AF_INET6 && i > 0)					      \
++      if (_family == AF_INET6 && *pat != NULL)				      \
+ 	got_ipv6 = true;						      \
+     }									      \
+  }
+@@ -612,44 +648,16 @@ gaih_inet (const char *name, const struct gaih_service *service,
+ 		{
+ 		  if (h != NULL)
+ 		    {
+-		      int i;
+-		      /* We found data, count the number of addresses.  */
+-		      for (i = 0; h->h_addr_list[i]; ++i)
+-			;
+-		      if (i > 0 && *pat != NULL)
+-			--i;
+-
+-		      if (__libc_use_alloca (alloca_used
+-					     + i * sizeof (struct gaih_addrtuple)))
+-			addrmem = alloca_account (i * sizeof (struct gaih_addrtuple),
+-						  alloca_used);
+-		      else
+-			{
+-			  addrmem = malloc (i
+-					    * sizeof (struct gaih_addrtuple));
+-			  if (addrmem == NULL)
+-			    {
+-			      result = -EAI_MEMORY;
+-			      goto free_and_return;
+-			    }
+-			  malloc_addrmem = true;
+-			}
+-
+-		      /* Now convert it into the list.  */
+-		      struct gaih_addrtuple *addrfree = addrmem;
+-		      for (i = 0; h->h_addr_list[i]; ++i)
++		      /* We found data, convert it.  */
++		      if (!convert_hostent_to_gaih_addrtuple
++			  (req, AF_INET, h, &addrmem))
+ 			{
+-			  if (*pat == NULL)
+-			    {
+-			      *pat = addrfree++;
+-			      (*pat)->scopeid = 0;
+-			    }
+-			  (*pat)->next = NULL;
+-			  (*pat)->family = AF_INET;
+-			  memcpy ((*pat)->addr, h->h_addr_list[i],
+-				  h->h_length);
+-			  pat = &((*pat)->next);
++			  result = -EAI_MEMORY;
++			  goto free_and_return;
+ 			}
++		      *pat = addrmem;
++		      /* The conversion uses malloc unconditionally.  */
++		      malloc_addrmem = true;
+ 		    }
+ 		}
+ 	      else
 diff --git a/sysdeps/s390/bits/link.h b/sysdeps/s390/bits/link.h
 index 2ef7f44..e27ed67 100644
 --- a/sysdeps/s390/bits/link.h
@@ -56555,6 +60359,48 @@ index 0000000..33ea3de
 +	cfi_endproc
 +	.size _dl_runtime_profile, .-_dl_runtime_profile
 +#endif
+diff --git a/sysdeps/unix/sysv/linux/i386/glob64.c b/sysdeps/unix/sysv/linux/i386/glob64.c
+index b4fcd1a..802c957 100644
+--- a/sysdeps/unix/sysv/linux/i386/glob64.c
++++ b/sysdeps/unix/sysv/linux/i386/glob64.c
+@@ -1,3 +1,21 @@
++/* Two glob variants with 64-bit support, for dirent64 and __olddirent64.
++   Copyright (C) 1998-2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
+ #include <dirent.h>
+ #include <glob.h>
+ #include <sys/stat.h>
+@@ -38,11 +56,15 @@ int __old_glob64 (const char *__pattern, int __flags,
+ 
+ #undef dirent
+ #define dirent __old_dirent64
++#undef GL_READDIR
++# define GL_READDIR(pglob, stream) \
++  ((struct __old_dirent64 *) (pglob)->gl_readdir (stream))
+ #undef __readdir
+ #define __readdir(dirp) __old_readdir64 (dirp)
+ #undef glob
+ #define glob(pattern, flags, errfunc, pglob) \
+   __old_glob64 (pattern, flags, errfunc, pglob)
++#define convert_dirent __old_convert_dirent
+ #define glob_in_dir __old_glob_in_dir
+ #define GLOB_ATTRIBUTE attribute_compat_text_section
+ 
 diff --git a/sysdeps/unix/sysv/linux/mips/makecontext.S b/sysdeps/unix/sysv/linux/mips/makecontext.S
 index 66600c7..3196554 100644
 --- a/sysdeps/unix/sysv/linux/mips/makecontext.S
@@ -56607,6 +60453,87 @@ index e4e019f..8dfce05 100644
  /* Enable inline functions only for i486 or better when compiling for
     ia32.  */
  #if !defined __x86_64__ && (defined __i486__ || defined __pentium__	      \
+diff --git a/sysdeps/x86_64/Makefile b/sysdeps/x86_64/Makefile
+index 67ed5ba..cc47b88 100644
+--- a/sysdeps/x86_64/Makefile
++++ b/sysdeps/x86_64/Makefile
+@@ -60,7 +60,7 @@ $(objpfx)tst-audit3: $(objpfx)tst-auditmod3a.so
+ $(objpfx)tst-audit3.out: $(objpfx)tst-auditmod3b.so
+ tst-audit3-ENV = LD_AUDIT=$(objpfx)tst-auditmod3b.so
+ 
+-$(objpfx)tst-audit4: $(objpfx)tst-auditmod4a.so
++$(objpfx)tst-audit4: $(objpfx)tst-audit4-aux.o $(objpfx)tst-auditmod4a.so
+ $(objpfx)tst-audit4.out: $(objpfx)tst-auditmod4b.so
+ tst-audit4-ENV = LD_AUDIT=$(objpfx)tst-auditmod4b.so
+ 
+@@ -77,12 +77,12 @@ $(objpfx)tst-audit7: $(objpfx)tst-auditmod7a.so
+ $(objpfx)tst-audit7.out: $(objpfx)tst-auditmod7b.so
+ tst-audit7-ENV = LD_AUDIT=$(objpfx)tst-auditmod7b.so
+ 
+-$(objpfx)tst-audit10: $(objpfx)tst-auditmod10a.so
++$(objpfx)tst-audit10: $(objpfx)tst-audit10-aux.o $(objpfx)tst-auditmod10a.so
+ $(objpfx)tst-audit10.out: $(objpfx)tst-auditmod10b.so
+ tst-audit10-ENV = LD_AUDIT=$(objpfx)tst-auditmod10b.so
+ 
+ AVX-CFLAGS=-mavx -mno-vzeroupper
+-CFLAGS-tst-audit4.c += $(AVX-CFLAGS)
++CFLAGS-tst-audit4-aux.c += $(AVX-CFLAGS)
+ CFLAGS-tst-auditmod4a.c += $(AVX-CFLAGS)
+ CFLAGS-tst-auditmod4b.c += $(AVX-CFLAGS)
+ CFLAGS-tst-auditmod6b.c += $(AVX-CFLAGS)
+@@ -90,7 +90,7 @@ CFLAGS-tst-auditmod6c.c += $(AVX-CFLAGS)
+ CFLAGS-tst-auditmod7b.c += $(AVX-CFLAGS)
+ ifeq (yes,$(config-cflags-avx512))
+ AVX512-CFLAGS = -mavx512f
+-CFLAGS-tst-audit10.c += $(AVX512-CFLAGS)
++CFLAGS-tst-audit10-aux.c += $(AVX512-CFLAGS)
+ CFLAGS-tst-auditmod10a.c += $(AVX512-CFLAGS)
+ CFLAGS-tst-auditmod10b.c += $(AVX512-CFLAGS)
+ endif
+diff --git a/sysdeps/x86_64/configure b/sysdeps/x86_64/configure
+index c72b9d3..88fbfe4 100644
+--- a/sysdeps/x86_64/configure
++++ b/sysdeps/x86_64/configure
+@@ -24,7 +24,7 @@ rm -f conftest*
+ fi
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_asm_avx512" >&5
+ $as_echo "$libc_cv_asm_avx512" >&6; }
+-if test $libc_cv_asm_avx512 == yes; then
++if test $libc_cv_asm_avx512 = yes; then
+   $as_echo "#define HAVE_AVX512_ASM_SUPPORT 1" >>confdefs.h
+ 
+ fi
+@@ -77,7 +77,7 @@ rm -f conftest*
+ fi
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_asm_mpx" >&5
+ $as_echo "$libc_cv_asm_mpx" >&6; }
+-if test $libc_cv_asm_mpx == yes; then
++if test $libc_cv_asm_mpx = yes; then
+   $as_echo "#define HAVE_MPX_SUPPORT 1" >>confdefs.h
+ 
+ fi
+diff --git a/sysdeps/x86_64/configure.ac b/sysdeps/x86_64/configure.ac
+index 37b1059..b39309e 100644
+--- a/sysdeps/x86_64/configure.ac
++++ b/sysdeps/x86_64/configure.ac
+@@ -13,7 +13,7 @@ else
+   libc_cv_asm_avx512=no
+ fi
+ rm -f conftest*])
+-if test $libc_cv_asm_avx512 == yes; then
++if test $libc_cv_asm_avx512 = yes; then
+   AC_DEFINE(HAVE_AVX512_ASM_SUPPORT)
+ fi
+ 
+@@ -37,7 +37,7 @@ else
+   libc_cv_asm_mpx=no
+ fi
+ rm -f conftest*])
+-if test $libc_cv_asm_mpx == yes; then
++if test $libc_cv_asm_mpx = yes; then
+   AC_DEFINE(HAVE_MPX_SUPPORT)
+ fi
+ 
 diff --git a/sysdeps/x86_64/dl-trampoline.S b/sysdeps/x86_64/dl-trampoline.S
 index 9fb6b13..39b8771 100644
 --- a/sysdeps/x86_64/dl-trampoline.S
@@ -56694,3 +60621,237 @@ index f419183..b90836a 100644
  	mov %RBX_LP, %RSP_LP
  	cfi_def_cfa_register(%rsp)
  	movq (%rsp), %rbx
+diff --git a/sysdeps/x86_64/tst-audit10-aux.c b/sysdeps/x86_64/tst-audit10-aux.c
+new file mode 100644
+index 0000000..992a16c
+--- /dev/null
++++ b/sysdeps/x86_64/tst-audit10-aux.c
+@@ -0,0 +1,41 @@
++/* Test case for preserved AVX512 registers in dynamic linker, -mavx512f part.
++   Copyright (C) 2012-2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <immintrin.h>
++#include <stdlib.h>
++#include <string.h>
++
++int
++tst_audit10_aux (void)
++{
++#ifdef __AVX512F__
++  extern __m512i audit_test (__m512i, __m512i, __m512i, __m512i,
++                             __m512i, __m512i, __m512i, __m512i);
++
++  __m512i zmm = _mm512_setzero_si512 ();
++  __m512i ret = audit_test (zmm, zmm, zmm, zmm, zmm, zmm, zmm, zmm);
++
++  zmm = _mm512_set1_epi64 (0x12349876);
++
++  if (memcmp (&zmm, &ret, sizeof (ret)))
++    abort ();
++  return 0;
++#else /* __AVX512F__ */
++  return 77;
++#endif /* __AVX512F__ */
++}
+diff --git a/sysdeps/x86_64/tst-audit10.c b/sysdeps/x86_64/tst-audit10.c
+index d104341..0df2275 100644
+--- a/sysdeps/x86_64/tst-audit10.c
++++ b/sysdeps/x86_64/tst-audit10.c
+@@ -1,4 +1,5 @@
+-/* Copyright (C) 2012-2016 Free Software Foundation, Inc.
++/* Test case for preserved AVX512 registers in dynamic linker.
++   Copyright (C) 2012-2016 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -15,17 +16,14 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
+-/* Test case for x86-64 preserved registers in dynamic linker.  */
+-
+-#ifdef __AVX512F__
+-#include <stdlib.h>
+-#include <string.h>
+ #include <cpuid.h>
+-#include <immintrin.h>
++
++int tst_audit10_aux (void);
+ 
+ static int
+ avx512_enabled (void)
+ {
++#ifdef bit_AVX512F
+   unsigned int eax, ebx, ecx, edx;
+ 
+   if (__get_cpuid (1, &eax, &ebx, &ecx, &edx) == 0
+@@ -40,34 +38,20 @@ avx512_enabled (void)
+ 
+   /* Verify that ZMM, YMM and XMM states are enabled.  */
+   return (eax & 0xe6) == 0xe6;
++#else
++  return 0;
++#endif
+ }
+ 
+-
+-extern __m512i audit_test (__m512i, __m512i, __m512i, __m512i,
+-			   __m512i, __m512i, __m512i, __m512i);
+ static int
+ do_test (void)
+ {
+   /* Run AVX512 test only if AVX512 is supported.  */
+   if (avx512_enabled ())
+-    {
+-      __m512i zmm = _mm512_setzero_si512 ();
+-      __m512i ret = audit_test (zmm, zmm, zmm, zmm, zmm, zmm, zmm, zmm);
+-
+-      zmm = _mm512_set1_epi64 (0x12349876);
+-
+-      if (memcmp (&zmm, &ret, sizeof (ret)))
+-	abort ();
+-    }
+-  return 0;
+-}
+-#else
+-static int
+-do_test (void)
+-{
+-  return 0;
++    return tst_audit10_aux ();
++  else
++    return 77;
+ }
+-#endif
+ 
+ #define TEST_FUNCTION do_test ()
+ #include "../../test-skeleton.c"
+diff --git a/sysdeps/x86_64/tst-audit4-aux.c b/sysdeps/x86_64/tst-audit4-aux.c
+new file mode 100644
+index 0000000..a1aeb65
+--- /dev/null
++++ b/sysdeps/x86_64/tst-audit4-aux.c
+@@ -0,0 +1,39 @@
++/* Test case for preserved AVX registers in dynamic linker, -mavx part.
++   Copyright (C) 2009-2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <immintrin.h>
++#include <stdlib.h>
++#include <string.h>
++
++extern __m256i audit_test (__m256i, __m256i, __m256i, __m256i,
++			   __m256i, __m256i, __m256i, __m256i);
++
++int
++tst_audit4_aux (void)
++{
++#ifdef __AVX__
++  __m256i ymm = _mm256_setzero_si256 ();
++  __m256i ret = audit_test (ymm, ymm, ymm, ymm, ymm, ymm, ymm, ymm);
++  ymm =	 _mm256_set1_epi32 (0x12349876);
++  if (memcmp (&ymm, &ret, sizeof (ret)))
++    abort ();
++  return 0;
++#else  /* __AVX__ */
++  return 77;
++#endif  /* __AVX__ */
++}
+diff --git a/sysdeps/x86_64/tst-audit4.c b/sysdeps/x86_64/tst-audit4.c
+index 44d5123..d8e2ab1 100644
+--- a/sysdeps/x86_64/tst-audit4.c
++++ b/sysdeps/x86_64/tst-audit4.c
+@@ -1,11 +1,24 @@
+-/* Test case for x86-64 preserved registers in dynamic linker.  */
++/* Test case for preserved AVX registers in dynamic linker.
++   Copyright (C) 2009-2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
+ 
+-#ifdef __AVX__
+-#include <stdlib.h>
+-#include <string.h>
+ #include <cpuid.h>
+-#include <immintrin.h>
+ 
++int tst_audit4_aux (void);
+ 
+ static int
+ avx_enabled (void)
+@@ -22,31 +35,15 @@ avx_enabled (void)
+   return (eax & 6) == 6;
+ }
+ 
+-
+-extern __m256i audit_test (__m256i, __m256i, __m256i, __m256i,
+-			   __m256i, __m256i, __m256i, __m256i);
+ static int
+ do_test (void)
+ {
+   /* Run AVX test only if AVX is supported.  */
+   if (avx_enabled ())
+-    {
+-      __m256i ymm = _mm256_setzero_si256 ();
+-      __m256i ret = audit_test (ymm, ymm, ymm, ymm, ymm, ymm, ymm, ymm);
+-
+-      ymm =  _mm256_set1_epi32 (0x12349876);
+-      if (memcmp (&ymm, &ret, sizeof (ret)))
+-	abort ();
+-    }
+-  return 0;
+-}
+-#else
+-static int
+-do_test (void)
+-{
+-  return 0;
++    return tst_audit4_aux ();
++  else
++    return 77;
+ }
+-#endif
+ 
+ #define TEST_FUNCTION do_test ()
+ #include "../../test-skeleton.c"
