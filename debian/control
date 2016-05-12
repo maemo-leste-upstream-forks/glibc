@@ -1,7 +1,7 @@
 Source: glibc
 Section: libs
 Priority: required
-Build-Depends: gettext, dpkg-dev (>= 1.17.14), xz-utils, file, quilt,
+Build-Depends: gettext, dpkg-dev (>= 1.18.7), xz-utils, file, quilt,
  autoconf, gawk, debhelper (>= 9.20141010), rdfind, symlinks, netbase,
  linux-libc-dev (>= 3.9) [linux-any],
  libaudit-dev [linux-any], libcap-dev [linux-any], libselinux-dev [linux-any],
@@ -11,11 +11,12 @@ Build-Depends: gettext, dpkg-dev (>= 1.17.14), xz-utils, file, quilt,
  kfreebsd-kernel-headers [kfreebsd-any],
  binutils (>= 2.21),
  g++-5, g++-5-multilib [amd64 i386 kfreebsd-amd64 mips mipsel mipsn32 mipsn32el mips64 mips64el powerpc ppc64 s390x sparc sparc64 x32],
+ g++-5 (>= 5.3.1-17) [hurd-i386 i386 kfreebsd-i386],
  libc-bin (>= 2.23) <cross>
 Build-Depends-Indep: perl, po-debconf (>= 1.0)
 Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
 Uploaders: Clint Adams <clint@debian.org>, Aurelien Jarno <aurel32@debian.org>, Adam Conrad <adconrad@0c3.net>, Samuel Thibault <sthibault@debian.org>
-Standards-Version: 3.9.7
+Standards-Version: 3.9.8
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-glibc/glibc.git
 Vcs-Git: https://anonscm.debian.org/git/pkg-glibc/glibc.git
 Homepage: http://www.gnu.org/software/libc/libc.html
@@ -161,13 +162,15 @@ Section: libs
 Priority: required
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${libgcc:Depends}
-Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386] 
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-i386]
-Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64]
-Conflicts: libc6-loongson2f [mipsel]
+Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
+Conflicts: libc6-loongson2f [mipsel], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Breaks: nscd (<< 2.23), locales (<< 2.23), locales-all (<< 2.23), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
+          libc0.1-i686 [kfreebsd-i386],
+          libc0.3-i686 [hurd-i386],
+          libc6-i686 [i386],
           libc6-x32 [x32],
           libc0.1-i386 [kfreebsd-i386],
           libc6-powerpc [powerpc],
@@ -193,7 +196,7 @@ Depends: libc6 (= ${binary:Version}), libc-dev-bin (= ${binary:Version}), ${misc
 Replaces: hurd-dev (<< 20120408-3) [hurd-i386]
 Suggests: glibc-doc, manpages-dev
 Provides: libc-dev, libc6-dev [alpha hurd-i386 kfreebsd-i386 kfreebsd-amd64]
-Breaks: binutils (<< 2.20.1-1), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3), check (<< 0.9.10-6.1+b1) [s390x]
+Breaks: binutils (<< 2.26), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3), check (<< 0.9.10-6.1+b1) [s390x]
 Conflicts: libc6.1-dev, libc0.1-dev, libc0.3-dev,
 Description: GNU C Library: Development Libraries and Header Files
  Contains the symlinks, headers, and object files needed to compile
@@ -247,13 +250,15 @@ Section: libs
 Priority: required
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${libgcc:Depends}
-Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386] 
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-i386]
-Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64]
-Conflicts: libc6-loongson2f [mipsel]
+Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
+Conflicts: libc6-loongson2f [mipsel], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Breaks: nscd (<< 2.23), locales (<< 2.23), locales-all (<< 2.23), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
+          libc0.1-i686 [kfreebsd-i386],
+          libc0.3-i686 [hurd-i386],
+          libc6-i686 [i386],
           libc6-x32 [x32],
           libc0.1-i386 [kfreebsd-i386],
           libc6-powerpc [powerpc],
@@ -279,7 +284,7 @@ Depends: libc6.1 (= ${binary:Version}), libc-dev-bin (= ${binary:Version}), ${mi
 Replaces: hurd-dev (<< 20120408-3) [hurd-i386]
 Suggests: glibc-doc, manpages-dev
 Provides: libc-dev, libc6-dev [alpha hurd-i386 kfreebsd-i386 kfreebsd-amd64]
-Breaks: binutils (<< 2.20.1-1), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3), check (<< 0.9.10-6.1+b1) [s390x]
+Breaks: binutils (<< 2.26), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3), check (<< 0.9.10-6.1+b1) [s390x]
 Conflicts: libc6-dev, libc0.1-dev, libc0.3-dev,
 Description: GNU C Library: Development Libraries and Header Files
  Contains the symlinks, headers, and object files needed to compile
@@ -333,13 +338,15 @@ Section: libs
 Priority: required
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${libgcc:Depends}
-Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386] 
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-i386]
-Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64]
-Conflicts: libc6-loongson2f [mipsel]
+Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
+Conflicts: libc6-loongson2f [mipsel], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Breaks: nscd (<< 2.23), locales (<< 2.23), locales-all (<< 2.23), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
+          libc0.1-i686 [kfreebsd-i386],
+          libc0.3-i686 [hurd-i386],
+          libc6-i686 [i386],
           libc6-x32 [x32],
           libc0.1-i386 [kfreebsd-i386],
           libc6-powerpc [powerpc],
@@ -365,7 +372,7 @@ Depends: libc0.3 (= ${binary:Version}), libc-dev-bin (= ${binary:Version}), ${mi
 Replaces: hurd-dev (<< 20120408-3) [hurd-i386]
 Suggests: glibc-doc, manpages-dev
 Provides: libc-dev, libc6-dev [alpha hurd-i386 kfreebsd-i386 kfreebsd-amd64]
-Breaks: binutils (<< 2.20.1-1), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3), check (<< 0.9.10-6.1+b1) [s390x]
+Breaks: binutils (<< 2.26), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3), check (<< 0.9.10-6.1+b1) [s390x]
 Conflicts: libc6-dev, libc6.1-dev, libc0.1-dev,
 Description: GNU C Library: Development Libraries and Header Files
  Contains the symlinks, headers, and object files needed to compile
@@ -419,13 +426,15 @@ Section: libs
 Priority: required
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${libgcc:Depends}
-Recommends: libc6-i686 [i386], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386] 
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-i386]
-Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64]
-Conflicts: libc6-loongson2f [mipsel]
+Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
+Conflicts: libc6-loongson2f [mipsel], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Breaks: nscd (<< 2.23), locales (<< 2.23), locales-all (<< 2.23), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
+          libc0.1-i686 [kfreebsd-i386],
+          libc0.3-i686 [hurd-i386],
+          libc6-i686 [i386],
           libc6-x32 [x32],
           libc0.1-i386 [kfreebsd-i386],
           libc6-powerpc [powerpc],
@@ -451,7 +460,7 @@ Depends: libc0.1 (= ${binary:Version}), libc-dev-bin (= ${binary:Version}), ${mi
 Replaces: hurd-dev (<< 20120408-3) [hurd-i386]
 Suggests: glibc-doc, manpages-dev
 Provides: libc-dev, libc6-dev [alpha hurd-i386 kfreebsd-i386 kfreebsd-amd64]
-Breaks: binutils (<< 2.20.1-1), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3), check (<< 0.9.10-6.1+b1) [s390x]
+Breaks: binutils (<< 2.26), binutils-gold (<< 2.20.1-11), cmake (<< 2.8.4+dfsg.1-5), gcc-4.4 (<< 4.4.6-4), gcc-4.5 (<< 4.5.3-2), gcc-4.6 (<< 4.6.0-12), make (<< 3.81-8.1), pkg-config (<< 0.26-1), libjna-java (<< 3.2.7-4), liblouis-dev (<< 2.3.0-2), liblouisxml-dev (<< 2.4.0-2), libhwloc-dev (<< 1.2-3), check (<< 0.9.10-6.1+b1) [s390x]
 Conflicts: libc6-dev, libc6.1-dev, libc0.3-dev,
 Description: GNU C Library: Development Libraries and Header Files
  Contains the symlinks, headers, and object files needed to compile
@@ -789,25 +798,6 @@ Description: GNU C Library: X32 ABI Development Libraries for AMD64
  which use the standard C library. This is the X32 ABI version of the
  library, meant for amd64 systems.
 
-Package: libc6-i686
-Architecture: i386
-Section: libs
-Priority: extra
-Multi-Arch: same
-Pre-Depends: libc6 (= ${binary:Version})
-Depends: ${misc:Depends}
-Build-Profiles: <!stage1>
-Description: GNU C Library: Shared libraries [i686 optimized]
- Contains the standard libraries that are used by nearly all programs on
- the system. This package includes shared versions of the standard C
- library and the standard math library, as well as many others.
- .
- This set of libraries is optimized for i686 machines, and will only be
- used on an i686 class CPU (check the output of `uname -m').  This includes 
- Pentium Pro, Pentium II/III/IV, Celeron CPU's and similar class CPU's
- (including clones such as AMD Athlon/Opteron, VIA C3 Nehemiah, but not VIA 
- C3 Ezra).  
-
 Package: libc6-xen
 Architecture: i386
 Section: libs
@@ -823,25 +813,6 @@ Description: GNU C Library: Shared libraries [Xen version]
  .
  This set of libraries is optimized for the Xen hypervisor, and will be
  selected instead when running under Xen.
-
-Package: libc0.1-i686
-Architecture: kfreebsd-i386
-Section: libs
-Priority: extra
-Multi-Arch: same
-Pre-Depends: libc0.1 (= ${binary:Version})
-Depends: ${misc:Depends}
-Build-Profiles: <!stage1>
-Description: GNU C Library: Shared libraries [i686 optimized]
- Contains the standard libraries that are used by nearly all programs on
- the system. This package includes shared versions of the standard C
- library and the standard math library, as well as many others.
- .
- This set of libraries is optimized for i686 machines, and will only be
- used on an i686 class CPU (check the output of `uname -m').  This includes 
- Pentium Pro, Pentium II/III/IV, Celeron CPU's and similar class CPU's
- (including clones such as AMD Athlon/Opteron, VIA C3 Nehemiah, but not VIA 
- C3 Ezra).  
 
 Package: libc6.1-alphaev67
 Architecture: alpha

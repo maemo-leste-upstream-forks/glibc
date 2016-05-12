@@ -40,8 +40,8 @@ index e767f9e..37483fc 100644
 +static int is_library_hf(const char *file_name, void *file_contents, size_t file_length)
 +{
 +  unsigned int i;
-+  ElfW(Ehdr) *ehdr = (ElfW(Ehdr) *) file_contents;
-+  ElfW(Shdr) *shdrs;
++  Elf32_Ehdr *ehdr = (Elf32_Ehdr *) file_contents;
++  Elf32_Shdr *shdrs;
 +
 +  shdrs = file_contents + ehdr->e_shoff;
 +  for (i = 0; i < ehdr->e_shnum; i++)

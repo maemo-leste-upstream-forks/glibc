@@ -148,6 +148,60 @@ glibc (2.23-0experimental0) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Sun, 13 Mar 2016 19:22:45 +0100
 
+glibc (2.22-9) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * hurd-i386/cvs-libpthread.so.diff: Fix building malloc tests.
+  * debian/testsuite-xfail-debian.mk: Update LFS tests.
+
+  [ Aurelien Jarno ]
+  * debian/testsuite-xfail-debian.mk: drop check on i586 flavours.
+  * debian/patches/kfreebsd/local-tst-malloc-backtrace.diff: drop, obsoleted
+    by hurd-i386/cvs-libpthread.so.diff.
+  * debian/patches/arm/unsubmitted-ldconfig-cache-abi.diff: correctly apply
+    patch. Really fix #822489.
+  * control.in/main: Bump Standards-Version to 3.9.8 (no changes).
+
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 12 May 2016 12:55:01 +0200
+
+glibc (2.22-8) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * hurd-i386/cvs-gprof-tick.diff: Cherry-pick from upstream to fix gprof
+    timing.
+  * hurd-i386/cvs-IPV6_PKTINFO.diff: Cherry-pick from upstream to fix
+    IPV6_*PKT* macros.
+
+  [ Aurelien Jarno ]
+  * Update from upstream stable branch:
+    - Fix a buffer overflow in the glob function (CVE-2016-1234).
+    - Fix a stack overflow in getaddrinfo function (CVE-2016-3706).
+    - Fix nss_hesiod breakage.  Closes: #821358.
+  * patches/kfreebsd/local-sysdeps.diff: update to revision 6051 (from
+    glibc-bsd) to fix FTBFS and provide PT_FOLLOW_FORK in sys/ptrace.h.
+    Closes: #822143, #823387.
+  * patches/arm/unsubmitted-ldconfig-cache-abi.diff: apply fix from Steve
+    McIntyre to fix an armhf ABI detection crash in ldconfig on arm64.
+    Closes: #822489.
+  * debian/control.in/main: upgrade breaks on binutils. This is plainly
+    wrong though, glibc should not be a special case: either we don't
+    support partial upgrades or we do that for all libraries. With that
+    let's hope people will stop reporting bugs, sigh.  Closes: #819165.
+  * Drop libc*-i686 packages as GCC now defaults to i686:
+    - debian/control: drop packages, add provides and build-depends on
+      g++-5 (>= 5.3.1-17) and dpkg-dev (>= 1.18.7).
+    - debian/sysdeps/hurd-i386.mk: stop building libc0.3-i686. Use the
+      default compiler options to build libc0.3-xen.
+    - debian/sysdeps/i386.mk: stop building libc6-i686.
+    - debian/sysdeps/kfreebsd-i386.mk: drop.
+    - debian/patches/i386/submitted-i686-timing.diff: drop.  Closes:
+      #218519.
+
+  [ Adam Conrad ]
+  * debian/control.in/libc: Force i686 variants off the system on upgrade.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Wed, 11 May 2016 23:39:05 +0200
+
 glibc (2.22-7) unstable; urgency=medium
 
   [ Samuel Thibault ]
