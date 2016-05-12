@@ -277,7 +277,10 @@ test-xfail-tst-vfork3-mem = yes
 
 # This generates GiBs of data instead of sparse files, putting build box on its knees
 tests-unsupported += test-lfs
+
+# Needs LFS support
 #test-xfail-test-lfs = yes
+test-xfail-tst-tzset = yes
 
 # happens seldomly
 test-xfail-tst-clock_nanosleep = yes
