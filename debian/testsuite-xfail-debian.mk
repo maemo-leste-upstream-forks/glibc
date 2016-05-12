@@ -182,7 +182,7 @@ endif
 ######################################################################
 # hurd-i386 (including optimized flavours)
 ######################################################################
-ifneq (,$(filter $(config-machine)-$(config-os), i586-gnu-gnu-gnu i686-gnu-gnu-gnu))
+ifeq ($(config-machine)-$(config-os),i686-gnu-gnu-gnu)
 # sysdeps/mach/hurd/dl-sysdep.c's open_file does not support the linker
 # creating files.
 test-xfail-tst-null-argv = yes
@@ -796,7 +796,7 @@ endif
 ######################################################################
 # i386 (including optimized flavours)
 ######################################################################
-ifneq (,$(filter $(config-machine)-$(config-os), i586-linux-gnu i686-linux-gnu))
+ifeq ($(config-machine)-$(config-os),i686-linux-gnu)
 test-xfail-tst-backtrace6 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
@@ -1063,7 +1063,7 @@ endif
 ######################################################################
 # kfreebsd-i386 (including optimized flavours)
 ######################################################################
-ifneq (,$(filter $(config-machine)-$(config-os), i586-kfreebsd-gnu i686-kfreebsd-gnu))
+ifeq ($(config-machine)-$(config-os),i686-kfreebsd-gnu)
 test-xfail-check-local-headers = yes
 test-xfail-tst-aio10 = yes
 test-xfail-tst-aio9 = yes
