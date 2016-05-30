@@ -12,3 +12,11 @@ cp -af debian/tmp-xen/$(libdir)/*.a \
 	debian/libc0.3-dev/$(libdir)/xen
 endef
 endif
+
+# FIXME: We are having runtime issues with ifunc...
+# e.g. calling memset from a statically-linked program
+#
+# http://www.gnu.org/software/hurd/open_issues/ifunc.html
+#
+# For now we are just disabling ifunc:
+export libc_cv_ld_gnu_indirect_function=no
