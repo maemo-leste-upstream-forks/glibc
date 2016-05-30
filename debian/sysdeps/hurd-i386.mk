@@ -4,6 +4,7 @@ GLIBC_PASSES += xen
 DEB_ARCH_REGULAR_PACKAGES += libc0.3-xen
 xen_extra_cflags = -mno-tls-direct-seg-refs
 xen_slibdir = /lib/$(DEB_HOST_MULTIARCH)/i686/nosegneg
+xen_add-ons = $(libc_add-ons)
 
 ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 define libc0.3-dev_extra_pkg_install
