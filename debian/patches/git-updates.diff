@@ -1,10 +1,62 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.23/master from glibc-2.23
 
 diff --git a/ChangeLog b/ChangeLog
-index 2e4afb7..47f0b8a 100644
+index 2e4afb7..2da868a 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,5 +1,480 @@
+@@ -1,5 +1,532 @@
++2016-03-07  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19648]
++	* test-skeleton.c (main): Do not set RLIMIT_DATA.
++
++2016-05-23  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #20111]
++	* bits/sockaddr.h (_SS_SIZE): Define.
++	* bits/socket.h (_SS_SIZE): Remove.
++	(_SS_PADSIZE): Adjust to account for all padding.
++	(struct sockaddr_storage): Update comment.  Avoid implicit
++	padding.
++	* sysdeps/mach/hurd/bits/socket.h (_SS_SIZE): Remove.
++	(_SS_PADSIZE): Adjust to account for all padding.
++	(struct sockaddr_storage): Update comment.  Avoid implicit
++	padding.
++	* sysdeps/unix/bsd/bits/sockaddr.h (_SS_SIZE): Define.
++	* sysdeps/unix/sysv/linux/bits/socket.h (_SS_SIZE): Remove.
++	(_SS_PADSIZE): Adjust to account for all padding.
++	(struct sockaddr_storage): Update comment.  Avoid implicit
++	padding.
++	* sysdeps/unix/sysv/linux/m68k/bits/sockaddr.h: New file.
++	__SS_SIZE is 126 in this version.
++	* inet/tst-sockaddr.c: New file.
++	* inet/Makefile (tests): Add tst-sockaddr.c
++	(tst-sockaddr.c): Compile with non-strict aliasing.
++
++2016-05-23  Florian Weimer  <fweimer@redhat.com>
++
++	CVE-2016-4429
++	[BZ #20112]
++	* sunrpc/clnt_udp.c (clntudp_call): Use malloc/free for the error
++	payload.
++
++2016-05-13  Florian Weimer  <fweimer@redhat.com>
++
++	Fix race condition in tst-mallocfork2, use fewer resources.
++	* malloc/tst-mallocfork2.c (sigusr1_handler): Do not send SIGSTOP
++	to current process group.
++	(signal_sender): Yield in the non-sleeping case.
++
++2016-05-12  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19703]
++	Partially async-signal-safe fork for single-threaded processes.
++	* sysdeps/nptl/fork.c (__libc_fork): Introduce multiple_threads
++	variable.  Do not acquire and reset/release malloc and libio locks
++	in single-threaded processes.
++	* malloc/tst-mallocfork2.c: New file.
++	* malloc/Makefile (tests): Add it.
++
 +2016-04-14  Stefan Liebler  <stli@linux.vnet.ibm.com>
 +
 +	* stdio-common/printf_fp.c (__printf_fp_l):
@@ -486,10 +538,10 @@ index 2e4afb7..47f0b8a 100644
  	(VERSION): Set to 2.23.
  	* include/feature.h (__GLIBC_MINOR__): Set to 23.
 diff --git a/NEWS b/NEWS
-index c0276cf..9c1c638 100644
+index c0276cf..532cfe2 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,33 @@ See the end for copying conditions.
+@@ -5,6 +5,37 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <http://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
@@ -505,6 +557,10 @@ index c0276cf..9c1c638 100644
 +* The glob function suffered from a stack-based buffer overflow when it was
 +  called with the GLOB_ALTDIRFUNC flag and encountered a long file name.
 +  Reported by Alexander Cherepanov.  (CVE-2016-1234)
++
++* The Sun RPC UDP client could exhaust all available stack space when
++  flooded with crafted ICMP and UDP messages.  Reported by Aldy Hernandez'
++  alloca plugin for GCC.  (CVE-2016-4429)
 +
 +The following bugs are resolved with this release:
 +
@@ -523,7 +579,7 @@ index c0276cf..9c1c638 100644
  Version 2.23
  
  * Unicode 8.0.0 Support: Character encoding, character type info, and
-@@ -38,7 +65,7 @@ Version 2.23
+@@ -38,7 +69,7 @@ Version 2.23
    unnecessary serialization of memory allocation requests across threads.
    The defect is now corrected.  Users should see a substantial increase in
    the concurent throughput of allocation requests for applications which
@@ -531,6 +587,53 @@ index c0276cf..9c1c638 100644
 +  trigger this bug.  Affected applications typically create and
    destroy threads frequently.  (Bug 19048 was reported and analyzed by
    Ericsson.)
+ 
+diff --git a/bits/sockaddr.h b/bits/sockaddr.h
+index e91f837..0af58c9 100644
+--- a/bits/sockaddr.h
++++ b/bits/sockaddr.h
+@@ -1,4 +1,4 @@
+-/* Definition of `struct sockaddr_*' common members.  Generic/4.2 BSD version.
++/* Definition of struct sockaddr_* common members and sizes, generic version.
+    Copyright (C) 1995-2016 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+@@ -36,4 +36,7 @@ typedef unsigned short int sa_family_t;
+ 
+ #define __SOCKADDR_COMMON_SIZE	(sizeof (unsigned short int))
+ 
++/* Size of struct sockaddr_storage.  */
++#define _SS_SIZE 128
++
+ #endif	/* bits/sockaddr.h */
+diff --git a/bits/socket.h b/bits/socket.h
+index ab9f242..a22fd56 100644
+--- a/bits/socket.h
++++ b/bits/socket.h
+@@ -152,20 +152,20 @@ struct sockaddr
+ 
+ 
+ /* Structure large enough to hold any socket address (with the historical
+-   exception of AF_UNIX).  We reserve 128 bytes.  */
++   exception of AF_UNIX).  */
+ #if ULONG_MAX > 0xffffffff
+ # define __ss_aligntype	__uint64_t
+ #else
+ # define __ss_aligntype	__uint32_t
+ #endif
+-#define _SS_SIZE	128
+-#define _SS_PADSIZE	(_SS_SIZE - (2 * sizeof (__ss_aligntype)))
++#define _SS_PADSIZE \
++  (_SS_SIZE - __SOCKADDR_COMMON_SIZE - sizeof (__ss_aligntype))
+ 
+ struct sockaddr_storage
+   {
+     __SOCKADDR_COMMON (ss_);	/* Address family, etc.  */
+-    __ss_aligntype __ss_align;	/* Force desired alignment.  */
+     char __ss_padding[_SS_PADSIZE];
++    __ss_aligntype __ss_align;	/* Force desired alignment.  */
+   };
+ 
  
 diff --git a/configure b/configure
 index 06ea87e..8fe5937 100755
@@ -1159,6 +1262,28 @@ index 0000000..dede2c3
 +++ b/include/sys/auxv.h
 @@ -0,0 +1 @@
 +#include <misc/sys/auxv.h>
+diff --git a/inet/Makefile b/inet/Makefile
+index 0e7a3c3..2207b93 100644
+--- a/inet/Makefile
++++ b/inet/Makefile
+@@ -50,7 +50,7 @@ aux := check_pf check_native ifreq
+ 
+ tests := htontest test_ifindex tst-ntoa tst-ether_aton tst-network \
+ 	 tst-gethnm test-ifaddrs bug-if1 test-inet6_opt tst-ether_line \
+-	 tst-getni1 tst-getni2 tst-inet6_rth tst-checks
++	 tst-getni1 tst-getni2 tst-inet6_rth tst-checks tst-sockaddr
+ 
+ include ../Rules
+ 
+@@ -84,6 +84,8 @@ CFLAGS-either_hton.c = -fexceptions
+ CFLAGS-getnetgrent.c = -fexceptions
+ CFLAGS-getnetgrent_r.c = -fexceptions
+ 
++CFLAGS-tst-sockaddr.c = -fno-strict-aliasing
++
+ endif
+ 
+ ifeq ($(build-static-nss),yes)
 diff --git a/inet/getnameinfo.c b/inet/getnameinfo.c
 index 40f67f0..283da55 100644
 --- a/inet/getnameinfo.c
@@ -1791,6 +1916,137 @@ index 40f67f0..283da55 100644
    return 0;
  }
  libc_hidden_def (getnameinfo)
+diff --git a/inet/tst-sockaddr.c b/inet/tst-sockaddr.c
+new file mode 100644
+index 0000000..fe0307b
+--- /dev/null
++++ b/inet/tst-sockaddr.c
+@@ -0,0 +1,125 @@
++/* Tests for socket address type definitions.
++   Copyright (C) 2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If
++   not, see <http://www.gnu.org/licenses/>.  */
++
++#include <netinet/in.h>
++#include <stdbool.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/socket.h>
++#include <sys/un.h>
++
++/* This is a copy of the previous definition of struct
++   sockaddr_storage.  It is not equal to the old value of _SS_SIZE
++   (128) on all architectures.  We must stay compatible with the old
++   definition.  */
++
++#define OLD_REFERENCE_SIZE 128
++#define OLD_PADSIZE (OLD_REFERENCE_SIZE - (2 * sizeof (__ss_aligntype)))
++struct sockaddr_storage_old
++  {
++    __SOCKADDR_COMMON (old_);
++    __ss_aligntype old_align;
++    char old_padding[OLD_PADSIZE];
++  };
++
++static bool errors;
++
++static void
++check (bool ok, const char *message)
++{
++  if (!ok)
++    {
++      printf ("error: failed check: %s\n", message);
++      errors = true;
++    }
++}
++
++static int
++do_test (void)
++{
++  check (OLD_REFERENCE_SIZE >= _SS_SIZE,
++         "old target size is not smaller than actual size");
++  check (sizeof (struct sockaddr_storage_old)
++         == sizeof (struct sockaddr_storage),
++         "old and new sizes match");
++  check (__alignof (struct sockaddr_storage_old)
++         == __alignof (struct sockaddr_storage),
++         "old and new alignment matches");
++  check (offsetof (struct sockaddr_storage_old, old_family)
++         == offsetof (struct sockaddr_storage, ss_family),
++         "old and new family offsets match");
++  check (sizeof (struct sockaddr_storage) == _SS_SIZE,
++         "struct sockaddr_storage size");
++
++  /* Check for lack of holes in the struct definition.   */
++  check (offsetof (struct sockaddr_storage, __ss_padding)
++         == __SOCKADDR_COMMON_SIZE,
++         "implicit padding before explicit padding");
++  check (offsetof (struct sockaddr_storage, __ss_align)
++         == __SOCKADDR_COMMON_SIZE
++           + sizeof (((struct sockaddr_storage) {}).__ss_padding),
++         "implicit padding before explicit padding");
++
++  /* Check for POSIX compatibility requirements between struct
++     sockaddr_storage and struct sockaddr_un.  */
++  check (sizeof (struct sockaddr_storage) >= sizeof (struct sockaddr_un),
++         "sockaddr_storage is at least as large as sockaddr_un");
++  check (__alignof (struct sockaddr_storage)
++         >= __alignof (struct sockaddr_un),
++         "sockaddr_storage is at least as aligned as sockaddr_un");
++  check (offsetof (struct sockaddr_storage, ss_family)
++         == offsetof (struct sockaddr_un, sun_family),
++         "family offsets match");
++
++  /* Check that the compiler preserves bit patterns in aggregate
++     copies.  Based on <https://gcc.gnu.org/PR71120>.  */
++  check (sizeof (struct sockaddr_storage) >= sizeof (struct sockaddr_in),
++         "sockaddr_storage is at least as large as sockaddr_in");
++  {
++    struct sockaddr_storage addr;
++    memset (&addr, 0, sizeof (addr));
++    {
++      struct sockaddr_in *sinp = (struct sockaddr_in *)&addr;
++      sinp->sin_family = AF_INET;
++      sinp->sin_addr.s_addr = htonl (INADDR_LOOPBACK);
++      sinp->sin_port = htons (80);
++    }
++    struct sockaddr_storage copy;
++    copy = addr;
++
++    struct sockaddr_storage *p = malloc (sizeof (*p));
++    if (p == NULL)
++      {
++        printf ("error: malloc: %m\n");
++        return 1;
++      }
++    *p = copy;
++    const struct sockaddr_in *sinp = (const struct sockaddr_in *)p;
++    check (sinp->sin_family == AF_INET, "sin_family");
++    check (sinp->sin_addr.s_addr == htonl (INADDR_LOOPBACK), "sin_addr");
++    check (sinp->sin_port == htons (80), "sin_port");
++    free (p);
++  }
++
++  return errors;
++}
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 diff --git a/locale/localeinfo.h b/locale/localeinfo.h
 index 5c4e6ef..94627f3 100644
 --- a/locale/localeinfo.h
@@ -1878,19 +2134,20 @@ index da6628b..fd10ea6 100644
  first_weekday 2
  first_workday 2
 diff --git a/malloc/Makefile b/malloc/Makefile
-index 360288b..3283f4f 100644
+index 360288b..fa1730e 100644
 --- a/malloc/Makefile
 +++ b/malloc/Makefile
-@@ -29,7 +29,7 @@ tests := mallocbug tst-malloc tst-valloc tst-calloc tst-obstack \
+@@ -29,7 +29,8 @@ tests := mallocbug tst-malloc tst-valloc tst-calloc tst-obstack \
  	 tst-malloc-usable tst-realloc tst-posix_memalign \
  	 tst-pvalloc tst-memalign tst-mallopt tst-scratch_buffer \
  	 tst-malloc-backtrace tst-malloc-thread-exit \
 -	 tst-malloc-thread-fail
-+	 tst-malloc-thread-fail tst-malloc-fork-deadlock
++	 tst-malloc-thread-fail tst-malloc-fork-deadlock \
++	 tst-mallocfork2
  test-srcs = tst-mtrace
  
  routines = malloc morecore mcheck mtrace obstack \
-@@ -46,12 +46,10 @@ extra-libs-others = $(extra-libs)
+@@ -46,12 +47,10 @@ extra-libs-others = $(extra-libs)
  libmemusage-routines = memusage
  libmemusage-inhibit-o = $(filter-out .os,$(object-suffixes))
  
@@ -2456,6 +2713,232 @@ index 0000000..94549ca
 +
 +  return 0;
 +}
+diff --git a/malloc/tst-mallocfork2.c b/malloc/tst-mallocfork2.c
+new file mode 100644
+index 0000000..4b20f3c
+--- /dev/null
++++ b/malloc/tst-mallocfork2.c
+@@ -0,0 +1,220 @@
++/* Test case for async-signal-safe fork (with respect to malloc).
++   Copyright (C) 2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If
++   not, see <http://www.gnu.org/licenses/>.  */
++
++/* This test will fail if the process is multi-threaded because we
++   only have an async-signal-safe fork in the single-threaded case
++   (where we skip acquiring the malloc heap locks).
++
++   This test only checks async-signal-safety with regards to malloc;
++   other, more rarely-used glibc subsystems could have locks which
++   still make fork unsafe, even in single-threaded processes.  */
++
++#include <errno.h>
++#include <sched.h>
++#include <signal.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/wait.h>
++#include <time.h>
++#include <unistd.h>
++
++/* How many malloc objects to keep arond.  */
++enum { malloc_objects = 1009 };
++
++/* The maximum size of an object.  */
++enum { malloc_maximum_size = 70000 };
++
++/* How many signals need to be delivered before the test exits.  */
++enum { signal_count = 1000 };
++
++
++/* Process ID of the subprocess which sends SIGUSR1 signals.  */
++static pid_t sigusr1_sender_pid;
++
++/* Set to 1 if SIGUSR1 is received.  Used to detect a signal during
++   malloc/free.  */
++static volatile sig_atomic_t sigusr1_received;
++
++/* Periodically set to 1, to indicate that the process is making
++   progress.  Checked by liveness_signal_handler.  */
++static volatile sig_atomic_t progress_indicator = 1;
++
++/* Write the message to standard output.  Usable from signal
++   handlers.  */
++static void
++write_message (const char *str)
++{
++  write (STDOUT_FILENO, str, strlen (str));
++}
++
++static void
++sigusr1_handler (int signo)
++{
++  /* Let the main program make progress, by temporarily suspending
++     signals from the subprocess.  */
++  if (sigusr1_received)
++    return;
++  /* sigusr1_sender_pid might not be initialized in the parent when
++     the first SIGUSR1 signal arrives.  */
++  if (sigusr1_sender_pid > 0 && kill (sigusr1_sender_pid, SIGSTOP) != 0)
++    {
++      write_message ("error: kill (SIGSTOP)\n");
++      abort ();
++    }
++  sigusr1_received = 1;
++
++  /* Perform a fork with a trivial subprocess.  */
++  pid_t pid = fork ();
++  if (pid == -1)
++    {
++      write_message ("error: fork\n");
++      abort ();
++    }
++  if (pid == 0)
++    _exit (0);
++  int status;
++  int ret = TEMP_FAILURE_RETRY (waitpid (pid, &status, 0));
++  if (ret < 0)
++    {
++      write_message ("error: waitpid\n");
++      abort ();
++    }
++  if (status != 0)
++    {
++      write_message ("error: unexpected exit status from subprocess\n");
++      abort ();
++    }
++}
++
++static void
++liveness_signal_handler (int signo)
++{
++  if (progress_indicator)
++    progress_indicator = 0;
++  else
++    write_message ("warning: process seems to be stuck\n");
++}
++
++static void
++__attribute__ ((noreturn))
++signal_sender (int signo, bool sleep)
++{
++  pid_t target = getppid ();
++  while (true)
++    {
++      if (kill (target, signo) != 0)
++        {
++          dprintf (STDOUT_FILENO, "error: kill: %m\n");
++          abort ();
++        }
++      if (sleep)
++        usleep (1 * 1000 * 1000);
++      else
++        /* Reduce the rate at which we send signals.  */
++        sched_yield ();
++    }
++}
++
++static int
++do_test (void)
++{
++  struct sigaction action =
++    {
++      .sa_handler = sigusr1_handler,
++    };
++  sigemptyset (&action.sa_mask);
++
++  if (sigaction (SIGUSR1, &action, NULL) != 0)
++    {
++      printf ("error: sigaction: %m");
++      return 1;
++    }
++
++  action.sa_handler = liveness_signal_handler;
++  if (sigaction (SIGUSR2, &action, NULL) != 0)
++    {
++      printf ("error: sigaction: %m");
++      return 1;
++    }
++
++  pid_t sigusr2_sender_pid = fork ();
++  if (sigusr2_sender_pid == 0)
++    signal_sender (SIGUSR2, true);
++  sigusr1_sender_pid = fork ();
++  if (sigusr1_sender_pid == 0)
++    signal_sender (SIGUSR1, false);
++
++  void *objects[malloc_objects] = {};
++  unsigned signals = 0;
++  unsigned seed = 1;
++  time_t last_report = 0;
++  while (signals < signal_count)
++    {
++      progress_indicator = 1;
++      int slot = rand_r (&seed) % malloc_objects;
++      size_t size = rand_r (&seed) % malloc_maximum_size;
++      if (kill (sigusr1_sender_pid, SIGCONT) != 0)
++        {
++          printf ("error: kill (SIGCONT): %m\n");
++          signal (SIGUSR1, SIG_IGN);
++          kill (sigusr1_sender_pid, SIGKILL);
++          kill (sigusr2_sender_pid, SIGKILL);
++          return 1;
++        }
++      sigusr1_received = false;
++      free (objects[slot]);
++      objects[slot] = malloc (size);
++      if (sigusr1_received)
++        {
++          ++signals;
++          time_t current = time (0);
++          if (current != last_report)
++            {
++              printf ("info: SIGUSR1 signal count: %u\n", signals);
++              last_report = current;
++            }
++        }
++      if (objects[slot] == NULL)
++        {
++          printf ("error: malloc: %m\n");
++          signal (SIGUSR1, SIG_IGN);
++          kill (sigusr1_sender_pid, SIGKILL);
++          kill (sigusr2_sender_pid, SIGKILL);
++          return 1;
++        }
++    }
++
++  /* Clean up allocations.  */
++  for (int slot = 0; slot < malloc_objects; ++slot)
++    free (objects[slot]);
++
++  /* Terminate the signal-sending subprocess.  The SIGUSR1 handler
++     should no longer run because it uses sigusr1_sender_pid.  */
++  signal (SIGUSR1, SIG_IGN);
++  kill (sigusr1_sender_pid, SIGKILL);
++  kill (sigusr2_sender_pid, SIGKILL);
++
++  return 0;
++}
++
++#define TIMEOUT 20
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 diff --git a/manual/examples/mkdirent.c b/manual/examples/mkdirent.c
 new file mode 100644
 index 0000000..f8400f4
@@ -58980,6 +59463,40 @@ index 0000000..6841511
 +
 +#define TEST_FUNCTION do_test ()
 +#include "../test-skeleton.c"
+diff --git a/sunrpc/clnt_udp.c b/sunrpc/clnt_udp.c
+index a6cf5f1..4d9acb1 100644
+--- a/sunrpc/clnt_udp.c
++++ b/sunrpc/clnt_udp.c
+@@ -388,9 +388,15 @@ send_again:
+ 	  struct sock_extended_err *e;
+ 	  struct sockaddr_in err_addr;
+ 	  struct iovec iov;
+-	  char *cbuf = (char *) alloca (outlen + 256);
++	  char *cbuf = malloc (outlen + 256);
+ 	  int ret;
+ 
++	  if (cbuf == NULL)
++	    {
++	      cu->cu_error.re_errno = errno;
++	      return (cu->cu_error.re_status = RPC_CANTRECV);
++	    }
++
+ 	  iov.iov_base = cbuf + 256;
+ 	  iov.iov_len = outlen;
+ 	  msg.msg_name = (void *) &err_addr;
+@@ -415,10 +421,12 @@ send_again:
+ 		 cmsg = CMSG_NXTHDR (&msg, cmsg))
+ 	      if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_RECVERR)
+ 		{
++		  free (cbuf);
+ 		  e = (struct sock_extended_err *) CMSG_DATA(cmsg);
+ 		  cu->cu_error.re_errno = e->ee_errno;
+ 		  return (cu->cu_error.re_status = RPC_CANTRECV);
+ 		}
++	  free (cbuf);
+ 	}
+ #endif
+       do
 diff --git a/sysdeps/arm/nacl/libc.abilist b/sysdeps/arm/nacl/libc.abilist
 index 561441e..0560510 100644
 --- a/sysdeps/arm/nacl/libc.abilist
@@ -59167,6 +59684,35 @@ index d18b53f..d73f202 100644
  	jz	2f
  	LOAD_FUNC_GOT_EAX (__memset_chk_sse2_rep)
  2:	ret
+diff --git a/sysdeps/mach/hurd/bits/socket.h b/sysdeps/mach/hurd/bits/socket.h
+index 02c5dac..257e438 100644
+--- a/sysdeps/mach/hurd/bits/socket.h
++++ b/sysdeps/mach/hurd/bits/socket.h
+@@ -156,20 +156,20 @@ struct sockaddr
+ 
+ 
+ /* Structure large enough to hold any socket address (with the historical
+-   exception of AF_UNIX).  We reserve 128 bytes.  */
++   exception of AF_UNIX).  */
+ #if ULONG_MAX > 0xffffffff
+ # define __ss_aligntype	__uint64_t
+ #else
+ # define __ss_aligntype	__uint32_t
+ #endif
+-#define _SS_SIZE	128
+-#define _SS_PADSIZE	(_SS_SIZE - (2 * sizeof (__ss_aligntype)))
++#define _SS_PADSIZE \
++  (_SS_SIZE - __SOCKADDR_COMMON_SIZE - sizeof (__ss_aligntype))
+ 
+ struct sockaddr_storage
+   {
+     __SOCKADDR_COMMON (ss_);	/* Address family, etc.  */
+-    __ss_aligntype __ss_align;	/* Force desired alignment.  */
+     char __ss_padding[_SS_PADSIZE];
++    __ss_aligntype __ss_align;	/* Force desired alignment.  */
+   };
+ 
+ 
 diff --git a/sysdeps/mach/hurd/fork.c b/sysdeps/mach/hurd/fork.c
 index ad09fd7..2e8b59e 100644
 --- a/sysdeps/mach/hurd/fork.c
@@ -59213,7 +59759,7 @@ index ad09fd7..2e8b59e 100644
        RUN_HOOK (_hurd_fork_child_hook, ());
  
 diff --git a/sysdeps/nptl/fork.c b/sysdeps/nptl/fork.c
-index 27f8d52..1a68cbd 100644
+index 27f8d52..616d897 100644
 --- a/sysdeps/nptl/fork.c
 +++ b/sysdeps/nptl/fork.c
 @@ -31,7 +31,7 @@
@@ -59225,38 +59771,83 @@ index 27f8d52..1a68cbd 100644
  
  static void
  fresetlockfiles (void)
-@@ -111,6 +111,11 @@ __libc_fork (void)
+@@ -54,6 +54,12 @@ __libc_fork (void)
+     struct used_handler *next;
+   } *allp = NULL;
  
-   _IO_list_lock ();
- 
-+  /* Acquire malloc locks.  This needs to come last because fork
-+     handlers may use malloc, and the libio list lock has an indirect
-+     malloc dependency as well (via the getdelim function).  */
-+  __malloc_fork_lock_parent ();
++  /* Determine if we are running multiple threads.  We skip some fork
++     handlers in the single-thread case, to make fork safer to use in
++     signal handlers.  POSIX requires that fork is async-signal-safe,
++     but our current fork implementation is not.  */
++  bool multiple_threads = THREAD_GETMEM (THREAD_SELF, header.multiple_threads);
 +
+   /* Run all the registered preparation handlers.  In reverse order.
+      While doing this we build up a list of all the entries.  */
+   struct fork_handler *runp;
+@@ -109,7 +115,21 @@ __libc_fork (void)
+       break;
+     }
+ 
+-  _IO_list_lock ();
++  /* If we are not running multiple threads, we do not have to
++     preserve lock state.  If fork runs from a signal handler, only
++     async-signal-safe functions can be used in the child.  These data
++     structures are only used by unsafe functions, so their state does
++     not matter if fork was called from a signal handler.  */
++  if (multiple_threads)
++    {
++      _IO_list_lock ();
++
++      /* Acquire malloc locks.  This needs to come last because fork
++	 handlers may use malloc, and the libio list lock has an
++	 indirect malloc dependency as well (via the getdelim
++	 function).  */
++      __malloc_fork_lock_parent ();
++    }
+ 
  #ifndef NDEBUG
    pid_t ppid = THREAD_GETMEM (THREAD_SELF, tid);
- #endif
-@@ -168,6 +173,9 @@ __libc_fork (void)
+@@ -168,11 +188,18 @@ __libc_fork (void)
  # endif
  #endif
  
-+      /* Release malloc locks.  */
-+      __malloc_fork_unlock_child ();
-+
-       /* Reset the file list.  These are recursive mutexes.  */
-       fresetlockfiles ();
+-      /* Reset the file list.  These are recursive mutexes.  */
+-      fresetlockfiles ();
++      /* Reset the lock state in the multi-threaded case.  */
++      if (multiple_threads)
++	{
++	  /* Release malloc locks.  */
++	  __malloc_fork_unlock_child ();
  
-@@ -209,6 +217,9 @@ __libc_fork (void)
+-      /* Reset locks in the I/O code.  */
+-      _IO_list_resetlock ();
++	  /* Reset the file list.  These are recursive mutexes.  */
++	  fresetlockfiles ();
++
++	  /* Reset locks in the I/O code.  */
++	  _IO_list_resetlock ();
++	}
+ 
+       /* Reset the lock the dynamic loader uses to protect its data.  */
+       __rtld_lock_initialize (GL(dl_load_lock));
+@@ -209,8 +236,15 @@ __libc_fork (void)
        /* Restore the PID value.  */
        THREAD_SETMEM (THREAD_SELF, pid, parentpid);
  
-+      /* Release malloc locks, parent process variant.  */
-+      __malloc_fork_unlock_parent ();
+-      /* We execute this even if the 'fork' call failed.  */
+-      _IO_list_unlock ();
++      /* Release acquired locks in the multi-threaded case.  */
++      if (multiple_threads)
++	{
++	  /* Release malloc locks, parent process variant.  */
++	  __malloc_fork_unlock_parent ();
 +
-       /* We execute this even if the 'fork' call failed.  */
-       _IO_list_unlock ();
++	  /* We execute this even if the 'fork' call failed.  */
++	  _IO_list_unlock ();
++	}
  
+       /* Run the handlers registered for the parent.  */
+       while (allp != NULL)
 diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
 index 1ef3f20..fed2d3b 100644
 --- a/sysdeps/posix/getaddrinfo.c
@@ -60359,6 +60950,49 @@ index 0000000..33ea3de
 +	cfi_endproc
 +	.size _dl_runtime_profile, .-_dl_runtime_profile
 +#endif
+diff --git a/sysdeps/unix/bsd/bits/sockaddr.h b/sysdeps/unix/bsd/bits/sockaddr.h
+index aa12768..f5900f9 100644
+--- a/sysdeps/unix/bsd/bits/sockaddr.h
++++ b/sysdeps/unix/bsd/bits/sockaddr.h
+@@ -1,4 +1,4 @@
+-/* Definition of `struct sockaddr_*' common members.  4.4 BSD version.
++/* Definition of struct sockaddr_* common members and sizes, BSD version.
+    Copyright (C) 1995-2016 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+@@ -39,4 +39,7 @@ typedef unsigned char sa_family_t;
+ 
+ #define _HAVE_SA_LEN	1	/* We have the sa_len field.  */
+ 
++/* Size of struct sockaddr_storage.  */
++#define _SS_SIZE 128
++
+ #endif	/* bits/sockaddr.h */
+diff --git a/sysdeps/unix/sysv/linux/bits/socket.h b/sysdeps/unix/sysv/linux/bits/socket.h
+index 0581c79..50bfbc3 100644
+--- a/sysdeps/unix/sysv/linux/bits/socket.h
++++ b/sysdeps/unix/sysv/linux/bits/socket.h
+@@ -158,16 +158,16 @@ struct sockaddr
+ 
+ 
+ /* Structure large enough to hold any socket address (with the historical
+-   exception of AF_UNIX).  We reserve 128 bytes.  */
++   exception of AF_UNIX).  */
+ #define __ss_aligntype	unsigned long int
+-#define _SS_SIZE	128
+-#define _SS_PADSIZE	(_SS_SIZE - (2 * sizeof (__ss_aligntype)))
++#define _SS_PADSIZE \
++  (_SS_SIZE - __SOCKADDR_COMMON_SIZE - sizeof (__ss_aligntype))
+ 
+ struct sockaddr_storage
+   {
+     __SOCKADDR_COMMON (ss_);	/* Address family, etc.  */
+-    __ss_aligntype __ss_align;	/* Force desired alignment.  */
+     char __ss_padding[_SS_PADSIZE];
++    __ss_aligntype __ss_align;	/* Force desired alignment.  */
+   };
+ 
+ 
 diff --git a/sysdeps/unix/sysv/linux/i386/glob64.c b/sysdeps/unix/sysv/linux/i386/glob64.c
 index b4fcd1a..802c957 100644
 --- a/sysdeps/unix/sysv/linux/i386/glob64.c
@@ -60401,6 +61035,54 @@ index b4fcd1a..802c957 100644
  #define glob_in_dir __old_glob_in_dir
  #define GLOB_ATTRIBUTE attribute_compat_text_section
  
+diff --git a/sysdeps/unix/sysv/linux/m68k/bits/sockaddr.h b/sysdeps/unix/sysv/linux/m68k/bits/sockaddr.h
+new file mode 100644
+index 0000000..5721f99
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/m68k/bits/sockaddr.h
+@@ -0,0 +1,42 @@
++/* Definition of struct sockaddr_* members and sizes, Linux/m68k version.
++   Copyright (C) 1995-2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/*
++ * Never include this file directly; use <sys/socket.h> instead.
++ */
++
++#ifndef _BITS_SOCKADDR_H
++#define _BITS_SOCKADDR_H	1
++
++
++/* POSIX.1g specifies this type name for the `sa_family' member.  */
++typedef unsigned short int sa_family_t;
++
++/* This macro is used to declare the initial common members
++   of the data types used for socket addresses, `struct sockaddr',
++   `struct sockaddr_in', `struct sockaddr_un', etc.  */
++
++#define	__SOCKADDR_COMMON(sa_prefix) \
++  sa_family_t sa_prefix##family
++
++#define __SOCKADDR_COMMON_SIZE	(sizeof (unsigned short int))
++
++/* Size of struct sockaddr_storage.  */
++#define _SS_SIZE 126
++
++#endif	/* bits/sockaddr.h */
 diff --git a/sysdeps/unix/sysv/linux/mips/makecontext.S b/sysdeps/unix/sysv/linux/mips/makecontext.S
 index 66600c7..3196554 100644
 --- a/sysdeps/unix/sysv/linux/mips/makecontext.S
@@ -60855,3 +61537,31 @@ index 44d5123..d8e2ab1 100644
  
  #define TEST_FUNCTION do_test ()
  #include "../../test-skeleton.c"
+diff --git a/test-skeleton.c b/test-skeleton.c
+index a2edf83..7ab3529 100644
+--- a/test-skeleton.c
++++ b/test-skeleton.c
+@@ -428,23 +428,6 @@ main (int argc, char *argv[])
+       setrlimit (RLIMIT_CORE, &core_limit);
+ #endif
+ 
+-#ifdef RLIMIT_DATA
+-      /* Try to avoid eating all memory if a test leaks.  */
+-      struct rlimit data_limit;
+-      if (getrlimit (RLIMIT_DATA, &data_limit) == 0)
+-	{
+-	  if (TEST_DATA_LIMIT == RLIM_INFINITY)
+-	    data_limit.rlim_cur = data_limit.rlim_max;
+-	  else if (data_limit.rlim_cur > (rlim_t) TEST_DATA_LIMIT)
+-	    data_limit.rlim_cur = MIN ((rlim_t) TEST_DATA_LIMIT,
+-				       data_limit.rlim_max);
+-	  if (setrlimit (RLIMIT_DATA, &data_limit) < 0)
+-	    printf ("setrlimit: RLIMIT_DATA: %m\n");
+-	}
+-      else
+-	printf ("getrlimit: RLIMIT_DATA: %m\n");
+-#endif
+-
+       /* We put the test process in its own pgrp so that if it bogusly
+ 	 generates any job control signals, they won't hit the whole build.  */
+       if (setpgid (0, 0) != 0)
