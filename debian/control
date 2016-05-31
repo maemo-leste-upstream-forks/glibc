@@ -1,7 +1,7 @@
 Source: glibc
 Section: libs
 Priority: required
-Build-Depends: gettext, dpkg-dev (>= 1.18.7), xz-utils, file, quilt,
+Build-Depends: gettext, dpkg (>= 1.18.7), dpkg-dev (>= 1.17.14), xz-utils, file, quilt,
  autoconf, gawk, debhelper (>= 9.20141010), rdfind, symlinks, netbase,
  linux-libc-dev (>= 3.9) [linux-any],
  libaudit-dev [linux-any], libcap-dev [linux-any], libselinux-dev [linux-any],
@@ -804,6 +804,22 @@ Section: libs
 Priority: extra
 Multi-Arch: same
 Pre-Depends: libc6 (= ${binary:Version})
+Depends: ${misc:Depends}
+Build-Profiles: <!stage1>
+Description: GNU C Library: Shared libraries [Xen version]
+ Contains the standard libraries that are used by nearly all programs on
+ the system. This package includes shared versions of the standard C
+ library and the standard math library, as well as many others.
+ .
+ This set of libraries is optimized for the Xen hypervisor, and will be
+ selected instead when running under Xen.
+
+Package: libc0.3-xen
+Architecture: hurd-i386
+Section: libs
+Priority: extra
+Multi-Arch: same
+Pre-Depends: libc0.3 (= ${binary:Version})
 Depends: ${misc:Depends}
 Build-Profiles: <!stage1>
 Description: GNU C Library: Shared libraries [Xen version]

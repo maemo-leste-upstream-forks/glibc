@@ -90,7 +90,7 @@ glibc (2.23-0experimental0) experimental; urgency=medium
     - debian/patches/hppa/local-pthread_spin_unlock.diff: upstreamed.
     - debian/patches/hppa/submitted-mathdef.diff: upstreamed.
     - debian/patches/hppa/cvs-update-mman.h.diff: upstreamed.
-    - debian/patches/hppa/submitted-dladdr.diff: upstreamed.
+    - debian/patches/hppa/submitted-dladdr.diff: partially upstreamed, rebased.
     - debian/patches/hurd-i386/local-enable-ldconfig.diff: rebased.
     - debian/patches/hurd-i386/tg-tls.diff: rebased.
     - debian/patches/hurd-i386/tg-tls-threadvar.diff: rebased.
@@ -150,6 +150,34 @@ glibc (2.23-0experimental0) experimental; urgency=medium
     glibc-bsd).
 
  -- Aurelien Jarno <aurel32@debian.org>  Sun, 13 Mar 2016 19:22:45 +0100
+
+glibc (2.22-10) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * Update from upstream stable branch:
+    - Fix a stack overflow in Sun RPC clntudp_call() (CVE-2016-4429).
+  * debian/control.in/main: build-depends on dpkg (>= 1.18.7) instead of
+    dpkg-dev (>= 1.18.7) as the cputable file is in dpkg, not dpkg-dev.
+    Closes: #824127.
+  * debian/debhelper.in/libc.NEWS: add an entry about the dropped libc6-i686,
+    libc0.1-i686 and libc0.3-i686 packages.  Closes: #825421.
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/cvs-i686-link.diff: Fix link of i686 build.
+  * sysdeps/hurd-i386.mk: Disable ifunc, not working yet.
+  * sysdeps/hurd-i386.mk: Fix and re-enable xen build.
+  * control: Re-introduce libc0.3-xen package.
+  * patches/hurd-i386/cvs-check-local-headers.diff: Update exclusion list.
+
+  [ John David Anglin ]
+  * debian/patches/hppa/submitted-setcontext.diff: new patch to fix setcontext
+    return code on hppa.  Closes: #824344.
+  * debian/patches/hppa/submitted-dladdr.diff: update patch to fix
+    debug/backtrace-tst test failure.  Closes: #824362.
+  * debian/testsuite-xfail-debian.mk: update expected testsuite results.
+    Closes: #824363.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 31 May 2016 23:48:20 +0200
 
 glibc (2.22-9) unstable; urgency=medium
 
