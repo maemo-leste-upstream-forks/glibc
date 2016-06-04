@@ -16,9 +16,6 @@
         kfreebsd-i386)
             hwcappkgs="libc0.1-i686"
             ;;
-        sparc)
-            hwcappkgs="libc6-sparcv9 libc6-sparcv9b"
-            ;;
     esac
  
     # We check the version between the current installed libc and
