@@ -1,10 +1,60 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.22/master from glibc-2.22
 
 diff --git a/ChangeLog b/ChangeLog
-index cb9124e..123274c 100644
+index cb9124e..2d55a22 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,628 @@
+@@ -1,3 +1,678 @@
++2016-01-22  Stefan Liebler  <stli@linux.vnet.ibm.com>
++
++	* string/tst-endian.c: Include <libc-internal.h>.
++	(do_test): Ignore tautological-compare warnings around
++	"htobeXX (beXXtoh (i)) != i" and
++	"htoleXX (leXXtoh (i)) != i" if-statements.
++
++2015-12-18  Torvald Riegel  <triegel@redhat.com>
++
++	* math/atest-exp2.c (mp_exp_m1): Remove.
++
++2016-06-02  Florian Weimer  <fweimer@redhat.com>
++
++	* sysdeps/unix/sysv/linux/dl-openat64.c (openat64): Convert to
++	ISO-style variadic function definition.
++
++2015-12-11  Steve Ellcey  <sellcey@imgtec.com>
++
++	* sysdeps/ieee754/flt-32/k_rem_pio2f.c (__kernel_rem_pio2f):
++	Fix indentation.
++
++2015-09-18  Wilco Dijkstra  <wdijkstr@arm.com>
++
++	* resolv/base64.c (rcsid): Remove unused static.
++	* sysdeps/ieee754/dbl-64/atnat2.h (qpi1): Remove unused
++	static.  (tqpi1): Likewise.
++	* sysdeps/ieee754/dbl-64/uexp.h (one): Likewise.
++	* sysdeps/ieee754/dbl-64/upow.h (sqrt_2): Likewise.
++	* sysdeps/ieee754/flt-32/e_log10f.c (one): Likewise.
++	* sysdeps/ieee754/flt-32/s_cosf.c (one): Likewise.
++	* sysdeps/ieee754/ldbl-128/e_lgammal_r.c (zero): Likewise.
++	* sysdeps/ieee754/ldbl-128/s_erfl.c (half): Likewise.
++	* sysdeps/ieee754/ldbl-128/s_log1pl.c (maxlog): Likewise.
++	* timezone/private.h (time_t_min): Likewise.  (time_t_max):
++	Likewise.
++
++2016-04-15  Yvan Roux  <yvan.roux@linaro.org>
++
++	* stdlib/setenv.c (unsetenv): Fix ambiguous 'else'.
++	* nis/nis_call.c (nis_server_cache_add): Likewise.
++
++2016-06-01  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19861]
++	Do not use IFUNC resolver with potentially unrelocated symbol.
++	* nptl/pt-fork.c [HAVE_IFUNC]: Remove.
++	(DEFINE_FORK): Remove macro and inline definition.
++	(fork_alias): Renamed from fork_ifunc.
++	(__fork_alias): Renamed from __fork_ifunc.
++
 +2016-05-23  Florian Weimer  <fweimer@redhat.com>
 +
 +	CVE-2016-4429
@@ -2647,6 +2697,22 @@ index 6388bae..84b4ded 100644
  endif
  
  # Rules for the test suite.
+diff --git a/math/atest-exp2.c b/math/atest-exp2.c
+index 307c741..ffa73b1 100644
+--- a/math/atest-exp2.c
++++ b/math/atest-exp2.c
+@@ -53,11 +53,6 @@ static const mp1 mp_exp1 = {
+            a784d904, 5190cfef, 324e7738, 926cfbe5, f4bf8d8d, 8c31d763)
+ };
+ 
+-static const mp1 mp_exp_m1 = {
+-  CONSTSZ (0, 5e2d58d8, b3bcdf1a, badec782, 9054f90d, da9805aa, b56c7733,
+-           3024b9d0, a507daed, b16400bf, 472b4215, b8245b66, 9d90d27a)
+-};
+-
+ static const mp1 mp_log2 = {
+   CONSTSZ (0, b17217f7, d1cf79ab, c9e3b398, 03f2f6af, 40f34326, 7298b62d,
+            8a0d175b, 8baafa2b, e7b87620, 6debac98, 559552fb, 4afa1b10)
 diff --git a/misc/Makefile b/misc/Makefile
 index aecb0da..12055ce 100644
 --- a/misc/Makefile
@@ -3011,6 +3077,101 @@ index 876c89f..820b354 100644
     }
  
    return result;
+diff --git a/nis/nis_call.c b/nis/nis_call.c
+index 970415b..d98c385 100644
+--- a/nis/nis_call.c
++++ b/nis/nis_call.c
+@@ -680,16 +680,18 @@ nis_server_cache_add (const_nis_name name, int search_parent,
+   /* Choose which entry should be evicted from the cache.  */
+   loc = &nis_server_cache[0];
+   if (*loc != NULL)
+-    for (i = 1; i < 16; ++i)
+-      if (nis_server_cache[i] == NULL)
+-	{
++    {
++      for (i = 1; i < 16; ++i)
++	if (nis_server_cache[i] == NULL)
++	  {
++	    loc = &nis_server_cache[i];
++	    break;
++	  }
++	else if ((*loc)->uses > nis_server_cache[i]->uses
++		 || ((*loc)->uses == nis_server_cache[i]->uses
++		     && (*loc)->expires > nis_server_cache[i]->expires))
+ 	  loc = &nis_server_cache[i];
+-	  break;
+-	}
+-      else if ((*loc)->uses > nis_server_cache[i]->uses
+-	       || ((*loc)->uses == nis_server_cache[i]->uses
+-		   && (*loc)->expires > nis_server_cache[i]->expires))
+-	loc = &nis_server_cache[i];
++    }
+   old = *loc;
+   *loc = new;
+ 
+diff --git a/nptl/pt-fork.c b/nptl/pt-fork.c
+index fd6544b..325ff2b 100644
+--- a/nptl/pt-fork.c
++++ b/nptl/pt-fork.c
+@@ -25,33 +25,14 @@
+    the historical ABI requires it.  For static linking, there is no need to
+    provide anything here--the libc version will be linked in.  For shared
+    library ABI compatibility, there must be __fork and fork symbols in
+-   libpthread.so; so we define them using IFUNC to redirect to the libc
+-   function.  */
++   libpthread.so.
+ 
+-#if SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_22)
+-
+-# if HAVE_IFUNC
+-
+-static __typeof (fork) *
+-__attribute__ ((used))
+-fork_resolve (void)
+-{
+-  return &__libc_fork;
+-}
++   With an IFUNC resolver, it would be possible to avoid the
++   indirection, but the IFUNC resolver might run before the
++   __libc_fork symbol has been relocated, in which case the IFUNC
++   resolver would not be able to provide the correct address.  */
+ 
+-#  ifdef HAVE_ASM_SET_DIRECTIVE
+-#   define DEFINE_FORK(name) \
+-  asm (".set " #name ", fork_resolve\n" \
+-       ".globl " #name "\n" \
+-       ".type " #name ", %gnu_indirect_function");
+-#  else
+-#   define DEFINE_FORK(name) \
+-  asm (#name " = fork_resolve\n" \
+-       ".globl " #name "\n" \
+-       ".type " #name ", %gnu_indirect_function");
+-#  endif
+-
+-# else  /* !HAVE_IFUNC */
++#if SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_22)
+ 
+ static pid_t __attribute__ ((used))
+ fork_compat (void)
+@@ -59,14 +40,10 @@ fork_compat (void)
+   return __libc_fork ();
+ }
+ 
+-# define DEFINE_FORK(name) strong_alias (fork_compat, name)
+-
+-# endif  /* HAVE_IFUNC */
+-
+-DEFINE_FORK (fork_ifunc)
+-compat_symbol (libpthread, fork_ifunc, fork, GLIBC_2_0);
++strong_alias (fork_compat, fork_alias)
++compat_symbol (libpthread, fork_alias, fork, GLIBC_2_0);
+ 
+-DEFINE_FORK (__fork_ifunc)
+-compat_symbol (libpthread, __fork_ifunc, __fork, GLIBC_2_0);
++strong_alias (fork_compat, __fork_alias)
++compat_symbol (libpthread, __fork_alias, __fork, GLIBC_2_0);
+ 
+ #endif
 diff --git a/posix/bug-glob2.c b/posix/bug-glob2.c
 index 1f302fe..e2964b2 100644
 --- a/posix/bug-glob2.c
@@ -3382,6 +3543,21 @@ index d444999..b8cc042 100644
  
  #ifdef _DIRENT_HAVE_D_TYPE
    dir->d.d_type = filesystem[dir->idx].type;
+diff --git a/resolv/base64.c b/resolv/base64.c
+index ea584ed..519e5d2 100644
+--- a/resolv/base64.c
++++ b/resolv/base64.c
+@@ -40,10 +40,6 @@
+  * IF IBM IS APPRISED OF THE POSSIBILITY OF SUCH DAMAGES.
+  */
+ 
+-#if !defined(LINT) && !defined(CODECENTER)
+-static const char rcsid[] = "$BINDId: base64.c,v 8.7 1999/10/13 16:39:33 vixie Exp $";
+-#endif /* not lint */
+-
+ #include <sys/types.h>
+ #include <sys/param.h>
+ #include <sys/socket.h>
 diff --git a/resolv/nss_dns/dns-host.c b/resolv/nss_dns/dns-host.c
 index 357ac04..a0fe9a8 100644
 --- a/resolv/nss_dns/dns-host.c
@@ -4239,6 +4415,43 @@ index 2d5d56a..5717f09 100644
  
        /* Ensure that the MAP dereference happens before
  	 l_tls_dtor_count decrement.  That way, we protect this access from a
+diff --git a/stdlib/setenv.c b/stdlib/setenv.c
+index b9e0ba8..7a87d64 100644
+--- a/stdlib/setenv.c
++++ b/stdlib/setenv.c
+@@ -289,18 +289,20 @@ unsetenv (name)
+   ep = __environ;
+   if (ep != NULL)
+     while (*ep != NULL)
+-      if (!strncmp (*ep, name, len) && (*ep)[len] == '=')
+-	{
+-	  /* Found it.  Remove this pointer by moving later ones back.  */
+-	  char **dp = ep;
+-
+-	  do
+-	    dp[0] = dp[1];
+-	  while (*dp++);
+-	  /* Continue the loop in case NAME appears again.  */
+-	}
+-      else
+-	++ep;
++      {
++	if (!strncmp (*ep, name, len) && (*ep)[len] == '=')
++	  {
++	    /* Found it.  Remove this pointer by moving later ones back.  */
++	    char **dp = ep;
++
++	    do
++		dp[0] = dp[1];
++	    while (*dp++);
++	    /* Continue the loop in case NAME appears again.  */
++	  }
++	else
++	  ++ep;
++      }
+ 
+   UNLOCK;
+ 
 diff --git a/string/Makefile b/string/Makefile
 index 8424a61..ebe9354 100644
 --- a/string/Makefile
@@ -4441,6 +4654,82 @@ index 8f1225f..35bc0e4 100644
  		    return result;
  		  else
  		    break;
+diff --git a/string/tst-endian.c b/string/tst-endian.c
+index 8684bb2..7d39131 100644
+--- a/string/tst-endian.c
++++ b/string/tst-endian.c
+@@ -3,6 +3,20 @@
+ #include <inttypes.h>
+ #include <stdio.h>
+ #include <stdint.h>
++#include <libc-internal.h>
++
++#if __GNUC_PREREQ (6, 0)
++/* GCC 6.0 warns on big endian systems about:
++   htobeXX (beXXtoh (i)) != i
++   warning: self-comparison always evaluates to false [-Wtautological-compare]
++   because htobeXX(x) and beXXtoh(x) is defined to (x)
++   in string/endian.h on big endian systems.
++   The same applies to htoleXX/leXXtoh on little endian systems.  */
++# define DIAG_IGNORE_NEEDS_COMMENT_TAUTOLOGICAL_COMPARE() \
++  DIAG_IGNORE_NEEDS_COMMENT (6, "-Wtautological-compare")
++#else
++# define DIAG_IGNORE_NEEDS_COMMENT_TAUTOLOGICAL_COMPARE()
++#endif
+ 
+ static int
+ do_test (void)
+@@ -13,6 +27,8 @@ do_test (void)
+     {
+       if (i < UINT64_C (65536))
+ 	{
++	  DIAG_PUSH_NEEDS_COMMENT;
++	  DIAG_IGNORE_NEEDS_COMMENT_TAUTOLOGICAL_COMPARE ();
+ 	  if (htobe16 (be16toh (i)) != i)
+ 	    {
+ 	      printf ("htobe16 (be16toh (%" PRIx64 ")) == %" PRIx16 "\n",
+@@ -25,6 +41,7 @@ do_test (void)
+ 		      i, (uint16_t) htole16 (le16toh (i)));
+ 	      result = 1;
+ 	    }
++	  DIAG_POP_NEEDS_COMMENT;
+ 
+ 	  uint16_t n[2];
+ 	  n[__BYTE_ORDER == __LITTLE_ENDIAN] = bswap_16 (i);
+@@ -45,6 +62,8 @@ do_test (void)
+ 
+       if (i < UINT64_C (4294967296))
+ 	{
++	  DIAG_PUSH_NEEDS_COMMENT;
++	  DIAG_IGNORE_NEEDS_COMMENT_TAUTOLOGICAL_COMPARE ();
+ 	  if (htobe32 (be32toh (i)) != i)
+ 	    {
+ 	      printf ("htobe32 (be32toh (%" PRIx64 ")) == %" PRIx32 "\n",
+@@ -57,6 +76,7 @@ do_test (void)
+ 		      i, (uint32_t) htole32 (le32toh (i)));
+ 	      result = 1;
+ 	    }
++	  DIAG_POP_NEEDS_COMMENT;
+ 
+ 	  uint32_t n[2];
+ 	  n[__BYTE_ORDER == __LITTLE_ENDIAN] = bswap_32 (i);
+@@ -75,6 +95,8 @@ do_test (void)
+ 	    }
+ 	}
+ 
++      DIAG_PUSH_NEEDS_COMMENT;
++      DIAG_IGNORE_NEEDS_COMMENT_TAUTOLOGICAL_COMPARE ();
+       if (htobe64 (be64toh (i)) != i)
+ 	{
+ 	  printf ("htobe64 (be64toh (%" PRIx64 ")) == %" PRIx64 "\n",
+@@ -87,6 +109,7 @@ do_test (void)
+ 		  i, htole64 (le64toh (i)));
+ 	  result = 1;
+ 	}
++      DIAG_POP_NEEDS_COMMENT;
+ 
+       uint64_t n[2];
+       n[__BYTE_ORDER == __LITTLE_ENDIAN] = bswap_64 (i);
 diff --git a/string/tst-strxfrm2.c b/string/tst-strxfrm2.c
 index d5a1115..bea5aa2 100644
 --- a/string/tst-strxfrm2.c
@@ -4717,6 +5006,142 @@ index a3f3067..5647cb0 100644
    AC_DEFINE(HAVE_MPX_SUPPORT)
  fi
  
+diff --git a/sysdeps/ieee754/dbl-64/atnat2.h b/sysdeps/ieee754/dbl-64/atnat2.h
+index e0d65af..82943f9 100644
+--- a/sysdeps/ieee754/dbl-64/atnat2.h
++++ b/sysdeps/ieee754/dbl-64/atnat2.h
+@@ -65,10 +65,8 @@
+ /**/ hpi1           = {{0x3c91a626, 0x33145c07} }, /*  pi/2-hpi     */
+ /**/ mhpi           = {{0xbff921fb, 0x54442d18} }, /* -pi/2         */
+ /**/ qpi            = {{0x3fe921fb, 0x54442d18} }, /*  pi/4         */
+-/**/ qpi1           = {{0x3c81a626, 0x33145c07} }, /*  pi/4-qpi     */
+ /**/ mqpi           = {{0xbfe921fb, 0x54442d18} }, /* -pi/4         */
+ /**/ tqpi           = {{0x4002d97c, 0x7f3321d2} }, /*  3pi/4        */
+-/**/ tqpi1          = {{0x3c9a7939, 0x4c9e8a0a} }, /*  3pi/4-tqpi   */
+ /**/ mtqpi          = {{0xc002d97c, 0x7f3321d2} }, /* -3pi/4        */
+ /**/ u1             = {{0x3c314c2a, 0x00000000} }, /*  9.377e-19    */
+ /**/ u2             = {{0x3bf955e4, 0x00000000} }, /*  8.584e-20    */
+@@ -129,10 +127,8 @@
+ /**/ hpi1           = {{0x33145c07, 0x3c91a626} }, /*  pi/2-hpi     */
+ /**/ mhpi           = {{0x54442d18, 0xbff921fb} }, /* -pi/2         */
+ /**/ qpi            = {{0x54442d18, 0x3fe921fb} }, /*  pi/4         */
+-/**/ qpi1           = {{0x33145c07, 0x3c81a626} }, /*  pi/4-qpi     */
+ /**/ mqpi           = {{0x54442d18, 0xbfe921fb} }, /* -pi/4         */
+ /**/ tqpi           = {{0x7f3321d2, 0x4002d97c} }, /*  3pi/4        */
+-/**/ tqpi1          = {{0x4c9e8a0a, 0x3c9a7939} }, /*  3pi/4-tqpi   */
+ /**/ mtqpi          = {{0x7f3321d2, 0xc002d97c} }, /* -3pi/4        */
+ /**/ u1             = {{0x00000000, 0x3c314c2a} }, /*  9.377e-19    */
+ /**/ u2             = {{0x00000000, 0x3bf955e4} }, /*  8.584e-20    */
+diff --git a/sysdeps/ieee754/dbl-64/uexp.h b/sysdeps/ieee754/dbl-64/uexp.h
+index 6817eaf..42b21f2 100644
+--- a/sysdeps/ieee754/dbl-64/uexp.h
++++ b/sysdeps/ieee754/dbl-64/uexp.h
+@@ -29,7 +29,7 @@
+ 
+ #include "mydefs.h"
+ 
+-const static double one = 1.0, zero = 0.0, hhuge = 1.0e300, tiny = 1.0e-300,
++const static double zero = 0.0, hhuge = 1.0e300, tiny = 1.0e-300,
+ err_0 = 1.000014, err_1 = 0.000016;
+ const static int4 bigint = 0x40862002,
+              badint = 0x40876000,smallint = 0x3C8fffff;
+diff --git a/sysdeps/ieee754/dbl-64/upow.h b/sysdeps/ieee754/dbl-64/upow.h
+index c8569a9..b4911e5 100644
+--- a/sysdeps/ieee754/dbl-64/upow.h
++++ b/sysdeps/ieee754/dbl-64/upow.h
+@@ -34,7 +34,6 @@
+ /**/ nZERO	    = {{0x80000000, 0}},	  /* -0.0          */
+ /**/ INF            = {{0x7ff00000, 0x00000000}}, /* INF           */
+ /**/ nINF           = {{0xfff00000, 0x00000000}}, /* -INF          */
+-/**/ sqrt_2         = {{0x3ff6a09e, 0x667f3bcc}}, /* sqrt(2)       */
+ /**/ ln2a           = {{0x3fe62e42, 0xfefa3800}}, /* ln(2) 43 bits */
+ /**/ ln2b           = {{0x3d2ef357, 0x93c76730}}, /* ln(2)-ln2a    */
+ /**/ bigu           = {{0x4297ffff, 0xfffffd2c}}, /* 1.5*2**42 -724*2**-10  */
+@@ -48,7 +47,6 @@
+ /**/ nZERO	    = {{0, 0x80000000}},	  /* -0.0          */
+ /**/ INF            = {{0x00000000, 0x7ff00000}}, /* INF           */
+ /**/ nINF           = {{0x00000000, 0xfff00000}}, /* -INF           */
+-/**/ sqrt_2         = {{0x667f3bcc, 0x3ff6a09e}}, /* sqrt(2)       */
+ /**/ ln2a           = {{0xfefa3800, 0x3fe62e42}}, /* ln(2) 43 bits */
+ /**/ ln2b           = {{0x93c76730, 0x3d2ef357}}, /* ln(2)-ln2a    */
+ /**/ bigu           = {{0xfffffd2c, 0x4297ffff}}, /* 1.5*2**42 -724*2**-10  */
+diff --git a/sysdeps/ieee754/flt-32/e_log10f.c b/sysdeps/ieee754/flt-32/e_log10f.c
+index 96f0e81..1daeef7 100644
+--- a/sysdeps/ieee754/flt-32/e_log10f.c
++++ b/sysdeps/ieee754/flt-32/e_log10f.c
+@@ -22,8 +22,6 @@ ivln10     =  4.3429449201e-01, /* 0x3ede5bd9 */
+ log10_2hi  =  3.0102920532e-01, /* 0x3e9a2080 */
+ log10_2lo  =  7.9034151668e-07; /* 0x355427db */
+ 
+-static const float zero   =  0.0;
+-
+ float
+ __ieee754_log10f(float x)
+ {
+diff --git a/sysdeps/ieee754/flt-32/k_rem_pio2f.c b/sysdeps/ieee754/flt-32/k_rem_pio2f.c
+index 6f14d5b..153ebca 100644
+--- a/sysdeps/ieee754/flt-32/k_rem_pio2f.c
++++ b/sysdeps/ieee754/flt-32/k_rem_pio2f.c
+@@ -65,7 +65,9 @@ int __kernel_rem_pio2f(float *x, float *y, int e0, int nx, int prec, const int32
+ 
+     /* compute q[0],q[1],...q[jk] */
+ 	for (i=0;i<=jk;i++) {
+-	    for(j=0,fw=0.0;j<=jx;j++) fw += x[j]*f[jx+i-j]; q[i] = fw;
++	    for(j=0,fw=0.0;j<=jx;j++)
++		fw += x[j]*f[jx+i-j];
++	    q[i] = fw;
+ 	}
+ 
+ 	jz = jk;
+diff --git a/sysdeps/ieee754/flt-32/s_cosf.c b/sysdeps/ieee754/flt-32/s_cosf.c
+index 864ab27..0affd40 100644
+--- a/sysdeps/ieee754/flt-32/s_cosf.c
++++ b/sysdeps/ieee754/flt-32/s_cosf.c
+@@ -21,8 +21,6 @@ static char rcsid[] = "$NetBSD: s_cosf.c,v 1.4 1995/05/10 20:47:03 jtc Exp $";
+ #include <math.h>
+ #include <math_private.h>
+ 
+-static const float one=1.0;
+-
+ #ifndef COSF
+ # define COSF_FUNC __cosf
+ #else
+diff --git a/sysdeps/ieee754/ldbl-128/e_lgammal_r.c b/sysdeps/ieee754/ldbl-128/e_lgammal_r.c
+index d8a5e5b..c5c59ae 100644
+--- a/sysdeps/ieee754/ldbl-128/e_lgammal_r.c
++++ b/sysdeps/ieee754/ldbl-128/e_lgammal_r.c
+@@ -82,7 +82,6 @@ DIAG_IGNORE_NEEDS_COMMENT (4.6, "-Woverflow");
+ static const long double MAXLGM = 1.0485738685148938358098967157129705071571E4928L;
+ DIAG_POP_NEEDS_COMMENT;
+ static const long double one = 1.0L;
+-static const long double zero = 0.0L;
+ static const long double huge = LDBL_MAX;
+ 
+ /* log gamma(x) = ( x - 0.5 ) * log(x) - x + LS2PI + 1/x P(1/x^2)
+diff --git a/sysdeps/ieee754/ldbl-128/s_erfl.c b/sysdeps/ieee754/ldbl-128/s_erfl.c
+index fa4609f..08c80a3 100644
+--- a/sysdeps/ieee754/ldbl-128/s_erfl.c
++++ b/sysdeps/ieee754/ldbl-128/s_erfl.c
+@@ -140,7 +140,6 @@ deval (long double x, const long double *p, int n)
+ 
+ static const long double
+ tiny = 1e-4931L,
+-  half = 0.5L,
+   one = 1.0L,
+   two = 2.0L,
+   /* 2/sqrt(pi) - 1 */
+diff --git a/sysdeps/ieee754/ldbl-128/s_log1pl.c b/sysdeps/ieee754/ldbl-128/s_log1pl.c
+index ff759bc..9609550 100644
+--- a/sysdeps/ieee754/ldbl-128/s_log1pl.c
++++ b/sysdeps/ieee754/ldbl-128/s_log1pl.c
+@@ -117,7 +117,6 @@ static const long double C2 = 1.428606820309417232121458176568075500134E-6L;
+ 
+ static const long double sqrth = 0.7071067811865475244008443621048490392848L;
+ /* ln (2^16384 * (1 - 2^-113)) */
+-static const long double maxlog = 1.1356523406294143949491931077970764891253E4L;
+ static const long double zero = 0.0L;
+ 
+ long double
 diff --git a/sysdeps/ieee754/ldbl-128ibm/ldbl2mpn.c b/sysdeps/ieee754/ldbl-128ibm/ldbl2mpn.c
 index e9b5803..030a2aa 100644
 --- a/sysdeps/ieee754/ldbl-128ibm/ldbl2mpn.c
@@ -6447,6 +6872,22 @@ index 58c8b32..aa20e22 100644
  GLIBC_2.3
   GLIBC_2.3 A
   __ctype_b_loc F
+diff --git a/sysdeps/unix/sysv/linux/dl-openat64.c b/sysdeps/unix/sysv/linux/dl-openat64.c
+index 732097d..ae15e3a 100644
+--- a/sysdeps/unix/sysv/linux/dl-openat64.c
++++ b/sysdeps/unix/sysv/linux/dl-openat64.c
+@@ -23,10 +23,7 @@
+ 
+ 
+ int
+-openat64 (dfd, file, oflag)
+-     int dfd;
+-     const char *file;
+-     int oflag;
++openat64 (int dfd, const char *file, int oflag, ...)
+ {
+   assert (!__OPEN_NEEDS_MODE (oflag));
+ 
 diff --git a/sysdeps/unix/sysv/linux/hppa/bits/atomic.h b/sysdeps/unix/sysv/linux/hppa/bits/atomic.h
 index abde83e..6e73504 100644
 --- a/sysdeps/unix/sysv/linux/hppa/bits/atomic.h
@@ -7210,6 +7651,27 @@ index 374fba4..af3ff72 100644
  }
  
  #define TEST_FUNCTION do_test ()
+diff --git a/timezone/private.h b/timezone/private.h
+index 4e8f4ae..ed19e06 100644
+--- a/timezone/private.h
++++ b/timezone/private.h
+@@ -326,16 +326,6 @@ const char *	scheck(const char * string, const char * format);
+ #define TYPE_SIGNED(type) (((type) -1) < 0)
+ #endif /* !defined TYPE_SIGNED */
+ 
+-/* The minimum and maximum finite time values.  */
+-static time_t const time_t_min =
+-  (TYPE_SIGNED(time_t)
+-   ? (time_t) -1 << (CHAR_BIT * sizeof (time_t) - 1)
+-   : 0);
+-static time_t const time_t_max =
+-  (TYPE_SIGNED(time_t)
+-   ? - (~ 0 < 0) - ((time_t) -1 << (CHAR_BIT * sizeof (time_t) - 1))
+-   : -1);
+-
+ #ifndef INT_STRLEN_MAXIMUM
+ /*
+ ** 302 / 1000 is log10(2.0) rounded up.
 diff --git a/wcsmbs/wcscoll_l.c b/wcsmbs/wcscoll_l.c
 index 6d9384a..87f240d 100644
 --- a/wcsmbs/wcscoll_l.c
