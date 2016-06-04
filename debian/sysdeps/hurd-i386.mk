@@ -1,3 +1,6 @@
+# Transitional dummy package, should be removed after Stretch release
+DEB_ARCH_REGULAR_PACKAGES += libc0.3-i686
+
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
 # greatly increase the speed when running under the 32bit Xen hypervisor.
 GLIBC_PASSES += xen
