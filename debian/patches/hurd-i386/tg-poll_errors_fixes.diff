@@ -30,9 +30,11 @@ case, or else POLLERR.
 
 
 ---
- hurd/hurdselect.c |  124 +++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 83 insertions(+), 41 deletions(-)
+ hurd/hurdselect.c | 145 +++++++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 101 insertions(+), 44 deletions(-)
 
+diff --git a/hurd/hurdselect.c b/hurd/hurdselect.c
+index d453042..22faac9 100644
 --- a/hurd/hurdselect.c
 +++ b/hurd/hurdselect.c
 @@ -34,6 +34,7 @@
@@ -51,8 +53,20 @@ case, or else POLLERR.
      } d[nfds];
    sigset_t oset;
  
-@@ -156,25 +158,33 @@ _hurd_select (int nfds,
- 		  continue;
+@@ -151,30 +153,42 @@ _hurd_select (int nfds,
+ 	    if (fd < _hurd_dtablesize)
+ 	      {
+ 		d[i].cell = _hurd_dtable[fd];
+-		d[i].io_port = _hurd_port_get (&d[i].cell->port, &d[i].ulink);
+-		if (d[i].io_port != MACH_PORT_NULL)
+-		  continue;
++		if (d[i].cell != NULL)
++		  {
++		    d[i].io_port = _hurd_port_get (&d[i].cell->port,
++						   &d[i].ulink);
++		    if (d[i].io_port != MACH_PORT_NULL)
++		      continue;
++		  }
  	      }
  
 -	    /* If one descriptor is bogus, we fail completely.  */
@@ -99,7 +113,7 @@ case, or else POLLERR.
        lastfd = i - 1;
        firstfd = i == 0 ? lastfd : 0;
      }
-@@ -199,9 +209,6 @@ _hurd_select (int nfds,
+@@ -199,9 +213,6 @@ _hurd_select (int nfds,
        HURD_CRITICAL_BEGIN;
        __mutex_lock (&_hurd_dtable_lock);
  
@@ -109,7 +123,7 @@ case, or else POLLERR.
        /* Collect the ports for interesting FDs.  */
        firstfd = lastfd = -1;
        for (i = 0; i < nfds; ++i)
-@@ -216,9 +223,12 @@ _hurd_select (int nfds,
+@@ -216,9 +227,15 @@ _hurd_select (int nfds,
  	  d[i].type = type;
  	  if (type)
  	    {
@@ -119,13 +133,16 @@ case, or else POLLERR.
 +	      if (i < _hurd_dtablesize)
 +		{
 +		  d[i].cell = _hurd_dtable[i];
-+		  d[i].io_port = _hurd_port_get (&d[i].cell->port, &d[i].ulink);
++		  if (d[i].cell != NULL)
++		    d[i].io_port = _hurd_port_get (&d[i].cell->port,
++						   &d[i].ulink);
 +		}
-+	      if (i >= _hurd_dtablesize || d[i].io_port == MACH_PORT_NULL)
++	      if (i >= _hurd_dtablesize || d[i].cell == NULL ||
++		  d[i].io_port == MACH_PORT_NULL)
  		{
  		  /* If one descriptor is bogus, we fail completely.  */
  		  while (i-- > 0)
-@@ -243,6 +253,9 @@ _hurd_select (int nfds,
+@@ -243,6 +260,9 @@ _hurd_select (int nfds,
  	  errno = EBADF;
  	  return -1;
  	}
@@ -135,7 +152,7 @@ case, or else POLLERR.
      }
  
  
-@@ -260,7 +273,7 @@ _hurd_select (int nfds,
+@@ -260,7 +280,7 @@ _hurd_select (int nfds,
        portset = MACH_PORT_NULL;
  
        for (i = firstfd; i <= lastfd; ++i)
@@ -144,7 +161,7 @@ case, or else POLLERR.
  	  {
  	    int type = d[i].type;
  	    d[i].reply_port = __mach_reply_port ();
-@@ -294,11 +307,10 @@ _hurd_select (int nfds,
+@@ -294,11 +314,10 @@ _hurd_select (int nfds,
  	      }
  	    else
  	      {
@@ -160,7 +177,7 @@ case, or else POLLERR.
  		++got;
  	      }
  	    _hurd_port_free (&d[i].cell->port, &d[i].ulink, d[i].io_port);
-@@ -404,9 +416,10 @@ _hurd_select (int nfds,
+@@ -404,9 +423,10 @@ _hurd_select (int nfds,
  #endif
  		  msg.head.msgh_size != sizeof msg.success)
  		{
@@ -173,7 +190,7 @@ case, or else POLLERR.
  		}
  
  	      /* Look up the respondent's reply port and record its
-@@ -418,9 +431,18 @@ _hurd_select (int nfds,
+@@ -418,9 +438,18 @@ _hurd_select (int nfds,
  		    if (d[i].type
  			&& d[i].reply_port == msg.head.msgh_local_port)
  		      {
@@ -195,7 +212,7 @@ case, or else POLLERR.
  
  			d[i].type |= SELECT_RETURNED;
  			++got;
-@@ -461,7 +483,7 @@ _hurd_select (int nfds,
+@@ -458,7 +487,7 @@ _hurd_select (int nfds,
  
    if (firstfd != -1)
      for (i = firstfd; i <= lastfd; ++i)
@@ -204,7 +221,7 @@ case, or else POLLERR.
  	__mach_port_destroy (__mach_task_self (), d[i].reply_port);
    if (firstfd == -1 || (firstfd != lastfd && portset != MACH_PORT_NULL))
      /* Destroy PORTSET, but only if it's not actually the reply port for a
-@@ -483,15 +505,29 @@ _hurd_select (int nfds,
+@@ -480,15 +509,29 @@ _hurd_select (int nfds,
  	int type = d[i].type;
  	int_fast16_t revents = 0;
  
@@ -243,7 +260,7 @@ case, or else POLLERR.
  
  	pollfds[i].revents = revents;
        }
-@@ -511,6 +547,20 @@ _hurd_select (int nfds,
+@@ -508,6 +551,20 @@ _hurd_select (int nfds,
  	    if ((type & SELECT_RETURNED) == 0)
  	      type = 0;
  
@@ -264,3 +281,5 @@ case, or else POLLERR.
  	    if (type & SELECT_READ)
  	      ready++;
  	    else if (readfds)
+-- 
+tg: (ca390b5..) t/poll_errors_fixes (depends on: t/io_select_timeout)
