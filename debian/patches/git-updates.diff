@@ -1,10 +1,40 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.23/master from glibc-2.23
 
 diff --git a/ChangeLog b/ChangeLog
-index 2e4afb7..2da868a 100644
+index 2e4afb7..234f3cd 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,5 +1,532 @@
+@@ -1,5 +1,562 @@
++2016-06-18  Aurelien Jarno  <aurelien@aurel32.net>
++
++	* sysdeps/unix/sysv/linux/mips/vfork.S (__vfork): Conditionalize
++	hidden_def, weak_alias and strong_alias on [IS_IN (libc)].
++	* sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S: Likewise.
++	* sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S: Likewise.
++
++2016-06-03  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++
++	[BZ #20012]
++	* libio/fmemopen.c (fmemopen_read): Use buffer maximum position, not
++	length to calculate the buffer to read.
++	(fmemopen_write): Set the buffer position based on bytes written.
++	(fmemopen_seek): Return EINVAL for invalid whence modes.
++
++	[BZ #20005]
++	* libio/fmemopen.c (fmemopen_write): Update internal position after
++	write.
++	* stdio-common/Makefile (tests): Add tst-fmemopen4.c.
++	* stdio-common/tst-fmemopen4.c: New file..
++
++2016-06-01  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #19861]
++	Do not use IFUNC resolver with potentially unrelocated symbol.
++	* nptl/pt-fork.c [HAVE_IFUNC]: Remove.
++	(DEFINE_FORK): Remove macro and inline definition.
++	(fork_alias): Renamed from fork_ifunc.
++	(__fork_alias): Renamed from __fork_ifunc.
++
 +2016-03-07  Florian Weimer  <fweimer@redhat.com>
 +
 +	[BZ #19648]
@@ -2047,6 +2077,81 @@ index 0000000..fe0307b
 +
 +#define TEST_FUNCTION do_test ()
 +#include "../test-skeleton.c"
+diff --git a/libio/fmemopen.c b/libio/fmemopen.c
+index 23b5c5f..0f65590 100644
+--- a/libio/fmemopen.c
++++ b/libio/fmemopen.c
+@@ -50,16 +50,14 @@ fmemopen_read (void *cookie, char *b, size_t s)
+ 
+   if (c->pos + s > c->maxpos)
+     {
+-      if ((size_t) c->pos == c->maxpos)
+-	return 0;
+-      s = c->size - c->pos;
++      s = c->maxpos - c->pos;
++      if ((size_t) c->pos > c->maxpos)
++	s = 0;
+     }
+ 
+   memcpy (b, &(c->buffer[c->pos]), s);
+ 
+   c->pos += s;
+-  if ((size_t) c->pos > c->maxpos)
+-    c->maxpos = c->pos;
+ 
+   return s;
+ }
+@@ -70,28 +68,29 @@ fmemopen_write (void *cookie, const char *b, size_t s)
+ {
+   fmemopen_cookie_t *c = (fmemopen_cookie_t *) cookie;;
+   _IO_off64_t pos = c->append ? c->maxpos : c->pos;
+-  int addnullc;
+-
+-  addnullc = (s == 0 || b[s - 1] != '\0');
++  int addnullc = (s == 0 || b[s - 1] != '\0');
+ 
+-  if (pos + s + addnullc > c->size)
++  if (pos + s > c->size)
+     {
+       if ((size_t) (c->pos + addnullc) >= c->size)
+ 	{
+ 	  __set_errno (ENOSPC);
+ 	  return 0;
+ 	}
+-      s = c->size - pos - addnullc;
++      s = c->size - pos;
+     }
+ 
+   memcpy (&(c->buffer[pos]), b, s);
+ 
+-  pos += s;
+-  if ((size_t) pos > c->maxpos)
++  c->pos = pos + s;
++  if ((size_t) c->pos > c->maxpos)
+     {
+-      c->maxpos = pos;
+-      if (addnullc)
++      c->maxpos = c->pos;
++      if (c->maxpos < c->size && addnullc)
+ 	c->buffer[c->maxpos] = '\0';
++      /* A null byte is written in a stream open for update iff it fits.  */
++      else if (c->append == 0 && addnullc != 0)
++	c->buffer[c->size-1] = '\0';
+     }
+ 
+   return s;
+@@ -123,7 +122,10 @@ fmemopen_seek (void *cookie, _IO_off64_t *p, int w)
+     }
+ 
+   if (np < 0 || (size_t) np > c->size)
+-    return -1;
++    {
++      __set_errno (EINVAL);
++      return -1;
++    }
+ 
+   *p = c->pos = np;
+ 
 diff --git a/locale/localeinfo.h b/locale/localeinfo.h
 index 5c4e6ef..94627f3 100644
 --- a/locale/localeinfo.h
@@ -3011,6 +3116,69 @@ index 3fa37e4..cb7839a 100644
    old = *loc;
    *loc = new;
  
+diff --git a/nptl/pt-fork.c b/nptl/pt-fork.c
+index b65d6b4..db9b61d 100644
+--- a/nptl/pt-fork.c
++++ b/nptl/pt-fork.c
+@@ -25,33 +25,14 @@
+    the historical ABI requires it.  For static linking, there is no need to
+    provide anything here--the libc version will be linked in.  For shared
+    library ABI compatibility, there must be __fork and fork symbols in
+-   libpthread.so; so we define them using IFUNC to redirect to the libc
+-   function.  */
++   libpthread.so.
+ 
+-#if SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_22)
+-
+-# if HAVE_IFUNC
+-
+-static __typeof (fork) *
+-__attribute__ ((used))
+-fork_resolve (void)
+-{
+-  return &__libc_fork;
+-}
++   With an IFUNC resolver, it would be possible to avoid the
++   indirection, but the IFUNC resolver might run before the
++   __libc_fork symbol has been relocated, in which case the IFUNC
++   resolver would not be able to provide the correct address.  */
+ 
+-#  ifdef HAVE_ASM_SET_DIRECTIVE
+-#   define DEFINE_FORK(name) \
+-  asm (".set " #name ", fork_resolve\n" \
+-       ".globl " #name "\n" \
+-       ".type " #name ", %gnu_indirect_function");
+-#  else
+-#   define DEFINE_FORK(name) \
+-  asm (#name " = fork_resolve\n" \
+-       ".globl " #name "\n" \
+-       ".type " #name ", %gnu_indirect_function");
+-#  endif
+-
+-# else  /* !HAVE_IFUNC */
++#if SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_22)
+ 
+ static pid_t __attribute__ ((used))
+ fork_compat (void)
+@@ -59,14 +40,10 @@ fork_compat (void)
+   return __libc_fork ();
+ }
+ 
+-# define DEFINE_FORK(name) strong_alias (fork_compat, name)
+-
+-# endif  /* HAVE_IFUNC */
+-
+-DEFINE_FORK (fork_ifunc)
+-compat_symbol (libpthread, fork_ifunc, fork, GLIBC_2_0);
++strong_alias (fork_compat, fork_alias)
++compat_symbol (libpthread, fork_alias, fork, GLIBC_2_0);
+ 
+-DEFINE_FORK (__fork_ifunc)
+-compat_symbol (libpthread, __fork_ifunc, __fork, GLIBC_2_0);
++strong_alias (fork_compat, __fork_alias)
++compat_symbol (libpthread, __fork_alias, __fork, GLIBC_2_0);
+ 
+ #endif
 diff --git a/nss/nss_db/db-XXX.c b/nss/nss_db/db-XXX.c
 index 03c18d7..125a5e9 100644
 --- a/nss/nss_db/db-XXX.c
@@ -59032,6 +59200,19 @@ index 25c19f1..2c0bae1 100644
  	else {
  		/* poll should not have returned > 0 in this case.  */
  		abort ();
+diff --git a/stdio-common/Makefile b/stdio-common/Makefile
+index cc79d34..83ff00a 100644
+--- a/stdio-common/Makefile
++++ b/stdio-common/Makefile
+@@ -58,7 +58,7 @@ tests := tstscanf test_rdwr test-popen tstgetln test-fseek \
+ 	 scanf16 scanf17 tst-setvbuf1 tst-grouping bug23 bug24 \
+ 	 bug-vfprintf-nargs tst-long-dbl-fphex tst-fphex-wide tst-sprintf3 \
+ 	 bug25 tst-printf-round bug23-2 bug23-3 bug23-4 bug26 tst-fmemopen3 \
+-	 tst-printf-bz18872
++	 tst-printf-bz18872 tst-fmemopen4
+ 
+ test-srcs = tst-unbputc tst-printf
+ 
 diff --git a/stdio-common/printf_fp.c b/stdio-common/printf_fp.c
 index 4134f8a..fdfe06b 100644
 --- a/stdio-common/printf_fp.c
@@ -59146,6 +59327,227 @@ index 4134f8a..fdfe06b 100644
  
  /* Return the number of extra grouping characters that will be inserted
     into a number with INTDIG_MAX integer digits.  */
+diff --git a/stdio-common/tst-fmemopen3.c b/stdio-common/tst-fmemopen3.c
+index 250f9ec..054b069 100644
+--- a/stdio-common/tst-fmemopen3.c
++++ b/stdio-common/tst-fmemopen3.c
+@@ -25,8 +25,13 @@ static void
+ print_buffer (const char *s, size_t n)
+ {
+   size_t i;
++  printf ("{");
+   for (i=0; i<n; ++i)
+-    printf ("0x%02X (%c), ", s[i], s[i]);
++    {
++      printf ("0x%02X (%c)", s[i], s[i]);
++      if (i != n)
++	printf (", ");
++    }
+ }
+ 
+ /* This test check append mode initial position (a/a+) based on POSIX defition
+@@ -186,6 +191,112 @@ do_test_read_seek_negative (void)
+ }
+ 
+ static int
++do_test_write_append_2 (const char *str)
++{
++  char buf[10];
++  size_t strn = strlen (str);
++  strcpy (buf, str);
++
++  FILE *fp = fmemopen (buf, sizeof (buf), "a+");
++  size_t r = ftell (fp);
++  size_t e = strlen (buf);
++  if (r != e)
++    {
++      printf ("%s: ftell returned %zu, expected %zu\n", __FUNCTION__, r, e);
++      return 1;
++    }
++
++  if (fseek (fp, 0, SEEK_SET) == -1)
++    {
++      printf ("%s: fseek returned -1\n", __FUNCTION__);
++      return 1;
++    }
++
++  int gr;
++  for (int i=0; i<strn; ++i)
++    {
++      if ((gr = getc (fp)) != str[i])
++	{
++	  printf ("%s: getc failed returned %d, expected %d\n", __FUNCTION__,
++		  gr, str[i]);
++	  return 1;
++        }
++    }
++  if ((gr = getc (fp)) != EOF)
++    {
++      printf ("%s: getc failed returned %d, expected EOF\n", __FUNCTION__,
++	      gr);
++      return 1;
++    }
++
++  if (fseek (fp, e+1, SEEK_SET) == -1)
++    {
++      printf ("%s: fseek returned -1\n", __FUNCTION__);
++      return 1;
++    }
++
++  if ((r = ftell (fp)) != e+1)
++    {
++      printf ("%s: ftell returned %zu, expected %zu\n", __FUNCTION__, r, e+1);
++      return 1;
++    }
++
++  if ((gr = getc (fp)) != EOF)
++    {
++      printf ("%s: getc failed returned %i\n", __FUNCTION__, gr);
++      return 1;
++    }
++
++  /* Check if internal position is not changed with a getc returning EOF.  */
++  if ((r = ftell (fp)) != e+1)
++    {
++      printf ("%s: ftell returned %zu, expected %zu\n", __FUNCTION__, r, e+1);
++      return 1;
++    }
++
++  if (fseek (fp, 0, SEEK_CUR) == -1)
++    {
++      printf ("%s: fseek returned -1\n", __FUNCTION__);
++      return 1;
++    }
++
++  /* This should be overwritten by fprintf + fflush.  */
++  buf[e+2] = 'X';
++
++  if ((r = fprintf (fp, "%d", 101)) != 3)
++    {
++      printf ("%s: fprintf returned %zu, expected %d\n", __FUNCTION__, r, 3);
++      return 1;
++    }
++
++  fflush (fp);
++
++  /* Check if internal position is changed by 3 (strlen of '101').  */
++  if ((r = ftell (fp)) != e+3)
++    {
++      printf ("%s: ftell returned %zu, expected %zu\n", __FUNCTION__, r, e+3);
++      return 1;
++    }
++
++  char exp[20];
++  sprintf (exp, "%s%d", str,  101);
++  if (memcmp (buf, exp, strlen (exp)) != 0)
++    {
++      printf ("%s: check failed:", __FUNCTION__);
++      printf ("\nexpected: ");
++      print_buffer (buf, sizeof (buf));
++      printf ("\nbuffer:   ");
++      print_buffer (exp, sizeof (exp));
++      printf ("\n");
++      return 1;
++    }
++
++  fclose(fp);
++
++  return 0;
++}
++
++static int
+ do_test (void)
+ {
+   int ret = 0;
+@@ -199,6 +310,11 @@ do_test (void)
+ 
+   ret += do_test_read_seek_negative ();
+ 
++  /* First test plus addend will fit in the define buffer of size 10.  */
++  ret += do_test_write_append_2 ("test");
++  /* The second test will also fit, but not the final '\0'.  */
++  ret += do_test_write_append_2 ("testing");
++
+   return ret;
+ }
+ 
+diff --git a/stdio-common/tst-fmemopen4.c b/stdio-common/tst-fmemopen4.c
+new file mode 100644
+index 0000000..e24f1ca
+--- /dev/null
++++ b/stdio-common/tst-fmemopen4.c
+@@ -0,0 +1,71 @@
++/* fmemopen tests for BZ#1930 and BZ#20005.
++   Copyright (C) 2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <assert.h>
++#include <stdio.h>
++#include <string.h>
++#include <sys/types.h>
++
++
++/* Check if fflush does not reset the file position.  */
++static int
++do_test (void)
++{
++  char buffer[500] = "x";
++
++  FILE *stream = fmemopen (buffer, sizeof (buffer), "r+");
++  if (stream == NULL)
++    {
++      printf ("error: fmemopen could not open stream\n");
++      return 1;
++    }
++
++  const char test[] = "test";
++
++  size_t r = fwrite (test, sizeof (char), sizeof (test), stream);
++  if (r != sizeof (test))
++    {
++      printf ("error: fwrite returned %zu, expected %zu\n", r, sizeof(test));
++      return 1;
++    }
++
++  r = ftell (stream);
++  if (r != sizeof (test))
++    {
++      printf ("error: ftell return %zu, expected %zu\n", r, sizeof(test));
++      return 1;
++    }
++
++  if (fflush (stream) != 0)
++    {
++      printf ("error: fflush failed\n");
++      return 1;
++    }
++
++  r = ftell (stream);
++  if (r != sizeof (test))
++    {
++      printf ("error: ftell return %zu, expected %zu\n", r, sizeof(test));
++      return 1;
++    }
++
++  return 0;
++}
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 diff --git a/stdlib/Makefile b/stdlib/Makefile
 index 26fe67a..d978774 100644
 --- a/stdlib/Makefile
@@ -61108,6 +61510,45 @@ index 66600c7..3196554 100644
  PSEUDO_END (__makecontext)
  
  weak_alias (__makecontext, makecontext)
+diff --git a/sysdeps/unix/sysv/linux/mips/vfork.S b/sysdeps/unix/sysv/linux/mips/vfork.S
+index 8c66151..c0c0ce6 100644
+--- a/sysdeps/unix/sysv/linux/mips/vfork.S
++++ b/sysdeps/unix/sysv/linux/mips/vfork.S
+@@ -106,6 +106,8 @@ L(error):
+ #endif
+ 	END(__vfork)
+ 
++#if IS_IN (libc)
+ libc_hidden_def(__vfork)
+ weak_alias (__vfork, vfork)
+ strong_alias (__vfork, __libc_vfork)
++#endif
+diff --git a/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S b/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S
+index dc32e0a..94f2c8d 100644
+--- a/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S
++++ b/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S
+@@ -44,6 +44,8 @@ ENTRY(__vfork)
+ 	 nop
+ END(__vfork)
+ 
++#if IS_IN (libc)
+ libc_hidden_def (__vfork)
+ weak_alias (__vfork, vfork)
+ strong_alias (__vfork, __libc_vfork)
++#endif
+diff --git a/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S b/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
+index 05be3c2..a7479e9 100644
+--- a/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
++++ b/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
+@@ -44,6 +44,8 @@ ENTRY(__vfork)
+ 	 nop
+ END(__vfork)
+ 
++#if IS_IN (libc)
+ libc_hidden_def (__vfork)
+ weak_alias (__vfork, vfork)
+ strong_alias (__vfork, __libc_vfork)
++#endif
 diff --git a/sysdeps/unix/sysv/linux/x86_64/64/dl-librecon.h b/sysdeps/unix/sysv/linux/x86_64/64/dl-librecon.h
 index c9db5ea..a759934 100644
 --- a/sysdeps/unix/sysv/linux/x86_64/64/dl-librecon.h
