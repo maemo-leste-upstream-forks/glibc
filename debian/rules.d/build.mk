@@ -147,6 +147,7 @@ $(stamp)check_%: $(stamp)build_%
 	    echo "+---------------------------------------------------------------------+" ; \
 	    echo "|     Encountered regressions that don't match expected failures.     |" ; \
 	    echo "+---------------------------------------------------------------------+" ; \
+	    grep -E '^FAIL:' $(DEB_BUILDDIR)/tests.sum | sort ; \
 	    exit 1 ; \
 	  else \
 	    echo "+---------------------------------------------------------------------+" ; \

@@ -111,6 +111,7 @@ glibc (2.23-0experimental0) experimental; urgency=medium
     - debian/patches/hurd-i386/cvs-hidden.diff: rebased.
     - debian/patches/hurd-i386/cvs-O_DIRECTORY.diff: upstreamed.
     - debian/patches/hurd-i386/cvs-raise-longjump.diff: upstreamed.
+    - debian/patches/hurd-i386/tg-faccessat.diff: rebased.
     - debian/patches/i386/local-i386-ulps.diff: dropped.
     - debian/patches/kfreebsd/local-scripts.diff: rebased.
     - debian/patches/m68k/submitted-gcc34-seccomment.diff: rebased.
@@ -151,13 +152,35 @@ glibc (2.23-0experimental0) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Sun, 13 Mar 2016 19:22:45 +0100
 
+glibc (2.22-12) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * Update from upstream stable branch:
+    - fix FTBFS with recent binutils versions on mips* and sparc*.  Closes:
+      #827477.
+  * debian/sysdeps/kfreebsd-i386.mk: fix libc0.1-i686 package name.
+  * debian/rules.d/build.mk: in case of build failure due testsuite
+    issues, display again the failed tests so that they appear at the end of
+    the build log.
+  * debian/local/etc/nsswitch.conf: add gshadow line to default
+    /etc/nsswitch.conf (addresses #699090).
+  * debian/debhelper.in/libc-bin.postinst: update /etc/nsswitch.conf to the
+    current default if it matches a version shipped by bases-file or
+    libc-bin. This is based on a patch from Santiago Vila, thanks.  Closes:
+    #827105.
+
+  [ Samuel Thibault ]
+  * hurd-i386/tg-eintr.diff: New patch to fix "Interrupted" issues in ghc.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 20 Jun 2016 00:01:21 +0200
+
 glibc (2.22-11) unstable; urgency=medium
 
   [ Samuel Thibault ]
   * hurd-i386/tg-poll_errors_fixes.diff: Fix crash when calling poll or select
     on a fd which had never been allocated.  Closes: #826175.
   * hurd-i386/tg-faccessat.diff: Finish faccessat implementation. Fixes
-    findutils.
+    findutils.  Closes: #823027.
 
   [ Aurelien Jarno ]
   * Update from upstream stable branch.

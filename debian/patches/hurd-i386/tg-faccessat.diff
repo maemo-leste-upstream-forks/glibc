@@ -116,8 +116,8 @@ index 3a54df7..9379689 100644
  
  /* Test for access to FILE by our real user and group IDs.  */
 @@ -28,121 +24,7 @@ __access (file, type)
-      const char *file;
-      int type;
+ int
+ __access (const char *file, int type)
  {
 -  error_t err;
 -  file_t rcrdir, rcwdir, io;
@@ -242,7 +242,7 @@ diff --git a/sysdeps/mach/hurd/euidaccess.c b/sysdeps/mach/hurd/euidaccess.c
 index 5b96a3c..a4da9da 100644
 --- a/sysdeps/mach/hurd/euidaccess.c
 +++ b/sysdeps/mach/hurd/euidaccess.c
-@@ -16,44 +16,15 @@
+@@ -16,42 +16,13 @@
     License along with the GNU C Library; if not, see
     <http://www.gnu.org/licenses/>.  */
  
@@ -253,9 +253,7 @@ index 5b96a3c..a4da9da 100644
 -#include <hurd.h>
  
  int
- __euidaccess (file, type)
-      const char *file;
-      int type;
+ __euidaccess (const char *file, int type)
  {
 -  error_t err;
 -  file_t port;
@@ -292,7 +290,7 @@ diff --git a/sysdeps/mach/hurd/faccessat.c b/sysdeps/mach/hurd/faccessat.c
 index 91bec43..5ca7ff7 100644
 --- a/sysdeps/mach/hurd/faccessat.c
 +++ b/sysdeps/mach/hurd/faccessat.c
-@@ -23,33 +23,156 @@
+@@ -23,29 +23,152 @@
  #include <sys/types.h>
  #include <hurd.h>
  #include <hurd/fd.h>
@@ -301,13 +299,8 @@ index 91bec43..5ca7ff7 100644
 +#include <hurd/lookup.h>
  
  int
--faccessat (fd, file, type, flag)
-+__faccessat (fd, file, type, at_flags)
-      int fd;
-      const char *file;
-      int type;
--     int flag;
-+     int at_flags;
+-faccessat (int fd, const char *file, int type, int flag)
++__faccessat (int fd, const char *file, int type, int at_flags)
  {
    error_t err;
 -  file_t port;
