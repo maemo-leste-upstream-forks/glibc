@@ -1,0 +1,21 @@
+2016-06-21  John David Anglin  <danglin@gcc.gnu.org>
+
+	[BZ 20277]
+	* sysdeps/hppa/start.S (_start): Correct loading of global pointer
+	when SHARED is defined.
+
+diff --git a/sysdeps/hppa/start.S b/sysdeps/hppa/start.S
+index 90d4331..b7ab830 100644
+--- a/sysdeps/hppa/start.S
++++ b/sysdeps/hppa/start.S
+@@ -131,8 +131,10 @@ _start:
+ 	stw	%sp, -60(%sp)
+ 
+ #ifdef SHARED
++	/* load global */
+ 	addil	LT'.Lp__global, %r19
+ 	ldw	RT'.Lp__global(%r1), %dp
++	ldw	0(%dp), %dp
+ #else
+ 	/* load global */
+ 	ldil	L%$global$, %dp
