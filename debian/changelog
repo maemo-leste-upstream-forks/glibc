@@ -151,6 +151,27 @@ glibc (2.23-0experimental0) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Sun, 13 Mar 2016 19:22:45 +0100
 
+glibc (2.22-11) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * hurd-i386/tg-poll_errors_fixes.diff: Fix crash when calling poll or select
+    on a fd which had never been allocated.  Closes: #826175.
+  * hurd-i386/tg-faccessat.diff: Finish faccessat implementation. Fixes
+    findutils.
+
+  [ Aurelien Jarno ]
+  * Update from upstream stable branch.
+  * debian/control: re-add libc0.1-i686, libc0.3-i686, libc6-i686 as a
+    dummy package to ease the upgrades.  Closes: #825421, #826290.
+  * debian/sysdeps/i386.mk: add libc6-i686 dummy package.
+  * debian/sysdeps/hurd-i386.mk: add libc0.1-i686 dummy package.
+  * debian/sysdeps/kfreebsd-i386.mk: add libc0.3-i686 dummy package.
+  * debian/debhelper.in/libc.NEWS: drop the new about libc6-i686, libc0.1-i686
+    and libc0.3-i686 packages removal.
+  * debian/script.in/nohwcap.sh: drop sparc optimized packages.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 05 Jun 2016 00:04:04 +0200
+
 glibc (2.22-10) unstable; urgency=medium
 
   [ Aurelien Jarno ]

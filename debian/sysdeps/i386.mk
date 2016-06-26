@@ -2,6 +2,9 @@
 extra_config_options = --enable-multi-arch --enable-lock-elision
 MIN_KERNEL_SUPPORTED := 2.6.32
 
+# Transitional dummy package, should be removed after Stretch release
+DEB_ARCH_REGULAR_PACKAGES += libc6-i686
+
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
 # greatly increase the speed when running under the 32bit Xen hypervisor.
 GLIBC_PASSES += xen
