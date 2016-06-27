@@ -1,10 +1,19 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.23/master from glibc-2.23
 
 diff --git a/ChangeLog b/ChangeLog
-index 2e4afb7..8e74828 100644
+index 2e4afb7..0219113 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,5 +1,571 @@
+@@ -1,5 +1,580 @@
++2016-06-27  Aurelien Jarno  <aurelien@aurel32.net>
++
++	* sysdeps/mips/tst-mode-switch-1.c (main): Converted to ...
++	(do_test): ... this.
++	(TEST_FUNCTION): New macro.
++	 Include test-skeleton.c.
++	* sysdeps/mips/tst-mode-switch-2.c (main): Likewise.
++	* sysdeps/mips/tst-mode-switch-3.c (main): Likewise.
++
 +2016-06-21  Aurelien Jarno  <aurelien@aurel32.net>
 +
 +	* sysdeps/unix/sysv/linux/mips/vfork.S (__vfork): Rename into
@@ -60169,6 +60178,72 @@ index ad09fd7..2e8b59e 100644
        /* Run things that want to run in the child task to set up.  */
        RUN_HOOK (_hurd_fork_child_hook, ());
  
+diff --git a/sysdeps/mips/tst-mode-switch-1.c b/sysdeps/mips/tst-mode-switch-1.c
+index 1a26e4c..ebbdd3d 100644
+--- a/sysdeps/mips/tst-mode-switch-1.c
++++ b/sysdeps/mips/tst-mode-switch-1.c
+@@ -71,8 +71,8 @@ thread_function (void * arg __attribute__ ((unused)))
+   return NULL;
+ }
+ 
+-int
+-main (void)
++static int
++do_test (void)
+ {
+   int count = sysconf (_SC_NPROCESSORS_ONLN);
+   if (count <= 0)
+@@ -121,3 +121,6 @@ main (void)
+ 
+   return result;
+ }
++
++#define TEST_FUNCTION do_test ()
++#include "../../test-skeleton.c"
+diff --git a/sysdeps/mips/tst-mode-switch-2.c b/sysdeps/mips/tst-mode-switch-2.c
+index b41acf4..83dad80 100644
+--- a/sysdeps/mips/tst-mode-switch-2.c
++++ b/sysdeps/mips/tst-mode-switch-2.c
+@@ -77,8 +77,8 @@ thread_function (void * arg __attribute__ ((unused)))
+   return NULL;
+ }
+ 
+-int
+-main (void)
++static int
++do_test (void)
+ {
+   int count = sysconf (_SC_NPROCESSORS_ONLN);
+   if (count <= 0)
+@@ -161,3 +161,6 @@ main (void)
+ 
+   return result;
+ }
++
++#define TEST_FUNCTION do_test ()
++#include "../../test-skeleton.c"
+diff --git a/sysdeps/mips/tst-mode-switch-3.c b/sysdeps/mips/tst-mode-switch-3.c
+index 65e2b5e..b0c7673 100644
+--- a/sysdeps/mips/tst-mode-switch-3.c
++++ b/sysdeps/mips/tst-mode-switch-3.c
+@@ -43,8 +43,8 @@ static jmp_buf env;
+ float check1 = 2.0;
+ double check2 = 3.0;
+ 
+-int
+-main (void)
++static int
++do_test (void)
+ {
+   int i;
+   int result = 0;
+@@ -88,3 +88,6 @@ main (void)
+ 
+   return result;
+ }
++
++#define TEST_FUNCTION do_test ()
++#include "../../test-skeleton.c"
 diff --git a/sysdeps/nptl/fork.c b/sysdeps/nptl/fork.c
 index 27f8d52..616d897 100644
 --- a/sysdeps/nptl/fork.c
