@@ -1,10 +1,19 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.23/master from glibc-2.23
 
 diff --git a/ChangeLog b/ChangeLog
-index 2e4afb7..234f3cd 100644
+index 2e4afb7..8e74828 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,5 +1,562 @@
+@@ -1,5 +1,571 @@
++2016-06-21  Aurelien Jarno  <aurelien@aurel32.net>
++
++	* sysdeps/unix/sysv/linux/mips/vfork.S (__vfork): Rename into
++	__libc_vfork.
++	(__vfork) [IS_IN (libc)]: Remove alias.
++	(__libc_vfork) [IS_IN (libc)]: Define as an alias.
++	* sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S: Likewise.
++	* sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S: Likewise.
++
 +2016-06-18  Aurelien Jarno  <aurelien@aurel32.net>
 +
 +	* sysdeps/unix/sysv/linux/mips/vfork.S (__vfork): Conditionalize
@@ -61511,43 +61520,93 @@ index 66600c7..3196554 100644
  
  weak_alias (__makecontext, makecontext)
 diff --git a/sysdeps/unix/sysv/linux/mips/vfork.S b/sysdeps/unix/sysv/linux/mips/vfork.S
-index 8c66151..c0c0ce6 100644
+index 8c66151..1867c86 100644
 --- a/sysdeps/unix/sysv/linux/mips/vfork.S
 +++ b/sysdeps/unix/sysv/linux/mips/vfork.S
-@@ -106,6 +106,8 @@ L(error):
+@@ -31,13 +31,13 @@
+ LOCALSZ= 1
+ FRAMESZ= (((NARGSAVE+LOCALSZ)*SZREG)+ALSZ)&ALMASK
+ GPOFF= FRAMESZ-(1*SZREG)
+-NESTED(__vfork,FRAMESZ,sp)
++NESTED(__libc_vfork,FRAMESZ,sp)
+ #ifdef __PIC__
+ 	SETUP_GP
  #endif
- 	END(__vfork)
+ 	PTR_SUBU sp, FRAMESZ
+ 	cfi_adjust_cfa_offset (FRAMESZ)
+-	SETUP_GP64_REG (a5, __vfork)
++	SETUP_GP64_REG (a5, __libc_vfork)
+ #ifdef __PIC__
+ 	SAVE_GP (GPOFF)
+ #endif
+@@ -104,8 +104,10 @@ L(error):
+ 	RESTORE_GP64_REG
+ 	j		__syscall_error
+ #endif
+-	END(__vfork)
++	END(__libc_vfork)
  
+-libc_hidden_def(__vfork)
+-weak_alias (__vfork, vfork)
+-strong_alias (__vfork, __libc_vfork)
 +#if IS_IN (libc)
- libc_hidden_def(__vfork)
- weak_alias (__vfork, vfork)
- strong_alias (__vfork, __libc_vfork)
++weak_alias (__libc_vfork, vfork)
++strong_alias (__libc_vfork, __vfork)
++libc_hidden_def (__vfork)
 +#endif
 diff --git a/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S b/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S
-index dc32e0a..94f2c8d 100644
+index dc32e0a..0d0a3b5 100644
 --- a/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S
 +++ b/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S
-@@ -44,6 +44,8 @@ ENTRY(__vfork)
+@@ -21,7 +21,7 @@
+ 
+ 	.text
+ 	.globl		__syscall_error
+-ENTRY(__vfork)
++ENTRY(__libc_vfork)
+ 	ld	[%g7 + PID], %o5
+ 	cmp	%o5, 0
+ 	bne	1f
+@@ -42,8 +42,10 @@ ENTRY(__vfork)
+ 	 st	%o5, [%g7 + PID]
+ 1:	retl
  	 nop
- END(__vfork)
+-END(__vfork)
++END(__libc_vfork)
  
 +#if IS_IN (libc)
++weak_alias (__libc_vfork, vfork)
++strong_alias (__libc_vfork, __vfork)
  libc_hidden_def (__vfork)
- weak_alias (__vfork, vfork)
- strong_alias (__vfork, __libc_vfork)
+-weak_alias (__vfork, vfork)
+-strong_alias (__vfork, __libc_vfork)
 +#endif
 diff --git a/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S b/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
-index 05be3c2..a7479e9 100644
+index 05be3c2..0818eba 100644
 --- a/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
 +++ b/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
-@@ -44,6 +44,8 @@ ENTRY(__vfork)
+@@ -21,7 +21,7 @@
+ 
+ 	.text
+ 	.globl	__syscall_error
+-ENTRY(__vfork)
++ENTRY(__libc_vfork)
+ 	ld	[%g7 + PID], %o5
+ 	sethi	%hi(0x80000000), %o3
+ 	cmp	%o5, 0
+@@ -42,8 +42,10 @@ ENTRY(__vfork)
+ 	 st	%o5, [%g7 + PID]
+ 1:	retl
  	 nop
- END(__vfork)
+-END(__vfork)
++END(__libc_vfork)
  
 +#if IS_IN (libc)
++weak_alias (__libc_vfork, vfork)
++strong_alias (__libc_vfork, __vfork)
  libc_hidden_def (__vfork)
- weak_alias (__vfork, vfork)
- strong_alias (__vfork, __libc_vfork)
+-weak_alias (__vfork, vfork)
+-strong_alias (__vfork, __libc_vfork)
 +#endif
 diff --git a/sysdeps/unix/sysv/linux/x86_64/64/dl-librecon.h b/sysdeps/unix/sysv/linux/x86_64/64/dl-librecon.h
 index c9db5ea..a759934 100644
