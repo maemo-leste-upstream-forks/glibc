@@ -1,10 +1,14 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.23/master from glibc-2.23
 
 diff --git a/ChangeLog b/ChangeLog
-index 2e4afb7..0219113 100644
+index 2e4afb7..488381c 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,5 +1,580 @@
+@@ -1,5 +1,584 @@
++2016-05-17  Stefan Liebler  <stli@linux.vnet.ibm.com>
++
++	* nptl/tst-cancel17.c (do_test): Wait for finishing aio_read(&a).
++
 +2016-06-27  Aurelien Jarno  <aurelien@aurel32.net>
 +
 +	* sysdeps/mips/tst-mode-switch-1.c (main): Converted to ...
@@ -3197,6 +3201,33 @@ index b65d6b4..db9b61d 100644
 +compat_symbol (libpthread, __fork_alias, __fork, GLIBC_2_0);
  
  #endif
+diff --git a/nptl/tst-cancel17.c b/nptl/tst-cancel17.c
+index fb89292..eedd28e 100644
+--- a/nptl/tst-cancel17.c
++++ b/nptl/tst-cancel17.c
+@@ -333,6 +333,22 @@ do_test (void)
+ 
+   puts ("early cancellation succeeded");
+ 
++  if (ap == &a2)
++    {
++      /* The aio_read(&a) was not canceled because the read request was
++	 already in progress. In the meanwhile aio_write(ap) wrote something
++	 to the pipe and the read request either has already been finished or
++	 is able to read the requested byte.
++	 Wait for the read request before returning from this function because
++	 the return value and error code from the read syscall will be written
++	 to the struct aiocb a, which lies on the stack of this function.
++	 Otherwise the stack from subsequent function calls - e.g. _dl_fini -
++	 will be corrupted, which can lead to undefined behaviour like a
++	 segmentation fault.  */
++      const struct aiocb *l[1] = { &a };
++      TEMP_FAILURE_RETRY (aio_suspend(l, 1, NULL));
++    }
++
+   return 0;
+ }
+ 
 diff --git a/nss/nss_db/db-XXX.c b/nss/nss_db/db-XXX.c
 index 03c18d7..125a5e9 100644
 --- a/nss/nss_db/db-XXX.c
