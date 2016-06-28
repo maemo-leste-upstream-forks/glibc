@@ -140,7 +140,7 @@ $(stamp)check_%: $(stamp)build_%
 	  for test in $$(sed -e '/^\(FAIL\|XFAIL\): /!d;s/^.*: //' $(DEB_BUILDDIR)/tests.sum) ; do \
 	    echo "----------" ; \
 	    cat $(DEB_BUILDDIR)/$$test.test-result ; \
-	    if test -f $(DEB_BUILDDIR)/$$test.out ; then
+	    if test -f $(DEB_BUILDDIR)/$$test.out ; then \
 	      cat $(DEB_BUILDDIR)/$$test.out ; \
 	    fi ; \
 	    echo "----------" ; \
