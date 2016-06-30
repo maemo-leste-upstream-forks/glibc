@@ -269,6 +269,7 @@ test-xfail-tst-lfschk4 = yes
 test-xfail-tst-lfschk5 = yes
 test-xfail-tst-lfschk6 = yes
 test-xfail-tst-longjmp_chk2 = yes
+test-xfail-tst-mallocfork2 = yes
 test-xfail-tst-sprofil = yes
 test-xfail-tst-stackguard1-static = yes
 test-xfail-tst-stackguard1 = yes
