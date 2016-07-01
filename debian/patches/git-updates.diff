@@ -1,10 +1,20 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.23/master from glibc-2.23
 
 diff --git a/ChangeLog b/ChangeLog
-index 2e4afb7..aaba8df 100644
+index 2e4afb7..4310cc0 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,5 +1,588 @@
+@@ -1,5 +1,598 @@
++2016-06-30  Aurelien Jarno  <aurelien@aurel32.net>
++
++	* sysdeps/unix/sysv/linux/sparc/sparc64/localplt.data: Add _Qp_cmp.
++
++2016-06-30  John David Anglin  <danglin@gcc.gnu.org>
++
++	[BZ #20277]
++	* sysdeps/hppa/start.S (_start): Correct loading of global pointer
++	when SHARED is defined.
++
 +2016-06-30  Aurelien Jarno  <aurelien@aurel32.net>
 +
 +	* sysdeps/i386/i686/fpu/multiarch/libm-test-ulps: Regenerated.
@@ -594,10 +604,10 @@ index 2e4afb7..aaba8df 100644
  	(VERSION): Set to 2.23.
  	* include/feature.h (__GLIBC_MINOR__): Set to 23.
 diff --git a/NEWS b/NEWS
-index c0276cf..532cfe2 100644
+index c0276cf..07f3fe8 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,37 @@ See the end for copying conditions.
+@@ -5,6 +5,38 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <http://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
@@ -630,12 +640,13 @@ index c0276cf..532cfe2 100644
 +  [19822] libm.so install clobbers old version
 +  [19879] network: nss_dns: Stack overflow in getnetbyname implementation
 +    (CVE-2016-3075)
++  [20177] $dp is not initialized correctly in sysdeps/hppa/start.S
 +
 +
  Version 2.23
  
  * Unicode 8.0.0 Support: Character encoding, character type info, and
-@@ -38,7 +69,7 @@ Version 2.23
+@@ -38,7 +70,7 @@ Version 2.23
    unnecessary serialization of memory allocation requests across threads.
    The defect is now corrected.  Users should see a substantial increase in
    the concurent throughput of allocation requests for applications which
@@ -59996,6 +60007,21 @@ index 1ed2d50..71b95c2 100644
  #ifndef atomic_full_barrier
  # define atomic_full_barrier() __asm ("" ::: "memory")
  #endif
+diff --git a/sysdeps/hppa/start.S b/sysdeps/hppa/start.S
+index 90d4331..b7ab830 100644
+--- a/sysdeps/hppa/start.S
++++ b/sysdeps/hppa/start.S
+@@ -131,8 +131,10 @@ _start:
+ 	stw	%sp, -60(%sp)
+ 
+ #ifdef SHARED
++	/* load global */
+ 	addil	LT'.Lp__global, %r19
+ 	ldw	RT'.Lp__global(%r1), %dp
++	ldw	0(%dp), %dp
+ #else
+ 	/* load global */
+ 	ldil	L%$global$, %dp
 diff --git a/sysdeps/i386/configure b/sysdeps/i386/configure
 index 9515719..5b55c5a 100644
 --- a/sysdeps/i386/configure
@@ -61743,6 +61769,16 @@ index dc32e0a..0d0a3b5 100644
 -weak_alias (__vfork, vfork)
 -strong_alias (__vfork, __libc_vfork)
 +#endif
+diff --git a/sysdeps/unix/sysv/linux/sparc/sparc64/localplt.data b/sysdeps/unix/sysv/linux/sparc/sparc64/localplt.data
+index 633cfe4..2323551 100644
+--- a/sysdeps/unix/sysv/linux/sparc/sparc64/localplt.data
++++ b/sysdeps/unix/sysv/linux/sparc/sparc64/localplt.data
+@@ -1,4 +1,5 @@
+ libc.so: _Qp_add ?
++libc.so: _Qp_cmp ?
+ libc.so: _Qp_div ?
+ libc.so: _Qp_feq ?
+ libc.so: _Qp_fge ?
 diff --git a/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S b/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
 index 05be3c2..0818eba 100644
 --- a/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
