@@ -30,11 +30,11 @@ case, or else POLLERR.
 
 
 ---
- hurd/hurdselect.c | 145 +++++++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 101 insertions(+), 44 deletions(-)
+ hurd/hurdselect.c | 147 +++++++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 106 insertions(+), 41 deletions(-)
 
 diff --git a/hurd/hurdselect.c b/hurd/hurdselect.c
-index d453042..22faac9 100644
+index d453042..070ac1a 100644
 --- a/hurd/hurdselect.c
 +++ b/hurd/hurdselect.c
 @@ -34,6 +34,7 @@
@@ -53,7 +53,15 @@ index d453042..22faac9 100644
      } d[nfds];
    sigset_t oset;
  
-@@ -151,30 +153,42 @@ _hurd_select (int nfds,
+@@ -118,6 +120,7 @@ _hurd_select (int nfds,
+ 
+   if (pollfds)
+     {
++      int error = 0;
+       /* Collect interesting descriptors from the user's `pollfd' array.
+ 	 We do a first pass that reads the user's array before taking
+ 	 any locks.  The second pass then only touches our own stack,
+@@ -151,28 +154,47 @@ _hurd_select (int nfds,
  	    if (fd < _hurd_dtablesize)
  	      {
  		d[i].cell = _hurd_dtable[fd];
@@ -78,42 +86,44 @@ index d453042..22faac9 100644
 +	    /* Bogus descriptor, make it EBADF already.  */
 +	    d[i].error = EBADF;
 +	    d[i].type = SELECT_ERROR;
-+
-+	    /* And set timeout to 0.  */
-+	    {
-+	      struct timeval now;
-+	      err = __gettimeofday(&now, NULL);
-+	      if (err)
-+		{
-+		  err = errno;
-+		  while (i-- > 0)
-+		    if (d[i].type & ~SELECT_ERROR != 0)
-+		      _hurd_port_free (&d[i].cell->port, &d[i].ulink,
-+				       d[i].io_port);
-+		  errno = err;
-+		  return -1;
-+		}
-+	      ts.tv_sec = now.tv_sec;
-+	      ts.tv_nsec = now.tv_usec * 1000;
-+	      reply_msgid = IO_SELECT_TIMEOUT_REPLY_MSGID;
-+	    }
++	    error = 1;
  	  }
  
        __mutex_unlock (&_hurd_dtable_lock);
        HURD_CRITICAL_END;
  
 -      if (i < nfds)
--	{
++      if (error)
+ 	{
 -	  if (sigmask)
 -	    __sigprocmask (SIG_SETMASK, &oset, NULL);
 -	  errno = EBADF;
 -	  return -1;
--	}
--
++	  /* Set timeout to 0.  */
++	  struct timeval now;
++	  err = __gettimeofday(&now, NULL);
++	  if (err)
++	    {
++	      /* Really bad luck.  */
++	      err = errno;
++	      HURD_CRITICAL_BEGIN;
++	      __mutex_lock (&_hurd_dtable_lock);
++	      while (i-- > 0)
++		if (d[i].type & ~SELECT_ERROR != 0)
++		  _hurd_port_free (&d[i].cell->port, &d[i].ulink,
++				   d[i].io_port);
++	      __mutex_unlock (&_hurd_dtable_lock);
++	      HURD_CRITICAL_END;
++	      errno = err;
++	      return -1;
++	    }
++	  ts.tv_sec = now.tv_sec;
++	  ts.tv_nsec = now.tv_usec * 1000;
++	  reply_msgid = IO_SELECT_TIMEOUT_REPLY_MSGID;
+ 	}
+ 
        lastfd = i - 1;
-       firstfd = i == 0 ? lastfd : 0;
-     }
-@@ -199,9 +213,6 @@ _hurd_select (int nfds,
+@@ -199,9 +221,6 @@ _hurd_select (int nfds,
        HURD_CRITICAL_BEGIN;
        __mutex_lock (&_hurd_dtable_lock);
  
@@ -123,7 +133,7 @@ index d453042..22faac9 100644
        /* Collect the ports for interesting FDs.  */
        firstfd = lastfd = -1;
        for (i = 0; i < nfds; ++i)
-@@ -216,9 +227,15 @@ _hurd_select (int nfds,
+@@ -216,9 +235,15 @@ _hurd_select (int nfds,
  	  d[i].type = type;
  	  if (type)
  	    {
@@ -142,7 +152,7 @@ index d453042..22faac9 100644
  		{
  		  /* If one descriptor is bogus, we fail completely.  */
  		  while (i-- > 0)
-@@ -243,6 +260,9 @@ _hurd_select (int nfds,
+@@ -243,6 +268,9 @@ _hurd_select (int nfds,
  	  errno = EBADF;
  	  return -1;
  	}
@@ -152,7 +162,7 @@ index d453042..22faac9 100644
      }
  
  
-@@ -260,7 +280,7 @@ _hurd_select (int nfds,
+@@ -260,7 +288,7 @@ _hurd_select (int nfds,
        portset = MACH_PORT_NULL;
  
        for (i = firstfd; i <= lastfd; ++i)
@@ -161,7 +171,7 @@ index d453042..22faac9 100644
  	  {
  	    int type = d[i].type;
  	    d[i].reply_port = __mach_reply_port ();
-@@ -294,11 +314,10 @@ _hurd_select (int nfds,
+@@ -294,11 +322,10 @@ _hurd_select (int nfds,
  	      }
  	    else
  	      {
@@ -177,7 +187,7 @@ index d453042..22faac9 100644
  		++got;
  	      }
  	    _hurd_port_free (&d[i].cell->port, &d[i].ulink, d[i].io_port);
-@@ -404,9 +423,10 @@ _hurd_select (int nfds,
+@@ -404,9 +431,10 @@ _hurd_select (int nfds,
  #endif
  		  msg.head.msgh_size != sizeof msg.success)
  		{
@@ -190,7 +200,7 @@ index d453042..22faac9 100644
  		}
  
  	      /* Look up the respondent's reply port and record its
-@@ -418,9 +438,18 @@ _hurd_select (int nfds,
+@@ -418,9 +446,18 @@ _hurd_select (int nfds,
  		    if (d[i].type
  			&& d[i].reply_port == msg.head.msgh_local_port)
  		      {
@@ -212,7 +222,7 @@ index d453042..22faac9 100644
  
  			d[i].type |= SELECT_RETURNED;
  			++got;
-@@ -458,7 +487,7 @@ _hurd_select (int nfds,
+@@ -458,7 +495,7 @@ _hurd_select (int nfds,
  
    if (firstfd != -1)
      for (i = firstfd; i <= lastfd; ++i)
@@ -221,7 +231,7 @@ index d453042..22faac9 100644
  	__mach_port_destroy (__mach_task_self (), d[i].reply_port);
    if (firstfd == -1 || (firstfd != lastfd && portset != MACH_PORT_NULL))
      /* Destroy PORTSET, but only if it's not actually the reply port for a
-@@ -480,15 +509,29 @@ _hurd_select (int nfds,
+@@ -480,15 +517,29 @@ _hurd_select (int nfds,
  	int type = d[i].type;
  	int_fast16_t revents = 0;
  
@@ -260,7 +270,7 @@ index d453042..22faac9 100644
  
  	pollfds[i].revents = revents;
        }
-@@ -508,6 +551,20 @@ _hurd_select (int nfds,
+@@ -508,6 +559,20 @@ _hurd_select (int nfds,
  	    if ((type & SELECT_RETURNED) == 0)
  	      type = 0;
  
