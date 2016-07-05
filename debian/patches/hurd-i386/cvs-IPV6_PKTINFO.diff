@@ -59,33 +59,13 @@ index e6f4696..a9efc74 100644
  #define SCM_SRCRT		IPV6_RXSRCRT
  
  #define IPV6_UNICAST_HOPS	16
-@@ -83,11 +83,15 @@ struct ip_opts
+@@ -83,11 +83,27 @@ struct ip_opts
  #define IPV6_JOIN_ANYCAST      27
  #define IPV6_LEAVE_ANYCAST     28
  
 +/* Advanced API (RFC3542) (1).  */
 +#define IPV6_RECVPKTINFO	49
 +#define IPV6_PKTINFO		50
-+
- /* Obsolete synonyms for the above.  */
- #define IPV6_ADD_MEMBERSHIP	IPV6_JOIN_GROUP
- #define IPV6_DROP_MEMBERSHIP	IPV6_LEAVE_GROUP
--#define IPV6_RXHOPOPTS		IPV6_HOPOPTS
--#define IPV6_RXDSTOPTS		IPV6_DSTOPTS
-+#define IPV6_RXHOPOPTS		IPV6_2292HOPOPTS
-+#define IPV6_RXDSTOPTS		IPV6_2292DSTOPTS
- 
- /* Routing header options for IPv6.  */
- #define IPV6_RTHDR_LOOSE	0	/* Hop doesn't need to be neighbour. */
-
-diff --git a/bits/in.h b/bits/in.h
-index a9efc74..d517115 100644
---- a/bits/in.h
-+++ b/bits/in.h
-@@ -86,6 +86,18 @@ struct ip_opts
- /* Advanced API (RFC3542) (1).  */
- #define IPV6_RECVPKTINFO	49
- #define IPV6_PKTINFO		50
 +#define IPV6_RECVHOPLIMIT	51
 +#define IPV6_HOPLIMIT		52
 +#define IPV6_RECVHOPOPTS	53
@@ -98,6 +78,15 @@ index a9efc74..d517115 100644
 +#define IPV6_RECVPATHMTU	60
 +#define IPV6_PATHMTU		61
 +#define IPV6_DONTFRAG		62
- 
++
  /* Obsolete synonyms for the above.  */
  #define IPV6_ADD_MEMBERSHIP	IPV6_JOIN_GROUP
+ #define IPV6_DROP_MEMBERSHIP	IPV6_LEAVE_GROUP
+-#define IPV6_RXHOPOPTS		IPV6_HOPOPTS
+-#define IPV6_RXDSTOPTS		IPV6_DSTOPTS
++#define IPV6_RXHOPOPTS		IPV6_2292HOPOPTS
++#define IPV6_RXDSTOPTS		IPV6_2292DSTOPTS
+ 
+ /* Routing header options for IPv6.  */
+ #define IPV6_RTHDR_LOOSE	0	/* Hop doesn't need to be neighbour. */
+
