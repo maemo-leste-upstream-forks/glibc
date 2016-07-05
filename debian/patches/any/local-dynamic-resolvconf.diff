@@ -1,21 +1,16 @@
---- a/resolv/res_libc.c	
-+++ b/resolv/res_libc.c	
-@@ -22,12 +22,13 @@
+--- a/resolv/res_libc.c
++++ b/resolv/res_libc.c
+@@ -25,7 +25,9 @@
  #include <arpa/nameser.h>
  #include <resolv.h>
  #include <libc-lock.h>
--
 +#include <sys/stat.h>
- 
- /* The following bit is copied from res_data.c (where it is #ifdef'ed
-    out) since res_init() should go into libc.so but the rest of that
-    file should not.  */
  
 +__libc_lock_define_initialized (static, lock);
  extern unsigned long long int __res_initstamp attribute_hidden;
  /* We have atomic increment operations on 64-bit platforms.  */
  #if __WORDSIZE == 64
-@@ -35,7 +36,6 @@
+@@ -33,7 +35,6 @@
  # define atomicincunlock(lock) (void) 0
  # define atomicinc(var) catomic_increment (&(var))
  #else
@@ -23,7 +18,7 @@
  # define atomicinclock(lock) __libc_lock_lock (lock)
  # define atomicincunlock(lock) __libc_lock_unlock (lock)
  # define atomicinc(var) ++var
-@@ -94,7 +94,18 @@
+@@ -92,7 +93,18 @@
  int
  __res_maybe_init (res_state resp, int preinit)
  {

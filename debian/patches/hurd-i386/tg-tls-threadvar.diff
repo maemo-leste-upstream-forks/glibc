@@ -7,34 +7,33 @@ That will fix sigaltstack.
 Note: the added reply_port and _hurd_sigstate fields should be kept last.
 
 ---
- hurd/Versions                               |  7 +--
- hurd/hurd/signal.h                          | 24 +++++----
- hurd/hurd/threadvar.h                       | 81 +++--------------------------
- hurd/hurdsig.c                              | 52 +++++++++++-------
- hurd/hurdstartup.c                          |  1 -
- hurd/sigunwind.c                            |  4 +-
- include/errno.h                     |  2 +-
- sysdeps/mach/hurd/Versions                  |  6 ++-
- sysdeps/mach/hurd/libc-lock.h               |  5 +-
- sysdeps/mach/hurd/libc-tsd.h                | 34 ------------
- sysdeps/mach/hurd/cthreads.c                |  3 ++
- sysdeps/mach/hurd/dl-sysdep.c               | 19 -------
- sysdeps/mach/hurd/errno-loc.c               | 24 ++++++---
- sysdeps/mach/hurd/errno.c           |  1 -
- sysdeps/mach/hurd/fork.c                    |  7 ++-
- sysdeps/mach/hurd/i386/init-first.c         | 35 -------------
- sysdeps/mach/hurd/i386/makecontext-helper.c |  2 +
- sysdeps/mach/hurd/i386/makecontext.S        |  2 +-
- sysdeps/mach/hurd/i386/sigreturn.c          |  3 +-
- sysdeps/mach/hurd/i386/tls.h                | 26 +++++++++
- sysdeps/mach/hurd/mig-reply.c               | 39 ++++----------
- sysdeps/mach/hurd/profil.c                  |  6 +--
- sysdeps/mach/hurd/tls.h             |  1 +
- 24 files changed, 135 insertions(+), 252 deletions(-)
+ hurd/Versions                               |    6 --
+ hurd/hurd/signal.h                          |   23 ++++----
+ hurd/hurd/threadvar.h                       |   76 ++--------------------------
+ hurd/hurdsig.c                              |   51 +++++++++++-------
+ hurd/hurdstartup.c                          |    1 
+ hurd/sigunwind.c                            |    4 -
+ include/errno.h                             |    2 
+ sysdeps/mach/hurd/Versions                  |    4 -
+ sysdeps/mach/hurd/cthreads.c                |    2 
+ sysdeps/mach/hurd/dl-sysdep.c               |   19 -------
+ sysdeps/mach/hurd/errno-loc.c               |   22 +++++---
+ sysdeps/mach/hurd/errno.c                   |    1 
+ sysdeps/mach/hurd/fork.c                    |    7 +-
+ sysdeps/mach/hurd/i386/init-first.c         |   35 ------------
+ sysdeps/mach/hurd/i386/makecontext-helper.c |    2 
+ sysdeps/mach/hurd/i386/makecontext.S        |    2 
+ sysdeps/mach/hurd/i386/sigreturn.c          |    5 -
+ sysdeps/mach/hurd/i386/tls.h                |   29 ++++++++++
+ sysdeps/mach/hurd/libc-lock.h               |    4 -
+ sysdeps/mach/hurd/libc-tsd.h                |   34 ------------
+ sysdeps/mach/hurd/mig-reply.c               |   39 +++-----------
+ sysdeps/mach/hurd/profil.c                  |    6 +-
+ 22 files changed, 126 insertions(+), 248 deletions(-)
 
 --- a/hurd/Versions
 +++ b/hurd/Versions
-@@ -4,14 +4,9 @@ libc {
+@@ -4,14 +4,9 @@
      _end;
  
      # variables used in macros & inline functions
@@ -49,7 +48,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
      # functions used in libmachuser and libhurduser
      _S_catch_exception_raise;
      _S_catch_exception_raise_state;
-@@ -133,6 +128,7 @@ libc {
+@@ -133,6 +128,7 @@
    HURD_CTHREADS_0.3 {
      # weak refs to libthreads functions that libc calls iff libthreads in use
      cthread_fork; cthread_detach;
@@ -67,7 +66,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  struct hurd_signal_preemptor;	/* <hurd/sigpreempt.h> */
  
  
-@@ -132,11 +131,9 @@ extern struct hurd_sigstate *_hurd_self_
+@@ -132,11 +131,9 @@
  _HURD_SIGNAL_H_EXTERN_INLINE struct hurd_sigstate *
  _hurd_self_sigstate (void)
  {
@@ -82,7 +81,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  }
  
  /* Thread listening on our message port; also called the "signal thread".  */
-@@ -167,16 +164,22 @@ extern int _hurd_core_limit;
+@@ -167,16 +164,22 @@
  _HURD_SIGNAL_H_EXTERN_INLINE void *
  _hurd_critical_section_lock (void)
  {
@@ -223,7 +222,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  #include <mach.h>
  #include <mach/thread_switch.h>
  
-@@ -48,7 +49,6 @@ thread_t _hurd_sigthread;
+@@ -48,7 +49,6 @@
  /* These are set up by _hurdsig_init.  */
  unsigned long int __hurd_sigthread_stack_base;
  unsigned long int __hurd_sigthread_stack_end;
@@ -231,7 +230,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  
  /* Linked-list of per-thread signal state.  */
  struct hurd_sigstate *_hurd_sigstates;
-@@ -234,14 +234,14 @@ abort_thread (struct hurd_sigstate *ss,
+@@ -234,14 +234,14 @@
     that this location can be set without faulting, or else return NULL.  */
  
  static mach_port_t *
@@ -250,7 +249,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
      return NULL;
  
    /* Fault now if this pointer is bogus.  */
-@@ -323,7 +323,8 @@ _hurdsig_abort_rpcs (struct hurd_sigstat
+@@ -323,7 +323,8 @@
  	   our nonzero return tells the trampoline code to finish the message
  	   receive operation before running the handler.  */
  
@@ -260,7 +259,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  							      sigthread);
  	error_t err = __interrupt_operation (intr_port, _hurdsig_interrupt_timeout);
  
-@@ -835,7 +836,8 @@ _hurd_internal_post_signal (struct hurd_
+@@ -835,7 +836,8 @@
  
  	    if (! machine_get_basic_state (ss->thread, &thread_state))
  	      goto sigbomb;
@@ -270,7 +269,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  	    if (loc && *loc != MACH_PORT_NULL)
  	      /* This is the reply port for the context which called
  		 sigreturn.  Since we are abandoning that context entirely
-@@ -901,7 +903,8 @@ _hurd_internal_post_signal (struct hurd_
+@@ -901,7 +903,8 @@
  	{
  	  /* Fetch the thread variable for the MiG reply port,
  	     and set it to MACH_PORT_NULL.  */
@@ -280,7 +279,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  							      1);
  	  if (loc)
  	    {
-@@ -1255,7 +1258,11 @@ _hurdsig_init (const int *intarray, size
+@@ -1255,7 +1258,11 @@
  
    /* Start the signal thread listening on the message port.  */
  
@@ -293,7 +292,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
      {
        err = __thread_create (__mach_task_self (), &_hurd_msgport_thread);
        assert_perror (err);
-@@ -1270,14 +1277,6 @@ _hurdsig_init (const int *intarray, size
+@@ -1270,14 +1277,6 @@
        assert_perror (err);
  
        __hurd_sigthread_stack_end = __hurd_sigthread_stack_base + stacksize;
@@ -308,7 +307,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  
        /* Reinitialize the MiG support routines so they will use a per-thread
  	 variable for the cached reply port.  */
-@@ -1288,6 +1287,7 @@ _hurdsig_init (const int *intarray, size
+@@ -1288,6 +1287,7 @@
      }
    else
      {
@@ -316,7 +315,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
        /* When cthreads is being used, we need to make the signal thread a
           proper cthread.  Otherwise it cannot use mutex_lock et al, which
           will be the cthreads versions.  Various of the message port RPC
-@@ -1297,9 +1297,20 @@ _hurdsig_init (const int *intarray, size
+@@ -1297,9 +1297,20 @@
           we'll let the signal thread's per-thread variables be found as for
           any normal cthread, and just leave the magic __hurd_sigthread_*
           values all zero so they'll be ignored.  */
@@ -360,7 +359,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  #include <jmpbuf-unwind.h>
  #include <assert.h>
  #include <stdint.h>
-@@ -38,8 +39,7 @@ _hurdsig_longjmp_from_handler (void *dat
+@@ -38,8 +39,7 @@
      {
        /* Destroy the MiG reply port used by the signal handler, and restore
  	 the reply port in use by the thread when interrupted.  */
@@ -372,7 +371,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  	  mach_port_t port = *reply_port;
 --- a/include/errno.h
 +++ b/include/errno.h
-@@ -26,7 +26,7 @@ extern int rtld_errno attribute_hidden;
+@@ -26,7 +26,7 @@
  
  #  include <tls.h>
  
@@ -383,7 +382,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  #    define errno __libc_errno
 --- a/sysdeps/mach/hurd/Versions
 +++ b/sysdeps/mach/hurd/Versions
-@@ -6,6 +6,7 @@ libc {
+@@ -6,6 +6,7 @@
    GLIBC_PRIVATE {
      # Functions shared with the dynamic linker
      __libc_read; __libc_write; __libc_lseek64;
@@ -391,7 +390,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  
      _dl_init_first;
    }
-@@ -14,8 +15,6 @@ libc {
+@@ -14,8 +15,6 @@
  ld {
    GLIBC_2.0 {
      # variables that must be shared with libc
@@ -400,7 +399,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
      __hurd_threadvar_stack_mask;  __hurd_threadvar_stack_offset;
  
      # functions that must be shared with libc
-@@ -33,5 +32,6 @@ ld {
+@@ -33,5 +32,6 @@
  
      # functions that must be shared with libc
      __libc_read; __libc_write; __libc_lseek64;
@@ -415,9 +414,9 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  #include <cthreads.h>
 -#include <hurd/threadvar.h>
  
- typedef struct mutex __libc_lock_t;
- typedef struct
-@@ -35,7 +34,8 @@ typedef struct
+ /* The locking here is very inexpensive, even for inlining.  */
+ #define _IO_lock_inexpensive  1
+@@ -38,7 +37,8 @@
  } __libc_lock_recursive_t;
  typedef __libc_lock_recursive_t __rtld_lock_recursive_t;
  
@@ -466,7 +465,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
 -#endif	/* libc-tsd.h */
 --- a/sysdeps/mach/hurd/cthreads.c
 +++ b/sysdeps/mach/hurd/cthreads.c
-@@ -19,6 +19,8 @@ 
+@@ -19,6 +19,8 @@
  #include <errno.h>
  #include <stdlib.h>
  
@@ -477,7 +476,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  weak_function
 --- a/sysdeps/mach/hurd/dl-sysdep.c
 +++ b/sysdeps/mach/hurd/dl-sysdep.c
-@@ -64,25 +64,6 @@ hp_timing_t _dl_cpuclock_offset;
+@@ -65,25 +65,6 @@
  
  struct hurd_startup_data *_dl_hurd_data;
  
@@ -548,7 +547,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  #include <setjmp.h>
  #include <thread_state.h>
  #include <sysdep.h>		/* For stack growth direction.  */
-@@ -508,19 +509,17 @@ __fork (void)
+@@ -511,19 +512,17 @@
  				    (natural_t *) &state, &statecount))
  	LOSE;
  #ifdef STACK_GROWTH_UP
@@ -572,7 +571,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  	     the per-thread variables.  */
 --- a/sysdeps/mach/hurd/i386/init-first.c
 +++ b/sysdeps/mach/hurd/i386/init-first.c
-@@ -157,15 +157,6 @@ init (int *data)
+@@ -157,15 +157,6 @@
    char **argv = (void *) (data + 1);
    char **envp = &argv[argc + 1];
    struct hurd_startup_data *d;
@@ -588,7 +587,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  
    /* Since the cthreads initialization code uses malloc, and the
       malloc initialization code needs to get at the environment, make
-@@ -211,13 +202,6 @@ init (int *data)
+@@ -211,13 +202,6 @@
    __pthread_initialize_minimal();
  #endif
  
@@ -602,7 +601,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  
    /* After possibly switching stacks, call `init1' (above) with the user
       code as the return address, and the argument data immediately above
-@@ -233,11 +217,6 @@ init (int *data)
+@@ -233,11 +217,6 @@
  
        __libc_stack_end = newsp;
  
@@ -614,7 +613,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
        /* Copy the argdata from the old stack to the new one.  */
        newsp = memcpy (newsp - ((char *) &d[1] - (char *) data), data,
  		      (char *) d - (char *) data);
-@@ -278,25 +257,11 @@ init (int *data)
+@@ -278,25 +257,11 @@
      }
    else
      {
@@ -650,14 +649,14 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  
  void
  __makecontext_helper (ucontext_t *ucp)
-@@ -67,3 +68,4 @@ __makecontext_helper (ucontext_t *ucp)
+@@ -67,3 +68,4 @@
        ucp->uc_stack.ss_size -= t_size;
      }
  }
 +#endif
 --- a/sysdeps/mach/hurd/i386/makecontext.S
 +++ b/sysdeps/mach/hurd/i386/makecontext.S
-@@ -27,7 +27,7 @@ ENTRY(__makecontext)
+@@ -27,7 +27,7 @@
  	subl	$4, %esp
  	cfi_adjust_cfa_offset (4)
  	movl	%eax, (%esp)
@@ -668,7 +667,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  
 --- a/sysdeps/mach/hurd/i386/sigreturn.c
 +++ b/sysdeps/mach/hurd/i386/sigreturn.c
-@@ -68,7 +68,7 @@ __sigreturn (struct sigcontext *scp)
+@@ -68,7 +68,7 @@
  
    if (scp->sc_onstack)
      {
@@ -677,7 +676,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
        /* XXX cannot unlock until off sigstack */
        abort ();
      }
-@@ -77,8 +77,7 @@ __sigreturn (struct sigcontext *scp)
+@@ -77,8 +77,7 @@
  
    /* Destroy the MiG reply port used by the signal handler, and restore the
       reply port in use by the thread when interrupted.  */
@@ -689,7 +688,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
        mach_port_t port = *reply_port;
 --- a/sysdeps/mach/hurd/i386/tls.h
 +++ b/sysdeps/mach/hurd/i386/tls.h
-@@ -53,6 +53,10 @@ typedef struct
+@@ -43,6 +43,10 @@
    void *__private_tm[4];
    /* GCC split stack support.  */
    void *__private_ss;
@@ -700,7 +699,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  } tcbhead_t;
  #endif
  
-@@ -88,6 +90,17 @@ typedef struct
+@@ -78,6 +82,17 @@
        | (((unsigned int) (tcb)) & 0xff000000) /* base 24..31 */		      \
      }
  
@@ -718,7 +717,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  
  static inline const char * __attribute__ ((unused))
  _hurd_tls_init (tcbhead_t *tcb)
-@@ -138,6 +151,20 @@ _hurd_tls_init (tcbhead_t *tcb)
+@@ -128,6 +143,20 @@
  	      : "i" (offsetof (tcbhead_t, tcb)));			      \
       __tcb;})
  
@@ -775,7 +774,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  }
  weak_alias (__mig_get_reply_port, mig_get_reply_port)
  
-@@ -45,12 +39,8 @@ weak_alias (__mig_get_reply_port, mig_ge
+@@ -45,12 +39,8 @@
  void
  __mig_dealloc_reply_port (mach_port_t arg)
  {
@@ -790,7 +789,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  
    if (MACH_PORT_VALID (port))
      __mach_port_mod_refs (__mach_task_self (), port,
-@@ -73,15 +63,6 @@ weak_alias (__mig_put_reply_port, mig_pu
+@@ -73,15 +63,6 @@
  void
  __mig_init (void *stack)
  {
@@ -809,7 +808,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
  weak_alias (__mig_init, mig_init)
 --- a/sysdeps/mach/hurd/profil.c
 +++ b/sysdeps/mach/hurd/profil.c
-@@ -139,7 +139,7 @@ __profil (u_short *sample_buffer, size_t
+@@ -141,7 +141,7 @@
  weak_alias (__profil, profil)
  
  /* Fetch PC samples.  This function must be very careful not to depend
@@ -818,7 +817,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
     stub arranged for at the end of this file. */
  static void
  fetch_samples (void)
-@@ -175,7 +175,7 @@ fetch_samples (void)
+@@ -177,7 +177,7 @@
  }
  
  
@@ -827,7 +826,7 @@ Note: the added reply_port and _hurd_sigstate fields should be kept last.
     variables.  We arrange that by using special stubs arranged for at the
     end of this file. */
  static void
-@@ -267,7 +267,7 @@ text_set_element (_hurd_fork_child_hook,
+@@ -268,7 +268,7 @@
     are fatal in profile_waiter anyhow. */
  #define __mig_put_reply_port(foo)
  
