@@ -785,9 +785,21 @@ test-xfail-tst-audit11 = yes
 test-xfail-tst-audit12 = yes
 test-xfail-tst-get-cpu-features = yes
 
-# newly failing in 2.21, real regression
-test-xfail-tst-backtrace2 = yes
-test-xfail-tst-backtrace3 = yes
+# new in 2.24
+test-xfail-tst-execvpe5 = yes
+test-xfail-tst-spawn2 = yes
+
+test-xfail-UNIX98/fcntl.h/conform = yes
+test-xfail-XOPEN2K/fcntl.h/conform = yes
+test-xfail-XOPEN2K/termios.h/conform = yes
+test-xfail-XOPEN2K8/termios.h/conform = yes
+test-xfail-XPG3/fcntl.h/conform = yes
+test-xfail-XPG3/sys/stat.h/conform = yes
+test-xfail-XPG3/termios.h/conform = yes
+test-xfail-XPG3/time.h/conform = yes
+test-xfail-XPG4/fcntl.h/conform = yes
+test-xfail-XPG4/sys/stat.h/conform = yes
+test-xfail-XPG4/termios.h/conform = yes
 
 # fixed upstream
 test-xfail-POSIX/signal.h/conform = yes
