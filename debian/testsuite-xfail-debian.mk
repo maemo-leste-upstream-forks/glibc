@@ -1185,14 +1185,26 @@ endif
 
 
 ######################################################################
-# mips
+# mips/mipsel
 ######################################################################
-ifeq ($(config-machine)-$(config-os),mips-linux-gnu)
+ifneq (,$(filter $(config-machine)-$(config-os), mips-linux-gnu mipsel-linux-gnu))
+# These tests fails because the o32 ABI defines stat.st_dev as unsigned
+# long int instead of dev_t for historical reasons. This can not be changed
+# anymore without breaking the ABI.
 test-xfail-POSIX2008/sys/stat.h/conform = yes
 test-xfail-POSIX/sys/stat.h/conform = yes
 test-xfail-UNIX98/sys/stat.h/conform = yes
 test-xfail-XOPEN2K8/sys/stat.h/conform = yes
 test-xfail-XOPEN2K/sys/stat.h/conform = yes
+test-xfail-XPG3/sys/stat.h/conform = yes
+test-xfail-XPG4/sys/stat.h/conform = yes
+endif
+
+
+######################################################################
+# mips
+######################################################################
+ifeq ($(config-machine)-$(config-os),mips-linux-gnu)
 test-xfail-tst-audit1 = yes
 test-xfail-tst-audit2 = yes
 test-xfail-tst-audit8 = yes
@@ -1208,11 +1220,6 @@ endif
 # mipsel
 ######################################################################
 ifeq ($(config-machine)-$(config-os),mipsel-linux-gnu)
-test-xfail-POSIX2008/sys/stat.h/conform = yes
-test-xfail-POSIX/sys/stat.h/conform = yes
-test-xfail-UNIX98/sys/stat.h/conform = yes
-test-xfail-XOPEN2K8/sys/stat.h/conform = yes
-test-xfail-XOPEN2K/sys/stat.h/conform = yes
 test-xfail-test-fenv = yes
 test-xfail-tst-audit1 = yes
 test-xfail-tst-audit2 = yes
