@@ -1,0 +1,12 @@
+diff --git a/malloc/malloc.c b/malloc/malloc.c
+index 1f5f166..8fa49e0 100644
+--- a/malloc/malloc.c
++++ b/malloc/malloc.c
+@@ -2682,6 +2685,7 @@ sysmalloc (INTERNAL_SIZE_T nb, mstate av)
+               if (snd_brk != (char *) (MORECORE_FAILURE))
+                 {
+                   av->top = (mchunkptr) aligned_brk;
++                  av->top->prev_size = 0;
+                   set_head (av->top, (snd_brk - aligned_brk + correction) | PREV_INUSE);
+                   av->system_mem += correction;
+ 
