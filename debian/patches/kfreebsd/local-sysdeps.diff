@@ -1200,7 +1200,7 @@
 +#endif
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/in.h
-@@ -0,0 +1,308 @@
+@@ -0,0 +1,310 @@
 +/* Copyright (C) 1997, 2000, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -1225,6 +1225,8 @@
 +# error "Never use <bits/in.h> directly; include <netinet/in.h> instead."
 +#endif
 +
++/* This is the FreeBSD version, do not assume a linux-based kernel.  */
++#define __USE_KERNEL_IPV6_DEFS 0
 +
 +/* Link numbers.  */
 +#define	IMPLINK_IP		155
@@ -9252,7 +9254,7 @@
 +#endif
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/lowlevellock.h
-@@ -0,0 +1,167 @@
+@@ -0,0 +1,168 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -9383,9 +9385,10 @@
 +#define __lll_unlock(futex, private) \
 +  (void)							\
 +    ({ int *__futex = (futex);					\
++       int __private = (private);				\
 +       int __oldval = atomic_exchange_rel (__futex, 0);		\
 +       if (__builtin_expect (__oldval > 1, 0))			\
-+	 lll_futex_wake (__futex, 1, private);			\
++	 lll_futex_wake (__futex, 1, __private);		\
 +    })
 +    
 +#define lll_unlock(futex, private) __lll_unlock(&(futex), private)
@@ -10671,7 +10674,7 @@
 +}
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/sem_post.c
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,79 @@
 +/* sem_post -- post to a POSIX semaphore.  Generic futex-using version.
 +   Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -10705,17 +10708,16 @@
 +{
 +  struct new_sem *isem = (struct new_sem *) sem;
 +
-+  __typeof (isem->value) cur;
++  __typeof (isem->value) cur = atomic_load_relaxed(&isem->value);
 +  do
 +    {
-+      cur = isem->value;
-+      if (isem->value == SEM_VALUE_MAX)
++      if (cur == SEM_VALUE_MAX)
 +	{
 +	  __set_errno (EOVERFLOW);
 +	  return -1;
 +	}
 +    }
-+  while (atomic_compare_and_exchange_bool_rel (&isem->value, cur + 1, cur));
++  while (!atomic_compare_exchange_weak_release(&isem->value, &cur, cur + 1));
 +
 +  atomic_full_barrier ();
 +  if (isem->nwaiters > 0)
@@ -15408,7 +15410,7 @@
 +GLIBC_2.3 getaddrinfo_a F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libc.abilist
-@@ -0,0 +1,2194 @@
+@@ -0,0 +1,2196 @@
 +GLIBC_2.10 GLIBC_2.10 A
 +GLIBC_2.10 __cxa_at_quick_exit F
 +GLIBC_2.10 __posix_getopt F
@@ -15505,6 +15507,8 @@
 +GLIBC_2.23 fts64_open F
 +GLIBC_2.23 fts64_read F
 +GLIBC_2.23 fts64_set F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 quick_exit F
 +GLIBC_2.3 GLIBC_2.3 A
 +GLIBC_2.3 _Exit F
 +GLIBC_2.3 _IO_2_1_stderr_ D 0x9c
@@ -17631,7 +17635,7 @@
 +GLIBC_2.3.4 dlmopen F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libm.abilist
-@@ -0,0 +1,409 @@
+@@ -0,0 +1,416 @@
 +GLIBC_2.15 GLIBC_2.15 A
 +GLIBC_2.15 __acos_finite F
 +GLIBC_2.15 __acosf_finite F
@@ -17723,6 +17727,13 @@
 +GLIBC_2.23 lgamma F
 +GLIBC_2.23 lgammaf F
 +GLIBC_2.23 lgammal F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 nextdown F
++GLIBC_2.24 nextdownf F
++GLIBC_2.24 nextdownl F
++GLIBC_2.24 nextup F
++GLIBC_2.24 nextupf F
++GLIBC_2.24 nextupl F
 +GLIBC_2.3 GLIBC_2.3 A
 +GLIBC_2.3 _LIB_VERSION D 0x4
 +GLIBC_2.3 __clog10 F
@@ -32798,7 +32809,7 @@
 +GLIBC_2.3 getaddrinfo_a F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libc.abilist
-@@ -0,0 +1,2142 @@
+@@ -0,0 +1,2144 @@
 +GLIBC_2.10 GLIBC_2.10 A
 +GLIBC_2.10 __cxa_at_quick_exit F
 +GLIBC_2.10 __posix_getopt F
@@ -32897,6 +32908,8 @@
 +GLIBC_2.23 fts64_open F
 +GLIBC_2.23 fts64_read F
 +GLIBC_2.23 fts64_set F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 quick_exit F
 +GLIBC_2.3 GLIBC_2.3 A
 +GLIBC_2.3 _Exit F
 +GLIBC_2.3 _IO_2_1_stderr_ D 0xe0
@@ -34969,7 +34982,7 @@
 +GLIBC_2.3.4 dlmopen F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libm.abilist
-@@ -0,0 +1,407 @@
+@@ -0,0 +1,414 @@
 +GLIBC_2.15 GLIBC_2.15 A
 +GLIBC_2.15 __acos_finite F
 +GLIBC_2.15 __acosf_finite F
@@ -35061,6 +35074,13 @@
 +GLIBC_2.23 lgamma F
 +GLIBC_2.23 lgammaf F
 +GLIBC_2.23 lgammal F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 nextdown F
++GLIBC_2.24 nextdownf F
++GLIBC_2.24 nextdownl F
++GLIBC_2.24 nextup F
++GLIBC_2.24 nextupf F
++GLIBC_2.24 nextupl F
 +GLIBC_2.3 GLIBC_2.3 A
 +GLIBC_2.3 _LIB_VERSION D 0x4
 +GLIBC_2.3 __clog10 F

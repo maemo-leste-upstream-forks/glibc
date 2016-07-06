@@ -25799,7 +25799,7 @@
 +strong_alias (__pthread_mutex_trylock, pthread_mutex_trylock)
 --- /dev/null
 +++ b/fbtl/pthread_mutex_unlock.c
-@@ -0,0 +1,301 @@
+@@ -0,0 +1,312 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -26018,20 +26018,31 @@
 +	/* One less user.  */
 +	--mutex->__data.__nusers;
 +
-+      /* Unlock.  */
-+      if ((mutex->__data.__lock & FUTEX_WAITERS) != 0
-+	  || atomic_compare_and_exchange_bool_rel (&mutex->__data.__lock, 0,
-+						   THREAD_GETMEM (THREAD_SELF,
-+								  tid)))
++      /* Unlock.  Load all necessary mutex data before releasing the mutex
++	 to not violate the mutex destruction requirements (see
++	 lll_unlock).  */
++      int robust = mutex->__data.__kind & PTHREAD_MUTEX_ROBUST_NORMAL_NP;
++      int private = (robust
++		     ? PTHREAD_ROBUST_MUTEX_PSHARED (mutex)
++		     : PTHREAD_MUTEX_PSHARED (mutex));
++      /* Unlock the mutex using a CAS unless there are futex waiters or our
++	 TID is not the value of __lock anymore, in which case we let the
++	 kernel take care of the situation.  Use release MO in the CAS to
++	 synchronize with acquire MO in lock acquisitions.  */
++      int l = atomic_load_relaxed (&mutex->__data.__lock);
++      do
 +	{
-+	  int robust = mutex->__data.__kind & PTHREAD_MUTEX_ROBUST_NORMAL_NP;
-+	  int private = (robust
-+			 ? PTHREAD_ROBUST_MUTEX_PSHARED (mutex)
-+			 : PTHREAD_MUTEX_PSHARED (mutex));
-+	  INTERNAL_SYSCALL_DECL (__err);
-+	  INTERNAL_SYSCALL (futex, __err, 2, &mutex->__data.__lock,
-+			    __lll_private_flag (FUTEX_UNLOCK_PI, private));
++	  if (((l & FUTEX_WAITERS) != 0)
++	      || (l != THREAD_GETMEM (THREAD_SELF, tid)))
++	    {
++	      INTERNAL_SYSCALL_DECL (__err);
++	      INTERNAL_SYSCALL (futex, __err, 2, &mutex->__data.__lock,
++				__lll_private_flag (FUTEX_UNLOCK_PI, private));
++	      break;
++	    }
 +	}
++      while (!atomic_compare_exchange_weak_release (&mutex->__data.__lock,
++						    &l, 0));
 +
 +      THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
 +      break;
@@ -30410,7 +30421,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl/sysdeps/i386/tls.h
-@@ -0,0 +1,471 @@
+@@ -0,0 +1,459 @@
 +/* Definition for thread-local data handling.  nptl/i386 version.
 +   Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -30441,19 +30452,7 @@
 +# include <sysdep.h>
 +# include <libc-internal.h>
 +# include <kernel-features.h>
-+
-+
-+/* Type for the dtv.  */
-+typedef union dtv
-+{
-+  size_t counter;
-+  struct
-+  {
-+    void *val;
-+    bool is_static;
-+  } pointer;
-+} dtv_t;
-+
++# include <dl-dtv.h>
 +
 +typedef struct
 +{
@@ -35944,7 +35943,7 @@
 +TCB_PTHREAD_CANCELED	 PTHREAD_CANCELED
 --- /dev/null
 +++ b/fbtl/sysdeps/x86_64/tls.h
-@@ -0,0 +1,389 @@
+@@ -0,0 +1,379 @@
 +/* Definition for thread-local data handling.  nptl/x86_64 version.
 +   Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -35975,6 +35974,7 @@
 +# include <sysdep.h>
 +# include <libc-internal.h>
 +# include <kernel-features.h>
++# include <dl-dtv.h>
 +
 +/* Replacement type for __m128 since this file is included by ld.so,
 +   which is compiled with -mno-sse.  It must not change the alignment
@@ -35984,17 +35984,6 @@
 +  int i[4];
 +} __128bits;
 +
-+
-+/* Type for the dtv.  */
-+typedef union dtv
-+{
-+  size_t counter;
-+  struct
-+  {
-+    void *val;
-+    bool is_static;
-+  } pointer;
-+} dtv_t;
 +
 +
 +typedef struct
