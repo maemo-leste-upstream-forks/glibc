@@ -1220,7 +1220,6 @@ endif
 # mipsel
 ######################################################################
 ifeq ($(config-machine)-$(config-os),mipsel-linux-gnu)
-test-xfail-test-fenv = yes
 test-xfail-tst-audit1 = yes
 test-xfail-tst-audit2 = yes
 test-xfail-tst-audit8 = yes
@@ -1256,7 +1255,6 @@ endif
 # mipsn32el
 ######################################################################
 ifeq ($(config-machine)-$(config-os),mips64el-linux-gnuabin32)
-test-xfail-test-fenv = yes
 test-xfail-tst-audit1 = yes
 test-xfail-tst-audit2 = yes
 test-xfail-tst-audit8 = yes
