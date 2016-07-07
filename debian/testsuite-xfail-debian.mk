@@ -791,6 +791,7 @@ test-xfail-tst-spawn2 = yes
 
 test-xfail-UNIX98/fcntl.h/conform = yes
 test-xfail-XOPEN2K/fcntl.h/conform = yes
+test-xfail-XOPEN2K/mqueue.h/conform = yes
 test-xfail-XOPEN2K/termios.h/conform = yes
 test-xfail-XOPEN2K8/termios.h/conform = yes
 test-xfail-XPG3/fcntl.h/conform = yes
