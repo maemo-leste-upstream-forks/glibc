@@ -1505,6 +1505,7 @@ test-xfail-XOPEN2K8/mqueue.h/conform = yes
 test-xfail-XOPEN2K8/sys/select.h/conform = yes
 test-xfail-XOPEN2K8/sys/stat.h/conform = yes
 test-xfail-XOPEN2K8/time.h/conform = yes
+test-xfail-XOPEN2K/mqueue.h/conform = yes
 test-xfail-XOPEN2K/sys/select.h/conform = yes
 test-xfail-XOPEN2K/time.h/conform = yes
 test-xfail-tst-backtrace6 = yes
