@@ -1,0 +1,173 @@
+2016-07-10  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* sysdeps/alpha/fpu/s_ceil.c (__ceil): Add argument with itself
+	when it is a NaN.
+	[_IEEE_FP_INEXACT] Remove.
+	* sysdeps/alpha/fpu/s_ceilf.c (__ceilf): Likewise.
+	* sysdeps/alpha/fpu/s_floor.c (__floor): Add argument with itself
+	when it is a NaN.
+	[_IEEE_FP_INEXACT] Remove.
+	* sysdeps/alpha/fpu/s_floorf.c (__floorf): Likewise.
+	* sysdeps/alpha/fpu/s_rint.c (__rint): Add argument with itself
+	when it is a NaN.
+	* sysdeps/alpha/fpu/s_rintf.c (__rintf): Likewise.
+	* sysdeps/alpha/fpu/s_trunc.c (__trunc): Return the input value
+	when its absolute value is greater than 0x1.0p52.
+	[_IEEE_FP_INEXACT] Remove.
+	* sysdeps/alpha/fpu/s_truncf.c (__truncf): Return the input value
+	when its absolute value is greater than 0x1.0p23.
+	[_IEEE_FP_INEXACT] Remove.
+
+--- a/sysdeps/alpha/fpu/s_ceil.c
++++ b/sysdeps/alpha/fpu/s_ceil.c
+@@ -26,17 +26,16 @@
+ double
+ __ceil (double x)
+ {
++  if (isnan (x))
++    return x + x;
++
+   if (isless (fabs (x), 9007199254740992.0))	/* 1 << DBL_MANT_DIG */
+     {
+       double tmp1, new_x;
+ 
+       new_x = -x;
+       __asm (
+-#ifdef _IEEE_FP_INEXACT
+-	     "cvttq/svim %2,%1\n\t"
+-#else
+ 	     "cvttq/svm %2,%1\n\t"
+-#endif
+ 	     "cvtqt/m %1,%0\n\t"
+ 	     : "=f"(new_x), "=&f"(tmp1)
+ 	     : "f"(new_x));
+--- a/sysdeps/alpha/fpu/s_ceilf.c
++++ b/sysdeps/alpha/fpu/s_ceilf.c
+@@ -25,6 +25,9 @@
+ float
+ __ceilf (float x)
+ {
++  if (isnanf (x))
++    return x + x;
++
+   if (isless (fabsf (x), 16777216.0f))	/* 1 << FLT_MANT_DIG */
+     {
+       /* Note that Alpha S_Floating is stored in registers in a
+@@ -36,11 +39,7 @@ __ceilf (float x)
+ 
+       new_x = -x;
+       __asm ("cvtst/s %3,%2\n\t"
+-#ifdef _IEEE_FP_INEXACT
+-	     "cvttq/svim %2,%1\n\t"
+-#else
+ 	     "cvttq/svm %2,%1\n\t"
+-#endif
+ 	     "cvtqt/m %1,%0\n\t"
+ 	     : "=f"(new_x), "=&f"(tmp1), "=&f"(tmp2)
+ 	     : "f"(new_x));
+--- a/sysdeps/alpha/fpu/s_floor.c
++++ b/sysdeps/alpha/fpu/s_floor.c
+@@ -27,16 +27,15 @@
+ double
+ __floor (double x)
+ {
++  if (isnan (x))
++    return x + x;
++
+   if (isless (fabs (x), 9007199254740992.0))	/* 1 << DBL_MANT_DIG */
+     {
+       double tmp1, new_x;
+ 
+       __asm (
+-#ifdef _IEEE_FP_INEXACT
+-	     "cvttq/svim %2,%1\n\t"
+-#else
+ 	     "cvttq/svm %2,%1\n\t"
+-#endif
+ 	     "cvtqt/m %1,%0\n\t"
+ 	     : "=f"(new_x), "=&f"(tmp1)
+ 	     : "f"(x));
+--- a/sysdeps/alpha/fpu/s_floorf.c
++++ b/sysdeps/alpha/fpu/s_floorf.c
+@@ -26,6 +26,9 @@
+ float
+ __floorf (float x)
+ {
++  if (isnanf (x))
++    return x + x;
++
+   if (isless (fabsf (x), 16777216.0f))	/* 1 << FLT_MANT_DIG */
+     {
+       /* Note that Alpha S_Floating is stored in registers in a
+@@ -36,11 +39,7 @@ __floorf (float x)
+       float tmp1, tmp2, new_x;
+ 
+       __asm ("cvtst/s %3,%2\n\t"
+-#ifdef _IEEE_FP_INEXACT
+-	     "cvttq/svim %2,%1\n\t"
+-#else
+ 	     "cvttq/svm %2,%1\n\t"
+-#endif
+ 	     "cvtqt/m %1,%0\n\t"
+ 	     : "=f"(new_x), "=&f"(tmp1), "=&f"(tmp2)
+ 	     : "f"(x));
+--- a/sysdeps/alpha/fpu/s_rint.c
++++ b/sysdeps/alpha/fpu/s_rint.c
+@@ -23,6 +23,9 @@
+ double
+ __rint (double x)
+ {
++  if (isnan (x))
++    return x + x;
++
+   if (isless (fabs (x), 9007199254740992.0))	/* 1 << DBL_MANT_DIG */
+     {
+       double tmp1, new_x;
+--- a/sysdeps/alpha/fpu/s_rintf.c
++++ b/sysdeps/alpha/fpu/s_rintf.c
+@@ -22,6 +22,9 @@
+ float
+ __rintf (float x)
+ {
++  if (isnanf (x))
++    return x + x;
++
+   if (isless (fabsf (x), 16777216.0f))	/* 1 << FLT_MANT_DIG */
+     {
+       /* Note that Alpha S_Floating is stored in registers in a
+--- a/sysdeps/alpha/fpu/s_trunc.c
++++ b/sysdeps/alpha/fpu/s_trunc.c
+@@ -28,12 +28,11 @@ __trunc (double x)
+   double two52 = copysign (0x1.0p52, x);
+   double r, tmp;
+ 
++  if (isgreaterequal (fabs (x), 0x1.0p52))
++    return x;
++
+   __asm (
+-#ifdef _IEEE_FP_INEXACT
+-	 "addt/suic %2, %3, %1\n\tsubt/suic %1, %3, %0"
+-#else
+ 	 "addt/suc %2, %3, %1\n\tsubt/suc %1, %3, %0"
+-#endif
+ 	 : "=&f"(r), "=&f"(tmp)
+ 	 : "f"(x), "f"(two52));
+ 
+--- a/sysdeps/alpha/fpu/s_truncf.c
++++ b/sysdeps/alpha/fpu/s_truncf.c
+@@ -27,12 +27,11 @@ __truncf (float x)
+   float two23 = copysignf (0x1.0p23, x);
+   float r, tmp;
+ 
++  if (isgreaterequal (fabsf (x), 0x1.0p23))
++    return x;
++
+   __asm (
+-#ifdef _IEEE_FP_INEXACT
+-	 "adds/suic %2, %3, %1\n\tsubs/suic %1, %3, %0"
+-#else
+ 	 "adds/suc %2, %3, %1\n\tsubs/suc %1, %3, %0"
+-#endif
+ 	 : "=&f"(r), "=&f"(tmp)
+ 	 : "f"(x), "f"(two23));
+ 
