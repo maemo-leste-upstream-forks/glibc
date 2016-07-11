@@ -46,7 +46,7 @@ DEB_BUILD_GNU_TYPE    ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 DEB_SOURCE_PACKAGE := $(strip $(shell egrep '^Source: ' debian/control | cut -f 2 -d ':'))
 
 DEB_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
-GLIBC_VERSION = $(shell echo $(DEB_VERSION) | sed -e 's/.*://' -e 's/-.*//')
+GLIBC_VERSION = $(shell echo $(DEB_VERSION) | sed -e 's/.*://' -e 's/[+-].*//')
 
 # The minimum package version with which these packages are compatible.
 shlib_dep_ver = $(GLIBC_VERSION)
