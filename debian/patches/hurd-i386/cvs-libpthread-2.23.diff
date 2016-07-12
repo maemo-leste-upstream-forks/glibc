@@ -1,14 +1,16 @@
 --- a/libpthread/forward.c
 +++ b/libpthread/forward.c
-@@ -132,7 +132,7 @@ FORWARD (pthread_mutex_unlock, (pthread_
+@@ -132,8 +132,9 @@ FORWARD (pthread_mutex_unlock, (pthread_
  FORWARD2 (pthread_self, pthread_t, (void), (), return 0)
  
  
 -FORWARD (pthread_setcancelstate, (int state, int *oldstate), (state, oldstate),
 +FORWARD (__pthread_setcancelstate, (int state, int *oldstate), (state, oldstate),
  	 0)
++strong_alias (__pthread_setcancelstate, pthread_setcancelstate);
  
  FORWARD (pthread_setcanceltype, (int type, int *oldtype), (type, oldtype), 0)
+ 
 --- a/libpthread/pthread/pt-initialize.c
 +++ b/libpthread/pthread/pt-initialize.c
 @@ -61,7 +61,7 @@ static const struct pthread_functions pt
