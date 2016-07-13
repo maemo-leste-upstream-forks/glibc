@@ -1,0 +1,21 @@
+commit 2b6dbe669fa2e488b31286150e8cb6f7c0875847
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Wed Jul 13 22:41:40 2016 +0200
+
+    Fix TABDLY value
+    
+    	* bits/termios.h (TABDLY): Change macro to include TAB3 bit too.
+
+diff --git a/bits/termios.h b/bits/termios.h
+index f28b492..c1b1a99 100644
+--- a/bits/termios.h
++++ b/bits/termios.h
+@@ -152,7 +152,7 @@ struct termios
+ # define NLDLY	(3 << 8)	/* NL delay.  */
+ # define NL0	(0 << 8)	/* NL type 0.  */
+ # define NL1	(1 << 8)	/* NL type 1.  */
+-# define TABDLY	(3 << 10)	/* TAB delay.  */
++# define TABDLY	(3 << 10 | 1 << 2)	/* TAB delay.  */
+ # define TAB0	(0 << 10)	/* TAB delay type 0.  */
+ # define TAB1	(1 << 10)	/* TAB delay type 1.  */
+ # define TAB2	(2 << 10)	/* TAB delay type 2.  */
