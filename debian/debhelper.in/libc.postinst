@@ -5,15 +5,6 @@ export LC_ALL=C
 type=$1
 preversion=$2
 
-package_name()
-{
-    if dpkg --assert-multi-arch 2>/dev/null; then
-        echo LIBC:${DPKG_MAINTSCRIPT_ARCH}
-    else
-        echo LIBC
-    fi
-}
-
 # element() is a helper function for file-rc:
 element() {
     local element list IFS
@@ -194,7 +185,7 @@ then
 			    echo
 			    echo "You will need to start these manually by running \`/etc/init.d/<service> start'"
 			    echo "If the service still fails to start, you may need to file a bug on"
-			    echo "$(package_name) or the service involved."
+			    echo "${DPKG_MAINTSCRIPT_PACKAGE}:${DPKG_MAINTSCRIPT_ARCH} or the service involved."
 			    frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
 			    if [ "$frontend" != noninteractive ]; then
 			    	echo
