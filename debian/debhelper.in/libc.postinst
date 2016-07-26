@@ -5,15 +5,6 @@ export LC_ALL=C
 type=$1
 preversion=$2
 
-package_name()
-{
-    if dpkg --assert-multi-arch 2>/dev/null; then
-        echo LIBC:${DPKG_MAINTSCRIPT_ARCH}
-    else
-        echo LIBC
-    fi
-}
-
 # element() is a helper function for file-rc:
 element() {
     local element list IFS
@@ -81,10 +72,7 @@ then
 	. /usr/share/debconf/confmodule
     fi
 
-    if [ -n "$preversion" ]; then
-	if [ ! -d /var/mail ] && [ ! -L /var/mail ]; then
-	    ln -sf spool/mail /var/mail
-	fi
+    if [ -n "$preversion" ] && [ -x "$(which ischroot)" ] && ! ischroot; then
 	if dpkg --compare-versions "$preversion" lt GLIBC_VERSION; then
 	    check="apache2.2-common apache apache-ssl apache-perl autofs at"
 	    check="$check boa cucipop courier-authdaemon cron cups exim"
@@ -197,7 +185,7 @@ then
 			    echo
 			    echo "You will need to start these manually by running \`/etc/init.d/<service> start'"
 			    echo "If the service still fails to start, you may need to file a bug on"
-			    echo "$(package_name) or the service involved."
+			    echo "${DPKG_MAINTSCRIPT_PACKAGE}:${DPKG_MAINTSCRIPT_ARCH} or the service involved."
 			    frontend=`echo "$DEBIAN_FRONTEND" | tr '[:upper:]' '[:lower:]'`
 			    if [ "$frontend" != noninteractive ]; then
 			    	echo

@@ -44,6 +44,10 @@ ifeq ($(config-machine)-$(config-os),x86_64-linux-gnu)
 test-xfail-tst-backtrace6 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
+
+# This test fails intermittently on amd64. It could be a kernel issue.
+# see https://sourceware.org/bugzilla/show_bug.cgi?id=19004
+test-xfail-tst-robust8 = yes
 endif
 
 

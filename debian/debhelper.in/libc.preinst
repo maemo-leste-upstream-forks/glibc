@@ -5,15 +5,6 @@ export LC_ALL=C
 type=$1
 preversion=$2
 
-package_name()
-{
-    if dpkg --assert-multi-arch 2>/dev/null; then
-        echo LIBC:${DPKG_MAINTSCRIPT_ARCH}
-    else
-        echo LIBC
-    fi
-}
-
 linux_compare_versions () {
     verA=$(($(echo "$1" | sed 's/^\([0-9]*\.[0-9]*\)\([^.0-9]\|$\)/\1.0\2/; s/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 10000 + \2 \* 100 + \3/')))
     verB=$(($(echo "$3" | sed 's/^\([0-9]*\.[0-9]*\)\([^.0-9]\|$\)/\1.0\2/; s/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 10000 + \2 \* 100 + \3/')))
@@ -245,7 +236,7 @@ then
         # libraries found will be ignored.
         ldbytes=""
     fi
-    libcfiles=$(dpkg-query -L $(package_name) 2>/dev/null)
+    libcfiles=$(dpkg-query -L ${DPKG_MAINTSCRIPT_PACKAGE}:${DPKG_MAINTSCRIPT_ARCH} 2>/dev/null)
 
     dirs="SLIBDIR /lib /lib/tls /lib32 /lib64 /usr/local/lib /usr/local/lib32 /usr/local/lib64"
     for dir in $dirs ; do
@@ -302,7 +293,7 @@ then
         fi
     fi
 
-    if [ -n "$preversion" ]; then
+    if [ -n "$preversion" ] && [ -x "$(which ischroot)" ] && ! ischroot; then
 	# NSS authentication trouble guard
 	if dpkg --compare-versions "$preversion" lt GLIBC_VERSION; then
 	    if pidof xscreensaver xlockmore >/dev/null; then

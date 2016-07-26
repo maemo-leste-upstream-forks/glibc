@@ -105,6 +105,22 @@ glibc (2.23.90+20160507.87523e9-1) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Tue, 05 Jul 2016 20:47:21 +0200
 
+glibc (2.23-4) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * patches/kfreebsd/local-sysdeps.diff: update to revision 6098 (from
+    glibc-bsd).
+  * debian/debhelper.in/libc.postinst: drop code to handle the /var/mail
+    transition for pre-Potato installations.
+  * debian/debhelper.in/libc.{preinst,postinst}, debian/script.in/nohwcap.sh:
+    Remove fallback to dpkg --print-architecture for pre-multiarch systems.
+  * debian/debhelper.in/libc.{preinst,postinst}: do not run the NSS check
+    code from a chroot as it might not have an init system installed.
+  * debian/testsuite-xfail-debian.mk: allow tst-robust8 to fail on amd64, it
+    is an intermittent failure that might be due to a kernel issue.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Wed, 27 Jul 2016 00:39:51 +0200
+
 glibc (2.23-3) unstable; urgency=medium
 
   [ Samuel Thibault ]
