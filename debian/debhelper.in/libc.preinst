@@ -293,7 +293,7 @@ then
         fi
     fi
 
-    if [ -n "$preversion" ]; then
+    if [ -n "$preversion" ] && [ -x "$(which ischroot)" ] && ! ischroot; then
 	# NSS authentication trouble guard
 	if dpkg --compare-versions "$preversion" lt GLIBC_VERSION; then
 	    if pidof xscreensaver xlockmore >/dev/null; then
