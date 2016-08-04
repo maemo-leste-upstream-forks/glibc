@@ -803,6 +803,7 @@ test-xfail-XPG4/sys/stat.h/conform = yes
 test-xfail-XPG4/termios.h/conform = yes
 # fails randomly
 test-xfail-tst-preadvwritev64 = yes
+test-xfail-tst-preadwrite64 = yes
 
 # fixed upstream
 test-xfail-POSIX/signal.h/conform = yes
