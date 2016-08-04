@@ -1,9 +1,9 @@
 # configuration options for all flavours
 extra_config_options = --disable-multi-arch
+extra_cflags = -mcpu=ultrasparc
 
 # main library
 libc_rtlddir = /lib64
-libc_extra_cflags = -mcpu=ultrasparc
 
 # build 32-bit (sparc) alternative library
 GLIBC_MULTILIB_PASSES += sparc
