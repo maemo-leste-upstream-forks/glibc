@@ -1482,7 +1482,6 @@ test-xfail-XOPEN2K8/pthread.h/conform = yes
 test-xfail-XOPEN2K8/setjmp.h/conform = yes
 test-xfail-XPG3/setjmp.h/conform = yes
 test-xfail-XPG4/setjmp.h/conform = yes
-test-xfail-test-wcsncmp = yes
 test-xfail-tst-protected1a = yes
 test-xfail-tst-protected1b = yes
 test-xfail-tst-waitid = yes
