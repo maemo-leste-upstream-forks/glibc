@@ -1,6 +1,9 @@
 # configuration options for all flavours
 extra_config_options = --disable-multi-arch
 
+# main library
+libc_configure_target=sparcv9-linux-gnu
+
 # build 64-bit (sparc64) alternative library
 GLIBC_MULTILIB_PASSES += sparc64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-sparc64 libc6-dev-sparc64
