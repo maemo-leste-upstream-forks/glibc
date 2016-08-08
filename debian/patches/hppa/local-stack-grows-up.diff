@@ -1,0 +1,19 @@
+--- a/nptl/allocatestack.c
++++ b/nptl/allocatestack.c
+@@ -683,9 +692,13 @@
+ 			prot) != 0)
+ 	    goto mprot_error;
+ #elif _STACK_GROWS_UP
+-	  if (mprotect ((char *) pd - pd->guardsize,
+-			pd->guardsize - guardsize, prot) != 0)
+-	    goto mprot_error;
++	  char *new_guard = (char *) (((uintptr_t) pd - guardsize) & ~pagesize_m1);
++	  char *old_guard = (char *) (((uintptr_t) pd - pd->guardsize) & ~pagesize_m1);
++	  /* The guard size difference might be > 0, but once rounded
++	     to the nearest page the size difference might be zero.  */
++	  if (old_guard - new_guard > 0)
++	    if (mprotect (old_guard, new_guard - old_guard, prot) != 0)
++	      goto mprot_error;
+ #endif
+ 
+ 	  pd->guardsize = guardsize;
