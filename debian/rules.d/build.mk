@@ -30,8 +30,6 @@ $(patsubst %,configure_%,$(GLIBC_PASSES)) :: configure_% : $(stamp)configure_%
 $(stamp)configure_%: $(stamp)mkbuilddir_%
 	@echo Configuring $(curpass)
 	rm -f $(DEB_BUILDDIR)/configparms
-	echo "CC = $(call xx,CC)"                 >> $(DEB_BUILDDIR)/configparms
-	echo "CXX = $(call xx,CXX)"               >> $(DEB_BUILDDIR)/configparms
 	echo "MIG = $(call xx,MIG)"               >> $(DEB_BUILDDIR)/configparms
 	echo "BUILD_CC = $(BUILD_CC)"             >> $(DEB_BUILDDIR)/configparms
 	echo "BUILD_CXX = $(BUILD_CXX)"           >> $(DEB_BUILDDIR)/configparms
@@ -81,7 +79,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	$(call logme, -a $(log_build), \
 		cd $(DEB_BUILDDIR) && \
 		CC="$(call xx,CC)" \
-		CXX="$(call xx,CXX)" \
+		CXX=$(if $(filter stage1,$(DEB_BUILD_PROFILES)),:,"$(call xx,CXX)") \
 		MIG="$(call xx,MIG)" \
 		AUTOCONF=false \
 		MAKEINFO=: \
