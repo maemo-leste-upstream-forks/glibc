@@ -79,7 +79,7 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	$(call logme, -a $(log_build), \
 		cd $(DEB_BUILDDIR) && \
 		CC="$(call xx,CC)" \
-		CXX=$(if $(filter stage1,$(DEB_BUILD_PROFILES)),:,"$(call xx,CXX)") \
+		CXX=$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),:,"$(call xx,CXX)") \
 		MIG="$(call xx,MIG)" \
 		AUTOCONF=false \
 		MAKEINFO=: \
