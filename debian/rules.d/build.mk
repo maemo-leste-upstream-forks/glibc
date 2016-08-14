@@ -113,7 +113,7 @@ endif
 $(patsubst %,check_%,$(GLIBC_PASSES)) :: check_% : $(stamp)check_%
 $(stamp)check_%: $(stamp)build_%
 	@set -e ; \
-	if [ -n "$(findstring nocheck,$(DEB_BUILD_OPTIONS))" ]; then \
+	if [ -n "$(filter nocheck,$(DEB_BUILD_OPTIONS))" ]; then \
 	  echo "Tests have been disabled via DEB_BUILD_OPTIONS." ; \
 	elif [ $(call xx,configure_build) != $(call xx,configure_target) ] && \
 	     ! $(DEB_BUILDDIR)/elf/ld.so $(DEB_BUILDDIR)/libc.so >/dev/null 2>&1 ; then \
