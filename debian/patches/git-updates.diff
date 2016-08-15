@@ -1,10 +1,47 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.24/master from glibc-2.24
 
 diff --git a/ChangeLog b/ChangeLog
-index c44c926..84ae7a7 100644
+index c44c926..acdc443 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,24 @@
+@@ -1,3 +1,61 @@
++2016-08-05  Aurelien Jarno  <aurelien@aurel32.net>
++
++	* sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/Makefile
++	[$(subdir) = math && $(have-as-vis3) = yes] (libm-sysdep_routines):
++	Remove s_fdimf-vis3, s_fdim-vis3.
++	* sysdeps/sparc/sparc32/fpu/s_fdim.S: Delete file.
++	* sysdeps/sparc/sparc32/fpu/s_fdimf.S: Likewise.
++	* sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim-vis3.S: Likewise.
++	* sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim.S: Likewise.
++	* sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf-vis3.S: Likewise.
++	* sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf.S: Likewise.
++	* sysdeps/sparc/sparc32/sparcv9/fpu/s_fdim.S: Likewise.
++	* sysdeps/sparc/sparc32/sparcv9/fpu/s_fdimf.S: Likewise.
++	* sysdeps/sparc/sparc64/fpu/s_fdim.S: Likewise.
++	* sysdeps/sparc/sparc64/fpu/s_fdimf.S: Likewise.
++
++2016-08-02  David S. Miller  <davem@davemloft.net>
++
++	* sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyint-vis3.S
++	(__nearbyint_vis3): Don't check for sNaN before float register is
++	loaded with the incoming argument.
++	* sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyintf-vis3.S
++	(__nearbyintf_vis3): Likewise.
++	* sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyint.S (__nearbyint):
++	Likewise.
++	* sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyintf.S (__nearbyintf):
++	Likewise.
++
++2016-08-03  Aurelien Jarno  <aurelien@aurel32.net>
++
++	* sysdeps/powerpc/ifunc-sel.h (ifunc_sel): Replace beqlr instructions
++	by beq instructions jumping to the end of the function.
++	* sysdeps/powerpc/ifunc-sel.h (ifunc_sel): Add "11", "12", "cr0" to the
++	clobber list. Use "i" constraint instead of "X".
++	(ifunc_one): Add "12" to the clobber list. Use "i" constraint instead
++	of "X".
++
 +2016-08-04  Carlos O'Donell  <carlos@redhat.com>
 +
 +	* po/de.po: Update from Translation Project.
@@ -873,6 +910,521 @@ index 49d1f23..e046577 100644
 -
 -#~ msgid "cannot create internal descriptors"
 -#~ msgstr "kan inte skapa interna deskriptorer"
+diff --git a/sysdeps/powerpc/ifunc-sel.h b/sysdeps/powerpc/ifunc-sel.h
+index 526d8ed..ac589bd 100644
+--- a/sysdeps/powerpc/ifunc-sel.h
++++ b/sysdeps/powerpc/ifunc-sel.h
+@@ -17,15 +17,17 @@ ifunc_sel (int (*f1) (void), int (*f2) (void), int (*f3) (void))
+ 	   "addis %0,11,%2-1b@ha\n\t"
+ 	   "addi %0,%0,%2-1b@l\n\t"
+ 	   "cmpwi 12,1\n\t"
+-	   "beqlr\n\t"
++	   "beq 2f\n\t"
+ 	   "addis %0,11,%3-1b@ha\n\t"
+ 	   "addi %0,%0,%3-1b@l\n\t"
+ 	   "cmpwi 12,-1\n\t"
+-	   "beqlr\n\t"
++	   "beq 2f\n\t"
+ 	   "addis %0,11,%4-1b@ha\n\t"
+-	   "addi %0,%0,%4-1b@l"
++	   "addi %0,%0,%4-1b@l\n\t"
++	   "2:"
+ 	   : "=r" (ret)
+-	   : "X" (&global), "X" (f1), "X" (f2), "X" (f3));
++	   : "i" (&global), "i" (f1), "i" (f2), "i" (f3)
++	   : "11", "12", "cr0");
+   return ret;
+ }
+ 
+@@ -40,7 +42,8 @@ ifunc_one (int (*f1) (void))
+ 	   "addis %0,%0,%1-1b@ha\n\t"
+ 	   "addi %0,%0,%1-1b@l"
+ 	   : "=r" (ret)
+-	   : "X" (f1));
++	   : "i" (f1)
++	   : "12");
+   return ret;
+ }
+ #endif
+diff --git a/sysdeps/sparc/sparc32/fpu/s_fdim.S b/sysdeps/sparc/sparc32/fpu/s_fdim.S
+deleted file mode 100644
+index e93970f..0000000
+--- a/sysdeps/sparc/sparc32/fpu/s_fdim.S
++++ /dev/null
+@@ -1,42 +0,0 @@
+-/* Compute positive difference, sparc 32-bit.
+-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by David S. Miller <davem@davemloft.net>.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-#include <math_ldbl_opt.h>
+-
+-ENTRY(__fdim)
+-	std	%o0, [%sp + 72]
+-	std	%o2, [%sp + 80]
+-	ldd	[%sp + 72], %f0
+-	ldd	[%sp + 80], %f2
+-	fcmpd	%f0, %f2
+-	st	%g0, [%sp + 72]
+-	fbug	1f
+-	 st	%g0, [%sp + 76]
+-	ldd	[%sp + 72], %f0
+-	fnegs	%f0, %f2
+-	fmovs	%f1, %f3
+-1:	retl
+-	 fsubd	%f0, %f2, %f0
+-END(__fdim)
+-weak_alias (__fdim, fdim)
+-
+-#if LONG_DOUBLE_COMPAT(libm, GLIBC_2_1)
+-compat_symbol (libm, __fdim, fdiml, GLIBC_2_1);
+-#endif
+diff --git a/sysdeps/sparc/sparc32/fpu/s_fdimf.S b/sysdeps/sparc/sparc32/fpu/s_fdimf.S
+deleted file mode 100644
+index c3fe8af..0000000
+--- a/sysdeps/sparc/sparc32/fpu/s_fdimf.S
++++ /dev/null
+@@ -1,35 +0,0 @@
+-/* Compute positive difference, sparc 32-bit.
+-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by David S. Miller <davem@davemloft.net>.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-ENTRY(__fdimf)
+-	st	%o0, [%sp + 72]
+-	st	%o1, [%sp + 76]
+-	ld	[%sp + 72], %f0
+-	ld	[%sp + 76], %f1
+-	fcmps	%f0, %f1
+-	fbug	1f
+-	 st	%g0, [%sp + 72]
+-	ld	[%sp + 72], %f0
+-	fnegs	%f0, %f1
+-1:	retl
+-	 fsubs	%f0, %f1, %f0
+-END(__fdimf)
+-weak_alias (__fdimf, fdimf)
+diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/Makefile b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/Makefile
+index ebbe28b..13d3c6d 100644
+--- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/Makefile
++++ b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/Makefile
+@@ -4,8 +4,8 @@ libm-sysdep_routines += m_copysignf-vis3 m_copysign-vis3 s_fabs-vis3 \
+ 			s_fabsf-vis3 s_llrintf-vis3 s_llrint-vis3 \
+ 			s_rintf-vis3 s_rint-vis3 w_sqrt-vis3 w_sqrtf-vis3 \
+ 			s_fminf-vis3 s_fmin-vis3 s_fmaxf-vis3 s_fmax-vis3 \
+-			s_fmaf-vis3 s_fma-vis3 s_fdimf-vis3 s_fdim-vis3 \
+-			s_nearbyint-vis3 s_nearbyintf-vis3
++			s_fmaf-vis3 s_fma-vis3 s_nearbyint-vis3 \
++			s_nearbyintf-vis3
+ sysdep_routines += s_copysignf-vis3 s_copysign-vis3
+ endif
+ endif
+diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim-vis3.S b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim-vis3.S
+deleted file mode 100644
+index 4a479b1..0000000
+--- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim-vis3.S
++++ /dev/null
+@@ -1,34 +0,0 @@
+-/* Compute positive difference, sparc 32-bit+v9+vis3.
+-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by David S. Miller <davem@davemloft.net>.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-ENTRY(__fdim_vis3)
+-	movwtos	%o0, %f0
+-	movwtos	%o1, %f1
+-	movwtos	%o2, %f2
+-	movwtos	%o3, %f3
+-	fcmpd	%f0, %f2
+-	fbug	1f
+-	 nop
+-	fzero	%f0
+-	fnegd	%f0, %f2
+-1:	retl
+-	 fsubd	%f0, %f2, %f0
+-END(__fdim_vis3)
+diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim.S b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim.S
+deleted file mode 100644
+index 4b13408..0000000
+--- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim.S
++++ /dev/null
+@@ -1,19 +0,0 @@
+-#include <sparc-ifunc.h>
+-#include <math_ldbl_opt.h>
+-
+-SPARC_ASM_VIS3_IFUNC(fdim)
+-
+-weak_alias (__fdim, fdim)
+-
+-#if LONG_DOUBLE_COMPAT(libm, GLIBC_2_1)
+-compat_symbol (libm, __fdim, fdiml, GLIBC_2_1);
+-#endif
+-
+-# undef weak_alias
+-# define weak_alias(a, b)
+-# undef compat_symbol
+-# define compat_symbol(a, b, c, d)
+-
+-#define __fdim __fdim_generic
+-
+-#include "../s_fdim.S"
+diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf-vis3.S b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf-vis3.S
+deleted file mode 100644
+index 081fc15..0000000
+--- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf-vis3.S
++++ /dev/null
+@@ -1,32 +0,0 @@
+-/* Compute positive difference, sparc 32-bit+v9+vis3.
+-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by David S. Miller <davem@davemloft.net>.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-ENTRY(__fdimf_vis3)
+-	movwtos	%o0, %f0
+-	movwtos	%o1, %f1
+-	fcmps	%f0, %f1
+-	fbug	1f
+-	 nop
+-	fzeros	%f0
+-	fnegs	%f0, %f1
+-1:	retl
+-	 fsubs	%f0, %f1, %f0
+-END(__fdimf_vis3)
+diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf.S b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf.S
+deleted file mode 100644
+index 30381d6..0000000
+--- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf.S
++++ /dev/null
+@@ -1,12 +0,0 @@
+-#include <sparc-ifunc.h>
+-
+-SPARC_ASM_VIS3_IFUNC(fdimf)
+-
+-weak_alias (__fdimf, fdimf)
+-
+-# undef weak_alias
+-# define weak_alias(a, b)
+-
+-#define __fdimf __fdimf_generic
+-
+-#include "../s_fdimf.S"
+diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyint-vis3.S b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyint-vis3.S
+index d9ff0cc..ff81b0d 100644
+--- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyint-vis3.S
++++ b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyint-vis3.S
+@@ -36,15 +36,15 @@
+ #define SIGN_BIT	%f12			/* -0.0 */
+ 
+ ENTRY (__nearbyint_vis3)
++	sllx	%o0, 32, %o0
++	or	%o0, %o1, %o0
++	movxtod	%o0, %f0
+ 	fcmpd	%fcc3, %f0, %f0			/* Check for sNaN */
+ 	st	%fsr, [%sp + 88]
+ 	sethi	%hi(TWO_FIFTYTWO), %o2
+ 	sethi	%hi(0xf8003e0), %o5
+ 	ld	[%sp + 88], %o4
+-	sllx	%o0, 32, %o0
+ 	or	%o5, %lo(0xf8003e0), %o5
+-	or	%o0, %o1, %o0
+-	movxtod	%o0, %f0
+ 	andn	%o4, %o5, %o4
+ 	fzero	ZERO
+ 	st	%o4, [%sp + 80]
+diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyintf-vis3.S b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyintf-vis3.S
+index 5cd1eb0..833a0df 100644
+--- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyintf-vis3.S
++++ b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyintf-vis3.S
+@@ -35,9 +35,9 @@
+ #define SIGN_BIT	%f12			/* -0.0 */
+ 
+ ENTRY (__nearbyintf_vis3)
++	movwtos	%o0, %f1
+ 	fcmps	%fcc3, %f1, %f1			/* Check for sNaN */
+ 	st	%fsr, [%sp + 88]
+-	movwtos	%o0, %f1
+ 	sethi	%hi(TWO_TWENTYTHREE), %o2
+ 	sethi	%hi(0xf8003e0), %o5
+ 	ld	[%sp + 88], %o4
+diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/s_fdim.S b/sysdeps/sparc/sparc32/sparcv9/fpu/s_fdim.S
+deleted file mode 100644
+index 37f7f44..0000000
+--- a/sysdeps/sparc/sparc32/sparcv9/fpu/s_fdim.S
++++ /dev/null
+@@ -1,40 +0,0 @@
+-/* Compute positive difference, sparc 32-bit+v9.
+-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by David S. Miller <davem@davemloft.net>.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-#include <math_ldbl_opt.h>
+-
+-ENTRY(__fdim)
+-	std	%o0, [%sp + 72]
+-	std	%o2, [%sp + 80]
+-	ldd	[%sp + 72], %f0
+-	ldd	[%sp + 80], %f2
+-	fcmpd	%f0, %f2
+-	fbug	1f
+-	 nop
+-	fzero	%f0
+-	fnegd	%f0, %f2
+-1:	retl
+-	 fsubd	%f0, %f2, %f0
+-END(__fdim)
+-weak_alias (__fdim, fdim)
+-
+-#if LONG_DOUBLE_COMPAT(libm, GLIBC_2_1)
+-compat_symbol (libm, __fdim, fdiml, GLIBC_2_1);
+-#endif
+diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/s_fdimf.S b/sysdeps/sparc/sparc32/sparcv9/fpu/s_fdimf.S
+deleted file mode 100644
+index 9e0e3f2..0000000
+--- a/sysdeps/sparc/sparc32/sparcv9/fpu/s_fdimf.S
++++ /dev/null
+@@ -1,35 +0,0 @@
+-/* Compute positive difference, sparc 32-bit+v9.
+-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by David S. Miller <davem@davemloft.net>.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-ENTRY(__fdimf)
+-	st	%o0, [%sp + 72]
+-	st	%o1, [%sp + 76]
+-	ld	[%sp + 72], %f0
+-	ld	[%sp + 76], %f1
+-	fcmps	%f0, %f1
+-	fbug	1f
+-	 nop
+-	fzeros	%f0
+-	fnegs	%f0, %f1
+-1:	retl
+-	 fsubs	%f0, %f1, %f0
+-END(__fdimf)
+-weak_alias (__fdimf, fdimf)
+diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyint.S b/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyint.S
+index 84a1097..198440a 100644
+--- a/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyint.S
++++ b/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyint.S
+@@ -36,21 +36,21 @@
+ #define SIGN_BIT	%f12			/* -0.0 */
+ 
+ ENTRY (__nearbyint)
++	sllx	%o0, 32, %o0
++	or	%o0, %o1, %o0
++	stx	%o0, [%sp + 72]
++	ldd	[%sp + 72], %f0
+ 	fcmpd	%fcc3, %f0, %f0			/* Check for sNaN */
+ 	st	%fsr, [%sp + 88]
+ 	sethi	%hi(TWO_FIFTYTWO), %o2
+ 	sethi	%hi(0xf8003e0), %o5
+ 	ld	[%sp + 88], %o4
+-	sllx	%o0, 32, %o0
+ 	or	%o5, %lo(0xf8003e0), %o5
+-	or	%o0, %o1, %o0
+ 	andn	%o4, %o5, %o4
+ 	fzero	ZERO
+ 	st	%o4, [%sp + 80]
+-	stx	%o0, [%sp + 72]
+ 	sllx	%o2, 32, %o2
+ 	fnegd	ZERO, SIGN_BIT
+-	ldd	[%sp + 72], %f0
+ 	ld	[%sp + 80], %fsr
+ 	stx	%o2, [%sp + 72]
+ 	fabsd	%f0, %f14
+diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyintf.S b/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyintf.S
+index d5cf5ce..9be41f6 100644
+--- a/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyintf.S
++++ b/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyintf.S
+@@ -35,9 +35,10 @@
+ #define SIGN_BIT	%f12			/* -0.0 */
+ 
+ ENTRY (__nearbyintf)
++	st	%o0, [%sp + 68]
++	ld	[%sp + 68], %f1
+ 	fcmps	%fcc3, %f1, %f1			/* Check for sNaN */
+ 	st	%fsr, [%sp + 88]
+-	st	%o0, [%sp + 68]
+ 	sethi	%hi(TWO_TWENTYTHREE), %o2
+ 	sethi	%hi(0xf8003e0), %o5
+ 	ld	[%sp + 88], %o4
+@@ -46,7 +47,6 @@ ENTRY (__nearbyintf)
+ 	fnegs	ZERO, SIGN_BIT
+ 	andn	%o4, %o5, %o4
+ 	st	%o4, [%sp + 80]
+-	ld	[%sp + 68], %f1
+ 	ld	[%sp + 80], %fsr
+ 	st	%o2, [%sp + 68]
+ 	fabss	%f1, %f14
+diff --git a/sysdeps/sparc/sparc64/fpu/s_fdim.S b/sysdeps/sparc/sparc64/fpu/s_fdim.S
+deleted file mode 100644
+index 7fae72a..0000000
+--- a/sysdeps/sparc/sparc64/fpu/s_fdim.S
++++ /dev/null
+@@ -1,32 +0,0 @@
+-/* Compute positive difference, sparc 64-bit.
+-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by David S. Miller <davem@davemloft.net>.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-#include <math_ldbl_opt.h>
+-
+-ENTRY(__fdim)
+-	fcmpd	%f0, %f2
+-	fbug	1f
+-	 nop
+-	fzero	%f0
+-	fnegd	%f0, %f2
+-1:	retl
+-	 fsubd	%f0, %f2, %f0
+-END(__fdim)
+-weak_alias (__fdim, fdim)
+diff --git a/sysdeps/sparc/sparc64/fpu/s_fdimf.S b/sysdeps/sparc/sparc64/fpu/s_fdimf.S
+deleted file mode 100644
+index 356c23c..0000000
+--- a/sysdeps/sparc/sparc64/fpu/s_fdimf.S
++++ /dev/null
+@@ -1,31 +0,0 @@
+-/* Compute positive difference, sparc 64-bit.
+-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by David S. Miller <davem@davemloft.net>.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-ENTRY(__fdimf)
+-	fcmps	%f1, %f3
+-	fbug	1f
+-	 nop
+-	fzeros	%f1
+-	fnegs	%f1, %f3
+-1:	retl
+-	 fsubs	%f1, %f3, %f0
+-END(__fdimf)
+-weak_alias (__fdimf, fdimf)
 diff --git a/sysdeps/unix/sysv/linux/i386/Makefile b/sysdeps/unix/sysv/linux/i386/Makefile
 index 71ba61e..b015ff7 100644
 --- a/sysdeps/unix/sysv/linux/i386/Makefile
