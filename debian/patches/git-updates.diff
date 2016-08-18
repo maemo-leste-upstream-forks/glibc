@@ -1,10 +1,63 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.24/master from glibc-2.24
 
 diff --git a/ChangeLog b/ChangeLog
-index c44c926..acdc443 100644
+index c44c926..3af5852 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,61 @@
+@@ -1,3 +1,114 @@
++2016-08-17  Florian Weimer  <fweimer@redhat.com>
++
++	Reduce time to expected nptl/tst-once5 failure.
++	* nptl/tst-once5.cc (TIMEOUT): Define.
++
++2016-08-18  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #16907]
++	* argp/argp.h: Switch to __BEGIN_DECLS and __END_DECLS.
++	(__THROW, __NTH, __attribute__, __restrict): Remove definitions.
++	* argp/argp-fmtstream.h: Add __BEGIN_DECLS and __END_DECLS.
++	(__attribute__): Remove definition.
++
++2016-08-15  Andreas Schwab  <schwab@suse.de>
++
++	[BZ #20435]
++	* sysdeps/unix/sysv/linux/arm/setcontext.S (__startcontext): Mark
++	as .cantunwind.
++
++2016-08-17  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #20452]
++	Avoid additional copies of objects in libc.a in static libraries.
++	* sysdeps/ia64/nptl/Makefile (libpthread-shared-only-routines):
++	Add ptw-sysdep, ptw-sigblock, ptw-sigprocmask.
++	* sysdeps/mips/Makefile (librt-shared-only-routines): Add
++	rt-sysdep.
++	* sysdeps/mips/nptl/Makefile (libpthread-shared-only-routines):
++	Add nptl-sysdep.
++	* sysdeps/s390/nptl/Makefile (libpthread-shared-only-routines):
++	Add ptw-sysdep.
++	* sysdeps/unix/alpha/Makefile (librt-shared-only-routines): Add
++	rt-sysdep.
++	* sysdeps/unix/sysv/linux/alpha/Makefile
++	(libpthread-shared-only-routines): Add ptw-sysdep,
++	ptw-sigprocmask, ptw-rt_sigaction.
++	* sysdeps/unix/sysv/linux/ia64/Makefile
++	(librt-shared-only-routines): Add rt-sysdep.
++	* sysdeps/unix/sysv/linux/i386/Makefile
++	(libpthread-shared-only-routines): Add libc-do-syscall.
++	* sysdeps/unix/sysv/linux/microblaze/Makefile
++	(libpthread-shared-only-routines): Add sysdep.
++	* sysdeps/unix/sysv/linux/powerpc/Makefile
++	(librt-shared-only-routines): Add rt-sysdep.
++	(libpthread-shared-only-routines): Add sysdep.
++	* sysdeps/unix/sysv/linux/s390/Makefile
++	(librt-shared-only-routines): Add rt-sysdep.
++	* sysdeps/unix/sysv/linux/sparc/Makefile
++	(librt-shared-only-routines): Add rt-sysdep.
++	(libpthread-shared-only-routines): Add sysdep.
++	* sysdeps/unix/sysv/linux/tile/Makefile
++	(libpthread-shared-only-routines): Likewise.
++
 +2016-08-05  Aurelien Jarno  <aurelien@aurel32.net>
 +
 +	* sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/Makefile
@@ -66,6 +119,136 @@ index c44c926..acdc443 100644
  2016-08-01  Carlos O'Donell  <carlos@redhat.com>
  
  	* version.h (RELEASE): Set to "stable"
+diff --git a/NEWS b/NEWS
+index b0447e7..4a042db 100644
+--- a/NEWS
++++ b/NEWS
+@@ -5,6 +5,17 @@ See the end for copying conditions.
+ Please send GNU C library bug reports via <http://sourceware.org/bugzilla/>
+ using `glibc' in the "product" field.
+ 
++Version 2.24.1
++
++Security related changes:
++
++* On ARM EABI (32-bit), generating a backtrace for execution contexts which
++  have been created with makecontext could fail to terminate due to a
++  missing .cantunwind annotation.  This has been observed to lead to a hang
++  (denial of service) in some Go applications compiled with gccgo.  Reported
++  by Andreas Schwab.  (CVE-2016-6323)
++
++
+ Version 2.24
+ 
+ * The minimum Linux kernel version that this version of the GNU C Library
+diff --git a/argp/argp-fmtstream.h b/argp/argp-fmtstream.h
+index bdeaa54..e8c5797 100644
+--- a/argp/argp-fmtstream.h
++++ b/argp/argp-fmtstream.h
+@@ -29,21 +29,6 @@
+ #include <string.h>
+ #include <unistd.h>
+ 
+-#ifndef __attribute__
+-/* This feature is available in gcc versions 2.5 and later.  */
+-# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 5) || \
+-  defined __STRICT_ANSI__
+-#  define __attribute__(Spec) /* empty */
+-# endif
+-/* The __-protected variants of `format' and `printf' attributes
+-   are accepted by gcc versions 2.6.4 (effectively 2.7) and later.  */
+-# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7) || \
+-  defined __STRICT_ANSI__
+-#  define __format__ format
+-#  define __printf__ printf
+-# endif
+-#endif
+-
+ #if defined (__GNU_LIBRARY__) && defined (HAVE_LINEWRAP_H)
+ /* line_wrap_stream is available, so use that.  */
+ #define ARGP_FMTSTREAM_USE_LINEWRAP
+@@ -111,6 +96,8 @@ struct argp_fmtstream
+ 
+ typedef struct argp_fmtstream *argp_fmtstream_t;
+ 
++__BEGIN_DECLS
++
+ /* Return an argp_fmtstream that outputs to STREAM, and which prefixes lines
+    written on it with LMARGIN spaces and limits them to RMARGIN columns
+    total.  If WMARGIN >= 0, words that extend past RMARGIN are wrapped by
+@@ -297,6 +284,8 @@ __argp_fmtstream_point (argp_fmtstream_t __fs)
+ 
+ #endif /* __OPTIMIZE__ */
+ 
++__END_DECLS
++
+ #endif /* ARGP_FMTSTREAM_USE_LINEWRAP */
+ 
+ #endif /* argp-fmtstream.h */
+diff --git a/argp/argp.h b/argp/argp.h
+index e67bbef..7cb5a69 100644
+--- a/argp/argp.h
++++ b/argp/argp.h
+@@ -28,48 +28,12 @@
+ #define __need_error_t
+ #include <errno.h>
+ 
+-#ifndef __THROW
+-# define __THROW
+-#endif
+-#ifndef __NTH
+-# define __NTH(fct) fct __THROW
+-#endif
+-
+-#ifndef __attribute__
+-/* This feature is available in gcc versions 2.5 and later.  */
+-# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 5) || \
+-  defined __STRICT_ANSI__
+-#  define __attribute__(Spec) /* empty */
+-# endif
+-/* The __-protected variants of `format' and `printf' attributes
+-   are accepted by gcc versions 2.6.4 (effectively 2.7) and later.  */
+-# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7) || \
+-  defined __STRICT_ANSI__
+-#  define __format__ format
+-#  define __printf__ printf
+-# endif
+-#endif
+-
+-/* GCC 2.95 and later have "__restrict"; C99 compilers have
+-   "restrict", and "configure" may have defined "restrict".  */
+-#ifndef __restrict
+-# if ! (2 < __GNUC__ || (2 == __GNUC__ && 95 <= __GNUC_MINOR__))
+-#  if defined restrict || 199901L <= __STDC_VERSION__
+-#   define __restrict restrict
+-#  else
+-#   define __restrict
+-#  endif
+-# endif
+-#endif
+-
+ #ifndef __error_t_defined
+ typedef int error_t;
+ # define __error_t_defined
+ #endif
+ 
+-#ifdef  __cplusplus
+-extern "C" {
+-#endif
++__BEGIN_DECLS
+ 
+ /* A description of a particular option.  A pointer to an array of
+    these is passed in the OPTIONS field of an argp structure.  Each option
+@@ -590,8 +554,6 @@ __NTH (__option_is_end (const struct argp_option *__opt))
+ # endif
+ #endif /* Use extern inlines.  */
+ 
+-#ifdef  __cplusplus
+-}
+-#endif
++__END_DECLS
+ 
+ #endif /* argp.h */
 diff --git a/malloc/arena.c b/malloc/arena.c
 index 229783f..4e16593 100644
 --- a/malloc/arena.c
@@ -145,6 +328,18 @@ index 229783f..4e16593 100644
      (void) mutex_unlock (&free_list_lock);
    }
  
+diff --git a/nptl/tst-once5.cc b/nptl/tst-once5.cc
+index 978d827..513ac53 100644
+--- a/nptl/tst-once5.cc
++++ b/nptl/tst-once5.cc
+@@ -75,5 +75,7 @@ do_test (void)
+   return result;
+ }
+ 
++// The test currently hangs and is XFAILed.  Reduce the timeout.
++#define TIMEOUT 1
+ #define TEST_FUNCTION do_test ()
+ #include "../test-skeleton.c"
 diff --git a/po/de.po b/po/de.po
 index 1383e8c..ca14c7e 100644
 --- a/po/de.po
@@ -910,6 +1105,38 @@ index 49d1f23..e046577 100644
 -
 -#~ msgid "cannot create internal descriptors"
 -#~ msgstr "kan inte skapa interna deskriptorer"
+diff --git a/sysdeps/ia64/nptl/Makefile b/sysdeps/ia64/nptl/Makefile
+index 48f1327..1e6be8e 100644
+--- a/sysdeps/ia64/nptl/Makefile
++++ b/sysdeps/ia64/nptl/Makefile
+@@ -21,4 +21,5 @@ endif
+ 
+ ifeq ($(subdir),nptl)
+ libpthread-routines += ptw-sysdep ptw-sigblock ptw-sigprocmask
++libpthread-shared-only-routines += ptw-sysdep ptw-sigblock ptw-sigprocmask
+ endif
+diff --git a/sysdeps/mips/Makefile b/sysdeps/mips/Makefile
+index 3d35523..7c1d779 100644
+--- a/sysdeps/mips/Makefile
++++ b/sysdeps/mips/Makefile
+@@ -9,6 +9,7 @@ endif
+ 
+ ifeq ($(subdir),rt)
+ librt-sysdep_routines += rt-sysdep
++librt-shared-only-routines += rt-sysdep
+ endif
+ 
+ ifeq ($(subdir),debug)
+diff --git a/sysdeps/mips/nptl/Makefile b/sysdeps/mips/nptl/Makefile
+index 117744f..dda154d 100644
+--- a/sysdeps/mips/nptl/Makefile
++++ b/sysdeps/mips/nptl/Makefile
+@@ -21,4 +21,5 @@ endif
+ 
+ ifeq ($(subdir),nptl)
+ libpthread-sysdep_routines += nptl-sysdep
++libpthread-shared-only-routines += nptl-sysdep
+ endif
 diff --git a/sysdeps/powerpc/ifunc-sel.h b/sysdeps/powerpc/ifunc-sel.h
 index 526d8ed..ac589bd 100644
 --- a/sysdeps/powerpc/ifunc-sel.h
@@ -946,6 +1173,16 @@ index 526d8ed..ac589bd 100644
    return ret;
  }
  #endif
+diff --git a/sysdeps/s390/nptl/Makefile b/sysdeps/s390/nptl/Makefile
+index 5734b98..3a391c8 100644
+--- a/sysdeps/s390/nptl/Makefile
++++ b/sysdeps/s390/nptl/Makefile
+@@ -21,4 +21,5 @@ endif
+ 
+ ifeq ($(subdir),nptl)
+ libpthread-routines += ptw-sysdep
++libpthread-shared-only-routines += ptw-sysdep
+ endif
 diff --git a/sysdeps/sparc/sparc32/fpu/s_fdim.S b/sysdeps/sparc/sparc32/fpu/s_fdim.S
 deleted file mode 100644
 index e93970f..0000000
@@ -1425,11 +1662,62 @@ index 356c23c..0000000
 -	 fsubs	%f1, %f3, %f0
 -END(__fdimf)
 -weak_alias (__fdimf, fdimf)
+diff --git a/sysdeps/unix/alpha/Makefile b/sysdeps/unix/alpha/Makefile
+index 441aa02..0660847 100644
+--- a/sysdeps/unix/alpha/Makefile
++++ b/sysdeps/unix/alpha/Makefile
+@@ -1,3 +1,4 @@
+ ifeq ($(subdir),rt)
+ librt-sysdep_routines += rt-sysdep
++librt-shared-only-routines += rt-sysdep
+ endif
+diff --git a/sysdeps/unix/sysv/linux/alpha/Makefile b/sysdeps/unix/sysv/linux/alpha/Makefile
+index c089545..3b523b7 100644
+--- a/sysdeps/unix/sysv/linux/alpha/Makefile
++++ b/sysdeps/unix/sysv/linux/alpha/Makefile
+@@ -40,4 +40,5 @@ endif   # math
+ ifeq ($(subdir),nptl)
+ # pull in __syscall_error routine, __sigprocmask, __syscall_rt_sigaction
+ libpthread-routines += ptw-sysdep ptw-sigprocmask ptw-rt_sigaction
++libpthread-shared-only-routines += ptw-sysdep ptw-sigprocmask ptw-rt_sigaction
+ endif
+diff --git a/sysdeps/unix/sysv/linux/arm/setcontext.S b/sysdeps/unix/sysv/linux/arm/setcontext.S
+index 603e508..d1f168f 100644
+--- a/sysdeps/unix/sysv/linux/arm/setcontext.S
++++ b/sysdeps/unix/sysv/linux/arm/setcontext.S
+@@ -86,12 +86,19 @@ weak_alias(__setcontext, setcontext)
+ 
+ 	/* Called when a makecontext() context returns.  Start the
+ 	   context in R4 or fall through to exit().  */
++	/* Unwind descriptors are looked up based on PC - 2, so we have to
++	   make sure to mark the instruction preceding the __startcontext
++	   label as .cantunwind.  */
++	.fnstart
++	.cantunwind
++	nop
+ ENTRY(__startcontext)
+ 	movs    r0, r4
+ 	bne     PLTJMP(__setcontext)
+ 
+ 	@ New context was 0 - exit
+ 	b       PLTJMP(HIDDEN_JUMPTARGET(exit))
++	.fnend
+ END(__startcontext)
+ 
+ #ifdef PIC
 diff --git a/sysdeps/unix/sysv/linux/i386/Makefile b/sysdeps/unix/sysv/linux/i386/Makefile
-index 71ba61e..b015ff7 100644
+index 71ba61e..6073a9f 100644
 --- a/sysdeps/unix/sysv/linux/i386/Makefile
 +++ b/sysdeps/unix/sysv/linux/i386/Makefile
-@@ -48,9 +48,11 @@ endif
+@@ -31,6 +31,7 @@ endif
+ # libpthread uses six-argument inline syscalls.
+ ifeq ($(subdir),nptl)
+ libpthread-sysdep_routines += libc-do-syscall
++libpthread-shared-only-routines += libc-do-syscall
+ endif
+ 
+ ifeq ($(subdir),resource)
+@@ -48,9 +49,11 @@ endif
  ifeq ($(subdir),nptl)
  # pull in __syscall_error routine
  libpthread-routines += sysdep
@@ -1440,4 +1728,86 @@ index 71ba61e..b015ff7 100644
  # pull in __syscall_error routine
  librt-routines += sysdep
 +librt-shared-only-routines += sysdep
+ endif
+diff --git a/sysdeps/unix/sysv/linux/ia64/Makefile b/sysdeps/unix/sysv/linux/ia64/Makefile
+index 1de62c5..4d6766d 100644
+--- a/sysdeps/unix/sysv/linux/ia64/Makefile
++++ b/sysdeps/unix/sysv/linux/ia64/Makefile
+@@ -19,6 +19,7 @@ endif
+ 
+ ifeq ($(subdir),rt)
+ librt-routines += rt-sysdep
++librt-shared-only-routines += rt-sysdep
+ endif
+ 
+ ifeq ($(subdir),nptl)
+diff --git a/sysdeps/unix/sysv/linux/microblaze/Makefile b/sysdeps/unix/sysv/linux/microblaze/Makefile
+index 44a838f..d178bc6 100644
+--- a/sysdeps/unix/sysv/linux/microblaze/Makefile
++++ b/sysdeps/unix/sysv/linux/microblaze/Makefile
+@@ -5,4 +5,5 @@ endif
+ ifeq ($(subdir),nptl)
+ # pull in __syscall_error routine
+ libpthread-routines += sysdep
+-endif
+\ No newline at end of file
++libpthread-shared-only-routines += sysdep
++endif
+diff --git a/sysdeps/unix/sysv/linux/powerpc/Makefile b/sysdeps/unix/sysv/linux/powerpc/Makefile
+index c89ed9e..2cfb46e 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/Makefile
++++ b/sysdeps/unix/sysv/linux/powerpc/Makefile
+@@ -8,6 +8,7 @@ abi-64-v2-condition := __WORDSIZE == 64 && _CALL_ELF == 2
+ 
+ ifeq ($(subdir),rt)
+ librt-routines += rt-sysdep
++librt-shared-only-routines += rt-sysdep
+ endif
+ 
+ ifeq ($(subdir),stdlib)
+@@ -34,4 +35,5 @@ ifeq ($(subdir),nptl)
+ libpthread-routines += sysdep
+ libpthread-sysdep_routines += elision-lock elision-unlock elision-timed \
+ 			      elision-trylock
++libpthread-shared-only-routines += sysdep
+ endif
+diff --git a/sysdeps/unix/sysv/linux/s390/Makefile b/sysdeps/unix/sysv/linux/s390/Makefile
+index 497ffd5..f8ed013 100644
+--- a/sysdeps/unix/sysv/linux/s390/Makefile
++++ b/sysdeps/unix/sysv/linux/s390/Makefile
+@@ -6,6 +6,7 @@ abi-64-condition := __WORDSIZE == 64
+ 
+ ifeq ($(subdir),rt)
+ librt-routines += rt-sysdep
++librt-shared-only-routines += rt-sysdep
+ endif
+ 
+ ifeq ($(subdir),stdlib)
+diff --git a/sysdeps/unix/sysv/linux/sparc/Makefile b/sysdeps/unix/sysv/linux/sparc/Makefile
+index e67aecf..a67d199 100644
+--- a/sysdeps/unix/sysv/linux/sparc/Makefile
++++ b/sysdeps/unix/sysv/linux/sparc/Makefile
+@@ -6,6 +6,7 @@ abi-64-condition := __WORDSIZE == 64
+ 
+ ifeq ($(subdir),rt)
+ librt-routines += rt-sysdep
++librt-shared-only-routines += rt-sysdep
+ endif
+ 
+ ifeq ($(subdir),sysvipc)
+@@ -15,4 +16,5 @@ endif
+ ifeq ($(subdir),nptl)
+ # pull in __syscall_error routine
+ libpthread-routines += sysdep
++libpthread-shared-only-routines += sysdep
+ endif
+diff --git a/sysdeps/unix/sysv/linux/tile/Makefile b/sysdeps/unix/sysv/linux/tile/Makefile
+index 1c1cfff..43acea3 100644
+--- a/sysdeps/unix/sysv/linux/tile/Makefile
++++ b/sysdeps/unix/sysv/linux/tile/Makefile
+@@ -25,4 +25,5 @@ endif
+ ifeq ($(subdir),nptl)
+ # pull in __syscall_error routine
+ libpthread-routines += sysdep
++libpthread-shared-only-routines += sysdep
  endif
