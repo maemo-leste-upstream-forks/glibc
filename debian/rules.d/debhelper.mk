@@ -151,6 +151,9 @@ $(stamp)debhelper-common:
 ifeq ($(filter stage2,$(DEB_BUILD_PROFILES)),)
 	echo 'libgcc:Depends=libgcc1 [!hppa !m68k], libgcc2 [m68k], libgcc4 [hppa]' >> tmp.substvars
 endif
+ifeq ($(DEB_HOST_ARCH_OS),linux)
+	echo "libc-dev:Depends=$(shell dpkg-query -f '$${binary:Package} (>= $${Version}) ' -W linux-libc-dev:$(DEB_HOST_ARCH))" >> tmp.substvars
+endif
 
 	for pkg in $(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES) $(DEB_UDEB_PACKAGES); do \
 	  cp tmp.substvars debian/$$pkg.substvars; \
