@@ -8,16 +8,22 @@ Date:   Mon May 30 19:03:01 2016 +0200
     	include .*-.*/ in addition to .*-.*-.*/ (i.e. i386-gnu in addition to
     	i386-linux-gnu).
 
-diff --git a/scripts/check-local-headers.sh b/scripts/check-local-headers.sh
-index 0670da1..4cae4db 100755
+commit 5912cee5a85dbf63cd45932257eab97b83f0d880
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Aug 21 03:24:32 2016 +0200
+
+    mach: Add more allowed external headers
+    
+        * scripts/check-local-headers.sh (exclude): Add mach_debug/.
+
 --- a/scripts/check-local-headers.sh
 +++ b/scripts/check-local-headers.sh
-@@ -33,7 +33,7 @@ exec ${AWK} -v includedir="$includedir" '
+@@ -33,7 +33,7 @@ exec ${AWK} -v includedir="$includedir"
  BEGIN {
    status = 0
    exclude = "^" includedir \
 -    "/(.*-.*-.*/|)(asm[-/]|arch|linux/|selinux/|mach/|device/|hurd/(((hurd|ioctl)_types|paths)\\.h|ioctls\\.defs)|cthreads\\.h|gd|nss3/|c\\+\\+/|sys/(capability|sdt(|-config))\\.h|libaudit\\.h)"
-+    "/(.*-.*-.*/|.*-.*/|)(asm[-/]|arch|linux/|selinux/|mach/|device/|hurd/(((hurd|ioctl)_types|paths)\\.h|ioctls\\.defs|ihash\\.h)|cthreads\\.h|gd|nss3/|c\\+\\+/|sys/(capability|sdt(|-config))\\.h|libaudit\\.h)"
++    "/(.*-.*-.*/|.*-.*/|)(asm[-/]|arch|linux/|selinux/|mach/|mach_debug/|device/|hurd/(((hurd|ioctl)_types|paths)\\.h|ioctls\\.defs|ihash\\.h)|cthreads\\.h|gd|nss3/|c\\+\\+/|sys/(capability|sdt(|-config))\\.h|libaudit\\.h)"
  }
  /^[^ ]/ && $1 ~ /.*:/ { obj = $1 }
  {
