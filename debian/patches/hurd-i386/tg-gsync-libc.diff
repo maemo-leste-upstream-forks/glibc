@@ -17,6 +17,7 @@ Subject: [PATCH] Introduce gsync-based locks to glibc.
 * sysdeps/mach/Makefile: Add libmachuser as dependencies for some libs.
 * sysdeps/mach/libc-lock.h: Reimplemented libc internal locks
   with lll, cleanup routines now use gcc's cleanup attribute
+* manual/errno.texi: New errno values.
 * sysdeps/mach/hurd/bits/errno.h: New errno values.
 * sysdeps/mach/hurd/libc-lock.h: Removed file.
 * sysdeps/mach/hurd/malloc-machine.h: Reimplemented malloc locks.
@@ -36,6 +37,7 @@ Subject: [PATCH] Introduce gsync-based locks to glibc.
  mach/lock-intern.h                 |  84 ++++++++-----
  mach/lowlevellock.h                |  80 ++++++++++++
  mach/mutex-init.c                  |   7 +-
+ manual/errno.texi                  |  12 ++
  sysdeps/mach/Makefile              |  18 +++
  sysdeps/mach/libc-lock.h           | 170 +++++++++++++++++++------
  sysdeps/mach/hurd/bits/errno.h     |   8 +-
@@ -43,7 +45,7 @@ Subject: [PATCH] Introduce gsync-based locks to glibc.
  sysdeps/mach/hurd/malloc-machine.h |  11 +-
  sysdeps/mach/hurd/setpgid.c        |  10 +-
  sysdeps/mach/hurd/setsid.c         |  10 +-
- 19 files changed, 681 insertions(+), 323 deletions(-)
+ 20 files changed, 693 insertions(+), 323 deletions(-)
 
 Index: glibc-2.23/hurd/Makefile
 ===================================================================
@@ -804,6 +806,29 @@ Index: glibc-2.23/mach/mutex-init.c
 -  mutex_init ((struct mutex *) lock);
 +  *(int *)lock = LLL_INITIALIZER;
  }
+diff --git a/manual/errno.texi b/manual/errno.texi
+index 1068be3..5b400fe 100644
+--- a/manual/errno.texi
++++ b/manual/errno.texi
+@@ -993,6 +993,18 @@ the normal result is for the operations affected to complete with this
+ error; @pxref{Cancel AIO Operations}.
+ @end deftypevr
+ 
++@comment errno.h
++@comment GNU: Owner died
++@deftypevr Macro int EOWNERDEAD
++@comment errno 120
++@end deftypevr
++
++@comment errno.h
++@comment GNU: State not recoverable
++@deftypevr Macro int ENOTRECOVERABLE
++@comment errno 121
++@end deftypevr
++
+ 
+ @emph{The following error codes are defined by the Linux/i386 kernel.
+ They are not yet documented.}
 Index: glibc-2.23/sysdeps/mach/Makefile
 ===================================================================
 --- glibc-2.23.orig/sysdeps/mach/Makefile
