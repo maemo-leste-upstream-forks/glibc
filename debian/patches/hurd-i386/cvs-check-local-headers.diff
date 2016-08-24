@@ -1,0 +1,19 @@
+commit 66abf9bfbe24ac1e7207d26ccad725ed938dc52c
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Aug 21 03:24:32 2016 +0200
+
+    mach: Add more allowed external headers
+    
+            * scripts/check-local-headers.sh (exclude): Add mach_debug/.
+
+--- a/scripts/check-local-headers.sh
++++ b/scripts/check-local-headers.sh
+@@ -33,7 +33,7 @@ exec ${AWK} -v includedir="$includedir" '
+ BEGIN {
+   status = 0
+   exclude = "^" includedir \
+-    "/(.*-.*-.*/|.*-.*/|)(asm[-/]|arch|linux/|selinux/|mach/|device/|hurd/(((hurd|ioctl)_types|paths)\\.h|ioctls\\.defs|ihash\\.h)|cthreads\\.h|gd|nss3/|c\\+\\+/|sys/(capability|sdt(|-config))\\.h|libaudit\\.h)"
++    "/(.*-.*-.*/|.*-.*/|)(asm[-/]|arch|linux/|selinux/|mach/|mach_debug/|device/|hurd/(((hurd|ioctl)_types|paths)\\.h|ioctls\\.defs|ihash\\.h)|cthreads\\.h|gd|nss3/|c\\+\\+/|sys/(capability|sdt(|-config))\\.h|libaudit\\.h)"
+ }
+ /^[^ ]/ && $1 ~ /.*:/ { obj = $1 }
+ {

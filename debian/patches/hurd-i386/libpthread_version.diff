@@ -117,7 +117,7 @@ once packages are rebuilt against 2.21.
 +#endif
 --- a/libpthread/forward.c
 +++ b/libpthread/forward.c
-@@ -23,20 +23,37 @@
+@@ -20,20 +23,42 @@
  #include <shlib-compat.h>
  #include <pthread-functions.h>
  
@@ -127,30 +127,33 @@ once packages are rebuilt against 2.21.
  struct pthread_functions __libc_pthread_functions attribute_hidden;
  int __libc_pthread_functions_init attribute_hidden;
  
--
- # define FORWARD2(name, rettype, decl, params, defaction) \
- rettype									      \
--name decl								      \
-+__##name decl								      \
- {									      \
-   if (!__libc_pthread_functions_init)			      \
-     defaction;								      \
- 									      \
-   return PTHFCT_CALL (ptr_##name, params);			      \
--}
-+} \
-+versioned_symbol (libc, __##name, name, GLIBC_2_21); \
-+
-+#if SHLIB_COMPAT (libc, GLIBC_2_13, GLIBC_2_21)
-+# define FORWARD2_COMPAT(name, rettype, decl, params, defaction) \
++# define FORWARD2_NOVERSION(name, rettype, decl, params, defaction) \
 +rettype									      \
-+__##name##_2_13 decl							      \
++__##name decl								      \
 +{									      \
 +  if (!__libc_pthread_functions_init)			      \
 +    defaction;								      \
 +									      \
 +  return PTHFCT_CALL (ptr_##name, params);			      \
 +} \
+ 
+ # define FORWARD2(name, rettype, decl, params, defaction) \
++	FORWARD2_NOVERSION(name, rettype, decl, params, defaction) \
++versioned_symbol (libc, __##name, name, GLIBC_2_21); \
++
++#if SHLIB_COMPAT (libc, GLIBC_2_13, GLIBC_2_21)
++# define FORWARD2_NOCOMPAT(name, rettype, decl, params, defaction) \
+ rettype									      \
+-name decl								      \
++__##name##_2_13 decl							      \
+ {									      \
+   if (!__libc_pthread_functions_init)			      \
+     defaction;								      \
+ 									      \
+   return PTHFCT_CALL (ptr_##name, params);			      \
+ }
++# define FORWARD2_COMPAT(name, rettype, decl, params, defaction) \
++	FORWARD2_NOCOMPAT(name, rettype, decl, params, defaction) \
 +compat_symbol (libc, __##name##_2_13, name, GLIBC_2_13_DEBIAN_31);
 +#else
 +# define FORWARD2_COMPAT(name, rettype, decl, params, defaction)
@@ -158,7 +161,7 @@ once packages are rebuilt against 2.21.
  
  /* Same as FORWARD2, only without return.  */
  # define FORWARD_NORETURN(name, rettype, decl, params, defaction) \
-@@ -47,10 +64,19 @@ name decl								      \
+@@ -47,10 +69,22 @@ name decl								      \
      defaction;								      \
  									      \
    PTHFCT_CALL (ptr_##name, params);			      \
@@ -176,10 +179,13 @@ once packages are rebuilt against 2.21.
 -  FORWARD2 (name, int, decl, params, return defretval)
 +  FORWARD2 (name, int, decl, params, return defretval) \
 +  FORWARD2_COMPAT (name, int, decl, params, return defretval)
++# define FORWARD_NOVERSION(name, decl, params, defretval) \
++  FORWARD2_NOVERSION (name, int, decl, params, return defretval) \
++  FORWARD2_NOCOMPAT (name, int, decl, params, return defretval)
  
  FORWARD (pthread_attr_destroy, (pthread_attr_t *attr), (attr), 0)
  
-@@ -107,7 +133,10 @@ FORWARD (pthread_equal, (pthread_t threa
+@@ -107,7 +141,10 @@ FORWARD (pthread_equal, (pthread_t threa
  
  /* Use an alias to avoid warning, as pthread_exit is declared noreturn.  */
  FORWARD_NORETURN (__pthread_exit, void, (void *retval), (retval), exit (EXIT_SUCCESS))
@@ -191,19 +197,20 @@ once packages are rebuilt against 2.21.
  
  
  FORWARD (pthread_getschedparam,
-@@ -130,16 +159,21 @@ FORWARD (pthread_mutex_unlock, (pthread_
+@@ -130,16 +167,21 @@ FORWARD (pthread_mutex_unlock, (pthread_
  
  
  FORWARD2 (pthread_self, pthread_t, (void), (), return 0)
 +FORWARD2_COMPAT (pthread_self, pthread_t, (void), (), return 0)
  
  
- FORWARD (__pthread_setcancelstate, (int state, int *oldstate), (state, oldstate),
+-FORWARD (__pthread_setcancelstate, (int state, int *oldstate), (state, oldstate),
++FORWARD_NOVERSION (__pthread_setcancelstate, (int state, int *oldstate), (state, oldstate),
  	 0)
 -strong_alias (__pthread_setcancelstate, pthread_setcancelstate);
-+versioned_symbol (libc, __pthread_setcancelstate, pthread_setcancelstate, GLIBC_2_21);
++versioned_symbol (libc, ____pthread_setcancelstate, pthread_setcancelstate, GLIBC_2_21);
 +#if SHLIB_COMPAT (libc, GLIBC_2_13, GLIBC_2_21)
-+compat_symbol (libc, __pthread_setcancelstate_2_13, pthread_setcancelstate, GLIBC_2_13_DEBIAN_31);
++compat_symbol (libc, ____pthread_setcancelstate_2_13, pthread_setcancelstate, GLIBC_2_13_DEBIAN_31);
 +#endif
  
  FORWARD (pthread_setcanceltype, (int type, int *oldtype), (type, oldtype), 0)

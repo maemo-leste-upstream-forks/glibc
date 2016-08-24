@@ -148,7 +148,8 @@ glibc (2.23.90+20160507.87523e9-1) experimental; urgency=medium
     - debian/patches/hurd-i386/cvs-gprof-tick.diff: upstreamed.
     - debian/patches/hurd-i386/cvs-IPV6_PKTINFO.diff: upstreamed.
     - debian/patches/hurd-i386/cvs-i686-link.diff: upstreamed.
-    - debian/patches/hurd-i386/cvs-check-local-headers.diff: upstreamed.
+    - debian/patches/hurd-i386/cvs-check-local-headers.diff: rebased.
+    - debian/patches/hurd-i386/tg-gsync-libc.diff: rebased.
     - debian/patches/i386/local-cpuid-level2.diff: rebased.
     - debian/patches/sparc/submitted-sparc64-socketcall.diff: rebased.
     - debian/patches/sparc/cvs-sparc-nearbyint.diff: upstreamed.
@@ -165,6 +166,23 @@ glibc (2.23.90+20160507.87523e9-1) experimental; urgency=medium
     former was deprecated and has been removed.
 
  -- Aurelien Jarno <aurel32@debian.org>  Tue, 05 Jul 2016 20:47:21 +0200
+
+glibc (2.23-5) unstable; urgency=medium
+
+  * patches/hurd-i386/git-recvmsg.diff: New patch, fixes recvmsg on PF_LOCAL
+    sockets with msg_name != NULL.  Closes: #833558.
+  * hurd-i386/libpthread_version.diff: Really fix pthread_setcancelstate
+    aliasing.
+  * libc0.3.symbols.hurd-i386: Update symbols.
+  * hurd-i386/tg-sysvshm.diff: Update from topgit.
+  * hurd-i386/cvs-check-local-headers.diff: Update from git.
+  * hurd-i386/tg-extern_inline.diff: Fix using inlines in libc.
+  * hurd-i386/cvs-libpthread-2.23.diff: Fix calling pthread functions from
+    libc.
+  * hurd-i386/tg-gsync-libc.diff: New patch, use gsync for libc
+    synchronization primitives.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 23 Aug 2016 21:16:41 +0200
 
 glibc (2.23-4) unstable; urgency=medium
 
