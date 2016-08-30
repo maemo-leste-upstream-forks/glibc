@@ -1,0 +1,29 @@
+commit aaf30454802855d439f3d4d1a12fd6b905621029
+Author: Svante Signell <svante.signell@gmail.com>
+Date:   Tue Aug 30 23:06:31 2016 +0200
+
+    hurd: Fix adjtime call with OLDDELTA == NULL
+    
+    * sysdeps/mach/hurd/adjtime.c (__adjtime): When OLDDELTA is NULL, make
+    it point to a dumb buffer for RPC to fill it.
+
+diff --git a/sysdeps/mach/hurd/adjtime.c b/sysdeps/mach/hurd/adjtime.c
+index d65b95b..7cfdd53 100644
+--- a/sysdeps/mach/hurd/adjtime.c
++++ b/sysdeps/mach/hurd/adjtime.c
+@@ -28,11 +28,15 @@ __adjtime (const struct timeval *delta, struct timeval *olddelta)
+ {
+   error_t err;
+   mach_port_t hostpriv;
++  struct timeval dummy;
+ 
+   err = __get_privileged_ports (&hostpriv, NULL);
+   if (err)
+     return __hurd_fail (EPERM);
+ 
++  if (olddelta == NULL)
++    olddelta = &dummy;
++
+   err = __host_adjust_time (hostpriv,
+ 			    /* `time_value_t' and `struct timeval' are in
+                                fact identical with the names changed.  */
