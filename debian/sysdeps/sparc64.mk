@@ -1,15 +1,15 @@
 # configuration options for all flavours
 extra_config_options = --disable-multi-arch
+extra_cflags = -mcpu=ultrasparc
 
 # main library
 libc_rtlddir = /lib64
-libc_extra_cflags = -mcpu=ultrasparc
 
 # build 32-bit (sparc) alternative library
 GLIBC_MULTILIB_PASSES += sparc
 DEB_ARCH_MULTILIB_PACKAGES += libc6-sparc libc6-dev-sparc
 libc6-sparc_shlib_dep = libc6-sparc (>= $(shlib_dep_ver))
-sparc_configure_target=sparc-linux-gnu
+sparc_configure_target=sparcv9-linux-gnu
 sparc_CC = $(CC) -m32
 sparc_CXX = $(CXX) -m32
 sparc_rtlddir = /lib

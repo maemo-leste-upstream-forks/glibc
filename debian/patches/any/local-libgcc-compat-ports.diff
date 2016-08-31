@@ -9,18 +9,18 @@
  sysdeps/alpha/libgcc-compat.c       |   35 +++
  sysdeps/arm/Makefile                |    5 
  sysdeps/arm/Versions                |   14 +
- sysdeps/arm/libgcc-compat.c         |  111 +++++++++
+ sysdeps/arm/libgcc-compat.c         |  111 +++++++++++
  sysdeps/ia64/Makefile               |    4 
  sysdeps/ia64/Versions               |    4 
- sysdeps/ia64/ia64libgcc.S           |  350 ------------------------------
- sysdeps/ia64/libgcc-compat.c        |  112 +++++++++
+ sysdeps/ia64/ia64libgcc.S           |  350 ------------------------------------
+ sysdeps/ia64/libgcc-compat.c        |  112 +++++++++++
  sysdeps/m68k/Deps                   |    1 
  sysdeps/m68k/Makefile               |    8 
  sysdeps/m68k/Versions               |    8 
- sysdeps/m68k/libgcc-compat.c        |   83 +++++++
+ sysdeps/m68k/libgcc-compat.c        |   83 ++++++++
  sysdeps/mips/mips32/Makefile        |    8 
  sysdeps/mips/mips32/Versions        |    8 
- sysdeps/mips/mips32/libgcc-compat.c |   66 +++++
+ sysdeps/mips/mips32/libgcc-compat.c |   66 ++++++
  17 files changed, 475 insertions(+), 352 deletions(-)
 
 --- /dev/null
@@ -105,7 +105,7 @@
 +}
 --- a/sysdeps/arm/Makefile
 +++ b/sysdeps/arm/Makefile
-@@ -4,6 +4,11 @@
+@@ -37,6 +37,11 @@
  endif
  endif
  endif
@@ -119,7 +119,7 @@
  # get offset to rtld_global._dl_hwcap
 --- a/sysdeps/arm/Versions
 +++ b/sysdeps/arm/Versions
-@@ -17,4 +17,18 @@
+@@ -21,4 +21,18 @@
      # This set has to exist in some Versions file so we can use 2.19 in
      # SHLIB_COMPAT.  Since it didn't exist anywhere else, we add it here.
    }
@@ -258,11 +258,11 @@
 +libgcc-compat.c
 --- a/sysdeps/m68k/Makefile
 +++ b/sysdeps/m68k/Makefile
-@@ -36,3 +36,11 @@
- ifeq ($(subdir),elf)
- CFLAGS-rtld.c += -Wno-uninitialized -Wno-unused
+@@ -47,3 +47,11 @@
+ ifeq ($(subdir),gmon)
+ CFLAGS-mcount.c += -Wno-frame-address
  endif
-+ 
++
 +ifeq ($(subdir),csu)
 +ifeq (yes,$(build-shared))
 +# Compatibility
@@ -438,7 +438,7 @@
  libm {
 --- a/sysdeps/alpha/Makefile
 +++ b/sysdeps/alpha/Makefile
-@@ -54,3 +54,11 @@
+@@ -60,3 +60,11 @@
  # libc.so requires about 16k for the small data area, which is well
  # below the 64k maximum.
  pic-ccflag = -fpic
@@ -452,7 +452,7 @@
 +endif
 --- a/sysdeps/ia64/Makefile
 +++ b/sysdeps/ia64/Makefile
-@@ -12,8 +12,8 @@
+@@ -10,8 +10,8 @@
  
  ifeq (yes,$(build-shared))
  # Compatibility

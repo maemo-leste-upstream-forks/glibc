@@ -10,9 +10,9 @@ Build-Depends: gettext, dpkg (>= 1.18.7), dpkg-dev (>= 1.17.14), xz-utils, file,
  hurd-dev (>= 1:0.5.git20140320~) [hurd-i386] <!stage1> | libihash-dev [hurd-i386] <!stage1>,
  kfreebsd-kernel-headers [kfreebsd-any],
  binutils (>= 2.21),
- g++-5, g++-5-multilib [amd64 i386 kfreebsd-amd64 mips mipsel mipsn32 mipsn32el mips64 mips64el powerpc ppc64 s390x sparc sparc64 x32],
- g++-5 (>= 5.3.1-17) [hurd-i386 i386 kfreebsd-i386],
- libc-bin (>= 2.23) <cross>
+ g++-6, g++-6-multilib [amd64 i386 kfreebsd-amd64 mips mipsel mipsn32 mipsn32el mips64 mips64el powerpc ppc64 s390x sparc sparc64 x32],
+ g++-6 (>= 6.1.1-1) [hurd-i386 i386 kfreebsd-i386],
+ libc-bin (>= 2.24) <cross>
 Build-Depends-Indep: perl, po-debconf (>= 1.0)
 Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
 Uploaders: Clint Adams <clint@debian.org>, Aurelien Jarno <aurel32@debian.org>, Adam Conrad <adconrad@0c3.net>, Samuel Thibault <sthibault@debian.org>
@@ -97,7 +97,7 @@ Package: locales
 Architecture: all
 Section: localization
 Priority: standard
-Depends: libc-bin (>> 2.23), libc-l10n (>> 2.23), ${misc:Depends}, debconf | debconf-2.0
+Depends: libc-bin (>> 2.24), libc-l10n (>> 2.24), ${misc:Depends}, debconf | debconf-2.0
 Replaces: manpages-fr-extra (<< 20141022)
 Build-Profiles: <!stage1>
 Description: GNU C Library: National Language (locale) data [support]
@@ -115,7 +115,7 @@ Architecture: any
 Section: localization
 Priority: extra
 Multi-Arch: foreign
-Depends: libc-l10n (>> 2.23), ${misc:Depends}
+Depends: libc-l10n (>> 2.24), ${misc:Depends}
 Breaks: locales (<< 2.13-17)
 Provides: locales
 Build-Profiles: <!stage1>
@@ -163,9 +163,9 @@ Priority: required
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${libgcc:Depends}
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-i386]
-Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
+Provides: libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Conflicts: libc6-loongson2f [mipsel]
-Breaks: nscd (<< 2.23), locales (<< 2.23), locales-all (<< 2.23), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
+Breaks: nscd (<< 2.24), locales (<< 2.24), locales-all (<< 2.24), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
           libc0.1-i686 [kfreebsd-i386],
@@ -192,7 +192,7 @@ Architecture: amd64 arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32
 Section: libdevel
 Priority: optional
 Multi-Arch: same
-Depends: libc6 (= ${binary:Version}), libc-dev-bin (= ${binary:Version}), ${misc:Depends}, linux-libc-dev [linux-any], kfreebsd-kernel-headers (>= 0.11) [kfreebsd-any], gnumach-dev [hurd-i386], hurd-dev (>= 20080607-3) [hurd-i386] | hurd-headers-dev [hurd-i386]
+Depends: libc6 (= ${binary:Version}), libc-dev-bin (= ${binary:Version}), ${misc:Depends}, ${libc-dev:Depends}, kfreebsd-kernel-headers (>= 0.11) [kfreebsd-any], gnumach-dev [hurd-i386], hurd-dev (>= 20080607-3) [hurd-i386] | hurd-headers-dev [hurd-i386]
 Replaces: hurd-dev (<< 20120408-3) [hurd-i386]
 Suggests: glibc-doc, manpages-dev
 Provides: libc-dev, libc6-dev [alpha hurd-i386 kfreebsd-i386 kfreebsd-amd64]
@@ -251,9 +251,9 @@ Priority: required
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${libgcc:Depends}
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-i386]
-Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
+Provides: libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Conflicts: libc6-loongson2f [mipsel]
-Breaks: nscd (<< 2.23), locales (<< 2.23), locales-all (<< 2.23), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
+Breaks: nscd (<< 2.24), locales (<< 2.24), locales-all (<< 2.24), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
           libc0.1-i686 [kfreebsd-i386],
@@ -280,7 +280,7 @@ Architecture: alpha
 Section: libdevel
 Priority: optional
 Multi-Arch: same
-Depends: libc6.1 (= ${binary:Version}), libc-dev-bin (= ${binary:Version}), ${misc:Depends}, linux-libc-dev [linux-any], kfreebsd-kernel-headers (>= 0.11) [kfreebsd-any], gnumach-dev [hurd-i386], hurd-dev (>= 20080607-3) [hurd-i386] | hurd-headers-dev [hurd-i386]
+Depends: libc6.1 (= ${binary:Version}), libc-dev-bin (= ${binary:Version}), ${misc:Depends}, ${libc-dev:Depends}, kfreebsd-kernel-headers (>= 0.11) [kfreebsd-any], gnumach-dev [hurd-i386], hurd-dev (>= 20080607-3) [hurd-i386] | hurd-headers-dev [hurd-i386]
 Replaces: hurd-dev (<< 20120408-3) [hurd-i386]
 Suggests: glibc-doc, manpages-dev
 Provides: libc-dev, libc6-dev [alpha hurd-i386 kfreebsd-i386 kfreebsd-amd64]
@@ -339,9 +339,9 @@ Priority: required
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${libgcc:Depends}
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-i386]
-Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
+Provides: libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Conflicts: libc6-loongson2f [mipsel]
-Breaks: nscd (<< 2.23), locales (<< 2.23), locales-all (<< 2.23), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
+Breaks: nscd (<< 2.24), locales (<< 2.24), locales-all (<< 2.24), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
           libc0.1-i686 [kfreebsd-i386],
@@ -368,7 +368,7 @@ Architecture: hurd-i386
 Section: libdevel
 Priority: optional
 Multi-Arch: same
-Depends: libc0.3 (= ${binary:Version}), libc-dev-bin (= ${binary:Version}), ${misc:Depends}, linux-libc-dev [linux-any], kfreebsd-kernel-headers (>= 0.11) [kfreebsd-any], gnumach-dev [hurd-i386], hurd-dev (>= 20080607-3) [hurd-i386] | hurd-headers-dev [hurd-i386]
+Depends: libc0.3 (= ${binary:Version}), libc-dev-bin (= ${binary:Version}), ${misc:Depends}, ${libc-dev:Depends}, kfreebsd-kernel-headers (>= 0.11) [kfreebsd-any], gnumach-dev [hurd-i386], hurd-dev (>= 20080607-3) [hurd-i386] | hurd-headers-dev [hurd-i386]
 Replaces: hurd-dev (<< 20120408-3) [hurd-i386]
 Suggests: glibc-doc, manpages-dev
 Provides: libc-dev, libc6-dev [alpha hurd-i386 kfreebsd-i386 kfreebsd-amd64]
@@ -427,9 +427,9 @@ Priority: required
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${libgcc:Depends}
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-i386]
-Provides: ${locale-compat:Depends}, libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
+Provides: libc6-sparcv9b [sparc sparc64], libc0.1-i686 [kfreebsd-i386], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Conflicts: libc6-loongson2f [mipsel]
-Breaks: nscd (<< 2.23), locales (<< 2.23), locales-all (<< 2.23), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
+Breaks: nscd (<< 2.24), locales (<< 2.24), locales-all (<< 2.24), lsb-core (<= 3.2-27) [amd64 ppc64 sparc64], libx11-6 (<< 1.1.4-2) [hurd-i386], libpthread-stubs0 (<< 0.3-4) [hurd-i386], hurd (<< 1:0.5.git20140203-1), libtirpc1 (<< 0.2.3)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
           libc0.1-i686 [kfreebsd-i386],
@@ -456,7 +456,7 @@ Architecture: kfreebsd-amd64 kfreebsd-i386
 Section: libdevel
 Priority: optional
 Multi-Arch: same
-Depends: libc0.1 (= ${binary:Version}), libc-dev-bin (= ${binary:Version}), ${misc:Depends}, linux-libc-dev [linux-any], kfreebsd-kernel-headers (>= 0.11) [kfreebsd-any], gnumach-dev [hurd-i386], hurd-dev (>= 20080607-3) [hurd-i386] | hurd-headers-dev [hurd-i386]
+Depends: libc0.1 (= ${binary:Version}), libc-dev-bin (= ${binary:Version}), ${misc:Depends}, ${libc-dev:Depends}, kfreebsd-kernel-headers (>= 0.11) [kfreebsd-any], gnumach-dev [hurd-i386], hurd-dev (>= 20080607-3) [hurd-i386] | hurd-headers-dev [hurd-i386]
 Replaces: hurd-dev (<< 20120408-3) [hurd-i386]
 Suggests: glibc-doc, manpages-dev
 Provides: libc-dev, libc6-dev [alpha hurd-i386 kfreebsd-i386 kfreebsd-amd64]

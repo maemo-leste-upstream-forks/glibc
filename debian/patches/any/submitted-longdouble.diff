@@ -4,7 +4,7 @@
 
 --- a/math/Makefile
 +++ b/math/Makefile
-@@ -120,13 +120,17 @@
+@@ -120,17 +120,21 @@
  	       test-signgam-uchar-static test-signgam-uchar-init-static \
  	       test-signgam-uint-static test-signgam-uint-init-static \
  	       test-signgam-ullong-static test-signgam-ullong-init-static
@@ -18,6 +18,10 @@
 +test-long-double-fcts = yes
 +endif
 +
+ ifneq (,$(CXX))
+ tests += test-math-isinff
+ endif
+ 
  ifneq (no,$(PERL))
  libm-vec-tests = $(addprefix test-,$(libmvec-tests))
 -libm-tests = test-float test-double $(test-longdouble-$(long-double-fcts)) \
@@ -25,7 +29,7 @@
  	test-ifloat test-idouble test-float-finite test-double-finite \
  	$(libm-vec-tests)
  libm-tests.o = $(addsuffix .o,$(libm-tests))
-@@ -282,11 +286,15 @@
+@@ -296,11 +300,15 @@
  ifneq ($(long-double-fcts),yes)
  # The `double' and `long double' types are the same on this machine.
  # We won't compile the `long double' code at all.  Tell the `double' code
@@ -42,5 +46,5 @@
  endif
 +endif
  
- # The -lieee library is actually an object file.
- # The module just defines the _LIB_VERSION_ variable.
+ # These files quiet sNaNs in a way that is optimized away without
+ # -fsignaling-nans.

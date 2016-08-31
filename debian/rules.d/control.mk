@@ -5,6 +5,7 @@ libc6_archs   := amd64 arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mips
 libc6_1_archs := alpha
 
 control_deps := $(wildcard debian/control.in/*) $(addprefix debian/control.in/, $(libc_packages))
+triggers := binutils, linux-libc-dev [linux-any], $(BASE_CC)$(DEB_GCC_VERSION)
 
 $(patsubst %,debian/control.in/%,$(libc_packages)) :: debian/control.in/% : debian/control.in/libc debian/rules.d/control.mk
 	sed -e "s%@libc@%$*%g" \
@@ -13,7 +14,7 @@ $(patsubst %,debian/control.in/%,$(libc_packages)) :: debian/control.in/% : debi
 	    < $< > $@
 
 debian/control: $(stamp)control
-$(stamp)control: debian/rules.d/control.mk $(control_deps)
+$(stamp)control: debian/rules.d/control.mk $(control_deps) debian/tests/control.in
 
 	# Check that all files end with a new line
 	set -e ; for i in debian/control.in/* ; do \
@@ -42,4 +43,7 @@ $(stamp)control: debian/rules.d/control.mk $(control_deps)
 	cat debian/control.in/opt		>> $@T
 	sed -e 's%@libc@%$(libc)%g' -e 's%@GLIBC_VERSION@%$(GLIBC_VERSION)%g' < $@T > debian/control
 	rm $@T
+
+	# And generate the tests control file with the current GCC
+	sed -e 's%@triggers@%$(triggers)%g' debian/tests/control.in > debian/tests/control
 	touch $@

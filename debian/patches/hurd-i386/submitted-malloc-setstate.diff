@@ -1,0 +1,50 @@
+https://sourceware.org/ml/libc-alpha/2016-07/msg00175.html
+
+diff --git a/malloc/malloc.c b/malloc/malloc.c
+index 1f5f166..beb97e9 100644
+--- a/malloc/malloc.c
++++ b/malloc/malloc.c
+@@ -2600,13 +2600,12 @@ sysmalloc (INTERNAL_SIZE_T nb, mstate av)
+                     {
+                       /*
+                          Skip over some bytes to arrive at an aligned position.
+-                         We don't need to specially mark these wasted front bytes.
+-                         They will never be accessed anyway because
+-                         prev_inuse of av->top (and any chunk created from its start)
+-                         is always true after initialization.
++                         We zero them for malloc_set_state to properly find the
++                         first chunk.
+                        */
+ 
+                       correction = MALLOC_ALIGNMENT - front_misalign;
++                      memset (brk, 0, correction);
+                       aligned_brk += correction;
+                     }
+ 
+@@ -2661,13 +2660,13 @@ sysmalloc (INTERNAL_SIZE_T nb, mstate av)
+                         {
+                           /*
+                              Skip over some bytes to arrive at an aligned position.
+-                             We don't need to specially mark these wasted front bytes.
+-                             They will never be accessed anyway because
+-                             prev_inuse of av->top (and any chunk created from its start)
+-                             is always true after initialization.
++                             We zero them for malloc_set_state to properly find
++                             the first chunk.
+                            */
+ 
+-                          aligned_brk += MALLOC_ALIGNMENT - front_misalign;
++                          correction = MALLOC_ALIGNMENT - front_misalign;
++                          memset (brk, 0, correction);
++                          aligned_brk += correction;
+                         }
+                     }
+ 
+@@ -2682,6 +2681,7 @@ sysmalloc (INTERNAL_SIZE_T nb, mstate av)
+               if (snd_brk != (char *) (MORECORE_FAILURE))
+                 {
+                   av->top = (mchunkptr) aligned_brk;
++                  av->top->prev_size = 0;
+                   set_head (av->top, (snd_brk - aligned_brk + correction) | PREV_INUSE);
+                   av->system_mem += correction;
+ 

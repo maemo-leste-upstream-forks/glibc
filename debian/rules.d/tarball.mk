@@ -13,7 +13,7 @@ $(DEB_ORIG):
 	mkdir -p $(GLIBC_DIR)
 	git archive -v --remote=$(GLIBC_GIT) --format=tar $(GLIBC_TAG) | (tar -C $(GLIBC_DIR) -xf -)
 	rm -fr $(GLIBC_DIR)/manual
-	tar -Jcf $(DEB_ORIG) $(GLIBC_DIR)
+	tar --mode=go=rX,u+rw,a-s --owner=root --group=root --numeric-owner -Jcf $(DEB_ORIG) $(GLIBC_DIR)
 	rm -rf $(GLIBC_DIR)
 
 update-from-upstream:
