@@ -314,15 +314,15 @@ Index: glibc-2.23/hurd/hurdlock.c
 +
 +void lll_robust_unlock (void *ptr, int flags)
 +{
++  unsigned int val = atomic_load_relaxed((unsigned int *)ptr);
 +  while (1)
 +    {
-+      unsigned int val = *(unsigned int *)ptr;
 +      if (val & LLL_WAITERS)
 +        {
 +          lll_set_wake (ptr, 0, flags);
 +          break;
 +        }
-+      else if (atomic_compare_and_exchange_bool_rel ((int *)ptr, 0, val) == 0)
++      else if (atomic_compare_exchange_weak_release ((unsigned int *)ptr, &val, 0))
 +        break;
 +    }
 +}
