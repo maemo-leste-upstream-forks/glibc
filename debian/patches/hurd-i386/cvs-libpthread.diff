@@ -260,7 +260,7 @@ Index: glibc-2.21/libpthread/forward.c
 ===================================================================
 --- /dev/null
 +++ glibc-2.21/libpthread/forward.c
-@@ -0,0 +1,245 @@
+@@ -0,0 +1,248 @@
 +/* Copyright (C) 2002, 2003, 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -410,6 +410,7 @@ Index: glibc-2.21/libpthread/forward.c
 +  void (*prepare) (void);
 +  void (*parent) (void);
 +  void (*child) (void);
++  void *dso_handle;
 +  struct atfork *prev;
 +  struct atfork *next;
 +};
@@ -482,7 +483,8 @@ Index: glibc-2.21/libpthread/forward.c
 +__register_atfork (
 +    void (*prepare) (void),
 +    void (*parent) (void),
-+    void (*child) (void))
++    void (*child) (void),
++    void *dso_handle)
 +{
 +  struct atfork *new = malloc (sizeof (*new));
 +  if (!new)
@@ -491,6 +493,7 @@ Index: glibc-2.21/libpthread/forward.c
 +  new->prepare = prepare;
 +  new->parent = parent;
 +  new->child = child;
++  new->dso_handle = dso_handle;
 +  new->prev = NULL;
 +
 +  __mutex_lock (&atfork_lock);
@@ -5106,7 +5109,7 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-atfork.c
 ===================================================================
 --- /dev/null
 +++ glibc-2.21/libpthread/sysdeps/generic/pt-atfork.c
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,33 @@
 +/* Register fork handlers.  Generic version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -5129,12 +5132,16 @@ Index: glibc-2.21/libpthread/sysdeps/generic/pt-atfork.c
 +#include <pthread.h>
 +#include <pt-internal.h>
 +
++/* This is defined by newer gcc version unique for each module.  */
++extern void *__dso_handle __attribute__ ((__weak__,
++					  __visibility__ ("hidden")));
++
 +int
 +pthread_atfork (void (*prepare) (void),
 +		void (*parent) (void),
 +		void (*child) (void))
 +{
-+  return __register_atfork (prepare, parent, child);
++  return __register_atfork (prepare, parent, child, &__dso_handle == NULL ? NULL : __dso_handle);
 +}
 Index: glibc-2.21/libpthread/sysdeps/generic/pt-attr.c
 ===================================================================
@@ -14437,7 +14444,7 @@ Index: glibc-2.21/libpthread/Versions
 ===================================================================
 --- /dev/null
 +++ glibc-2.21/libpthread/Versions
-@@ -0,0 +1,142 @@
+@@ -0,0 +1,145 @@
 +libc {
 +  GLIBC_2.13 {
 +    pthread_attr_destroy; pthread_attr_getdetachstate;
@@ -14456,9 +14463,12 @@ Index: glibc-2.21/libpthread/Versions
 +    pthread_mutex_lock; pthread_mutex_trylock; pthread_mutex_unlock;
 +    pthread_self; pthread_setcancelstate; pthread_setcanceltype;
 +    __pthread_get_cleanup_stack;
++  }
++  GLIBC_2.22 {
++    __register_atfork;
++  }
 +  GLIBC_PRIVATE {
 +    __libc_pthread_init;
-+    __register_atfork;
 +  }
 +}
 +
