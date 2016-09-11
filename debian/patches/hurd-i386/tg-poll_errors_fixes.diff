@@ -227,7 +227,7 @@ index d453042..070ac1a 100644
    if (firstfd != -1)
      for (i = firstfd; i <= lastfd; ++i)
 -      if (d[i].type)
-+      if (d[i].type & ~SELECT_ERROR)
++      if (d[i].type & ~(SELECT_ERROR | SELECT_RETURNED))
  	__mach_port_destroy (__mach_task_self (), d[i].reply_port);
    if (firstfd == -1 || (firstfd != lastfd && portset != MACH_PORT_NULL))
      /* Destroy PORTSET, but only if it's not actually the reply port for a
