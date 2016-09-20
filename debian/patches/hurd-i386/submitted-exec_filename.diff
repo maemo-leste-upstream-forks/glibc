@@ -215,16 +215,23 @@ from argv[0] but argv[0] only contains the executable name by convention.
    return __hurd_fail (err);
 --- a/sysdeps/mach/hurd/spawni.c
 +++ b/sysdeps/mach/hurd/spawni.c
-@@ -43,7 +43,7 @@ __spawni (pid_t *pid, const char *file,
- 	  int xflags)
+@@ -29,6 +29,7 @@
+ #include <hurd/id.h>
+ #include <hurd/lookup.h>
+ #include <hurd/resource.h>
++#include <hurd/fs_experimental.h>
+ #include <assert.h>
+ #include <argz.h>
+ #include "spawn_int.h"
+@@ -44,6 +45,7 @@ __spawni (pid_t *pid, const char *file,
  {
    pid_t new_pid;
--  char *path, *p, *name;
-+  char *path, *p, *name, *filename;
+   char *path, *p, *name;
++  const char *filename;
    size_t len;
    size_t pathlen;
    short int flags;
-@@ -59,14 +59,14 @@ __spawni (pid_t *pid, const char *file,
+@@ -59,14 +61,14 @@ __spawni (pid_t *pid, const char *file,
       that remains visible after an exec is registration with the proc
       server, and the inheritance of various values and ports.  All those
       inherited values and ports are what get collected up and passed in the
@@ -247,7 +254,7 @@ from argv[0] but argv[0] only contains the executable name by convention.
       except that all errors will be detected here (in the parent process)
       and return proper errno codes rather than the child dying with 127.
  
-@@ -546,7 +546,7 @@ __spawni (pid_t *pid, const char *file,
+@@ -546,7 +548,7 @@ __spawni (pid_t *pid, const char *file,
  
    if ((xflags & SPAWN_XFLAGS_USE_PATH) == 0 || strchr (file, '/') != NULL)
      /* The FILE parameter is actually a path.  */
@@ -256,7 +263,7 @@ from argv[0] but argv[0] only contains the executable name by convention.
    else
      {
        /* We have to search for FILE on the path.  */
-@@ -573,20 +573,18 @@ __spawni (pid_t *pid, const char *file,
+@@ -573,20 +575,18 @@ __spawni (pid_t *pid, const char *file,
        p = path;
        do
  	{
@@ -280,7 +287,7 @@ from argv[0] but argv[0] only contains the executable name by convention.
  	  switch (err)
  	    {
  	    case EACCES:
-@@ -623,14 +621,27 @@ __spawni (pid_t *pid, const char *file,
+@@ -623,14 +623,27 @@ __spawni (pid_t *pid, const char *file,
  
      inline error_t exec (file_t file)
        {
