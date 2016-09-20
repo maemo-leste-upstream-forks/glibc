@@ -7,7 +7,9 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
 
 ---
  hurd/hurd/signal.h                       |    5 +
- hurd/hurdinit.c                          |    2 
+ hurd/hurdfault.c                         |    2 +-
+ hurd/hurdinit.c                          |    2 +-
+ hurd/hurdsig.c                           |    2 +-
  sysdeps/mach/hurd/bits/sigaction.h       |   81 ++++++++++++++++++++
  sysdeps/mach/hurd/i386/bits/sigcontext.h |    4 +
  sysdeps/mach/hurd/i386/exc2signal.c      |  123 +++++++++++++++++++------------
@@ -30,6 +32,17 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  
  /* Make the thread described by SS take the signal described by SIGNO and
     DETAIL.  If the process is traced, this will in fact stop with a SIGNO
+--- a/hurd/hurdfault.c
++++ b/hurd/hurdfault.c
+@@ -70,7 +70,7 @@ _hurdsig_fault_catch_exception_raise (mach_port_t port,
+      codes into a signal number and subcode.  */
+   _hurd_exception2signal (&d, &signo);
+ 
+-  return HURD_PREEMPT_SIGNAL_P (&_hurdsig_fault_preemptor, signo, d.code)
++  return HURD_PREEMPT_SIGNAL_P (&_hurdsig_fault_preemptor, signo, d.exc_subcode)
+     ? 0 : EGREGIOUS;
+ }
+ 
 --- a/hurd/hurdinit.c
 +++ b/hurd/hurdinit.c
 @@ -174,7 +174,7 @@ _hurd_new_proc_init (char **argv,
@@ -41,6 +54,17 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  }
  
  #include <shlib-compat.h>
+--- a/hurd/hurdsig.c
++++ b/hurd/hurdsig.c
+@@ -710,7 +710,7 @@ post_signal (struct hurd_sigstate *ss,
+       {				/* PE cannot be null.  */
+ 	do
+ 	  {
+-	    if (HURD_PREEMPT_SIGNAL_P (pe, signo, detail->code))
++	    if (HURD_PREEMPT_SIGNAL_P (pe, signo, detail->exc_subcode))
+ 	      {
+ 		if (pe->preemptor)
+ 		  {
 --- /dev/null
 +++ b/sysdeps/mach/hurd/bits/sigaction.h
 @@ -0,0 +1,81 @@
