@@ -4,8 +4,10 @@ This dates when libpthread was moved to glibc and some features were added.
 TODO: _DEBIAN_ in versions however pose problem. Remove the _DEBIAN_ version
 once packages are rebuilt against 2.21.
 
---- a/libpthread/Versions
-+++ b/libpthread/Versions
+Index: glibc-2.24/libpthread/Versions
+===================================================================
+--- glibc-2.24.orig/libpthread/Versions
++++ glibc-2.24/libpthread/Versions
 @@ -1,5 +1,5 @@
  libc {
 -  GLIBC_2.13 {
@@ -13,7 +15,7 @@ once packages are rebuilt against 2.21.
      pthread_attr_destroy; pthread_attr_getdetachstate;
      pthread_attr_getinheritsched; pthread_attr_getschedparam;
      pthread_attr_getschedpolicy; pthread_attr_getscope; pthread_attr_init;
-@@ -16,6 +16,24 @@ libc {
+@@ -20,6 +20,24 @@ libc {
    GLIBC_2.22 {
      __register_atfork;
    }
@@ -36,9 +38,9 @@ once packages are rebuilt against 2.21.
 +    __pthread_get_cleanup_stack;
 +  }
    GLIBC_PRIVATE {
+     __libc_alloca_cutoff;
      __libc_pthread_init;
-   }
-@@ -132,7 +151,13 @@ libpthread {
+@@ -136,7 +154,13 @@ libpthread {
      __pthread_spin_lock; __pthread_spin_trylock; __pthread_spin_unlock;
      _pthread_spin_lock;
    }
@@ -53,8 +55,10 @@ once packages are rebuilt against 2.21.
      pthread_hurd_cond_wait_np;
      pthread_hurd_cond_timedwait_np;
    }
---- a/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
-+++ b/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
+Index: glibc-2.24/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
+===================================================================
+--- glibc-2.24.orig/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
++++ glibc-2.24/libpthread/sysdeps/mach/hurd/pt-hurd-cond-timedwait.c
 @@ -23,6 +23,8 @@
  
  #include <pt-internal.h>
@@ -84,8 +88,10 @@ once packages are rebuilt against 2.21.
  
  int
  __pthread_hurd_cond_timedwait_internal (pthread_cond_t *cond,
---- a/libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c
-+++ b/libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c
+Index: glibc-2.24/libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c
+===================================================================
+--- glibc-2.24.orig/libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c
++++ glibc-2.24/libpthread/sysdeps/mach/hurd/pt-hurd-cond-wait.c
 @@ -23,6 +23,8 @@
  
  #include <pt-internal.h>
@@ -114,9 +120,11 @@ once packages are rebuilt against 2.21.
 +}
 +compat_symbol (libpthread, __pthread_hurd_cond_wait_np_2_13, pthread_hurd_cond_wait_np, GLIBC_2_13_DEBIAN_38);
 +#endif
---- a/libpthread/forward.c
-+++ b/libpthread/forward.c
-@@ -20,20 +23,42 @@
+Index: glibc-2.24/libpthread/forward.c
+===================================================================
+--- glibc-2.24.orig/libpthread/forward.c
++++ glibc-2.24/libpthread/forward.c
+@@ -23,20 +23,42 @@
  #include <shlib-compat.h>
  #include <pthread-functions.h>
  
