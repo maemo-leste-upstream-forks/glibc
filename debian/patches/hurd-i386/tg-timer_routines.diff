@@ -54,14 +54,3 @@ Index: glibc/sysdeps/pthread/timer_routines.c
  
    return NULL;
  }
-Index: glibc/libpthread/sysdeps/pthread/Makefile
-===================================================================
---- glibc.orig/libpthread/sysdeps/pthread/Makefile
-+++ glibc/libpthread/sysdeps/pthread/Makefile
-@@ -1,3 +1,6 @@
-+ifeq ($(subdir),rt)
-+librt-sysdep_routines += timer_routines
-+endif
- ifeq ($(subdir),posix)
-   # FIXME: this is not getting $(pthread-version) from libpthread/Makefile!
- CFLAGS-confstr.c += -DLIBPTHREAD_VERSION='"libpthread $(pthread-version)"'

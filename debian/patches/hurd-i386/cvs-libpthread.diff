@@ -1,7 +1,7 @@
-git diff empty --patch-with-stat --src-prefix=glibc/libpthread/ --dst-prefix=glibc/libpthread/ 1f32bdc2e2f54cf4279b720909ff9c2d64a1c406
+git diff empty --patch-with-stat --src-prefix=glibc/libpthread/ --dst-prefix=glibc/libpthread/ 9705f94a6126281c2a909d8bf3c23fad818183fc
 from git.savannah.gnu.org:/srv/git/hurd/libpthread.git/
 thus by construction only libpthread/ files, thus hurd-only
-Date:   Wed Sep 21 00:05:53 2016 +0200
+Date:   Sun Oct 9 13:25:00 2016 +0200
 
  ChangeLog                                     |   6 +
  Makeconfig                                    |  12 +
@@ -10,7 +10,7 @@ Date:   Wed Sep 21 00:05:53 2016 +0200
  Versions                                      | 146 +++++
  configure                                     |   2 +
  configure.in                                  |   4 +
- forward.c                                     | 249 ++++++++
+ forward.c                                     | 280 +++++++++
  include/pthread.h                             |   7 +
  include/pthread/pthread.h                     | 835 ++++++++++++++++++++++++++
  include/pthread/pthreadtypes.h                | 125 ++++
@@ -42,6 +42,7 @@ Date:   Wed Sep 21 00:05:53 2016 +0200
  pthread/pt-yield.c                            |  26 +
  pthreadP.h                                    |  26 +
  shlib-versions                                |   1 +
+ sysdeps/generic/fork.h                        |  29 +
  sysdeps/generic/pt-atfork.c                   |  33 +
  sysdeps/generic/pt-attr-destroy.c             |  28 +
  sysdeps/generic/pt-attr-getdetachstate.c      |  31 +
@@ -187,7 +188,7 @@ Date:   Wed Sep 21 00:05:53 2016 +0200
  sysdeps/mach/pt-timedblock.c                  |  68 +++
  sysdeps/mach/pt-wakeup.c                      |  38 ++
  sysdeps/posix/pt-spin.c                       |  54 ++
- sysdeps/pthread/Makefile                      |   4 +
+ sysdeps/pthread/Makefile                      |   7 +
  sysdeps/pthread/bits/barrier-attr.h           |  32 +
  sysdeps/pthread/bits/barrier.h                |  39 ++
  sysdeps/pthread/bits/cancelation.h            |  51 ++
@@ -231,7 +232,7 @@ Date:   Wed Sep 21 00:05:53 2016 +0200
  tests/test-8.c                                |  60 ++
  tests/test-9.c                                |  88 +++
  tests/test-__pthread_destroy_specific-skip.c  |  83 +++
- 228 files changed, 13021 insertions(+)
+ 229 files changed, 13084 insertions(+)
 
 diff --git glibc/libpthread/ChangeLog glibc/libpthread/ChangeLog
 new file mode 100644
@@ -913,10 +914,10 @@ index 0000000..4e140b1
 +libc_add_on_subdirs=.
 diff --git glibc/libpthread/forward.c glibc/libpthread/forward.c
 new file mode 100644
-index 0000000..c3a1f32
+index 0000000..c819357
 --- /dev/null
 +++ glibc/libpthread/forward.c
-@@ -0,0 +1,249 @@
+@@ -0,0 +1,280 @@
 +/* Copyright (C) 2002, 2003, 2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -941,6 +942,7 @@ index 0000000..c3a1f32
 +#include <stdlib.h>
 +#include <shlib-compat.h>
 +#include <pthread-functions.h>
++#include <fork.h>
 +
 +/* Pointers to the libc functions.  */
 +struct pthread_functions __libc_pthread_functions attribute_hidden;
@@ -1090,13 +1092,13 @@ index 0000000..c3a1f32
 +    return;
 +
 +  while(1)
-+  {
-+    if (last_handler->prepare != NULL)
-+      last_handler->prepare ();
-+    if (last_handler == handlers)
-+      break;
-+    last_handler = last_handler->prev;
-+  }
++    {
++      if (last_handler->prepare != NULL)
++	last_handler->prepare ();
++      if (last_handler == handlers)
++	break;
++      last_handler = last_handler->prev;
++    }
 +}
 +text_set_element (_hurd_atfork_prepare_hook, atfork_pthread_prepare);
 +
@@ -1110,11 +1112,11 @@ index 0000000..c3a1f32
 +  __mutex_unlock (&atfork_lock);
 +
 +  while (handlers)
-+  {
-+    if (handlers->parent != NULL)
-+      handlers->parent ();
-+    handlers = handlers->next;
-+  }
++    {
++      if (handlers->parent != NULL)
++	handlers->parent ();
++      handlers = handlers->next;
++    }
 +}
 +text_set_element (_hurd_atfork_parent_hook, atfork_pthread_parent);
 +
@@ -1128,11 +1130,11 @@ index 0000000..c3a1f32
 +  __mutex_unlock (&atfork_lock);
 +
 +  while (handlers)
-+  {
-+    if (handlers->child != NULL)
-+      handlers->child ();
-+    handlers = handlers->next;
-+  }
++    {
++      if (handlers->child != NULL)
++	handlers->child ();
++      handlers = handlers->next;
++    }
 +}
 +text_set_element (_hurd_atfork_child_hook, atfork_pthread_child);
 +
@@ -1156,7 +1158,7 @@ index 0000000..c3a1f32
 +  __mutex_lock (&atfork_lock);
 +  new->next = fork_handlers;
 +  if (fork_handlers)
-+  	fork_handlers->prev = new;
++    fork_handlers->prev = new;
 +  fork_handlers = new;
 +  if (!fork_last_handler)
 +    fork_last_handler = new;
@@ -1165,7 +1167,37 @@ index 0000000..c3a1f32
 +  return 0;
 +}
 +
-+/* TODO: unregister_atfork, and define UNREGISTER_ATFORK, for module unload support */
++void
++__unregister_atfork (void *dso_handle)
++{
++  struct atfork **handlers, *prev = NULL, *next;
++  __mutex_lock (&atfork_lock);
++  handlers = &fork_handlers;
++  while (*handlers)
++    {
++      if ((*handlers)->dso_handle == dso_handle)
++	{
++	  /* Drop this handler from the list.  */
++	  if (*handlers == fork_last_handler)
++	    {
++	      /* Was last, new last is prev, if any.  */
++	      fork_last_handler = prev;
++	    }
++
++	  next = (*handlers)->next;
++	  if (next)
++	    next->prev = prev;
++	  *handlers = next;
++	}
++      else
++	{
++	  /* Just proceed to next handler.  */
++	  prev = *handlers;
++	  handlers = &prev->next;
++	}
++    }
++  __mutex_unlock (&atfork_lock);
++}
 diff --git glibc/libpthread/include/pthread.h glibc/libpthread/include/pthread.h
 new file mode 100644
 index 0000000..1d4d3c7
@@ -4272,6 +4304,41 @@ index 0000000..98e07a6
 +++ glibc/libpthread/shlib-versions
 @@ -0,0 +1 @@
 +libpthread=0.3
+diff --git glibc/libpthread/sysdeps/generic/fork.h glibc/libpthread/sysdeps/generic/fork.h
+new file mode 100644
+index 0000000..c6ac15e
+--- /dev/null
++++ glibc/libpthread/sysdeps/generic/fork.h
+@@ -0,0 +1,29 @@
++/* Copyright (C) 2002-2015 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* Function to call to unregister fork handlers.  */
++extern void __unregister_atfork (void *dso_handle) attribute_hidden;
++#define UNREGISTER_ATFORK(dso_handle) __unregister_atfork (dso_handle)
++
++
++/* C library side function to register new fork handlers.  */
++extern int __register_atfork (void (*__prepare) (void),
++			      void (*__parent) (void),
++			      void (*__child) (void),
++			      void *dso_handle);
++libc_hidden_proto (__register_atfork)
 diff --git glibc/libpthread/sysdeps/generic/pt-atfork.c glibc/libpthread/sysdeps/generic/pt-atfork.c
 new file mode 100644
 index 0000000..304d7ef
@@ -11951,10 +12018,13 @@ index 0000000..cb809c6
 +weak_alias (_pthread_spin_lock, __pthread_spin_lock);
 diff --git glibc/libpthread/sysdeps/pthread/Makefile glibc/libpthread/sysdeps/pthread/Makefile
 new file mode 100644
-index 0000000..0596130
+index 0000000..f5dbd25
 --- /dev/null
 +++ glibc/libpthread/sysdeps/pthread/Makefile
-@@ -0,0 +1,4 @@
+@@ -0,0 +1,7 @@
++ifeq ($(subdir),rt)
++librt-sysdep_routines += timer_routines
++endif
 +ifeq ($(subdir),posix)
 +  # FIXME: this is not getting $(pthread-version) from libpthread/Makefile!
 +CFLAGS-confstr.c += -DLIBPTHREAD_VERSION='"libpthread $(pthread-version)"'
