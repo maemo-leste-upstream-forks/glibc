@@ -188,6 +188,20 @@ diff --git a/sysdeps/mach/hurd/sendmsg.c b/sysdeps/mach/hurd/sendmsg.c
 index 612581c..51167e8 100644
 --- a/sysdeps/mach/hurd/sendmsg.c
 +++ b/sysdeps/mach/hurd/sendmsg.c
+@@ -19,11 +19,13 @@
+ #include <string.h>
+ #include <sys/socket.h>
+ #include <sys/un.h>
++#include <unistd.h>
+ 
+ #include <hurd.h>
+ #include <hurd/fd.h>
+ #include <hurd/ifsock.h>
+ #include <hurd/socket.h>
++#include <hurd/auth_request.h>
+ #include "hurd/hurdsocket.h"
+ 
+ /* Send a message described MESSAGE on socket FD.
 @@ -111,6 +111,8 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
      if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS)
        nports += (cmsg->cmsg_len - CMSG_ALIGN (sizeof (struct cmsghdr)))
