@@ -124,9 +124,9 @@ Index: glibc-2.24/libpthread/forward.c
 ===================================================================
 --- glibc-2.24.orig/libpthread/forward.c
 +++ glibc-2.24/libpthread/forward.c
-@@ -23,20 +23,42 @@
- #include <shlib-compat.h>
+@@ -24,20 +24,42 @@
  #include <pthread-functions.h>
+ #include <fork.h>
  
 +#include <shlib-compat.h>
 +
@@ -168,7 +168,7 @@ Index: glibc-2.24/libpthread/forward.c
  
  /* Same as FORWARD2, only without return.  */
  # define FORWARD_NORETURN(name, rettype, decl, params, defaction) \
-@@ -47,10 +69,22 @@ name decl								      \
+@@ -48,10 +70,22 @@ name decl								      \
      defaction;								      \
  									      \
    PTHFCT_CALL (ptr_##name, params);			      \
@@ -192,7 +192,7 @@ Index: glibc-2.24/libpthread/forward.c
  
  FORWARD (pthread_attr_destroy, (pthread_attr_t *attr), (attr), 0)
  
-@@ -107,7 +141,10 @@ FORWARD (pthread_equal, (pthread_t threa
+@@ -108,7 +142,10 @@ FORWARD (pthread_equal, (pthread_t threa
  
  /* Use an alias to avoid warning, as pthread_exit is declared noreturn.  */
  FORWARD_NORETURN (__pthread_exit, void, (void *retval), (retval), exit (EXIT_SUCCESS))
@@ -204,7 +204,7 @@ Index: glibc-2.24/libpthread/forward.c
  
  
  FORWARD (pthread_getschedparam,
-@@ -130,16 +167,21 @@ FORWARD (pthread_mutex_unlock, (pthread_
+@@ -131,16 +168,21 @@ FORWARD (pthread_mutex_unlock, (pthread_
  
  
  FORWARD2 (pthread_self, pthread_t, (void), (), return 0)
