@@ -1,0 +1,19 @@
+2016-10-12  H.J. Lu  <hongjiu.lu@intel.com>
+
+	[BZ #20647]
+	* sysdeps/x86/cacheinfo.c (handle_intel): Return -1 if the
+	maximum CPUID level is less than 2.
+
+--- a/sysdeps/x86/cacheinfo.c
++++ b/sysdeps/x86/cacheinfo.c
+@@ -259,7 +259,9 @@ intel_check_word (int name, unsigned int value, bool *has_level_2,
+ static long int __attribute__ ((noinline))
+ handle_intel (int name, unsigned int maxidx)
+ {
+-  assert (maxidx >= 2);
++  /* Return -1 for older CPUs.  */
++  if (maxidx < 2)
++    return -1;
+ 
+   /* OK, we can use the CPUID instruction to get all info about the
+      caches.  */
