@@ -34,7 +34,7 @@ $(stamp)mkincludedir:
 	mkdir debian/include
 
 	# Kernel and library headers
-	for h in asm asm-generic libaudit.h linux selinux sys/capability.h ; do \
+	for h in arch asm asm-generic libaudit.h linux selinux sys/capability.h ; do \
 	    mkdir -p debian/include/$$(dirname $$h) ; \
 	    if [ -e "/usr/include/$(DEB_HOST_MULTIARCH)/$$h" ]; then \
 	        ln -s /usr/include/$(DEB_HOST_MULTIARCH)/$$h debian/include/$$h ; \
