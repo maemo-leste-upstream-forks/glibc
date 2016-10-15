@@ -25,7 +25,9 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	else \
 		dh_installchangelogs -p$(curpass) debian/changelog.upstream ; \
 	fi
+	dh_systemd_enable -p$(curpass)
 	dh_installinit -p$(curpass)
+	dh_systemd_start -p$(curpass)
 	dh_installdocs -p$(curpass) 
 	dh_lintian -p $(curpass)
 	dh_link -p$(curpass)
@@ -145,6 +147,12 @@ $(stamp)debhelper-common:
 	      ;; \
 	  esac; \
 	done
+
+	# Install nscd systemd files on linux
+ifeq ($(DEB_HOST_ARCH_OS),linux)
+	cp nscd/nscd.service debian/nscd.service
+	cp nscd/nscd.tmpfiles debian/nscd.tmpfile
+endif
 
 	# Generate common substvars files.
 	: > tmp.substvars
@@ -268,5 +276,7 @@ clean::
 	rm -f debian/*.NEWS
 	rm -f debian/*.README.Debian
 	rm -f debian/*.triggers
+	rm -f debian/*.service
+	rm -f debian/*.tmpfile
 
 	rm -f $(stamp)binaryinst*
