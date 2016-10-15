@@ -33,22 +33,13 @@ $(stamp)mkincludedir:
 	rm -rf debian/include
 	mkdir debian/include
 
-	# Kernel headers
-	if [ -d "$(LINUX_ARCH_HEADERS)/asm" ]; then \
-		ln -s $(LINUX_ARCH_HEADERS)/asm debian/include ; \
-	else \
-		ln -s $(LINUX_HEADERS)/asm debian/include ; \
-	fi
-	ln -s $(LINUX_HEADERS)/asm-generic debian/include
-	ln -s $(LINUX_HEADERS)/linux debian/include
-
-	# Library headers
-	for h in libaudit.h selinux sys/capability.h ; do \
+	# Kernel and library headers
+	for h in asm asm-generic libaudit.h linux selinux sys/capability.h ; do \
 	    mkdir -p debian/include/$$(dirname $$h) ; \
-	    if [ -d "/usr/include/$(DEB_HOST_MULTIARCH)/$$h" ]; then \
+	    if [ -e "/usr/include/$(DEB_HOST_MULTIARCH)/$$h" ]; then \
 	        ln -s /usr/include/$(DEB_HOST_MULTIARCH)/$$h debian/include/$$h ; \
-	    else \
-		ln -s /usr/include/$$h debian/include/$$h ; \
+	    elif [ -e "/usr/include/$$h" ]; then \
+	        ln -s /usr/include/$$h debian/include/$$h ; \
 	    fi ; \
 	done
 
