@@ -20,7 +20,6 @@ ifndef LINUX_SOURCE
   else
     LINUX_HEADERS := /usr/$(DEB_HOST_GNU_TYPE)/include
   endif
-  LINUX_ARCH_HEADERS := /usr/include/$(DEB_HOST_MULTIARCH)
 else
   LINUX_HEADERS := $(LINUX_SOURCE)/include
 endif
@@ -36,7 +35,9 @@ $(stamp)mkincludedir:
 	# Kernel and library headers
 	for h in arch asm asm-generic libaudit.h linux selinux sys/capability.h ; do \
 	    mkdir -p debian/include/$$(dirname $$h) ; \
-	    if [ -e "/usr/include/$(DEB_HOST_MULTIARCH)/$$h" ]; then \
+	    if [ -e "$(LINUX_HEADERS)/$$h" ]; then \
+	        ln -s $(LINUX_HEADERS)/$$h debian/include/$$h ; \
+	    elif [ -e "/usr/include/$(DEB_HOST_MULTIARCH)/$$h" ]; then \
 	        ln -s /usr/include/$(DEB_HOST_MULTIARCH)/$$h debian/include/$$h ; \
 	    elif [ -e "/usr/include/$$h" ]; then \
 	        ln -s /usr/include/$$h debian/include/$$h ; \
