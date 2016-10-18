@@ -114,6 +114,7 @@ test-xfail-tst-makecontext = yes
 test-xfail-tst-protected1a = yes
 test-xfail-tst-protected1b = yes
 test-xfail-tst-setcontext2 = yes
+test-xfail-tst-stack4 = yes
 # The following tests sometimes fail due to timeouts.
 test-xfail-tst-barrier5 = yes
 test-xfail-tst-cond25 = yes
