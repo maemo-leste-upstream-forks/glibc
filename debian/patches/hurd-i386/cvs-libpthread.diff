@@ -1,13 +1,13 @@
-git diff empty --patch-with-stat --src-prefix=glibc/libpthread/ --dst-prefix=glibc/libpthread/ 05babf965ec39be7e1c8a7306ec1c60b1e614654
+git diff empty --patch-with-stat --src-prefix=glibc/libpthread/ --dst-prefix=glibc/libpthread/ 79e9d2b78ec0747a94731d45e0e5149269e96159
 from git.savannah.gnu.org:/srv/git/hurd/libpthread.git/
 thus by construction only libpthread/ files, thus hurd-only
-Date:   Tue Oct 18 02:10:41 2016 +0200
+Date:   Mon Oct 24 22:34:36 2016 +0200
 
  ChangeLog                                     |   6 +
  Makeconfig                                    |  13 +
  Makefile                                      | 371 ++++++++++++
  TODO                                          | 131 ++++
- Versions                                      | 146 +++++
+ Versions                                      | 147 +++++
  configure                                     |   2 +
  configure.in                                  |   4 +
  forward.c                                     | 280 +++++++++
@@ -40,7 +40,7 @@ Date:   Tue Oct 18 02:10:41 2016 +0200
  pthread/pt-spin-inlines.c                     |  34 ++
  pthread/pt-testcancel.c                       |  36 ++
  pthread/pt-yield.c                            |  26 +
- pthreadP.h                                    |  26 +
+ pthreadP.h                                    |  27 +
  shlib-versions                                |   1 +
  sysdeps/generic/fork.h                        |  29 +
  sysdeps/generic/old_pt-atfork.c               |  27 +
@@ -138,7 +138,7 @@ Date:   Tue Oct 18 02:10:41 2016 +0200
  sysdeps/generic/pt-setschedprio.c             |  29 +
  sysdeps/generic/pt-setspecific.c              |  27 +
  sysdeps/generic/pt-startup.c                  |  25 +
- sysdeps/generic/raise.c                       |  50 ++
+ sysdeps/generic/raise.c                       |  51 ++
  sysdeps/generic/sem-close.c                   |  32 +
  sysdeps/generic/sem-destroy.c                 |  38 ++
  sysdeps/generic/sem-getvalue.c                |  33 +
@@ -233,7 +233,7 @@ Date:   Tue Oct 18 02:10:41 2016 +0200
  tests/test-8.c                                |  60 ++
  tests/test-9.c                                |  88 +++
  tests/test-__pthread_destroy_specific-skip.c  |  83 +++
- 230 files changed, 13149 insertions(+)
+ 230 files changed, 13152 insertions(+)
 
 diff --git glibc/libpthread/ChangeLog glibc/libpthread/ChangeLog
 new file mode 100644
@@ -782,10 +782,10 @@ index 0000000..979c38c
 +   http://sources.redhat.com/ml/libc-alpha/2002-08/msg00278.html.
 diff --git glibc/libpthread/Versions glibc/libpthread/Versions
 new file mode 100644
-index 0000000..089c6b5
+index 0000000..4ad3c3e
 --- /dev/null
 +++ glibc/libpthread/Versions
-@@ -0,0 +1,146 @@
+@@ -0,0 +1,147 @@
 +libc {
 +  GLIBC_2.13 {
 +    pthread_attr_destroy; pthread_attr_getdetachstate;
@@ -930,6 +930,7 @@ index 0000000..089c6b5
 +  }
 +  GLIBC_PRIVATE {
 +    __shm_directory;
++    __pthread_threads;
 +  }
 +}
 diff --git glibc/libpthread/configure glibc/libpthread/configure
@@ -4305,10 +4306,10 @@ index 0000000..27848bb
 +}
 diff --git glibc/libpthread/pthreadP.h glibc/libpthread/pthreadP.h
 new file mode 100644
-index 0000000..f1fd625
+index 0000000..97e3028
 --- /dev/null
 +++ glibc/libpthread/pthreadP.h
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,27 @@
 +/* Copyright (C) 2016 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -4333,6 +4334,7 @@ index 0000000..f1fd625
 +
 +extern pthread_t __pthread_self (void);
 +extern int __pthread_kill (pthread_t threadid, int signo);
++extern struct __pthread **__pthread_threads;
 +
 +#endif	/* pthreadP.h */
 diff --git glibc/libpthread/shlib-versions glibc/libpthread/shlib-versions
@@ -8906,10 +8908,10 @@ index 0000000..c21a181
 +}
 diff --git glibc/libpthread/sysdeps/generic/raise.c glibc/libpthread/sysdeps/generic/raise.c
 new file mode 100644
-index 0000000..cc18b39
+index 0000000..b98cf51
 --- /dev/null
 +++ glibc/libpthread/sysdeps/generic/raise.c
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,51 @@
 +/* raise.c - Generic raise implementation.
 +   Copyright (C) 2008 Free Software Foundation, Inc.
 +   Written by Neal H. Walfield <neal@gnu.org>.
@@ -8936,6 +8938,7 @@ index 0000000..cc18b39
 +
 +#pragma weak __pthread_kill
 +#pragma weak __pthread_self
++#pragma weak __pthread_threads
 +int
 +raise (int signo)
 +{
@@ -8943,7 +8946,7 @@ index 0000000..cc18b39
 +     "the effect of the raise() function shall be equivalent to
 +     calling: pthread_kill(pthread_self(), sig);"  */
 +
-+  if (__pthread_kill)
++  if (__pthread_kill && __pthread_threads)
 +    {
 +      int err;
 +      err = __pthread_kill (__pthread_self (), signo);
