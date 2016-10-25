@@ -1,10 +1,26 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.24/master from glibc-2.24
 
 diff --git a/ChangeLog b/ChangeLog
-index c44c926..3cad282 100644
+index c44c926..b2f6372 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,152 @@
+@@ -1,3 +1,168 @@
++2016-10-24  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++
++	* sysdeps/unix/sysv/linux/pread.c (__libc_pread): Use SYSCALL_LL_PRW.
++	* sysdeps/unix/sysv/linux/pwrite.c (__libc_pwrite): Likewise.
++	* sysdeps/unix/sysv/linux/pread64.c (__libc_pread64): Use
++	SYSCALL_LL64_PRW.
++	* sysdeps/unix/sysv/linux/pwrite64.c (__libc_pwrite64): Likewise.
++	* sysdeps/unix/sysv/linux/sh/kernel-features.h: Define
++	__ASSUME_PRW_DUMMY_ARG.
++	* sysdeps/unix/sysv/linux/sh/pread.c: Remove file.
++	* sysdeps/unix/sysv/linux/sh/pread64.c: Likewise.
++	* sysdeps/unix/sysv/linux/sh/pwrite.c: Likewise.
++	* sysdeps/unix/sysv/linux/sh/pwrite64.c: Likewise.
++	* sysdeps/unix/sysv/linux/sysdep.h: Define SYSCALL_LL_PRW and
++	SYSCALL_LL_PRW64 based on __ASSUME_PRW_DUMMY_ARG.
++
 +2016-10-05  Tulio Magno Quites Machado Filho  <tuliom@linux.vnet.ibm.com>
 +
 +	* sysdeps/powerpc/fpu/libm-test-ulps: Regenerated.
@@ -2382,6 +2398,62 @@ index c89ed9e..2cfb46e 100644
  			      elision-trylock
 +libpthread-shared-only-routines += sysdep
  endif
+diff --git a/sysdeps/unix/sysv/linux/pread.c b/sysdeps/unix/sysv/linux/pread.c
+index 1bcff64..46d974d 100644
+--- a/sysdeps/unix/sysv/linux/pread.c
++++ b/sysdeps/unix/sysv/linux/pread.c
+@@ -28,8 +28,7 @@
+ ssize_t
+ __libc_pread (int fd, void *buf, size_t count, off_t offset)
+ {
+-  return SYSCALL_CANCEL (pread, fd, buf, count,
+-			 __ALIGNMENT_ARG SYSCALL_LL (offset));
++  return SYSCALL_CANCEL (pread, fd, buf, count, SYSCALL_LL_PRW (offset));
+ }
+ 
+ strong_alias (__libc_pread, __pread)
+diff --git a/sysdeps/unix/sysv/linux/pread64.c b/sysdeps/unix/sysv/linux/pread64.c
+index 58c6aeb..f51beae 100644
+--- a/sysdeps/unix/sysv/linux/pread64.c
++++ b/sysdeps/unix/sysv/linux/pread64.c
+@@ -26,8 +26,7 @@
+ ssize_t
+ __libc_pread64 (int fd, void *buf, size_t count, off64_t offset)
+ {
+-  return SYSCALL_CANCEL (pread64, fd, buf, count,
+-			 __ALIGNMENT_ARG SYSCALL_LL64 (offset));
++  return SYSCALL_CANCEL (pread64, fd, buf, count, SYSCALL_LL64_PRW (offset));
+ }
+ 
+ weak_alias (__libc_pread64, __pread64)
+diff --git a/sysdeps/unix/sysv/linux/pwrite.c b/sysdeps/unix/sysv/linux/pwrite.c
+index 9c502be..1371df8 100644
+--- a/sysdeps/unix/sysv/linux/pwrite.c
++++ b/sysdeps/unix/sysv/linux/pwrite.c
+@@ -28,8 +28,7 @@
+ ssize_t
+ __libc_pwrite (int fd, const void *buf, size_t count, off_t offset)
+ {
+-  return SYSCALL_CANCEL (pwrite, fd, buf, count,
+-			 __ALIGNMENT_ARG SYSCALL_LL (offset));
++  return SYSCALL_CANCEL (pwrite, fd, buf, count, SYSCALL_LL_PRW (offset));
+ }
+ 
+ strong_alias (__libc_pwrite, __pwrite)
+diff --git a/sysdeps/unix/sysv/linux/pwrite64.c b/sysdeps/unix/sysv/linux/pwrite64.c
+index b49e6bc..22f1f05 100644
+--- a/sysdeps/unix/sysv/linux/pwrite64.c
++++ b/sysdeps/unix/sysv/linux/pwrite64.c
+@@ -26,8 +26,7 @@
+ ssize_t
+ __libc_pwrite64 (int fd, const void *buf, size_t count, off64_t offset)
+ {
+-  return SYSCALL_CANCEL (pwrite64, fd, buf, count,
+-			 __ALIGNMENT_ARG SYSCALL_LL64 (offset));
++  return SYSCALL_CANCEL (pwrite64, fd, buf, count, SYSCALL_LL64_PRW (offset));
+ }
+ weak_alias (__libc_pwrite64, __pwrite64)
+ libc_hidden_weak (__pwrite64)
 diff --git a/sysdeps/unix/sysv/linux/s390/Makefile b/sysdeps/unix/sysv/linux/s390/Makefile
 index 497ffd5..f8ed013 100644
 --- a/sysdeps/unix/sysv/linux/s390/Makefile
@@ -2394,6 +2466,135 @@ index 497ffd5..f8ed013 100644
  endif
  
  ifeq ($(subdir),stdlib)
+diff --git a/sysdeps/unix/sysv/linux/sh/kernel-features.h b/sysdeps/unix/sysv/linux/sh/kernel-features.h
+index ad05fc3..c5240fa 100644
+--- a/sysdeps/unix/sysv/linux/sh/kernel-features.h
++++ b/sysdeps/unix/sysv/linux/sh/kernel-features.h
+@@ -44,3 +44,8 @@
+ 
+ /* SH does not have a 64-bit inode field.  */
+ #undef __ASSUME_ST_INO_64_BIT
++
++/* SH4 ABI does not really require argument alignment for 64-bits, but
++   the kernel interface for p{read,write}64 adds a dummy long argument
++   before the offset.  */
++#define __ASSUME_PRW_DUMMY_ARG	1
+diff --git a/sysdeps/unix/sysv/linux/sh/pread.c b/sysdeps/unix/sysv/linux/sh/pread.c
+deleted file mode 100644
+index d3f99f3..0000000
+--- a/sysdeps/unix/sysv/linux/sh/pread.c
++++ /dev/null
+@@ -1,23 +0,0 @@
+-/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/* SH4 ABI does not really require argument alignment for 64-bits, but
+-   the kernel interface for pread adds a dummy long argument before the
+-   offset.  */
+-#define __ALIGNMENT_ARG
+-#include <sysdeps/unix/sysv/linux/pread.c>
+diff --git a/sysdeps/unix/sysv/linux/sh/pread64.c b/sysdeps/unix/sysv/linux/sh/pread64.c
+deleted file mode 100644
+index b2e8a25..0000000
+--- a/sysdeps/unix/sysv/linux/sh/pread64.c
++++ /dev/null
+@@ -1,23 +0,0 @@
+-/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/* SH4 ABI does not really require argument alignment for 64-bits, but
+-   the kernel interface for pread adds a dummy long argument before the
+-   offset.  */
+-#define __ALIGNMENT_ARG
+-#include <sysdeps/unix/sysv/linux/pread64.c>
+diff --git a/sysdeps/unix/sysv/linux/sh/pwrite.c b/sysdeps/unix/sysv/linux/sh/pwrite.c
+deleted file mode 100644
+index 391ed5e..0000000
+--- a/sysdeps/unix/sysv/linux/sh/pwrite.c
++++ /dev/null
+@@ -1,23 +0,0 @@
+-/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/* SH4 ABI does not really require argument alignment for 64-bits, but
+-   the kernel interface for pwrite adds a dummy long argument before the
+-   offset.  */
+-#define __ALIGNMENT_ARG
+-#include <sysdeps/unix/sysv/linux/pwrite.c>
+diff --git a/sysdeps/unix/sysv/linux/sh/pwrite64.c b/sysdeps/unix/sysv/linux/sh/pwrite64.c
+deleted file mode 100644
+index 683a5d9..0000000
+--- a/sysdeps/unix/sysv/linux/sh/pwrite64.c
++++ /dev/null
+@@ -1,23 +0,0 @@
+-/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Ralf Baechle <ralf@gnu.org>, 1998.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/* SH4 ABI does not really require argument alignment for 64-bits, but
+-   the kernel interface for pread adds a dummy long argument before the
+-   offset.  */
+-#define __ALIGNMENT_ARG
+-#include <sysdeps/unix/sysv/linux/pwrite64.c>
 diff --git a/sysdeps/unix/sysv/linux/sparc/Makefile b/sysdeps/unix/sysv/linux/sparc/Makefile
 index e67aecf..a67d199 100644
 --- a/sysdeps/unix/sysv/linux/sparc/Makefile
@@ -2459,6 +2660,27 @@ index bb3eecf..67e1c42 100644
  
    return ec;
  }
+diff --git a/sysdeps/unix/sysv/linux/sysdep.h b/sysdeps/unix/sysv/linux/sysdep.h
+index a469f57..e3ecd56 100644
+--- a/sysdeps/unix/sysv/linux/sysdep.h
++++ b/sysdeps/unix/sysv/linux/sysdep.h
+@@ -48,6 +48,16 @@
+   __LONG_LONG_PAIR ((long) ((val) >> 32), (long) ((val) & 0xffffffff))
+ #endif
+ 
++/* Provide a common macro to pass 64-bit value on pread and pwrite
++   syscalls.  */
++#ifdef __ASSUME_PRW_DUMMY_ARG
++# define SYSCALL_LL_PRW(val)   0, SYSCALL_LL (val)
++# define SYSCALL_LL64_PRW(val) 0, SYSCALL_LL64 (val)
++#else
++# define SYSCALL_LL_PRW(val)   __ALIGNMENT_ARG SYSCALL_LL (val)
++# define SYSCALL_LL64_PRW(val) __ALIGNMENT_ARG SYSCALL_LL64 (val)
++#endif
++
+ /* Provide a macro to pass the off{64}_t argument on p{readv,writev}{64}.  */
+ #define LO_HI_LONG(val) \
+  (long) (val), \
 diff --git a/sysdeps/unix/sysv/linux/tile/Makefile b/sysdeps/unix/sysv/linux/tile/Makefile
 index 1c1cfff..43acea3 100644
 --- a/sysdeps/unix/sysv/linux/tile/Makefile
