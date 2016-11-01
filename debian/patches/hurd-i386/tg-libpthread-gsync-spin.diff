@@ -1,38 +1,23 @@
-commit 766852102c4b9a720fa5c9cd668417ffeb2bcba6
+commit 4885bbdb5a271ca3ce94282d7d24b9651c02513b
 Author: Agustina Arzille <avarzille@riseup.net>
 Date:   Tue Oct 18 00:20:45 2016 +0200
 
     Make pthread_spinlock use gsync
 
-diff --git a/libpthread/Makefile b/libpthread/Makefile
-index 21c9b94..6329d9d 100644
---- a/libpthread/Makefile
-+++ b/libpthread/Makefile
-@@ -132,7 +132,6 @@ libpthread-routines := pt-attr pt-attr-destroy pt-attr-getdetachstate	    \
- 	pt-sysdep							    \
- 	pt-setup							    \
- 	pt-machdep							    \
--	pt-spin								    \
- 									    \
- 	pt-sigstate-init						    \
- 	pt-sigstate-destroy						    \
-diff --git a/libpthread/pthread/pt-spin-inlines.c b/libpthread/pthread/pt-spin-inlines.c
-index cfb21dd..4dc484e 100644
---- a/libpthread/pthread/pt-spin-inlines.c
-+++ b/libpthread/pthread/pt-spin-inlines.c
-@@ -31,4 +31,8 @@
+diff --git a/pthread/pt-spin-inlines.c b/pthread/pt-spin-inlines.c
+index cfb21dd..f905065 100644
+--- a/pthread/pt-spin-inlines.c
++++ b/pthread/pt-spin-inlines.c
+@@ -31,4 +31,5 @@
  weak_alias (__pthread_spin_destroy, pthread_spin_destroy);
  weak_alias (__pthread_spin_init, pthread_spin_init);
  weak_alias (__pthread_spin_trylock, pthread_spin_trylock);
 +weak_alias (__pthread_spin_lock, pthread_spin_lock);
  weak_alias (__pthread_spin_unlock, pthread_spin_unlock);
-+
-+/* Compatibility with old non-gsync spinlocks */
-+weak_alias (__pthread_spin_lock, _pthread_spin_lock);
-diff --git a/libpthread/sysdeps/mach/bits/spin-lock-inline.h b/libpthread/sysdeps/mach/bits/spin-lock-inline.h
+diff --git a/sysdeps/mach/bits/spin-lock-inline.h b/sysdeps/mach/bits/spin-lock-inline.h
 index f9f7c29..98e4b3b 100644
---- a/libpthread/sysdeps/mach/bits/spin-lock-inline.h
-+++ b/libpthread/sysdeps/mach/bits/spin-lock-inline.h
+--- a/sysdeps/mach/bits/spin-lock-inline.h
++++ b/sysdeps/mach/bits/spin-lock-inline.h
 @@ -22,7 +22,7 @@
  
  #include <features.h>
@@ -73,10 +58,10 @@ index f9f7c29..98e4b3b 100644
    return 0;
  }
  
-diff --git a/libpthread/sysdeps/mach/bits/spin-lock.h b/libpthread/sysdeps/mach/bits/spin-lock.h
+diff --git a/sysdeps/mach/bits/spin-lock.h b/sysdeps/mach/bits/spin-lock.h
 index 537dac9..7574b37 100644
---- a/libpthread/sysdeps/mach/bits/spin-lock.h
-+++ b/libpthread/sysdeps/mach/bits/spin-lock.h
+--- a/sysdeps/mach/bits/spin-lock.h
++++ b/sysdeps/mach/bits/spin-lock.h
 @@ -21,17 +21,14 @@
  #define _BITS_SPIN_LOCK_H	1
  
@@ -97,10 +82,10 @@ index 537dac9..7574b37 100644
  
  __END_DECLS
  
-diff --git a/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h b/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h
+diff --git a/sysdeps/mach/i386/bits/spin-lock-inline.h b/sysdeps/mach/i386/bits/spin-lock-inline.h
 deleted file mode 100644
 index e5ed3de..0000000
---- a/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h
+--- a/sysdeps/mach/i386/bits/spin-lock-inline.h
 +++ /dev/null
 @@ -1,98 +0,0 @@
 -/* Machine-specific definitions for spin locks.  i386 version.
@@ -201,10 +186,10 @@ index e5ed3de..0000000
 -__END_DECLS
 -
 -#endif /* bits/spin-lock.h */
-diff --git a/libpthread/sysdeps/mach/i386/bits/spin-lock.h b/libpthread/sysdeps/mach/i386/bits/spin-lock.h
+diff --git a/sysdeps/mach/i386/bits/spin-lock.h b/sysdeps/mach/i386/bits/spin-lock.h
 deleted file mode 100644
 index 5ae81e1..0000000
---- a/libpthread/sysdeps/mach/i386/bits/spin-lock.h
+--- a/sysdeps/mach/i386/bits/spin-lock.h
 +++ /dev/null
 @@ -1,39 +0,0 @@
 -/* Machine-specific definitions for spin locks.  i386 version.
@@ -246,10 +231,10 @@ index 5ae81e1..0000000
 -__END_DECLS
 -
 -#endif /* bits/spin-lock.h */
-diff --git a/libpthread/sysdeps/mach/pt-spin.c b/libpthread/sysdeps/mach/pt-spin.c
+diff --git a/sysdeps/mach/pt-spin.c b/sysdeps/mach/pt-spin.c
 deleted file mode 100644
 index d9a2a32..0000000
---- a/libpthread/sysdeps/mach/pt-spin.c
+--- a/sysdeps/mach/pt-spin.c
 +++ /dev/null
 @@ -1,36 +0,0 @@
 -/* Spin locks.  Mach version.
@@ -284,66 +269,6 @@ index d9a2a32..0000000
 -{
 -  __spin_lock_solid (lock);
 -  return 0;
--}
--
--weak_alias (_pthread_spin_lock, pthread_spin_lock);
--weak_alias (_pthread_spin_lock, __pthread_spin_lock);
-diff --git a/libpthread/sysdeps/posix/pt-spin.c b/libpthread/sysdeps/posix/pt-spin.c
-deleted file mode 100644
-index cb809c6..0000000
---- a/libpthread/sysdeps/posix/pt-spin.c
-+++ /dev/null
-@@ -1,54 +0,0 @@
--/* Spin locks.
--   Copyright (C) 2000, 2004, 2005 Free Software Foundation, Inc.
--   This file is part of the GNU C Library.
--
--   The GNU C Library is free software; you can redistribute it and/or
--   modify it under the terms of the GNU Library General Public License as
--   published by the Free Software Foundation; either version 2 of the
--   License, or (at your option) any later version.
--
--   The GNU C Library is distributed in the hope that it will be useful,
--   but WITHOUT ANY WARRANTY; without even the implied warranty of
--   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
--   Library General Public License for more details.
--
--   You should have received a copy of the GNU Library General Public
--   License along with the GNU C Library; see the file COPYING.LIB.  If not,
--   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
--   Boston, MA 02111-1307, USA.  */
--
--#include <pthread.h>
--#include <sched.h>
--
--/* The default for single processor machines; don't spin, it's
--   pointless.  */
--#ifndef __PTHREAD_SPIN_COUNT
--# define __PTHREAD_SPIN_COUNT 1
--#endif
--
--/* The number of times to spin while trying to lock a spin lock object
--   before yielding the processor. */
--int __pthread_spin_count = __PTHREAD_SPIN_COUNT;
--
--
--/* Lock the spin lock object LOCK.  If the lock is held by another
--   thread spin until it becomes available.  */
--int
--_pthread_spin_lock (__pthread_spinlock_t *lock)
--{
--  int i;
--
--  while (1)
--    {
--      for (i = 0; i < __pthread_spin_count; i++)
--	{
--	  if (__pthread_spin_trylock (lock) == 0)
--	    return 0;
--	}
--
--      __sched_yield ();
--    }
 -}
 -
 -weak_alias (_pthread_spin_lock, pthread_spin_lock);
