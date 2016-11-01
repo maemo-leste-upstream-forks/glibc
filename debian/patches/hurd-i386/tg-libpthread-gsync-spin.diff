@@ -4,20 +4,20 @@ Date:   Tue Oct 18 00:20:45 2016 +0200
 
     Make pthread_spinlock use gsync
 
-diff --git a/pthread/pt-spin-inlines.c b/pthread/pt-spin-inlines.c
+diff --git a/libpthread/pthread/pt-spin-inlines.c b/libpthread/pthread/pt-spin-inlines.c
 index cfb21dd..f905065 100644
---- a/pthread/pt-spin-inlines.c
-+++ b/pthread/pt-spin-inlines.c
+--- a/libpthread/pthread/pt-spin-inlines.c
++++ b/libpthread/pthread/pt-spin-inlines.c
 @@ -31,4 +31,5 @@
  weak_alias (__pthread_spin_destroy, pthread_spin_destroy);
  weak_alias (__pthread_spin_init, pthread_spin_init);
  weak_alias (__pthread_spin_trylock, pthread_spin_trylock);
 +weak_alias (__pthread_spin_lock, pthread_spin_lock);
  weak_alias (__pthread_spin_unlock, pthread_spin_unlock);
-diff --git a/sysdeps/mach/bits/spin-lock-inline.h b/sysdeps/mach/bits/spin-lock-inline.h
+diff --git a/libpthread/sysdeps/mach/bits/spin-lock-inline.h b/libpthread/sysdeps/mach/bits/spin-lock-inline.h
 index f9f7c29..98e4b3b 100644
---- a/sysdeps/mach/bits/spin-lock-inline.h
-+++ b/sysdeps/mach/bits/spin-lock-inline.h
+--- a/libpthread/sysdeps/mach/bits/spin-lock-inline.h
++++ b/libpthread/sysdeps/mach/bits/spin-lock-inline.h
 @@ -22,7 +22,7 @@
  
  #include <features.h>
@@ -58,10 +58,10 @@ index f9f7c29..98e4b3b 100644
    return 0;
  }
  
-diff --git a/sysdeps/mach/bits/spin-lock.h b/sysdeps/mach/bits/spin-lock.h
+diff --git a/libpthread/sysdeps/mach/bits/spin-lock.h b/libpthread/sysdeps/mach/bits/spin-lock.h
 index 537dac9..7574b37 100644
---- a/sysdeps/mach/bits/spin-lock.h
-+++ b/sysdeps/mach/bits/spin-lock.h
+--- a/libpthread/sysdeps/mach/bits/spin-lock.h
++++ b/libpthread/sysdeps/mach/bits/spin-lock.h
 @@ -21,17 +21,14 @@
  #define _BITS_SPIN_LOCK_H	1
  
@@ -82,10 +82,10 @@ index 537dac9..7574b37 100644
  
  __END_DECLS
  
-diff --git a/sysdeps/mach/i386/bits/spin-lock-inline.h b/sysdeps/mach/i386/bits/spin-lock-inline.h
+diff --git a/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h b/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h
 deleted file mode 100644
 index e5ed3de..0000000
---- a/sysdeps/mach/i386/bits/spin-lock-inline.h
+--- a/libpthread/sysdeps/mach/i386/bits/spin-lock-inline.h
 +++ /dev/null
 @@ -1,98 +0,0 @@
 -/* Machine-specific definitions for spin locks.  i386 version.
@@ -186,10 +186,10 @@ index e5ed3de..0000000
 -__END_DECLS
 -
 -#endif /* bits/spin-lock.h */
-diff --git a/sysdeps/mach/i386/bits/spin-lock.h b/sysdeps/mach/i386/bits/spin-lock.h
+diff --git a/libpthread/sysdeps/mach/i386/bits/spin-lock.h b/libpthread/sysdeps/mach/i386/bits/spin-lock.h
 deleted file mode 100644
 index 5ae81e1..0000000
---- a/sysdeps/mach/i386/bits/spin-lock.h
+--- a/libpthread/sysdeps/mach/i386/bits/spin-lock.h
 +++ /dev/null
 @@ -1,39 +0,0 @@
 -/* Machine-specific definitions for spin locks.  i386 version.
@@ -231,10 +231,10 @@ index 5ae81e1..0000000
 -__END_DECLS
 -
 -#endif /* bits/spin-lock.h */
-diff --git a/sysdeps/mach/pt-spin.c b/sysdeps/mach/pt-spin.c
+diff --git a/libpthread/sysdeps/mach/pt-spin.c b/libpthread/sysdeps/mach/pt-spin.c
 deleted file mode 100644
 index d9a2a32..0000000
---- a/sysdeps/mach/pt-spin.c
+--- a/libpthread/sysdeps/mach/pt-spin.c
 +++ /dev/null
 @@ -1,36 +0,0 @@
 -/* Spin locks.  Mach version.
