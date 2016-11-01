@@ -580,8 +580,7 @@ Index: glibc-2.23/mach/lock-intern.h
  
  void __spin_lock_init (__spin_lock_t *__lock);
  
--#ifdef __USE_EXTERN_INLINES
-+#if defined __USE_EXTERN_INLINES && defined _LIBC
+ #if defined __USE_EXTERN_INLINES && defined _LIBC
  _EXTERN_INLINE void
  __spin_lock_init (__spin_lock_t *__lock)
  {
@@ -598,8 +597,7 @@ Index: glibc-2.23/mach/lock-intern.h
  
  void __spin_lock (__spin_lock_t *__lock);
  
--#ifdef __USE_EXTERN_INLINES
-+#if defined __USE_EXTERN_INLINES && defined _LIBC
+ #if defined __USE_EXTERN_INLINES && defined _LIBC
  _EXTERN_INLINE void
  __spin_lock (__spin_lock_t *__lock)
  {
@@ -667,8 +665,7 @@ Index: glibc-2.23/mach/lock-intern.h
  
  void __mutex_lock (void *__lock);
  
--#ifdef __USE_EXTERN_INLINES
-+#if defined __USE_EXTERN_INLINES && defined _LIBC
+ #if defined __USE_EXTERN_INLINES && defined _LIBC
  _EXTERN_INLINE void
  __mutex_lock (void *__lock)
  {
@@ -678,12 +675,7 @@ Index: glibc-2.23/mach/lock-intern.h
  }
  #endif
  
-@@ -93,23 +112,22 @@ __mutex_lock (void *__lock)
- 
- void __mutex_unlock (void *__lock);
- 
--#ifdef __USE_EXTERN_INLINES
-+#if defined __USE_EXTERN_INLINES && defined _LIBC
+@@ -97,19 +116,18 @@ __mutex_lock (void *__lock)
  _EXTERN_INLINE void
  __mutex_unlock (void *__lock)
  {
@@ -696,8 +688,7 @@ Index: glibc-2.23/mach/lock-intern.h
  
  int __mutex_trylock (void *__lock);
  
--#ifdef __USE_EXTERN_INLINES
-+#if defined __USE_EXTERN_INLINES && defined _LIBC
+ #if defined __USE_EXTERN_INLINES && defined _LIBC
  _EXTERN_INLINE int
  __mutex_trylock (void *__lock)
  {
