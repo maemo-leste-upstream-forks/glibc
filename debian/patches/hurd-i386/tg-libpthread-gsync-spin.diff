@@ -1,14 +1,21 @@
-commit 4885bbdb5a271ca3ce94282d7d24b9651c02513b
+commit eccb1958dd0f8eb9d4ce15d7350ef16c0608d4f2
 Author: Agustina Arzille <avarzille@riseup.net>
 Date:   Tue Oct 18 00:20:45 2016 +0200
 
     Make pthread_spinlock use gsync
 
 diff --git a/libpthread/pthread/pt-spin-inlines.c b/libpthread/pthread/pt-spin-inlines.c
-index cfb21dd..f905065 100644
+index cfb21dd..97afb4d 100644
 --- a/libpthread/pthread/pt-spin-inlines.c
 +++ b/libpthread/pthread/pt-spin-inlines.c
-@@ -31,4 +31,5 @@
+@@ -25,10 +25,9 @@
+ 
+ #include <pthread.h>
+ 
+-/* Weak aliases for the spin lock functions.  Note that
+-   pthread_spin_lock is left out deliberately.  We already provide an
+-   implementation for it in pt-spin.c.  */
++/* Weak aliases for the spin lock functions.  */
  weak_alias (__pthread_spin_destroy, pthread_spin_destroy);
  weak_alias (__pthread_spin_init, pthread_spin_init);
  weak_alias (__pthread_spin_trylock, pthread_spin_trylock);
@@ -270,6 +277,17 @@ index d9a2a32..0000000
 -  __spin_lock_solid (lock);
 -  return 0;
 -}
+-
+-weak_alias (_pthread_spin_lock, pthread_spin_lock);
+-weak_alias (_pthread_spin_lock, __pthread_spin_lock);
+diff --git a/libpthread/sysdeps/posix/pt-spin.c b/libpthread/sysdeps/posix/pt-spin.c
+index cb809c6..07f8936 100644
+--- a/libpthread/sysdeps/posix/pt-spin.c
++++ b/libpthread/sysdeps/posix/pt-spin.c
+@@ -49,6 +49,3 @@ _pthread_spin_lock (__pthread_spinlock_t *lock)
+       __sched_yield ();
+     }
+ }
 -
 -weak_alias (_pthread_spin_lock, pthread_spin_lock);
 -weak_alias (_pthread_spin_lock, __pthread_spin_lock);
