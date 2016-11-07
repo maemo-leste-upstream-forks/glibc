@@ -1,4 +1,4 @@
-commit 2d2ca1268f863437bad07c6abbbc23f33bbfe9f1
+commit cd7e69c545200949cfd1b3c595568556ff9a76e3
 Author: Agustina Arzille <avarzille@riseup.net>
 Date:   Tue Oct 18 00:20:45 2016 +0200
 
@@ -239,10 +239,26 @@ index 5ae81e1..0000000
 -
 -#endif /* bits/spin-lock.h */
 diff --git a/libpthread/sysdeps/mach/pt-spin.c b/libpthread/sysdeps/mach/pt-spin.c
-index d9a2a32..0f49ca3 100644
+index d9a2a32..0cf1c49 100644
 --- a/libpthread/sysdeps/mach/pt-spin.c
 +++ b/libpthread/sysdeps/mach/pt-spin.c
-@@ -31,6 +31,3 @@ _pthread_spin_lock (__pthread_spinlock_t *lock)
+@@ -17,20 +17,16 @@
+    write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+    Boston, MA 02111-1307, USA.  */
+ 
+-#include <pthread.h>
+ #include <machine-lock.h>
+ 
+ /* In glibc.  */
+-extern void __spin_lock_solid (__pthread_spinlock_t *lock);
++extern void __spin_lock_solid (__spin_lock_t *lock);
+ 
+ /* Lock the spin lock object LOCK.  If the lock is held by another
+    thread spin until it becomes available.  */
+ int
+-_pthread_spin_lock (__pthread_spinlock_t *lock)
++_pthread_spin_lock (__spin_lock_t *lock)
+ {
    __spin_lock_solid (lock);
    return 0;
  }
