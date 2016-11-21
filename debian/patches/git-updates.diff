@@ -1,10 +1,19 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.24/master from glibc-2.24
 
 diff --git a/ChangeLog b/ChangeLog
-index c44c926..a51771c 100644
+index c44c926..1e2dcea 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,185 @@
+@@ -1,3 +1,194 @@
++2016-11-15  Denis Kaganovich  <mahatma@eu.by>
++	    Magnus Granberg  <zorry@gentoo.org>
++	    Mike Frysinger  <vapier@gentoo.org>
++
++	[BZ #20662]
++	* configure.ac (libc_cv_predef_stack_protector): Also check for
++	__stack_chk_fail_local symbols.
++	* configure: Regenerated.
++
 +2016-11-03  Joseph Myers  <joseph@codesourcery.com>
 +
 +	* conform/Makefile ($(linknamespace-header-tests)): Also depend on
@@ -320,6 +329,50 @@ index e67bbef..7cb5a69 100644
 +__END_DECLS
  
  #endif /* argp.h */
+diff --git a/configure b/configure
+index 17625e1..9b5a486 100755
+--- a/configure
++++ b/configure
+@@ -6289,12 +6289,14 @@ echo >&5 "libc_undefs='$libc_undefs'"
+ # symbols (resolved by the linker), so filter out unknown symbols.
+ # This will fail to produce the correct result if the compiler
+ # defaults to -fstack-protector but this produces an undefined symbol
+-# other than __stack_chk_fail.  However, compilers like that have not
+-# been encountered in practice.
+-libc_undefs=`echo "$libc_undefs" | egrep '^(foobar|__stack_chk_fail)$'`
++# other than __stack_chk_fail or __stack_chk_fail_local. However,
++# compilers like that have not been encountered in practice.
++libc_undefs=`echo "$libc_undefs" | \
++  egrep '^(foobar|__stack_chk_fail|__stack_chk_fail_local)$'`
+ case "$libc_undefs" in
+ foobar) libc_cv_predef_stack_protector=no ;;
+ '__stack_chk_fail
++foobar'|'__stack_chk_fail_local
+ foobar') libc_cv_predef_stack_protector=yes ;;
+ *) as_fn_error $? "unexpected symbols in test: $libc_undefs" "$LINENO" 5 ;;
+ esac
+diff --git a/configure.ac b/configure.ac
+index 33bcd62..8277d9f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1626,12 +1626,14 @@ echo >&AS_MESSAGE_LOG_FD "libc_undefs='$libc_undefs'"
+ # symbols (resolved by the linker), so filter out unknown symbols.
+ # This will fail to produce the correct result if the compiler
+ # defaults to -fstack-protector but this produces an undefined symbol
+-# other than __stack_chk_fail.  However, compilers like that have not
+-# been encountered in practice.
+-libc_undefs=`echo "$libc_undefs" | egrep '^(foobar|__stack_chk_fail)$'`
++# other than __stack_chk_fail or __stack_chk_fail_local. However,
++# compilers like that have not been encountered in practice.
++libc_undefs=`echo "$libc_undefs" | \
++  egrep '^(foobar|__stack_chk_fail|__stack_chk_fail_local)$'`
+ case "$libc_undefs" in
+ foobar) libc_cv_predef_stack_protector=no ;;
+ '__stack_chk_fail
++foobar'|'__stack_chk_fail_local
+ foobar') libc_cv_predef_stack_protector=yes ;;
+ *) AC_MSG_ERROR([unexpected symbols in test: $libc_undefs]) ;;
+ esac],
 diff --git a/conform/Makefile b/conform/Makefile
 index 32a0937..762aac9 100644
 --- a/conform/Makefile
