@@ -193,7 +193,7 @@ index 6d15b03..8b8586a 100644
  #define FPE_INTOVF_TRAP		0x1 /* integer overflow */
  #define FPE_INTDIV_FAULT	0x2 /* integer divide by zero */
 diff --git a/sysdeps/mach/hurd/i386/exc2signal.c b/sysdeps/mach/hurd/i386/exc2signal.c
-index bf0ca2e..b2606c4 100644
+index bf0ca2e..feb9e2d 100644
 --- a/sysdeps/mach/hurd/i386/exc2signal.c
 +++ b/sysdeps/mach/hurd/i386/exc2signal.c
 @@ -23,8 +23,8 @@
@@ -234,7 +234,7 @@ index bf0ca2e..b2606c4 100644
 +
 +	default:
 +	  *signo = SIGBUS;
-+	  detail->code = 0;
++	  detail->code = posix ? BUS_ADRERR : detail->exc_subcode;
 +	  break;
 +	}
        detail->error = detail->exc_code;
