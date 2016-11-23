@@ -1,0 +1,44 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] hurd: Fix O_DIRECTORY | O_NOFOLLOW
+
+Appending / to the path to be looked up makes us always follow a final
+symlink, even with O_NOTRANS (since the final resolution is after the
+'/').  In the O_DIRECTORY | O_NOFOLLOW case, we thus have to really open
+the node and stat it, which we already do anyway, and check for
+directory type.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+---
+ hurd/hurdlookup.c   | 2 +-
+ hurd/lookup-retry.c | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/hurd/hurdlookup.c b/hurd/hurdlookup.c
+index dbff009..bd720c2 100644
+--- a/hurd/hurdlookup.c
++++ b/hurd/hurdlookup.c
+@@ -72,7 +72,7 @@ __hurd_file_name_lookup (error_t (*use_init_port)
+   if (flags & O_NOFOLLOW)	/* See lookup-retry.c about O_NOFOLLOW.  */
+     flags |= O_NOTRANS;
+ 
+-  if (flags & O_DIRECTORY)
++  if (flags & O_DIRECTORY && !(flags & O_NOFOLLOW))
+     {
+       /* The caller wants to require that the file we look up is a directory.
+ 	 We can do this without an extra RPC by appending a trailing slash
+diff --git a/hurd/lookup-retry.c b/hurd/lookup-retry.c
+index b7a6a2b..d372959 100644
+--- a/hurd/lookup-retry.c
++++ b/hurd/lookup-retry.c
+@@ -147,6 +147,8 @@ __hurd_file_name_lookup_retry (error_t (*use_init_port)
+ 		  err = __io_stat (*result, &st);
+ 		  if (!err)
+ 		    {
++		      if (flags & O_DIRECTORY && !S_ISDIR(st.st_mode))
++			err = ENOTDIR;
+ 		      if (S_ISLNK(st.st_mode))
+ 			err = ELOOP;
+ 		      else if (st.st_mode & (S_IPTRANS|S_IATRANS))
+-- 
+tg: (2bc1a49..) t/NOFOLLOW-DIRECTORY (depends on: t/NOFOLLOW)
