@@ -322,7 +322,7 @@ $(stamp)source: $(stamp)patch
 	cd .. && \
 		find $(GLIBC_SOURCES) -print0 | \
 		LC_ALL=C sort -z | \
-		tar -c -J --null -T - --no-recursion \
+		tar -c -J --null --no-recursion -T - \
 			--mode=go=rX,u+rw,a-s \
 			--owner=root --group=root --numeric-owner \
 			-f $(CURDIR)/$(build-tree)/glibc-$(GLIBC_VERSION).tar.xz
