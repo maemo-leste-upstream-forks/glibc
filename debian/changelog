@@ -1,7 +1,15 @@
 glibc (2.24-9) UNRELEASED; urgency=medium
 
+  [ Samuel Thibault ]
   * hurd-i386/tg-libpthread-gsync-mutex.diff: Update patch, fixes trylock
     error return.
+
+  [ Aurelien Jarno ]
+  * debian/sysdeps/{amd64,i386,x32}.mk: disable lock elision (aka Intel TSX)
+    on x86 architectures. This causes programs (wrongly) unlocking an already
+    unlocked mutex to abort. More importantly most of the other distributions
+    decided to disable it, so we don't want to be the only distribution left
+    testing this code path.
 
  -- Samuel Thibault <sthibault@debian.org>  Fri, 09 Dec 2016 01:51:00 +0100
 

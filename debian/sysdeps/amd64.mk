@@ -1,5 +1,5 @@
 # configuration options for all flavours
-extra_config_options = --enable-multi-arch --enable-lock-elision
+extra_config_options = --enable-multi-arch
 MIN_KERNEL_SUPPORTED := 2.6.32
 
 # main library
