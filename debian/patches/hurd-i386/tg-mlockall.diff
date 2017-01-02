@@ -1,0 +1,106 @@
+Subject: [PATCH] Add mlockall support
+
+* sysdeps/mach/hurd/mlockall.c: New file
+* sysdeps/mach/hurd/munlockall.c: New file
+
+---
+ sysdeps/mach/hurd/mlockall.c   | 42 ++++++++++++++++++++++++++++++++++++++++++
+ sysdeps/mach/hurd/munlockall.c | 40 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 82 insertions(+)
+
+diff --git a/sysdeps/mach/hurd/mlockall.c b/sysdeps/mach/hurd/mlockall.c
+new file mode 100644
+index 0000000000..11a3deac8a
+--- /dev/null
++++ b/sysdeps/mach/hurd/mlockall.c
+@@ -0,0 +1,42 @@
++/* mlockall -- lock in core all the pages in this process.  Stub version.
++   Copyright (C) 2001-2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <sys/types.h>
++#include <sys/mman.h>
++#include <errno.h>
++#include <hurd.h>
++#include <mach/mach_host.h>
++
++/* Cause all currently mapped pages of the process to be memory resident
++   until unlocked by a call to the `munlockall', until the process exits,
++   or until the process calls `execve'.  */
++
++int
++mlockall (int flags)
++{
++  mach_port_t host;
++  error_t err;
++
++  err = __get_privileged_ports (&host, NULL);
++  if (err)
++    return __hurd_fail (err);
++
++  err = __vm_wire_all (host, __mach_task_self (), flags);
++  __mach_port_deallocate (__mach_task_self (), host);
++  return err ? __hurd_fail (err) : 0;
++}
+diff --git a/sysdeps/mach/hurd/munlockall.c b/sysdeps/mach/hurd/munlockall.c
+new file mode 100644
+index 0000000000..6fbb69435d
+--- /dev/null
++++ b/sysdeps/mach/hurd/munlockall.c
+@@ -0,0 +1,40 @@
++/* munlockall -- undo the effects of all prior mlock calls.  Stub version.
++   Copyright (C) 2001-2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <sys/types.h>
++#include <sys/mman.h>
++#include <errno.h>
++#include <hurd.h>
++#include <mach/mach_host.h>
++
++/* Undo the effects of all prior mlock calls in this process.  */
++
++int
++munlockall (void)
++{
++  mach_port_t host;
++  error_t err;
++
++  err = __get_privileged_ports (&host, NULL);
++  if (err)
++    return __hurd_fail (err);
++
++  err = __vm_wire_all (host, __mach_task_self (), VM_WIRE_NONE);
++  __mach_port_deallocate (__mach_task_self (), host);
++  return err ? __hurd_fail (err) : 0;
++}
+-- 
+tg: (7bb5f8a836..) t/mlockall (depends on: baseline)
