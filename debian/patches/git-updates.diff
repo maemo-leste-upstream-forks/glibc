@@ -1,10 +1,71 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.24/master from glibc-2.24
 
 diff --git a/ChangeLog b/ChangeLog
-index c44c926..e6ea2df 100644
+index c44c926094..ddc01aecad 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,214 @@
+@@ -1,3 +1,275 @@
++2016-12-24  Carlos O'Donell  <carlos@redhat.com>
++
++	[BZ #11941]
++	* elf/dl-close.c (_dl_close): Take dl_load_lock to examine map.
++	Remove assert (map->l_init_called); if DF_1_NODELETE is set.
++	* elf/Makefile [ifeq (yes,$(build-shared))] (tests): Add
++	tst-nodelete-dlclose.
++	(modules-names): Add tst-nodelete-dlclose-dso and
++	tst-nodelete-dlclose-plugin.
++	($(objpfx)tst-nodelete-dlclose-dso.so): Define.
++	($(objpfx)tst-nodelete-dlclose-plugin.so): Define.
++	($(objpfx)tst-nodelete-dlclose): Define.
++	($(objpfx)tst-nodelete-dlclose.out): Define.
++
++2016-08-02  Aurelien Jarno  <aurelien@aurel32.net>
++
++2016-08-02  Aurelien Jarno  <aurelien@aurel32.net>
++
++	* sysdeps/alpha/fpu/s_ceil.c (__ceil): Add argument with itself
++	when it is a NaN.
++	[_IEEE_FP_INEXACT] Remove.
++	* sysdeps/alpha/fpu/s_ceilf.c (__ceilf): Likewise.
++	* sysdeps/alpha/fpu/s_floor.c (__floor): Add argument with itself
++	when it is a NaN.
++	[_IEEE_FP_INEXACT] Remove.
++	* sysdeps/alpha/fpu/s_floorf.c (__floorf): Likewise.
++	* sysdeps/alpha/fpu/s_rint.c (__rint): Add argument with itself
++	when it is a NaN.
++	* sysdeps/alpha/fpu/s_rintf.c (__rintf): Likewise.
++	* sysdeps/alpha/fpu/s_trunc.c (__trunc): Return the input value
++	when its absolute value is greater than 0x1.0p52.
++	[_IEEE_FP_INEXACT] Remove.
++	* sysdeps/alpha/fpu/s_truncf.c (__truncf): Return the input value
++	when its absolute value is greater than 0x1.0p23.
++	[_IEEE_FP_INEXACT] Remove.
++
++2016-11-30  H.J. Lu  <hongjiu.lu@intel.com>
++
++	[BZ #20495]
++	[BZ #20508]
++	* sysdeps/x86/cpu-features.c (init_cpu_features): For Intel
++	processors, set Use_dl_runtime_resolve_slow and set
++	Use_dl_runtime_resolve_opt if XGETBV suports ECX == 1.
++	* sysdeps/x86/cpu-features.h (bit_arch_Use_dl_runtime_resolve_opt):
++	New.
++	(bit_arch_Use_dl_runtime_resolve_slow): Likewise.
++	(index_arch_Use_dl_runtime_resolve_opt): Likewise.
++	(index_arch_Use_dl_runtime_resolve_slow): Likewise.
++	* sysdeps/x86_64/dl-machine.h (elf_machine_runtime_setup): Use
++	_dl_runtime_resolve_avx512_opt and _dl_runtime_resolve_avx_opt
++	if Use_dl_runtime_resolve_opt is set.  Use
++	_dl_runtime_resolve_slow if Use_dl_runtime_resolve_slow is set.
++	* sysdeps/x86_64/dl-trampoline.S: Include <cpu-features.h>.
++	(_dl_runtime_resolve_opt): New.  Defined for AVX and AVX512.
++	(_dl_runtime_resolve): Add one for _dl_runtime_resolve_sse_vex.
++	* sysdeps/x86_64/dl-trampoline.h (_dl_runtime_resolve_avx_slow):
++	New.
++	(_dl_runtime_resolve_opt): Likewise.
++	(_dl_runtime_profile): Define only if _dl_runtime_profile is
++	defined.
++
 +2016-11-24  Aurelien Jarno  <aurelien@aurel32.net>
 +
 +	* sysdeps/x86_64/memcpy_chk.S (__memcpy_chk): Check for SHARED
@@ -220,7 +281,7 @@ index c44c926..e6ea2df 100644
  
  	* version.h (RELEASE): Set to "stable"
 diff --git a/NEWS b/NEWS
-index b0447e7..4a042db 100644
+index b0447e7169..4a042dbe2b 100644
 --- a/NEWS
 +++ b/NEWS
 @@ -5,6 +5,17 @@ See the end for copying conditions.
@@ -242,7 +303,7 @@ index b0447e7..4a042db 100644
  
  * The minimum Linux kernel version that this version of the GNU C Library
 diff --git a/argp/argp-fmtstream.h b/argp/argp-fmtstream.h
-index bdeaa54..e8c5797 100644
+index bdeaa54dc2..e8c5797f38 100644
 --- a/argp/argp-fmtstream.h
 +++ b/argp/argp-fmtstream.h
 @@ -29,21 +29,6 @@
@@ -286,7 +347,7 @@ index bdeaa54..e8c5797 100644
  
  #endif /* argp-fmtstream.h */
 diff --git a/argp/argp.h b/argp/argp.h
-index e67bbef..7cb5a69 100644
+index e67bbef739..7cb5a69f08 100644
 --- a/argp/argp.h
 +++ b/argp/argp.h
 @@ -28,48 +28,12 @@
@@ -350,7 +411,7 @@ index e67bbef..7cb5a69 100644
  
  #endif /* argp.h */
 diff --git a/configure b/configure
-index 17625e1..9b5a486 100755
+index 17625e1041..9b5a486048 100755
 --- a/configure
 +++ b/configure
 @@ -6289,12 +6289,14 @@ echo >&5 "libc_undefs='$libc_undefs'"
@@ -372,7 +433,7 @@ index 17625e1..9b5a486 100755
  *) as_fn_error $? "unexpected symbols in test: $libc_undefs" "$LINENO" 5 ;;
  esac
 diff --git a/configure.ac b/configure.ac
-index 33bcd62..8277d9f 100644
+index 33bcd62180..8277d9f727 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -1626,12 +1626,14 @@ echo >&AS_MESSAGE_LOG_FD "libc_undefs='$libc_undefs'"
@@ -394,7 +455,7 @@ index 33bcd62..8277d9f 100644
  *) AC_MSG_ERROR([unexpected symbols in test: $libc_undefs]) ;;
  esac],
 diff --git a/conform/Makefile b/conform/Makefile
-index 32a0937..762aac9 100644
+index 32a0937b06..762aac98fc 100644
 --- a/conform/Makefile
 +++ b/conform/Makefile
 @@ -229,6 +229,7 @@ $(linknamespace-symlist-stdlibs-tests): $(objpfx)symlist-stdlibs-%: \
@@ -405,8 +466,277 @@ index 32a0937..762aac9 100644
  			       $(linknamespace-symlist-stdlibs-tests)
  	(set -e; std_hdr=$*; std=$${std_hdr%%/*}; hdr=$${std_hdr#*/}; \
  	 mkdir -p $(@D)/scratch; \
+diff --git a/elf/Makefile b/elf/Makefile
+index 593403c640..847a012f84 100644
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -149,7 +149,8 @@ tests += loadtest restest1 preloadtest loadfail multiload origtest resolvfail \
+ 	 tst-nodelete) \
+ 	 tst-initorder tst-initorder2 tst-relsort1 tst-null-argv \
+ 	 tst-ptrguard1 tst-tlsalign tst-tlsalign-extern tst-nodelete-opened \
+-	 tst-nodelete2 tst-audit11 tst-audit12 tst-dlsym-error
++	 tst-nodelete2 tst-audit11 tst-audit12 tst-dlsym-error \
++	 tst-nodelete-dlclose
+ #	 reldep9
+ ifeq ($(build-hardcoded-path-in-tests),yes)
+ tests += tst-dlopen-aout
+@@ -223,7 +224,8 @@ modules-names = testobj1 testobj2 testobj3 testobj4 testobj5 testobj6 \
+ 		tst-array5dep tst-null-argv-lib \
+ 		tst-tlsalign-lib tst-nodelete-opened-lib tst-nodelete2mod \
+ 		tst-audit11mod1 tst-audit11mod2 tst-auditmod11 \
+-		tst-audit12mod1 tst-audit12mod2 tst-audit12mod3 tst-auditmod12
++		tst-audit12mod1 tst-audit12mod2 tst-audit12mod3 tst-auditmod12 \
++		tst-nodelete-dlclose-dso tst-nodelete-dlclose-plugin
+ ifeq (yes,$(have-mtls-dialect-gnu2))
+ tests += tst-gnu2-tls1
+ modules-names += tst-gnu2-tls1mod
+@@ -1267,3 +1269,12 @@ $(objpfx)tst-ldconfig-X.out : tst-ldconfig-X.sh $(objpfx)ldconfig
+ 	$(evaluate-test)
+ 
+ $(objpfx)tst-dlsym-error: $(libdl)
++
++# The application depends on the DSO, and the DSO loads the plugin.
++# The plugin also depends on the DSO. This creates the circular
++# dependency via dlopen that we're testing to make sure works.
++$(objpfx)tst-nodelete-dlclose-dso.so: $(libdl)
++$(objpfx)tst-nodelete-dlclose-plugin.so: $(objpfx)tst-nodelete-dlclose-dso.so
++$(objpfx)tst-nodelete-dlclose: $(objpfx)tst-nodelete-dlclose-dso.so
++$(objpfx)tst-nodelete-dlclose.out: $(objpfx)tst-nodelete-dlclose-dso.so \
++				   $(objpfx)tst-nodelete-dlclose-plugin.so
+diff --git a/elf/dl-close.c b/elf/dl-close.c
+index 687d7de874..9f93ab7628 100644
+--- a/elf/dl-close.c
++++ b/elf/dl-close.c
+@@ -805,19 +805,37 @@ _dl_close (void *_map)
+ {
+   struct link_map *map = _map;
+ 
+-  /* First see whether we can remove the object at all.  */
++  /* We must take the lock to examine the contents of map and avoid
++     concurrent dlopens.  */
++  __rtld_lock_lock_recursive (GL(dl_load_lock));
++
++  /* At this point we are guaranteed nobody else is touching the list of
++     loaded maps, but a concurrent dlclose might have freed our map
++     before we took the lock. There is no way to detect this (see below)
++     so we proceed assuming this isn't the case.  First see whether we
++     can remove the object at all.  */
+   if (__glibc_unlikely (map->l_flags_1 & DF_1_NODELETE))
+     {
+-      assert (map->l_init_called);
+       /* Nope.  Do nothing.  */
++      __rtld_lock_unlock_recursive (GL(dl_load_lock));
+       return;
+     }
+ 
++  /* At present this is an unreliable check except in the case where the
++     caller has recursively called dlclose and we are sure the link map
++     has not been freed.  In a non-recursive dlclose the map itself
++     might have been freed and this access is potentially a data race
++     with whatever other use this memory might have now, or worse we
++     might silently corrupt memory if it looks enough like a link map.
++     POSIX has language in dlclose that appears to guarantee that this
++     should be a detectable case and given that dlclose should be threadsafe
++     we need this to be a reliable detection.
++     This is bug 20990. */
+   if (__builtin_expect (map->l_direct_opencount, 1) == 0)
+-    GLRO(dl_signal_error) (0, map->l_name, NULL, N_("shared object not open"));
+-
+-  /* Acquire the lock.  */
+-  __rtld_lock_lock_recursive (GL(dl_load_lock));
++    {
++      __rtld_lock_unlock_recursive (GL(dl_load_lock));
++      _dl_signal_error (0, map->l_name, NULL, N_("shared object not open"));
++    }
+ 
+   _dl_close_worker (map, false);
+ 
+diff --git a/elf/tst-nodelete-dlclose-dso.c b/elf/tst-nodelete-dlclose-dso.c
+new file mode 100644
+index 0000000000..dd930f99cc
+--- /dev/null
++++ b/elf/tst-nodelete-dlclose-dso.c
+@@ -0,0 +1,90 @@
++/* Bug 11941: Improper assert map->l_init_called in dlclose.
++   Copyright (C) 2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* This is the primary DSO that is loaded by the appliation.  This DSO
++   then loads a plugin with RTLD_NODELETE.  This plugin depends on this
++   DSO.  This dependency chain means that at application shutdown the
++   plugin will be destructed first.  Thus by the time this DSO is
++   destructed we will be calling dlclose on an object that has already
++   been destructed.  It is allowed to call dlclose in this way and
++   should not assert.  */
++#include <stdio.h>
++#include <stdlib.h>
++#include <dlfcn.h>
++
++/* Plugin to load.  */
++static void *plugin_lib = NULL;
++/* Plugin function.  */
++static void (*plugin_func) (void);
++#define LIB_PLUGIN "tst-nodelete-dlclose-plugin.so"
++
++/* This function is never called but the plugin references it.
++   We do this to avoid any future --as-needed from removing the
++   plugin's DT_NEEDED on this DSO (required for the test).  */
++void
++primary_reference (void)
++{
++  printf ("INFO: Called primary_reference function.\n");
++}
++
++void
++primary (void)
++{
++  char *error;
++
++  plugin_lib = dlopen (LIB_PLUGIN, RTLD_NOW | RTLD_LOCAL | RTLD_NODELETE);
++  if (plugin_lib == NULL)
++    {
++      printf ("ERROR: Unable to load plugin library.\n");
++      exit (EXIT_FAILURE);
++    }
++  dlerror ();
++
++  plugin_func = (void (*) (void)) dlsym (plugin_lib, "plugin_func");
++  error = dlerror ();
++  if (error != NULL)
++    {
++      printf ("ERROR: Unable to find symbol with error \"%s\".",
++	      error);
++      exit (EXIT_FAILURE);
++    }
++
++  return;
++}
++
++__attribute__ ((destructor))
++static void
++primary_dtor (void)
++{
++  int ret;
++
++  printf ("INFO: Calling primary destructor.\n");
++
++  /* The destructor runs in the test driver also, which
++     hasn't called primary, in that case do nothing.  */
++  if (plugin_lib == NULL)
++    return;
++
++  ret = dlclose (plugin_lib);
++  if (ret != 0)
++    {
++      printf ("ERROR: Calling dlclose failed with \"%s\"\n",
++	      dlerror ());
++      exit (EXIT_FAILURE);
++    }
++}
+diff --git a/elf/tst-nodelete-dlclose-plugin.c b/elf/tst-nodelete-dlclose-plugin.c
+new file mode 100644
+index 0000000000..8b295c1718
+--- /dev/null
++++ b/elf/tst-nodelete-dlclose-plugin.c
+@@ -0,0 +1,40 @@
++/* Bug 11941: Improper assert map->l_init_called in dlclose.
++   Copyright (C) 2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* This DSO simulates a plugin with a dependency on the
++   primary DSO loaded by the appliation.  */
++#include <stdio.h>
++
++extern void primary_reference (void);
++
++void
++plugin_func (void)
++{
++  printf ("INFO: Calling plugin function.\n");
++  /* Need a reference to the DSO to ensure that a potential --as-needed
++     doesn't remove the DT_NEEDED entry which we rely upon to ensure
++     destruction ordering.  */
++  primary_reference ();
++}
++
++__attribute__ ((destructor))
++static void
++plugin_dtor (void)
++{
++  printf ("INFO: Calling plugin destructor.\n");
++}
+diff --git a/elf/tst-nodelete-dlclose.c b/elf/tst-nodelete-dlclose.c
+new file mode 100644
+index 0000000000..b3d07e1849
+--- /dev/null
++++ b/elf/tst-nodelete-dlclose.c
+@@ -0,0 +1,36 @@
++/* Bug 11941: Improper assert map->l_init_called in dlclose.
++   Copyright (C) 2016 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* This simulates an application using the primary DSO which loads the
++   plugin DSO.  */
++#include <stdio.h>
++#include <stdlib.h>
++
++extern void primary (void);
++
++static int
++do_test (void)
++{
++  printf ("INFO: Starting application.\n");
++  primary ();
++  printf ("INFO: Exiting application.\n");
++  return 0;
++}
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 diff --git a/iconv/gconv.h b/iconv/gconv.h
-index 8d8ce58..a870280 100644
+index 8d8ce5813b..a87028047b 100644
 --- a/iconv/gconv.h
 +++ b/iconv/gconv.h
 @@ -139,7 +139,7 @@ typedef struct __gconv_info
@@ -418,8 +748,37 @@ index 8d8ce58..a870280 100644
  } *__gconv_t;
  
  /* Transliteration using the locale's data.  */
+diff --git a/localedata/ChangeLog b/localedata/ChangeLog
+index 4be8afc110..6db3c88c9f 100644
+--- a/localedata/ChangeLog
++++ b/localedata/ChangeLog
+@@ -1,3 +1,9 @@
++2016-12-30  Mike Frysinger  <vapier@gentoo.org>
++
++	[BZ #20974]
++	* localedata/bs_BA (LC_MESSAGES): Delete "*." from the end of
++	yesexpr and noexpr.
++
+ 2016-07-07  Aurelien Jarno  <aurelien@aurel32.net>
+ 
+ 	* locales/de_LI (postal_fmt): Fix indentation.
+diff --git a/localedata/locales/bs_BA b/localedata/locales/bs_BA
+index a47f87eb37..68c2f9471a 100644
+--- a/localedata/locales/bs_BA
++++ b/localedata/locales/bs_BA
+@@ -148,8 +148,8 @@ copy "en_DK"
+ END LC_CTYPE
+ 
+ LC_MESSAGES
+-yesexpr "<U005E><U005B><U002B><U0031><U0064><U0044><U0079><U0059><U005D><U002A><U002E>"
+-noexpr  "<U005E><U005B><U002D><U0030><U006E><U004E><U005D><U002A><U002E>"
++yesexpr "<U005E><U005B><U002B><U0031><U0064><U0044><U0079><U0059><U005D>"
++noexpr  "<U005E><U005B><U002D><U0030><U006E><U004E><U005D>"
+ yesstr  "<U0064><U0061>"
+ nostr   "<U006E><U0065>"
+ END LC_MESSAGES
 diff --git a/malloc/arena.c b/malloc/arena.c
-index 229783f..4e16593 100644
+index 229783f3b7..4e16593d8b 100644
 --- a/malloc/arena.c
 +++ b/malloc/arena.c
 @@ -702,8 +702,7 @@ _int_new_arena (size_t size)
@@ -498,7 +857,7 @@ index 229783f..4e16593 100644
    }
  
 diff --git a/nptl/Makefile b/nptl/Makefile
-index 0d8aade..fa92581 100644
+index 0d8aadebed..fa925819ca 100644
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
 @@ -268,7 +268,7 @@ tests = tst-typesizes \
@@ -512,7 +871,7 @@ index 0d8aade..fa92581 100644
  	tst-stack1 tst-stack2 tst-stack3 tst-stack4 tst-pthread-getattr \
 diff --git a/nptl/tst-exec5.c b/nptl/tst-exec5.c
 new file mode 100644
-index 0000000..4327d8d
+index 0000000000..4327d8d41c
 --- /dev/null
 +++ b/nptl/tst-exec5.c
 @@ -0,0 +1,196 @@
@@ -713,7 +1072,7 @@ index 0000000..4327d8d
 +  return 0;
 +}
 diff --git a/nptl/tst-once5.cc b/nptl/tst-once5.cc
-index 978d827..513ac53 100644
+index 978d8271bd..513ac53f6f 100644
 --- a/nptl/tst-once5.cc
 +++ b/nptl/tst-once5.cc
 @@ -75,5 +75,7 @@ do_test (void)
@@ -725,7 +1084,7 @@ index 978d827..513ac53 100644
  #define TEST_FUNCTION do_test ()
  #include "../test-skeleton.c"
 diff --git a/po/de.po b/po/de.po
-index 1383e8c..ca14c7e 100644
+index 1383e8c4a9..ca14c7e386 100644
 --- a/po/de.po
 +++ b/po/de.po
 @@ -8,7 +8,7 @@ msgid ""
@@ -754,7 +1113,7 @@ index 1383e8c..ca14c7e 100644
  "%15lu%% Cache-Hit Verhältnis\n"
  "%15zu  aktuelle Anzahl der Werte im Cache\n"
 diff --git a/po/fi.po b/po/fi.po
-index 17cb3e3..8a2ab83 100644
+index 17cb3e3e1d..8a2ab8358c 100644
 --- a/po/fi.po
 +++ b/po/fi.po
 @@ -24,16 +24,16 @@
@@ -1051,7 +1410,7 @@ index 17cb3e3..8a2ab83 100644
  #: sysdeps/unix/sysv/linux/i386/readelflib.c:65
  #, c-format
 diff --git a/po/sv.po b/po/sv.po
-index 49d1f23..e046577 100644
+index 49d1f23904..e046577b08 100644
 --- a/po/sv.po
 +++ b/po/sv.po
 @@ -1,13 +1,17 @@
@@ -1490,7 +1849,7 @@ index 49d1f23..e046577 100644
 -#~ msgid "cannot create internal descriptors"
 -#~ msgstr "kan inte skapa interna deskriptorer"
 diff --git a/posix/execvpe.c b/posix/execvpe.c
-index d933f9c..7cdb06a 100644
+index d933f9c92a..7cdb06a611 100644
 --- a/posix/execvpe.c
 +++ b/posix/execvpe.c
 @@ -48,12 +48,13 @@ maybe_script_execute (const char *file, char *const argv[], char *const envp[])
@@ -1542,8 +1901,177 @@ index d933f9c..7cdb06a 100644
  
        __execve (buffer, argv, envp);
  
+diff --git a/sysdeps/alpha/fpu/s_ceil.c b/sysdeps/alpha/fpu/s_ceil.c
+index c1ff864d4b..e9c350af1c 100644
+--- a/sysdeps/alpha/fpu/s_ceil.c
++++ b/sysdeps/alpha/fpu/s_ceil.c
+@@ -26,17 +26,16 @@
+ double
+ __ceil (double x)
+ {
++  if (isnan (x))
++    return x + x;
++
+   if (isless (fabs (x), 9007199254740992.0))	/* 1 << DBL_MANT_DIG */
+     {
+       double tmp1, new_x;
+ 
+       new_x = -x;
+       __asm (
+-#ifdef _IEEE_FP_INEXACT
+-	     "cvttq/svim %2,%1\n\t"
+-#else
+ 	     "cvttq/svm %2,%1\n\t"
+-#endif
+ 	     "cvtqt/m %1,%0\n\t"
+ 	     : "=f"(new_x), "=&f"(tmp1)
+ 	     : "f"(new_x));
+diff --git a/sysdeps/alpha/fpu/s_ceilf.c b/sysdeps/alpha/fpu/s_ceilf.c
+index 7e63a6fe94..77e01a99f7 100644
+--- a/sysdeps/alpha/fpu/s_ceilf.c
++++ b/sysdeps/alpha/fpu/s_ceilf.c
+@@ -25,6 +25,9 @@
+ float
+ __ceilf (float x)
+ {
++  if (isnanf (x))
++    return x + x;
++
+   if (isless (fabsf (x), 16777216.0f))	/* 1 << FLT_MANT_DIG */
+     {
+       /* Note that Alpha S_Floating is stored in registers in a
+@@ -36,11 +39,7 @@ __ceilf (float x)
+ 
+       new_x = -x;
+       __asm ("cvtst/s %3,%2\n\t"
+-#ifdef _IEEE_FP_INEXACT
+-	     "cvttq/svim %2,%1\n\t"
+-#else
+ 	     "cvttq/svm %2,%1\n\t"
+-#endif
+ 	     "cvtqt/m %1,%0\n\t"
+ 	     : "=f"(new_x), "=&f"(tmp1), "=&f"(tmp2)
+ 	     : "f"(new_x));
+diff --git a/sysdeps/alpha/fpu/s_floor.c b/sysdeps/alpha/fpu/s_floor.c
+index 1a6f8c4617..9930f6be42 100644
+--- a/sysdeps/alpha/fpu/s_floor.c
++++ b/sysdeps/alpha/fpu/s_floor.c
+@@ -27,16 +27,15 @@
+ double
+ __floor (double x)
+ {
++  if (isnan (x))
++    return x + x;
++
+   if (isless (fabs (x), 9007199254740992.0))	/* 1 << DBL_MANT_DIG */
+     {
+       double tmp1, new_x;
+ 
+       __asm (
+-#ifdef _IEEE_FP_INEXACT
+-	     "cvttq/svim %2,%1\n\t"
+-#else
+ 	     "cvttq/svm %2,%1\n\t"
+-#endif
+ 	     "cvtqt/m %1,%0\n\t"
+ 	     : "=f"(new_x), "=&f"(tmp1)
+ 	     : "f"(x));
+diff --git a/sysdeps/alpha/fpu/s_floorf.c b/sysdeps/alpha/fpu/s_floorf.c
+index 8cd80e2b42..015c04f40d 100644
+--- a/sysdeps/alpha/fpu/s_floorf.c
++++ b/sysdeps/alpha/fpu/s_floorf.c
+@@ -26,6 +26,9 @@
+ float
+ __floorf (float x)
+ {
++  if (isnanf (x))
++    return x + x;
++
+   if (isless (fabsf (x), 16777216.0f))	/* 1 << FLT_MANT_DIG */
+     {
+       /* Note that Alpha S_Floating is stored in registers in a
+@@ -36,11 +39,7 @@ __floorf (float x)
+       float tmp1, tmp2, new_x;
+ 
+       __asm ("cvtst/s %3,%2\n\t"
+-#ifdef _IEEE_FP_INEXACT
+-	     "cvttq/svim %2,%1\n\t"
+-#else
+ 	     "cvttq/svm %2,%1\n\t"
+-#endif
+ 	     "cvtqt/m %1,%0\n\t"
+ 	     : "=f"(new_x), "=&f"(tmp1), "=&f"(tmp2)
+ 	     : "f"(x));
+diff --git a/sysdeps/alpha/fpu/s_rint.c b/sysdeps/alpha/fpu/s_rint.c
+index f33fe72c11..259348afc0 100644
+--- a/sysdeps/alpha/fpu/s_rint.c
++++ b/sysdeps/alpha/fpu/s_rint.c
+@@ -23,6 +23,9 @@
+ double
+ __rint (double x)
+ {
++  if (isnan (x))
++    return x + x;
++
+   if (isless (fabs (x), 9007199254740992.0))	/* 1 << DBL_MANT_DIG */
+     {
+       double tmp1, new_x;
+diff --git a/sysdeps/alpha/fpu/s_rintf.c b/sysdeps/alpha/fpu/s_rintf.c
+index 1400dfe8d7..645728ad5b 100644
+--- a/sysdeps/alpha/fpu/s_rintf.c
++++ b/sysdeps/alpha/fpu/s_rintf.c
+@@ -22,6 +22,9 @@
+ float
+ __rintf (float x)
+ {
++  if (isnanf (x))
++    return x + x;
++
+   if (isless (fabsf (x), 16777216.0f))	/* 1 << FLT_MANT_DIG */
+     {
+       /* Note that Alpha S_Floating is stored in registers in a
+diff --git a/sysdeps/alpha/fpu/s_trunc.c b/sysdeps/alpha/fpu/s_trunc.c
+index 16cb114a72..4b986a6926 100644
+--- a/sysdeps/alpha/fpu/s_trunc.c
++++ b/sysdeps/alpha/fpu/s_trunc.c
+@@ -28,12 +28,11 @@ __trunc (double x)
+   double two52 = copysign (0x1.0p52, x);
+   double r, tmp;
+ 
++  if (isgreaterequal (fabs (x), 0x1.0p52))
++    return x;
++
+   __asm (
+-#ifdef _IEEE_FP_INEXACT
+-	 "addt/suic %2, %3, %1\n\tsubt/suic %1, %3, %0"
+-#else
+ 	 "addt/suc %2, %3, %1\n\tsubt/suc %1, %3, %0"
+-#endif
+ 	 : "=&f"(r), "=&f"(tmp)
+ 	 : "f"(x), "f"(two52));
+ 
+diff --git a/sysdeps/alpha/fpu/s_truncf.c b/sysdeps/alpha/fpu/s_truncf.c
+index 2290f28295..3e93356166 100644
+--- a/sysdeps/alpha/fpu/s_truncf.c
++++ b/sysdeps/alpha/fpu/s_truncf.c
+@@ -27,12 +27,11 @@ __truncf (float x)
+   float two23 = copysignf (0x1.0p23, x);
+   float r, tmp;
+ 
++  if (isgreaterequal (fabsf (x), 0x1.0p23))
++    return x;
++
+   __asm (
+-#ifdef _IEEE_FP_INEXACT
+-	 "adds/suic %2, %3, %1\n\tsubs/suic %1, %3, %0"
+-#else
+ 	 "adds/suc %2, %3, %1\n\tsubs/suc %1, %3, %0"
+-#endif
+ 	 : "=&f"(r), "=&f"(tmp)
+ 	 : "f"(x), "f"(two23));
+ 
 diff --git a/sysdeps/arm/nacl/libc.abilist b/sysdeps/arm/nacl/libc.abilist
-index 2f7751d..dfa7198 100644
+index 2f7751d167..dfa7198306 100644
 --- a/sysdeps/arm/nacl/libc.abilist
 +++ b/sysdeps/arm/nacl/libc.abilist
 @@ -1840,4 +1840,5 @@ GLIBC_2.23 fts64_close F
@@ -1553,7 +2081,7 @@ index 2f7751d..dfa7198 100644
 +GLIBC_2.24 GLIBC_2.24 A
  GLIBC_2.24 quick_exit F
 diff --git a/sysdeps/ia64/nptl/Makefile b/sysdeps/ia64/nptl/Makefile
-index 48f1327..1e6be8e 100644
+index 48f1327446..1e6be8eea8 100644
 --- a/sysdeps/ia64/nptl/Makefile
 +++ b/sysdeps/ia64/nptl/Makefile
 @@ -21,4 +21,5 @@ endif
@@ -1563,7 +2091,7 @@ index 48f1327..1e6be8e 100644
 +libpthread-shared-only-routines += ptw-sysdep ptw-sigblock ptw-sigprocmask
  endif
 diff --git a/sysdeps/mips/Makefile b/sysdeps/mips/Makefile
-index 3d35523..7c1d779 100644
+index 3d3552322b..7c1d77941e 100644
 --- a/sysdeps/mips/Makefile
 +++ b/sysdeps/mips/Makefile
 @@ -9,6 +9,7 @@ endif
@@ -1575,7 +2103,7 @@ index 3d35523..7c1d779 100644
  
  ifeq ($(subdir),debug)
 diff --git a/sysdeps/mips/mips32/crti.S b/sysdeps/mips/mips32/crti.S
-index 5c0ad73..dfbbdc4 100644
+index 5c0ad7328a..dfbbdc4f8f 100644
 --- a/sysdeps/mips/mips32/crti.S
 +++ b/sysdeps/mips/mips32/crti.S
 @@ -74,6 +74,7 @@ _init:
@@ -1587,7 +2115,7 @@ index 5c0ad73..dfbbdc4 100644
  	lw $25,%got(PREINIT_FUNCTION)($28)
  	.reloc 1f,R_MIPS_JALR,PREINIT_FUNCTION
 diff --git a/sysdeps/mips/mips64/n32/crti.S b/sysdeps/mips/mips64/n32/crti.S
-index 00b89f3..afe6d8e 100644
+index 00b89f3894..afe6d8edaa 100644
 --- a/sysdeps/mips/mips64/n32/crti.S
 +++ b/sysdeps/mips/mips64/n32/crti.S
 @@ -74,6 +74,7 @@ _init:
@@ -1599,7 +2127,7 @@ index 00b89f3..afe6d8e 100644
  	lw $25,%got_disp(PREINIT_FUNCTION)($28)
  	.reloc 1f,R_MIPS_JALR,PREINIT_FUNCTION
 diff --git a/sysdeps/mips/mips64/n64/crti.S b/sysdeps/mips/mips64/n64/crti.S
-index f59b20c..4049d29 100644
+index f59b20c631..4049d29290 100644
 --- a/sysdeps/mips/mips64/n64/crti.S
 +++ b/sysdeps/mips/mips64/n64/crti.S
 @@ -74,6 +74,7 @@ _init:
@@ -1611,7 +2139,7 @@ index f59b20c..4049d29 100644
  	ld $25,%got_disp(PREINIT_FUNCTION)($28)
  	.reloc 1f,R_MIPS_JALR,PREINIT_FUNCTION
 diff --git a/sysdeps/mips/nptl/Makefile b/sysdeps/mips/nptl/Makefile
-index 117744f..dda154d 100644
+index 117744ffe2..dda154d842 100644
 --- a/sysdeps/mips/nptl/Makefile
 +++ b/sysdeps/mips/nptl/Makefile
 @@ -21,4 +21,5 @@ endif
@@ -1621,7 +2149,7 @@ index 117744f..dda154d 100644
 +libpthread-shared-only-routines += nptl-sysdep
  endif
 diff --git a/sysdeps/nacl/clock.c b/sysdeps/nacl/clock.c
-index 664ad65..b6fbcfd 100644
+index 664ad650c3..b6fbcfd2dd 100644
 --- a/sysdeps/nacl/clock.c
 +++ b/sysdeps/nacl/clock.c
 @@ -24,6 +24,6 @@
@@ -1633,7 +2161,7 @@ index 664ad65..b6fbcfd 100644
    return NACL_CALL (__nacl_irt_basic.clock (&result), result);
  }
 diff --git a/sysdeps/nacl/dup.c b/sysdeps/nacl/dup.c
-index 34a7cd4..cbce3f5 100644
+index 34a7cd46d4..cbce3f5a5a 100644
 --- a/sysdeps/nacl/dup.c
 +++ b/sysdeps/nacl/dup.c
 @@ -27,4 +27,5 @@ __dup (int fd)
@@ -1643,7 +2171,7 @@ index 34a7cd4..cbce3f5 100644
 +libc_hidden_def (__dup)
  weak_alias (__dup, dup)
 diff --git a/sysdeps/posix/wait3.c b/sysdeps/posix/wait3.c
-index cf43d97..73722d2 100644
+index cf43d973a7..73722d2be6 100644
 --- a/sysdeps/posix/wait3.c
 +++ b/sysdeps/posix/wait3.c
 @@ -33,7 +33,7 @@ __wait3 (int *stat_loc, int options, struct rusage *usage)
@@ -1656,7 +2184,7 @@ index cf43d97..73722d2 100644
  
  weak_alias (__wait3, wait3)
 diff --git a/sysdeps/powerpc/fpu/libm-test-ulps b/sysdeps/powerpc/fpu/libm-test-ulps
-index 7f37c81..36b700c 100644
+index 7f37c813d0..36b700c520 100644
 --- a/sysdeps/powerpc/fpu/libm-test-ulps
 +++ b/sysdeps/powerpc/fpu/libm-test-ulps
 @@ -36,8 +36,8 @@ double: 2
@@ -1955,7 +2483,7 @@ index 7f37c81..36b700c 100644
  Function: "tanh_upward":
  double: 3
 diff --git a/sysdeps/powerpc/ifunc-sel.h b/sysdeps/powerpc/ifunc-sel.h
-index 526d8ed..ac589bd 100644
+index 526d8ed88b..ac589bd3c0 100644
 --- a/sysdeps/powerpc/ifunc-sel.h
 +++ b/sysdeps/powerpc/ifunc-sel.h
 @@ -17,15 +17,17 @@ ifunc_sel (int (*f1) (void), int (*f2) (void), int (*f3) (void))
@@ -1991,7 +2519,7 @@ index 526d8ed..ac589bd 100644
  }
  #endif
 diff --git a/sysdeps/powerpc/powerpc32/power6/memset.S b/sysdeps/powerpc/powerpc32/power6/memset.S
-index b2a222e..d5dbe83 100644
+index b2a222edd2..d5dbe83af2 100644
 --- a/sysdeps/powerpc/powerpc32/power6/memset.S
 +++ b/sysdeps/powerpc/powerpc32/power6/memset.S
 @@ -394,7 +394,7 @@ L(cacheAlignedx):
@@ -2004,14 +2532,14 @@ index b2a222e..d5dbe83 100644
  	dcbz	0,rMEMP
  	addi	rLEN,rLEN,-128
 diff --git a/sysdeps/powerpc/powerpc32/power9/multiarch/Implies b/sysdeps/powerpc/powerpc32/power9/multiarch/Implies
-index 4393b56..1a46ef0 100644
+index 4393b56872..1a46ef0035 100644
 --- a/sysdeps/powerpc/powerpc32/power9/multiarch/Implies
 +++ b/sysdeps/powerpc/powerpc32/power9/multiarch/Implies
 @@ -1 +1 @@
 -powerpc/powerpc32/power8/fpu/multiarch
 +powerpc/powerpc32/power8/multiarch
 diff --git a/sysdeps/powerpc/powerpc64/power6/memset.S b/sysdeps/powerpc/powerpc64/power6/memset.S
-index c2d1c4e..d445b1e 100644
+index c2d1c4e600..d445b1e1ef 100644
 --- a/sysdeps/powerpc/powerpc64/power6/memset.S
 +++ b/sysdeps/powerpc/powerpc64/power6/memset.S
 @@ -251,7 +251,7 @@ L(cacheAlignedx):
@@ -2024,14 +2552,14 @@ index c2d1c4e..d445b1e 100644
  	dcbz	0,rMEMP
  	addi	rLEN,rLEN,-128
 diff --git a/sysdeps/powerpc/powerpc64/power9/fpu/Implies b/sysdeps/powerpc/powerpc64/power9/fpu/Implies
-index fad2505..ae0dbaf 100644
+index fad2505ab9..ae0dbaf857 100644
 --- a/sysdeps/powerpc/powerpc64/power9/fpu/Implies
 +++ b/sysdeps/powerpc/powerpc64/power9/fpu/Implies
 @@ -1,2 +1 @@
  powerpc/powerpc64/power8/fpu
 -powerpc/powerpc64/power8
 diff --git a/sysdeps/s390/nptl/Makefile b/sysdeps/s390/nptl/Makefile
-index 5734b98..3a391c8 100644
+index 5734b983b0..3a391c8217 100644
 --- a/sysdeps/s390/nptl/Makefile
 +++ b/sysdeps/s390/nptl/Makefile
 @@ -21,4 +21,5 @@ endif
@@ -2042,7 +2570,7 @@ index 5734b98..3a391c8 100644
  endif
 diff --git a/sysdeps/sparc/sparc32/fpu/s_fdim.S b/sysdeps/sparc/sparc32/fpu/s_fdim.S
 deleted file mode 100644
-index e93970f..0000000
+index e93970faae..0000000000
 --- a/sysdeps/sparc/sparc32/fpu/s_fdim.S
 +++ /dev/null
 @@ -1,42 +0,0 @@
@@ -2090,7 +2618,7 @@ index e93970f..0000000
 -#endif
 diff --git a/sysdeps/sparc/sparc32/fpu/s_fdimf.S b/sysdeps/sparc/sparc32/fpu/s_fdimf.S
 deleted file mode 100644
-index c3fe8af..0000000
+index c3fe8afa98..0000000000
 --- a/sysdeps/sparc/sparc32/fpu/s_fdimf.S
 +++ /dev/null
 @@ -1,35 +0,0 @@
@@ -2130,7 +2658,7 @@ index c3fe8af..0000000
 -END(__fdimf)
 -weak_alias (__fdimf, fdimf)
 diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/Makefile b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/Makefile
-index ebbe28b..13d3c6d 100644
+index ebbe28b07f..13d3c6db51 100644
 --- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/Makefile
 +++ b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/Makefile
 @@ -4,8 +4,8 @@ libm-sysdep_routines += m_copysignf-vis3 m_copysign-vis3 s_fabs-vis3 \
@@ -2146,7 +2674,7 @@ index ebbe28b..13d3c6d 100644
  endif
 diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim-vis3.S b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim-vis3.S
 deleted file mode 100644
-index 4a479b1..0000000
+index 4a479b1a59..0000000000
 --- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim-vis3.S
 +++ /dev/null
 @@ -1,34 +0,0 @@
@@ -2186,7 +2714,7 @@ index 4a479b1..0000000
 -END(__fdim_vis3)
 diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim.S b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim.S
 deleted file mode 100644
-index 4b13408..0000000
+index 4b13408244..0000000000
 --- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdim.S
 +++ /dev/null
 @@ -1,19 +0,0 @@
@@ -2211,7 +2739,7 @@ index 4b13408..0000000
 -#include "../s_fdim.S"
 diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf-vis3.S b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf-vis3.S
 deleted file mode 100644
-index 081fc15..0000000
+index 081fc15b62..0000000000
 --- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf-vis3.S
 +++ /dev/null
 @@ -1,32 +0,0 @@
@@ -2249,7 +2777,7 @@ index 081fc15..0000000
 -END(__fdimf_vis3)
 diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf.S b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf.S
 deleted file mode 100644
-index 30381d6..0000000
+index 30381d6a59..0000000000
 --- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_fdimf.S
 +++ /dev/null
 @@ -1,12 +0,0 @@
@@ -2266,7 +2794,7 @@ index 30381d6..0000000
 -
 -#include "../s_fdimf.S"
 diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyint-vis3.S b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyint-vis3.S
-index d9ff0cc..ff81b0d 100644
+index d9ff0cc288..ff81b0da83 100644
 --- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyint-vis3.S
 +++ b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyint-vis3.S
 @@ -36,15 +36,15 @@
@@ -2289,7 +2817,7 @@ index d9ff0cc..ff81b0d 100644
  	fzero	ZERO
  	st	%o4, [%sp + 80]
 diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyintf-vis3.S b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyintf-vis3.S
-index 5cd1eb0..833a0df 100644
+index 5cd1eb02db..833a0dfc24 100644
 --- a/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyintf-vis3.S
 +++ b/sysdeps/sparc/sparc32/sparcv9/fpu/multiarch/s_nearbyintf-vis3.S
 @@ -35,9 +35,9 @@
@@ -2305,7 +2833,7 @@ index 5cd1eb0..833a0df 100644
  	ld	[%sp + 88], %o4
 diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/s_fdim.S b/sysdeps/sparc/sparc32/sparcv9/fpu/s_fdim.S
 deleted file mode 100644
-index 37f7f44..0000000
+index 37f7f44dfa..0000000000
 --- a/sysdeps/sparc/sparc32/sparcv9/fpu/s_fdim.S
 +++ /dev/null
 @@ -1,40 +0,0 @@
@@ -2351,7 +2879,7 @@ index 37f7f44..0000000
 -#endif
 diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/s_fdimf.S b/sysdeps/sparc/sparc32/sparcv9/fpu/s_fdimf.S
 deleted file mode 100644
-index 9e0e3f2..0000000
+index 9e0e3f21be..0000000000
 --- a/sysdeps/sparc/sparc32/sparcv9/fpu/s_fdimf.S
 +++ /dev/null
 @@ -1,35 +0,0 @@
@@ -2391,7 +2919,7 @@ index 9e0e3f2..0000000
 -END(__fdimf)
 -weak_alias (__fdimf, fdimf)
 diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyint.S b/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyint.S
-index 84a1097..198440a 100644
+index 84a10971a4..198440a5bc 100644
 --- a/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyint.S
 +++ b/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyint.S
 @@ -36,21 +36,21 @@
@@ -2421,7 +2949,7 @@ index 84a1097..198440a 100644
  	stx	%o2, [%sp + 72]
  	fabsd	%f0, %f14
 diff --git a/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyintf.S b/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyintf.S
-index d5cf5ce..9be41f6 100644
+index d5cf5ce815..9be41f6c22 100644
 --- a/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyintf.S
 +++ b/sysdeps/sparc/sparc32/sparcv9/fpu/s_nearbyintf.S
 @@ -35,9 +35,10 @@
@@ -2446,7 +2974,7 @@ index d5cf5ce..9be41f6 100644
  	fabss	%f1, %f14
 diff --git a/sysdeps/sparc/sparc64/fpu/s_fdim.S b/sysdeps/sparc/sparc64/fpu/s_fdim.S
 deleted file mode 100644
-index 7fae72a..0000000
+index 7fae72a251..0000000000
 --- a/sysdeps/sparc/sparc64/fpu/s_fdim.S
 +++ /dev/null
 @@ -1,32 +0,0 @@
@@ -2484,7 +3012,7 @@ index 7fae72a..0000000
 -weak_alias (__fdim, fdim)
 diff --git a/sysdeps/sparc/sparc64/fpu/s_fdimf.S b/sysdeps/sparc/sparc64/fpu/s_fdimf.S
 deleted file mode 100644
-index 356c23c..0000000
+index 356c23c4e3..0000000000
 --- a/sysdeps/sparc/sparc64/fpu/s_fdimf.S
 +++ /dev/null
 @@ -1,31 +0,0 @@
@@ -2520,7 +3048,7 @@ index 356c23c..0000000
 -END(__fdimf)
 -weak_alias (__fdimf, fdimf)
 diff --git a/sysdeps/unix/alpha/Makefile b/sysdeps/unix/alpha/Makefile
-index 441aa02..0660847 100644
+index 441aa02a83..0660847f15 100644
 --- a/sysdeps/unix/alpha/Makefile
 +++ b/sysdeps/unix/alpha/Makefile
 @@ -1,3 +1,4 @@
@@ -2529,7 +3057,7 @@ index 441aa02..0660847 100644
 +librt-shared-only-routines += rt-sysdep
  endif
 diff --git a/sysdeps/unix/sysv/linux/alpha/Makefile b/sysdeps/unix/sysv/linux/alpha/Makefile
-index c089545..3b523b7 100644
+index c089545e9b..3b523b70cf 100644
 --- a/sysdeps/unix/sysv/linux/alpha/Makefile
 +++ b/sysdeps/unix/sysv/linux/alpha/Makefile
 @@ -40,4 +40,5 @@ endif   # math
@@ -2539,7 +3067,7 @@ index c089545..3b523b7 100644
 +libpthread-shared-only-routines += ptw-sysdep ptw-sigprocmask ptw-rt_sigaction
  endif
 diff --git a/sysdeps/unix/sysv/linux/arm/setcontext.S b/sysdeps/unix/sysv/linux/arm/setcontext.S
-index 603e508..d1f168f 100644
+index 603e508858..d1f168fece 100644
 --- a/sysdeps/unix/sysv/linux/arm/setcontext.S
 +++ b/sysdeps/unix/sysv/linux/arm/setcontext.S
 @@ -86,12 +86,19 @@ weak_alias(__setcontext, setcontext)
@@ -2563,7 +3091,7 @@ index 603e508..d1f168f 100644
  
  #ifdef PIC
 diff --git a/sysdeps/unix/sysv/linux/i386/Makefile b/sysdeps/unix/sysv/linux/i386/Makefile
-index 71ba61e..6073a9f 100644
+index 71ba61e9d7..6073a9fe04 100644
 --- a/sysdeps/unix/sysv/linux/i386/Makefile
 +++ b/sysdeps/unix/sysv/linux/i386/Makefile
 @@ -31,6 +31,7 @@ endif
@@ -2587,7 +3115,7 @@ index 71ba61e..6073a9f 100644
 +librt-shared-only-routines += sysdep
  endif
 diff --git a/sysdeps/unix/sysv/linux/ia64/Makefile b/sysdeps/unix/sysv/linux/ia64/Makefile
-index 1de62c5..4d6766d 100644
+index 1de62c528a..4d6766db5e 100644
 --- a/sysdeps/unix/sysv/linux/ia64/Makefile
 +++ b/sysdeps/unix/sysv/linux/ia64/Makefile
 @@ -19,6 +19,7 @@ endif
@@ -2599,7 +3127,7 @@ index 1de62c5..4d6766d 100644
  
  ifeq ($(subdir),nptl)
 diff --git a/sysdeps/unix/sysv/linux/microblaze/Makefile b/sysdeps/unix/sysv/linux/microblaze/Makefile
-index 44a838f..d178bc6 100644
+index 44a838fa11..d178bc6f34 100644
 --- a/sysdeps/unix/sysv/linux/microblaze/Makefile
 +++ b/sysdeps/unix/sysv/linux/microblaze/Makefile
 @@ -5,4 +5,5 @@ endif
@@ -2611,7 +3139,7 @@ index 44a838f..d178bc6 100644
 +libpthread-shared-only-routines += sysdep
 +endif
 diff --git a/sysdeps/unix/sysv/linux/powerpc/Makefile b/sysdeps/unix/sysv/linux/powerpc/Makefile
-index c89ed9e..2cfb46e 100644
+index c89ed9ec7d..2cfb46eca3 100644
 --- a/sysdeps/unix/sysv/linux/powerpc/Makefile
 +++ b/sysdeps/unix/sysv/linux/powerpc/Makefile
 @@ -8,6 +8,7 @@ abi-64-v2-condition := __WORDSIZE == 64 && _CALL_ELF == 2
@@ -2629,7 +3157,7 @@ index c89ed9e..2cfb46e 100644
 +libpthread-shared-only-routines += sysdep
  endif
 diff --git a/sysdeps/unix/sysv/linux/pread.c b/sysdeps/unix/sysv/linux/pread.c
-index 1bcff64..46d974d 100644
+index 1bcff64781..46d974d952 100644
 --- a/sysdeps/unix/sysv/linux/pread.c
 +++ b/sysdeps/unix/sysv/linux/pread.c
 @@ -28,8 +28,7 @@
@@ -2643,7 +3171,7 @@ index 1bcff64..46d974d 100644
  
  strong_alias (__libc_pread, __pread)
 diff --git a/sysdeps/unix/sysv/linux/pread64.c b/sysdeps/unix/sysv/linux/pread64.c
-index 58c6aeb..f51beae 100644
+index 58c6aeb541..f51beae77a 100644
 --- a/sysdeps/unix/sysv/linux/pread64.c
 +++ b/sysdeps/unix/sysv/linux/pread64.c
 @@ -26,8 +26,7 @@
@@ -2657,7 +3185,7 @@ index 58c6aeb..f51beae 100644
  
  weak_alias (__libc_pread64, __pread64)
 diff --git a/sysdeps/unix/sysv/linux/pwrite.c b/sysdeps/unix/sysv/linux/pwrite.c
-index 9c502be..1371df8 100644
+index 9c502beac1..1371df8a60 100644
 --- a/sysdeps/unix/sysv/linux/pwrite.c
 +++ b/sysdeps/unix/sysv/linux/pwrite.c
 @@ -28,8 +28,7 @@
@@ -2671,7 +3199,7 @@ index 9c502be..1371df8 100644
  
  strong_alias (__libc_pwrite, __pwrite)
 diff --git a/sysdeps/unix/sysv/linux/pwrite64.c b/sysdeps/unix/sysv/linux/pwrite64.c
-index b49e6bc..22f1f05 100644
+index b49e6bc286..22f1f05a44 100644
 --- a/sysdeps/unix/sysv/linux/pwrite64.c
 +++ b/sysdeps/unix/sysv/linux/pwrite64.c
 @@ -26,8 +26,7 @@
@@ -2685,7 +3213,7 @@ index b49e6bc..22f1f05 100644
  weak_alias (__libc_pwrite64, __pwrite64)
  libc_hidden_weak (__pwrite64)
 diff --git a/sysdeps/unix/sysv/linux/s390/Makefile b/sysdeps/unix/sysv/linux/s390/Makefile
-index 497ffd5..f8ed013 100644
+index 497ffd566c..f8ed013e9e 100644
 --- a/sysdeps/unix/sysv/linux/s390/Makefile
 +++ b/sysdeps/unix/sysv/linux/s390/Makefile
 @@ -6,6 +6,7 @@ abi-64-condition := __WORDSIZE == 64
@@ -2697,7 +3225,7 @@ index 497ffd5..f8ed013 100644
  
  ifeq ($(subdir),stdlib)
 diff --git a/sysdeps/unix/sysv/linux/sh/kernel-features.h b/sysdeps/unix/sysv/linux/sh/kernel-features.h
-index ad05fc3..c5240fa 100644
+index ad05fc39e1..c5240fafbd 100644
 --- a/sysdeps/unix/sysv/linux/sh/kernel-features.h
 +++ b/sysdeps/unix/sysv/linux/sh/kernel-features.h
 @@ -44,3 +44,8 @@
@@ -2711,7 +3239,7 @@ index ad05fc3..c5240fa 100644
 +#define __ASSUME_PRW_DUMMY_ARG	1
 diff --git a/sysdeps/unix/sysv/linux/sh/pread.c b/sysdeps/unix/sysv/linux/sh/pread.c
 deleted file mode 100644
-index d3f99f3..0000000
+index d3f99f35db..0000000000
 --- a/sysdeps/unix/sysv/linux/sh/pread.c
 +++ /dev/null
 @@ -1,23 +0,0 @@
@@ -2740,7 +3268,7 @@ index d3f99f3..0000000
 -#include <sysdeps/unix/sysv/linux/pread.c>
 diff --git a/sysdeps/unix/sysv/linux/sh/pread64.c b/sysdeps/unix/sysv/linux/sh/pread64.c
 deleted file mode 100644
-index b2e8a25..0000000
+index b2e8a25788..0000000000
 --- a/sysdeps/unix/sysv/linux/sh/pread64.c
 +++ /dev/null
 @@ -1,23 +0,0 @@
@@ -2769,7 +3297,7 @@ index b2e8a25..0000000
 -#include <sysdeps/unix/sysv/linux/pread64.c>
 diff --git a/sysdeps/unix/sysv/linux/sh/pwrite.c b/sysdeps/unix/sysv/linux/sh/pwrite.c
 deleted file mode 100644
-index 391ed5e..0000000
+index 391ed5e17b..0000000000
 --- a/sysdeps/unix/sysv/linux/sh/pwrite.c
 +++ /dev/null
 @@ -1,23 +0,0 @@
@@ -2798,7 +3326,7 @@ index 391ed5e..0000000
 -#include <sysdeps/unix/sysv/linux/pwrite.c>
 diff --git a/sysdeps/unix/sysv/linux/sh/pwrite64.c b/sysdeps/unix/sysv/linux/sh/pwrite64.c
 deleted file mode 100644
-index 683a5d9..0000000
+index 683a5d9886..0000000000
 --- a/sysdeps/unix/sysv/linux/sh/pwrite64.c
 +++ /dev/null
 @@ -1,23 +0,0 @@
@@ -2826,7 +3354,7 @@ index 683a5d9..0000000
 -#define __ALIGNMENT_ARG
 -#include <sysdeps/unix/sysv/linux/pwrite64.c>
 diff --git a/sysdeps/unix/sysv/linux/sparc/Makefile b/sysdeps/unix/sysv/linux/sparc/Makefile
-index e67aecf..a67d199 100644
+index e67aecf8f0..a67d199eb5 100644
 --- a/sysdeps/unix/sysv/linux/sparc/Makefile
 +++ b/sysdeps/unix/sysv/linux/sparc/Makefile
 @@ -6,6 +6,7 @@ abi-64-condition := __WORDSIZE == 64
@@ -2844,7 +3372,7 @@ index e67aecf..a67d199 100644
 +libpthread-shared-only-routines += sysdep
  endif
 diff --git a/sysdeps/unix/sysv/linux/spawni.c b/sysdeps/unix/sysv/linux/spawni.c
-index bb3eecf..67e1c42 100644
+index bb3eecfde1..67e1c42426 100644
 --- a/sysdeps/unix/sysv/linux/spawni.c
 +++ b/sysdeps/unix/sysv/linux/spawni.c
 @@ -58,10 +58,6 @@
@@ -2891,7 +3419,7 @@ index bb3eecf..67e1c42 100644
    return ec;
  }
 diff --git a/sysdeps/unix/sysv/linux/sysdep.h b/sysdeps/unix/sysv/linux/sysdep.h
-index a469f57..e3ecd56 100644
+index a469f57121..e3ecd5638e 100644
 --- a/sysdeps/unix/sysv/linux/sysdep.h
 +++ b/sysdeps/unix/sysv/linux/sysdep.h
 @@ -48,6 +48,16 @@
@@ -2912,7 +3440,7 @@ index a469f57..e3ecd56 100644
  #define LO_HI_LONG(val) \
   (long) (val), \
 diff --git a/sysdeps/unix/sysv/linux/tile/Makefile b/sysdeps/unix/sysv/linux/tile/Makefile
-index 1c1cfff..43acea3 100644
+index 1c1cfff280..43acea3633 100644
 --- a/sysdeps/unix/sysv/linux/tile/Makefile
 +++ b/sysdeps/unix/sysv/linux/tile/Makefile
 @@ -25,4 +25,5 @@ endif
@@ -2921,8 +3449,285 @@ index 1c1cfff..43acea3 100644
  libpthread-routines += sysdep
 +libpthread-shared-only-routines += sysdep
  endif
+diff --git a/sysdeps/x86/cpu-features.c b/sysdeps/x86/cpu-features.c
+index 9ce4b495a5..11b9af2231 100644
+--- a/sysdeps/x86/cpu-features.c
++++ b/sysdeps/x86/cpu-features.c
+@@ -205,6 +205,20 @@ init_cpu_features (struct cpu_features *cpu_features)
+       if (CPU_FEATURES_ARCH_P (cpu_features, AVX2_Usable))
+ 	cpu_features->feature[index_arch_AVX_Fast_Unaligned_Load]
+ 	  |= bit_arch_AVX_Fast_Unaligned_Load;
++
++      /* To avoid SSE transition penalty, use _dl_runtime_resolve_slow.
++         If XGETBV suports ECX == 1, use _dl_runtime_resolve_opt.  */
++      cpu_features->feature[index_arch_Use_dl_runtime_resolve_slow]
++	|= bit_arch_Use_dl_runtime_resolve_slow;
++      if (cpu_features->max_cpuid >= 0xd)
++	{
++	  unsigned int eax;
++
++	  __cpuid_count (0xd, 1, eax, ebx, ecx, edx);
++	  if ((eax & (1 << 2)) != 0)
++	    cpu_features->feature[index_arch_Use_dl_runtime_resolve_opt]
++	      |= bit_arch_Use_dl_runtime_resolve_opt;
++	}
+     }
+   /* This spells out "AuthenticAMD".  */
+   else if (ebx == 0x68747541 && ecx == 0x444d4163 && edx == 0x69746e65)
+diff --git a/sysdeps/x86/cpu-features.h b/sysdeps/x86/cpu-features.h
+index 97ffe765f4..a8b5a734bd 100644
+--- a/sysdeps/x86/cpu-features.h
++++ b/sysdeps/x86/cpu-features.h
+@@ -37,6 +37,8 @@
+ #define bit_arch_Prefer_No_VZEROUPPER		(1 << 17)
+ #define bit_arch_Fast_Unaligned_Copy		(1 << 18)
+ #define bit_arch_Prefer_ERMS			(1 << 19)
++#define bit_arch_Use_dl_runtime_resolve_opt	(1 << 20)
++#define bit_arch_Use_dl_runtime_resolve_slow	(1 << 21)
+ 
+ /* CPUID Feature flags.  */
+ 
+@@ -107,6 +109,8 @@
+ # define index_arch_Prefer_No_VZEROUPPER FEATURE_INDEX_1*FEATURE_SIZE
+ # define index_arch_Fast_Unaligned_Copy	FEATURE_INDEX_1*FEATURE_SIZE
+ # define index_arch_Prefer_ERMS		FEATURE_INDEX_1*FEATURE_SIZE
++# define index_arch_Use_dl_runtime_resolve_opt FEATURE_INDEX_1*FEATURE_SIZE
++# define index_arch_Use_dl_runtime_resolve_slow FEATURE_INDEX_1*FEATURE_SIZE
+ 
+ 
+ # if defined (_LIBC) && !IS_IN (nonlib)
+@@ -277,6 +281,8 @@ extern const struct cpu_features *__get_cpu_features (void)
+ # define index_arch_Prefer_No_VZEROUPPER FEATURE_INDEX_1
+ # define index_arch_Fast_Unaligned_Copy	FEATURE_INDEX_1
+ # define index_arch_Prefer_ERMS		FEATURE_INDEX_1
++# define index_arch_Use_dl_runtime_resolve_opt FEATURE_INDEX_1
++# define index_arch_Use_dl_runtime_resolve_slow FEATURE_INDEX_1
+ 
+ #endif	/* !__ASSEMBLER__ */
+ 
+diff --git a/sysdeps/x86_64/dl-machine.h b/sysdeps/x86_64/dl-machine.h
+index ed0c1a8efd..c0f0fa16a2 100644
+--- a/sysdeps/x86_64/dl-machine.h
++++ b/sysdeps/x86_64/dl-machine.h
+@@ -68,7 +68,10 @@ elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
+   Elf64_Addr *got;
+   extern void _dl_runtime_resolve_sse (ElfW(Word)) attribute_hidden;
+   extern void _dl_runtime_resolve_avx (ElfW(Word)) attribute_hidden;
++  extern void _dl_runtime_resolve_avx_slow (ElfW(Word)) attribute_hidden;
++  extern void _dl_runtime_resolve_avx_opt (ElfW(Word)) attribute_hidden;
+   extern void _dl_runtime_resolve_avx512 (ElfW(Word)) attribute_hidden;
++  extern void _dl_runtime_resolve_avx512_opt (ElfW(Word)) attribute_hidden;
+   extern void _dl_runtime_profile_sse (ElfW(Word)) attribute_hidden;
+   extern void _dl_runtime_profile_avx (ElfW(Word)) attribute_hidden;
+   extern void _dl_runtime_profile_avx512 (ElfW(Word)) attribute_hidden;
+@@ -118,9 +121,26 @@ elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
+ 	     indicated by the offset on the stack, and then jump to
+ 	     the resolved address.  */
+ 	  if (HAS_ARCH_FEATURE (AVX512F_Usable))
+-	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_resolve_avx512;
++	    {
++	      if (HAS_ARCH_FEATURE (Use_dl_runtime_resolve_opt))
++		*(ElfW(Addr) *) (got + 2)
++		  = (ElfW(Addr)) &_dl_runtime_resolve_avx512_opt;
++	      else
++		*(ElfW(Addr) *) (got + 2)
++		  = (ElfW(Addr)) &_dl_runtime_resolve_avx512;
++	    }
+ 	  else if (HAS_ARCH_FEATURE (AVX_Usable))
+-	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_resolve_avx;
++	    {
++	      if (HAS_ARCH_FEATURE (Use_dl_runtime_resolve_opt))
++		*(ElfW(Addr) *) (got + 2)
++		  = (ElfW(Addr)) &_dl_runtime_resolve_avx_opt;
++	      else if (HAS_ARCH_FEATURE (Use_dl_runtime_resolve_slow))
++		*(ElfW(Addr) *) (got + 2)
++		  = (ElfW(Addr)) &_dl_runtime_resolve_avx_slow;
++	      else
++		*(ElfW(Addr) *) (got + 2)
++		  = (ElfW(Addr)) &_dl_runtime_resolve_avx;
++	    }
+ 	  else
+ 	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_resolve_sse;
+ 	}
+diff --git a/sysdeps/x86_64/dl-trampoline.S b/sysdeps/x86_64/dl-trampoline.S
+index 12f1a5cf84..39f595e1e1 100644
+--- a/sysdeps/x86_64/dl-trampoline.S
++++ b/sysdeps/x86_64/dl-trampoline.S
+@@ -18,6 +18,7 @@
+ 
+ #include <config.h>
+ #include <sysdep.h>
++#include <cpu-features.h>
+ #include <link-defines.h>
+ 
+ #ifndef DL_STACK_ALIGNMENT
+@@ -86,9 +87,11 @@
+ #endif
+ #define VEC(i)			zmm##i
+ #define _dl_runtime_resolve	_dl_runtime_resolve_avx512
++#define _dl_runtime_resolve_opt	_dl_runtime_resolve_avx512_opt
+ #define _dl_runtime_profile	_dl_runtime_profile_avx512
+ #include "dl-trampoline.h"
+ #undef _dl_runtime_resolve
++#undef _dl_runtime_resolve_opt
+ #undef _dl_runtime_profile
+ #undef VEC
+ #undef VMOV
+@@ -104,9 +107,11 @@
+ #endif
+ #define VEC(i)			ymm##i
+ #define _dl_runtime_resolve	_dl_runtime_resolve_avx
++#define _dl_runtime_resolve_opt	_dl_runtime_resolve_avx_opt
+ #define _dl_runtime_profile	_dl_runtime_profile_avx
+ #include "dl-trampoline.h"
+ #undef _dl_runtime_resolve
++#undef _dl_runtime_resolve_opt
+ #undef _dl_runtime_profile
+ #undef VEC
+ #undef VMOV
+@@ -126,3 +131,18 @@
+ #define _dl_runtime_profile	_dl_runtime_profile_sse
+ #undef RESTORE_AVX
+ #include "dl-trampoline.h"
++#undef _dl_runtime_resolve
++#undef _dl_runtime_profile
++#undef VMOV
++#undef VMOVA
++
++/* Used by _dl_runtime_resolve_avx_opt/_dl_runtime_resolve_avx512_opt
++   to preserve the full vector registers with zero upper bits.  */
++#define VMOVA			vmovdqa
++#if DL_RUNTIME_RESOLVE_REALIGN_STACK || VEC_SIZE <= DL_STACK_ALIGNMENT
++# define VMOV			vmovdqa
++#else
++# define VMOV			vmovdqu
++#endif
++#define _dl_runtime_resolve	_dl_runtime_resolve_sse_vex
++#include "dl-trampoline.h"
+diff --git a/sysdeps/x86_64/dl-trampoline.h b/sysdeps/x86_64/dl-trampoline.h
+index b90836ab13..abe4471c1d 100644
+--- a/sysdeps/x86_64/dl-trampoline.h
++++ b/sysdeps/x86_64/dl-trampoline.h
+@@ -50,6 +50,105 @@
+ #endif
+ 
+ 	.text
++#ifdef _dl_runtime_resolve_opt
++/* Use the smallest vector registers to preserve the full YMM/ZMM
++   registers to avoid SSE transition penalty.  */
++
++# if VEC_SIZE == 32
++/* Check if the upper 128 bits in %ymm0 - %ymm7 registers are non-zero
++   and preserve %xmm0 - %xmm7 registers with the zero upper bits.  Since
++   there is no SSE transition penalty on AVX512 processors which don't
++   support XGETBV with ECX == 1, _dl_runtime_resolve_avx512_slow isn't
++   provided.   */
++	.globl _dl_runtime_resolve_avx_slow
++	.hidden _dl_runtime_resolve_avx_slow
++	.type _dl_runtime_resolve_avx_slow, @function
++	.align 16
++_dl_runtime_resolve_avx_slow:
++	cfi_startproc
++	cfi_adjust_cfa_offset(16) # Incorporate PLT
++	vorpd %ymm0, %ymm1, %ymm8
++	vorpd %ymm2, %ymm3, %ymm9
++	vorpd %ymm4, %ymm5, %ymm10
++	vorpd %ymm6, %ymm7, %ymm11
++	vorpd %ymm8, %ymm9, %ymm9
++	vorpd %ymm10, %ymm11, %ymm10
++	vpcmpeqd %xmm8, %xmm8, %xmm8
++	vorpd %ymm9, %ymm10, %ymm10
++	vptest %ymm10, %ymm8
++	# Preserve %ymm0 - %ymm7 registers if the upper 128 bits of any
++	# %ymm0 - %ymm7 registers aren't zero.
++	PRESERVE_BND_REGS_PREFIX
++	jnc _dl_runtime_resolve_avx
++	# Use vzeroupper to avoid SSE transition penalty.
++	vzeroupper
++	# Preserve %xmm0 - %xmm7 registers with the zero upper 128 bits
++	# when the upper 128 bits of %ymm0 - %ymm7 registers are zero.
++	PRESERVE_BND_REGS_PREFIX
++	jmp _dl_runtime_resolve_sse_vex
++	cfi_adjust_cfa_offset(-16) # Restore PLT adjustment
++	cfi_endproc
++	.size _dl_runtime_resolve_avx_slow, .-_dl_runtime_resolve_avx_slow
++# endif
++
++/* Use XGETBV with ECX == 1 to check which bits in vector registers are
++   non-zero and only preserve the non-zero lower bits with zero upper
++   bits.  */
++	.globl _dl_runtime_resolve_opt
++	.hidden _dl_runtime_resolve_opt
++	.type _dl_runtime_resolve_opt, @function
++	.align 16
++_dl_runtime_resolve_opt:
++	cfi_startproc
++	cfi_adjust_cfa_offset(16) # Incorporate PLT
++	pushq %rax
++	cfi_adjust_cfa_offset(8)
++	cfi_rel_offset(%rax, 0)
++	pushq %rcx
++	cfi_adjust_cfa_offset(8)
++	cfi_rel_offset(%rcx, 0)
++	pushq %rdx
++	cfi_adjust_cfa_offset(8)
++	cfi_rel_offset(%rdx, 0)
++	movl $1, %ecx
++	xgetbv
++	movl %eax, %r11d
++	popq %rdx
++	cfi_adjust_cfa_offset(-8)
++	cfi_restore (%rdx)
++	popq %rcx
++	cfi_adjust_cfa_offset(-8)
++	cfi_restore (%rcx)
++	popq %rax
++	cfi_adjust_cfa_offset(-8)
++	cfi_restore (%rax)
++# if VEC_SIZE == 32
++	# For YMM registers, check if YMM state is in use.
++	andl $bit_YMM_state, %r11d
++	# Preserve %xmm0 - %xmm7 registers with the zero upper 128 bits if
++	# YMM state isn't in use.
++	PRESERVE_BND_REGS_PREFIX
++	jz _dl_runtime_resolve_sse_vex
++# elif VEC_SIZE == 64
++	# For ZMM registers, check if YMM state and ZMM state are in
++	# use.
++	andl $(bit_YMM_state | bit_ZMM0_15_state), %r11d
++	cmpl $bit_YMM_state, %r11d
++	# Preserve %xmm0 - %xmm7 registers with the zero upper 384 bits if
++	# neither YMM state nor ZMM state are in use.
++	PRESERVE_BND_REGS_PREFIX
++	jl _dl_runtime_resolve_sse_vex
++	# Preserve %ymm0 - %ymm7 registers with the zero upper 256 bits if
++	# ZMM state isn't in use.
++	PRESERVE_BND_REGS_PREFIX
++	je _dl_runtime_resolve_avx
++# else
++#  error Unsupported VEC_SIZE!
++# endif
++	cfi_adjust_cfa_offset(-16) # Restore PLT adjustment
++	cfi_endproc
++	.size _dl_runtime_resolve_opt, .-_dl_runtime_resolve_opt
++#endif
+ 	.globl _dl_runtime_resolve
+ 	.hidden _dl_runtime_resolve
+ 	.type _dl_runtime_resolve, @function
+@@ -162,7 +261,10 @@ _dl_runtime_resolve:
+ 	.size _dl_runtime_resolve, .-_dl_runtime_resolve
+ 
+ 
+-#ifndef PROF
++/* To preserve %xmm0 - %xmm7 registers, dl-trampoline.h is included
++   twice, for _dl_runtime_resolve_sse and _dl_runtime_resolve_sse_vex.
++   But we don't need another _dl_runtime_profile for XMM registers.  */
++#if !defined PROF && defined _dl_runtime_profile
+ # if (LR_VECTOR_OFFSET % VEC_SIZE) != 0
+ #  error LR_VECTOR_OFFSET must be multples of VEC_SIZE
+ # endif
 diff --git a/sysdeps/x86_64/memcpy_chk.S b/sysdeps/x86_64/memcpy_chk.S
-index 2296b55..a95b3ad 100644
+index 2296b55119..a95b3ad3cf 100644
 --- a/sysdeps/x86_64/memcpy_chk.S
 +++ b/sysdeps/x86_64/memcpy_chk.S
 @@ -19,7 +19,7 @@
