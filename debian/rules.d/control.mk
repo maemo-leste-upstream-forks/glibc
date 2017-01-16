@@ -1,7 +1,7 @@
 libc_packages := libc6 libc6.1 libc0.1 libc0.3
 libc0_1_archs := kfreebsd-amd64 kfreebsd-i386
 libc0_3_archs := hurd-i386
-libc6_archs   := amd64 arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32el mips64 mips64el nios2 powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh4 x32
+libc6_archs   := amd64 arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32el mips64 mips64el nios2 powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh3 sh4 x32
 libc6_1_archs := alpha
 
 control_deps := $(wildcard debian/control.in/*) $(addprefix debian/control.in/, $(libc_packages))
