@@ -48,6 +48,8 @@ DEB_SOURCE_PACKAGE := $(strip $(shell egrep '^Source: ' debian/control | cut -f 
 DEB_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
 GLIBC_VERSION = $(shell echo $(DEB_VERSION) | sed -e 's/.*://' -e 's/[+-].*//')
 
+SOURCE_DATE_EPOCH ?= $(shell dpkg-parsechangelog -STimestamp)
+
 # The minimum package version with which these packages are compatible.
 shlib_dep_ver = $(GLIBC_VERSION)
 shlib_dep = $(libc) (>= $(shlib_dep_ver))

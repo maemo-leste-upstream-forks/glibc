@@ -77,8 +77,7 @@ endif
 		-exec chmod a+x '{}' ';'
 	dh_makeshlibs -Xgconv/ -p$(curpass) -V "$(call xx,shlib_dep)"
 	# Add relevant udeb: lines in shlibs files
-	chmod a+x debian/shlibs-add-udebs
-	./debian/shlibs-add-udebs $(curpass)
+	sh ./debian/shlibs-add-udebs $(curpass)
 
 	dh_installdeb -p$(curpass)
 	dh_shlibdeps -p$(curpass)

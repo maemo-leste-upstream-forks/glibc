@@ -27,6 +27,14 @@ glibc (2.24-9) UNRELEASED; urgency=medium
   * patches/any/cvs-resolv-internal-qtype.diff: patch from upstream to fix a
     NULL pointer dereference in libresolv when receiving a T_UNSPEC internal
     QTYPE (CVE-2015-5180).  Closes: #796106.
+  * Make the package build reproducibly, thanks to Ximin Luo for the patch.
+    Closes: #783210.
+    - debian/rules: export SOURCE_DATE_EPOCH when not building with
+      dpkg-buildpackage.
+    - debian/rules.d/build.mk: use --clamp-mtime instead of touching the
+      files.
+    - debian/rules.d/debhelper.mk: do not chmod +x the shell script, call
+      it with sh instead.
 
  -- Samuel Thibault <sthibault@debian.org>  Fri, 09 Dec 2016 01:51:00 +0100
 
