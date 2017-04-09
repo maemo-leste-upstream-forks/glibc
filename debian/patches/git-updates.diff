@@ -1,10 +1,16 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.24/master from glibc-2.24
 
 diff --git a/ChangeLog b/ChangeLog
-index c44c926094..6e4696c7df 100644
+index c44c926094..13f809d26f 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,351 @@
+@@ -1,3 +1,357 @@
++2017-01-05  Joseph Myers  <joseph@codesourcery.com>
++
++	[BZ #21026]
++	* sysdeps/unix/sysv/linux/mips/mips64/n64/syscalls.list
++	(readahead): New syscall entry.
++
 +2017-04-07  H.J. Lu  <hongjiu.lu@intel.com>
 +
 +	[BZ #21258]
@@ -3561,6 +3567,19 @@ index 44a838fa11..d178bc6f34 100644
 \ No newline at end of file
 +libpthread-shared-only-routines += sysdep
 +endif
+diff --git a/sysdeps/unix/sysv/linux/mips/mips64/n64/syscalls.list b/sysdeps/unix/sysv/linux/mips/mips64/n64/syscalls.list
+index 890a74494a..26ab6d0b75 100644
+--- a/sysdeps/unix/sysv/linux/mips/mips64/n64/syscalls.list
++++ b/sysdeps/unix/sysv/linux/mips/mips64/n64/syscalls.list
+@@ -4,6 +4,8 @@ mmap		-	mmap		b:aniiii __mmap		mmap __mmap64 mmap64
+ 
+ sync_file_range	-	sync_file_range	Ci:iiii	sync_file_range
+ 
++readahead	-	readahead	i:iii	__readahead	readahead
++
+ prlimit		EXTRA	prlimit64	i:iipp	prlimit		prlimit64
+ 
+ fanotify_mark	EXTRA	fanotify_mark	i:iiiis	fanotify_mark
 diff --git a/sysdeps/unix/sysv/linux/powerpc/Makefile b/sysdeps/unix/sysv/linux/powerpc/Makefile
 index c89ed9ec7d..2cfb46eca3 100644
 --- a/sysdeps/unix/sysv/linux/powerpc/Makefile
