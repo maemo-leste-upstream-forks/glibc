@@ -1,0 +1,1902 @@
+2016-11-24  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
+
+	* sysdeps/nptl/fork.c (__libc_fork): Remove pid cache setting.
+	* nptl/allocatestack.c (allocate_stack): Likewise.
+	(__reclaim_stacks): Likewise.
+	(setxid_signal_thread): Obtain pid through syscall.
+	* nptl/nptl-init.c (sigcancel_handler): Likewise.
+	(sighandle_setxid): Likewise.
+	* nptl/pthread_cancel.c (pthread_cancel): Likewise.
+	* sysdeps/unix/sysv/linux/pthread_kill.c (__pthread_kill): Likewise.
+	* sysdeps/unix/sysv/linux/pthread_sigqueue.c (pthread_sigqueue):
+	Likewise.
+	* sysdeps/unix/sysv/linux/createthread.c (create_thread): Likewise.
+	* sysdeps/unix/sysv/linux/raise.c (raise): Remove old behaviour
+	comment.
+	* sysdeps/unix/sysv/linux/getpid.c: Remove file.
+	* nptl/descr.h (struct pthread): Change comment about pid value.
+	* nptl/pthread_getattr_np.c (pthread_getattr_np): Remove thread
+	pid assert.
+	* sysdeps/unix/sysv/linux/pthread-pids.h (__pthread_initialize_pids):
+	Do not set pid value.
+	* nptl_db/td_ta_thr_iter.c (iterate_thread_list): Remove thread
+	pid cache check.
+	* nptl_db/td_thr_validate.c (td_thr_validate): Likewise.
+	* sysdeps/aarch64/nptl/tcb-offsets.sym: Remove pid offset.
+	* sysdeps/alpha/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/arm/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/hppa/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/i386/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/ia64/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/m68k/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/microblaze/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/mips/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/nios2/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/powerpc/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/s390/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/sh/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/sparc/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/tile/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/x86_64/nptl/tcb-offsets.sym: Likewise.
+	* sysdeps/unix/sysv/linux/aarch64/clone.S: Remove pid and tid caching.
+	* sysdeps/unix/sysv/linux/alpha/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/arm/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/hppa/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/i386/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/ia64/clone2.S: Likewise.
+	* sysdeps/unix/sysv/linux/mips/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/nios2/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/powerpc/powerpc32/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/powerpc/powerpc64/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/s390/s390-32/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/s390/s390-64/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/sh/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/sparc/sparc32/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/sparc/sparc64/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/tile/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/x86_64/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/aarch64/vfork.S: Remove pid set and reset.
+	* sysdeps/unix/sysv/linux/alpha/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/arm/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/i386/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/ia64/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/m68k/clone.S: Likewise.
+	* sysdeps/unix/sysv/linux/m68k/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/mips/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/nios2/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/powerpc/powerpc32/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/powerpc/powerpc64/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/s390/s390-32/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/s390/s390-64/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/sh/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/tile/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/x86_64/vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/hppa/pt-vfork.S: Likewise.
+	* sysdeps/unix/sysv/linux/tst-clone2.c (f): Remove direct pthread
+	struct access.
+	(clone_test): Remove function.
+	(do_test): Rewrite to take in consideration pid is not cached anymore.
+
+--- a/nptl/allocatestack.c
++++ b/nptl/allocatestack.c
+@@ -440,9 +440,6 @@
+       SETUP_THREAD_SYSINFO (pd);
+ #endif
+ 
+-      /* The process ID is also the same as that of the caller.  */
+-      pd->pid = THREAD_GETMEM (THREAD_SELF, pid);
+-
+       /* Don't allow setxid until cloned.  */
+       pd->setxid_futex = -1;
+ 
+@@ -579,9 +576,6 @@
+ 	  /* Don't allow setxid until cloned.  */
+ 	  pd->setxid_futex = -1;
+ 
+-	  /* The process ID is also the same as that of the caller.  */
+-	  pd->pid = THREAD_GETMEM (THREAD_SELF, pid);
+-
+ 	  /* Allocate the DTV for this thread.  */
+ 	  if (_dl_allocate_tls (TLS_TPADJ (pd)) == NULL)
+ 	    {
+@@ -879,9 +873,6 @@
+ 	  /* This marks the stack as free.  */
+ 	  curp->tid = 0;
+ 
+-	  /* The PID field must be initialized for the new process.  */
+-	  curp->pid = self->pid;
+-
+ 	  /* Account for the size of the stack.  */
+ 	  stack_cache_actsize += curp->stackblock_size;
+ 
+@@ -907,13 +898,6 @@
+ 	}
+     }
+ 
+-  /* Reset the PIDs in any cached stacks.  */
+-  list_for_each (runp, &stack_cache)
+-    {
+-      struct pthread *curp = list_entry (runp, struct pthread, list);
+-      curp->pid = self->pid;
+-    }
+-
+   /* Add the stack of all running threads to the cache.  */
+   list_splice (&stack_used, &stack_cache);
+ 
+@@ -1058,9 +1042,9 @@
+     return 0;
+ 
+   int val;
++  pid_t pid = __getpid ();
+   INTERNAL_SYSCALL_DECL (err);
+-  val = INTERNAL_SYSCALL (tgkill, err, 3, THREAD_GETMEM (THREAD_SELF, pid),
+-			  t->tid, SIGSETXID);
++  val = INTERNAL_SYSCALL (tgkill, err, 3, pid, t->tid, SIGSETXID);
+ 
+   /* If this failed, it must have had not started yet or else exited.  */
+   if (!INTERNAL_SYSCALL_ERROR_P (val, err))
+--- a/nptl/descr.h
++++ b/nptl/descr.h
+@@ -167,8 +167,8 @@
+      therefore stack) used' flag.  */
+   pid_t tid;
+ 
+-  /* Process ID - thread group ID in kernel speak.  */
+-  pid_t pid;
++  /* Ununsed.  */
++  pid_t pid_ununsed;
+ 
+   /* List of robust mutexes the thread is holding.  */
+ #ifdef __PTHREAD_MUTEX_HAVE_PREV
+--- a/nptl/nptl-init.c
++++ b/nptl/nptl-init.c
+@@ -184,18 +184,12 @@
+ static void
+ sigcancel_handler (int sig, siginfo_t *si, void *ctx)
+ {
+-  /* Determine the process ID.  It might be negative if the thread is
+-     in the middle of a fork() call.  */
+-  pid_t pid = THREAD_GETMEM (THREAD_SELF, pid);
+-  if (__glibc_unlikely (pid < 0))
+-    pid = -pid;
+-
+   /* Safety check.  It would be possible to call this function for
+      other signals and send a signal from another process.  This is not
+      correct and might even be a security problem.  Try to catch as
+      many incorrect invocations as possible.  */
+   if (sig != SIGCANCEL
+-      || si->si_pid != pid
++      || si->si_pid != __getpid()
+       || si->si_code != SI_TKILL)
+     return;
+ 
+@@ -243,19 +237,14 @@
+ static void
+ sighandler_setxid (int sig, siginfo_t *si, void *ctx)
+ {
+-  /* Determine the process ID.  It might be negative if the thread is
+-     in the middle of a fork() call.  */
+-  pid_t pid = THREAD_GETMEM (THREAD_SELF, pid);
+   int result;
+-  if (__glibc_unlikely (pid < 0))
+-    pid = -pid;
+ 
+   /* Safety check.  It would be possible to call this function for
+      other signals and send a signal from another process.  This is not
+      correct and might even be a security problem.  Try to catch as
+      many incorrect invocations as possible.  */
+   if (sig != SIGSETXID
+-      || si->si_pid != pid
++      || si->si_pid != __getpid ()
+       || si->si_code != SI_TKILL)
+     return;
+ 
+--- a/nptl/pthread_cancel.c
++++ b/nptl/pthread_cancel.c
+@@ -22,7 +22,7 @@
+ #include "pthreadP.h"
+ #include <atomic.h>
+ #include <sysdep.h>
+-
++#include <unistd.h>
+ 
+ int
+ pthread_cancel (pthread_t th)
+@@ -66,19 +66,11 @@
+ #ifdef SIGCANCEL
+ 	  /* The cancellation handler will take care of marking the
+ 	     thread as canceled.  */
+-	  INTERNAL_SYSCALL_DECL (err);
+-
+-	  /* One comment: The PID field in the TCB can temporarily be
+-	     changed (in fork).  But this must not affect this code
+-	     here.  Since this function would have to be called while
+-	     the thread is executing fork, it would have to happen in
+-	     a signal handler.  But this is no allowed, pthread_cancel
+-	     is not guaranteed to be async-safe.  */
+-	  int val;
+-	  val = INTERNAL_SYSCALL (tgkill, err, 3,
+-				  THREAD_GETMEM (THREAD_SELF, pid), pd->tid,
+-				  SIGCANCEL);
++	  pid_t pid = getpid ();
+ 
++	  INTERNAL_SYSCALL_DECL (err);
++	  int val = INTERNAL_SYSCALL (tgkill, err, 3, pid, pd->tid,
++				      SIGCANCEL);
+ 	  if (INTERNAL_SYSCALL_ERROR_P (val, err))
+ 	    result = INTERNAL_SYSCALL_ERRNO (val, err);
+ #else
+--- a/nptl/pthread_getattr_np.c
++++ b/nptl/pthread_getattr_np.c
+@@ -68,7 +68,6 @@
+     {
+       /* No stack information available.  This must be for the initial
+ 	 thread.  Get the info in some magical way.  */
+-      assert (abs (thread->pid) == thread->tid);
+ 
+       /* Stack size limit.  */
+       struct rlimit rl;
+--- a/nptl_db/structs.def
++++ b/nptl_db/structs.def
+@@ -48,7 +48,6 @@
+ DB_STRUCT_FIELD (pthread, list)
+ DB_STRUCT_FIELD (pthread, report_events)
+ DB_STRUCT_FIELD (pthread, tid)
+-DB_STRUCT_FIELD (pthread, pid)
+ DB_STRUCT_FIELD (pthread, start_routine)
+ DB_STRUCT_FIELD (pthread, cancelhandling)
+ DB_STRUCT_FIELD (pthread, schedpolicy)
+--- a/nptl_db/td_ta_thr_iter.c
++++ b/nptl_db/td_ta_thr_iter.c
+@@ -76,48 +76,28 @@
+       if (ps_pdread (ta->ph, addr, copy, ta->ta_sizeof_pthread) != PS_OK)
+ 	return TD_ERR;
+ 
+-      /* Verify that this thread's pid field matches the child PID.
+-	 If its pid field is negative, it's about to do a fork or it
+-	 is the sole thread in a fork child.  */
+-      psaddr_t pid;
+-      err = DB_GET_FIELD_LOCAL (pid, ta, copy, pthread, pid, 0);
+-      if (err == TD_OK && (pid_t) (uintptr_t) pid < 0)
+-	{
+-	  if (-(pid_t) (uintptr_t) pid == match_pid)
+-	    /* It is about to do a fork, but is really still the parent PID.  */
+-	    pid = (psaddr_t) (uintptr_t) match_pid;
+-	  else
+-	    /* It must be a fork child, whose new PID is in the tid field.  */
+-	    err = DB_GET_FIELD_LOCAL (pid, ta, copy, pthread, tid, 0);
+-	}
++      err = DB_GET_FIELD_LOCAL (schedpolicy, ta, copy, pthread,
++				schedpolicy, 0);
++      if (err != TD_OK)
++	break;
++      err = DB_GET_FIELD_LOCAL (schedprio, ta, copy, pthread,
++				schedparam_sched_priority, 0);
+       if (err != TD_OK)
+ 	break;
+ 
+-      if ((pid_t) (uintptr_t) pid == match_pid)
+-	{
+-	  err = DB_GET_FIELD_LOCAL (schedpolicy, ta, copy, pthread,
+-				    schedpolicy, 0);
+-	  if (err != TD_OK)
+-	    break;
+-	  err = DB_GET_FIELD_LOCAL (schedprio, ta, copy, pthread,
+-				    schedparam_sched_priority, 0);
+-	  if (err != TD_OK)
+-	    break;
+-
+-	  /* Now test whether this thread matches the specified conditions.  */
++      /* Now test whether this thread matches the specified conditions.  */
+ 
+-	  /* Only if the priority level is as high or higher.  */
+-	  int descr_pri = ((uintptr_t) schedpolicy == SCHED_OTHER
+-			   ? 0 : (uintptr_t) schedprio);
+-	  if (descr_pri >= ti_pri)
+-	    {
+-	      /* Yep, it matches.  Call the callback function.  */
+-	      td_thrhandle_t th;
+-	      th.th_ta_p = (td_thragent_t *) ta;
+-	      th.th_unique = addr;
+-	      if (callback (&th, cbdata_p) != 0)
+-		return TD_DBERR;
+-	    }
++      /* Only if the priority level is as high or higher.  */
++      int descr_pri = ((uintptr_t) schedpolicy == SCHED_OTHER
++		       ? 0 : (uintptr_t) schedprio);
++      if (descr_pri >= ti_pri)
++	{
++	  /* Yep, it matches.  Call the callback function.  */
++	  td_thrhandle_t th;
++	  th.th_ta_p = (td_thragent_t *) ta;
++	  th.th_unique = addr;
++	  if (callback (&th, cbdata_p) != 0)
++	    return TD_DBERR;
+ 	}
+ 
+       /* Get the pointer to the next element.  */
+--- a/nptl_db/td_thr_validate.c
++++ b/nptl_db/td_thr_validate.c
+@@ -80,28 +80,5 @@
+ 	err = TD_OK;
+     }
+ 
+-  if (err == TD_OK)
+-    {
+-      /* Verify that this is not a stale element in a fork child.  */
+-      pid_t match_pid = ps_getpid (th->th_ta_p->ph);
+-      psaddr_t pid;
+-      err = DB_GET_FIELD (pid, th->th_ta_p, th->th_unique, pthread, pid, 0);
+-      if (err == TD_OK && (pid_t) (uintptr_t) pid < 0)
+-	{
+-	  /* This was a thread that was about to fork, or it is the new sole
+-	     thread in a fork child.  In the latter case, its tid was stored
+-	     via CLONE_CHILD_SETTID and so is already the proper child PID.  */
+-	  if (-(pid_t) (uintptr_t) pid == match_pid)
+-	    /* It is about to do a fork, but is really still the parent PID.  */
+-	    pid = (psaddr_t) (uintptr_t) match_pid;
+-	  else
+-	    /* It must be a fork child, whose new PID is in the tid field.  */
+-	    err = DB_GET_FIELD (pid, th->th_ta_p, th->th_unique,
+-				pthread, tid, 0);
+-	}
+-      if (err == TD_OK && (pid_t) (uintptr_t) pid != match_pid)
+-	err = TD_NOTHR;
+-    }
+-
+   return err;
+ }
+--- a/sysdeps/aarch64/nptl/tcb-offsets.sym
++++ b/sysdeps/aarch64/nptl/tcb-offsets.sym
+@@ -2,6 +2,5 @@
+ #include <tls.h>
+ 
+ PTHREAD_MULTIPLE_THREADS_OFFSET		offsetof (struct pthread, header.multiple_threads)
+-PTHREAD_PID_OFFSET			offsetof (struct pthread, pid)
+ PTHREAD_TID_OFFSET			offsetof (struct pthread, tid)
+ PTHREAD_SIZEOF				sizeof (struct pthread)
+--- a/sysdeps/alpha/nptl/tcb-offsets.sym
++++ b/sysdeps/alpha/nptl/tcb-offsets.sym
+@@ -10,5 +10,4 @@
+ #define thread_offsetof(mem)	(long)(offsetof(struct pthread, mem) - sizeof(struct pthread))
+ 
+ MULTIPLE_THREADS_OFFSET		thread_offsetof (header.multiple_threads)
+-PID_OFFSET			thread_offsetof (pid)
+ TID_OFFSET			thread_offsetof (tid)
+--- a/sysdeps/arm/nptl/tcb-offsets.sym
++++ b/sysdeps/arm/nptl/tcb-offsets.sym
+@@ -7,5 +7,4 @@
+ #define thread_offsetof(mem)	(long)(offsetof(struct pthread, mem) - sizeof(struct pthread))
+ 
+ MULTIPLE_THREADS_OFFSET		thread_offsetof (header.multiple_threads)
+-PID_OFFSET			thread_offsetof (pid)
+ TID_OFFSET			thread_offsetof (tid)
+--- a/sysdeps/hppa/nptl/tcb-offsets.sym
++++ b/sysdeps/hppa/nptl/tcb-offsets.sym
+@@ -3,7 +3,6 @@
+ 
+ RESULT			offsetof (struct pthread, result)
+ TID			offsetof (struct pthread, tid)
+-PID			offsetof (struct pthread, pid)
+ CANCELHANDLING		offsetof (struct pthread, cancelhandling)
+ CLEANUP_JMP_BUF		offsetof (struct pthread, cleanup_jmp_buf)
+ MULTIPLE_THREADS_OFFSET	offsetof (struct pthread, header.multiple_threads)
+@@ -14,6 +13,5 @@
+ -- This way we get the offset of a member in the struct pthread that
+ -- preceeds the thread pointer (which points to the dtv).
+ #define thread_offsetof(mem)    (unsigned int)(offsetof(struct pthread, mem) - sizeof(struct pthread))
+-PID_THREAD_OFFSET		thread_offsetof (pid)
+ TID_THREAD_OFFSET		thread_offsetof (tid)
+ MULTIPLE_THREADS_THREAD_OFFSET	thread_offsetof (header.multiple_threads)
+--- a/sysdeps/i386/nptl/tcb-offsets.sym
++++ b/sysdeps/i386/nptl/tcb-offsets.sym
+@@ -4,7 +4,6 @@
+ 
+ RESULT			offsetof (struct pthread, result)
+ TID			offsetof (struct pthread, tid)
+-PID			offsetof (struct pthread, pid)
+ CANCELHANDLING		offsetof (struct pthread, cancelhandling)
+ CLEANUP_JMP_BUF		offsetof (struct pthread, cleanup_jmp_buf)
+ MULTIPLE_THREADS_OFFSET	offsetof (tcbhead_t, multiple_threads)
+--- a/sysdeps/ia64/nptl/tcb-offsets.sym
++++ b/sysdeps/ia64/nptl/tcb-offsets.sym
+@@ -1,7 +1,6 @@
+ #include <sysdep.h>
+ #include <tls.h>
+ 
+-PID			offsetof (struct pthread, pid) - TLS_PRE_TCB_SIZE
+ TID			offsetof (struct pthread, tid) - TLS_PRE_TCB_SIZE
+ MULTIPLE_THREADS_OFFSET offsetof (struct pthread, header.multiple_threads) - TLS_PRE_TCB_SIZE
+ SYSINFO_OFFSET		offsetof (tcbhead_t, __private)
+--- a/sysdeps/m68k/nptl/tcb-offsets.sym
++++ b/sysdeps/m68k/nptl/tcb-offsets.sym
+@@ -7,5 +7,4 @@
+ #define thread_offsetof(mem)	(long)(offsetof(struct pthread, mem) - TLS_TCB_OFFSET - TLS_PRE_TCB_SIZE)
+ 
+ MULTIPLE_THREADS_OFFSET		thread_offsetof (header.multiple_threads)
+-PID_OFFSET			thread_offsetof (pid)
+ TID_OFFSET			thread_offsetof (tid)
+--- a/sysdeps/microblaze/nptl/tcb-offsets.sym
++++ b/sysdeps/microblaze/nptl/tcb-offsets.sym
+@@ -7,5 +7,4 @@
+ #define thread_offsetof(mem)	(long)(offsetof (struct pthread, mem) - sizeof (struct pthread))
+ 
+ MULTIPLE_THREADS_OFFSET	thread_offsetof (header.multiple_threads)
+-PID_OFFSET			thread_offsetof (pid)
+ TID_OFFSET			thread_offsetof (tid)
+--- a/sysdeps/mips/nptl/tcb-offsets.sym
++++ b/sysdeps/mips/nptl/tcb-offsets.sym
+@@ -7,5 +7,4 @@
+ #define thread_offsetof(mem)	(long)(offsetof(struct pthread, mem) - TLS_TCB_OFFSET - TLS_PRE_TCB_SIZE)
+ 
+ MULTIPLE_THREADS_OFFSET		thread_offsetof (header.multiple_threads)
+-PID_OFFSET			thread_offsetof (pid)
+ TID_OFFSET			thread_offsetof (tid)
+--- a/sysdeps/nios2/nptl/tcb-offsets.sym
++++ b/sysdeps/nios2/nptl/tcb-offsets.sym
+@@ -9,6 +9,5 @@
+ # define thread_offsetof(mem)   ((ptrdiff_t) THREAD_SELF + offsetof (struct pthread, mem))
+ 
+ MULTIPLE_THREADS_OFFSET		thread_offsetof (header.multiple_threads)
+-PID_OFFSET			thread_offsetof (pid)
+ TID_OFFSET			thread_offsetof (tid)
+ POINTER_GUARD			(offsetof (tcbhead_t, pointer_guard) - TLS_TCB_OFFSET - sizeof (tcbhead_t))
+--- a/sysdeps/nptl/fork.c
++++ b/sysdeps/nptl/fork.c
+@@ -135,12 +135,6 @@
+   pid_t ppid = THREAD_GETMEM (THREAD_SELF, tid);
+ #endif
+ 
+-  /* We need to prevent the getpid() code to update the PID field so
+-     that, if a signal arrives in the child very early and the signal
+-     handler uses getpid(), the value returned is correct.  */
+-  pid_t parentpid = THREAD_GETMEM (THREAD_SELF, pid);
+-  THREAD_SETMEM (THREAD_SELF, pid, -parentpid);
+-
+ #ifdef ARCH_FORK
+   pid = ARCH_FORK ();
+ #else
+@@ -159,9 +153,6 @@
+       if (__fork_generation_pointer != NULL)
+ 	*__fork_generation_pointer += __PTHREAD_ONCE_FORK_GEN_INCR;
+ 
+-      /* Adjust the PID field for the new process.  */
+-      THREAD_SETMEM (self, pid, THREAD_GETMEM (self, tid));
+-
+ #if HP_TIMING_AVAIL
+       /* The CPU clock of the thread and process have to be set to zero.  */
+       hp_timing_t now;
+@@ -233,9 +224,6 @@
+     {
+       assert (THREAD_GETMEM (THREAD_SELF, tid) == ppid);
+ 
+-      /* Restore the PID value.  */
+-      THREAD_SETMEM (THREAD_SELF, pid, parentpid);
+-
+       /* Release acquired locks in the multi-threaded case.  */
+       if (multiple_threads)
+ 	{
+--- a/sysdeps/powerpc/nptl/tcb-offsets.sym
++++ b/sysdeps/powerpc/nptl/tcb-offsets.sym
+@@ -13,7 +13,6 @@
+ #if TLS_MULTIPLE_THREADS_IN_TCB
+ MULTIPLE_THREADS_OFFSET		thread_offsetof (header.multiple_threads)
+ #endif
+-PID				thread_offsetof (pid)
+ TID				thread_offsetof (tid)
+ POINTER_GUARD			(offsetof (tcbhead_t, pointer_guard) - TLS_TCB_OFFSET - sizeof (tcbhead_t))
+ TAR_SAVE			(offsetof (tcbhead_t, tar_save) - TLS_TCB_OFFSET - sizeof (tcbhead_t))
+--- a/sysdeps/s390/nptl/tcb-offsets.sym
++++ b/sysdeps/s390/nptl/tcb-offsets.sym
+@@ -3,5 +3,4 @@
+ 
+ MULTIPLE_THREADS_OFFSET		offsetof (tcbhead_t, multiple_threads)
+ STACK_GUARD			offsetof (tcbhead_t, stack_guard)
+-PID				offsetof (struct pthread, pid)
+ TID				offsetof (struct pthread, tid)
+--- a/sysdeps/sh/nptl/tcb-offsets.sym
++++ b/sysdeps/sh/nptl/tcb-offsets.sym
+@@ -4,7 +4,6 @@
+ 
+ RESULT			offsetof (struct pthread, result)
+ TID			offsetof (struct pthread, tid)
+-PID			offsetof (struct pthread, pid)
+ CANCELHANDLING		offsetof (struct pthread, cancelhandling)
+ CLEANUP_JMP_BUF		offsetof (struct pthread, cleanup_jmp_buf)
+ MULTIPLE_THREADS_OFFSET	offsetof (struct pthread, header.multiple_threads)
+--- a/sysdeps/sparc/nptl/tcb-offsets.sym
++++ b/sysdeps/sparc/nptl/tcb-offsets.sym
+@@ -3,5 +3,4 @@
+ 
+ MULTIPLE_THREADS_OFFSET		offsetof (tcbhead_t, multiple_threads)
+ POINTER_GUARD			offsetof (tcbhead_t, pointer_guard)
+-PID				offsetof (struct pthread, pid)
+ TID				offsetof (struct pthread, tid)
+--- a/sysdeps/tile/nptl/tcb-offsets.sym
++++ b/sysdeps/tile/nptl/tcb-offsets.sym
+@@ -9,7 +9,6 @@
+ #define thread_offsetof(mem)	(long)(offsetof(struct pthread, mem) - TLS_TCB_OFFSET - TLS_PRE_TCB_SIZE)
+ 
+ MULTIPLE_THREADS_OFFSET		thread_offsetof (header.multiple_threads)
+-PID_OFFSET			thread_offsetof (pid)
+ TID_OFFSET			thread_offsetof (tid)
+ POINTER_GUARD			(offsetof (tcbhead_t, pointer_guard) - TLS_TCB_OFFSET - sizeof (tcbhead_t))
+ FEEDBACK_DATA_OFFSET		(offsetof (tcbhead_t, feedback_data) - TLS_TCB_OFFSET - sizeof (tcbhead_t))
+--- a/sysdeps/unix/sysv/linux/aarch64/clone.S
++++ b/sysdeps/unix/sysv/linux/aarch64/clone.S
+@@ -72,16 +72,6 @@
+ 	cfi_undefined (x30)
+ 	mov	x29, 0
+ 
+-	tbnz	x11, #CLONE_VM_BIT, 1f
+-
+-	mov	x8, #SYS_ify(getpid)
+-	svc	0x0
+-	mrs	x1, tpidr_el0
+-	sub	x1, x1, #PTHREAD_SIZEOF
+-	str	w0, [x1, #PTHREAD_PID_OFFSET]
+-	str	w0, [x1, #PTHREAD_TID_OFFSET]
+-1:
+-
+ 	/* Pick the function arg and execute.  */
+ 	mov	x0, x12
+ 	blr	x10
+--- a/sysdeps/unix/sysv/linux/aarch64/vfork.S
++++ b/sysdeps/unix/sysv/linux/aarch64/vfork.S
+@@ -27,27 +27,10 @@
+ 
+ ENTRY (__vfork)
+ 
+-	/* Save the TCB-cached PID away in w3, and then negate the TCB
+-           field.  But if it's zero, set it to 0x80000000 instead.  See
+-           raise.c for the logic that relies on this value.  */
+-	mrs	x2, tpidr_el0
+-	sub	x2, x2, #PTHREAD_SIZEOF
+-	ldr	w3, [x2, #PTHREAD_PID_OFFSET]
+-	mov	w1, #0x80000000
+-	negs	w0, w3
+-	csel	w0, w1, w0, eq
+-	str	w0, [x2, #PTHREAD_PID_OFFSET]
+-
+ 	mov	x0, #0x4111	/* CLONE_VM | CLONE_VFORK | SIGCHLD */
+ 	mov	x1, sp
+ 	DO_CALL (clone, 2)
+ 
+-	/* Restore the original value of the TCB cache of the PID, if we're
+-	   the parent.  But in the child (syscall return value equals zero),
+-	   leave things as they are.  */
+-	cbz	x0, 1f
+-	str	w3, [x2, #PTHREAD_PID_OFFSET]
+-1:
+ 	cmn	x0, #4095
+ 	b.cs    .Lsyscall_error
+ 	RET
+--- a/sysdeps/unix/sysv/linux/alpha/clone.S
++++ b/sysdeps/unix/sysv/linux/alpha/clone.S
+@@ -91,13 +91,6 @@
+ 	cfi_def_cfa_register(fp)
+ 	cfi_undefined(ra)
+ 
+-	/* Check and see if we need to reset the PID.  */
+-	ldq	t0, 16(sp)
+-	lda	t1, CLONE_VM
+-	and	t0, t1, t2
+-	beq	t2, 2f
+-1:
+-
+ 	/* Load up the arguments.  */
+ 	ldq	pv, 0(sp)
+ 	ldq	a0, 8(sp)
+@@ -120,15 +113,6 @@
+ 	halt
+ 
+ 	.align	4
+-2:
+-	rduniq
+-	mov	v0, s0
+-	lda	v0, __NR_getxpid
+-	callsys
+-3:
+-	stl	v0, PID_OFFSET(s0)
+-	stl	v0, TID_OFFSET(s0)
+-	br	1b
+ 	cfi_endproc
+ 	.end thread_start
+ 
+--- a/sysdeps/unix/sysv/linux/alpha/vfork.S
++++ b/sysdeps/unix/sysv/linux/alpha/vfork.S
+@@ -25,24 +25,9 @@
+ 	rduniq
+ 	mov	v0, a1
+ 
+-	/* Save the TCB-cached PID away in A2, and then negate the TCB
+-           field.  But if it's zero, set it to 0x80000000 instead.  See
+-           raise.c for the logic that relies on this value.  */
+-	ldl	a2, PID_OFFSET(v0)
+-	ldah	t0, -0x8000
+-	negl	a2, t1
+-	cmovne	a2, t1, t0
+-	stl	t0, PID_OFFSET(v0);
+-
+ 	lda	v0, SYS_ify(vfork)
+ 	call_pal PAL_callsys
+ 
+-	/* Restore the original value of the TCB cache of the PID, if we're
+-	   the parent.  But in the child (syscall return value equals zero),
+-	   leave things as they are.  */
+-	beq	v0, 1f
+-	stl	a2, PID_OFFSET(a1)
+-1:
+ 	/* Normal error check and return.  */
+ 	bne	a3, SYSCALL_ERROR_LABEL
+ 	ret
+--- a/sysdeps/unix/sysv/linux/arm/clone.S
++++ b/sysdeps/unix/sysv/linux/arm/clone.S
+@@ -70,16 +70,6 @@
+ 1:
+ 	.fnstart
+ 	.cantunwind
+-	tst	ip, #CLONE_VM
+-	bne	2f
+-	GET_TLS (lr)
+-	mov	r1, r0
+-	ldr	r7, =SYS_ify(getpid)
+-	swi	0x0
+-	NEGOFF_ADJ_BASE (r1, TID_OFFSET)
+-	str	r0, NEGOFF_OFF1 (r1, TID_OFFSET)
+-	str	r0, NEGOFF_OFF2 (r1, PID_OFFSET, TID_OFFSET)
+-2:
+ 	@ pick the function arg and call address off the stack and execute
+ 	ldr	r0, [sp, #4]
+ 	ldr 	ip, [sp], #8
+--- a/sysdeps/unix/sysv/linux/arm/vfork.S
++++ b/sysdeps/unix/sysv/linux/arm/vfork.S
+@@ -28,16 +28,6 @@
+    and the process ID of the new process to the old process.  */
+ 
+ ENTRY (__vfork)
+-	/* Save the PID value.  */
+-	GET_TLS (r2)
+-	NEGOFF_ADJ_BASE2 (r2, r0, PID_OFFSET) /* Save the TLS addr in r2.  */
+-	ldr	r3, NEGOFF_OFF1 (r2, PID_OFFSET) /* Load the saved PID.  */
+-	rsbs	r0, r3, #0		/* Negate it, and test for zero.  */
+-	/* Use 0x80000000 if it was 0.  See raise.c for how this is used.  */
+-	it	eq
+-	moveq	r0, #0x80000000
+-	str	r0, NEGOFF_OFF1 (r2, PID_OFFSET) /* Store the temp PID.  */
+-
+ 	/* The DO_CALL macro saves r7 on the stack, to enable generation
+ 	   of ARM unwind info.  Since the stack is initially shared between
+ 	   parent and child of vfork, that saved value could be corrupted.
+@@ -57,11 +47,6 @@
+ 	mov	r7, ip
+ 	cfi_restore (r7)
+ 
+-	/* Restore the old PID value in the parent.  */
+-	cmp	r0, #0		/* If we are the parent... */
+-	it	ne
+-	strne	r3, NEGOFF_OFF1 (r2, PID_OFFSET) /* restore the saved PID.  */
+-
+ 	cmn	a1, #4096
+ 	it	cc
+ 	RETINSTR(cc, lr)
+--- a/sysdeps/unix/sysv/linux/createthread.c
++++ b/sysdeps/unix/sysv/linux/createthread.c
+@@ -128,10 +128,10 @@
+ 	      /* The operation failed.  We have to kill the thread.
+ 		 We let the normal cancellation mechanism do the work.  */
+ 
++	      pid_t pid = __getpid ();
+ 	      INTERNAL_SYSCALL_DECL (err2);
+-	      (void) INTERNAL_SYSCALL (tgkill, err2, 3,
+-				       THREAD_GETMEM (THREAD_SELF, pid),
+-				       pd->tid, SIGCANCEL);
++	      (void) INTERNAL_SYSCALL (tgkill, err2, 3, pid, pd->tid,
++				       SIGCANCEL);
+ 
+ 	      return INTERNAL_SYSCALL_ERRNO (res, err);
+ 	    }
+--- a/sysdeps/unix/sysv/linux/getpid.c
++++ /dev/null
+@@ -1,64 +0,0 @@
+-/* Copyright (C) 2003-2016 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <unistd.h>
+-#include <tls.h>
+-#include <sysdep.h>
+-
+-
+-#if IS_IN (libc)
+-static inline __attribute__((always_inline)) pid_t really_getpid (pid_t oldval);
+-
+-static inline __attribute__((always_inline)) pid_t
+-really_getpid (pid_t oldval)
+-{
+-  if (__glibc_likely (oldval == 0))
+-    {
+-      pid_t selftid = THREAD_GETMEM (THREAD_SELF, tid);
+-      if (__glibc_likely (selftid != 0))
+-	return selftid;
+-    }
+-
+-  INTERNAL_SYSCALL_DECL (err);
+-  pid_t result = INTERNAL_SYSCALL (getpid, err, 0);
+-
+-  /* We do not set the PID field in the TID here since we might be
+-     called from a signal handler while the thread executes fork.  */
+-  if (oldval == 0)
+-    THREAD_SETMEM (THREAD_SELF, tid, result);
+-  return result;
+-}
+-#endif
+-
+-pid_t
+-__getpid (void)
+-{
+-#if !IS_IN (libc)
+-  INTERNAL_SYSCALL_DECL (err);
+-  pid_t result = INTERNAL_SYSCALL (getpid, err, 0);
+-#else
+-  pid_t result = THREAD_GETMEM (THREAD_SELF, pid);
+-  if (__glibc_unlikely (result <= 0))
+-    result = really_getpid (result);
+-#endif
+-  return result;
+-}
+-
+-libc_hidden_def (__getpid)
+-weak_alias (__getpid, getpid)
+-libc_hidden_def (getpid)
+--- a/sysdeps/unix/sysv/linux/hppa/clone.S
++++ b/sysdeps/unix/sysv/linux/hppa/clone.S
+@@ -132,18 +132,6 @@
+ 	ldwm	-64(%sp), %r4
+ 
+ .LthreadStart:
+-# define CLONE_VM_BIT		23	/* 0x00000100  */
+-	/* Load original clone flags.
+-	   If CLONE_VM was passed, don't modify PID/TID.
+-	   Otherwise store the result of getpid to PID/TID.  */
+-	ldw	-56(%sp), %r26
+-	bb,<,n	%r26, CLONE_VM_BIT, 1f
+-	ble     0x100(%sr2, %r0)
+-	ldi	__NR_getpid, %r20
+-	mfctl	%cr27, %r26
+-	stw	%ret0, PID_THREAD_OFFSET(%r26)
+-	stw	%ret0, TID_THREAD_OFFSET(%r26)
+-1:
+ 	/* Load up the arguments.  */
+ 	ldw	-60(%sp), %arg0
+ 	ldw     -64(%sp), %r22
+--- a/sysdeps/unix/sysv/linux/hppa/pt-vfork.S
++++ b/sysdeps/unix/sysv/linux/hppa/pt-vfork.S
+@@ -25,26 +25,6 @@
+    replaced by a call to `execve'.  Return -1 for errors, 0 to the new process,
+    and the process ID of the new process to the old process.  */
+ 
+-/* Load the thread register.
+-   Load the saved PID value.
+-   Negate the value.
+-   Store the temporary PID. */
+-#define SAVE_PID							\
+-	mfctl %cr27, %r26				ASM_LINE_SEP	\
+-	ldw PID_THREAD_OFFSET(%r26),%r1			ASM_LINE_SEP    \
+-	sub %r0,%r1,%r1					ASM_LINE_SEP    \
+-	stw %r1,PID_THREAD_OFFSET(%r26)			ASM_LINE_SEP
+-/* If we are the parent...
+-   Get the thread pointer.
+-   Load the saved PID.
+-   Negate the value (got back original)
+-   Restore the PID. */
+-#define RESTORE_PID							\
+-	cmpb,=,n %r0,%ret0,.Lthread_start		ASM_LINE_SEP	\
+-	mfctl %cr27, %r26				ASM_LINE_SEP	\
+-	ldw PID_THREAD_OFFSET(%r26),%r1			ASM_LINE_SEP	\
+-	sub %r0,%r1,%r1					ASM_LINE_SEP	\
+-	stw %r1,PID_THREAD_OFFSET(%r26)			ASM_LINE_SEP	\
+ .Lthread_start:						ASM_LINE_SEP
+ 
+ 	/* r26, r25, r24, r23 are free since vfork has no arguments */
+@@ -58,16 +38,10 @@
+ 	copy	%r19, %r25	/* parent */
+ #endif
+ 
+-	/* Save the process PID */
+-	SAVE_PID
+-
+ 	/* Syscall saves and restores all register states */
+ 	ble	0x100(%sr2,%r0)
+ 	ldi	__NR_vfork,%r20
+ 
+-	/* Conditionally restore the PID */
+-	RESTORE_PID
+-
+ 	/* Check for error */
+ 	ldi	-4096,%r1
+ 	comclr,>>= %r1,%ret0,%r0        /* Note: unsigned compare. */
+--- a/sysdeps/unix/sysv/linux/i386/clone.S
++++ b/sysdeps/unix/sysv/linux/i386/clone.S
+@@ -107,9 +107,6 @@
+ 	cfi_undefined (eip);
+ 	/* Note: %esi is zero.  */
+ 	movl	%esi,%ebp	/* terminate the stack frame */
+-	testl	$CLONE_VM, %edi
+-	je	L(newpid)
+-L(haspid):
+ 	call	*%ebx
+ #ifdef PIC
+ 	call	L(here)
+@@ -121,18 +118,6 @@
+ 	movl	$SYS_ify(exit), %eax
+ 	ENTER_KERNEL
+ 
+-	.subsection 2
+-L(newpid):
+-	movl	$SYS_ify(getpid), %eax
+-	ENTER_KERNEL
+-L(nomoregetpid):
+-	movl	%eax, %gs:PID
+-	movl	%eax, %gs:TID
+-	jmp	L(haspid)
+-	.previous
+-	cfi_endproc;
+-
+-	cfi_startproc
+ PSEUDO_END (__clone)
+ 
+ libc_hidden_def (__clone)
+--- a/sysdeps/unix/sysv/linux/i386/vfork.S
++++ b/sysdeps/unix/sysv/linux/i386/vfork.S
+@@ -34,17 +34,6 @@
+ 	cfi_adjust_cfa_offset (-4)
+ 	cfi_register (%eip, %ecx)
+ 
+-	/* Save the TCB-cached PID away in %edx, and then negate the TCB
+-           field.  But if it's zero, set it to 0x80000000 instead.  See
+-           raise.c for the logic that relies on this value.  */
+-	movl	%gs:PID, %edx
+-	movl	%edx, %eax
+-	negl	%eax
+-	jne	1f
+-	movl	$0x80000000, %eax
+-1:	movl	%eax, %gs:PID
+-
+-
+ 	/* Stuff the syscall number in EAX and enter into the kernel.  */
+ 	movl	$SYS_ify (vfork), %eax
+ 	int	$0x80
+@@ -55,14 +44,6 @@
+ 	pushl	%ecx
+ 	cfi_adjust_cfa_offset (4)
+ 
+-	/* Restore the original value of the TCB cache of the PID, if we're
+-	   the parent.  But in the child (syscall return value equals zero),
+-	   leave things as they are.  */
+-	testl	%eax, %eax
+-	je	1f
+-	movl	%edx, %gs:PID
+-1:
+-
+ 	cmpl	$-4095, %eax
+ 	/* Branch forward if it failed.  */
+ 	jae	SYSCALL_ERROR_LABEL
+--- a/sysdeps/unix/sysv/linux/ia64/clone2.S
++++ b/sysdeps/unix/sysv/linux/ia64/clone2.S
+@@ -67,19 +67,7 @@
+ (CHILD)	mov loc0=gp
+ (PARENT) ret
+ 	;;
+-	tbit.nz p6,p0=in3,8	/* CLONE_VM */
+-(p6)	br.cond.dptk 1f
+-	;;
+-	mov r15=SYS_ify (getpid)
+-(p7)	break __BREAK_SYSCALL
+-	;;
+-	add r9=PID,r13
+-	add r10=TID,r13
+-	;;
+-	st4 [r9]=r8
+-	st4 [r10]=r8
+-	;;
+-1:	ld8 out1=[in0],8	/* Retrieve code pointer.	*/
++	ld8 out1=[in0],8	/* Retrieve code pointer.	*/
+ 	mov out0=in4		/* Pass proper argument	to fn */
+ 	;;
+ 	ld8 gp=[in0]		/* Load function gp.		*/
+--- a/sysdeps/unix/sysv/linux/ia64/vfork.S
++++ b/sysdeps/unix/sysv/linux/ia64/vfork.S
+@@ -33,32 +33,12 @@
+ 	.prologue	// work around a GAS bug which triggers if
+ 	.body		// first .prologue is not at the beginning of proc.
+ 	alloc r2=ar.pfs,0,0,2,0
+-	adds r14=PID,r13
+-	;;
+-	ld4 r16=[r14]
+-	;;
+-	sub r15=0,r16
+-	cmp.eq p6,p0=0,r16
+-	;;
+-(p6)	movl r15=0x80000000
+ 	mov out0=CLONE_VM+CLONE_VFORK+SIGCHLD
+ 	mov out1=0		/* Standard sp value.			*/
+ 	;;
+-	st4 [r14]=r15
+ 	DO_CALL (SYS_ify (clone))
+ 	cmp.eq p6,p0=0,r8
+-	adds r14=PID,r13
+ (p6)	br.cond.dptk 1f
+-	;;
+-	ld4 r15=[r14]
+-	;;
+-	extr.u r16=r15,0,31
+-	;;
+-	cmp.eq p0,p6=0,r16
+-	;;
+-(p6)	sub r16=0,r15
+-	;;
+-	st4 [r14]=r16
+ 1:
+ 	cmp.eq p6,p0=-1,r10
+ (p6)	br.cond.spnt.few __syscall_error
+--- a/sysdeps/unix/sysv/linux/m68k/clone.S
++++ b/sysdeps/unix/sysv/linux/m68k/clone.S
+@@ -98,19 +98,6 @@
+ 	cfi_startproc
+ 	cfi_undefined (pc)	/* Mark end of stack */
+ 	subl	%fp, %fp	/* terminate the stack frame */
+-	/* Check and see if we need to reset the PID.  */
+-	andl	#CLONE_VM, %d1
+-	jne	1f
+-	movel	#SYS_ify (getpid), %d0
+-	trap	#0
+-	movel	%a0, -(%sp)
+-	movel	%d0, -(%sp)
+-	bsrl	__m68k_read_tp@PLTPC
+-	movel	(%sp)+, %d0
+-	movel	%d0, PID_OFFSET(%a0)
+-	movel	%d0, TID_OFFSET(%a0)
+-	movel	(%sp)+, %a0
+-1:
+ 	jsr	(%a0)
+ 	movel	%d0, %d1
+ 	movel	#SYS_ify (exit), %d0
+--- a/sysdeps/unix/sysv/linux/m68k/vfork.S
++++ b/sysdeps/unix/sysv/linux/m68k/vfork.S
+@@ -28,18 +28,6 @@
+ 
+ ENTRY (__vfork)
+ 
+-	/* Save the TCB-cached PID away in %d1, and then negate the TCB
+-	   field.  But if it's zero, set it to 0x80000000 instead.  See
+-	   raise.c for the logic that relies on this value.  */
+-	jbsr	__m68k_read_tp@PLTPC
+-	movel	%a0, %a1
+-	movel	PID_OFFSET(%a1), %d0
+-	movel	%d0, %d1
+-	negl	%d0
+-	jne	1f
+-	movel	#0x80000000, %d0
+-1:	movel	%d0, PID_OFFSET(%a1)
+-
+ 	/* Pop the return PC value into A0.  */
+ 	movel	%sp@+, %a0
+ 	cfi_adjust_cfa_offset (-4)
+@@ -49,14 +37,6 @@
+ 	movel	#SYS_ify (vfork), %d0
+ 	trap	#0
+ 
+-	/* Restore the original value of the TCB cache of the PID, if we're
+-	   the parent.  But in the child (syscall return value equals zero),
+-	   leave things as they are.  */
+-	tstl	%d0
+-	jeq	1f
+-	movel	%d1, PID_OFFSET(%a1)
+-1:
+-
+ 	tstl	%d0
+ 	jmi	.Lerror		/* Branch forward if it failed.  */
+ 
+--- a/sysdeps/unix/sysv/linux/mips/clone.S
++++ b/sysdeps/unix/sysv/linux/mips/clone.S
+@@ -130,11 +130,6 @@
+ 	SAVE_GP (GPOFF)
+ 	/* The stackframe has been created on entry of clone().  */
+ 
+-	/* Check and see if we need to reset the PID.  */
+-	and	a1,a0,CLONE_VM
+-	beqz	a1,L(restore_pid)
+-L(donepid):
+-
+ 	/* Restore the arg for user's function.  */
+ 	PTR_L		t9,0(sp)	/* Function pointer.  */
+ 	PTR_L		a0,PTRSIZE(sp)	/* Argument pointer.  */
+@@ -151,14 +146,6 @@
+ 	jal		_exit
+ #endif
+ 
+-L(restore_pid):
+-	li		v0,__NR_getpid
+-	syscall
+-	READ_THREAD_POINTER(v1)
+-	INT_S		v0,PID_OFFSET(v1)
+-	INT_S		v0,TID_OFFSET(v1)
+-	b		L(donepid)
+-
+ 	END(__thread_start)
+ 
+ libc_hidden_def (__clone)
+--- a/sysdeps/unix/sysv/linux/mips/vfork.S
++++ b/sysdeps/unix/sysv/linux/mips/vfork.S
+@@ -60,14 +60,6 @@
+ 	PTR_ADDU	sp, FRAMESZ
+ 	cfi_adjust_cfa_offset (-FRAMESZ)
+ 
+-	/* Save the PID value.  */
+-	READ_THREAD_POINTER(v1)	   /* Get the thread pointer.  */
+-	lw	a2, PID_OFFSET(v1) /* Load the saved PID.  */
+-	subu	a2, $0, a2	   /* Negate it.  */
+-	bnez	a2, 1f		   /* If it was zero... */
+-	lui	a2, 0x8000	   /* use 0x80000000 instead.  */
+-1:	sw	a2, PID_OFFSET(v1) /* Store the temporary PID.  */
+-
+ 	li		a0, 0x4112	/* CLONE_VM | CLONE_VFORK | SIGCHLD */
+ 	move		a1, sp
+ 
+@@ -75,17 +67,6 @@
+ 	li		v0,__NR_clone
+ 	syscall
+ 
+-	/* Restore the old PID value in the parent.  */
+-	beqz	v0, 1f		/* If we are the parent... */
+-	READ_THREAD_POINTER(v1)	/* Get the thread pointer.  */
+-	lw	a2, PID_OFFSET(v1) /* Load the saved PID.  */
+-	subu	a2, $0, a2	   /* Re-negate it.  */
+-	lui	a0, 0x8000	   /* Load 0x80000000... */
+-	bne	a2, a0, 2f	   /* ... compare against it... */
+-	li	a2, 0		   /* ... use 0 instead.  */
+-2:	sw	a2, PID_OFFSET(v1) /* Restore the PID.  */
+-1:
+-
+ 	cfi_remember_state
+ 	bnez		a3,L(error)
+ 
+--- a/sysdeps/unix/sysv/linux/nios2/clone.S
++++ b/sysdeps/unix/sysv/linux/nios2/clone.S
+@@ -68,14 +68,6 @@
+ 	cfi_startproc
+ 	cfi_undefined (ra)
+ 
+-	/* We expect the argument registers to be preserved across system
+-	   calls and across task cloning, so flags should be in r4 here.  */
+-	andi	r2, r4, CLONE_VM
+-	bne	r2, zero, 2f
+-        DO_CALL (getpid, 0)
+-	stw	r2, PID_OFFSET(r23)
+-	stw	r2, TID_OFFSET(r23)
+-2:
+ 	ldw	r5, 4(sp)	/* Function pointer.  */
+ 	ldw	r4, 0(sp)	/* Argument pointer.  */
+ 	addi	sp, sp, 8
+--- a/sysdeps/unix/sysv/linux/nios2/vfork.S
++++ b/sysdeps/unix/sysv/linux/nios2/vfork.S
+@@ -21,20 +21,10 @@
+ 
+ ENTRY(__vfork)
+ 
+-	ldw	r6, PID_OFFSET(r23)
+-	sub	r7, zero, r6
+-	bne	r7, zero, 2f
+-	movhi	r7, %hi(0x80000000)
+-2:
+-	stw	r7, PID_OFFSET(r23)
+-
+ 	movi	r4, 0x4111 /* (CLONE_VM | CLONE_VFORK | SIGCHLD) */
+ 	mov	r5, zero
+ 	DO_CALL (clone, 2)
+ 
+-	beq	r2, zero, 1f
+-	stw	r6, PID_OFFSET(r23)
+-1:
+ 	bne	r7, zero, SYSCALL_ERROR_LABEL
+ 	ret
+ 
+--- a/sysdeps/unix/sysv/linux/powerpc/powerpc32/clone.S
++++ b/sysdeps/unix/sysv/linux/powerpc/powerpc32/clone.S
+@@ -76,15 +76,6 @@
+ 	crandc	cr1*4+eq,cr1*4+eq,cr0*4+so
+ 	bne-	cr1,L(parent)		/* The '-' is to minimise the race.  */
+ 
+-	/* If CLONE_VM is set do not update the pid/tid field.  */
+-	andi.	r0,r28,CLONE_VM
+-	bne+	cr0,L(oldpid)
+-
+-	DO_CALL(SYS_ify(getpid))
+-	stw	r3,TID(r2)
+-	stw	r3,PID(r2)
+-L(oldpid):
+-
+ 	/* Call procedure.  */
+ 	mtctr	r30
+ 	mr	r3,r31
+--- a/sysdeps/unix/sysv/linux/powerpc/powerpc32/vfork.S
++++ b/sysdeps/unix/sysv/linux/powerpc/powerpc32/vfork.S
+@@ -27,34 +27,8 @@
+ 
+ ENTRY (__vfork)
+ 
+-	/* Load the TCB-cached PID value and negates it. If It it is zero
+-	   sets it to 0x800000.  And then sets its value again on TCB field.
+-	   See raise.c for the logic that relies on this value.  */
+-
+-	lwz	r0,PID(r2)
+-	cmpwi	cr0,r0,0
+-	neg	r0,r0
+-	bne-	cr0,1f
+-	lis	r0,0x8000
+-1:	stw	r0,PID(r2)
+-
+ 	DO_CALL (SYS_ify (vfork))
+ 
+-	cmpwi	cr1,r3,0
+-	beqlr-	1
+-
+-	/* Restore the original value of the TCB cache of the PID, if we're
+-	   the parent.  But in the child (syscall return value equals zero),
+-	   leave things as they are.  */
+-	lwz	r0,PID(r2)
+-	/* Cannot use clrlwi. here, because cr0 needs to be preserved
+-	   until PSEUDO_RET.  */
+-	clrlwi	r4,r0,1
+-	cmpwi	cr1,r4,0
+-	beq-	cr1,1f
+-	neg	r4,r0
+-1:	stw	r4,PID(r2)
+-
+ 	PSEUDO_RET
+ 
+ PSEUDO_END (__vfork)
+--- a/sysdeps/unix/sysv/linux/powerpc/powerpc64/clone.S
++++ b/sysdeps/unix/sysv/linux/powerpc/powerpc64/clone.S
+@@ -78,15 +78,6 @@
+ 	crandc	cr1*4+eq,cr1*4+eq,cr0*4+so
+ 	bne-	cr1,L(parent)		/* The '-' is to minimise the race.  */
+ 
+-	/* If CLONE_VM is set do not update the pid/tid field.  */
+-	rldicl.	r0,r29,56,63		/* flags & CLONE_VM.  */
+-	bne+	cr0,L(oldpid)
+-
+-	DO_CALL(SYS_ify(getpid))
+-	stw	r3,TID(r13)
+-	stw	r3,PID(r13)
+-L(oldpid):
+-
+ 	std	r2,FRAME_TOC_SAVE(r1)
+ 	/* Call procedure.  */
+ 	PPC64_LOAD_FUNCPTR r30
+--- a/sysdeps/unix/sysv/linux/powerpc/powerpc64/vfork.S
++++ b/sysdeps/unix/sysv/linux/powerpc/powerpc64/vfork.S
+@@ -28,31 +28,8 @@
+ ENTRY (__vfork)
+ 	CALL_MCOUNT 0
+ 
+-	/* Load the TCB-cached PID value and negates it. If It it is zero
+-	   sets it to 0x800000.  And then sets its value again on TCB field.
+-	   See raise.c for the logic that relies on this value.  */
+-	lwz	r0,PID(r13)
+-	cmpwi	cr0,r0,0
+-	neg	r0,r0
+-	bne-	cr0,1f
+-	lis	r0,0x8000
+-1:	stw	r0,PID(r13)
+-
+ 	DO_CALL (SYS_ify (vfork))
+ 
+-	cmpwi	cr1,r3,0
+-	beqlr-	1
+-
+-	/* Restore the original value of the TCB cache of the PID, if we're
+-	   the parent.  But in the child (syscall return value equals zero),
+-	   leave things as they are.  */
+-	lwz	r0,PID(r13)
+-	clrlwi	r4,r0,1
+-	cmpwi	cr1,r4,0
+-	beq-	cr1,1f
+-	neg	r4,r0
+-1:	stw	r4,PID(r13)
+-
+ 	PSEUDO_RET
+ 
+ PSEUDO_END (__vfork)
+--- a/sysdeps/unix/sysv/linux/pthread-pids.h
++++ b/sysdeps/unix/sysv/linux/pthread-pids.h
+@@ -26,5 +26,5 @@
+ __pthread_initialize_pids (struct pthread *pd)
+ {
+   INTERNAL_SYSCALL_DECL (err);
+-  pd->pid = pd->tid = INTERNAL_SYSCALL (set_tid_address, err, 1, &pd->tid);
++  pd->tid = INTERNAL_SYSCALL (set_tid_address, err, 1, &pd->tid);
+ }
+--- a/sysdeps/unix/sysv/linux/pthread_kill.c
++++ b/sysdeps/unix/sysv/linux/pthread_kill.c
+@@ -21,6 +21,7 @@
+ #include <pthreadP.h>
+ #include <tls.h>
+ #include <sysdep.h>
++#include <unistd.h>
+ 
+ 
+ int
+@@ -49,15 +50,9 @@
+   /* We have a special syscall to do the work.  */
+   INTERNAL_SYSCALL_DECL (err);
+ 
+-  /* One comment: The PID field in the TCB can temporarily be changed
+-     (in fork).  But this must not affect this code here.  Since this
+-     function would have to be called while the thread is executing
+-     fork, it would have to happen in a signal handler.  But this is
+-     no allowed, pthread_kill is not guaranteed to be async-safe.  */
+-  int val;
+-  val = INTERNAL_SYSCALL (tgkill, err, 3, THREAD_GETMEM (THREAD_SELF, pid),
+-			  tid, signo);
++  pid_t pid = __getpid ();
+ 
++  int val = INTERNAL_SYSCALL (tgkill, err, 3, pid, tid, signo);
+   return (INTERNAL_SYSCALL_ERROR_P (val, err)
+ 	  ? INTERNAL_SYSCALL_ERRNO (val, err) : 0);
+ }
+--- a/sysdeps/unix/sysv/linux/pthread_sigqueue.c
++++ b/sysdeps/unix/sysv/linux/pthread_sigqueue.c
+@@ -49,27 +49,22 @@
+   if (signo == SIGCANCEL || signo == SIGTIMER || signo == SIGSETXID)
+     return EINVAL;
+ 
++  pid_t pid = getpid ();
++
+   /* Set up the siginfo_t structure.  */
+   siginfo_t info;
+   memset (&info, '\0', sizeof (siginfo_t));
+   info.si_signo = signo;
+   info.si_code = SI_QUEUE;
+-  info.si_pid = THREAD_GETMEM (THREAD_SELF, pid);
++  info.si_pid = pid;
+   info.si_uid = getuid ();
+   info.si_value = value;
+ 
+   /* We have a special syscall to do the work.  */
+   INTERNAL_SYSCALL_DECL (err);
+ 
+-  /* One comment: The PID field in the TCB can temporarily be changed
+-     (in fork).  But this must not affect this code here.  Since this
+-     function would have to be called while the thread is executing
+-     fork, it would have to happen in a signal handler.  But this is
+-     no allowed, pthread_sigqueue is not guaranteed to be async-safe.  */
+-  int val = INTERNAL_SYSCALL (rt_tgsigqueueinfo, err, 4,
+-			      THREAD_GETMEM (THREAD_SELF, pid),
+-			      tid, signo, &info);
+-
++  int val = INTERNAL_SYSCALL (rt_tgsigqueueinfo, err, 4, pid, tid, signo,
++			       &info);
+   return (INTERNAL_SYSCALL_ERROR_P (val, err)
+ 	  ? INTERNAL_SYSCALL_ERRNO (val, err) : 0);
+ #else
+--- a/sysdeps/unix/sysv/linux/raise.c
++++ b/sysdeps/unix/sysv/linux/raise.c
+@@ -26,13 +26,6 @@
+ int
+ raise (int sig)
+ {
+-  /* raise is an async-safe function so it could be called while the
+-     fork/vfork function temporarily invalidated the PID field.  To avoid
+-     relying on cached value we block all user-defined signal handler
+-     (which might call fork/vfork) and issue the getpid and gettid
+-     syscalls directly.  */
+-
+-
+   /* rt_sigprocmask may fail if:
+ 
+      1. sigsetsize != sizeof (sigset_t) (EINVAL)
+--- a/sysdeps/unix/sysv/linux/s390/s390-32/clone.S
++++ b/sysdeps/unix/sysv/linux/s390/s390-32/clone.S
+@@ -54,13 +54,6 @@
+ PSEUDO_END (__clone)
+ 
+ thread_start:
+-	tml	%r3,256		/* CLONE_VM == 0x00000100 */
+-	jne	1f
+-	svc	SYS_ify(getpid)
+-	ear	%r3,%a0
+-	st	%r2,PID(%r3)
+-	st	%r2,TID(%r3)
+-1:
+ 	/* fn is in gpr 1, arg in gpr 0 */
+ 	lr      %r2,%r0         /* set first parameter to void *arg */
+ 	ahi     %r15,-96        /* make room on the stack for the save area */
+--- a/sysdeps/unix/sysv/linux/s390/s390-32/vfork.S
++++ b/sysdeps/unix/sysv/linux/s390/s390-32/vfork.S
+@@ -28,21 +28,9 @@
+    and the process ID of the new process to the old process.  */
+ 
+ ENTRY (__libc_vfork)
+-	ear	%r4,%a0
+-	lhi	%r1,1
+-	icm	%r3,15,PID(%r4)
+-	sll	%r1,31
+-	je	1f
+-	lcr	%r1,%r3
+-1:	st	%r1,PID(%r4)
+-
+ 	/* Do vfork system call.  */
+ 	svc	SYS_ify (vfork)
+ 
+-	ltr	%r2,%r2
+-	je	1f
+-	st	%r3,PID(%r4)
+-1:
+ 	/* Check for error.  */
+ 	lhi	%r4,-4095
+ 	clr	%r2,%r4
+--- a/sysdeps/unix/sysv/linux/s390/s390-64/clone.S
++++ b/sysdeps/unix/sysv/linux/s390/s390-64/clone.S
+@@ -55,15 +55,6 @@
+ PSEUDO_END (__clone)
+ 
+ thread_start:
+-	tmll	%r3,256		/* CLONE_VM == 0x00000100 */
+-	jne	1f
+-	svc	SYS_ify(getpid)
+-	ear	%r3,%a0
+-	sllg	%r3,%r3,32
+-	ear	%r3,%a1
+-	st	%r2,PID(%r3)
+-	st	%r2,TID(%r3)
+-1:
+ 	/* fn is in gpr 1, arg in gpr 0 */
+ 	lgr	%r2,%r0		/* set first parameter to void *arg */
+ 	aghi	%r15,-160	/* make room on the stack for the save area */
+--- a/sysdeps/unix/sysv/linux/s390/s390-64/vfork.S
++++ b/sysdeps/unix/sysv/linux/s390/s390-64/vfork.S
+@@ -28,22 +28,9 @@
+    and the process ID of the new process to the old process.  */
+ 
+ ENTRY (__libc_vfork)
+-	ear	%r4,%a0
+-	sllg	%r4,%r4,32
+-	ear	%r4,%a1
+-	icm	%r3,15,PID(%r4)
+-	llilh	%r1,32768
+-	je	1f
+-	lcr	%r1,%r3
+-1:	st	%r1,PID(%r4)
+-
+ 	/* Do vfork system call.  */
+ 	svc	SYS_ify (vfork)
+ 
+-	ltgr	%r2,%r2
+-	je	1f
+-	st	%r3,PID(%r4)
+-1:
+ 	/* Check for error.  */
+ 	lghi	%r4,-4095
+ 	clgr	%r2,%r4
+--- a/sysdeps/unix/sysv/linux/sh/clone.S
++++ b/sysdeps/unix/sysv/linux/sh/clone.S
+@@ -66,23 +66,7 @@
+ 2:
+ 	/* terminate the stack frame */
+ 	mov	#0, r14
+-	mov	r4, r0
+-	shlr8	r0
+-	tst	#1, r0			// CLONE_VM = (1 << 8)
+-	bf/s	4f
+-	 mov	r4, r0
+-	/* new pid */
+-	mov	#+SYS_ify(getpid), r3
+-	trapa	#0x15
+-3:
+-	stc	gbr, r1
+-	mov.w	.Lpidoff, r2
+-	add	r1, r2
+-	mov.l	r0, @r2
+-	mov.w	.Ltidoff, r2
+-	add	r1, r2
+-	mov.l	r0, @r2
+-4:
++
+ 	/* thread starts */
+ 	mov.l	@r15, r1
+ 	jsr	@r1
+@@ -113,10 +97,6 @@
+ 	.long	_GLOBAL_OFFSET_TABLE_
+ .L3:
+ 	.long	PLTJMP(C_SYMBOL_NAME(_exit))
+-.Lpidoff:
+-	.word	PID - TLS_PRE_TCB_SIZE
+-.Ltidoff:
+-	.word	TID - TLS_PRE_TCB_SIZE
+ PSEUDO_END (__clone)
+ 
+ libc_hidden_def (__clone)
+--- a/sysdeps/unix/sysv/linux/sh/vfork.S
++++ b/sysdeps/unix/sysv/linux/sh/vfork.S
+@@ -26,30 +26,11 @@
+    and the process ID of the new process to the old process.  */
+ 
+ ENTRY (__libc_vfork)
+-	/* Save the PID value.  */
+-	stc	gbr, r2
+-	mov.w	.L2, r0
+-	mov.l	@(r0,r2), r4
+-	neg	r4, r1
+-	tst	r1, r1
+-	bf	1f
+-	mov	#1, r1
+-	rotr	r1
+-1:
+-	mov.l	r1, @(r0,r2)
+ 
+ 	mov.w	.L1, r3
+ 	trapa	#0x10
+ 	mov     r0, r1
+ 
+-	/* Restore the old PID value in the parent.  */
+-	tst	r0, r0
+-	bt.s	2f
+-	 stc	gbr, r2
+-	mov.w	.L2, r0
+-	mov.l	r4, @(r0,r2)
+-	mov	r1, r0
+-2:
+ 	mov	#-12, r2
+ 	shad	r2, r1
+ 	not	r1, r1			// r1=0 means r0 = -1 to -4095
+@@ -61,8 +42,6 @@
+ 	 nop
+ .L1:
+ 	.word	__NR_vfork
+-.L2:
+-	.word	PID - TLS_PRE_TCB_SIZE
+ 	.align	2
+ PSEUDO_END (__libc_vfork)
+ 
+--- a/sysdeps/unix/sysv/linux/sparc/sparc32/clone.S
++++ b/sysdeps/unix/sysv/linux/sparc/sparc32/clone.S
+@@ -79,13 +79,6 @@
+ 
+ 	.type	__thread_start,@function
+ __thread_start:
+-	andcc	%g4, CLONE_VM, %g0
+-	bne	1f
+-	set	__NR_getpid,%g1
+-	ta	0x10
+-	st	%o0,[%g7 + PID]
+-	st	%o0,[%g7 + TID]
+-1:
+ 	mov	%g0, %fp	/* terminate backtrace */
+ 	call	%g2
+ 	 mov	%g3,%o0
+--- a/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S
++++ b/sysdeps/unix/sysv/linux/sparc/sparc32/vfork.S
+@@ -22,24 +22,14 @@
+ 	.text
+ 	.globl		__syscall_error
+ ENTRY(__libc_vfork)
+-	ld	[%g7 + PID], %o5
+-	cmp	%o5, 0
+-	bne	1f
+-	 sub	%g0, %o5, %o4
+-	sethi	%hi(0x80000000), %o4
+-1:	st	%o4, [%g7 + PID]
+-
+ 	LOADSYSCALL(vfork)
+ 	ta	0x10
+ 	bcc	2f
+ 	 mov	%o7, %g1
+-	st	%o5, [%g7 + PID]
+ 	call	__syscall_error
+ 	 mov	%g1, %o7
+ 2:	sub	%o1, 1, %o1
+ 	andcc	%o0, %o1, %o0
+-	bne,a	1f
+-	 st	%o5, [%g7 + PID]
+ 1:	retl
+ 	 nop
+ END(__libc_vfork)
+--- a/sysdeps/unix/sysv/linux/sparc/sparc64/clone.S
++++ b/sysdeps/unix/sysv/linux/sparc/sparc64/clone.S
+@@ -76,13 +76,6 @@
+ 
+ 	.type __thread_start,@function
+ __thread_start:
+-	andcc	%g4, CLONE_VM, %g0
+-	bne,pt	%icc, 1f
+-	set	__NR_getpid,%g1
+-	ta	0x6d
+-	st	%o0,[%g7 + PID]
+-	st	%o0,[%g7 + TID]
+-1:
+ 	mov	%g0, %fp	/* terminate backtrace */
+ 	call	%g2
+ 	 mov	%g3,%o0
+--- a/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
++++ b/sysdeps/unix/sysv/linux/sparc/sparc64/vfork.S
+@@ -22,24 +22,14 @@
+ 	.text
+ 	.globl	__syscall_error
+ ENTRY(__libc_vfork)
+-	ld	[%g7 + PID], %o5
+-	sethi	%hi(0x80000000), %o3
+-	cmp	%o5, 0
+-	sub	%g0, %o5, %o4
+-	move	%icc, %o3, %o4
+-	st	%o4, [%g7 + PID]
+-
+ 	LOADSYSCALL(vfork)
+ 	ta	0x6d
+ 	bcc,pt	%xcc, 2f
+ 	 mov	%o7, %g1
+-	st	%o5, [%g7 + PID]
+ 	call	__syscall_error
+ 	 mov	%g1, %o7
+ 2:	sub	%o1, 1, %o1
+ 	andcc	%o0, %o1, %o0
+-	bne,a,pt %icc, 1f
+-	 st	%o5, [%g7 + PID]
+ 1:	retl
+ 	 nop
+ END(__libc_vfork)
+--- a/sysdeps/unix/sysv/linux/syscalls.list
++++ b/sysdeps/unix/sysv/linux/syscalls.list
+@@ -18,6 +18,7 @@
+ fdatasync	-	fdatasync	Ci:i	fdatasync
+ flock		-	flock		i:ii	__flock		flock
+ get_kernel_syms	EXTRA	get_kernel_syms	i:p	__compat_get_kernel_syms	get_kernel_syms@GLIBC_2.0:GLIBC_2.23
++getpid          -       getpid          Ei:     __getpid        getpid
+ getegid		-	getegid		Ei:	__getegid	getegid
+ geteuid		-	geteuid		Ei:	__geteuid	geteuid
+ getpgid		-	getpgid		i:i	__getpgid	getpgid
+--- a/sysdeps/unix/sysv/linux/tile/clone.S
++++ b/sysdeps/unix/sysv/linux/tile/clone.S
+@@ -163,22 +163,6 @@
+ .Lthread_start:
+ 	cfi_def_cfa_offset (FRAME_SIZE)
+ 	cfi_undefined (lr)
+-	/* Check and see if we need to reset the PID, which we do if
+-	   CLONE_VM isn't set, i.e. it's a fork-like clone with a new
+-	   address space.  In that case we update the cached values
+-	   from the true system pid (retrieved via __NR_getpid syscall).  */
+-	moveli r0, CLONE_VM
+-	and r0, r30, r0
+-	BNEZ r0, .Lno_reset_pid   /* CLONE_VM is set */
+-	moveli TREG_SYSCALL_NR_NAME, __NR_getpid
+-	swint1
+-	ADDLI_PTR r2, tp, PID_OFFSET
+-	{
+-	 ST4 r2, r0
+-	 ADDLI_PTR r2, tp, TID_OFFSET
+-	}
+-	ST4 r2, r0
+-.Lno_reset_pid:
+ 	{
+ 	 /* Invoke user function with specified argument. */
+ 	 move r0, r31
+--- a/sysdeps/unix/sysv/linux/tile/vfork.S
++++ b/sysdeps/unix/sysv/linux/tile/vfork.S
+@@ -30,18 +30,6 @@
+ 	.text
+ ENTRY (__vfork)
+ 	{
+-	 addli r11, tp, PID_OFFSET	/* Point at PID. */
+-	 movei r13, 1
+-	}
+-	{
+-	 LD4U r12, r11			/* Load the saved PID.  */
+-	 shli r13, r13, 31		/* Build 0x80000000. */
+-	}
+-	sub r12, zero, r12		/* Negate it.  */
+-	CMOVEQZ r12, r12, r13		/* Replace zero pids.  */
+-	ST4 r11, r12			/* Store the temporary PID.  */
+-
+-	{
+ 	 moveli r0, CLONE_VFORK | CLONE_VM | SIGCHLD
+ 	 move r1, zero
+ 	}
+@@ -52,22 +40,6 @@
+ 	moveli TREG_SYSCALL_NR_NAME, __NR_clone
+ 	swint1
+ 
+-	BEQZ r0, 1f			/* If we are the parent... */
+-	{
+-	 addli r11, tp, PID_OFFSET	/* Point at PID. */
+-	 movei r13, 1
+-	}
+-	{
+-	 LD4U r12, r11			/* Load the saved PID.  */
+-	 shli r13, r13, 31		/* Build 0x80000000. */
+-	}
+-	{
+-	 CMPEQ r13, r12, r12		/* Test for that value. */
+-	 sub r12, zero, r12		/* Re-negate it.  */
+-	}
+-	CMOVNEZ r12, r13, zero		/* Replace zero pids.  */
+-	ST4 r11, r12			/* Restore the PID.  */
+-1:
+ 	BNEZ r1, 0f
+ 	jrp lr
+ PSEUDO_END (__vfork)
+--- a/sysdeps/unix/sysv/linux/tst-clone2.c
++++ b/sysdeps/unix/sysv/linux/tst-clone2.c
+@@ -28,8 +28,14 @@
+ #include <stdlib.h>
+ #include <sys/types.h>
+ #include <sys/wait.h>
++#include <sys/syscall.h>
+ 
+-#include <tls.h> /* for THREAD_* macros.  */
++#include <stackinfo.h>  /* For _STACK_GROWS_{UP,DOWN}.  */
++
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include <test-skeleton.c>
+ 
+ static int sig;
+ static int pipefd[2];
+@@ -39,20 +45,32 @@
+ {
+   close (pipefd[0]);
+ 
+-  pid_t pid = THREAD_GETMEM (THREAD_SELF, pid);
+-  pid_t tid = THREAD_GETMEM (THREAD_SELF, tid);
++  pid_t ppid = getppid ();
++  pid_t pid = getpid ();
++  pid_t tid = syscall (__NR_gettid);
+ 
+-  while (write (pipefd[1], &pid, sizeof pid) < 0)
+-    continue;
+-  while (write (pipefd[1], &tid, sizeof tid) < 0)
+-    continue;
++  if (write (pipefd[1], &ppid, sizeof ppid) != sizeof (ppid))
++    {
++      printf ("write ppid failed\n");
++      exit (1);
++    }
++  if (write (pipefd[1], &pid, sizeof pid) != sizeof (pid))
++    {
++      printf ("write pid failed\n");
++      exit (1);
++    }
++  if (write (pipefd[1], &tid, sizeof tid) != sizeof (tid))
++    {
++      printf ("write tid failed\n");
++      exit (1);
++    }
+ 
+   return 0;
+ }
+ 
+ 
+ static int
+-clone_test (int clone_flags)
++do_test (void)
+ {
+   sig = SIGRTMIN;
+   sigset_t ss;
+@@ -61,17 +79,16 @@
+   if (sigprocmask (SIG_BLOCK, &ss, NULL) != 0)
+     {
+       printf ("sigprocmask failed: %m\n");
+-      return 1;
++      exit (1);
+     }
+ 
+   if (pipe2 (pipefd, O_CLOEXEC))
+     {
+-      printf ("sigprocmask failed: %m\n");
+-      return 1;
++      printf ("pipe failed: %m\n");
++      exit (1);
+     }
+ 
+-  pid_t ppid = getpid ();
+-
++  int clone_flags = 0;
+ #ifdef __ia64__
+   extern int __clone2 (int (*__fn) (void *__arg), void *__child_stack_base,
+ 		       size_t __child_stack_size, int __flags,
+@@ -88,53 +105,48 @@
+ #error "Define either _STACK_GROWS_DOWN or _STACK_GROWS_UP"
+ #endif
+ #endif
++
+   close (pipefd[1]);
+ 
+-  if (p == -1)
++  if (p == -1) {
++    printf ("clone failed: %m");
++    exit (1);
++  }
++
++  pid_t ppid, pid, tid;
++  if (read (pipefd[0], &ppid, sizeof pid) != sizeof pid)
+     {
+-      printf ("clone failed: %m\n");
+-      return 1;
++      printf ("read ppid failed: %m\n");
++      kill (p, SIGKILL);
++      exit (1);
+     }
+-
+-  pid_t pid, tid;
+   if (read (pipefd[0], &pid, sizeof pid) != sizeof pid)
+     {
+       printf ("read pid failed: %m\n");
+       kill (p, SIGKILL);
+-      return 1;
++      exit (1);
+     }
+   if (read (pipefd[0], &tid, sizeof tid) != sizeof tid)
+     {
+       printf ("read pid failed: %m\n");
+       kill (p, SIGKILL);
+-      return 1;
++      exit (1);
+     }
+ 
+   close (pipefd[0]);
+ 
+   int ret = 0;
+ 
+-  /* For CLONE_VM glibc clone implementation does not change the pthread
+-     pid/tid field.  */
+-  if ((clone_flags & CLONE_VM) == CLONE_VM)
+-    {
+-      if ((ppid != pid) || (ppid != tid))
+-	{
+-	  printf ("parent pid (%i) != received pid/tid (%i/%i)\n",
+-		  (int)ppid, (int)pid, (int)tid);
+-	  ret = 1;
+-	}
+-    }
+-  /* For any other flag clone updates the new pthread pid and tid with
+-     the clone return value.  */
+-  else
+-    {
+-      if ((p != pid) || (p != tid))
+-	{
+-	  printf ("child pid (%i) != received pid/tid (%i/%i)\n",
+-		  (int)p, (int)pid, (int)tid);
+-	  ret = 1;
+-	}
++  pid_t own_pid = getpid ();
++  pid_t own_tid = syscall (__NR_gettid);
++
++  /* Some sanity checks for clone syscall: returned ppid should be current
++     pid and both returned tid/pid should be different from current one.  */
++  if ((ppid != own_pid) || (pid == own_pid) || (tid == own_tid))
++    {
++      printf ("ppid=%i pid=%i tid=%i | own_pid=%i own_tid=%i",
++	      (int)ppid, (int)pid, (int)tid, (int)own_pid, (int)own_tid);
++      return 1;
+     }
+ 
+   int e;
+@@ -142,7 +154,7 @@
+     {
+       puts ("waitpid failed");
+       kill (p, SIGKILL);
+-      return 1;
++      exit (1);
+     }
+   if (!WIFEXITED (e))
+     {
+@@ -150,29 +162,13 @@
+ 	printf ("died from signal %s\n", strsignal (WTERMSIG (e)));
+       else
+ 	puts ("did not terminate correctly");
+-      return 1;
++      exit (1);
+     }
+   if (WEXITSTATUS (e) != 0)
+     {
+       printf ("exit code %d\n", WEXITSTATUS (e));
+-      return 1;
++      exit (1);
+     }
+ 
+   return ret;
+ }
+-
+-int
+-do_test (void)
+-{
+-  /* First, check that the clone implementation, without any flag, updates
+-     the struct pthread to contain the new PID and TID.  */
+-  int ret = clone_test (0);
+-  /* Second, check that with CLONE_VM the struct pthread PID and TID fields
+-     remain unmodified after the clone.  Any modifications would cause problem
+-     for the parent as described in bug 19957.  */
+-  ret += clone_test (CLONE_VM);
+-  return ret;
+-}
+-
+-#define TEST_FUNCTION do_test ()
+-#include "../test-skeleton.c"
+--- a/sysdeps/unix/sysv/linux/x86_64/clone.S
++++ b/sysdeps/unix/sysv/linux/x86_64/clone.S
+@@ -91,14 +91,6 @@
+ 	   the outermost frame obviously.  */
+ 	xorl	%ebp, %ebp
+ 
+-	andq	$CLONE_VM, %rdi
+-	jne	1f
+-	movl	$SYS_ify(getpid), %eax
+-	syscall
+-	movl	%eax, %fs:PID
+-	movl	%eax, %fs:TID
+-1:
+-
+ 	/* Set up arguments for the function call.  */
+ 	popq	%rax		/* Function to call.  */
+ 	popq	%rdi		/* Argument.  */
+--- a/sysdeps/unix/sysv/linux/x86_64/vfork.S
++++ b/sysdeps/unix/sysv/linux/x86_64/vfork.S
+@@ -34,16 +34,6 @@
+ 	cfi_adjust_cfa_offset(-8)
+ 	cfi_register(%rip, %rdi)
+ 
+-	/* Save the TCB-cached PID away in %esi, and then negate the TCB
+-           field.  But if it's zero, set it to 0x80000000 instead.  See
+-           raise.c for the logic that relies on this value.  */
+-	movl	%fs:PID, %esi
+-	movl	$0x80000000, %ecx
+-	movl	%esi, %edx
+-	negl	%edx
+-	cmove	%ecx, %edx
+-	movl	%edx, %fs:PID
+-
+ 	/* Stuff the syscall number in RAX and enter into the kernel.  */
+ 	movl	$SYS_ify (vfork), %eax
+ 	syscall
+@@ -52,14 +42,6 @@
+ 	pushq	%rdi
+ 	cfi_adjust_cfa_offset(8)
+ 
+-	/* Restore the original value of the TCB cache of the PID, if we're
+-	   the parent.  But in the child (syscall return value equals zero),
+-	   leave things as they are.  */
+-	testq	%rax, %rax
+-	je	1f
+-	movl	%esi, %fs:PID
+-1:
+-
+ 	cmpl	$-4095, %eax
+ 	jae SYSCALL_ERROR_LABEL		/* Branch forward if it failed.  */
+ 
+--- a/sysdeps/x86_64/nptl/tcb-offsets.sym
++++ b/sysdeps/x86_64/nptl/tcb-offsets.sym
+@@ -4,7 +4,6 @@
+ 
+ RESULT			offsetof (struct pthread, result)
+ TID			offsetof (struct pthread, tid)
+-PID			offsetof (struct pthread, pid)
+ CANCELHANDLING		offsetof (struct pthread, cancelhandling)
+ CLEANUP_JMP_BUF		offsetof (struct pthread, cleanup_jmp_buf)
+ CLEANUP			offsetof (struct pthread, cleanup)
