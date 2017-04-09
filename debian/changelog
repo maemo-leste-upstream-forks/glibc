@@ -6,6 +6,14 @@ glibc (2.24-10) UNRELEASED; urgency=medium
     posix.
 
   [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Improve branch predication in _dl_runtime_resolve_avx512_opt;
+    - Fix symbol redirect for fts_set on 32-bit architectures.
+    - Fix AVX2/AVX512 optimized unaligned memset.
+    - Don't use PLT nor GOT in static archives on amd64.
+    - Drop GLIBC_TUNABLES in setxid processes.
+    - Fix write-after-destroy in lock elision on powerpc/ppc64el.
+  * Drop patches/any/cvs-resolv-internal-qtype.diff, merged upstream.
   * any/cvs-remove-pid-tid-cache-clone.diff: patch from upstream to remove
     cached PID/TID in clone.  Closes: #857909.
 
