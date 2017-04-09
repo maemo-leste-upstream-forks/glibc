@@ -148,7 +148,9 @@ $(stamp)check_%: $(stamp)build_%
 	    echo "|     Encountered regressions that don't match expected failures.     |" ; \
 	    echo "+---------------------------------------------------------------------+" ; \
 	    grep -E '^FAIL:' $(DEB_BUILDDIR)/tests.sum | sort ; \
-	    exit 1 ; \
+	    if ! dpkg-parsechangelog | egrep -q '^Version:.*\+deb[0-9]+u[0-9]+' ; then
+	        exit 1 ; \
+	    fi ; \
 	  else \
 	    echo "+---------------------------------------------------------------------+" ; \
 	    echo "| Passed regression testing.  Give yourself a hearty pat on the back. |" ; \
