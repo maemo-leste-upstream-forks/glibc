@@ -57,8 +57,7 @@ shlib_dep = $(libc) (>= $(shlib_dep_ver))
 DEB_BUILDDIR ?= $(build-tree)/$(DEB_HOST_ARCH)-$(curpass)
 DEB_BUILDDIRLIBC ?= $(build-tree)/$(DEB_HOST_ARCH)-libc
 
-GLIBC_SOURCES = $(addprefix $(shell basename $(CURDIR))/, \
-		 $(filter-out debian $(shell basename $(stamp)) $(build-tree), $(wildcard *)))
+GLIBC_SOURCES = $(filter-out debian $(shell basename $(stamp)) $(build-tree), $(wildcard *))
 		 
 # Support multiple makes at once based on number of processors
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
