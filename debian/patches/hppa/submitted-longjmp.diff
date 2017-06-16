@@ -1,0 +1,40 @@
+2017-01-15  Helge Deller  <deller@gmx.de>
+
+	[BZ #21049]
+	* sysdeps/hppa/__longjmp.c (__longjmp): Move call to CHECK_SP up
+	to avoid clobbering r26.
+
+
+--- a/sysdeps/hppa/__longjmp.c
++++ b/sysdeps/hppa/__longjmp.c
+@@ -24,15 +24,16 @@
+ void
+ __longjmp (__jmp_buf env, int val)
+ {
++#ifdef CHECK_SP
++  CHECK_SP (env[0].__jmp_buf.__sp);
++#endif
++
++  {
+   /* We must use one of the non-callee saves registers
+      for env.  */
+   register unsigned long r26 asm ("r26") = (unsigned long)&env[0];
+   register unsigned long r25 asm ("r25") = (unsigned long)(val == 0 ? 1 : val);
+ 
+-#ifdef CHECK_SP
+-  CHECK_SP (env[0].__jmp_buf.__sp);
+-#endif
+-
+   asm volatile(
+ 	/* Set return value.  */
+ 	"copy	%0, %%r28\n\t"
+@@ -79,6 +80,8 @@ __longjmp (__jmp_buf env, int val)
+ 	: /* No outputs.  */
+ 	: "r" (r25), "r" (r26)
+ 	: /* No point in clobbers.  */ );
++  }
++
+   /* Avoid `volatile function does return' warnings.  */
+   for (;;);
+ }
+
