@@ -164,7 +164,7 @@ ifeq ($(DEB_HOST_ARCH_OS),linux)
 	if [ -n "$$CTB_LIBC_DEV_DEPENDS" ]; then \
 	  depends=$$CTB_LIBC_DEV_DEPENDS; \
 	else \
-	  depends=$$(dpkg-query -f '$${binary:Package} (>= $${Version}) ' -W linux-libc-dev:$(DEB_HOST_ARCH) | sed -e 's/:\S\+//'); \
+	  depends=$$(dpkg-query -f '$${binary:Package} (>= $${source:Upstream-Version}) ' -W linux-libc-dev:$(DEB_HOST_ARCH) | sed -e 's/:\S\+//'); \
 	fi; \
 	echo "libc-dev:Depends=$$depends" >> tmp.substvars
 endif
