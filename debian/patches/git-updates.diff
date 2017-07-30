@@ -1,10 +1,78 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.24/master from glibc-2.24
 
 diff --git a/ChangeLog b/ChangeLog
-index c44c926094..1795e284ef 100644
+index c44c926094..178ffca243 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,528 @@
+@@ -1,3 +1,596 @@
++2017-07-26  H.J. Lu  <hongjiu.lu@intel.com>
++
++	[BZ #21666]
++	* misc/regexp.c (loc1): Add __attribute__ ((nocommon));
++	(loc2): Likewise.
++	(locs): Likewise.
++
++2017-07-12  Szabolcs Nagy  <szabolcs.nagy@arm.com>
++
++	* sysdeps/aarch64/dl-machine.h (RTLD_START_1): Change _dl_argv to the
++	hidden __GI__dl_argv symbol.
++
++2016-09-05  Aurelien Jarno  <aurelien@aurel32.net>
++
++	* conform/Makefile (conformtest-header-tests): Pass -I. to $(PERL).
++	(linknamespace-symlists-tests): Likewise.
++	(linknamespace-header-tests): Likewise.
++
++2017-07-06  Florian Weimer  <fweimer@redhat.com>
++	    H.J. Lu  <hongjiu.lu@intel.com>
++
++	[BZ #21609]
++	* sysdeps/x86_64/Makefile (sysdep-dl-routines): Add tls_get_addr.
++	(gen-as-const-headers): Add rtld-offsets.sym.
++	* sysdeps/x86_64/dl-tls.c: New file.
++	* sysdeps/x86_64/rtld-offsets.sym: Likwise.
++	* sysdeps/x86_64/tls_get_addr.S: Likewise.
++	* sysdeps/x86_64/dl-tls.h: Add multiple inclusion guards.
++	* sysdeps/x86_64/tlsdesc.sym (TI_MODULE_OFFSET): New.
++	(TI_OFFSET_OFFSET): Likwise.
++
++2017-06-14  Florian Weimer  <fweimer@redhat.com>
++
++	* sysdeps/i386/i686/multiarch/strcspn-c.c: Add IS_IN (libc) guard.
++	* sysdeps/i386/i686/multiarch/varshift.c: Likewise.
++
++2017-03-07  Siddhesh Poyarekar  <siddhesh@sourceware.org>
++
++	[BZ #21209]
++	* elf/rtld.c (process_envvars): Ignore LD_HWCAP_MASK for
++	AT_SECURE processes.
++	* sysdeps/generic/unsecvars.h: Add LD_HWCAP_MASK.
++
++2017-06-19  Florian Weimer  <fweimer@redhat.com>
++
++	* elf/rtld.c (audit_list_string): New variable.
++	(audit_list): Update comment.
++	(struct audit_list_iter): Define.
++	(audit_list_iter_init, audit_list_iter_next): New function.
++	(dl_main): Use struct audit_list_iter to process audit modules.
++	(process_dl_audit): Call dso_name_valid_for_suid.
++	(process_envvars): Set audit_list_string instead of calling
++	process_dl_audit.
++
++2017-06-19  Florian Weimer  <fweimer@redhat.com>
++
++	* elf/rtld.c (SECURE_NAME_LIMIT, SECURE_PATH_LIMIT): Define.
++	(dso_name_valid_for_suid): New function.
++	(handle_ld_preload): Likewise.
++	(dl_main): Call it.  Remove alloca.
++
++2017-06-19  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #21624]
++	CVE-2017-1000366
++	* elf/rtld.c (process_envvars): Ignore LD_LIBRARY_PATH for
++	__libc_enable_secure.
++
 +2017-02-01  Andreas Schwab  <schwab@linux-m68k.org>
 +
 +	* sysdeps/m68k/m680x0/m68020/atomic-machine.h
@@ -588,10 +656,10 @@ index 03fd89c13e..ee379f5852 100644
  
  ifndef avoid-generated
 diff --git a/NEWS b/NEWS
-index b0447e7169..82a718ff64 100644
+index b0447e7169..f60077bee5 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,27 @@ See the end for copying conditions.
+@@ -5,6 +5,30 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <http://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
@@ -613,8 +681,11 @@ index b0447e7169..82a718ff64 100644
 +
 +The following bugs are resolved with this release:
 +
++  [21209] Ignore and remove LD_HWCAP_MASK for AT_SECURE programs
 +  [21289] Fix symbol redirect for fts_set
 +  [21386] Assertion in fork for distinct parent PID is incorrect
++  [21609] x86-64: Align the stack in __tls_get_addr
++  [21624] Unsafe alloca allows local attackers to alias stack and heap (CVE-2017-1000366)
 +
  Version 2.24
  
@@ -800,10 +871,26 @@ index 33bcd62180..8277d9f727 100644
  *) AC_MSG_ERROR([unexpected symbols in test: $libc_undefs]) ;;
  esac],
 diff --git a/conform/Makefile b/conform/Makefile
-index 32a0937b06..762aac98fc 100644
+index 32a0937b06..7883624c81 100644
 --- a/conform/Makefile
 +++ b/conform/Makefile
-@@ -229,6 +229,7 @@ $(linknamespace-symlist-stdlibs-tests): $(objpfx)symlist-stdlibs-%: \
+@@ -196,13 +196,13 @@ $(conformtest-header-tests): $(objpfx)%/conform.out: \
+ 			     conformtest.pl $(conformtest-headers-data)
+ 	(set -e; std_hdr=$*; std=$${std_hdr%%/*}; hdr=$${std_hdr#*/}; \
+ 	 mkdir -p $(@D)/scratch; \
+-	 $(PERL) conformtest.pl --tmpdir=$(@D)/scratch --cc='$(CC)' \
++	 $(PERL) -I. conformtest.pl --tmpdir=$(@D)/scratch --cc='$(CC)' \
+ 		 --flags='$(conformtest-cc-flags)' --standard=$$std \
+ 		 --headers=$$hdr > $@); \
+ 	$(evaluate-test)
+ 
+ $(linknamespace-symlists-tests): $(objpfx)symlist-%: list-header-symbols.pl
+-	$(PERL) -w $< --tmpdir=$(objpfx) --cc='$(CC)' \
++	$(PERL) -I. -w $< --tmpdir=$(objpfx) --cc='$(CC)' \
+ 		--flags='$(conformtest-cc-flags)' --standard=$* \
+ 		--headers="$(strip $(conformtest-headers-$*))" \
+ 		> $@ 2> $@.err; \
+@@ -229,10 +229,11 @@ $(linknamespace-symlist-stdlibs-tests): $(objpfx)symlist-stdlibs-%: \
  
  $(linknamespace-header-tests): $(objpfx)%/linknamespace.out: \
  			       linknamespace.pl \
@@ -811,6 +898,11 @@ index 32a0937b06..762aac98fc 100644
  			       $(linknamespace-symlist-stdlibs-tests)
  	(set -e; std_hdr=$*; std=$${std_hdr%%/*}; hdr=$${std_hdr#*/}; \
  	 mkdir -p $(@D)/scratch; \
+-	 $(PERL) -w $< --tmpdir=$(@D)/scratch --cc='$(CC)' \
++	 $(PERL) -I. -w $< --tmpdir=$(@D)/scratch --cc='$(CC)' \
+ 		 --flags='$(conformtest-cc-flags)' --standard=$$std \
+ 		 --stdsyms=$(objpfx)symlist-$$std --header=$$hdr \
+ 		 --libsyms=$(objpfx)symlist-stdlibs-$$std \
 diff --git a/elf/Makefile b/elf/Makefile
 index 593403c640..847a012f84 100644
 --- a/elf/Makefile
@@ -896,6 +988,312 @@ index 687d7de874..9f93ab7628 100644
  
    _dl_close_worker (map, false);
  
+diff --git a/elf/rtld.c b/elf/rtld.c
+index 647661ca45..8f56d6edd3 100644
+--- a/elf/rtld.c
++++ b/elf/rtld.c
+@@ -99,14 +99,121 @@ uintptr_t __pointer_chk_guard_local
+ strong_alias (__pointer_chk_guard_local, __pointer_chk_guard)
+ #endif
+ 
++/* Length limits for names and paths, to protect the dynamic linker,
++   particularly when __libc_enable_secure is active.  */
++#ifdef NAME_MAX
++# define SECURE_NAME_LIMIT NAME_MAX
++#else
++# define SECURE_NAME_LIMIT 255
++#endif
++#ifdef PATH_MAX
++# define SECURE_PATH_LIMIT PATH_MAX
++#else
++# define SECURE_PATH_LIMIT 1024
++#endif
++
++/* Check that AT_SECURE=0, or that the passed name does not contain
++   directories and is not overly long.  Reject empty names
++   unconditionally.  */
++static bool
++dso_name_valid_for_suid (const char *p)
++{
++  if (__glibc_unlikely (__libc_enable_secure))
++    {
++      /* Ignore pathnames with directories for AT_SECURE=1
++	 programs, and also skip overlong names.  */
++      size_t len = strlen (p);
++      if (len >= SECURE_NAME_LIMIT || memchr (p, '/', len) != NULL)
++	return false;
++    }
++  return *p != '\0';
++}
+ 
+-/* List of auditing DSOs.  */
++/* LD_AUDIT variable contents.  Must be processed before the
++   audit_list below.  */
++const char *audit_list_string;
++
++/* Cyclic list of auditing DSOs.  audit_list->next is the first
++   element.  */
+ static struct audit_list
+ {
+   const char *name;
+   struct audit_list *next;
+ } *audit_list;
+ 
++/* Iterator for audit_list_string followed by audit_list.  */
++struct audit_list_iter
++{
++  /* Tail of audit_list_string still needing processing, or NULL.  */
++  const char *audit_list_tail;
++
++  /* The list element returned in the previous iteration.  NULL before
++     the first element.  */
++  struct audit_list *previous;
++
++  /* Scratch buffer for returning a name which is part of
++     audit_list_string.  */
++  char fname[SECURE_NAME_LIMIT];
++};
++
++/* Initialize an audit list iterator.  */
++static void
++audit_list_iter_init (struct audit_list_iter *iter)
++{
++  iter->audit_list_tail = audit_list_string;
++  iter->previous = NULL;
++}
++
++/* Iterate through both audit_list_string and audit_list.  */
++static const char *
++audit_list_iter_next (struct audit_list_iter *iter)
++{
++  if (iter->audit_list_tail != NULL)
++    {
++      /* First iterate over audit_list_string.  */
++      while (*iter->audit_list_tail != '\0')
++	{
++	  /* Split audit list at colon.  */
++	  size_t len = strcspn (iter->audit_list_tail, ":");
++	  if (len > 0 && len < sizeof (iter->fname))
++	    {
++	      memcpy (iter->fname, iter->audit_list_tail, len);
++	      iter->fname[len] = '\0';
++	    }
++	  else
++	    /* Do not return this name to the caller.  */
++	    iter->fname[0] = '\0';
++
++	  /* Skip over the substring and the following delimiter.  */
++	  iter->audit_list_tail += len;
++	  if (*iter->audit_list_tail == ':')
++	    ++iter->audit_list_tail;
++
++	  /* If the name is valid, return it.  */
++	  if (dso_name_valid_for_suid (iter->fname))
++	    return iter->fname;
++	  /* Otherwise, wrap around and try the next name.  */
++	}
++      /* Fall through to the procesing of audit_list.  */
++    }
++
++  if (iter->previous == NULL)
++    {
++      if (audit_list == NULL)
++	/* No pre-parsed audit list.  */
++	return NULL;
++      /* Start of audit list.  The first list element is at
++	 audit_list->next (cyclic list).  */
++      iter->previous = audit_list->next;
++      return iter->previous->name;
++    }
++  if (iter->previous == audit_list)
++    /* Cyclic list wrap-around.  */
++    return NULL;
++  iter->previous = iter->previous->next;
++  return iter->previous->name;
++}
++
+ #ifndef HAVE_INLINED_SYSCALLS
+ /* Set nonzero during loading and initialization of executable and
+    libraries, cleared before the executable's entry point runs.  This
+@@ -730,6 +837,42 @@ static const char *preloadlist attribute_relro;
+ /* Nonzero if information about versions has to be printed.  */
+ static int version_info attribute_relro;
+ 
++/* The LD_PRELOAD environment variable gives list of libraries
++   separated by white space or colons that are loaded before the
++   executable's dependencies and prepended to the global scope list.
++   (If the binary is running setuid all elements containing a '/' are
++   ignored since it is insecure.)  Return the number of preloads
++   performed.  */
++unsigned int
++handle_ld_preload (const char *preloadlist, struct link_map *main_map)
++{
++  unsigned int npreloads = 0;
++  const char *p = preloadlist;
++  char fname[SECURE_PATH_LIMIT];
++
++  while (*p != '\0')
++    {
++      /* Split preload list at space/colon.  */
++      size_t len = strcspn (p, " :");
++      if (len > 0 && len < sizeof (fname))
++	{
++	  memcpy (fname, p, len);
++	  fname[len] = '\0';
++	}
++      else
++	fname[0] = '\0';
++
++      /* Skip over the substring and the following delimiter.  */
++      p += len;
++      if (*p != '\0')
++	++p;
++
++      if (dso_name_valid_for_suid (fname))
++	npreloads += do_preload (fname, main_map, "LD_PRELOAD");
++    }
++  return npreloads;
++}
++
+ static void
+ dl_main (const ElfW(Phdr) *phdr,
+ 	 ElfW(Word) phnum,
+@@ -1257,11 +1400,13 @@ of this helper program; chances are you did not intend to run this program.\n\
+     GL(dl_rtld_map).l_tls_modid = _dl_next_tls_modid ();
+ 
+   /* If we have auditing DSOs to load, do it now.  */
+-  if (__glibc_unlikely (audit_list != NULL))
++  bool need_security_init = true;
++  if (__glibc_unlikely (audit_list != NULL)
++      || __glibc_unlikely (audit_list_string != NULL))
+     {
+-      /* Iterate over all entries in the list.  The order is important.  */
+       struct audit_ifaces *last_audit = NULL;
+-      struct audit_list *al = audit_list->next;
++      struct audit_list_iter al_iter;
++      audit_list_iter_init (&al_iter);
+ 
+       /* Since we start using the auditing DSOs right away we need to
+ 	 initialize the data structures now.  */
+@@ -1272,9 +1417,14 @@ of this helper program; chances are you did not intend to run this program.\n\
+ 	 use different values (especially the pointer guard) and will
+ 	 fail later on.  */
+       security_init ();
++      need_security_init = false;
+ 
+-      do
++      while (true)
+ 	{
++	  const char *name = audit_list_iter_next (&al_iter);
++	  if (name == NULL)
++	    break;
++
+ 	  int tls_idx = GL(dl_tls_max_dtv_idx);
+ 
+ 	  /* Now it is time to determine the layout of the static TLS
+@@ -1283,7 +1433,7 @@ of this helper program; chances are you did not intend to run this program.\n\
+ 	     no DF_STATIC_TLS bit is set.  The reason is that we know
+ 	     glibc will use the static model.  */
+ 	  struct dlmopen_args dlmargs;
+-	  dlmargs.fname = al->name;
++	  dlmargs.fname = name;
+ 	  dlmargs.map = NULL;
+ 
+ 	  const char *objname;
+@@ -1296,7 +1446,7 @@ of this helper program; chances are you did not intend to run this program.\n\
+ 	    not_loaded:
+ 	      _dl_error_printf ("\
+ ERROR: ld.so: object '%s' cannot be loaded as audit interface: %s; ignored.\n",
+-				al->name, err_str);
++				name, err_str);
+ 	      if (malloced)
+ 		free ((char *) err_str);
+ 	    }
+@@ -1400,10 +1550,7 @@ ERROR: ld.so: object '%s' cannot be loaded as audit interface: %s; ignored.\n",
+ 		  goto not_loaded;
+ 		}
+ 	    }
+-
+-	  al = al->next;
+ 	}
+-      while (al != audit_list->next);
+ 
+       /* If we have any auditing modules, announce that we already
+ 	 have two objects loaded.  */
+@@ -1481,23 +1628,8 @@ ERROR: ld.so: object '%s' cannot be loaded as audit interface: %s; ignored.\n",
+ 
+   if (__glibc_unlikely (preloadlist != NULL))
+     {
+-      /* The LD_PRELOAD environment variable gives list of libraries
+-	 separated by white space or colons that are loaded before the
+-	 executable's dependencies and prepended to the global scope
+-	 list.  If the binary is running setuid all elements
+-	 containing a '/' are ignored since it is insecure.  */
+-      char *list = strdupa (preloadlist);
+-      char *p;
+-
+       HP_TIMING_NOW (start);
+-
+-      /* Prevent optimizing strsep.  Speed is not important here.  */
+-      while ((p = (strsep) (&list, " :")) != NULL)
+-	if (p[0] != '\0'
+-	    && (__builtin_expect (! __libc_enable_secure, 1)
+-		|| strchr (p, '/') == NULL))
+-	  npreloads += do_preload (p, main_map, "LD_PRELOAD");
+-
++      npreloads += handle_ld_preload (preloadlist, main_map);
+       HP_TIMING_NOW (stop);
+       HP_TIMING_DIFF (diff, start, stop);
+       HP_TIMING_ACCUM_NT (load_time, diff);
+@@ -1682,7 +1814,7 @@ ERROR: ld.so: object '%s' cannot be loaded as audit interface: %s; ignored.\n",
+   if (tcbp == NULL)
+     tcbp = init_tls ();
+ 
+-  if (__glibc_likely (audit_list == NULL))
++  if (__glibc_likely (need_security_init))
+     /* Initialize security features.  But only if we have not done it
+        earlier.  */
+     security_init ();
+@@ -2313,9 +2445,7 @@ process_dl_audit (char *str)
+   char *p;
+ 
+   while ((p = (strsep) (&str, ":")) != NULL)
+-    if (p[0] != '\0'
+-	&& (__builtin_expect (! __libc_enable_secure, 1)
+-	    || strchr (p, '/') == NULL))
++    if (dso_name_valid_for_suid (p))
+       {
+ 	/* This is using the local malloc, not the system malloc.  The
+ 	   memory can never be freed.  */
+@@ -2379,7 +2509,7 @@ process_envvars (enum mode *modep)
+ 	      break;
+ 	    }
+ 	  if (memcmp (envline, "AUDIT", 5) == 0)
+-	    process_dl_audit (&envline[6]);
++	    audit_list_string = &envline[6];
+ 	  break;
+ 
+ 	case 7:
+@@ -2423,7 +2553,8 @@ process_envvars (enum mode *modep)
+ 
+ 	case 10:
+ 	  /* Mask for the important hardware capabilities.  */
+-	  if (memcmp (envline, "HWCAP_MASK", 10) == 0)
++	  if (!__libc_enable_secure
++	      && memcmp (envline, "HWCAP_MASK", 10) == 0)
+ 	    GLRO(dl_hwcap_mask) = __strtoul_internal (&envline[11], NULL,
+ 						      0, 0);
+ 	  break;
+@@ -2437,7 +2568,8 @@ process_envvars (enum mode *modep)
+ 
+ 	case 12:
+ 	  /* The library search path.  */
+-	  if (memcmp (envline, "LIBRARY_PATH", 12) == 0)
++	  if (!__libc_enable_secure
++	      && memcmp (envline, "LIBRARY_PATH", 12) == 0)
+ 	    {
+ 	      library_path = &envline[13];
+ 	      break;
 diff --git a/elf/tst-nodelete-dlclose-dso.c b/elf/tst-nodelete-dlclose-dso.c
 new file mode 100644
 index 0000000000..dd930f99cc
@@ -1362,6 +1760,30 @@ index 229783f3b7..4e16593d8b 100644
 +
      (void) mutex_unlock (&free_list_lock);
    }
+ 
+diff --git a/misc/regexp.c b/misc/regexp.c
+index 3b3668272f..b2a2c6e636 100644
+--- a/misc/regexp.c
++++ b/misc/regexp.c
+@@ -29,14 +29,15 @@
+ 
+ #if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_23)
+ 
+-/* Define the variables used for the interface.  */
+-char *loc1;
+-char *loc2;
++/* Define the variables used for the interface.  Avoid .symver on common
++   symbol, which just creates a new common symbol, not an alias.  */
++char *loc1 __attribute__ ((nocommon));
++char *loc2 __attribute__ ((nocommon));
+ compat_symbol (libc, loc1, loc1, GLIBC_2_0);
+ compat_symbol (libc, loc2, loc2, GLIBC_2_0);
+ 
+ /* Although we do not support the use we define this variable as well.  */
+-char *locs;
++char *locs __attribute__ ((nocommon));
+ compat_symbol (libc, locs, locs, GLIBC_2_0);
+ 
  
 diff --git a/nptl/Makefile b/nptl/Makefile
 index 0d8aadebed..fa925819ca 100644
@@ -10945,6 +11367,21 @@ index 0000000000..134e8ee4c1
 +      p += ret;
 +    }
 +}
+diff --git a/sysdeps/aarch64/dl-machine.h b/sysdeps/aarch64/dl-machine.h
+index 282805e396..e86d8b5b63 100644
+--- a/sysdeps/aarch64/dl-machine.h
++++ b/sysdeps/aarch64/dl-machine.h
+@@ -172,8 +172,8 @@ _dl_start_user:							\n\
+ 	cmp	x0, #0						\n\
+ 	bne	1b						\n\
+ 	// Update _dl_argv					\n\
+-	adrp	x3, _dl_argv					\n\
+-	str	x2, [x3, #:lo12:_dl_argv]			\n\
++	adrp	x3, __GI__dl_argv				\n\
++	str	x2, [x3, #:lo12:__GI__dl_argv]			\n\
+ .L_done_stack_adjust:						\n\
+ 	// compute envp						\n\
+ 	add	x3, x2, x1, lsl #3				\n\
 diff --git a/sysdeps/aarch64/nptl/tcb-offsets.sym b/sysdeps/aarch64/nptl/tcb-offsets.sym
 index 0677aeabff..238647dd47 100644
 --- a/sysdeps/aarch64/nptl/tcb-offsets.sym
@@ -11156,10 +11593,10 @@ index 92cc441d3d..bf9c0a1c17 100644
 -PID_OFFSET			thread_offsetof (pid)
  TID_OFFSET			thread_offsetof (tid)
 diff --git a/sysdeps/generic/unsecvars.h b/sysdeps/generic/unsecvars.h
-index d5b8119c9c..3e56538b51 100644
+index d5b8119c9c..ac57bd5db0 100644
 --- a/sysdeps/generic/unsecvars.h
 +++ b/sysdeps/generic/unsecvars.h
-@@ -4,6 +4,7 @@
+@@ -4,11 +4,13 @@
  #define UNSECURE_ENVVARS \
    "GCONV_PATH\0"							      \
    "GETCONF_DIR\0"							      \
@@ -11167,6 +11604,12 @@ index d5b8119c9c..3e56538b51 100644
    "HOSTALIASES\0"							      \
    "LD_AUDIT\0"								      \
    "LD_DEBUG\0"								      \
+   "LD_DEBUG_OUTPUT\0"							      \
+   "LD_DYNAMIC_WEAK\0"							      \
++  "LD_HWCAP_MASK\0"							      \
+   "LD_LIBRARY_PATH\0"							      \
+   "LD_ORIGIN_PATH\0"							      \
+   "LD_PRELOAD\0"							      \
 diff --git a/sysdeps/hppa/dl-machine.h b/sysdeps/hppa/dl-machine.h
 index 9404211819..01bd5bf197 100644
 --- a/sysdeps/hppa/dl-machine.h
@@ -11213,6 +11656,26 @@ index c2f326ee3d..6e852f35b1 100644
 -PID_THREAD_OFFSET		thread_offsetof (pid)
  TID_THREAD_OFFSET		thread_offsetof (tid)
  MULTIPLE_THREADS_THREAD_OFFSET	thread_offsetof (header.multiple_threads)
+diff --git a/sysdeps/i386/i686/multiarch/strcspn-c.c b/sysdeps/i386/i686/multiarch/strcspn-c.c
+index 6d61e190a8..ec230fb383 100644
+--- a/sysdeps/i386/i686/multiarch/strcspn-c.c
++++ b/sysdeps/i386/i686/multiarch/strcspn-c.c
+@@ -1,2 +1,4 @@
+-#define __strcspn_sse2 __strcspn_ia32
+-#include <sysdeps/x86_64/multiarch/strcspn-c.c>
++#if IS_IN (libc)
++# define __strcspn_sse2 __strcspn_ia32
++# include <sysdeps/x86_64/multiarch/strcspn-c.c>
++#endif
+diff --git a/sysdeps/i386/i686/multiarch/varshift.c b/sysdeps/i386/i686/multiarch/varshift.c
+index 7760b966e2..6742a35d41 100644
+--- a/sysdeps/i386/i686/multiarch/varshift.c
++++ b/sysdeps/i386/i686/multiarch/varshift.c
+@@ -1 +1,3 @@
+-#include <sysdeps/x86_64/multiarch/varshift.c>
++#if IS_IN (libc)
++# include <sysdeps/x86_64/multiarch/varshift.c>
++#endif
 diff --git a/sysdeps/i386/nptl/tcb-offsets.sym b/sysdeps/i386/nptl/tcb-offsets.sym
 index 7bdf161b29..695a810386 100644
 --- a/sysdeps/i386/nptl/tcb-offsets.sym
@@ -14589,6 +15052,26 @@ index 97ffe765f4..2609ac0999 100644
  
  #endif	/* !__ASSEMBLER__ */
  
+diff --git a/sysdeps/x86_64/Makefile b/sysdeps/x86_64/Makefile
+index 6d99284cd0..bd4f6ce417 100644
+--- a/sysdeps/x86_64/Makefile
++++ b/sysdeps/x86_64/Makefile
+@@ -27,7 +27,7 @@ ifeq ($(subdir),elf)
+ CFLAGS-.os += $(if $(filter $(@F),$(patsubst %,%.os,$(all-rtld-routines))),\
+ 		   -mno-mmx)
+ 
+-sysdep-dl-routines += tlsdesc dl-tlsdesc
++sysdep-dl-routines += tlsdesc dl-tlsdesc tls_get_addr
+ 
+ tests += ifuncmain8
+ modules-names += ifuncmod8
+@@ -105,5 +105,5 @@ endif
+ endif
+ 
+ ifeq ($(subdir),csu)
+-gen-as-const-headers += tlsdesc.sym
++gen-as-const-headers += tlsdesc.sym rtld-offsets.sym
+ endif
 diff --git a/sysdeps/x86_64/dl-machine.h b/sysdeps/x86_64/dl-machine.h
 index ed0c1a8efd..c0f0fa16a2 100644
 --- a/sysdeps/x86_64/dl-machine.h
@@ -14633,6 +15116,85 @@ index ed0c1a8efd..c0f0fa16a2 100644
  	  else
  	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_resolve_sse;
  	}
+diff --git a/sysdeps/x86_64/dl-tls.c b/sysdeps/x86_64/dl-tls.c
+new file mode 100644
+index 0000000000..3584805c8e
+--- /dev/null
++++ b/sysdeps/x86_64/dl-tls.c
+@@ -0,0 +1,53 @@
++/* Thread-local storage handling in the ELF dynamic linker.  x86-64 version.
++   Copyright (C) 2017 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifdef SHARED
++/* Work around GCC PR58066, due to which __tls_get_addr may be called
++   with an unaligned stack.  The compat implementation is in
++   tls_get_addr-compat.S.  */
++
++# include <dl-tls.h>
++
++/* Define __tls_get_addr within elf/dl-tls.c under a different
++   name.  */
++extern __typeof__ (__tls_get_addr) ___tls_get_addr;
++
++# define __tls_get_addr ___tls_get_addr
++# include <elf/dl-tls.c>
++# undef __tls_get_addr
++
++hidden_ver (___tls_get_addr, __tls_get_addr)
++
++/* Only handle slow paths for __tls_get_addr.  */
++attribute_hidden
++void *
++__tls_get_addr_slow (GET_ADDR_ARGS)
++{
++  dtv_t *dtv = THREAD_DTV ();
++
++  if (__glibc_unlikely (dtv[0].counter != GL(dl_tls_generation)))
++    return update_get_addr (GET_ADDR_PARAM);
++
++  return tls_get_addr_tail (GET_ADDR_PARAM, dtv, NULL);
++}
++#else
++
++/* No compatibility symbol needed.  */
++# include <elf/dl-tls.c>
++
++#endif
+diff --git a/sysdeps/x86_64/dl-tls.h b/sysdeps/x86_64/dl-tls.h
+index cf6c107f54..fa5bf6cd93 100644
+--- a/sysdeps/x86_64/dl-tls.h
++++ b/sysdeps/x86_64/dl-tls.h
+@@ -16,6 +16,9 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
++#ifndef _X86_64_DL_TLS_H
++#define _X86_64_DL_TLS_H
++
+ #include <stdint.h>
+ 
+ /* Type used for the representation of TLS information in the GOT.  */
+@@ -27,3 +30,5 @@ typedef struct dl_tls_index
+ 
+ 
+ extern void *__tls_get_addr (tls_index *ti);
++
++#endif /* _X86_64_DL_TLS_H */
 diff --git a/sysdeps/x86_64/dl-trampoline.S b/sysdeps/x86_64/dl-trampoline.S
 index 12f1a5cf84..50b23633e3 100644
 --- a/sysdeps/x86_64/dl-trampoline.S
@@ -14942,6 +15504,18 @@ index aeb752673a..8a25c482cb 100644
  CANCELHANDLING		offsetof (struct pthread, cancelhandling)
  CLEANUP_JMP_BUF		offsetof (struct pthread, cleanup_jmp_buf)
  CLEANUP			offsetof (struct pthread, cleanup)
+diff --git a/sysdeps/x86_64/rtld-offsets.sym b/sysdeps/x86_64/rtld-offsets.sym
+new file mode 100644
+index 0000000000..fd41b51521
+--- /dev/null
++++ b/sysdeps/x86_64/rtld-offsets.sym
+@@ -0,0 +1,6 @@
++#define SHARED
++#include <ldsodefs.h>
++
++--
++
++GL_TLS_GENERATION_OFFSET        offsetof (struct rtld_global, _dl_tls_generation)
 diff --git a/sysdeps/x86_64/sysdep.h b/sysdeps/x86_64/sysdep.h
 index 75ac747be8..4b67fa80c1 100644
 --- a/sysdeps/x86_64/sysdep.h
@@ -14962,3 +15536,81 @@ index 75ac747be8..4b67fa80c1 100644
  # define JUMPTARGET(name)	name
  #endif
  
+diff --git a/sysdeps/x86_64/tls_get_addr.S b/sysdeps/x86_64/tls_get_addr.S
+new file mode 100644
+index 0000000000..9d38fb3be5
+--- /dev/null
++++ b/sysdeps/x86_64/tls_get_addr.S
+@@ -0,0 +1,61 @@
++/* Stack-aligning implementation of __tls_get_addr.  x86-64 version.
++   Copyright (C) 2017 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifdef SHARED
++
++# include <sysdep.h>
++# include "tlsdesc.h"
++# include "rtld-offsets.h"
++
++/* See __tls_get_addr and __tls_get_addr_slow in dl-tls.c.  This function
++   call __tls_get_addr_slow on both slow paths.  It realigns the stack
++   before the call to work around GCC PR58066.  */
++
++ENTRY (__tls_get_addr)
++	mov 	%fs:DTV_OFFSET, %RDX_LP
++	mov	GL_TLS_GENERATION_OFFSET+_rtld_local(%rip), %RAX_LP
++	/* GL(dl_tls_generation) == dtv[0].counter */
++	cmp	%RAX_LP, (%rdx)
++	jne	1f
++	mov	TI_MODULE_OFFSET(%rdi), %RAX_LP
++	/* dtv[ti->ti_module] */
++# ifdef __LP64__
++	salq	$4, %rax
++	movq	(%rdx,%rax), %rax
++# else
++	movl	(%rdx,%rax, 8), %eax
++# endif
++	cmp	$-1, %RAX_LP
++	je	1f
++	add	TI_OFFSET_OFFSET(%rdi), %RAX_LP
++	ret
++1:
++	/* On the slow path, align the stack.  */
++	pushq	%rbp
++	cfi_def_cfa_offset (16)
++	cfi_offset (%rbp, -16)
++	mov	%RSP_LP, %RBP_LP
++	cfi_def_cfa_register (%rbp)
++	and	$-16, %RSP_LP
++	call	__tls_get_addr_slow
++	mov	%RBP_LP, %RSP_LP
++	popq	%rbp
++	cfi_def_cfa (%rsp, 8)
++	ret
++END (__tls_get_addr)
++#endif /* SHARED */
+diff --git a/sysdeps/x86_64/tlsdesc.sym b/sysdeps/x86_64/tlsdesc.sym
+index 33854975d0..fc897ab4b5 100644
+--- a/sysdeps/x86_64/tlsdesc.sym
++++ b/sysdeps/x86_64/tlsdesc.sym
+@@ -15,3 +15,6 @@ TLSDESC_ARG			offsetof(struct tlsdesc, arg)
+ TLSDESC_GEN_COUNT		offsetof(struct tlsdesc_dynamic_arg, gen_count)
+ TLSDESC_MODID			offsetof(struct tlsdesc_dynamic_arg, tlsinfo.ti_module)
+ TLSDESC_MODOFF			offsetof(struct tlsdesc_dynamic_arg, tlsinfo.ti_offset)
++
++TI_MODULE_OFFSET 		offsetof(tls_index, ti_module)
++TI_OFFSET_OFFSET 		offsetof(tls_index, ti_offset)
