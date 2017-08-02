@@ -257,6 +257,22 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
       properly before before cthreads initialization, so cthreads can know
 --- a/sysdeps/mach/hurd/i386/tls.h
 +++ b/sysdeps/mach/hurd/i386/tls.h
+@@ -56,6 +56,15 @@ typedef struct
+ #define TLS_TCB_AT_TP	1
+ #define TLS_DTV_AT_TP	0
+ 
++/* Alignment requirement for TCB.
++
++   Some processors such as Intel Atom pay a big penalty on every
++   access using a segment override if that segment's base is not
++   aligned to the size of a cache line.  (See Intel 64 and IA-32
++   Architectures Optimization Reference Manual, section 13.3.3.3,
++   "Segment Base".)  On such machines, a cache line is 64 bytes.  */
++#define TCB_ALIGNMENT		64
++
+ #ifndef __ASSEMBLER__
+ 
+ /* Use i386-specific RPCs to arrange that %gs segment register prefix
 @@ -70,7 +70,7 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
  
    /* Get the first available selector.  */
