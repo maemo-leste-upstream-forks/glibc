@@ -1343,6 +1343,14 @@ test-xfail-tst-cancelx17 = yes
 test-xfail-tst-protected1a = yes
 test-xfail-tst-protected1b = yes
 test-xfail-tst-waitid = yes
+
+# The pow and setpayloadsig functions fail to handle some corner cases
+# involving NaN due to the use of load-and-test instruction.  This is
+# however not a regression compared to 2.24 and is fixed in GCC 7.
+test-xfail-test-double = yes
+test-xfail-test-idouble = yes
+test-xfail-test-ifloat = yes
+test-xfail-test-ildouble = yes
 endif
 
 
