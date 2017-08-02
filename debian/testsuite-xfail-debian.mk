@@ -1139,6 +1139,18 @@ test-xfail-XOPEN2K8/sys/stat.h/conform = yes
 test-xfail-XOPEN2K/sys/stat.h/conform = yes
 test-xfail-XPG3/sys/stat.h/conform = yes
 test-xfail-XPG4/sys/stat.h/conform = yes
+
+# Theses failures are due to a bug in the cvt.s.d instruction on some FPU
+# (at least Octeon 3 and XBurst). The tininess detection is done on a
+# before-rounding basis instead of an after-rounding basis.
+test-xfail-test-float = yes
+test-xfail-test-float-finite = yes
+
+# Theses failures are due to a bug in the cvt.d.s instruction on some FPU
+# (at least Octeon 3 and XBurst). The qNaN payload is not preserved in
+# the conversion and a new qNaN is generated.
+test-xfail-tst-strfrom = yes
+test-xfail-tst-strfrom-locale = yes
 endif
 
 
@@ -1174,10 +1186,6 @@ test-xfail-tst-waitid = yes
 test-xfail-test-double = yes
 test-xfail-test-double-finite = yes
 test-xfail-test-idouble = yes
-
-# This failure is due to a bug in the Octeon 3 FPU
-test-xfail-test-float = yes
-test-xfail-test-float-finite = yes
 endif
 
 
@@ -1193,10 +1201,6 @@ test-xfail-tst-cond16 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-stack4 = yes
 test-xfail-tst-waitid = yes
-
-# This failure is due to a bug in the Octeon 3 FPU
-test-xfail-test-float = yes
-test-xfail-test-float-finite = yes
 endif
 
 
