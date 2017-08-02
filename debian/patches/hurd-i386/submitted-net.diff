@@ -95,8 +95,8 @@ Index: eglibc-2.16/sysdeps/gnu/net/ethernet.h
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
 +++ eglibc-2.16/sysdeps/gnu/net/ethernet.h	2012-07-23 00:21:13.000000000 +0200
-@@ -0,0 +1,83 @@
-+/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
+@@ -0,0 +1,84 @@
++/* Copyright (C) 1997-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -119,8 +119,9 @@ Index: eglibc-2.16/sysdeps/gnu/net/ethernet.h
 +#ifndef __NET_ETHERNET_H
 +#define __NET_ETHERNET_H 1
 +
-+#include <sys/cdefs.h>
 +#include <sys/types.h>
++#include <stdint.h>
++
 +#include <net/if_ether.h>     /* IEEE 802.3 Ethernet constants */
 +
 +__BEGIN_DECLS
@@ -129,15 +130,15 @@ Index: eglibc-2.16/sysdeps/gnu/net/ethernet.h
 +   systems.  */
 +struct ether_addr
 +{
-+  u_int8_t ether_addr_octet[ETH_ALEN];
++  uint8_t ether_addr_octet[ETH_ALEN];
 +} __attribute__ ((__packed__));
 +
 +/* 10Mb/s ethernet header */
 +struct ether_header
 +{
-+  u_int8_t  ether_dhost[ETH_ALEN];	/* destination eth addr	*/
-+  u_int8_t  ether_shost[ETH_ALEN];	/* source ether addr	*/
-+  u_int16_t ether_type;		        /* packet type ID field	*/
++  uint8_t  ether_dhost[ETH_ALEN];	/* destination eth addr	*/
++  uint8_t  ether_shost[ETH_ALEN];	/* source ether addr	*/
++  uint16_t ether_type;		        /* packet type ID field	*/
 +} __attribute__ ((__packed__));
 +
 +/* Ethernet protocol ID's */
@@ -183,9 +184,9 @@ Index: eglibc-2.16/sysdeps/gnu/net/if_arp.h
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
 +++ eglibc-2.16/sysdeps/gnu/net/if_arp.h	2012-07-23 00:21:13.000000000 +0200
-@@ -0,0 +1,183 @@
+@@ -0,0 +1,182 @@
 +/* Definitions for Address Resolution Protocol.
-+   Copyright (C) 1997-2016 Free Software Foundation, Inc.
++   Copyright (C) 1997-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 +
@@ -206,12 +207,11 @@ Index: eglibc-2.16/sysdeps/gnu/net/if_arp.h
 +/* Based on the 4.4BSD and Linux version of this file.  */
 +
 +#ifndef _NET_IF_ARP_H
-+
 +#define _NET_IF_ARP_H 1
-+#include <sys/cdefs.h>
 +
 +#include <sys/types.h>
 +#include <sys/socket.h>
++#include <stdint.h>
 +
 +__BEGIN_DECLS
 +
@@ -357,7 +357,7 @@ Index: eglibc-2.16/sysdeps/gnu/net/if_arp.h
 +struct arpd_request
 +  {
 +    unsigned short int req;		/* Request type.  */
-+    u_int32_t ip;			/* IP address of entry.  */
++    uint32_t ip;			/* IP address of entry.  */
 +    unsigned long int dev;		/* Device entry is tied to.  */
 +    unsigned long int stamp;
 +    unsigned long int updated;
@@ -372,7 +372,7 @@ Index: eglibc-2.16/sysdeps/gnu/net/if_ether.h
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
 +++ eglibc-2.16/sysdeps/gnu/net/if_ether.h	2012-07-23 00:21:13.000000000 +0200
 @@ -0,0 +1,115 @@
-+/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
++/* Copyright (C) 1997-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -491,7 +491,7 @@ Index: eglibc-2.16/sysdeps/gnu/net/if_ppp.h
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
 +++ eglibc-2.16/sysdeps/gnu/net/if_ppp.h	2012-07-23 00:21:13.000000000 +0200
-@@ -0,0 +1,169 @@
+@@ -0,0 +1,171 @@
 +/*	From: if_ppp.h,v 1.3 1995/06/12 11:36:50 paulus Exp */
 +
 +/*
@@ -543,8 +543,7 @@ Index: eglibc-2.16/sysdeps/gnu/net/if_ppp.h
 +#define __NET_IF_PPP_H 1
 +
 +#include <sys/types.h>
-+#include <sys/cdefs.h>
-+
++#include <stdint.h>
 +#include <net/if.h>
 +#include <sys/ioctl.h>
 +#include <net/ppp_defs.h>
@@ -608,11 +607,13 @@ Index: eglibc-2.16/sysdeps/gnu/net/if_ppp.h
 +
 +/* Structure describing a CCP configuration option, for PPPIOCSCOMPRESS */
 +struct ppp_option_data {
-+	u_int8_t  *ptr;
-+	u_int32_t length;
-+	int	  transmit;
++	uint8_t  *ptr;
++	uint32_t length;
++	int	 transmit;
 +};
 +
++/* 'struct ifreq' is only available from net/if.h under __USE_MISC.  */
++#ifdef __USE_MISC
 +struct ifpppstatsreq {
 +  struct ifreq	   b;
 +  struct ppp_stats stats;			/* statistic information */
@@ -625,6 +626,7 @@ Index: eglibc-2.16/sysdeps/gnu/net/if_ppp.h
 +
 +#define ifr__name       b.ifr_ifrn.ifrn_name
 +#define stats_ptr       b.ifr_ifru.ifru_data
++#endif
 +
 +/*
 + * Ioctl definitions.
@@ -666,7 +668,7 @@ Index: eglibc-2.16/sysdeps/gnu/net/route.h
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
 +++ eglibc-2.16/sysdeps/gnu/net/route.h	2012-07-23 00:21:13.000000000 +0200
 @@ -0,0 +1,144 @@
-+/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
++/* Copyright (C) 1997-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -727,12 +729,12 @@ Index: eglibc-2.16/sysdeps/gnu/net/route.h
 +    struct in6_addr rtmsg_dst;
 +    struct in6_addr rtmsg_src;
 +    struct in6_addr rtmsg_gateway;
-+    u_int32_t rtmsg_type;
-+    u_int16_t rtmsg_dst_len;
-+    u_int16_t rtmsg_src_len;
-+    u_int32_t rtmsg_metric;
++    uint32_t rtmsg_type;
++    uint16_t rtmsg_dst_len;
++    uint16_t rtmsg_src_len;
++    uint32_t rtmsg_metric;
 +    unsigned long int rtmsg_info;
-+    u_int32_t rtmsg_flags;
++    uint32_t rtmsg_flags;
 +    int rtmsg_ifindex;
 +  };
 +
@@ -781,7 +783,7 @@ Index: eglibc-2.16/sysdeps/gnu/net/route.h
 +#define RTF_NAT		0x08000000
 +
 +#define RTF_ADDRCLASSMASK	0xF8000000
-+#define RT_ADDRCLASS(flags)	((__u_int32_t) flags >> 23)
++#define RT_ADDRCLASS(flags)	((uint32_t) flags >> 23)
 +
 +#define RT_TOS(tos)		((tos) & IPTOS_TOS_MASK)
 +
@@ -815,7 +817,7 @@ Index: eglibc-2.16/sysdeps/gnu/netinet/if_ether.h
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
 +++ eglibc-2.16/sysdeps/gnu/netinet/if_ether.h	2012-07-23 00:21:13.000000000 +0200
 @@ -0,0 +1,103 @@
-+/* Copyright (C) 1996-2016 Free Software Foundation, Inc.
++/* Copyright (C) 1996-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -886,10 +888,10 @@ Index: eglibc-2.16/sysdeps/gnu/netinet/if_ether.h
 + */
 +struct	ether_arp {
 +	struct	arphdr ea_hdr;		/* fixed-size header */
-+	u_int8_t arp_sha[ETH_ALEN];	/* sender hardware address */
-+	u_int8_t arp_spa[4];		/* sender protocol address */
-+	u_int8_t arp_tha[ETH_ALEN];	/* target hardware address */
-+	u_int8_t arp_tpa[4];		/* target protocol address */
++	uint8_t arp_sha[ETH_ALEN];	/* sender hardware address */
++	uint8_t arp_spa[4];		/* sender protocol address */
++	uint8_t arp_tha[ETH_ALEN];	/* target hardware address */
++	uint8_t arp_tpa[4];		/* target protocol address */
 +};
 +#define	arp_hrd	ea_hdr.ar_hrd
 +#define	arp_pro	ea_hdr.ar_pro
@@ -904,14 +906,14 @@ Index: eglibc-2.16/sysdeps/gnu/netinet/if_ether.h
 + */
 +#define ETHER_MAP_IP_MULTICAST(ipaddr, enaddr) \
 +	/* struct in_addr *ipaddr; */ \
-+	/* u_char enaddr[ETH_ALEN];	   */ \
++	/* uint8_t enaddr[ETH_ALEN]; */ \
 +{ \
 +	(enaddr)[0] = 0x01; \
 +	(enaddr)[1] = 0x00; \
 +	(enaddr)[2] = 0x5e; \
-+	(enaddr)[3] = ((u_int8_t *)ipaddr)[1] & 0x7f; \
-+	(enaddr)[4] = ((u_int8_t *)ipaddr)[2]; \
-+	(enaddr)[5] = ((u_int8_t *)ipaddr)[3]; \
++	(enaddr)[3] = ((uint8_t *)ipaddr)[1] & 0x7f; \
++	(enaddr)[4] = ((uint8_t *)ipaddr)[2]; \
++	(enaddr)[5] = ((uint8_t *)ipaddr)[3]; \
 +}
 +
 +__END_DECLS
@@ -937,7 +939,7 @@ Index: eglibc-2.16/sysdeps/mach/hurd/net/ethernet.h
 --- eglibc-2.16.orig/sysdeps/mach/hurd/net/ethernet.h	2012-02-18 03:24:59.000000000 +0100
 +++ /dev/null	1970-01-01 00:00:00.000000000 +0000
 @@ -1,75 +0,0 @@
--/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
+-/* Copyright (C) 1997-2017 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -970,15 +972,15 @@ Index: eglibc-2.16/sysdeps/mach/hurd/net/ethernet.h
 -   systems.  */
 -struct ether_addr
 -{
--  u_int8_t ether_addr_octet[ETH_ALEN];
+-  uint8_t ether_addr_octet[ETH_ALEN];
 -};
 -
 -/* 10Mb/s ethernet header */
 -struct ether_header
 -{
--  u_int8_t  ether_dhost[ETH_ALEN];	/* destination eth addr	*/
--  u_int8_t  ether_shost[ETH_ALEN];	/* source ether addr	*/
--  u_int16_t ether_type;		        /* packet type ID field	*/
+-  uint8_t  ether_dhost[ETH_ALEN];	/* destination eth addr	*/
+-  uint8_t  ether_shost[ETH_ALEN];	/* source ether addr	*/
+-  uint16_t ether_type;		        /* packet type ID field	*/
 -};
 -
 -/* Ethernet protocol ID's */
@@ -1018,7 +1020,7 @@ Index: eglibc-2.16/sysdeps/mach/hurd/net/if_arp.h
 +++ /dev/null	1970-01-01 00:00:00.000000000 +0000
 @@ -1,144 +0,0 @@
 -/* Definitions for Address Resolution Protocol.
--   Copyright (C) 1997-2016 Free Software Foundation, Inc.
+-   Copyright (C) 1997-2017 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 -
@@ -1151,7 +1153,7 @@ Index: eglibc-2.16/sysdeps/mach/hurd/net/if_arp.h
 -struct arpd_request
 -  {
 -    unsigned short int req;		/* Request type.  */
--    u_int32_t ip;			/* IP address of entry.  */
+-    uint32_t ip;			/* IP address of entry.  */
 -    unsigned long int dev;		/* Device entry is tied to.  */
 -    unsigned long int stamp;
 -    unsigned long int updated;
@@ -1166,7 +1168,7 @@ Index: eglibc-2.16/sysdeps/mach/hurd/net/if_ether.h
 --- eglibc-2.16.orig/sysdeps/mach/hurd/net/if_ether.h	2012-02-18 03:24:59.000000000 +0100
 +++ /dev/null	1970-01-01 00:00:00.000000000 +0000
 @@ -1,84 +0,0 @@
--/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
+-/* Copyright (C) 1997-2017 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -1254,7 +1256,7 @@ Index: eglibc-2.16/sysdeps/mach/hurd/net/if_ppp.h
 ===================================================================
 --- eglibc-2.16.orig/sysdeps/mach/hurd/net/if_ppp.h	2006-08-17 03:18:26.000000000 +0200
 +++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,169 +0,0 @@
+@@ -1,172 +0,0 @@
 -/*	From: if_ppp.h,v 1.3 1995/06/12 11:36:50 paulus Exp */
 -
 -/*
@@ -1371,11 +1373,13 @@ Index: eglibc-2.16/sysdeps/mach/hurd/net/if_ppp.h
 -
 -/* Structure describing a CCP configuration option, for PPPIOCSCOMPRESS */
 -struct ppp_option_data {
--	u_int8_t  *ptr;
--	u_int32_t length;
+-	uint8_t  *ptr;
+-	uint32_t  length;
 -	int	  transmit;
 -};
 -
+-/* 'struct ifreq' is only available from net/if.h under __USE_MISC.  */
+-#ifdef __USE_MISC
 -struct ifpppstatsreq {
 -  struct ifreq	   b;
 -  struct ppp_stats stats;			/* statistic information */
@@ -1388,6 +1392,7 @@ Index: eglibc-2.16/sysdeps/mach/hurd/net/if_ppp.h
 -
 -#define ifr__name       b.ifr_ifrn.ifrn_name
 -#define stats_ptr       b.ifr_ifru.ifru_data
+-#endif
 -
 -/*
 - * Ioctl definitions.
@@ -1429,7 +1434,7 @@ Index: eglibc-2.16/sysdeps/mach/hurd/net/route.h
 --- eglibc-2.16.orig/sysdeps/mach/hurd/net/route.h	2012-02-18 03:24:59.000000000 +0100
 +++ /dev/null	1970-01-01 00:00:00.000000000 +0000
 @@ -1,140 +0,0 @@
--/* Copyright (C) 1997-2016 Free Software Foundation, Inc..
+-/* Copyright (C) 1997-2017 Free Software Foundation, Inc..
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -1486,12 +1491,12 @@ Index: eglibc-2.16/sysdeps/mach/hurd/net/route.h
 -    struct in6_addr rtmsg_dst;
 -    struct in6_addr rtmsg_src;
 -    struct in6_addr rtmsg_gateway;
--    u_int32_t rtmsg_type;
--    u_int16_t rtmsg_dst_len;
--    u_int16_t rtmsg_src_len;
--    u_int32_t rtmsg_metric;
+-    uint32_t rtmsg_type;
+-    uint16_t rtmsg_dst_len;
+-    uint16_t rtmsg_src_len;
+-    uint32_t rtmsg_metric;
 -    unsigned long int rtmsg_info;
--    u_int32_t rtmsg_flags;
+-    uint32_t rtmsg_flags;
 -    int rtmsg_ifindex;
 -  };
 -
@@ -1540,7 +1545,7 @@ Index: eglibc-2.16/sysdeps/mach/hurd/net/route.h
 -#define RTF_NAT		0x08000000
 -
 -#define RTF_ADDRCLASSMASK	0xF8000000
--#define RT_ADDRCLASS(flags)	((__u_int32_t) flags >> 23)
+-#define RT_ADDRCLASS(flags)	((uint32_t) flags >> 23)
 -
 -#define RT_TOS(tos)		((tos) & IPTOS_TOS_MASK)
 -
@@ -1587,8 +1592,8 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/ethernet.h
 ===================================================================
 --- eglibc-2.16.orig/sysdeps/unix/sysv/linux/net/ethernet.h	2012-02-18 03:24:59.000000000 +0100
 +++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,83 +0,0 @@
--/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
+@@ -1,84 +0,0 @@
+-/* Copyright (C) 1997-2017 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -1611,8 +1616,9 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/ethernet.h
 -#ifndef __NET_ETHERNET_H
 -#define __NET_ETHERNET_H 1
 -
--#include <sys/cdefs.h>
 -#include <sys/types.h>
+-#include <stdint.h>
+-
 -#include <linux/if_ether.h>     /* IEEE 802.3 Ethernet constants */
 -
 -__BEGIN_DECLS
@@ -1621,15 +1627,15 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/ethernet.h
 -   systems.  */
 -struct ether_addr
 -{
--  u_int8_t ether_addr_octet[ETH_ALEN];
+-  uint8_t ether_addr_octet[ETH_ALEN];
 -} __attribute__ ((__packed__));
 -
 -/* 10Mb/s ethernet header */
 -struct ether_header
 -{
--  u_int8_t  ether_dhost[ETH_ALEN];	/* destination eth addr	*/
--  u_int8_t  ether_shost[ETH_ALEN];	/* source ether addr	*/
--  u_int16_t ether_type;		        /* packet type ID field	*/
+-  uint8_t  ether_dhost[ETH_ALEN];	/* destination eth addr	*/
+-  uint8_t  ether_shost[ETH_ALEN];	/* source ether addr	*/
+-  uint16_t ether_type;		        /* packet type ID field	*/
 -} __attribute__ ((__packed__));
 -
 -/* Ethernet protocol ID's */
@@ -1675,9 +1681,9 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/if_arp.h
 ===================================================================
 --- eglibc-2.16.orig/sysdeps/unix/sysv/linux/net/if_arp.h	2012-02-18 03:24:59.000000000 +0100
 +++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,183 +0,0 @@
+@@ -1,182 +0,0 @@
 -/* Definitions for Address Resolution Protocol.
--   Copyright (C) 1997-2016 Free Software Foundation, Inc.
+-   Copyright (C) 1997-2017 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 -
@@ -1698,12 +1704,11 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/if_arp.h
 -/* Based on the 4.4BSD and Linux version of this file.  */
 -
 -#ifndef _NET_IF_ARP_H
--
 -#define _NET_IF_ARP_H 1
--#include <sys/cdefs.h>
 -
 -#include <sys/types.h>
 -#include <sys/socket.h>
+-#include <stdint.h>
 -
 -__BEGIN_DECLS
 -
@@ -1849,7 +1854,7 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/if_arp.h
 -struct arpd_request
 -  {
 -    unsigned short int req;		/* Request type.  */
--    u_int32_t ip;			/* IP address of entry.  */
+-    uint32_t ip;			/* IP address of entry.  */
 -    unsigned long int dev;		/* Device entry is tied to.  */
 -    unsigned long int stamp;
 -    unsigned long int updated;
@@ -1875,7 +1880,7 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/if_ppp.h
 ===================================================================
 --- eglibc-2.16.orig/sysdeps/unix/sysv/linux/net/if_ppp.h	2006-08-17 03:18:26.000000000 +0200
 +++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,169 +0,0 @@
+@@ -1,171 +0,0 @@
 -/*	From: if_ppp.h,v 1.3 1995/06/12 11:36:50 paulus Exp */
 -
 -/*
@@ -1927,8 +1932,7 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/if_ppp.h
 -#define __NET_IF_PPP_H 1
 -
 -#include <sys/types.h>
--#include <sys/cdefs.h>
--
+-#include <stdint.h>
 -#include <net/if.h>
 -#include <sys/ioctl.h>
 -#include <net/ppp_defs.h>
@@ -1992,11 +1996,13 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/if_ppp.h
 -
 -/* Structure describing a CCP configuration option, for PPPIOCSCOMPRESS */
 -struct ppp_option_data {
--	u_int8_t  *ptr;
--	u_int32_t length;
--	int	  transmit;
+-	uint8_t  *ptr;
+-	uint32_t length;
+-	int	 transmit;
 -};
 -
+-/* 'struct ifreq' is only available from net/if.h under __USE_MISC.  */
+-#ifdef __USE_MISC
 -struct ifpppstatsreq {
 -  struct ifreq	   b;
 -  struct ppp_stats stats;			/* statistic information */
@@ -2009,6 +2015,7 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/if_ppp.h
 -
 -#define ifr__name       b.ifr_ifrn.ifrn_name
 -#define stats_ptr       b.ifr_ifru.ifru_data
+-#endif
 -
 -/*
 - * Ioctl definitions.
@@ -2050,7 +2057,7 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/route.h
 --- eglibc-2.16.orig/sysdeps/unix/sysv/linux/net/route.h	2012-02-18 03:24:59.000000000 +0100
 +++ /dev/null	1970-01-01 00:00:00.000000000 +0000
 @@ -1,144 +0,0 @@
--/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
+-/* Copyright (C) 1997-2017 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -2111,12 +2118,12 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/route.h
 -    struct in6_addr rtmsg_dst;
 -    struct in6_addr rtmsg_src;
 -    struct in6_addr rtmsg_gateway;
--    u_int32_t rtmsg_type;
--    u_int16_t rtmsg_dst_len;
--    u_int16_t rtmsg_src_len;
--    u_int32_t rtmsg_metric;
+-    uint32_t rtmsg_type;
+-    uint16_t rtmsg_dst_len;
+-    uint16_t rtmsg_src_len;
+-    uint32_t rtmsg_metric;
 -    unsigned long int rtmsg_info;
--    u_int32_t rtmsg_flags;
+-    uint32_t rtmsg_flags;
 -    int rtmsg_ifindex;
 -  };
 -
@@ -2165,7 +2172,7 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/net/route.h
 -#define RTF_NAT		0x08000000
 -
 -#define RTF_ADDRCLASSMASK	0xF8000000
--#define RT_ADDRCLASS(flags)	((__u_int32_t) flags >> 23)
+-#define RT_ADDRCLASS(flags)	((uint32_t) flags >> 23)
 -
 -#define RT_TOS(tos)		((tos) & IPTOS_TOS_MASK)
 -
@@ -2199,7 +2206,7 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/netinet/if_ether.h
 --- eglibc-2.16.orig/sysdeps/unix/sysv/linux/netinet/if_ether.h	2012-02-18 03:24:59.000000000 +0100
 +++ /dev/null	1970-01-01 00:00:00.000000000 +0000
 @@ -1,104 +0,0 @@
--/* Copyright (C) 1996-2016 Free Software Foundation, Inc.
+-/* Copyright (C) 1996-2017 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -2271,10 +2278,10 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/netinet/if_ether.h
 - */
 -struct	ether_arp {
 -	struct	arphdr ea_hdr;		/* fixed-size header */
--	u_int8_t arp_sha[ETH_ALEN];	/* sender hardware address */
--	u_int8_t arp_spa[4];		/* sender protocol address */
--	u_int8_t arp_tha[ETH_ALEN];	/* target hardware address */
--	u_int8_t arp_tpa[4];		/* target protocol address */
+-	uint8_t arp_sha[ETH_ALEN];	/* sender hardware address */
+-	uint8_t arp_spa[4];		/* sender protocol address */
+-	uint8_t arp_tha[ETH_ALEN];	/* target hardware address */
+-	uint8_t arp_tpa[4];		/* target protocol address */
 -};
 -#define	arp_hrd	ea_hdr.ar_hrd
 -#define	arp_pro	ea_hdr.ar_pro
@@ -2289,14 +2296,14 @@ Index: eglibc-2.16/sysdeps/unix/sysv/linux/netinet/if_ether.h
 - */
 -#define ETHER_MAP_IP_MULTICAST(ipaddr, enaddr) \
 -	/* struct in_addr *ipaddr; */ \
--	/* u_char enaddr[ETH_ALEN];	   */ \
+-	/* uint8_t enaddr[ETH_ALEN]; */ \
 -{ \
 -	(enaddr)[0] = 0x01; \
 -	(enaddr)[1] = 0x00; \
 -	(enaddr)[2] = 0x5e; \
--	(enaddr)[3] = ((u_int8_t *)ipaddr)[1] & 0x7f; \
--	(enaddr)[4] = ((u_int8_t *)ipaddr)[2]; \
--	(enaddr)[5] = ((u_int8_t *)ipaddr)[3]; \
+-	(enaddr)[3] = ((uint8_t *)ipaddr)[1] & 0x7f; \
+-	(enaddr)[4] = ((uint8_t *)ipaddr)[2]; \
+-	(enaddr)[5] = ((uint8_t *)ipaddr)[3]; \
 -}
 -
 -__END_DECLS
