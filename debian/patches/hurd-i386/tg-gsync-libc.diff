@@ -47,10 +47,9 @@ cleanup routines now use gcc's cleanup attribute
  sysdeps/mach/libc-lock.h           | 170 +++++++++++++++++++------
  sysdeps/mach/hurd/bits/errno.h     |   8 +-
  sysdeps/mach/hurd/libc-lock.h      | 215 --------------------------------
- sysdeps/mach/hurd/malloc-machine.h |  11 +-
  sysdeps/mach/hurd/setpgid.c        |  10 +-
  sysdeps/mach/hurd/setsid.c         |  10 +-
- 19 files changed, 681 insertions(+), 323 deletions(-)
+ 18 files changed, 666 insertions(+), 309 deletions(-)
 
 Index: glibc-2.23/hurd/Makefile
 ===================================================================
@@ -87,7 +86,7 @@ Index: glibc-2.23/hurd/hurdlock.c
 --- /dev/null
 +++ glibc-2.23/hurd/hurdlock.c
 @@ -0,0 +1,247 @@
-+/* Copyright (C) 1999-2016 Free Software Foundation, Inc.
++/* Copyright (C) 1999-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -339,7 +338,7 @@ Index: glibc-2.23/hurd/hurdlock.h
 --- /dev/null
 +++ glibc-2.23/hurd/hurdlock.h
 @@ -0,0 +1,117 @@
-+/* Copyright (C) 1999-2016 Free Software Foundation, Inc.
++/* Copyright (C) 1999-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -702,7 +701,7 @@ Index: glibc-2.23/mach/lowlevellock.h
 --- /dev/null
 +++ glibc-2.23/mach/lowlevellock.h
 @@ -0,0 +1,80 @@
-+/* Copyright (C) 1994-2016 Free Software Foundation, Inc.
++/* Copyright (C) 1994-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -1101,7 +1100,7 @@ Index: glibc-2.23/sysdeps/mach/hurd/libc-lock.h
 +++ /dev/null
 @@ -1,219 +0,0 @@
 -/* libc-internal interface for mutex locks.  Hurd version using Mach cthreads.
--   Copyright (C) 1996-2016 Free Software Foundation, Inc.
+-   Copyright (C) 1996-2017 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -1319,31 +1318,6 @@ Index: glibc-2.23/sysdeps/mach/hurd/libc-lock.h
 -#endif
 -
 -#endif	/* libc-lock.h */
-Index: glibc-2.23/sysdeps/mach/hurd/malloc-machine.h
-===================================================================
---- glibc-2.23.orig/sysdeps/mach/hurd/malloc-machine.h
-+++ glibc-2.23/sysdeps/mach/hurd/malloc-machine.h
-@@ -22,15 +22,14 @@
- #ifndef _MALLOC_MACHINE_H
- #define _MALLOC_MACHINE_H
- 
--#include <atomic.h>
- #include <libc-lock.h>
-+#include <mach/lock-intern.h>
- 
--/* Assume hurd, with cthreads */
--
--/* Cthreads `mutex_t' is a pointer to a mutex, and malloc wants just the
--   mutex itself.  */
- #undef mutex_t
--#define mutex_t struct mutex
-+#define mutex_t unsigned int
-+
-+#undef MUTEX_INITIALIZER
-+#define MUTEX_INITIALIZER   LLL_INITIALIZER
- 
- #undef mutex_init
- #define mutex_init(m) ({ __mutex_init(m); 0; })
 Index: glibc-2.23/sysdeps/mach/hurd/setpgid.c
 ===================================================================
 --- glibc-2.23.orig/sysdeps/mach/hurd/setpgid.c

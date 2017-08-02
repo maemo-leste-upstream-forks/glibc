@@ -104,9 +104,11 @@ diff --git a/sysdeps/mach/hurd/access.c b/sysdeps/mach/hurd/access.c
 index 3a54df7..9379689 100644
 --- a/sysdeps/mach/hurd/access.c
 +++ b/sysdeps/mach/hurd/access.c
-@@ -16,10 +16,6 @@
+@@ -15,159 +15,29 @@
+    License along with the GNU C Library; if not, see
     <http://www.gnu.org/licenses/>.  */
  
++#include <errno.h>
  #include <unistd.h>
 -#include <hurd.h>
 -#include <hurd/port.h>
@@ -114,10 +116,23 @@ index 3a54df7..9379689 100644
 -#include <hurd/lookup.h>
  #include <fcntl.h>
  
- /* Test for access to FILE by our real user and group IDs.  */
-@@ -28,121 +24,7 @@ __access (file, type)
- int
- __access (const char *file, int type)
+-static int
+-hurd_fail_seterrno (error_t err)
+-{
+-  return __hurd_fail (err);
+-}
+-
+-static int
+-hurd_fail_noerrno (error_t err)
+-{
+-  return -1;
+-}
+-
+-static int
+-access_common (const char *file, int type, int (*errfunc) (error_t))
++/* Test for access to FILE by our real user and group IDs.  */
++int
++__access (const char *file, int type)
  {
 -  error_t err;
 -  file_t rcrdir, rcwdir, io;
@@ -213,13 +228,13 @@ index 3a54df7..9379689 100644
 -  if (rcwdir != MACH_PORT_NULL)
 -    __mach_port_deallocate (__mach_task_self (), rcwdir);
 -  if (err)
--    return __hurd_fail (err);
+-    return errfunc (err);
 -
 -  /* Find out what types of access we are allowed to this file.  */
 -  err = __file_check_access (io, &allowed);
 -  __mach_port_deallocate (__mach_task_self (), io);
 -  if (err)
--    return __hurd_fail (err);
+-    return errfunc (err);
 -
 -  flags = 0;
 -  if (type & R_OK)
@@ -231,12 +246,36 @@ index 3a54df7..9379689 100644
 -
 -  if (flags & ~allowed)
 -    /* We are not allowed all the requested types of access.  */
--    return __hurd_fail (EACCES);
+-    return errfunc (EACCES);
 -
 -  return 0;
 +  return __faccessat (AT_FDCWD, file, type, 0);
  }
  
+ /* Test for access to FILE by our real user and group IDs without setting
+-   errno.  This may be unsafe to run during initialization of tunables
+-   since access_common calls __hurd_file_name_lookup, which calls
+-   __hurd_file_name_lookup_retry, which can set errno.  */
++   errno.  */
+ int
+ __access_noerrno (const char *file, int type)
+ {
+-  return access_common (file, type, hurd_fail_noerrno);
+-}
++  int ret;
++  int saved_errno = errno;
+ 
+-/* Test for access to FILE by our real user and group IDs.  */
+-int
+-__access (const char *file, int type)
+-{
+-  return access_common (file, type, hurd_fail_seterrno);
++  ret = __faccessat (AT_FDCWD, file, type, 0);
++
++  __set_errno(saved_errno);
++  return ret;
+ }
++
  weak_alias (__access, access)
 diff --git a/sysdeps/mach/hurd/euidaccess.c b/sysdeps/mach/hurd/euidaccess.c
 index 5b96a3c..a4da9da 100644

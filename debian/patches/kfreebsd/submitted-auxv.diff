@@ -2,9 +2,9 @@ https://sourceware.org/bugzilla/show_bug.cgi?id=15794
 
 --- a/misc/getauxval.c
 +++ b/misc/getauxval.c
-@@ -24,10 +24,15 @@
- {
+@@ -27,10 +27,15 @@
    ElfW(auxv_t) *p;
+ #endif
  
 +#ifdef AT_HWCAP
    if (type == AT_HWCAP)
@@ -12,16 +12,13 @@ https://sourceware.org/bugzilla/show_bug.cgi?id=15794
 -  else if (type == AT_HWCAP2)
 +#endif
 +
-+#ifdef AT_HWCAP2    
++#ifdef AT_HWCAP2
 +  if (type == AT_HWCAP2)
      return GLRO(dl_hwcap2);
 +#endif
  
  #ifdef HAVE_AUX_VECTOR
    for (p = GLRO(dl_auxv); p->a_type != AT_NULL; p++)
-diff --git a/bits/auxv.h b/bits/auxv.h
-new file mode 100644
-index 0000000..76701c3
 --- /dev/null
 +++ b/bits/auxv.h
 @@ -0,0 +1,76 @@
@@ -101,11 +98,9 @@ index 0000000..76701c3
 +#define AT_L1D_CACHESHAPE	35
 +#define AT_L2_CACHESHAPE	36
 +#define AT_L3_CACHESHAPE	37
-diff --git a/elf/elf.h b/elf/elf.h
-index f372271..cd086ab 100644
 --- a/elf/elf.h
 +++ b/elf/elf.h
-@@ -972,66 +972,7 @@ typedef struct
+@@ -1110,66 +1110,7 @@
      } a_un;
  } Elf64_auxv_t;
  
@@ -173,21 +168,17 @@ index f372271..cd086ab 100644
  /* Note section contents.  Each entry in the note section begins with
     a header of a fixed form.  */
  
-diff --git a/misc/Makefile b/misc/Makefile
-index 5df70e6..3928e08 100644
 --- a/misc/Makefile
 +++ b/misc/Makefile
-@@ -32,7 +32,7 @@ headers	:= sys/uio.h bits/uio.h sys/ioctl.h bits/ioctls.h bits/ioctl-types.h \
+@@ -34,7 +34,7 @@
  	   regexp.h bits/select.h bits/mman.h sys/xattr.h \
  	   syslog.h sys/syslog.h \
  	   bits/syslog.h bits/syslog-ldbl.h bits/syslog-path.h bits/error.h \
--	   bits/select2.h bits/hwcap.h sys/auxv.h
-+	   bits/select2.h bits/hwcap.h bits/auxv.h sys/auxv.h
+-	   bits/select2.h bits/hwcap.h sys/auxv.h \
++	   bits/select2.h bits/hwcap.h bits/auxv.h sys/auxv.h \
+ 	   sys/sysmacros.h bits/sysmacros.h
  
  routines := brk sbrk sstk ioctl \
- 	    readv writev preadv preadv64 pwritev pwritev64 \
-diff --git a/misc/sys/auxv.h b/misc/sys/auxv.h
-index a69250b..ba5022b 100644
 --- a/misc/sys/auxv.h
 +++ b/misc/sys/auxv.h
 @@ -20,6 +20,7 @@
@@ -198,8 +189,6 @@ index a69250b..ba5022b 100644
  #include <sys/cdefs.h>
  #include <bits/hwcap.h>
  
-diff --git a/sysdeps/generic/ldsodefs.h b/sysdeps/generic/ldsodefs.h
-index e7b0516..d284a9c 100644
 --- a/sysdeps/generic/ldsodefs.h
 +++ b/sysdeps/generic/ldsodefs.h
 @@ -29,6 +29,7 @@

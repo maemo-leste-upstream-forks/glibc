@@ -9,14 +9,9 @@ https://sourceware.org/bugzilla/show_bug.cgi?id=15605
 Since Debian glibc is built with -O2, we shouldn't actually have the issue, but
 we should try not to define NO_HIDDEN
 
----
- symbol-hacks.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-Index: eglibc-2.18/sysdeps/generic/symbol-hacks.h
-===================================================================
---- eglibc-2.18.orig/sysdeps/generic/symbol-hacks.h	2013-06-15 17:37:04.000000000 +0000
-+++ eglibc-2.18/sysdeps/generic/symbol-hacks.h	2013-10-10 06:28:31.000000000 +0000
-@@ -1,7 +1,10 @@
+--- a/sysdeps/generic/symbol-hacks.h
++++ b/sysdeps/generic/symbol-hacks.h
+@@ -1,9 +1,12 @@
  /* Some compiler optimizations may transform loops into memset/memmove
     calls and without proper declaration it may generate PLT calls.  */
  #if !defined __ASSEMBLER__ && IS_IN (libc) && defined SHARED
@@ -26,4 +21,6 @@ Index: eglibc-2.18/sysdeps/generic/symbol-hacks.h
  asm ("memset = __GI_memset");
  asm ("memcpy = __GI_memcpy");
 +#  endif
- #endif
+ 
+ /* Some targets do not use __stack_chk_fail_local.  In libc.so,
+    redirect __stack_chk_fail to a hidden reference

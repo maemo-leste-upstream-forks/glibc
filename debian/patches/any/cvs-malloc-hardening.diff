@@ -3,29 +3,14 @@
 	* malloc/malloc.c (unlink): Add consistency check between size and
 	next->prev->size, to further harden against 1-byte overflows.
 
-2016-10-27  Florian Weimer  <fweimer@redhat.com>
-
-	* malloc/malloc.c (sysmalloc): Initialize previous size field of
-	mmaped chunks.
-
-diff --git a/malloc/malloc.c b/malloc/malloc.c
-index e29105c372..994a23248e 100644
 --- a/malloc/malloc.c
 +++ b/malloc/malloc.c
 @@ -1376,6 +1376,8 @@ typedef struct malloc_chunk *mbinptr;
  
  /* Take a chunk off a bin list */
  #define unlink(AV, P, BK, FD) {                                            \
-+    if (__builtin_expect (chunksize(P) != next_chunk(P)->prev_size, 0))      \
++    if (__builtin_expect (chunksize(P) != prev_size (next_chunk(P)), 0))      \
 +      malloc_printerr (check_action, "corrupted size vs. prev_size", P, AV);  \
      FD = P->fd;								      \
      BK = P->bk;								      \
      if (__builtin_expect (FD->bk != P || BK->fd != P, 0))		      \
-@@ -2306,6 +2306,7 @@ sysmalloc (INTERNAL_SIZE_T nb, mstate av)
-               else
-                 {
-                   p = (mchunkptr) mm;
-+		  p->prev_size = 0;
-                   set_head (p, size | IS_MMAPPED);
-                 }
- 
