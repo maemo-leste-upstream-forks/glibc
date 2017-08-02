@@ -1,10 +1,17 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.25/master from glibc-2.25
 
 diff --git a/ChangeLog b/ChangeLog
-index f140ee67de..ff0853d3d2 100644
+index f140ee67de..b70096ae6d 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,240 @@
+@@ -1,3 +1,247 @@
++2017-04-28  Tulio Magno Quites Machado Filho  <tuliom@linux.vnet.ibm.com>
++
++	[BZ #21280]
++	* sysdeps/powerpc/power7/fpu/s_logbl.c (__logbl): Ignore the
++	signal of subnormals and adjust the exponent of power of 2 down
++	when low part has opposite sign.
++
 +2017-07-26  H.J. Lu  <hongjiu.lu@intel.com>
 +
 +	[BZ #21666]
@@ -2725,6 +2732,54 @@ index db6d721fce..4bb87e2331 100644
        /* Release acquired locks in the multi-threaded case.  */
        if (multiple_threads)
  	{
+diff --git a/sysdeps/powerpc/power7/fpu/s_logbl.c b/sysdeps/powerpc/power7/fpu/s_logbl.c
+index f7ecbd105a..3ae383a831 100644
+--- a/sysdeps/powerpc/power7/fpu/s_logbl.c
++++ b/sysdeps/powerpc/power7/fpu/s_logbl.c
+@@ -35,14 +35,16 @@ static const union {
+ long double
+ __logbl (long double x)
+ {
+-  double xh;
++  double xh, xl;
+   double ret;
++  int64_t hx;
+ 
+   if (__builtin_expect (x == 0.0L, 0))
+     /* Raise FE_DIVBYZERO and return -HUGE_VAL[LF].  */
+     return -1.0L / __builtin_fabsl (x);
+ 
+-  xh = ldbl_high (x);
++  ldbl_unpack (x, &xh, &xl);
++  EXTRACT_WORDS64 (hx, xh);
+   /* ret = x & 0x7ff0000000000000;  */
+   asm (
+     "xxland %x0,%x1,%x2\n"
+@@ -58,10 +60,20 @@ __logbl (long double x)
+     {
+       /* POSIX specifies that denormal number is treated as
+          though it were normalized.  */
+-      int64_t hx;
+-
+-      EXTRACT_WORDS64 (hx, xh);
+-      return (long double) (-1023 - (__builtin_clzll (hx) - 12));
++      return (long double) (- (__builtin_clzll (hx & 0x7fffffffffffffffLL) \
++			       - 12) - 1023);
++    }
++  else if ((hx & 0x000fffffffffffffLL) == 0)
++    {
++      /* If the high part is a power of 2, and the low part is nonzero
++	 with the opposite sign, the low part affects the
++	 exponent.  */
++      int64_t lx, rhx;
++      EXTRACT_WORDS64 (lx, xl);
++      rhx = (hx & 0x7ff0000000000000LL) >> 52;
++      if ((hx ^ lx) < 0 && (lx & 0x7fffffffffffffffLL) != 0)
++	rhx--;
++      return (long double) (rhx - 1023);
+     }
+   /* Test to avoid logb_downward (0.0) == -0.0.  */
+   return ret == -0.0 ? 0.0 : ret;
 diff --git a/sysdeps/unix/sysv/linux/alpha/localplt.data b/sysdeps/unix/sysv/linux/alpha/localplt.data
 index cca17f1e34..1f0e3b494e 100644
 --- a/sysdeps/unix/sysv/linux/alpha/localplt.data
