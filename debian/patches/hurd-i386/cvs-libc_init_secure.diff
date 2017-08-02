@@ -1,0 +1,27 @@
+commit 8ee1abdb4b2c92fb5f189aabec34d1b7d54ac332
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Wed Aug 2 23:29:57 2017 +0200
+
+    [hurd]: Add __libc_init_secure stub
+
+    csu/libc-start.c now insists on calling __libc_init_secure, while the Hurd
+    port already implements it "very early" in dl-sysdep.c and init-first.c
+
+            * sysdeps/mach/hurd/enbl-secure.c (__libc_init_secure): Define
+            function.
+
+diff --git a/sysdeps/mach/hurd/enbl-secure.c b/sysdeps/mach/hurd/enbl-secure.c
+index 9aeb0fafa6..87a8f93013 100644
+--- a/sysdeps/mach/hurd/enbl-secure.c
++++ b/sysdeps/mach/hurd/enbl-secure.c
+@@ -21,3 +21,10 @@
+    In the shared library, the `__libc_enable_secure' variable is defined
+    by the dynamic linker in dl-sysdep.c and set there.
+    In the static library, it is defined in init-first.c and set there.  */
++
++#include <libc-internal.h>
++
++void
++__libc_init_secure (void)
++{
++}
