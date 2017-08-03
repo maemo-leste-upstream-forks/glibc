@@ -725,7 +725,6 @@ test-xfail-check-installed-headers-cxx = yes
 test-xfail-tst-inet6_scopeid_pton = yes
 test-xfail-tst-posix_fallocate64 = yes
 test-xfail-test-fesetexcept-traps = yes
-test-xfail-test-ildouble = yes
 test-xfail-tst-posix_fadvise = yes
 test-xfail-tst-posix_fadvise64 = yes
 test-xfail-tst-vfork3 = yes
