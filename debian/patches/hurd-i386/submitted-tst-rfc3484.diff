@@ -96,3 +96,20 @@ Index: glibc-2.25/posix/tst-rfc3484-3.c
  #undef	USE_NSCD
  #include "../sysdeps/posix/getaddrinfo.c"
  
+Index: glibc-2.25/inet/tst-inet6_scopeid_pton.c
+===================================================================
+--- glibc-2.25.orig/inet/tst-inet6_scopeid_pton.c
++++ glibc-2.25/inet/tst-inet6_scopeid_pton.c
+@@ -22,6 +22,12 @@
+ #include <net/if.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <ctype.h>
++
++#define isdigit_l(c, locale) isdigit(c)
++#define ____strtoull_l_internal(s, end, base, group, locale) strtoul(s, end, base)
++#define __if_nametoindex if_nametoindex
++#include "inet6_scopeid_pton.c"
+ 
+ /* An interface which is known to the system.  */
+ static const char *interface_name;
