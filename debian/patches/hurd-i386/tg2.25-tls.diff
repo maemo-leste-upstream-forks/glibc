@@ -1,0 +1,39 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Fix tls support for glibc 2.25
+
+* csu/libc-start.c (LIBC_START_MAIN) [__GNU__]: Do not call
+__libc_setup_tls.
+* sysdeps/mach/hurd/i386/init-first.c (init): Call __libc_setup_tls.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+---
+ csu/libc-start.c                    |    2 ++
+ sysdeps/mach/hurd/i386/init-first.c |    3 ++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+--- a/csu/libc-start.c
++++ b/csu/libc-start.c
+@@ -185,8 +185,10 @@ LIBC_START_MAIN (int (*main) (int, char
+   /* Perform IREL{,A} relocations.  */
+   apply_irel ();
+ 
++#ifndef __GNU__
+   /* The stack guard goes into the TCB, so initialize it early.  */
+   __libc_setup_tls ();
++#endif
+ 
+   /* Set up the stack checker's canary.  */
+   uintptr_t stack_chk_guard = _dl_setup_stack_chk_guard (_dl_random);
+--- a/sysdeps/mach/hurd/i386/init-first.c
++++ b/sysdeps/mach/hurd/i386/init-first.c
+@@ -197,7 +197,8 @@ init (int *data)
+       assert (d->phdrsz % sizeof (ElfW(Phdr)) == 0);
+     }
+ 
+-  /* We need to setup TLS before starting sigthread */
++  /* We need to setup TLS before starting sigthread and set stack guard.  */
++  __libc_setup_tls ();
+   extern void __pthread_initialize_minimal(void);
+   __pthread_initialize_minimal();
+ #endif
