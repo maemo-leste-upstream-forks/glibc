@@ -4,11 +4,73 @@ Define missing __inet6_scopeid_pton internal function used by getaddrinfo
 
 * posix/tst-rfc3484.c: Include <netinet/in.h> and <net/if.h>
 (__inet6_scopeid_pton): New function.
+* posix/tst-rfc3484-2.c: Include <netinet/in.h> and <net/if.h>
+(__inet6_scopeid_pton): New function.
+* posix/tst-rfc3484-3.c: Include <netinet/in.h> and <net/if.h>
+(__inet6_scopeid_pton): New function.
 
 Index: glibc-2.25/posix/tst-rfc3484.c
 ===================================================================
 --- glibc-2.25.orig/posix/tst-rfc3484.c
 +++ glibc-2.25/posix/tst-rfc3484.c
+@@ -2,6 +2,8 @@
+ #include <stdio.h>
+ #include <ifaddrs.h>
+ #include <stdint.h>
++#include <netinet/in.h>
++#include <net/if.h>
+ 
+ /* Internal definitions used in the libc code.  */
+ #define __getservbyname_r getservbyname_r
+@@ -55,6 +57,15 @@ _res_hconf_init (void)
+ {
+ }
+ 
++int
++internal_function
++__inet6_scopeid_pton (const struct in6_addr *address, const char *scope,
++                      uint32_t *result)
++{
++  *result = if_nametoindex(scope);
++  return 0;
++}
++
+ #undef	USE_NSCD
+ #include "../sysdeps/posix/getaddrinfo.c"
+ 
+Index: glibc-2.25/posix/tst-rfc3484-2.c
+===================================================================
+--- glibc-2.25.orig/posix/tst-rfc3484-2.c
++++ glibc-2.25/posix/tst-rfc3484-2.c
+@@ -2,6 +2,8 @@
+ #include <stdio.h>
+ #include <ifaddrs.h>
+ #include <stdint.h>
++#include <netinet/in.h>
++#include <net/if.h>
+ 
+ /* Internal definitions used in the libc code.  */
+ #define __getservbyname_r getservbyname_r
+@@ -55,6 +57,15 @@ _res_hconf_init (void)
+ {
+ }
+ 
++int
++internal_function
++__inet6_scopeid_pton (const struct in6_addr *address, const char *scope,
++                      uint32_t *result)
++{
++  *result = if_nametoindex(scope);
++  return 0;
++}
++
+ #undef	USE_NSCD
+ #include "../sysdeps/posix/getaddrinfo.c"
+ 
+Index: glibc-2.25/posix/tst-rfc3484-3.c
+===================================================================
+--- glibc-2.25.orig/posix/tst-rfc3484-3.c
++++ glibc-2.25/posix/tst-rfc3484-3.c
 @@ -2,6 +2,8 @@
  #include <stdio.h>
  #include <ifaddrs.h>
