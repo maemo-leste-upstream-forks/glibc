@@ -233,14 +233,10 @@ test-xfail-POSIX2008/sys/un.h/conform = yes
 test-xfail-POSIX2008/termios.h/conform = yes
 test-xfail-POSIX/fcntl.h/conform = yes
 test-xfail-POSIX/mqueue.h/conform = yes
-test-xfail-POSIX/sched.h/conform = yes
 test-xfail-POSIX/sys/stat.h/conform = yes
-test-xfail-POSIX/time.h/conform = yes
 test-xfail-UNIX98/mqueue.h/conform = yes
-test-xfail-UNIX98/sched.h/conform = yes
 test-xfail-UNIX98/sys/stat.h/conform = yes
 test-xfail-UNIX98/termios.h/conform = yes
-test-xfail-UNIX98/time.h/conform = yes
 test-xfail-XOPEN2K8/mqueue.h/conform = yes
 test-xfail-XOPEN2K8/pthread.h/conform = yes
 test-xfail-XOPEN2K8/sys/stat.h/conform = yes
@@ -248,7 +244,6 @@ test-xfail-XOPEN2K/sys/stat.h/conform = yes
 test-xfail-XPG4/sys/resource.h/conform = yes
 test-xfail-XPG4/sys/statvfs.h/conform = yes
 test-xfail-XPG4/sys/un.h/conform = yes
-test-xfail-XPG4/time.h/conform = yes
 
 test-xfail-ISO11/assert.h/linknamespace = yes
 test-xfail-ISO11/complex.h/linknamespace = yes
@@ -702,7 +697,6 @@ test-xfail-XOPEN2K8/termios.h/conform = yes
 test-xfail-XPG3/fcntl.h/conform = yes
 test-xfail-XPG3/sys/stat.h/conform = yes
 test-xfail-XPG3/termios.h/conform = yes
-test-xfail-XPG3/time.h/conform = yes
 test-xfail-XPG4/fcntl.h/conform = yes
 test-xfail-XPG4/sys/stat.h/conform = yes
 test-xfail-XPG4/termios.h/conform = yes
@@ -720,6 +714,24 @@ test-xfail-tst-waitid = yes
 
 # seems fixed in 2.24-3?
 test-xfail-tst-secure-getenv = yes
+
+# new in 2.25
+test-xfail-POSIX2008/dlfcn.h/linknamespace = yes
+test-xfail-UNIX98/dlfcn.h/linknamespace = yes
+test-xfail-XOPEN2K/dlfcn.h/linknamespace = yes
+test-xfail-XOPEN2K8/dlfcn.h/linknamespace = yes
+test-xfail-check-installed-headers-c = yes
+test-xfail-check-installed-headers-cxx = yes
+test-xfail-tst-inet6_scopeid_pton = yes
+test-xfail-tst-posix_fallocate64 = yes
+test-xfail-test-fesetexcept-traps = yes
+test-xfail-test-ildouble = yes
+test-xfail-tst-posix_fadvise = yes
+test-xfail-tst-posix_fadvise64 = yes
+test-xfail-tst-vfork3 = yes
+test-xfail-tst-support_record_failure = yes
+test-xfail-tst-support_record_failure-2 = yes
+test-xfail-tst-wcstod-round = yes
 endif
 
 
