@@ -35,5 +35,5 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 +  /* We need to setup TLS before starting sigthread and set stack guard.  */
 +  __libc_setup_tls ();
    extern void __pthread_initialize_minimal(void);
-   __pthread_initialize_minimal();
- #endif
+   if (__pthread_initialize_minimal != NULL)
+     __pthread_initialize_minimal();
