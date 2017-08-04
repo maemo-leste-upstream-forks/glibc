@@ -1,0 +1,16 @@
+Fix stack_t header hygiene on Hurd/kFreeBSD
+
+Done upstream in the linux version in c66b29f9cce9bf7c67d55879dff5e4cd03ecfac1.
+Fixed in 2.26 in a different way.
+
+--- a/bits/sigstack.h
++++ b/bits/sigstack.h
+@@ -23,6 +23,8 @@
+ # error "Never include this file directly.  Use <signal.h> instead"
+ #endif
+ 
++#define __need_size_t
++#include <stddef.h>
+ 
+ /* Structure describing a signal stack (obsolete).  */
+ struct sigstack
