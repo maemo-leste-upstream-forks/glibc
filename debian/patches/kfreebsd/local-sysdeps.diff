@@ -2229,7 +2229,7 @@
 +#endif /* bits/posix_opt.h */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/resource.h
-@@ -0,0 +1,220 @@
+@@ -0,0 +1,219 @@
 +/* Bit values & structures for resource limits.  FreeBSD version.
 +   Copyright (C) 1994, 1996-1998, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2389,8 +2389,7 @@
 +#define RUSAGE_CHILDREN RUSAGE_CHILDREN
 +};
 +
-+#define __need_timeval
-+#include <bits/time.h>		/* For `struct timeval'.  */
++#include <bits/types/struct_timeval.h>
 +
 +/* Structure which says how much of each resource has been used.  */
 +struct rusage
@@ -4398,6 +4397,69 @@
 +
 +#endif /* bits/syslog-path.h */
 --- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/sysmacros.h
+@@ -0,0 +1,60 @@
++/* Definitions of macros to access `dev_t' values.  FreeBSD version.
++   Copyright (C) 1996-2017 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef _BITS_SYSMACROS_H
++#define _BITS_SYSMACROS_H 1
++
++#ifndef _SYS_SYSMACROS_H
++# error "Never include <bits/sysmacros.h> directly; use <sys/sysmacros.h> instead."
++#endif
++
++/* The FreeBSD version of dev_t in glibc is a 32-bit quantity, with 8-bit
++   major and 24-bit minor numbers.  The encoding is mmmmMMmm, where M is a
++   hex digit of the major number and m is a hex digit of the minor number.  */
++
++#define __SYSMACROS_DECLARE_MAJOR(DECL_TEMPL)			\
++  DECL_TEMPL(unsigned int, major, (__dev_t __dev))
++
++#define __SYSMACROS_DEFINE_MAJOR(DECL_TEMPL)			\
++  __SYSMACROS_DECLARE_MAJOR (DECL_TEMPL)			\
++  {								\
++    return ((__dev & (__dev_t) 0x0000ff00u) >> 8);		\
++  }
++
++#define __SYSMACROS_DECLARE_MINOR(DECL_TEMPL)			\
++  DECL_TEMPL(unsigned int, minor, (__dev_t __dev))
++
++#define __SYSMACROS_DEFINE_MINOR(DECL_TEMPL)			\
++  __SYSMACROS_DECLARE_MINOR (DECL_TEMPL)			\
++  {								\
++    return (__dev & (__dev_t) 0xffff00ff);			\
++  }
++
++#define __SYSMACROS_DECLARE_MAKEDEV(DECL_TEMPL)			\
++  DECL_TEMPL(__dev_t, makedev, (unsigned int __major, unsigned int __minor))
++
++#define __SYSMACROS_DEFINE_MAKEDEV(DECL_TEMPL)			\
++  __SYSMACROS_DECLARE_MAKEDEV (DECL_TEMPL)			\
++  {								\
++    __dev_t __dev;						\
++    __dev  = (((__dev_t) (__major & 0x000000ffu)) << 8);	\
++    __dev |= (((__dev_t) (__minor & 0xffff00ffu)) << 0);	\
++    return __dev;						\
++  }
++
++#endif /* bits/sysmacros.h */
+--- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/termios.h
 @@ -0,0 +1,245 @@
 +/* termios type and macro definitions.  FreeBSD version.
@@ -4647,9 +4709,9 @@
 +
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/time.h
-@@ -0,0 +1,103 @@
+@@ -0,0 +1,87 @@
 +/* System-dependent timing definitions.  FreeBSD version.
-+   Copyright (C) 1996-1997, 1999, 2000, 2002 Free Software Foundation, Inc.
++   Copyright (C) 1996-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -4663,64 +4725,65 @@
 +   Lesser General Public License for more details.
 +
 +   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
 +
 +/*
 + * Never include this file directly; use <time.h> instead.
 + */
 +
-+#ifndef __need_timeval
-+# ifndef _BITS_TIME_H
-+#  define _BITS_TIME_H	1
++#ifndef _BITS_TIME_H
++#define _BITS_TIME_H	1
 +
-+/* ISO/IEC 9899:1990 7.12.1: <time.h>
-+   The macro `CLOCKS_PER_SEC' is the number per second of the value
-+   returned by the `clock' function. */
++#include <bits/types.h>
++
++/* ISO/IEC 9899:1999 7.23.1: Components of time
++   The macro `CLOCKS_PER_SEC' is an expression with type `clock_t' that is
++   the number per second of the value returned by the `clock' function.  */
 +/* CAE XSH, Issue 4, Version 2: <time.h>
 +   The value of CLOCKS_PER_SEC is required to be 1 million on all
 +   XSI-conformant systems. */
-+#  define CLOCKS_PER_SEC  ((clock_t) 1000000l)
++#define CLOCKS_PER_SEC  ((__clock_t) 1000000)
 +
-+#  if (!defined __STRICT_ANSI__ || defined __USE_POSIX) \
++#if (!defined __STRICT_ANSI__ || defined __USE_POSIX) \
 +   && !defined __USE_XOPEN2K
 +/* Even though CLOCKS_PER_SEC has such a strange value CLK_TCK
 +   presents the real value for clock ticks per second for the system.  */
-+#   define CLK_TCK 128
-+#  endif
++extern long int __sysconf (int);
++# define CLK_TCK ((__clock_t) __sysconf (2))	/* 2 is _SC_CLK_TCK */
++#endif
 +
-+#  ifdef __USE_POSIX199309
++#ifdef __USE_POSIX199309
 +/* Identifier for system-wide realtime clock.  */
-+#   define CLOCK_REALTIME		0
++# define CLOCK_REALTIME			0
 +/* Monotonic system-wide clock.  */
-+#   define CLOCK_MONOTONIC		4
++# define CLOCK_MONOTONIC		4
 +/* These are BSD specific clocks.  */
-+#   ifdef __USE_MISC
-+#    define CLOCK_VIRTUAL		1
-+#    define CLOCK_PROF			2
-+#    define CLOCK_UPTIME    5               /* FreeBSD-specific. */
-+#    define CLOCK_UPTIME_PRECISE    7       /* FreeBSD-specific. */
-+#    define CLOCK_UPTIME_FAST       8       /* FreeBSD-specific. */
-+#    define CLOCK_REALTIME_PRECISE  9       /* FreeBSD-specific. */
-+#    define CLOCK_REALTIME_FAST     10      /* FreeBSD-specific. */
-+#    define CLOCK_MONOTONIC_PRECISE 11      /* FreeBSD-specific. */
-+#    define CLOCK_MONOTONIC_FAST    12      /* FreeBSD-specific. */
-+#    define CLOCK_SECOND    13              /* FreeBSD-specific. */
-+#   endif
++# ifdef __USE_MISC
++#  define CLOCK_VIRTUAL			1
++#  define CLOCK_PROF			2
++#  define CLOCK_UPTIME 			5  /* FreeBSD-specific. */
++#  define CLOCK_UPTIME_PRECISE		7  /* FreeBSD-specific. */
++#  define CLOCK_UPTIME_FAST		8  /* FreeBSD-specific. */
++#  define CLOCK_REALTIME_PRECISE	9  /* FreeBSD-specific. */
++#  define CLOCK_REALTIME_FAST		10 /* FreeBSD-specific. */
++#  define CLOCK_MONOTONIC_PRECISE	11 /* FreeBSD-specific. */
++#  define CLOCK_MONOTONIC_FAST		12 /* FreeBSD-specific. */
++#  define CLOCK_SECOND			13 /* FreeBSD-specific. */
++# endif
 +/* Thread-specific CPU-time clock.  */
-+#   define CLOCK_THREAD_CPUTIME_ID	14
++# define CLOCK_THREAD_CPUTIME_ID	14
 +/* High-resolution timer from the CPU.  */
-+#   define CLOCK_PROCESS_CPUTIME_ID	15
-+#   ifdef __USE_MISC
-+#     define CPUCLOCK_WHICH_PID 0
-+#     define CPUCLOCK_WHICH_TID 1
-+#   endif
++# define CLOCK_PROCESS_CPUTIME_ID	15
++# ifdef __USE_MISC
++#  define CPUCLOCK_WHICH_PID		0
++#  define CPUCLOCK_WHICH_TID		1
++# endif
 +
 +/* Flag to indicate time is absolute.  */
-+#   define TIMER_RELTIME	0   /* relative timer */
-+#   define TIMER_ABSTIME	1   /* absolute timer */
-+#  endif
++# define TIMER_RELTIME			0 /* relative timer */
++# define TIMER_ABSTIME			1 /* absolute timer */
++#endif
 +
 +
 +/* Getkerninfo clock information structure */
@@ -4733,24 +4796,7 @@
 +    int profhz;		/* profiling clock frequency */
 +  };
 +
-+# endif	/* bits/time.h */
-+#endif
-+
-+#ifdef __need_timeval
-+# undef __need_timeval
-+# ifndef _STRUCT_TIMEVAL
-+#  define _STRUCT_TIMEVAL	1
-+#  include <bits/types.h>
-+
-+/* A time value that is accurate to the nearest
-+   microsecond but also has a range of years.  */
-+struct timeval
-+  {
-+    __time_t tv_sec;		/* Seconds.  */
-+    __suseconds_t tv_usec;	/* Microseconds.  */
-+  };
-+# endif	/* struct timeval */
-+#endif	/* need timeval */
++#endif	/* bits/time.h */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/bits/typesizes.h
 @@ -0,0 +1,91 @@
@@ -15388,7 +15434,7 @@
 +GLIBC_2.3 getaddrinfo_a F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libc.abilist
-@@ -0,0 +1,2196 @@
+@@ -0,0 +1,2204 @@
 +GLIBC_2.10 GLIBC_2.10 A
 +GLIBC_2.10 __cxa_at_quick_exit F
 +GLIBC_2.10 __posix_getopt F
@@ -15487,6 +15533,14 @@
 +GLIBC_2.23 fts64_set F
 +GLIBC_2.24 GLIBC_2.24 A
 +GLIBC_2.24 quick_exit F
++GLIBC_2.25 GLIBC_2.25 A
++GLIBC_2.25 __explicit_bzero_chk F
++GLIBC_2.25 explicit_bzero F
++GLIBC_2.25 getentropy F
++GLIBC_2.25 getrandom F
++GLIBC_2.25 strfromd F
++GLIBC_2.25 strfromf F
++GLIBC_2.25 strfroml F
 +GLIBC_2.3 GLIBC_2.3 A
 +GLIBC_2.3 _Exit F
 +GLIBC_2.3 _IO_2_1_stderr_ D 0x9c
@@ -18588,7 +18642,7 @@
 +GLIBC_2.3 openpty F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/localplt.data
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,22 @@
 +# See scripts/check-localplt.awk for how this file is processed.
 +# PLT use is required for the malloc family and for matherr because
 +# users can define their own functions and have library internals call them.
@@ -18608,6 +18662,9 @@
 +ld.so: calloc
 +ld.so: realloc
 +ld.so: free + REL R_386_GLOB_DAT
++# The TLS-enabled version of these functions is interposed from libc.so.
++ld.so: _dl_signal_error + REL R_386_GLOB_DAT
++ld.so: _dl_catch_error + REL R_386_GLOB_DAT
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/lseek.S
 @@ -0,0 +1,53 @@
@@ -25204,7 +25261,7 @@
 +/* 'preadv64' is the same as 'preadv', because __off64_t == __off_t.  */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/prof-freq.c
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,38 @@
 +/* Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -25226,15 +25283,6 @@
 +#include <libc-internal.h>
 +#include <stddef.h>
 +#include <sys/sysctl.h>
-+
-+struct clockinfo
-+{
-+  int hz;		/* Clock frequency.  */
-+  int tick;		/* Microseconds per hz tick, = 1000000 / hz.  */
-+  int tickadj;		/* Clock skew rate for adjtime().  */
-+  int stathz;		/* Statistics clock frequency.  */
-+  int profhz;		/* Profiling clock frequency.  */
-+};
 +
 +int
 +__profile_frequency (void)
@@ -28967,45 +29015,6 @@
 +#define SYS_mac_execve		SYS___mac_execve
 +
 +#endif
---- /dev/null
-+++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/sysmacros.h
-@@ -0,0 +1,36 @@
-+/* Definitions of macros to access `dev_t' values.  FreeBSD version.
-+   Copyright (C) 1996-1997, 1999, 2002 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
-+
-+#ifndef _SYS_SYSMACROS_H
-+#define _SYS_SYSMACROS_H	1
-+
-+/* For compatibility we provide alternative names.
-+
-+   The problem here is that compilers other than GCC probably don't
-+   have the `long long' type and so `dev_t' is actually an array.  */
-+#define major(dev) ((int)(((unsigned int) (dev) >> 8) & 0xff))
-+#define minor(dev) ((int)((dev) & 0xffff00ff))
-+#define makedev(major, minor) (((major) << 8) | (minor))
-+
-+/* Access the functions with their new names.  */
-+#define gnu_dev_major(dev) major (dev)
-+#define gnu_dev_minor(dev) minor (dev)
-+#define gnu_dev_makedev(maj, min) makedev (maj, min)
-+
-+#endif /* sys/sysmacros.h */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ttydefaults.h
 @@ -0,0 +1,97 @@
@@ -32787,7 +32796,7 @@
 +GLIBC_2.3 getaddrinfo_a F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libc.abilist
-@@ -0,0 +1,2144 @@
+@@ -0,0 +1,2152 @@
 +GLIBC_2.10 GLIBC_2.10 A
 +GLIBC_2.10 __cxa_at_quick_exit F
 +GLIBC_2.10 __posix_getopt F
@@ -32888,6 +32897,14 @@
 +GLIBC_2.23 fts64_set F
 +GLIBC_2.24 GLIBC_2.24 A
 +GLIBC_2.24 quick_exit F
++GLIBC_2.25 GLIBC_2.25 A
++GLIBC_2.25 __explicit_bzero_chk F
++GLIBC_2.25 explicit_bzero F
++GLIBC_2.25 getentropy F
++GLIBC_2.25 getrandom F
++GLIBC_2.25 strfromd F
++GLIBC_2.25 strfromf F
++GLIBC_2.25 strfroml F
 +GLIBC_2.3 GLIBC_2.3 A
 +GLIBC_2.3 _Exit F
 +GLIBC_2.3 _IO_2_1_stderr_ D 0xe0

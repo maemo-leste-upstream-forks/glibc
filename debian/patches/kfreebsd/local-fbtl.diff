@@ -14499,7 +14499,7 @@
 +libc_hidden_def (__libc_alloca_cutoff)
 --- /dev/null
 +++ b/fbtl/allocatestack.c
-@@ -0,0 +1,1278 @@
+@@ -0,0 +1,1274 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -14532,6 +14532,7 @@
 +#include <list.h>
 +#include <lowlevellock.h>
 +#include <kernel-features.h>
++#include <stack-aliasing.h>
 +
 +
 +#if !(defined(NEED_SEPARATE_REGISTER_STACK) || defined(NEED_STACK_SIZE_FOR_PTH_CREATE))
@@ -14755,9 +14756,7 @@
 +  /* Clear the DTV.  */
 +  dtv_t *dtv = GET_DTV (TLS_TPADJ (result));
 +  for (size_t cnt = 0; cnt < dtv[-1].counter; ++cnt)
-+    if (! dtv[1 + cnt].pointer.is_static
-+	&& dtv[1 + cnt].pointer.val != TLS_DTV_UNALLOCATED)
-+      free (dtv[1 + cnt].pointer.val);
++    free (dtv[1 + cnt].pointer.to_free);
 +  memset (dtv, '\0', (dtv[-1].counter + 1) * sizeof (dtv_t));
 +
 +  /* Re-initialize the TLS.  */
@@ -14818,7 +14817,7 @@
 +  stack_list_add (&stack->list, &stack_cache);
 +
 +  stack_cache_actsize += stack->stackblock_size;
-+  if (__builtin_expect (stack_cache_actsize > stack_cache_maxsize, 0))
++  if (__glibc_unlikely (stack_cache_actsize > stack_cache_maxsize))
 +    __free_stacks (stack_cache_maxsize);
 +}
 +
@@ -14880,7 +14879,7 @@
 +    }
 +
 +  /* Get memory for the stack.  */
-+  if (__builtin_expect (attr->flags & ATTR_FLAG_STACKADDR, 0))
++  if (__glibc_unlikely (attr->flags & ATTR_FLAG_STACKADDR))
 +    {
 +      uintptr_t adj;
 +
@@ -15016,7 +15015,7 @@
 +	  mem = mmap (NULL, size, prot,
 +		      MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
 +
-+	  if (__builtin_expect (mem == MAP_FAILED, 0))
++	  if (__glibc_unlikely (mem == MAP_FAILED))
 +	    return errno;
 +
 +	  /* SIZE is guaranteed to be greater than zero.
@@ -15037,7 +15036,7 @@
 +
 +	  /* Make sure the coloring offsets does not disturb the alignment
 +	     of the TCB and static TLS block.  */
-+	  if (__builtin_expect ((coloring & __static_tls_align_m1) != 0, 0))
++	  if (__glibc_unlikely ((coloring & __static_tls_align_m1) != 0))
 +	    coloring = (((coloring + __static_tls_align_m1)
 +			 & ~(__static_tls_align_m1))
 +			& ~pagesize_m1);
@@ -15141,7 +15140,7 @@
 +	}
 +
 +      /* Create or resize the guard area if necessary.  */
-+      if (__builtin_expect (guardsize > pd->guardsize, 0))
++      if (__glibc_unlikely (guardsize > pd->guardsize))
 +	{
 +#ifdef NEED_SEPARATE_REGISTER_STACK
 +	  char *guard = mem + (((size - guardsize) / 2) & ~pagesize_m1);
@@ -15264,7 +15263,7 @@
 +     not reset the 'used' flag in the 'tid' field.  This is done by
 +     the kernel.  If no thread has been created yet this field is
 +     still zero.  */
-+  if (__builtin_expect (! pd->user_stack, 1))
++  if (__glibc_likely (! pd->user_stack))
 +    (void) queue_stack (pd);
 +  else
 +    /* Free the memory associated with the ELF TLS.  */
@@ -15428,7 +15427,7 @@
 +  INIT_LIST_HEAD (&stack_used);
 +  INIT_LIST_HEAD (&__stack_user);
 +
-+  if (__builtin_expect (THREAD_GETMEM (self, user_stack), 0))
++  if (__glibc_unlikely (THREAD_GETMEM (self, user_stack)))
 +    list_add (&self->list, &__stack_user);
 +  else
 +    list_add (&self->list, &stack_used);
@@ -15686,7 +15685,6 @@
 +static inline void __attribute__((always_inline))
 +init_one_static_tls (struct pthread *curp, struct link_map *map)
 +{
-+  dtv_t *dtv = GET_DTV (TLS_TPADJ (curp));
 +# if TLS_TCB_AT_TP
 +  void *dest = (char *) curp - map->l_tls_offset;
 +# elif TLS_DTV_AT_TP
@@ -15695,11 +15693,9 @@
 +#  error "Either TLS_TCB_AT_TP or TLS_DTV_AT_TP must be defined"
 +# endif
 +
-+  /* Fill in the DTV slot so that a later LD/GD access will find it.  */
-+  dtv[map->l_tls_modid].pointer.val = dest;
-+  dtv[map->l_tls_modid].pointer.is_static = true;
-+
-+  /* Initialize the memory.  */
++  /* We cannot delay the initialization of the Static TLS area, since
++     it can be accessed with LE or IE, but since the DTV is only used
++     by GD and LD, we can delay its update to avoid a race.  */
 +  memset (__mempcpy (dest, map->l_tls_initimage, map->l_tls_initimage_size),
 +	  '\0', map->l_tls_blocksize - map->l_tls_initimage_size);
 +}
@@ -15823,7 +15819,7 @@
 +
 +      int curval = THREAD_ATOMIC_CMPXCHG_VAL (self, cancelhandling, newval,
 +					      oldval);
-+      if (__builtin_expect (curval == oldval, 1))
++      if (__glibc_likely (curval == oldval))
 +	{
 +	  if (CANCEL_ENABLED_AND_CANCELED_AND_ASYNCHRONOUS (newval))
 +	    {
@@ -15862,7 +15858,7 @@
 +
 +      int curval = THREAD_ATOMIC_CMPXCHG_VAL (self, cancelhandling, newval,
 +					      oldval);
-+      if (__builtin_expect (curval == oldval, 1))
++      if (__glibc_likely (curval == oldval))
 +	break;
 +
 +      /* Prepare the next round.  */
@@ -16023,14 +16019,14 @@
 +  int cancelhandling = THREAD_GETMEM (self, cancelhandling);
 +
 +  /* Disable asynchronous cancellation for now.  */
-+  if (__builtin_expect (cancelhandling & CANCELTYPE_BITMASK, 0))
++  if (__glibc_unlikely (cancelhandling & CANCELTYPE_BITMASK))
 +    while (1)
 +      {
 +	int curval = THREAD_ATOMIC_CMPXCHG_VAL (self, cancelhandling,
 +						cancelhandling
 +						& ~CANCELTYPE_BITMASK,
 +						cancelhandling);
-+	if (__builtin_expect (curval == cancelhandling, 1))
++	if (__glibc_likely (curval == cancelhandling))
 +	  /* Successfully replaced the value.  */
 +	  break;
 +
@@ -16067,7 +16063,7 @@
 +						  cancelhandling
 +						  | CANCELTYPE_BITMASK,
 +						  cancelhandling);
-+	  if (__builtin_expect (curval == cancelhandling, 1))
++	  if (__glibc_likely (curval == cancelhandling))
 +	    /* Successfully replaced the value.  */
 +	    break;
 +
@@ -16115,14 +16111,14 @@
 +  int cancelhandling = THREAD_GETMEM (self, cancelhandling);
 +
 +  /* Disable asynchronous cancellation for now.  */
-+  if (__builtin_expect (cancelhandling & CANCELTYPE_BITMASK, 0))
++  if (__glibc_unlikely (cancelhandling & CANCELTYPE_BITMASK))
 +    while (1)
 +      {
 +	int curval = THREAD_ATOMIC_CMPXCHG_VAL (self, cancelhandling,
 +						cancelhandling
 +						& ~CANCELTYPE_BITMASK,
 +						cancelhandling);
-+	if (__builtin_expect (curval == cancelhandling, 1))
++	if (__glibc_likely (curval == cancelhandling))
 +	  /* Successfully replaced the value.  */
 +	  break;
 +
@@ -16158,7 +16154,7 @@
 +						  cancelhandling
 +						  | CANCELTYPE_BITMASK,
 +						  cancelhandling);
-+	  if (__builtin_expect (curval == cancelhandling, 1))
++	  if (__glibc_likely (curval == cancelhandling))
 +	    /* Successfully replaced the value.  */
 +	    break;
 +
@@ -16280,7 +16276,7 @@
 +  pthread_t th[nthreads];
 +  int i;
 +  for (i = 0; __builtin_expect (i < nthreads, 1); ++i)
-+    if (__builtin_expect ((err = pthread_create (&th[i], NULL, cons, (void *) (long) i)) != 0, 0))
++    if (__glibc_unlikely ((err = pthread_create (&th[i], NULL, cons, (void *) (long) i)) != 0))
 +      printf ("pthread_create: %s\n", strerror (err));
 +
 +  for (i = 0; __builtin_expect (i < nrounds, 1); ++i)
@@ -17271,7 +17267,7 @@
 +#define lll_mutex_unlock(futex) __generic_mutex_unlock (&(futex))
 --- /dev/null
 +++ b/fbtl/nptl-init.c
-@@ -0,0 +1,493 @@
+@@ -0,0 +1,473 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -17309,7 +17305,7 @@
 +#include <smp.h>
 +#include <lowlevellock.h>
 +#include <kernel-features.h>
-+
++#include <libc-internal.h>
 +
 +/* Size and alignment of static TLS block.  */
 +size_t __static_tls_size;
@@ -17341,10 +17337,6 @@
 +/* Version of the library, used in libthread_db to detect mismatches.  */
 +static const char nptl_version[] __attribute_used__ = VERSION;
 +
-+
-+#ifndef SHARED
-+extern void __libc_setup_tls (size_t tcbsize, size_t tcbalign);
-+#endif
 +
 +#ifdef SHARED
 +static
@@ -17456,7 +17448,7 @@
 +  /* Determine the process ID.  It might be negative if the thread is
 +     in the middle of a fork() call.  */
 +  pid_t pid = THREAD_GETMEM (THREAD_SELF, pid);
-+  if (__builtin_expect (pid < 0, 0))
++  if (__glibc_unlikely (pid < 0))
 +    pid = -pid;
 +
 +  /* Safety check.  It would be possible to call this function for
@@ -17517,7 +17509,7 @@
 +  /* Determine the process ID.  It might be negative if the thread is
 +     in the middle of a fork() call.  */
 +  pid_t pid = THREAD_GETMEM (THREAD_SELF, pid);
-+  if (__builtin_expect (pid < 0, 0))
++  if (__glibc_unlikely (pid < 0))
 +    pid = -pid;
 +
 +#if 0
@@ -17564,18 +17556,6 @@
 +void
 +__pthread_initialize_minimal_internal (void)
 +{
-+#ifndef SHARED
-+  /* Unlike in the dynamically linked case the dynamic linker has not
-+     taken care of initializing the TLS data structures.  */
-+  __libc_setup_tls (TLS_TCB_SIZE, TLS_TCB_ALIGN);
-+
-+  /* We must prevent gcc from being clever and move any of the
-+     following code ahead of the __libc_setup_tls call.  This function
-+     will initialize the thread register which is subsequently
-+     used.  */
-+  __asm __volatile ("");
-+#endif
-+
 +  /* Minimal initialization of the thread descriptor.  */
 +  struct pthread *pd = THREAD_SELF;
 +#if 1  
@@ -17716,17 +17696,13 @@
 +    limit.rlim_cur = minstack;
 +
 +  /* Round the resource limit up to page size.  */
-+  limit.rlim_cur = (limit.rlim_cur + pagesz - 1) & -pagesz;
++  limit.rlim_cur = ALIGN_UP (limit.rlim_cur, pagesz);
 +  lll_lock (__default_pthread_attr_lock, LLL_PRIVATE);
 +  __default_pthread_attr.stacksize = limit.rlim_cur;
 +  __default_pthread_attr.guardsize = GLRO (dl_pagesize);
 +  lll_unlock (__default_pthread_attr_lock, LLL_PRIVATE);
 +
 +#ifdef SHARED
-+  /* Transfer the old value from the dynamic linker's internal location.  */
-+  *__libc_dl_error_tsd () = *(*GL(dl_error_catch_tsd)) ();
-+  GL(dl_error_catch_tsd) = &__libc_dl_error_tsd;
-+
 +  /* Make __rtld_lock_{,un}lock_recursive use pthread_mutex_{,un}lock,
 +     keep the lock count from the ld.so implementation.  */
 +  GL(dl_rtld_lock_recursive) = (void *) __pthread_mutex_lock;
@@ -18755,7 +18731,7 @@
 +    return result;
 +
 +  fd = open ("/proc/cpuinfo", O_RDONLY);
-+  if (__builtin_expect (fd != -1, 1))
++  if (__glibc_likely (fd != -1))
 +    {
 +      /* XXX AFAIK the /proc filesystem can generate "files" only up
 +         to a size of 4096 bytes.  */
@@ -18767,7 +18743,7 @@
 +	{
 +	  char *mhz = memmem (buf, n, "cpu MHz", 7);
 +
-+	  if (__builtin_expect (mhz != NULL, 1))
++	  if (__glibc_likely (mhz != NULL))
 +	    {
 +	      char *endp = buf + n;
 +	      int seen_decpoint = 0;
@@ -20903,7 +20879,7 @@
 +
 +  lll_lock (ibarrier->lock, ibarrier->private ^ FUTEX_PRIVATE_FLAG);
 +
-+  if (__builtin_expect (ibarrier->left == ibarrier->init_count, 1))
++  if (__glibc_likely (ibarrier->left == ibarrier->init_count))
 +    /* The barrier is not used anymore.  */
 +    result = 0;
 +  else
@@ -20952,7 +20928,7 @@
 +{
 +  struct pthread_barrier *ibarrier;
 +
-+  if (__builtin_expect (count == 0, 0))
++  if (__glibc_unlikely (count == 0))
 +    return EINVAL;
 +
 +  const struct pthread_barrierattr *iattr
@@ -21860,7 +21836,7 @@
 +
 +  /* Work around the fact that the kernel rejects negative timeout values
 +     despite them being valid.  */
-+  if (__builtin_expect (abstime->tv_sec < 0, 0))
++  if (__glibc_unlikely (abstime->tv_sec < 0))
 +    goto timeout;
 +
 +  /* Remember the mutex we are using here.  If there is already a
@@ -21916,7 +21892,7 @@
 +	  --rt.tv_sec;
 +	}
 +      /* Did we already time out?  */
-+      if (__builtin_expect (rt.tv_sec < 0, 0))
++      if (__glibc_unlikely (rt.tv_sec < 0))
 +	{
 +	  if (cbuffer.bc_seq != cond->__data.__broadcast_seq)
 +	    goto bc_out;
@@ -21990,7 +21966,7 @@
 +	break;
 +
 +      /* Not woken yet.  Maybe the time expired?  */
-+      if (__builtin_expect (err == -ETIMEDOUT, 0))
++      if (__glibc_unlikely (err == -ETIMEDOUT))
 +	{
 +	timeout:
 +	  /* Yep.  Adjust the counters.  */
@@ -22162,7 +22138,7 @@
 +
 +  /* Now we can release the mutex.  */
 +  err = __pthread_mutex_unlock_usercnt (mutex, 0);
-+  if (__builtin_expect (err, 0))
++  if (__glibc_unlikely (err))
 +    {
 +      lll_unlock (cond->__data.__lock, pshared);
 +      return err;
@@ -22707,7 +22683,7 @@
 +	abort ();
 +
 +      /* Free TPP data.  */
-+      if (__builtin_expect (pd->tpp != NULL, 0))
++      if (__glibc_unlikely (pd->tpp != NULL))
 +	{
 +	  struct priority_protection_data *tpp = pd->tpp;
 +
@@ -22746,7 +22722,7 @@
 +  __ctype_init ();
 +
 +  /* Allow setxid from now onwards.  */
-+  if (__builtin_expect (atomic_exchange_acq (&pd->setxid_futex, 0) == -2, 0))
++  if (__glibc_unlikely (atomic_exchange_acq (&pd->setxid_futex, 0) == -2))
 +    lll_futex_wake (&pd->setxid_futex, 1, LLL_PRIVATE);
 +
 +#ifdef __NR_set_robust_list
@@ -22765,7 +22741,7 @@
 +  /* If the parent was running cancellation handlers while creating
 +     the thread the new thread inherited the signal mask.  Reset the
 +     cancellation signal mask.  */
-+  if (__builtin_expect (pd->parent_cancelhandling & CANCELING_BITMASK, 0))
++  if (__glibc_unlikely (pd->parent_cancelhandling & CANCELING_BITMASK))
 +    {
 +      sigset_t mask;
 +      __sigemptyset (&mask);
@@ -22783,12 +22759,12 @@
 +
 +  int not_first_call;
 +  not_first_call = setjmp ((struct __jmp_buf_tag *) unwind_buf.cancel_jmp_buf);
-+  if (__builtin_expect (! not_first_call, 1))
++  if (__glibc_likely (! not_first_call))
 +    {
 +      /* Store the new cleanup handler info.  */
 +      THREAD_SETMEM (pd, cleanup_jmp_buf, &unwind_buf);
 +
-+      if (__builtin_expect (pd->stopped_start, 0))
++      if (__glibc_unlikely (pd->stopped_start))
 +	{
 +	  int oldtype = CANCEL_ASYNC ();
 +
@@ -22825,12 +22801,12 @@
 +  /* If this is the last thread we terminate the process now.  We
 +     do not notify the debugger, it might just irritate it if there
 +     is no thread left.  */
-+  if (__builtin_expect (atomic_decrement_and_test (&__nptl_nthreads), 0))
++  if (__glibc_unlikely (atomic_decrement_and_test (&__nptl_nthreads)))
 +    /* This was the last thread.  */
 +    exit (0);
 +
 +  /* Report the death of the thread if this is wanted.  */
-+  if (__builtin_expect (pd->report_events, 0))
++  if (__glibc_unlikely (pd->report_events))
 +    {
 +      /* See whether TD_DEATH is in any of the mask.  */
 +      const int idx = __td_eventword (TD_DEATH);
@@ -22913,7 +22889,7 @@
 +  if (IS_DETACHED (pd))
 +    /* Free the TCB.  */
 +    __free_tcb (pd);
-+  else if (__builtin_expect (pd->cancelhandling & SETXID_BITMASK, 0))
++  else if (__glibc_unlikely (pd->cancelhandling & SETXID_BITMASK))
 +    {
 +      /* Some other thread might call any of the setXid functions and expect
 +	 us to reply.  In this case wait until we did that.  */
@@ -22980,7 +22956,7 @@
 +  int err = ALLOCATE_STACK (iattr, &pd);
 +  int retval = 0;
 +
-+  if (__builtin_expect (err != 0, 0))
++  if (__glibc_unlikely (err != 0))
 +    /* Something went wrong.  Maybe a parameter of the attributes is
 +       invalid or we could not allocate memory.  Note we have to
 +       translate error codes.  */
@@ -23388,7 +23364,7 @@
 +  iattr->guardsize = thread->reported_guardsize;
 +
 +  /* The sizes are subject to alignment.  */
-+  if (__builtin_expect (thread->stackblock != NULL, 1))
++  if (__glibc_likely (thread->stackblock != NULL))
 +    {
 +      iattr->stacksize = thread->stackblock_size;
 +      iattr->stackaddr = (char *) thread->stackblock + iattr->stacksize;
@@ -23724,7 +23700,7 @@
 +
 +  /* Special case access to the first 2nd-level block.  This is the
 +     usual case.  */
-+  if (__builtin_expect (key < PTHREAD_KEY_2NDLEVEL_SIZE, 1))
++  if (__glibc_likely (key < PTHREAD_KEY_2NDLEVEL_SIZE))
 +    data = &THREAD_SELF->specific_1stblock[key];
 +  else
 +    {
@@ -23754,7 +23730,7 @@
 +    {
 +      uintptr_t seq = data->seq;
 +
-+      if (__builtin_expect (seq != __pthread_keys[key].seq, 0))
++      if (__glibc_unlikely (seq != __pthread_keys[key].seq))
 +	result = data->data = NULL;
 +    }
 +
@@ -23864,7 +23840,7 @@
 +  pthread_cleanup_pop (0);
 +
 +
-+  if (__builtin_expect (result == 0, 1))
++  if (__glibc_likely (result == 0))
 +    {
 +      /* We mark the thread as terminated and as joined.  */
 +      pd->tid = -1;
@@ -23967,7 +23943,7 @@
 +{
 +  int result = EINVAL;
 +
-+  if (__builtin_expect (key < PTHREAD_KEYS_MAX, 1))
++  if (__glibc_likely (key < PTHREAD_KEYS_MAX))
 +    {
 +      unsigned int seq = __pthread_keys[key].seq;
 +
@@ -24201,7 +24177,7 @@
 +#if 0
 +    case PTHREAD_PRIO_INHERIT << PTHREAD_MUTEXATTR_PROTOCOL_SHIFT:
 +#ifndef __ASSUME_FUTEX_LOCK_PI
-+      if (__builtin_expect (tpi_supported == 0, 0))
++      if (__glibc_unlikely (tpi_supported == 0))
 +	{
 +	  int lock = 0;
 +	  INTERNAL_SYSCALL_DECL (err);
@@ -24210,7 +24186,7 @@
 +	  assert (INTERNAL_SYSCALL_ERROR_P (ret, err));
 +	  tpi_supported = INTERNAL_SYSCALL_ERRNO (ret, err) == ENOSYS ? -1 : 1;
 +	}
-+      if (__builtin_expect (tpi_supported < 0, 0))
++      if (__glibc_unlikely (tpi_supported < 0))
 +	return ENOTSUP;
 +#endif
 +      break;
@@ -24366,7 +24342,7 @@
 +      if (mutex->__data.__owner == id)
 +	{
 +	  /* Just bump the counter.  */
-+	  if (__builtin_expect (mutex->__data.__count + 1 == 0, 0))
++	  if (__glibc_unlikely (mutex->__data.__count + 1 == 0))
 +	    /* Overflow of the counter.  */
 +	    return EAGAIN;
 +
@@ -24413,7 +24389,7 @@
 +    {
 +      assert (type == PTHREAD_MUTEX_ERRORCHECK_NP);
 +      /* Check whether we already hold the mutex.  */
-+      if (__builtin_expect (mutex->__data.__owner == id, 0))
++      if (__glibc_unlikely (mutex->__data.__owner == id))
 +	return EDEADLK;
 +      goto simple;
 +    }
@@ -24493,7 +24469,7 @@
 +	    }
 +
 +	  /* Check whether we already hold the mutex.  */
-+	  if (__builtin_expect ((oldval & FUTEX_TID_MASK) == id, 0))
++	  if (__glibc_unlikely ((oldval & FUTEX_TID_MASK) == id))
 +	    {
 +	      int kind = PTHREAD_MUTEX_TYPE (mutex);
 +	      if (kind == PTHREAD_MUTEX_ROBUST_ERRORCHECK_NP)
@@ -24509,7 +24485,7 @@
 +				 NULL);
 +
 +		  /* Just bump the counter.  */
-+		  if (__builtin_expect (mutex->__data.__count + 1 == 0, 0))
++		  if (__glibc_unlikely (mutex->__data.__count + 1 == 0))
 +		    /* Overflow of the counter.  */
 +		    return EAGAIN;
 +
@@ -24560,7 +24536,7 @@
 +	oldval = mutex->__data.__lock;
 +
 +	/* Check whether we already hold the mutex.  */
-+	if (__builtin_expect ((oldval & FUTEX_TID_MASK) == id, 0))
++	if (__glibc_unlikely ((oldval & FUTEX_TID_MASK) == id))
 +	  {
 +	    if (kind == PTHREAD_MUTEX_ERRORCHECK_NP)
 +	      {
@@ -24573,7 +24549,7 @@
 +		THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
 +
 +		/* Just bump the counter.  */
-+		if (__builtin_expect (mutex->__data.__count + 1 == 0, 0))
++		if (__glibc_unlikely (mutex->__data.__count + 1 == 0))
 +		  /* Overflow of the counter.  */
 +		  return EAGAIN;
 +
@@ -24623,7 +24599,7 @@
 +	    assert (robust || (oldval & FUTEX_OWNER_DIED) == 0);
 +	  }
 +
-+	if (__builtin_expect (oldval & FUTEX_OWNER_DIED, 0))
++	if (__glibc_unlikely (oldval & FUTEX_OWNER_DIED))
 +	  {
 +	    atomic_and (&mutex->__data.__lock, ~FUTEX_OWNER_DIED);
 +
@@ -24691,7 +24667,7 @@
 +	    if (kind == PTHREAD_MUTEX_RECURSIVE_NP)
 +	      {
 +		/* Just bump the counter.  */
-+		if (__builtin_expect (mutex->__data.__count + 1 == 0, 0))
++		if (__glibc_unlikely (mutex->__data.__count + 1 == 0))
 +		  /* Overflow of the counter.  */
 +		  return EAGAIN;
 +
@@ -24969,7 +24945,7 @@
 +      if (mutex->__data.__owner == id)
 +	{
 +	  /* Just bump the counter.  */
-+	  if (__builtin_expect (mutex->__data.__count + 1 == 0, 0))
++	  if (__glibc_unlikely (mutex->__data.__count + 1 == 0))
 +	    /* Overflow of the counter.  */
 +	    return EAGAIN;
 +
@@ -24992,7 +24968,7 @@
 +      /* Error checking mutex.  */
 +    case PTHREAD_MUTEX_ERRORCHECK_NP:
 +      /* Check whether we already hold the mutex.  */
-+      if (__builtin_expect (mutex->__data.__owner == id, 0))
++      if (__glibc_unlikely (mutex->__data.__owner == id))
 +	return EDEADLK;
 +
 +      /* FALLTHROUGH */
@@ -25074,7 +25050,7 @@
 +	    }
 +
 +	  /* Check whether we already hold the mutex.  */
-+	  if (__builtin_expect ((oldval & FUTEX_TID_MASK) == id, 0))
++	  if (__glibc_unlikely ((oldval & FUTEX_TID_MASK) == id))
 +	    {
 +	      int kind = PTHREAD_MUTEX_TYPE (mutex);
 +	      if (kind == PTHREAD_MUTEX_ROBUST_ERRORCHECK_NP)
@@ -25090,7 +25066,7 @@
 +				 NULL);
 +
 +		  /* Just bump the counter.  */
-+		  if (__builtin_expect (mutex->__data.__count + 1 == 0, 0))
++		  if (__glibc_unlikely (mutex->__data.__count + 1 == 0))
 +		    /* Overflow of the counter.  */
 +		    return EAGAIN;
 +
@@ -25149,7 +25125,7 @@
 +	oldval = mutex->__data.__lock;
 +
 +	/* Check whether we already hold the mutex.  */
-+	if (__builtin_expect ((oldval & FUTEX_TID_MASK) == id, 0))
++	if (__glibc_unlikely ((oldval & FUTEX_TID_MASK) == id))
 +	  {
 +	    if (kind == PTHREAD_MUTEX_ERRORCHECK_NP)
 +	      {
@@ -25162,7 +25138,7 @@
 +		THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
 +
 +		/* Just bump the counter.  */
-+		if (__builtin_expect (mutex->__data.__count + 1 == 0, 0))
++		if (__glibc_unlikely (mutex->__data.__count + 1 == 0))
 +		  /* Overflow of the counter.  */
 +		  return EAGAIN;
 +
@@ -25236,7 +25212,7 @@
 +	    assert (robust || (oldval & FUTEX_OWNER_DIED) == 0);
 +	  }
 +
-+	if (__builtin_expect (oldval & FUTEX_OWNER_DIED, 0))
++	if (__glibc_unlikely (oldval & FUTEX_OWNER_DIED))
 +	  {
 +	    atomic_and (&mutex->__data.__lock, ~FUTEX_OWNER_DIED);
 +
@@ -25299,7 +25275,7 @@
 +	    if (kind == PTHREAD_MUTEX_RECURSIVE_NP)
 +	      {
 +		/* Just bump the counter.  */
-+		if (__builtin_expect (mutex->__data.__count + 1 == 0, 0))
++		if (__glibc_unlikely (mutex->__data.__count + 1 == 0))
 +		  /* Overflow of the counter.  */
 +		  return EAGAIN;
 +
@@ -25457,7 +25433,7 @@
 +      if (mutex->__data.__owner == id)
 +	{
 +	  /* Just bump the counter.  */
-+	  if (__builtin_expect (mutex->__data.__count + 1 == 0, 0))
++	  if (__glibc_unlikely (mutex->__data.__count + 1 == 0))
 +	    /* Overflow of the counter.  */
 +	    return EAGAIN;
 +
@@ -25530,7 +25506,7 @@
 +	    }
 +
 +	  /* Check whether we already hold the mutex.  */
-+	  if (__builtin_expect ((oldval & FUTEX_TID_MASK) == id, 0))
++	  if (__glibc_unlikely ((oldval & FUTEX_TID_MASK) == id))
 +	    {
 +	      int kind = PTHREAD_MUTEX_TYPE (mutex);
 +	      if (kind == PTHREAD_MUTEX_ROBUST_ERRORCHECK_NP)
@@ -25546,7 +25522,7 @@
 +				 NULL);
 +
 +		  /* Just bump the counter.  */
-+		  if (__builtin_expect (mutex->__data.__count + 1 == 0, 0))
++		  if (__glibc_unlikely (mutex->__data.__count + 1 == 0))
 +		    /* Overflow of the counter.  */
 +		    return EAGAIN;
 +
@@ -25608,7 +25584,7 @@
 +	oldval = mutex->__data.__lock;
 +
 +	/* Check whether we already hold the mutex.  */
-+	if (__builtin_expect ((oldval & FUTEX_TID_MASK) == id, 0))
++	if (__glibc_unlikely ((oldval & FUTEX_TID_MASK) == id))
 +	  {
 +	    if (kind == PTHREAD_MUTEX_ERRORCHECK_NP)
 +	      {
@@ -25621,7 +25597,7 @@
 +		THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
 +
 +		/* Just bump the counter.  */
-+		if (__builtin_expect (mutex->__data.__count + 1 == 0, 0))
++		if (__glibc_unlikely (mutex->__data.__count + 1 == 0))
 +		  /* Overflow of the counter.  */
 +		  return EAGAIN;
 +
@@ -25667,7 +25643,7 @@
 +	    oldval = mutex->__data.__lock;
 +	  }
 +
-+	if (__builtin_expect (oldval & FUTEX_OWNER_DIED, 0))
++	if (__glibc_unlikely (oldval & FUTEX_OWNER_DIED))
 +	  {
 +	    atomic_and (&mutex->__data.__lock, ~FUTEX_OWNER_DIED);
 +
@@ -25734,7 +25710,7 @@
 +	    if (kind == PTHREAD_MUTEX_RECURSIVE_NP)
 +	      {
 +		/* Just bump the counter.  */
-+		if (__builtin_expect (mutex->__data.__count + 1 == 0, 0))
++		if (__glibc_unlikely (mutex->__data.__count + 1 == 0))
 +		  /* Overflow of the counter.  */
 +		  return EAGAIN;
 +
@@ -26807,7 +26783,7 @@
 +	      || PTHREAD_RWLOCK_PREFER_READER_P (rwlock)))
 +	{
 +	  /* Increment the reader counter.  Avoid overflow.  */
-+	  if (__builtin_expect (++rwlock->__data.__nr_readers == 0, 0))
++	  if (__glibc_unlikely (++rwlock->__data.__nr_readers == 0))
 +	    {
 +	      /* Overflow on number of readers.	 */
 +	      --rwlock->__data.__nr_readers;
@@ -26829,7 +26805,7 @@
 +	}
 +
 +      /* Remember that we are a reader.  */
-+      if (__builtin_expect (++rwlock->__data.__nr_readers_queued == 0, 0))
++      if (__glibc_unlikely (++rwlock->__data.__nr_readers_queued == 0))
 +	{
 +	  /* Overflow on number of queued readers.  */
 +	  --rwlock->__data.__nr_readers_queued;
@@ -26942,7 +26918,7 @@
 +
 +      /* Work around the fact that the kernel rejects negative timeout values
 +	 despite them being valid.  */
-+      if (__builtin_expect (abstime->tv_sec < 0, 0))
++      if (__glibc_unlikely (abstime->tv_sec < 0))
 +	{
 +	  result = ETIMEDOUT;
 +	  break;
@@ -27091,7 +27067,7 @@
 +
 +      /* Work around the fact that the kernel rejects negative timeout values
 +	 despite them being valid.  */
-+      if (__builtin_expect (abstime->tv_sec < 0, 0))
++      if (__glibc_unlikely (abstime->tv_sec < 0))
 +	{
 +	  result = ETIMEDOUT;
 +	  break;
@@ -27202,7 +27178,7 @@
 +      && (rwlock->__data.__nr_writers_queued == 0
 +	  || PTHREAD_RWLOCK_PREFER_READER_P (rwlock)))
 +    {
-+      if (__builtin_expect (++rwlock->__data.__nr_readers == 0, 0))
++      if (__glibc_unlikely (++rwlock->__data.__nr_readers == 0))
 +	{
 +	  --rwlock->__data.__nr_readers;
 +	  result = EAGAIN;
@@ -27836,7 +27812,7 @@
 +	 atomically since other bits could be modified as well.  */
 +      int curval = THREAD_ATOMIC_CMPXCHG_VAL (self, cancelhandling, newval,
 +					      oldval);
-+      if (__builtin_expect (curval == oldval, 1))
++      if (__glibc_likely (curval == oldval))
 +	{
 +	  if (CANCEL_ENABLED_AND_CANCELED_AND_ASYNCHRONOUS (newval))
 +	    __do_cancel ();
@@ -27910,7 +27886,7 @@
 +	 atomically since other bits could be modified as well.  */
 +      int curval = THREAD_ATOMIC_CMPXCHG_VAL (self, cancelhandling, newval,
 +					      oldval);
-+      if (__builtin_expect (curval == oldval, 1))
++      if (__glibc_likely (curval == oldval))
 +	{
 +	  if (CANCEL_ENABLED_AND_CANCELED_AND_ASYNCHRONOUS (newval))
 +	    {
@@ -28137,7 +28113,7 @@
 +    param.sched_priority = pd->tpp->priomax;
 +
 +  /* Try to set the scheduler information.  */
-+  if (__builtin_expect (sched_setparam (pd->tid, &param) == -1, 0))
++  if (__glibc_unlikely (sched_setparam (pd->tid, &param) == -1))
 +    result = errno;
 +  else
 +    {
@@ -28191,7 +28167,7 @@
 +
 +  /* Special case access to the first 2nd-level block.  This is the
 +     usual case.  */
-+  if (__builtin_expect (key < PTHREAD_KEY_2NDLEVEL_SIZE, 1))
++  if (__glibc_likely (key < PTHREAD_KEY_2NDLEVEL_SIZE))
 +    {
 +      /* Verify the key is sane.  */
 +      if (KEY_UNUSED ((seq = __pthread_keys[key].seq)))
@@ -28885,7 +28861,7 @@
 +__new_sem_init (sem_t *sem, int pshared, unsigned int value)
 +{
 +  /* Parameter sanity check.  */
-+  if (__builtin_expect (value > SEM_VALUE_MAX, 0))
++  if (__glibc_unlikely (value > SEM_VALUE_MAX))
 +    {
 +      __set_errno (EINVAL);
 +      return -1;
@@ -28917,7 +28893,7 @@
 +__old_sem_init (sem_t *sem, int pshared, unsigned int value)
 +{
 +  /* Parameter sanity check.  */
-+  if (__builtin_expect (value > SEM_VALUE_MAX, 0))
++  if (__glibc_unlikely (value > SEM_VALUE_MAX))
 +    {
 +      __set_errno (EINVAL);
 +      return -1;
@@ -29458,7 +29434,7 @@
 +int
 +__sigaction (int sig, const struct sigaction *act, struct sigaction *oact)
 +{
-+  if (__builtin_expect (sig == SIGCANCEL || sig == SIGSETXID, 0))
++  if (__glibc_unlikely (sig == SIGCANCEL || sig == SIGSETXID))
 +    {
 +      __set_errno (EINVAL);
 +      return -1;
@@ -29952,7 +29928,7 @@
 +    return result;
 +
 +  fd = open ("/proc/cpuinfo", O_RDONLY);
-+  if (__builtin_expect (fd != -1, 1))
++  if (__glibc_likely (fd != -1))
 +    {
 +      /* XXX AFAIK the /proc filesystem can generate "files" only up
 +         to a size of 4096 bytes.  */
@@ -29964,7 +29940,7 @@
 +	{
 +	  char *mhz = memmem (buf, n, "cpu MHz", 7);
 +
-+	  if (__builtin_expect (mhz != NULL, 1))
++	  if (__glibc_likely (mhz != NULL))
 +	    {
 +	      char *endp = buf + n;
 +	      int seen_decpoint = 0;
@@ -31137,7 +31113,7 @@
 +
 +struct rtprio;
 +struct thr_param {
-+    void        (*start_func)(void *);  /* thread entry function. */
++    int         (*start_func)(void *);  /* thread entry function. */
 +    void        *arg;                   /* argument for entry function. */
 +    char        *stack_base;            /* stack base address. */
 +    size_t      stack_size;             /* stack size. */
@@ -31162,7 +31138,7 @@
 +
 +  struct thr_param p;
 +
-+  if (__builtin_expect (stopped != 0, 0))
++  if (__glibc_unlikely (stopped != 0))
 +    /* We make sure the thread does not run far by forcing it to get a
 +       lock.  We lock it here too so that the new thread cannot continue
 +       until we tell it to.  */
@@ -31200,7 +31176,7 @@
 +#endif
 +
 +
-+  if (__builtin_expect (rc == -1, 0))
++  if (__glibc_unlikely (rc == -1))
 +    {
 +      atomic_decrement (&__nptl_nthreads); /* Oops, we lied for a second.  */
 +      pd->ktid = 0;
@@ -31220,7 +31196,7 @@
 +#warning set scheduling parameters
 +#if 0
 +  /* Now we have the possibility to set scheduling parameters etc.  */
-+  if (__builtin_expect (stopped != 0, 0))
++  if (__glibc_unlikely (stopped != 0))
 +    {
 +      INTERNAL_SYSCALL_DECL (err);
 +      int res = 0;
@@ -31231,7 +31207,7 @@
 +	  res = INTERNAL_SYSCALL (sched_setaffinity, err, 3, pd->tid,
 +				  attr->cpusetsize, attr->cpuset);
 +
-+	  if (__builtin_expect (INTERNAL_SYSCALL_ERROR_P (res, err), 0))
++	  if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (res, err)))
 +	    {
 +	      /* The operation failed.  We have to kill the thread.  First
 +		 send it the cancellation signal.  */
@@ -31256,7 +31232,7 @@
 +	  res = INTERNAL_SYSCALL (sched_setscheduler, err, 3, pd->tid,
 +				  pd->schedpolicy, &pd->schedparam);
 +
-+	  if (__builtin_expect (INTERNAL_SYSCALL_ERROR_P (res, err), 0))
++	  if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (res, err)))
 +	    goto err_out;
 +	}
 +    }
@@ -31316,7 +31292,7 @@
 +		     | 0);
 +#endif		     
 +
-+  if (__builtin_expect (THREAD_GETMEM (THREAD_SELF, report_events), 0))
++  if (__glibc_unlikely (THREAD_GETMEM (THREAD_SELF, report_events)))
 +    {
 +      /* The parent thread is supposed to report events.  Check whether
 +	 the TD_CREATE event is needed, too.  */
@@ -34099,7 +34075,7 @@
 +  ({									\
 +    extern __typeof (__nptl_setxid) __nptl_setxid __attribute__((weak));\
 +    int __result;							\
-+    if (__builtin_expect (__nptl_setxid	!= NULL, 0))			\
++    if (__glibc_unlikely (__nptl_setxid	!= NULL))			      \
 +      {									\
 +	struct xid_command __cmd;					\
 +	__cmd.syscall_no = __NR_##name;					\
@@ -34380,7 +34356,7 @@
 +  pthread_mutex_lock (&__timer_mutex);
 +
 +  newtimer = __timer_alloc ();
-+  if (__builtin_expect (newtimer == NULL, 0))
++  if (__glibc_unlikely (newtimer == NULL))
 +    {
 +      __set_errno (EAGAIN);
 +      goto unlock_bail;
@@ -34435,7 +34411,7 @@
 +	thread = __timer_thread_alloc (&newtimer->attr, clock_id);
 +
 +      /* Out of luck; no threads are available.  */
-+      if (__builtin_expect (thread == NULL, 0))
++      if (__glibc_unlikely (thread == NULL))
 +	{
 +	  __set_errno (EAGAIN);
 +	  goto unlock_bail;
@@ -35609,7 +35585,7 @@
 +  void *getcfa;
 +  void *handle;
 +
-+  if (__builtin_expect (libgcc_s_handle != NULL, 1))
++  if (__glibc_likely (libgcc_s_handle != NULL))
 +    {
 +      /* Force gcc to reload all values.  */
 +      asm volatile ("" ::: "memory");
@@ -35660,7 +35636,7 @@
 +void
 +_Unwind_Resume (struct _Unwind_Exception *exc)
 +{
-+  if (__builtin_expect (libgcc_s_handle == NULL, 0))
++  if (__glibc_unlikely (libgcc_s_handle == NULL))
 +    pthread_cancel_init ();
 +  else
 +    atomic_read_barrier ();
@@ -35676,7 +35652,7 @@
 +		      struct _Unwind_Exception *ue_header,
 +		      struct _Unwind_Context *context)
 +{
-+  if (__builtin_expect (libgcc_s_handle == NULL, 0))
++  if (__glibc_unlikely (libgcc_s_handle == NULL))
 +    pthread_cancel_init ();
 +  else
 +    atomic_read_barrier ();
@@ -35692,7 +35668,7 @@
 +_Unwind_ForcedUnwind (struct _Unwind_Exception *exc, _Unwind_Stop_Fn stop,
 +		      void *stop_argument)
 +{
-+  if (__builtin_expect (libgcc_s_handle == NULL, 0))
++  if (__glibc_unlikely (libgcc_s_handle == NULL))
 +    pthread_cancel_init ();
 +  else
 +    atomic_read_barrier ();
@@ -35707,7 +35683,7 @@
 +_Unwind_Word
 +_Unwind_GetCFA (struct _Unwind_Context *context)
 +{
-+  if (__builtin_expect (libgcc_s_handle == NULL, 0))
++  if (__glibc_unlikely (libgcc_s_handle == NULL))
 +    pthread_cancel_init ();
 +  else
 +    atomic_read_barrier ();
@@ -69443,7 +69419,7 @@
 +				    adj))
 +    do_longjump = 1;
 +
-+  if (__builtin_expect (curp != NULL, 0))
++  if (__glibc_unlikely (curp != NULL))
 +    {
 +      /* Handle the compatibility stuff.  Execute all handlers
 +	 registered with the old method which would be unwound by this
@@ -70047,11 +70023,13 @@
 +}
 --- /dev/null
 +++ b/fbtl_db/db-symbols.awk
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,47 @@
 +# This script processes the output of 'readelf -W -s' on the libpthread.so
 +# we've just built.  It checks for all the symbols used in td_symbol_list.
 +
 +BEGIN {
++%define DB_RTLD_VARIABLE(name) /* Nothing. */
++%define DB_MAIN_VARIABLE(name) /* Nothing. */
 +%define DB_LOOKUP_NAME(idx, name)		required[STRINGIFY (name)] = 1;
 +%define DB_LOOKUP_NAME_TH_UNIQUE(idx, name)	th_unique[STRINGIFY (name)] = 1;
 +%include "db-symbols.h"
@@ -70153,7 +70131,7 @@
 +			  _thread_db_register64_thread_area)
 --- /dev/null
 +++ b/fbtl_db/db_info.c
-@@ -0,0 +1,105 @@
+@@ -0,0 +1,109 @@
 +/* This file is included by pthread_create.c to define in libpthread
 +   all the magic symbols required by libthread_db.
 +
@@ -70177,6 +70155,7 @@
 +#include <stdint.h>
 +#include "thread_dbP.h"
 +#include <tls.h>
++#include <ldsodefs.h>
 +
 +typedef struct pthread pthread;
 +typedef struct pthread_key_struct pthread_key_struct;
@@ -70193,6 +70172,9 @@
 +} dtv;
 +
 +typedef struct link_map link_map;
++typedef struct rtld_global rtld_global;
++typedef struct dtv_slotinfo_list dtv_slotinfo_list;
++typedef struct dtv_slotinfo dtv_slotinfo;
 +
 +/* Actually static in nptl/init.c, but we only need it for typeof.  */
 +extern bool __nptl_initial_report_events;
@@ -70261,7 +70243,7 @@
 +#endif
 --- /dev/null
 +++ b/fbtl_db/fetch-value.c
-@@ -0,0 +1,284 @@
+@@ -0,0 +1,285 @@
 +/* Helper routines for libthread_db.
 +   Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -70333,7 +70315,8 @@
 +	}
 +    }
 +
-+  if (idx != 0 && idx - (psaddr_t) 0 > DB_DESC_NELEM (desc))
++  if (idx != 0 && DB_DESC_NELEM (desc) != 0
++      && idx - (psaddr_t) 0 > DB_DESC_NELEM (desc))
 +    /* This is an internal indicator to callers with nonzero IDX
 +       that the IDX value is too big.  */
 +    return TD_NOAPLIC;
@@ -70642,7 +70625,7 @@
 +libthread_db=1
 --- /dev/null
 +++ b/fbtl_db/structs.def
-@@ -0,0 +1,85 @@
+@@ -0,0 +1,124 @@
 +/* List of types and symbols in libpthread examined by libthread_db.
 +   Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -70666,6 +70649,28 @@
 +# define DB_ARRAY_VARIABLE(name) DB_VARIABLE (name)
 +# define STRUCTS_DEF_DEFAULTS 1
 +#endif
++
++#ifndef DB_RTLD_VARIABLE
++# define DB_RTLD_VARIABLE(name) DB_VARIABLE (name)
++#endif
++
++#ifndef DB_MAIN_VARIABLE
++# define DB_MAIN_VARIABLE(name) DB_VARIABLE (name)
++#endif
++
++#ifndef DB_RTLD_GLOBAL_FIELD
++# if !IS_IN (libpthread)
++#  define DB_RTLD_GLOBAL_FIELD(field)		\
++  DB_STRUCT_FIELD (rtld_global, _##field)	\
++  DB_MAIN_VARIABLE (_##field)
++# elif defined SHARED
++#  define DB_RTLD_GLOBAL_FIELD(field)		\
++  DB_STRUCT_FIELD (rtld_global, _##field)
++# else
++#  define DB_RTLD_GLOBAL_FIELD(field)		\
++  DB_MAIN_VARIABLE (_##field)
++# endif
++#endif /* DB_RTLD_GLOBAL_FIELD */
 +
 +DB_STRUCT (pthread)
 +DB_STRUCT_FIELD (pthread, list)
@@ -70715,13 +70720,30 @@
 +DB_STRUCT_ARRAY_FIELD (pthread_key_data_level2, data)
 +
 +DB_STRUCT_FIELD (link_map, l_tls_modid)
++DB_STRUCT_FIELD (link_map, l_tls_offset)
 +
 +DB_STRUCT_ARRAY_FIELD (dtv, dtv)
 +#define pointer_val pointer.val /* Field of anonymous struct in dtv_t.  */
 +DB_STRUCT_FIELD (dtv_t, pointer_val)
++DB_STRUCT_FIELD (dtv_t, counter)
 +#if !IS_IN (libpthread) || TLS_TCB_AT_TP
 +DB_STRUCT_FIELD (pthread, dtvp)
 +#endif
++
++#if !(IS_IN (libpthread) && !defined SHARED)
++DB_STRUCT (rtld_global)
++DB_RTLD_VARIABLE (_rtld_global)
++#endif
++DB_RTLD_GLOBAL_FIELD (dl_tls_dtv_slotinfo_list)
++
++DB_STRUCT (dtv_slotinfo_list)
++DB_STRUCT_FIELD (dtv_slotinfo_list, len)
++DB_STRUCT_FIELD (dtv_slotinfo_list, next)
++DB_STRUCT_ARRAY_FIELD (dtv_slotinfo_list, slotinfo)
++
++DB_STRUCT (dtv_slotinfo)
++DB_STRUCT_FIELD (dtv_slotinfo, gen)
++DB_STRUCT_FIELD (dtv_slotinfo, map)
 +
 +#ifdef STRUCTS_DEF_DEFAULTS
 +# undef DB_STRUCT_ARRAY_FIELD
@@ -70798,7 +70820,7 @@
 +}
 --- /dev/null
 +++ b/fbtl_db/td_symbol_list.c
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,59 @@
 +/* Return list of symbols the library can request.
 +   Copyright (C) 2001-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -70819,7 +70841,6 @@
 +   <http://www.gnu.org/licenses/>.  */
 +
 +#include <assert.h>
-+#include <gnu/lib-names.h>
 +#include "thread_dbP.h"
 +
 +static const char *symbol_list_arr[] =
@@ -70842,12 +70863,12 @@
 +
 +
 +ps_err_e
-+td_lookup (struct ps_prochandle *ps, int idx, psaddr_t *sym_addr)
++td_mod_lookup (struct ps_prochandle *ps, const char *mod,
++	       int idx, psaddr_t *sym_addr)
 +{
 +  ps_err_e result;
 +  assert (idx >= 0 && idx < SYM_NUM_MESSAGES);
-+  result = ps_pglobal_lookup (ps, LIBPTHREAD_SO, symbol_list_arr[idx],
-+			      sym_addr);
++  result = ps_pglobal_lookup (ps, mod, symbol_list_arr[idx], sym_addr);
 +
 +#ifdef HAVE_ASM_GLOBAL_DOT_NAME
 +  /* For PowerPC, 64-bit uses dot symbols but 32-bit does not.
@@ -73034,7 +73055,7 @@
 +}
 --- /dev/null
 +++ b/fbtl_db/td_thr_tlsbase.c
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,243 @@
 +/* Locate TLS data for a thread.
 +   Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -73054,14 +73075,118 @@
 +   <http://www.gnu.org/licenses/>.  */
 +
 +#include "thread_dbP.h"
++#include <link.h>
 +
++/* Get the DTV slotinfo list head entry from the dynamic loader state
++   into *LISTHEAD.  */
++static td_err_e
++dtv_slotinfo_list (td_thragent_t *ta,
++		   psaddr_t *listhead)
++{
++  td_err_e err;
++  psaddr_t head;
++
++  if (ta->ta_addr__rtld_global == 0
++      && td_mod_lookup (ta->ph, LD_SO, SYM__rtld_global,
++			&ta->ta_addr__rtld_global) != PS_OK)
++    ta->ta_addr__rtld_global = (void*)-1;
++
++  if (ta->ta_addr__rtld_global != (void*)-1)
++    {
++      err = DB_GET_FIELD (head, ta, ta->ta_addr__rtld_global,
++			  rtld_global, _dl_tls_dtv_slotinfo_list, 0);
++      if (err != TD_OK)
++	return err;
++    }
++  else
++    {
++      if (ta->ta_addr__dl_tls_dtv_slotinfo_list == 0
++	  && td_mod_lookup (ta->ph, NULL, SYM__dl_tls_dtv_slotinfo_list,
++			    &ta->ta_addr__dl_tls_dtv_slotinfo_list) != PS_OK)
++	return TD_ERR;
++
++      err = _td_fetch_value (ta, ta->ta_var__dl_tls_dtv_slotinfo_list,
++			     SYM_DESC__dl_tls_dtv_slotinfo_list,
++			     0, ta->ta_addr__dl_tls_dtv_slotinfo_list, &head);
++      if (err != TD_OK)
++	return err;
++    }
++
++  *listhead = head;
++  return TD_OK;
++}
++
++/* Get the address of the DTV slotinfo entry for MODID into
++   *DTVSLOTINFO.  */
++static td_err_e
++dtv_slotinfo (td_thragent_t *ta,
++	      unsigned long int modid,
++	      psaddr_t *dtvslotinfo)
++{
++  td_err_e err;
++  psaddr_t slot, temp;
++  size_t slbase = 0;
++
++  err = dtv_slotinfo_list (ta, &slot);
++  if (err != TD_OK)
++    return err;
++
++  while (slot)
++    {
++      /* Get the number of entries in this list entry's array.  */
++      err = DB_GET_FIELD (temp, ta, slot, dtv_slotinfo_list, len, 0);
++      if (err != TD_OK)
++	return err;
++      size_t len = (uintptr_t)temp;
++
++      /* Did we find the list entry for modid?  */
++      if (modid < slbase + len)
++	break;
++
++      /* We didn't, so get the next list entry.  */
++      slbase += len;
++      err = DB_GET_FIELD (temp, ta, slot, dtv_slotinfo_list,
++			  next, 0);
++      if (err != TD_OK)
++	return err;
++      slot = temp;
++    }
++
++  /* We reached the end of the list and found nothing.  */
++  if (!slot)
++    return TD_ERR;
++
++  /* Take the slotinfo for modid from the list entry.  */
++  err = DB_GET_FIELD_ADDRESS (temp, ta, slot, dtv_slotinfo_list,
++			      slotinfo, modid - slbase);
++  if (err != TD_OK)
++    return err;
++  slot = temp;
++
++  *dtvslotinfo = slot;
++  return TD_OK;
++}
++
++/* Return in *BASE the base address of the TLS block for MODID within
++   TH.
++
++   It should return success and yield the correct pointer in any
++   circumstance where the TLS block for the module and thread
++   requested has already been initialized.
++
++   It should fail with TD_TLSDEFER only when the thread could not
++   possibly have observed any values in that TLS block.  That way, the
++   debugger can fall back to showing initial values from the PT_TLS
++   segment (and refusing attempts to mutate) for the TD_TLSDEFER case,
++   and never fail to make the values the program will actually see
++   available to the user of the debugger.  */
 +td_err_e
 +td_thr_tlsbase (const td_thrhandle_t *th,
 +		unsigned long int modid,
 +		psaddr_t *base)
 +{
 +  td_err_e err;
-+  psaddr_t dtv, dtvslot, dtvptr;
++  psaddr_t dtv, dtvslot, dtvptr, temp;
 +
 +  if (modid < 1)
 +    return TD_NOTLS;
@@ -73087,10 +73212,74 @@
 +	return TD_TLSDEFER;
 +    }
 +
++  err = dtv_slotinfo (th->th_ta_p, modid, &temp);
++  if (err != TD_OK)
++    return err;
++
++  psaddr_t slot;
++  err = DB_GET_STRUCT (slot, th->th_ta_p, temp, dtv_slotinfo);
++  if (err != TD_OK)
++    return err;
++
++  /* Take the link_map from the slotinfo.  */
++  psaddr_t map;
++  err = DB_GET_FIELD_LOCAL (map, th->th_ta_p, slot, dtv_slotinfo, map, 0);
++  if (err != TD_OK)
++    return err;
++  if (!map)
++    return TD_ERR;
++
++  /* Ok, the modid is good, now find out what DTV generation it
++     requires.  */
++  err = DB_GET_FIELD_LOCAL (temp, th->th_ta_p, slot, dtv_slotinfo, gen, 0);
++  if (err != TD_OK)
++    return err;
++  size_t modgen = (uintptr_t)temp;
++
 +  /* Get the DTV pointer from the thread descriptor.  */
 +  err = DB_GET_FIELD (dtv, th->th_ta_p, pd, pthread, dtvp, 0);
 +  if (err != TD_OK)
 +    return err;
++
++  psaddr_t dtvgenloc;
++  /* Get the DTV generation count at dtv[0].counter.  */
++  err = DB_GET_FIELD_ADDRESS (dtvgenloc, th->th_ta_p, dtv, dtv, dtv, 0);
++  if (err != TD_OK)
++    return err;
++  err = DB_GET_FIELD (temp, th->th_ta_p, dtvgenloc, dtv_t, counter, 0);
++  if (err != TD_OK)
++    return err;
++  size_t dtvgen = (uintptr_t)temp;
++
++  /* Is the DTV current enough?  */
++  if (dtvgen < modgen)
++    {
++    try_static_tls:
++      /* If the module uses Static TLS, we're still good.  */
++      err = DB_GET_FIELD (temp, th->th_ta_p, map, link_map, l_tls_offset, 0);
++      if (err != TD_OK)
++	return err;
++      ptrdiff_t tlsoff = (uintptr_t)temp;
++
++      if (tlsoff != FORCED_DYNAMIC_TLS_OFFSET
++	  && tlsoff != NO_TLS_OFFSET)
++	{
++	  psaddr_t tp = pd;
++
++#if TLS_TCB_AT_TP
++	  dtvptr = tp - tlsoff;
++#elif TLS_DTV_AT_TP
++	  dtvptr = tp + tlsoff + TLS_PRE_TCB_SIZE;
++#else
++# error "Either TLS_TCB_AT_TP or TLS_DTV_AT_TP must be defined"
++#endif
++
++	  *base = dtvptr;
++	  return TD_OK;
++	}
++
++      return TD_TLSDEFER;
++    }
 +
 +  /* Find the corresponding entry in the DTV.  */
 +  err = DB_GET_FIELD_ADDRESS (dtvslot, th->th_ta_p, dtv, dtv, dtv, modid);
@@ -73105,7 +73294,7 @@
 +  /* It could be that the memory for this module is not allocated for
 +     the given thread.  */
 +  if ((uintptr_t) dtvptr & 1)
-+    return TD_TLSDEFER;
++    goto try_static_tls;
 +
 +  *base = dtvptr;
 +  return TD_OK;
@@ -73782,7 +73971,7 @@
 +#endif	/* thread_db.h */
 --- /dev/null
 +++ b/fbtl_db/thread_dbP.h
-@@ -0,0 +1,257 @@
+@@ -0,0 +1,258 @@
 +/* Private header for thread debug library
 +   Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -73814,6 +74003,7 @@
 +#include "thread_db.h"
 +#include "../fbtl/pthreadP.h"  	/* This is for *_BITMASK only.  */
 +#include <list.h>
++#include <gnu/lib-names.h>
 +
 +/* Indeces for the symbol names.  */
 +enum
@@ -73924,11 +74114,11 @@
 +}
 +
 +
-+/* Internal wrapper around ps_pglobal_lookup.  */
-+extern ps_err_e td_lookup (struct ps_prochandle *ps,
-+			   int idx, psaddr_t *sym_addr) attribute_hidden;
-+
-+
++/* Internal wrappers around ps_pglobal_lookup.  */
++extern ps_err_e td_mod_lookup (struct ps_prochandle *ps, const char *modname,
++			       int idx, psaddr_t *sym_addr) attribute_hidden;
++#define td_lookup(ps, idx, sym_addr) \
++  td_mod_lookup ((ps), LIBPTHREAD_SO, (idx), (sym_addr))
 +
 +
 +/* Store in psaddr_t VAR the address of inferior's symbol NAME.  */
