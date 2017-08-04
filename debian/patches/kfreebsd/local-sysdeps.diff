@@ -3830,10 +3830,10 @@
 +
 +/* Magic IPv4 addresses defined in FreeBSD version of <netinet/in.h>, but not
 +   included in Glibc version of the same header. */
-+#define	INADDR_ALLRPTS_GROUP	(u_int32_t)0xe0000016	/* 224.0.0.22, IGMPv3 */
-+#define	INADDR_CARP_GROUP	(u_int32_t)0xe0000012	/* 224.0.0.18 */
-+#define	INADDR_PFSYNC_GROUP	(u_int32_t)0xe00000f0	/* 224.0.0.240 */
-+#define	INADDR_ALLMDNS_GROUP	(u_int32_t)0xe00000fb	/* 224.0.0.251 */
++#define	INADDR_ALLRPTS_GROUP	(uint32_t)0xe0000016	/* 224.0.0.22, IGMPv3 */
++#define	INADDR_CARP_GROUP	(uint32_t)0xe0000012	/* 224.0.0.18 */
++#define	INADDR_PFSYNC_GROUP	(uint32_t)0xe00000f0	/* 224.0.0.240 */
++#define	INADDR_ALLMDNS_GROUP	(uint32_t)0xe00000fb	/* 224.0.0.251 */
 +
 +#ifdef __USE_MISC
 +
@@ -3996,7 +3996,7 @@
 +
 +    __uint32_t st_gen;		/* Generation number.  */
 +
-+    __quad_t __unused1[2];
++    __uint64_t __unused1[2];
 +  };
 +#endif
 +
@@ -28981,7 +28981,7 @@
 +#endif
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/sys/ucontext.h
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,49 @@
 +/* Data structures for user-level context switching.  Generic version.
 +   Copyright (C) 1997-1999, 2001-2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -29010,9 +29010,10 @@
 +#include <features.h>
 +#include <signal.h>
 +
-+/* We need the signal context definitions even if they are not used
-+   included in <signal.h>.  */
++/* We need the signal context definitions even if they are not exposed
++   by <signal.h>.  */
 +#include <bits/sigcontext.h>
++#include <bits/sigstack.h>
 +
 +/* This include file defines the type 'mcontext_t'.  */
 +#include <bits/mcontext.h>
