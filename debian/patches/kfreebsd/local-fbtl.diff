@@ -14499,7 +14499,7 @@
 +libc_hidden_def (__libc_alloca_cutoff)
 --- /dev/null
 +++ b/fbtl/allocatestack.c
-@@ -0,0 +1,1274 @@
+@@ -0,0 +1,1258 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -14944,9 +14944,6 @@
 +      THREAD_SYSINFO(pd) = THREAD_SELF_SYSINFO;
 +#endif
 +
-+      /* The process ID is also the same as that of the caller.  */
-+      pd->pid = THREAD_GETMEM (THREAD_SELF, pid);
-+
 +      /* Don't allow setxid until cloned.  */
 +      pd->setxid_futex = -1;
 +
@@ -15083,9 +15080,6 @@
 +
 +	  /* Don't allow setxid until cloned.  */
 +	  pd->setxid_futex = -1;
-+
-+	  /* The process ID is also the same as that of the caller.  */
-+	  pd->pid = THREAD_GETMEM (THREAD_SELF, pid);
 +
 +	  /* Allocate the DTV for this thread.  */
 +	  if (_dl_allocate_tls (TLS_TPADJ (pd)) == NULL)
@@ -15380,9 +15374,6 @@
 +	  /* This marks the stack as free.  */
 +	  curp->tid = 0;
 +
-+	  /* The PID field must be initialized for the new process.  */
-+	  curp->pid = self->pid;
-+
 +	  /* Account for the size of the stack.  */
 +	  stack_cache_actsize += curp->stackblock_size;
 +
@@ -15406,13 +15397,6 @@
 +		  }
 +	    }
 +	}
-+    }
-+
-+  /* Reset the PIDs in any cached stacks.  */
-+  list_for_each (runp, &stack_cache)
-+    {
-+      struct pthread *curp = list_entry (runp, struct pthread, list);
-+      curp->pid = self->pid;
 +    }
 +
 +  /* Add the stack of all running threads to the cache.  */
@@ -15560,9 +15544,9 @@
 +#warning setxid fixup needed
 +#if 0
 +  int val;
++  pid_t pid = __getpid ();
 +  INTERNAL_SYSCALL_DECL (err);
-+  val = INTERNAL_SYSCALL (tgkill, err, 3, THREAD_GETMEM (THREAD_SELF, pid),
-+			  t->tid, SIGSETXID);
++  val = INTERNAL_SYSCALL (tgkill, err, pid, t->tid, SIGSETXID);
 +
 +  /* If this failed, it must have had not started yet or else exited.  */
 +  if (!INTERNAL_SYSCALL_ERROR_P (val, err))
@@ -16510,7 +16494,7 @@
 +#endif  
 +
 +  /* Process ID - thread group ID in kernel speak.  */
-+  pid_t pid;
++  pid_t pid_unused;
 +
 +  /* List of robust mutexes the thread is holding.  */
 +#ifdef __PTHREAD_MUTEX_HAVE_PREV
@@ -17267,7 +17251,7 @@
 +#define lll_mutex_unlock(futex) __generic_mutex_unlock (&(futex))
 --- /dev/null
 +++ b/fbtl/nptl-init.c
-@@ -0,0 +1,473 @@
+@@ -0,0 +1,460 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -17445,18 +17429,12 @@
 +static void
 +sigcancel_handler (int sig, siginfo_t *si, void *ctx)
 +{
-+  /* Determine the process ID.  It might be negative if the thread is
-+     in the middle of a fork() call.  */
-+  pid_t pid = THREAD_GETMEM (THREAD_SELF, pid);
-+  if (__glibc_unlikely (pid < 0))
-+    pid = -pid;
-+
 +  /* Safety check.  It would be possible to call this function for
 +     other signals and send a signal from another process.  This is not
 +     correct and might even be a security problem.  Try to catch as
 +     many incorrect invocations as possible.  */     
 +  if (sig != SIGCANCEL
-+      || si->si_pid != pid
++      || si->si_pid != __getpid()
 +#if 1
 +   )
 +#else         
@@ -17506,12 +17484,6 @@
 +static void
 +sighandler_setxid (int sig, siginfo_t *si, void *ctx)
 +{
-+  /* Determine the process ID.  It might be negative if the thread is
-+     in the middle of a fork() call.  */
-+  pid_t pid = THREAD_GETMEM (THREAD_SELF, pid);
-+  if (__glibc_unlikely (pid < 0))
-+    pid = -pid;
-+
 +#if 0
 +  /* Safety check.  It would be possible to call this function for
 +     other signals and send a signal from another process.  This is not
@@ -17560,10 +17532,9 @@
 +  struct pthread *pd = THREAD_SELF;
 +#if 1  
 +  INLINE_SYSCALL(thr_self, 1, &(pd->ktid)); 
-+  pd->pid = __getpid();
 +#else
 +  INTERNAL_SYSCALL_DECL (err);
-+  pd->pid = pd->tid = INTERNAL_SYSCALL (set_tid_address, err, 1, &pd->tid);
++  pd->tid = INTERNAL_SYSCALL (set_tid_address, err, 1, &pd->tid);
 +#endif 
 +  THREAD_SETMEM (pd, specific[0], &pd->specific_1stblock[0]);
 +  THREAD_SETMEM (pd, user_stack, true);
@@ -21176,7 +21147,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_cancel.c
-@@ -0,0 +1,108 @@
+@@ -0,0 +1,101 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -21244,23 +21215,16 @@
 +
 +	  /* The cancellation handler will take care of marking the
 +	     thread as canceled.  */
-+	  INTERNAL_SYSCALL_DECL (err);
-+
-+	  /* One comment: The PID field in the TCB can temporarily be
-+	     changed (in fork).  But this must not affect this code
-+	     here.  Since this function would have to be called while
-+	     the thread is executing fork, it would have to happen in
-+	     a signal handler.  But this is no allowed, pthread_cancel
-+	     is not guaranteed to be async-safe.  */
-+	  int val;
 +#warning TODO recheck
 +#if 1
 +          result = INLINE_SYSCALL(thr_kill, 2, pd->tid, SIGCANCEL);
 +          
-+#else 
-+	  val = INTERNAL_SYSCALL (tgkill, err, 3,
-+				  THREAD_GETMEM (THREAD_SELF, pid), pd->tid,
-+				  SIGCANCEL);
++#else
++	  pid_t pid = getpid ();
++
++	  INTERNAL_SYSCALL_DECL (err);
++	  int val = INTERNAL_SYSCALL_CALL (tgkill, err, pid, pd->tid,
++					   SIGCANCEL);
 +
 +	  if (INTERNAL_SYSCALL_ERROR_P (val, err))
 +	    result = INTERNAL_SYSCALL_ERRNO (val, err);
@@ -23306,7 +23270,7 @@
 +}
 --- /dev/null
 +++ b/fbtl/pthread_getattr_np.c
-@@ -0,0 +1,200 @@
+@@ -0,0 +1,198 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -23373,9 +23337,7 @@
 +    {
 +      /* No stack information available.  This must be for the initial
 +	 thread.  Get the info in some magical way.  */
-+#ifdef __linux__
-+      assert (abs (thread->pid) == thread->tid);
-+#endif
++
 +      /* Stack size limit.  */
 +      struct rlimit rl;
 +
@@ -30377,13 +30339,12 @@
 +#define CURRENT_STACK_FRAME	__builtin_frame_address (0)
 --- /dev/null
 +++ b/fbtl/sysdeps/i386/tcb-offsets.sym
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,16 @@
 +#include <sysdep.h>
 +#include <tls.h>
 +
 +RESULT			offsetof (struct pthread, result)
 +TID			offsetof (struct pthread, tid)
-+PID			offsetof (struct pthread, pid)
 +CANCELHANDLING		offsetof (struct pthread, cancelhandling)
 +CLEANUP_JMP_BUF		offsetof (struct pthread, cleanup_jmp_buf)
 +MULTIPLE_THREADS_OFFSET	offsetof (tcbhead_t, multiple_threads)
@@ -32369,7 +32330,7 @@
 +#endif	/* list.h */
 --- /dev/null
 +++ b/fbtl/sysdeps/pthread/malloc-machine.h
-@@ -0,0 +1,62 @@
+@@ -0,0 +1,28 @@
 +/* Basic platform-independent macro definitions for mutexes,
 +   thread-specific data and parameters for malloc.
 +   Copyright (C) 2003-2013 Free Software Foundation, Inc.
@@ -32392,42 +32353,8 @@
 +#ifndef _MALLOC_MACHINE_H
 +#define _MALLOC_MACHINE_H
 +
-+#undef thread_atfork_static
-+
 +#include <atomic.h>
 +#include <libc-lock.h>
-+
-+__libc_lock_define (typedef, mutex_t)
-+
-+#define mutex_init(m)		__libc_lock_init (*(m))
-+#define mutex_lock(m)		__libc_lock_lock (*(m))
-+#define mutex_trylock(m)	__libc_lock_trylock (*(m))
-+#define mutex_unlock(m)		__libc_lock_unlock (*(m))
-+
-+/* This is defined by newer gcc version unique for each module.  */
-+extern void *__dso_handle __attribute__ ((__weak__));
-+
-+#include <fork.h>
-+
-+#define ATFORK_MEM static struct fork_handler atfork_mem
-+
-+#ifdef SHARED
-+# define thread_atfork(prepare, parent, child) \
-+  atfork_mem.prepare_handler = prepare;					      \
-+  atfork_mem.parent_handler = parent;					      \
-+  atfork_mem.child_handler = child;					      \
-+  atfork_mem.dso_handle = __dso_handle;					      \
-+  atfork_mem.refcntr = 1;						      \
-+  __linkin_atfork (&atfork_mem)
-+#else
-+# define thread_atfork(prepare, parent, child) \
-+  atfork_mem.prepare_handler = prepare;					      \
-+  atfork_mem.parent_handler = parent;					      \
-+  atfork_mem.child_handler = child;					      \
-+  atfork_mem.dso_handle = &__dso_handle == NULL ? NULL : __dso_handle;	      \
-+  atfork_mem.refcntr = 1;						      \
-+  __linkin_atfork (&atfork_mem)
-+#endif
 +
 +#include <sysdeps/generic/malloc-machine.h>
 +
@@ -35889,13 +35816,12 @@
 +  ({ register char *frame __asm__("rsp"); frame; })
 --- /dev/null
 +++ b/fbtl/sysdeps/x86_64/tcb-offsets.sym
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,26 @@
 +#include <sysdep.h>
 +#include <tls.h>
 +
 +RESULT			offsetof (struct pthread, result)
 +TID			offsetof (struct pthread, tid)
-+PID			offsetof (struct pthread, pid)
 +CANCELHANDLING		offsetof (struct pthread, cancelhandling)
 +CLEANUP_JMP_BUF		offsetof (struct pthread, cleanup_jmp_buf)
 +CLEANUP			offsetof (struct pthread, cleanup)
@@ -49759,7 +49685,7 @@
 +#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-cond3.c
-@@ -0,0 +1,112 @@
+@@ -0,0 +1,111 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -49784,6 +49710,10 @@
 +#include <string.h>
 +#include <unistd.h>
 +
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 +
 +/* Note that this test requires more than the standard.  It is
 +   required that there are no spurious wakeups if only more readers
@@ -49812,7 +49742,8 @@
 +    }
 +
 +  /* This call should never return.  */
-+  pthread_cond_wait (&cond, &mut);
++  xpthread_cond_wait (&cond, &mut);
++  puts ("error: pthread_cond_wait in tf returned");
 +
 +  /* We should never get here.  */
 +  exit (1);
@@ -49858,20 +49789,14 @@
 +	}
 +    }
 +
-+  /* Set an alarm for 1 second.  The wrapper will expect this.  */
-+  alarm (1);
++  delayed_exit (1);
 +
 +  /* This call should never return.  */
-+  pthread_cond_wait (&cond, &mut);
++  xpthread_cond_wait (&cond, &mut);
 +
-+  puts ("cond_wait returned");
++  puts ("error: pthread_cond_wait in do_test returned");
 +  return 1;
 +}
-+
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-cond4.c
 @@ -0,0 +1,262 @@
@@ -51836,6 +51761,11 @@
 +#include <stdlib.h>
 +#include <string.h>
 +
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
++
 +#include "eintr.c"
 +
 +
@@ -51905,19 +51835,14 @@
 +	}
 +    }
 +
++  delayed_exit (3);
++  /* This call must never return.  */
 +  (void) tf1 (NULL);
-+  /* NOTREACHED */
-+
-+  return 0;
++  return 1;
 +}
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#define TIMEOUT 3
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-eintr2.c
-@@ -0,0 +1,117 @@
+@@ -0,0 +1,118 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -51943,6 +51868,11 @@
 +#include <stdlib.h>
 +#include <string.h>
 +#include <sys/time.h>
++
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 +
 +#include "eintr.c"
 +
@@ -52023,6 +51953,7 @@
 +      exit (1);
 +    }
 +
++  delayed_exit (3);
 +  /* This call must never return.  */
 +  e = pthread_mutex_lock (&m1);
 +  printf ("main: mutex_lock returned: %s\n",
@@ -52030,14 +51961,9 @@
 +
 +  return 1;
 +}
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#define TIMEOUT 3
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-eintr3.c
-@@ -0,0 +1,71 @@
+@@ -0,0 +1,69 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -52062,6 +51988,11 @@
 +#include <stdio.h>
 +#include <stdlib.h>
 +#include <string.h>
++
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 +
 +#include "eintr.c"
 +
@@ -52096,22 +52027,15 @@
 +      exit (1);
 +    }
 +
++  delayed_exit (1);
 +  /* This call must never return.  */
-+  e = pthread_join (th, NULL);
-+
-+  if (e == EINTR)
-+    puts ("pthread_join returned with EINTR");
-+
-+  return 0;
++  xpthread_join (th);
++  puts ("error: pthread_join returned");
++  return 1;
 +}
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#define TIMEOUT 1
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-eintr4.c
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,53 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -52137,6 +52061,11 @@
 +#include <stdlib.h>
 +#include <string.h>
 +
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
++
 +#include "eintr.c"
 +
 +
@@ -52154,22 +52083,15 @@
 +      exit (1);
 +    }
 +
++  delayed_exit (1);
 +  /* This call must never return.  */
-+  int e = pthread_barrier_wait (&b);
-+
-+  if (e == EINTR)
-+    puts ("pthread_join returned with EINTR");
-+
-+  return 0;
++  xpthread_barrier_wait (&b);
++  puts ("error: pthread_barrier_wait returned");
++  return 1;
 +}
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#define TIMEOUT 1
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-eintr5.c
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,79 @@
 +/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
@@ -52195,6 +52117,11 @@
 +#include <stdlib.h>
 +#include <string.h>
 +#include <sys/time.h>
++
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 +
 +#include "eintr.c"
 +
@@ -52238,18 +52165,12 @@
 +      exit (1);
 +    }
 +
++  delayed_exit (3);
 +  /* This call must never return.  */
-+  e = pthread_cond_wait (&c, &m);
-+  printf ("main: cond_wait returned: %s\n",
-+	  strerror_r (e, buf, sizeof (buf)));
-+
-+  return 0;
++  xpthread_cond_wait (&c, &m);
++  puts ("error: pthread_cond_wait returned");
++  return 1;
 +}
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#define TIMEOUT 3
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-exec1.c
 @@ -0,0 +1,159 @@
@@ -52934,13 +52855,17 @@
 +#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-exit2.c
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,42 @@
 +#include <pthread.h>
 +#include <signal.h>
 +#include <stdio.h>
 +#include <string.h>
 +#include <unistd.h>
 +
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 +
 +static void *
 +tf (void *arg)
@@ -52965,19 +52890,17 @@
 +      return 1;
 +    }
 +
++  delayed_exit (1);
++
 +  /* Terminate only this thread.  */
 +  pthread_exit (NULL);
 +
 +  /* NOTREACHED */
 +  return 1;
 +}
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-exit3.c
-@@ -0,0 +1,81 @@
+@@ -0,0 +1,83 @@
 +#include <pthread.h>
 +#include <signal.h>
 +#include <stdio.h>
@@ -52985,6 +52908,10 @@
 +#include <string.h>
 +#include <unistd.h>
 +
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 +
 +static pthread_barrier_t b;
 +
@@ -53049,16 +52976,14 @@
 +      exit (1);
 +    }
 +
++  delayed_exit (3);
++
 +  /* Terminate only this thread.  */
 +  pthread_exit (NULL);
 +
 +  /* NOTREACHED */
 +  return 1;
 +}
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-fini1.c
 @@ -0,0 +1,34 @@
@@ -57215,7 +57140,7 @@
 +#include "tst-mutex5.c"
 --- /dev/null
 +++ b/fbtl/tst-mutex6.c
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,72 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -57240,6 +57165,11 @@
 +#include <unistd.h>
 +#include <errno.h>
 +
++#ifndef TEST_FUNCTION
++static int do_test (void);
++# define TEST_FUNCTION do_test ()
++#endif
++#include "../test-skeleton.c"
 +
 +#ifndef ATTR
 +pthread_mutexattr_t *attr;
@@ -57276,21 +57206,13 @@
 +      return 1;
 +    }
 +
-+  /* Set an alarm for 1 second.  The wrapper will expect this.  */
-+  alarm (1);
-+
++  delayed_exit (1);
 +  /* This call should never return.  */
-+  pthread_mutex_lock (&m);
++  xpthread_mutex_lock (&m);
 +
 +  puts ("2nd mutex_lock returned");
 +  return 1;
 +}
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#ifndef TEST_FUNCTION
-+# define TEST_FUNCTION do_test ()
-+#endif
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-mutex7.c
 @@ -0,0 +1,164 @@
@@ -61674,7 +61596,7 @@
 +#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-rwlock5.c
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,84 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -61699,6 +61621,10 @@
 +#include <stdlib.h>
 +#include <unistd.h>
 +
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 +
 +static pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
 +static pthread_rwlock_t r;
@@ -61742,25 +61668,19 @@
 +      return 1;
 +    }
 +
-+  /* Set an alarm for 1 second.  The wrapper will expect this.  */
-+  alarm (1);
-+
 +  if (pthread_create (&th, NULL, tf, NULL) != 0)
 +    {
 +      puts ("create failed");
 +      return 1;
 +    }
 +
++  delayed_exit (1);
 +  /* This call should never return.  */
-+  pthread_mutex_lock (&m);
++  xpthread_mutex_lock (&m);
 +
 +  puts ("2nd mutex_lock returned");
 +  return 1;
 +}
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-rwlock6.c
 @@ -0,0 +1,225 @@
@@ -63116,11 +63036,16 @@
 +   <http://www.gnu.org/licenses/>.  */
 +
 +#include <errno.h>
++#include <pthread.h>
 +#include <semaphore.h>
 +#include <signal.h>
 +#include <stdio.h>
 +#include <unistd.h>
 +
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 +
 +static int
 +do_test (void)
@@ -63133,8 +63058,7 @@
 +      return 1;
 +    }
 +
-+  /* Set an alarm for 1 second.  The wrapper will expect this.  */
-+  alarm (1);
++  delayed_exit (1);
 +
 +  if (TEMP_FAILURE_RETRY (sem_wait (&s)) == -1)
 +    {
@@ -63146,10 +63070,6 @@
 +  puts ("wait succeeded");
 +  return 1;
 +}
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-sem3.c
 @@ -0,0 +1,141 @@
@@ -66289,7 +66209,7 @@
 +#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-spin3.c
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,53 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -66313,6 +66233,10 @@
 +#include <stdio.h>
 +#include <unistd.h>
 +
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 +
 +static int
 +do_test (void)
@@ -66331,19 +66255,14 @@
 +      return 1;
 +    }
 +
-+  /* Set an alarm for 1 second.  The wrapper will expect this.  */
-+  alarm (1);
++  delayed_exit (1);
 +
 +  /* This call should never return.  */
-+  pthread_spin_lock (&s);
++  xpthread_spin_lock (&s);
 +
 +  puts ("2nd spin_lock returned");
 +  return 1;
 +}
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-stack1.c
 @@ -0,0 +1,145 @@
@@ -66935,6 +66854,10 @@
 +#include <stdio.h>
 +#include <unistd.h>
 +
++static int do_test (void);
++
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
 +
 +static void *tf (void *a)
 +{
@@ -66957,17 +66880,13 @@
 +      _exit (1);
 +    }
 +
-+  pthread_join (th, NULL);
++  delayed_exit (1);
++  xpthread_join (th);
 +
 +  puts ("join returned");
 +
-+  return 0;
++  return 1;
 +}
-+
-+
-+#define EXPECTED_SIGNAL SIGALRM
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 --- /dev/null
 +++ b/fbtl/tst-stdio2.c
 @@ -0,0 +1,81 @@
@@ -70625,7 +70544,7 @@
 +libthread_db=1
 --- /dev/null
 +++ b/fbtl_db/structs.def
-@@ -0,0 +1,124 @@
+@@ -0,0 +1,123 @@
 +/* List of types and symbols in libpthread examined by libthread_db.
 +   Copyright (C) 2003-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -70676,7 +70595,6 @@
 +DB_STRUCT_FIELD (pthread, list)
 +DB_STRUCT_FIELD (pthread, report_events)
 +DB_STRUCT_FIELD (pthread, tid)
-+DB_STRUCT_FIELD (pthread, pid)
 +DB_STRUCT_FIELD (pthread, start_routine)
 +DB_STRUCT_FIELD (pthread, cancelhandling)
 +DB_STRUCT_FIELD (pthread, schedpolicy)
@@ -71804,7 +71722,7 @@
 +}
 --- /dev/null
 +++ b/fbtl_db/td_ta_thr_iter.c
-@@ -0,0 +1,170 @@
+@@ -0,0 +1,150 @@
 +/* Iterate over a process's threads.
 +   Copyright (C) 1999-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -71883,48 +71801,28 @@
 +      if (ps_pdread (ta->ph, addr, copy, ta->ta_sizeof_pthread) != PS_OK)
 +	return TD_ERR;
 +
-+      /* Verify that this thread's pid field matches the child PID.
-+	 If its pid field is negative, it's about to do a fork or it
-+	 is the sole thread in a fork child.  */
-+      psaddr_t pid;
-+      err = DB_GET_FIELD_LOCAL (pid, ta, copy, pthread, pid, 0);
-+      if (err == TD_OK && (pid_t) (uintptr_t) pid < 0)
-+	{
-+	  if (-(pid_t) (uintptr_t) pid == match_pid)
-+	    /* It is about to do a fork, but is really still the parent PID.  */
-+	    pid = (psaddr_t) (uintptr_t) match_pid;
-+	  else
-+	    /* It must be a fork child, whose new PID is in the tid field.  */
-+	    err = DB_GET_FIELD_LOCAL (pid, ta, copy, pthread, tid, 0);
-+	}
++      err = DB_GET_FIELD_LOCAL (schedpolicy, ta, copy, pthread,
++				schedpolicy, 0);
++      if (err != TD_OK)
++	break;
++      err = DB_GET_FIELD_LOCAL (schedprio, ta, copy, pthread,
++				schedparam_sched_priority, 0);
 +      if (err != TD_OK)
 +	break;
 +
-+      if ((pid_t) (uintptr_t) pid == match_pid)
++      /* Now test whether this thread matches the specified conditions.  */
++
++      /* Only if the priority level is as high or higher.  */
++      int descr_pri = ((uintptr_t) schedpolicy == SCHED_OTHER
++		       ? 0 : (uintptr_t) schedprio);
++      if (descr_pri >= ti_pri)
 +	{
-+	  err = DB_GET_FIELD_LOCAL (schedpolicy, ta, copy, pthread,
-+				    schedpolicy, 0);
-+	  if (err != TD_OK)
-+	    break;
-+	  err = DB_GET_FIELD_LOCAL (schedprio, ta, copy, pthread,
-+				    schedparam_sched_priority, 0);
-+	  if (err != TD_OK)
-+	    break;
-+
-+	  /* Now test whether this thread matches the specified conditions.  */
-+
-+	  /* Only if the priority level is as high or higher.  */
-+	  int descr_pri = ((uintptr_t) schedpolicy == SCHED_OTHER
-+			   ? 0 : (uintptr_t) schedprio);
-+	  if (descr_pri >= ti_pri)
-+	    {
-+	      /* Yep, it matches.  Call the callback function.  */
-+	      td_thrhandle_t th;
-+	      th.th_ta_p = (td_thragent_t *) ta;
-+	      th.th_unique = addr;
-+	      if (callback (&th, cbdata_p) != 0)
-+		return TD_DBERR;
-+	    }
++	  /* Yep, it matches.  Call the callback function.  */
++	  td_thrhandle_t th;
++	  th.th_ta_p = (td_thragent_t *) ta;
++	  th.th_unique = addr;
++	  if (callback (&th, cbdata_p) != 0)
++	    return TD_DBERR;
 +	}
 +
 +      /* Get the pointer to the next element.  */
@@ -73400,7 +73298,7 @@
 +}
 --- /dev/null
 +++ b/fbtl_db/td_thr_validate.c
-@@ -0,0 +1,107 @@
+@@ -0,0 +1,84 @@
 +/* Validate a thread handle.
 +   Copyright (C) 1999-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -73481,29 +73379,6 @@
 +	/* __pthread_initialize_minimal has not run yet.
 +	   There is only the special case thread handle.  */
 +	err = TD_OK;
-+    }
-+
-+  if (err == TD_OK)
-+    {
-+      /* Verify that this is not a stale element in a fork child.  */
-+      pid_t match_pid = ps_getpid (th->th_ta_p->ph);
-+      psaddr_t pid;
-+      err = DB_GET_FIELD (pid, th->th_ta_p, th->th_unique, pthread, pid, 0);
-+      if (err == TD_OK && (pid_t) (uintptr_t) pid < 0)
-+	{
-+	  /* This was a thread that was about to fork, or it is the new sole
-+	     thread in a fork child.  In the latter case, its tid was stored
-+	     via CLONE_CHILD_SETTID and so is already the proper child PID.  */
-+	  if (-(pid_t) (uintptr_t) pid == match_pid)
-+	    /* It is about to do a fork, but is really still the parent PID.  */
-+	    pid = (psaddr_t) (uintptr_t) match_pid;
-+	  else
-+	    /* It must be a fork child, whose new PID is in the tid field.  */
-+	    err = DB_GET_FIELD (pid, th->th_ta_p, th->th_unique,
-+				pthread, tid, 0);
-+	}
-+      if (err == TD_OK && (pid_t) (uintptr_t) pid != match_pid)
-+	err = TD_NOTHR;
 +    }
 +
 +  return err;

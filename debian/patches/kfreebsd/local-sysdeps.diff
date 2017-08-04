@@ -3664,7 +3664,7 @@
 +				   of cmsghdr structure.  */
 +    int cmsg_level;		/* Originating protocol.  */
 +    int cmsg_type;		/* Protocol specific type.  */
-+#if (!defined __STRICT_ANSI__ && __GNUC__ >= 2) || __STDC_VERSION__ >= 199901L
++#if __glibc_c99_flexarr_available 
 +    __extension__ unsigned char __cmsg_data  __flexarr __attribute__ ((aligned (__alignof__(size_t)))); /* Ancillary data.  */
 +#endif
 +  };
@@ -3682,7 +3682,7 @@
 +#define CMSG_LEN(len)   (CMSG_ALIGN (sizeof (struct cmsghdr)) + (len))
 +
 +/* Ancillary data object manipulation macros.  */
-+#if (!defined __STRICT_ANSI__ && __GNUC__ >= 2) || __STDC_VERSION__ >= 199901L
++#if __glibc_c99_flexarr_available 
 +# define CMSG_DATA(cmsg) ((cmsg)->__cmsg_data)
 +#else
 +# define CMSG_DATA(cmsg) ((unsigned char *) (cmsg) + CMSG_ALIGN(sizeof (struct cmsghdr)))
@@ -3945,7 +3945,7 @@
 +
 +    __uint32_t st_gen;		/* Generation number.  */
 +
-+    __quad_t __unused1[2];
++    __uint64_t __unused1[2];
 +  };
 +
 +#ifdef __USE_LARGEFILE64
@@ -8231,7 +8231,7 @@
 +		   (PTHREAD_CANCEL_DISABLE, NULL), 0)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/fork.c
-@@ -0,0 +1,231 @@
+@@ -0,0 +1,228 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -8263,14 +8263,7 @@
 +#include <stdio-lock.h>
 +#include <atomic.h>
 +#include <pthreadP.h>
-+
-+
-+unsigned long int *__fork_generation_pointer;
-+
-+
-+
-+/* The single linked list of all currently registered fork handlers.  */
-+struct fork_handler *__fork_handlers;
++#include <malloc/malloc-internal.h>
 +
 +
 +static void
@@ -8292,6 +8285,12 @@
 +    struct fork_handler *handler;
 +    struct used_handler *next;
 +  } *allp = NULL;
++
++  /* Determine if we are running multiple threads.  We skip some fork
++     handlers in the single-thread case, to make fork safer to use in
++     signal handlers.  POSIX requires that fork is async-signal-safe,
++     but our current fork implementation is not.  */
++  bool multiple_threads = THREAD_GETMEM (THREAD_SELF, header.multiple_threads);
 +
 +  /* Run all the registered preparation handlers.  In reverse order.
 +     While doing this we build up a list of all the entries.  */
@@ -8348,17 +8347,21 @@
 +      break;
 +    }
 +
-+  _IO_list_lock ();
++  /* If we are not running multiple threads, we do not have to
++     preserve lock state.  If fork runs from a signal handler, only
++     async-signal-safe functions can be used in the child.  These data
++     structures are only used by unsafe functions, so their state does
++     not matter if fork was called from a signal handler.  */
++  if (multiple_threads)
++    {
++      _IO_list_lock ();
 +
-+#ifndef NDEBUG
-+  pid_t ppid = THREAD_GETMEM (THREAD_SELF, tid);
-+#endif
-+
-+  /* We need to prevent the getpid() code to update the PID field so
-+     that, if a signal arrives in the child very early and the signal
-+     handler uses getpid(), the value returned is correct.  */
-+  pid_t parentpid = THREAD_GETMEM (THREAD_SELF, pid);
-+  THREAD_SETMEM (THREAD_SELF, pid, -parentpid);
++      /* Acquire malloc locks.  This needs to come last because fork
++	 handlers may use malloc, and the libio list lock has an
++	 indirect malloc dependency as well (via the getdelim
++	 function).  */
++      call_function_static_weak (__malloc_fork_lock_parent);
++    }
 +
 +#ifdef ARCH_FORK
 +  pid = ARCH_FORK ();
@@ -8372,25 +8375,10 @@
 +    {
 +      struct pthread *self = THREAD_SELF;
 +
-+#if 0
-+      assert (THREAD_GETMEM (self, tid) != ppid);
-+#else
-+      { 
-+         int val = __getpid();
-+         INLINE_SYSCALL(thr_self, 1, &(self->ktid));
-+         THREAD_SETMEM (self, pid, val);
-+                 
-+# warning fetch both getpid() and ktid via SYS_thr_self
-+      }   
-+#endif      
++      INLINE_SYSCALL(thr_self, 1, &(self->ktid));
 +
 +      if (__fork_generation_pointer != NULL)
 +	*__fork_generation_pointer += 4;
-+
-+      /* Adjust the PID field for the new process.  */
-+#if 0      
-+      THREAD_SETMEM (self, pid, THREAD_GETMEM (self, tid));
-+#endif
 +
 +#if HP_TIMING_AVAIL
 +      /* The CPU clock of the thread and process have to be set to zero.  */
@@ -8400,11 +8388,18 @@
 +      GL(dl_cpuclock_offset) = now;
 +#endif
 +
-+      /* Reset the file list.  These are recursive mutexes.  */
-+      fresetlockfiles ();
++      /* Reset the lock state in the multi-threaded case.  */
++      if (multiple_threads)
++	{
++	  /* Release malloc locks.  */
++	  call_function_static_weak (__malloc_fork_unlock_child);
 +
-+      /* Reset locks in the I/O code.  */
-+      _IO_list_resetlock ();
++	  /* Reset the file list.  These are recursive mutexes.  */
++	  fresetlockfiles ();
++
++	  /* Reset locks in the I/O code.  */
++	  _IO_list_resetlock ();
++	}
 +
 +      /* Reset the lock the dynamic loader uses to protect its data.  */
 +      __rtld_lock_initialize (GL(dl_load_lock));
@@ -8436,13 +8431,15 @@
 +    }
 +  else
 +    {
-+      assert (THREAD_GETMEM (THREAD_SELF, tid) == ppid);
++      /* Release acquired locks in the multi-threaded case.  */
++      if (multiple_threads)
++	{
++	  /* Release malloc locks, parent process variant.  */
++	  call_function_static_weak (__malloc_fork_unlock_parent);
 +
-+      /* Restore the PID value.  */
-+      THREAD_SETMEM (THREAD_SELF, pid, parentpid);
-+
-+      /* We execute this even if the 'fork' call failed.  */
-+      _IO_list_unlock ();
++	  /* We execute this even if the 'fork' call failed.  */
++	  _IO_list_unlock ();
++	}
 +
 +      /* Run the handlers registered for the parent.  */
 +      while (allp != NULL)
@@ -9058,7 +9055,7 @@
 +#endif
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/libc_pthread_init.c
-@@ -0,0 +1,85 @@
+@@ -0,0 +1,88 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -9087,6 +9084,9 @@
 +#include <libc-lock.h>
 +#include <sysdep.h>
 +#include <ldsodefs.h>
++
++
++unsigned long int *__fork_generation_pointer;
 +
 +
 +#ifdef TLS_MULTIPLE_THREADS_IN_TCB
@@ -9498,61 +9498,8 @@
 +strong_alias (__fork, fork)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pt-raise.c
-@@ -0,0 +1,54 @@
-+/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include <errno.h>
-+#include <signal.h>
-+#include <sysdep.h>
-+#include <tls.h>
-+#include <kernel-features.h>
-+
-+
-+int
-+raise (int sig)
-+{
-+  /* raise is an async-safe function.  It could be called while the
-+     fork function temporarily invalidated the PID field.  Adjust for
-+     that.  */
-+     
-+#if 1
-+#warning TODO recheck
-+  long ktid;
-+  pid_t pid = THREAD_GETMEM (THREAD_SELF, pid);
-+  if (__builtin_expect (pid < 0, 0))
-+  {
-+      /* This system call is not supposed to fail.  */
-+      INLINE_SYSCALL(thr_self, 1, &ktid);
-+  } 
-+  else
-+      ktid = THREAD_GETMEM (THREAD_SELF, tid);
-+
-+  return INLINE_SYSCALL(thr_kill, 2, ktid, sig);
-+#else
-+  pid_t pid = THREAD_GETMEM (THREAD_SELF, pid);
-+  if (__builtin_expect (pid < 0, 0))
-+    pid = -pid;
-+
-+  return INLINE_SYSCALL (tgkill, 3, pid, THREAD_GETMEM (THREAD_SELF, tid),
-+			 sig);
-+#endif
-+}
+@@ -0,0 +1 @@
++#include <sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/raise.c>
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_attr_getaffinity.c
 @@ -0,0 +1,69 @@
@@ -9945,7 +9892,7 @@
 +strong_alias (__pthread_getschedparam, pthread_getschedparam)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/pthread_kill.c
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,61 @@
 +/* Copyright (C) 2002-2012 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -9997,12 +9944,6 @@
 +    
 +  /* We have a special syscall to do the work.  */
 +
-+  /* One comment: The PID field in the TCB can temporarily be changed
-+     (in fork).  But this must not affect this code here.  Since this
-+     function would have to be called while the thread is executing
-+     fork, it would have to happen in a signal handler.  But this is
-+     no allowed, pthread_kill is not guaranteed to be async-safe.  */
-+     
 +  /* the KTID field in the TCB can be wrong under FreeBSD
 +     a) before __pthread_initialize_minimal is finished (with libpthread)
 +     b) in child just after fork
@@ -10477,7 +10418,7 @@
 +}
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/raise.c
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,35 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -10507,53 +10448,15 @@
 +int
 +raise (int sig)
 +{
-+#if 1
-+#warning TODO recheck
 +  long ktid;
-+  pid_t pid = THREAD_GETMEM (THREAD_SELF, pid);
-+  if (__builtin_expect (pid <= 0, 0))	/* zero is before __pthread_initialize_minimal, i.e. also  no libpthread at all */
-+  {
-+      /* This system call is not supposed to fail.  */
-+      INLINE_SYSCALL(thr_self, 1, &ktid);
-+  } 
-+  else
-+      ktid = THREAD_GETMEM (THREAD_SELF, tid);
-+
++  INLINE_SYSCALL(thr_self, 1, &ktid);
 +  return INLINE_SYSCALL(thr_kill, 2, ktid, sig);
-+#else
-+  struct pthread *pd = THREAD_SELF;
-+  pid_t pid = THREAD_GETMEM (pd, pid);
-+  pid_t selftid = THREAD_GETMEM (pd, tid);
-+  if (selftid == 0)
-+    {
-+      /* This system call is not supposed to fail.  */
-+#ifdef INTERNAL_SYSCALL
-+      INTERNAL_SYSCALL_DECL (err);
-+      selftid = INTERNAL_SYSCALL (gettid, err, 0);
-+#else
-+      selftid = INLINE_SYSCALL (gettid, 0);
-+#endif
-+      THREAD_SETMEM (pd, tid, selftid);
-+
-+      /* We do not set the PID field in the TID here since we might be
-+	 called from a signal handler while the thread executes fork.  */
-+      pid = selftid;
-+    }
-+  else
-+    /* raise is an async-safe function.  It could be called while the
-+       fork/vfork function temporarily invalidated the PID field.  Adjust for
-+       that.  */
-+    if (__builtin_expect (pid <= 0, 0))
-+      pid = (pid & INT_MAX) == 0 ? selftid : -pid;
-+
-+  return INLINE_SYSCALL (tgkill, 3, pid, selftid, sig);
-+#endif  
 +}
 +libc_hidden_def (raise)
 +weak_alias (raise, gsignal)
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/fbtl/register-atfork.c
-@@ -0,0 +1,142 @@
+@@ -0,0 +1,144 @@
 +/* Copyright (C) 2002-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
@@ -10578,6 +10481,8 @@
 +#include <fork.h>
 +#include <atomic.h>
 +
++
++struct fork_handler *__fork_handlers;
 +
 +/* Lock to protect allocation and deallocation of fork handlers.  */
 +int __fork_lock = LLL_LOCK_INITIALIZER;
@@ -14737,45 +14642,6 @@
 @@ -0,0 +1 @@
 +unix/bsd/bsd4.4/kfreebsd/x86/fbtl
 --- /dev/null
-+++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/fbtl/pt-vfork.S
-@@ -0,0 +1,36 @@
-+/* Copyright (C) 1999-2013 Free Software Foundation, Inc.  This file is part
-+   of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+
-+#include <tcb-offsets.h>
-+
-+/* Save the PID value.  */
-+#define SAVE_PID \
-+	movl	%gs:PID, %edx; 						      \
-+	negl	%edx;							      \
-+	movl	%edx, %gs:PID
-+
-+
-+/* we do not have spare register during syscall */
-+/* Restore the old PID value in the parent.  */
-+#define RESTORE_PID_IN_PARENT \
-+	movl	%gs:PID, %edx; 						      \
-+	negl	%edx;							      \
-+	movl	%edx, %gs:PID
-+
-+#include "../vfork.S"
-+
---- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/fbtl/sysdep-cancel.h
 @@ -0,0 +1,108 @@
 +/* Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
@@ -14989,49 +14855,6 @@
 +#endif /* __ASSEMBLER__ */
 +
 +#endif	/* tls.h */
---- /dev/null
-+++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/fbtl/vfork.S
-@@ -0,0 +1,40 @@
-+/* Copyright (C) 1999-2013 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+
-+#include <tcb-offsets.h>
-+
-+/* Save the PID value.  */
-+#define SAVE_PID \
-+	movl	%gs:PID, %edx; 						      \
-+	negl	%edx;							      \
-+	jne	1f;							      \
-+	movl	$0x80000000, %edx;					      \
-+1:	movl	%edx, %gs:PID
-+
-+
-+/* we do not have spare register during syscall */
-+/* Restore the old PID value in the parent.  */
-+#define RESTORE_PID_IN_PARENT \
-+	movl	%gs:PID, %edx; 						      \
-+	cmpl	$0x80000000, %edx;					      \
-+	jne	1f;							      \
-+	xorl	%edx, %edx;						      \
-+1:	negl	%edx;							      \
-+	movl	%edx, %gs:PID
-+
-+#include "../vfork.S"
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/get_clockfreq.c
 @@ -0,0 +1 @@
@@ -15366,10 +15189,9 @@
 +  }
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/ld.abilist
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,11 @@
 +GLIBC_2.3 GLIBC_2.3 A
 +GLIBC_2.3 ___tls_get_addr F
-+GLIBC_2.3 __libc_memalign F
 +GLIBC_2.3 __libc_stack_end D 0x4
 +GLIBC_2.3 __tls_get_addr F
 +GLIBC_2.3 _dl_mcount F
@@ -15434,7 +15256,7 @@
 +GLIBC_2.3 getaddrinfo_a F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libc.abilist
-@@ -0,0 +1,2204 @@
+@@ -0,0 +1,2207 @@
 +GLIBC_2.10 GLIBC_2.10 A
 +GLIBC_2.10 __cxa_at_quick_exit F
 +GLIBC_2.10 __posix_getopt F
@@ -15538,6 +15360,9 @@
 +GLIBC_2.25 explicit_bzero F
 +GLIBC_2.25 getentropy F
 +GLIBC_2.25 getrandom F
++GLIBC_2.25 gnu_dev_major F
++GLIBC_2.25 gnu_dev_makedev F
++GLIBC_2.25 gnu_dev_minor F
 +GLIBC_2.25 strfromd F
 +GLIBC_2.25 strfromf F
 +GLIBC_2.25 strfroml F
@@ -17667,7 +17492,7 @@
 +GLIBC_2.3.4 dlmopen F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/libm.abilist
-@@ -0,0 +1,416 @@
+@@ -0,0 +1,467 @@
 +GLIBC_2.15 GLIBC_2.15 A
 +GLIBC_2.15 __acos_finite F
 +GLIBC_2.15 __acosf_finite F
@@ -17766,6 +17591,57 @@
 +GLIBC_2.24 nextup F
 +GLIBC_2.24 nextupf F
 +GLIBC_2.24 nextupl F
++GLIBC_2.25 GLIBC_2.25 A
++GLIBC_2.25 __iscanonicall F
++GLIBC_2.25 __iseqsig F
++GLIBC_2.25 __iseqsigf F
++GLIBC_2.25 __iseqsigl F
++GLIBC_2.25 canonicalize F
++GLIBC_2.25 canonicalizef F
++GLIBC_2.25 canonicalizel F
++GLIBC_2.25 fegetmode F
++GLIBC_2.25 fesetexcept F
++GLIBC_2.25 fesetmode F
++GLIBC_2.25 fetestexceptflag F
++GLIBC_2.25 fmaxmag F
++GLIBC_2.25 fmaxmagf F
++GLIBC_2.25 fmaxmagl F
++GLIBC_2.25 fminmag F
++GLIBC_2.25 fminmagf F
++GLIBC_2.25 fminmagl F
++GLIBC_2.25 fromfp F
++GLIBC_2.25 fromfpf F
++GLIBC_2.25 fromfpl F
++GLIBC_2.25 fromfpx F
++GLIBC_2.25 fromfpxf F
++GLIBC_2.25 fromfpxl F
++GLIBC_2.25 getpayload F
++GLIBC_2.25 getpayloadf F
++GLIBC_2.25 getpayloadl F
++GLIBC_2.25 llogb F
++GLIBC_2.25 llogbf F
++GLIBC_2.25 llogbl F
++GLIBC_2.25 roundeven F
++GLIBC_2.25 roundevenf F
++GLIBC_2.25 roundevenl F
++GLIBC_2.25 setpayload F
++GLIBC_2.25 setpayloadf F
++GLIBC_2.25 setpayloadl F
++GLIBC_2.25 setpayloadsig F
++GLIBC_2.25 setpayloadsigf F
++GLIBC_2.25 setpayloadsigl F
++GLIBC_2.25 totalorder F
++GLIBC_2.25 totalorderf F
++GLIBC_2.25 totalorderl F
++GLIBC_2.25 totalordermag F
++GLIBC_2.25 totalordermagf F
++GLIBC_2.25 totalordermagl F
++GLIBC_2.25 ufromfp F
++GLIBC_2.25 ufromfpf F
++GLIBC_2.25 ufromfpl F
++GLIBC_2.25 ufromfpx F
++GLIBC_2.25 ufromfpxf F
++GLIBC_2.25 ufromfpxl F
 +GLIBC_2.3 GLIBC_2.3 A
 +GLIBC_2.3 _LIB_VERSION D 0x4
 +GLIBC_2.3 __clog10 F
@@ -18642,7 +18518,7 @@
 +GLIBC_2.3 openpty F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/localplt.data
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,20 @@
 +# See scripts/check-localplt.awk for how this file is processed.
 +# PLT use is required for the malloc family and for matherr because
 +# users can define their own functions and have library internals call them.
@@ -18654,10 +18530,8 @@
 +libc.so: memalign
 +libc.so: realloc
 +libm.so: matherr
-+# The dynamic loader uses __libc_memalign internally to allocate aligned
-+# TLS storage. The other malloc family of functions are expected to allow
-+# user symbol interposition.
-+ld.so: __libc_memalign
++# The main malloc is interposed into the dynamic linker, for
++# allocations after the initial link (when dlopen is used).
 +ld.so: malloc
 +ld.so: calloc
 +ld.so: realloc
@@ -18877,6 +18751,10 @@
 +
 +libc_hidden_def (__pipe)
 +weak_alias (__pipe, pipe)
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/pt-vfork.S
+@@ -0,0 +1 @@
++#include <sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/vfork.S>
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/rfork.S
 @@ -0,0 +1,44 @@
@@ -20259,7 +20137,7 @@
 +#define oSS_SIZE	664
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/i386/vfork.S
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,59 @@
 +/* Copyright (C) 1999, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -20292,10 +20170,6 @@
 +	cfi_adjust_cfa_offset(-4)
 +	cfi_register (%eip, %ecx)
 +
-+#ifdef SAVE_PID
-+        SAVE_PID
-+#endif
-+
 +	/* Perform the system call.  */
 +	DO_CALL (vfork, 0)
 +	jb	L(error)	/* Branch forward if it failed.  */
@@ -20307,12 +20181,6 @@
 +	decl	%edx
 +	andl	%edx, %eax
 +
-+#ifdef RESTORE_PID_IN_PARENT
-+        jz L(norestore)
-+        RESTORE_PID_IN_PARENT
-+L(norestore):
-+#endif
-+
 +	/* Jump to the return PC.  */
 +	jmp	*%ecx
 +
@@ -20320,10 +20188,6 @@
 +	/* Push back the return PC.  */
 +	pushl	%ecx
 +	cfi_adjust_cfa_offset(4)
-+
-+#ifdef RESTORE_PID_IN_PARENT
-+        RESTORE_PID_IN_PARENT
-+#endif
 +
 +	/* Branch to the error handler, hidden in PSEUDO_END.  */
 +	jmp	SYSCALL_ERROR_LABEL
@@ -32368,38 +32232,6 @@
 +#define __pthread_disable_asynccancel __librt_disable_asynccancel
 +#include "cancellation.S"
 --- /dev/null
-+++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/fbtl/pt-vfork.S
-@@ -0,0 +1,29 @@
-+/* Copyright (C) 2004-2013 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include <tcb-offsets.h>
-+
-+#define SAVE_PID \
-+	movl	%fs:PID, %esi;						      \
-+	movl	%esi, %edx;						      \
-+	negl	%edx;							      \
-+	movl	%edx, %fs:PID
-+
-+#define RESTORE_PID_IN_PARENT \
-+	movl	%esi, %fs:PID;						      \
-+
-+#include "../vfork.S"
---- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/fbtl/sysdep-cancel.h
 @@ -0,0 +1,111 @@
 +/* Copyright (C) 2002-2012 Free Software Foundation, Inc.
@@ -32590,40 +32422,6 @@
 +
 +#endif	/* tls.h */
 --- /dev/null
-+++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/fbtl/vfork.S
-@@ -0,0 +1,31 @@
-+/* Copyright (C) 2004-2013 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include <tcb-offsets.h>
-+
-+#define SAVE_PID \
-+	movl	%fs:PID, %esi;						      \
-+	movl	$0x80000000, %ecx;					      \
-+	movl	%esi, %edx;						      \
-+	negl	%edx;							      \
-+	cmove	%ecx, %edx;						      \
-+	movl	%edx, %fs:PID
-+
-+#define RESTORE_PID_IN_PARENT \
-+	movl	%esi, %fs:PID;						      \
-+
-+#include "../vfork.S"
---- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/fts.c
 @@ -0,0 +1,3 @@
 +/* On GNU/kFreeBSD x86_64, ino_t and ino64_t have different sizes, so
@@ -32721,9 +32519,8 @@
 +#include "../i386/iopl.c"
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/ld.abilist
-@@ -0,0 +1,11 @@
+@@ -0,0 +1,10 @@
 +GLIBC_2.3 GLIBC_2.3 A
-+GLIBC_2.3 __libc_memalign F
 +GLIBC_2.3 __libc_stack_end D 0x8
 +GLIBC_2.3 __tls_get_addr F
 +GLIBC_2.3 _dl_mcount F
@@ -32796,7 +32593,7 @@
 +GLIBC_2.3 getaddrinfo_a F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libc.abilist
-@@ -0,0 +1,2152 @@
+@@ -0,0 +1,2155 @@
 +GLIBC_2.10 GLIBC_2.10 A
 +GLIBC_2.10 __cxa_at_quick_exit F
 +GLIBC_2.10 __posix_getopt F
@@ -32902,6 +32699,9 @@
 +GLIBC_2.25 explicit_bzero F
 +GLIBC_2.25 getentropy F
 +GLIBC_2.25 getrandom F
++GLIBC_2.25 gnu_dev_major F
++GLIBC_2.25 gnu_dev_makedev F
++GLIBC_2.25 gnu_dev_minor F
 +GLIBC_2.25 strfromd F
 +GLIBC_2.25 strfromf F
 +GLIBC_2.25 strfroml F
@@ -34977,7 +34777,7 @@
 +GLIBC_2.3.4 dlmopen F
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/libm.abilist
-@@ -0,0 +1,414 @@
+@@ -0,0 +1,465 @@
 +GLIBC_2.15 GLIBC_2.15 A
 +GLIBC_2.15 __acos_finite F
 +GLIBC_2.15 __acosf_finite F
@@ -35076,6 +34876,57 @@
 +GLIBC_2.24 nextup F
 +GLIBC_2.24 nextupf F
 +GLIBC_2.24 nextupl F
++GLIBC_2.25 GLIBC_2.25 A
++GLIBC_2.25 __iscanonicall F
++GLIBC_2.25 __iseqsig F
++GLIBC_2.25 __iseqsigf F
++GLIBC_2.25 __iseqsigl F
++GLIBC_2.25 canonicalize F
++GLIBC_2.25 canonicalizef F
++GLIBC_2.25 canonicalizel F
++GLIBC_2.25 fegetmode F
++GLIBC_2.25 fesetexcept F
++GLIBC_2.25 fesetmode F
++GLIBC_2.25 fetestexceptflag F
++GLIBC_2.25 fmaxmag F
++GLIBC_2.25 fmaxmagf F
++GLIBC_2.25 fmaxmagl F
++GLIBC_2.25 fminmag F
++GLIBC_2.25 fminmagf F
++GLIBC_2.25 fminmagl F
++GLIBC_2.25 fromfp F
++GLIBC_2.25 fromfpf F
++GLIBC_2.25 fromfpl F
++GLIBC_2.25 fromfpx F
++GLIBC_2.25 fromfpxf F
++GLIBC_2.25 fromfpxl F
++GLIBC_2.25 getpayload F
++GLIBC_2.25 getpayloadf F
++GLIBC_2.25 getpayloadl F
++GLIBC_2.25 llogb F
++GLIBC_2.25 llogbf F
++GLIBC_2.25 llogbl F
++GLIBC_2.25 roundeven F
++GLIBC_2.25 roundevenf F
++GLIBC_2.25 roundevenl F
++GLIBC_2.25 setpayload F
++GLIBC_2.25 setpayloadf F
++GLIBC_2.25 setpayloadl F
++GLIBC_2.25 setpayloadsig F
++GLIBC_2.25 setpayloadsigf F
++GLIBC_2.25 setpayloadsigl F
++GLIBC_2.25 totalorder F
++GLIBC_2.25 totalorderf F
++GLIBC_2.25 totalorderl F
++GLIBC_2.25 totalordermag F
++GLIBC_2.25 totalordermagf F
++GLIBC_2.25 totalordermagl F
++GLIBC_2.25 ufromfp F
++GLIBC_2.25 ufromfpf F
++GLIBC_2.25 ufromfpl F
++GLIBC_2.25 ufromfpx F
++GLIBC_2.25 ufromfpxf F
++GLIBC_2.25 ufromfpxl F
 +GLIBC_2.3 GLIBC_2.3 A
 +GLIBC_2.3 _LIB_VERSION D 0x4
 +GLIBC_2.3 __clog10 F
@@ -36132,6 +35983,10 @@
 +PSEUDO_END (__pipe)
 +libc_hidden_def (__pipe)
 +weak_alias (__pipe, pipe)
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/pt-vfork.S
+@@ -0,0 +1 @@
++#include <sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/vfork.S>
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/readelflib.c
 @@ -0,0 +1,62 @@
@@ -37478,7 +37333,7 @@
 +#define oSS_SIZE	832
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/x86_64/vfork.S
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,59 @@
 +/* Copyright (C) 1999, 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -37511,9 +37366,6 @@
 +	cfi_adjust_cfa_offset(-8)
 +	cfi_register(%rip, %rdi)
 +
-+#ifdef SAVE_PID
-+        SAVE_PID
-+#endif
 +	/* Perform the system call.  */
 +	DO_CALL (vfork, 0)
 +	jb	L(error)	/* Branch forward if it failed.  */
@@ -37525,12 +37377,6 @@
 +	decq	%rdx
 +	andq	%rdx, %rax
 +
-+#ifdef RESTORE_PID_IN_PARENT
-+	jz L(norestore)
-+        RESTORE_PID_IN_PARENT
-+L(norestore):
-+#endif
-+
 +	/* Jump to the return PC.  */
 +	jmp	*%rdi
 +
@@ -37538,9 +37384,7 @@
 +	/* Push back the return PC.  */
 +	pushq	%rdi
 +	cfi_adjust_cfa_offset(8)
-+#ifdef RESTORE_PID_IN_PARENT
-+        RESTORE_PID_IN_PARENT
-+#endif
++
 +	/* Branch to the error handler, hidden in PSEUDO_END.  */
 +	jmp	SYSCALL_ERROR_LABEL
 +L(pseudo_end):
