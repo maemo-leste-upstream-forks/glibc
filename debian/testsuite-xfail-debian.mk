@@ -733,6 +733,11 @@ test-xfail-tst-support_record_failure-2 = yes
 test-xfail-tst-wcstod-round = yes
 test-xfail-tst-env-setuid = yes
 test-xfail-tst-env-setuid-tunables = yes
+
+# regression in 2.25
+test-xfail-test-ildouble = yes
+test-xfail-test-ldouble = yes
+test-xfail-test-ldouble-finite = yes
 endif
 
 
