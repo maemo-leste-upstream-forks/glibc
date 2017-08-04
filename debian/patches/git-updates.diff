@@ -1,10 +1,18 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.25/master from glibc-2.25
 
 diff --git a/ChangeLog b/ChangeLog
-index f140ee67de..b70096ae6d 100644
+index f140ee67de..897a69b49f 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,247 @@
+@@ -1,3 +1,255 @@
++2017-08-04  Aurelien Jarno  <aurelien@aurel32.net>
++
++	* sysdeps/i386/i686/fpu/multiarch/libm-test-ulps: Regenerated.
++
++2017-08-03  Aurelien Jarno  <aurelien@aurel32.net>
++
++	* stdlib/getentropy.c (getentropy): Change return type to int.
++
 +2017-04-28  Tulio Magno Quites Machado Filho  <tuliom@linux.vnet.ibm.com>
 +
 +	[BZ #21280]
@@ -1419,6 +1427,19 @@ index f9cc80b4b5..73f7ae31cc 100755
      echo "All OK." > $logfile
  fi
  
+diff --git a/stdlib/getentropy.c b/stdlib/getentropy.c
+index a71d4cd8f5..a88bbf8de3 100644
+--- a/stdlib/getentropy.c
++++ b/stdlib/getentropy.c
+@@ -21,7 +21,7 @@
+ 
+ /* Write LENGTH bytes of randomness starting at BUFFER.  Return 0 on
+    success and -1 on failure.  */
+-ssize_t
++int
+ getentropy (void *buffer, size_t length)
+ {
+   __set_errno (ENOSYS);
 diff --git a/string/test-memchr.c b/string/test-memchr.c
 index d62889ff8f..6431605c7e 100644
 --- a/string/test-memchr.c
@@ -2659,6 +2680,52 @@ index 339c7bb771..787b95f502 100644
  	/* See if we were called as a command with the executable file	\
  	   name as an extra leading argument. */			\
  "	addil	LT'_dl_skip_args,%r19\n"				\
+diff --git a/sysdeps/i386/i686/fpu/multiarch/libm-test-ulps b/sysdeps/i386/i686/fpu/multiarch/libm-test-ulps
+index cb82d3ee36..275dbbe804 100644
+--- a/sysdeps/i386/i686/fpu/multiarch/libm-test-ulps
++++ b/sysdeps/i386/i686/fpu/multiarch/libm-test-ulps
+@@ -42,7 +42,7 @@ ldouble: 4
+ Function: "acosh_upward":
+ double: 1
+ idouble: 1
+-ildouble: 4
++ildouble: 5
+ ldouble: 3
+ 
+ Function: "asin":
+@@ -900,8 +900,8 @@ double: 3
+ float: 3
+ idouble: 3
+ ifloat: 3
+-ildouble: 7
+-ldouble: 7
++ildouble: 8
++ldouble: 8
+ 
+ Function: Imaginary part of "clog10_upward":
+ double: 1
+@@ -1591,8 +1591,8 @@ double: 3
+ float: 4
+ idouble: 3
+ ifloat: 4
+-ildouble: 5
+-ldouble: 5
++ildouble: 6
++ldouble: 6
+ 
+ Function: "hypot":
+ double: 1
+@@ -1743,8 +1743,8 @@ double: 3
+ float: 4
+ idouble: 3
+ ifloat: 4
+-ildouble: 5
+-ldouble: 5
++ildouble: 6
++ldouble: 6
+ 
+ Function: "log":
+ double: 1
 diff --git a/sysdeps/i386/i686/multiarch/memchr-sse2.S b/sysdeps/i386/i686/multiarch/memchr-sse2.S
 index 910679cfc0..e41f324a77 100644
 --- a/sysdeps/i386/i686/multiarch/memchr-sse2.S
