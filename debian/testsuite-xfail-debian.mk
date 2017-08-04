@@ -731,8 +731,8 @@ test-xfail-tst-vfork3 = yes
 test-xfail-tst-support_record_failure = yes
 test-xfail-tst-support_record_failure-2 = yes
 test-xfail-tst-wcstod-round = yes
-test-xfail-elf/tst-env-setuid = yes
-test-xfail-elf/tst-env-setuid-tunables = yes
+test-xfail-tst-env-setuid = yes
+test-xfail-tst-env-setuid-tunables = yes
 endif
 
 
