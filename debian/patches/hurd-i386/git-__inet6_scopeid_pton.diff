@@ -1,0 +1,39 @@
+commit f87cc2bfba9b844da48a63441c6099342b1551c7
+Author: Florian Weimer <fweimer@redhat.com>
+Date:   Thu Aug 10 16:06:52 2017 +0200
+
+    __inet6_scopeid_pton: Remove attribute_hidden, internal_function
+    
+    The hidden attribute was overridden by libc_hidden_proto on GNU/Linux.
+    It is incorrect because the function is used from nscd.
+    
+    internal_function is not supposed to be used across DSO boundaries,
+    so this commit removes it (again, due to the use in nscd).
+
+diff --git a/inet/inet6_scopeid_pton.c b/inet/inet6_scopeid_pton.c
+index e09b1cb34d..cc8803fa10 100644
+--- a/inet/inet6_scopeid_pton.c
++++ b/inet/inet6_scopeid_pton.c
+@@ -28,7 +28,7 @@
+ 
+ /* Parse SOURCE as a scope ID for ADDRESS.  Return 0 on success and -1
+    on error.  */
+-internal_function int
++int
+ __inet6_scopeid_pton (const struct in6_addr *address, const char *scope,
+                       uint32_t *result)
+ {
+diff --git a/inet/net-internal.h b/inet/net-internal.h
+index 2b2632c7ba..b2135893e8 100644
+--- a/inet/net-internal.h
++++ b/inet/net-internal.h
+@@ -25,8 +25,7 @@
+ #include <sys/time.h>
+ 
+ int __inet6_scopeid_pton (const struct in6_addr *address,
+-                          const char *scope, uint32_t *result)
+-  internal_function attribute_hidden;
++                          const char *scope, uint32_t *result);
+ libc_hidden_proto (__inet6_scopeid_pton)
+ 
+ 
