@@ -1,0 +1,15 @@
+Index: glibc-2.25/scripts/check-installed-headers.sh
+===================================================================
+--- glibc-2.25.orig/scripts/check-installed-headers.sh
++++ glibc-2.25/scripts/check-installed-headers.sh
+@@ -83,6 +83,10 @@ for header in "$@"; do
+         # instead, plus an inclusion of that header.
+         (sys/elf.h)
+             continue;;
++	    
++	# These are completely not following standards
++        (hurd.h | hurd/* | faultexc_server.h | mach.h | mach_init.h | mach_error.h | mach-shortcuts.h | mach/* | device/* | lock-intern.h | spin-lock.h | machine-sp.h)
++            continue;;
+ 
+ 	# sys/sysctl.h is unsupported for x32.
+ 	(sys/sysctl.h)
