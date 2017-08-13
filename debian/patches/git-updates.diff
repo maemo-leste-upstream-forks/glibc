@@ -1,10 +1,115 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.25/master from glibc-2.25
 
 diff --git a/ChangeLog b/ChangeLog
-index f140ee67de..897a69b49f 100644
+index f140ee67de..c80eedb68e 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,255 @@
+@@ -1,3 +1,360 @@
++2017-08-12  John David Anglin  <danglin@gcc.gnu.org>
++
++	[BZ 19170]
++	* sysdeps/hppa/dl-trampoline.S (_dl_runtime_resolve): Return to caller
++	if _dl_fixup fails.
++
++2017-08-12  John David Anglin  <danglin@gcc.gnu.org>
++	    Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++
++	[BZ #21512]
++	* sysdeps/unix/sysv/linux/aarch64/clone.S (__clone): Call exit
++	syscall instead of jump to _exit.
++	* sysdeps/unix/sysv/linux/hppa/localplt.data: Remove _exit entry.
++
++2017-08-12  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++
++	* sysdeps/unix/sysv/linux/hppa/ipc_priv.h: New file.
++
++2017-08-12  John David Anglin  <danglin@gcc.gnu.org>
++
++	* sysdeps/unix/sysv/linux/hppa/clone.S (__clone): Add .cfi annotation.
++	* sysdeps/unix/sysv/linux/hppa/getcontext.S (__getcontext): Likewise.
++	* sysdeps/unix/sysv/linux/hppa/pt-vfork.S (__vfork): Likewise.
++	* sysdeps/unix/sysv/linux/hppa/setcontext.S (__setcontext): Likewise.
++
++	* sysdeps/unix/sysv/linux/hppa/getcontext.S (__getcontext): Fix stack
++	offset for r19 load.
++
++	* sysdeps/unix/sysv/linux/hppa/setcontext.S (__setcontext): Return 0.
++
++	* sysdeps/unix/sysv/linux/hppa/sysdep-cancel.h (PSEUDO): Fix CFA offset.
++	Use .cfi_def_cfa_offset instead of .cfi_offset.  Don't record stack
++	pointer offset.  Correct PIC register offset.  Don't mention frame
++	related instructions in epilogue.
++	(PUSHARGS_1): Correct offset.
++	(PUSHARGS_2): Likewise.
++	(PUSHARGS_3): Likewise.
++	(PUSHARGS_4): Likewise.
++	(PUSHARGS_5): Likewise.
++	(PUSHARGS_6): Likewise.
++	(POPARGS_1): Don't mention register restore.
++	(POPARGS_2): Likewise.
++	(POPARGS_3): Likewise.
++	(POPARGS_4): Likewise.
++	(POPARGS_5): Likewise.
++	(POPARGS_6): Likewise.
++	* sysdeps/unix/sysv/linux/hppa/sysdep.h (SAVE_PIC): Don't mention
++	copy of PIC register.
++	(LOAD_PIC): Likewise don't mention restore.
++	(DO_CALL): Fix CFA offset.  Use .cfi_def_cfa_offset instead of
++	.cfi_offset.  Don't record stack pointer offset.  Correct PIC register
++	offset.  Don't mention frame related instructions in epilogue.
++
++	[BZ 20098]
++	* sysdeps/hppa/dl-fptr.c (_dl_read_access_allowed): New.
++	(_dl_lookup_address): Return address if it is not consistent with
++	being a linker defined function pointer.  Likewise, return address
++	if address and function descriptor addresses are not accessible.
++
++	[BZ locale/19838]
++	* sysdeps/unix/sysv/linux/hppa/bits/shm.h (SHMLBA): Set to page size.
++
++	* nptl/allocatestack.c (allocate_stack): Align old and new guard
++	addresses to page boundaries when the stack grows up.
++
++	* sysdeps/hppa/math-tests.h: New.
++
++	[BZ #21016]
++	* sysdeps/hppa/nptl/bits/pthreadtypes.h: Update pthread_cond_t typedef.
++	* sysdeps/unix/sysv/linux/hppa/pthread.h: Include
++	bits/types/struct_timespec.h.
++	(PTHREAD_MUTEX_INITIALIZER): Revise define.
++	(PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP): Likewise.
++	(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP): Likewise.
++	(PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP): Likewise.
++	(PTHREAD_RWLOCK_INITIALIZER): Likewise.
++	(PTHREAD_RWLOCK_WRITER_NONRECURSIVE_INITIALIZER_NP): Likewise.
++	(PTHREAD_COND_INITIALIZER): Likewise.
++	Remove old definitions.
++	* sysdeps/unix/sysv/linux/hppa/internaltypes.h: Delete.
++	* sysdeps/unix/sysv/linux/hppa/pthread_cond_broadcast.c: Delete.
++	* sysdeps/unix/sysv/linux/hppa/pthread_cond_destroy.c: Delete.
++	* sysdeps/unix/sysv/linux/hppa/pthread_cond_init.c: Delete.
++	* sysdeps/unix/sysv/linux/hppa/pthread_cond_signal.c: Delete.
++	* sysdeps/unix/sysv/linux/hppa/pthread_cond_wait.c: Delete.
++
++2017-08-11  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #21242]
++	* assert/assert.h [__GNUC__ && !__STRICT_ANSI__] (assert):
++	Suppress pedantic warning resulting from statement expression.
++	(__ASSERT_FUNCTION): Add missing __extension__.
++
++2017-08-08  Helge Deller  <deller@gmx.de>
++
++	[BZ #21049]
++        * sysdeps/hppa/__longjmp.c (__longjmp): Move call to CHECK_SP up
++        to avoid clobbering r26.
++
++2017-08-06  H.J. Lu  <hongjiu.lu@intel.com>
++
++	[BZ #21871]
++	* sysdeps/x86/cpu-features.c (init_cpu_features): Set
++	bit_arch_Use_dl_runtime_resolve_opt only with AVX512F.
++
 +2017-08-04  Aurelien Jarno  <aurelien@aurel32.net>
 +
 +	* sysdeps/i386/i686/fpu/multiarch/libm-test-ulps: Regenerated.
@@ -330,10 +435,10 @@ index e9194e54cf..7f0eef8096 100644
  	| sed -n -f $< > $@.new
  	test -s $@.new
 diff --git a/NEWS b/NEWS
-index ec15dde761..7be238c404 100644
+index ec15dde761..e27fd4c4f6 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,19 @@ See the end for copying conditions.
+@@ -5,6 +5,20 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <http://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
@@ -346,6 +451,7 @@ index ec15dde761..7be238c404 100644
 +  [21109] Tunables broken on big-endian
 +  [21115] sunrpc: Use-after-free in error path in clntudp_call
 +  [21209] Ignore and remove LD_HWCAP_MASK for AT_SECURE programs
++  [21242] assert: Suppress pedantic warning caused by statement expression
 +  [21289] Fix symbol redirect for fts_set
 +  [21386] Assertion in fork for distinct parent PID is incorrect
 +  [21624] Unsafe alloca allows local attackers to alias stack and heap (CVE-2017-1000366)
@@ -353,6 +459,41 @@ index ec15dde761..7be238c404 100644
  Version 2.25
  
  * The feature test macro __STDC_WANT_LIB_EXT2__, from ISO/IEC TR
+diff --git a/assert/assert.h b/assert/assert.h
+index 22f019537c..6801cfeb10 100644
+--- a/assert/assert.h
++++ b/assert/assert.h
+@@ -91,13 +91,19 @@ __END_DECLS
+      ? __ASSERT_VOID_CAST (0)						\
+      : __assert_fail (#expr, __FILE__, __LINE__, __ASSERT_FUNCTION))
+ # else
++/* The first occurrence of EXPR is not evaluated due to the sizeof,
++   but will trigger any pedantic warnings masked by the __extension__
++   for the second occurrence.  The explicit comparison against zero is
++   required to support function pointers and bit fields in this
++   context, and to suppress the evaluation of variable length
++   arrays.  */
+ #  define assert(expr)							\
+-    ({									\
++  ((void) sizeof ((expr) == 0), __extension__ ({			\
+       if (expr)								\
+         ; /* empty */							\
+       else								\
+         __assert_fail (#expr, __FILE__, __LINE__, __ASSERT_FUNCTION);	\
+-    })
++    }))
+ # endif
+ 
+ # ifdef	__USE_GNU
+@@ -113,7 +119,7 @@ __END_DECLS
+    C9x has a similar variable called __func__, but prefer the GCC one since
+    it demangles C++ function names.  */
+ # if defined __cplusplus ? __GNUC_PREREQ (2, 6) : __GNUC_PREREQ (2, 4)
+-#   define __ASSERT_FUNCTION	__PRETTY_FUNCTION__
++#   define __ASSERT_FUNCTION	__extension__ __PRETTY_FUNCTION__
+ # else
+ #  if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+ #   define __ASSERT_FUNCTION	__func__
 diff --git a/elf/Makefile b/elf/Makefile
 index 61abeb59ee..cc4aeb25b6 100644
 --- a/elf/Makefile
@@ -1399,6 +1540,27 @@ index 19d76c0c37..eaea7c3b89 100644
 +char *locs __attribute__ ((nocommon));
  compat_symbol (libc, locs, locs, GLIBC_2_0);
  
+ 
+diff --git a/nptl/allocatestack.c b/nptl/allocatestack.c
+index 8a228ab254..368fe3c36b 100644
+--- a/nptl/allocatestack.c
++++ b/nptl/allocatestack.c
+@@ -683,8 +683,14 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
+ 			prot) != 0)
+ 	    goto mprot_error;
+ #elif _STACK_GROWS_UP
+-	  if (mprotect ((char *) pd - pd->guardsize,
+-			pd->guardsize - guardsize, prot) != 0)
++	  char *new_guard = (char *)(((uintptr_t) pd - guardsize)
++				     & ~pagesize_m1);
++	  char *old_guard = (char *)(((uintptr_t) pd - pd->guardsize)
++				     & ~pagesize_m1);
++	  /* The guard size difference might be > 0, but once rounded
++	     to the nearest page the size difference might be zero.  */
++	  if (new_guard > old_guard
++	      && mprotect (old_guard, new_guard - old_guard, prot) != 0)
+ 	    goto mprot_error;
+ #endif
  
 diff --git a/posix/globtest.sh b/posix/globtest.sh
 index f9cc80b4b5..73f7ae31cc 100755
@@ -2653,6 +2815,143 @@ index a74083786e..5ea8a4a259 100644
    "LD_LIBRARY_PATH\0"							      \
    "LD_ORIGIN_PATH\0"							      \
    "LD_PRELOAD\0"							      \
+diff --git a/sysdeps/hppa/__longjmp.c b/sysdeps/hppa/__longjmp.c
+index a7eefc7ad6..2fedb1d738 100644
+--- a/sysdeps/hppa/__longjmp.c
++++ b/sysdeps/hppa/__longjmp.c
+@@ -24,15 +24,15 @@
+ void
+ __longjmp (__jmp_buf env, int val)
+ {
++#ifdef CHECK_SP
++  CHECK_SP (env[0].__jmp_buf.__sp);
++#endif
++
+   /* We must use one of the non-callee saves registers
+      for env.  */
+   register unsigned long r26 asm ("r26") = (unsigned long)&env[0];
+   register unsigned long r25 asm ("r25") = (unsigned long)(val == 0 ? 1 : val);
+ 
+-#ifdef CHECK_SP
+-  CHECK_SP (env[0].__jmp_buf.__sp);
+-#endif
+-
+   asm volatile(
+ 	/* Set return value.  */
+ 	"copy	%0, %%r28\n\t"
+@@ -79,6 +79,7 @@ __longjmp (__jmp_buf env, int val)
+ 	: /* No outputs.  */
+ 	: "r" (r25), "r" (r26)
+ 	: /* No point in clobbers.  */ );
++
+   /* Avoid `volatile function does return' warnings.  */
+   for (;;);
+ }
+diff --git a/sysdeps/hppa/dl-fptr.c b/sysdeps/hppa/dl-fptr.c
+index 83bdb91202..f74abc02c2 100644
+--- a/sysdeps/hppa/dl-fptr.c
++++ b/sysdeps/hppa/dl-fptr.c
+@@ -181,24 +181,29 @@ make_fdesc (ElfW(Addr) ip, ElfW(Addr) gp)
+ static inline ElfW(Addr) * __attribute__ ((always_inline))
+ make_fptr_table (struct link_map *map)
+ {
+-  const ElfW(Sym) *symtab
+-    = (const void *) D_PTR (map, l_info[DT_SYMTAB]);
++  const ElfW(Sym) *symtab = (const void *) D_PTR (map, l_info[DT_SYMTAB]);
+   const char *strtab = (const void *) D_PTR (map, l_info[DT_STRTAB]);
+   ElfW(Addr) *fptr_table;
+   size_t size;
+   size_t len;
++  const ElfW(Sym) *symtabend;
+ 
+-  /* XXX Apparently the only way to find out the size of the dynamic
+-     symbol section is to assume that the string table follows right
+-     afterwards...  */
+-  len = ((strtab - (char *) symtab)
++  /* Determine the end of the dynamic symbol table using the hash.  */
++  if (map->l_info[DT_HASH] != NULL)
++    symtabend = (symtab + ((Elf_Symndx *) D_PTR (map, l_info[DT_HASH]))[1]);
++  else
++  /* There is no direct way to determine the number of symbols in the
++     dynamic symbol table and no hash table is present.  The ELF
++     binary is ill-formed but what shall we do?  Use the beginning of
++     the string table which generally follows the symbol table.  */
++    symtabend = (const ElfW(Sym) *) strtab;
++
++  len = (((char *) symtabend - (char *) symtab)
+ 	 / map->l_info[DT_SYMENT]->d_un.d_val);
+-  size = ((len * sizeof (fptr_table[0]) + GLRO(dl_pagesize) - 1)
+-	  & -GLRO(dl_pagesize));
+-  /* XXX We don't support here in the moment systems without MAP_ANON.
+-     There probably are none for IA-64.  In case this is proven wrong
+-     we will have to open /dev/null here and use the file descriptor
+-     instead of the hard-coded -1.  */
++  size = ALIGN_UP (len * sizeof (fptr_table[0]), GLRO(dl_pagesize));
++
++  /* We don't support systems without MAP_ANON.  We avoid using malloc
++     because this might get called before malloc is setup.  */
+   fptr_table = __mmap (NULL, size,
+ 		       PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE,
+ 		       -1, 0);
+@@ -331,22 +336,45 @@ elf_machine_resolve (void)
+   return addr;
+ }
+ 
++static inline int
++_dl_read_access_allowed (unsigned int *addr)
++{
++  int result;
++
++  asm ("proberi	(%1),3,%0" : "=r" (result) : "r" (addr) : );
++
++  return result;
++}
++
+ ElfW(Addr)
+ _dl_lookup_address (const void *address)
+ {
+   ElfW(Addr) addr = (ElfW(Addr)) address;
+   unsigned int *desc, *gptr;
+ 
+-  /* Check for special cases.  */
+-  if ((int) addr == -1
+-      || (unsigned int) addr < 4096
+-      || !((unsigned int) addr & 2))
++  /* Return ADDR if the least-significant two bits of ADDR are not consistent
++     with ADDR being a linker defined function pointer.  The normal value for
++     a code address in a backtrace is 3.  */
++  if (((unsigned int) addr & 3) != 2)
++    return addr;
++
++  /* Handle special case where ADDR points to page 0.  */
++  if ((unsigned int) addr < 4096)
+     return addr;
+ 
+   /* Clear least-significant two bits from descriptor address.  */
+   desc = (unsigned int *) ((unsigned int) addr & ~3);
++  if (!_dl_read_access_allowed (desc))
++    return addr;
+ 
+-  /* Check if descriptor requires resolution.  The following trampoline is
++  /* Load first word of candidate descriptor.  It should be a pointer
++     with word alignment and point to memory that can be read.  */
++  gptr = (unsigned int *) desc[0];
++  if (((unsigned int) gptr & 3) != 0
++      || !_dl_read_access_allowed (gptr))
++    return addr;
++
++  /* See if descriptor requires resolution.  The following trampoline is
+      used in each global offset table for function resolution:
+ 
+ 		ldw 0(r20),r22
+@@ -358,7 +386,6 @@ _dl_lookup_address (const void *address)
+ 		.word "_dl_runtime_resolve ltp"
+      got:	.word _DYNAMIC
+ 		.word "struct link map address" */
+-  gptr = (unsigned int *) desc[0];
+   if (gptr[0] == 0xea9f1fdd			/* b,l .-12,r20     */
+       && gptr[1] == 0xd6801c1e			/* depwi 0,31,2,r20 */
+       && (ElfW(Addr)) gptr[2] == elf_machine_resolve ())
 diff --git a/sysdeps/hppa/dl-machine.h b/sysdeps/hppa/dl-machine.h
 index 339c7bb771..787b95f502 100644
 --- a/sysdeps/hppa/dl-machine.h
@@ -2680,6 +2979,139 @@ index 339c7bb771..787b95f502 100644
  	/* See if we were called as a command with the executable file	\
  	   name as an extra leading argument. */			\
  "	addil	LT'_dl_skip_args,%r19\n"				\
+diff --git a/sysdeps/hppa/dl-trampoline.S b/sysdeps/hppa/dl-trampoline.S
+index 856339bffe..3165c6f0e2 100644
+--- a/sysdeps/hppa/dl-trampoline.S
++++ b/sysdeps/hppa/dl-trampoline.S
+@@ -82,6 +82,21 @@ _dl_runtime_resolve:
+ 	bl	_dl_fixup,%rp
+ 	copy	%r21,%r19		/* set fixup func ltp */
+ 
++	/* While the linker will set a function pointer to NULL when it
++	   encounters an undefined weak function, we need to dynamically
++	   detect removed weak functions.  The issue arises because a weak
++	   __gmon_start__ function was added to shared executables to work
++	   around issues in _init that are now resolved.  The presence of
++	   __gmon_start__ in every shared library breaks the linker
++	   `--as-needed' option.  This __gmon_start__ function does nothing
++	   but removal is tricky.  Depending on the binding, removal can
++	   cause an application using it to fault.  The call to _dl_fixup
++	   returns NULL when a function isn't resolved.  In order to help
++	   with __gmon_start__ removal, we return directly to the caller
++	   when _dl_fixup returns NULL.  This check could be removed when
++	   BZ 19170 is fixed.  */
++	comib,=	0,%r28,1f
++
+ 	/* Load up the returned func descriptor */
+ 	copy	%r28, %r22
+ 	copy	%r29, %r19
+@@ -107,6 +122,13 @@ _dl_runtime_resolve:
+ 	/* Jump to new function, but return to previous function */
+ 	bv	%r0(%r22)
+ 	ldw	-20(%sp),%rp
++
++1:
++	/* Return to previous function */
++	ldw	-148(%sp),%rp
++	bv	%r0(%rp)
++	ldo	-128(%sp),%sp
++
+         .EXIT
+         .PROCEND
+ 	cfi_endproc
+diff --git a/sysdeps/hppa/math-tests.h b/sysdeps/hppa/math-tests.h
+new file mode 100644
+index 0000000000..bb205907ad
+--- /dev/null
++++ b/sysdeps/hppa/math-tests.h
+@@ -0,0 +1,22 @@
++/* Configuration for math tests.  hppa version.
++   Copyright (C) 2017 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* SNaN tests do not preserve payloads.  */
++#define SNAN_TESTS_PRESERVE_PAYLOAD 0
++
++#include_next <math-tests.h>
+diff --git a/sysdeps/hppa/nptl/bits/pthreadtypes.h b/sysdeps/hppa/nptl/bits/pthreadtypes.h
+index e37111a2f3..579047b732 100644
+--- a/sysdeps/hppa/nptl/bits/pthreadtypes.h
++++ b/sysdeps/hppa/nptl/bits/pthreadtypes.h
+@@ -106,36 +106,34 @@ typedef union
+ 
+ /* Data structure for conditional variable handling.  The structure of
+    the attribute type is not exposed on purpose. However, this structure
+-   is exposed via PTHREAD_COND_INITIALIZER, and because of this, the
+-   Linuxthreads version sets the first four ints to one. In the NPTL
+-   version we must check, in every function using pthread_cond_t,
+-   for the static Linuxthreads initializer and clear the appropriate
+-   words. */
++   is exposed via PTHREAD_COND_INITIALIZER.  Support for Linuxthreads has
++   been dropped but we still need to retain the alignment of the original
++   lock field from Linuxthreads.  */
+ typedef union
+ {
+   struct
+   {
+-    /* In the old Linuxthreads pthread_cond_t, this is the
+-       start of the 4-word lock structure, the next four words
+-       are set all to 1 by the Linuxthreads
+-       PTHREAD_COND_INITIALIZER.  */
+-    int __lock __attribute__ ((__aligned__(16)));
+-    /* Tracks the initialization of this structure:
+-       0  initialized with NPTL PTHREAD_COND_INITIALIZER.
+-       1  initialized with Linuxthreads PTHREAD_COND_INITIALIZER.
+-       2  initialization in progress.  */
+-    int __initializer;
+-    unsigned int __futex;
+-    void *__mutex;
+-    /* In the old Linuxthreads this would have been the start
+-       of the pthread_fastlock status word.  */
+-    __extension__ unsigned long long int __total_seq;
+-    __extension__ unsigned long long int __wakeup_seq;
+-    __extension__ unsigned long long int __woken_seq;
+-    unsigned int __nwaiters;
+-    unsigned int __broadcast_seq;
+-    /* The NPTL pthread_cond_t is exactly the same size as
+-       the Linuxthreads version, there are no words to spare.  */
++    __extension__ union
++    {
++      __extension__ unsigned long long int __wseq;
++      struct {
++	unsigned int __low;
++	unsigned int __high;
++      } __wseq32;
++    };
++    __extension__ union
++    {
++      __extension__ unsigned long long int __g1_start;
++      struct {
++	unsigned int __low;
++	unsigned int __high;
++      } __g1_start32;
++    };
++    unsigned int __g_refs[2] __attribute__ ((__aligned__(16)));
++    unsigned int __g_size[2];
++    unsigned int __g1_orig_size;
++    unsigned int __wrefs;
++    unsigned int __g_signals[2];
+   } __data;
+   char __size[__SIZEOF_PTHREAD_COND_T];
+   __extension__ long long int __align;
 diff --git a/sysdeps/i386/i686/fpu/multiarch/libm-test-ulps b/sysdeps/i386/i686/fpu/multiarch/libm-test-ulps
 index cb82d3ee36..275dbbe804 100644
 --- a/sysdeps/i386/i686/fpu/multiarch/libm-test-ulps
@@ -2860,6 +3292,772 @@ index cca17f1e34..1f0e3b494e 100644
  # We used to offer inline functions that used this, so it must be exported.
  # Ought to reorg things such that carg isn't thus forced to use a plt.
  libm.so: __atan2
+diff --git a/sysdeps/unix/sysv/linux/hppa/bits/shm.h b/sysdeps/unix/sysv/linux/hppa/bits/shm.h
+index 794f0ab2da..495dae8afc 100644
+--- a/sysdeps/unix/sysv/linux/hppa/bits/shm.h
++++ b/sysdeps/unix/sysv/linux/hppa/bits/shm.h
+@@ -37,7 +37,7 @@
+ #define SHM_UNLOCK	12		/* unlock segment (root only) */
+ 
+ /* Segment low boundary address multiple.  */
+-#define SHMLBA 0x00400000		/* address needs to be 4 Mb aligned */
++#define SHMLBA		0x1000
+ 
+ /* Type to count number of attaches.  */
+ typedef unsigned long int shmatt_t;
+diff --git a/sysdeps/unix/sysv/linux/hppa/clone.S b/sysdeps/unix/sysv/linux/hppa/clone.S
+index d36b302199..f6b4e3eea8 100644
+--- a/sysdeps/unix/sysv/linux/hppa/clone.S
++++ b/sysdeps/unix/sysv/linux/hppa/clone.S
+@@ -64,9 +64,12 @@
+ ENTRY(__clone)
+ 	/* Prologue */
+ 	stwm	%r4, 64(%sp)
++	.cfi_def_cfa_offset -64
++	.cfi_offset 4, 0
+ 	stw	%sp, -4(%sp)
+ #ifdef PIC
+ 	stw	%r19, -32(%sp)
++	.cfi_offset 19, 32
+ #endif
+ 
+ 	/* Sanity check arguments.  */
+@@ -147,9 +150,9 @@ ENTRY(__clone)
+ #ifdef PIC
+ 	copy	%r4, %r19
+ #endif
+-	/* The call to _exit needs saved r19.  */
+-	bl	_exit, %rp
+-	copy	%ret0, %arg0
++	copy	%r28, %r26
++	ble	0x100(%sr2, %r0)
++	ldi	__NR_exit, %r20
+ 
+ 	/* We should not return from _exit.
+            We do not restore r4, or the stack state.  */
+diff --git a/sysdeps/unix/sysv/linux/hppa/getcontext.S b/sysdeps/unix/sysv/linux/hppa/getcontext.S
+index 6f52f2149d..68a74a0b7e 100644
+--- a/sysdeps/unix/sysv/linux/hppa/getcontext.S
++++ b/sysdeps/unix/sysv/linux/hppa/getcontext.S
+@@ -130,8 +130,11 @@ ENTRY(__getcontext)
+ 
+ 	/* Prologue */
+ 	stwm	%r4, 64(%sp)
++	.cfi_def_cfa_offset -64
++	.cfi_offset 4, 0
+ #ifdef PIC
+ 	stw	%r19, -32(%sp)
++	.cfi_offset 19, 32
+ #endif
+ 
+ 	/* Set up the trampoline registers.
+@@ -156,7 +159,7 @@ ENTRY(__getcontext)
+ 	/* Epilogue */
+ 	ldw	-84(%sp), %r2
+ #ifdef PIC
+-	ldw	-96(%sp), %r19
++	ldw	-32(%sp), %r19
+ #endif
+ 	bv	%r0(%r2)
+ 	ldwm	-64(%sp), %r4
+diff --git a/sysdeps/unix/sysv/linux/hppa/internaltypes.h b/sysdeps/unix/sysv/linux/hppa/internaltypes.h
+deleted file mode 100644
+index d6496579da..0000000000
+--- a/sysdeps/unix/sysv/linux/hppa/internaltypes.h
++++ /dev/null
+@@ -1,84 +0,0 @@
+-#include_next <internaltypes.h>
+-#ifndef _INTERNAL_TYPES_H_HPPA_
+-#define _INTERNAL_TYPES_H_HPPA_ 1
+-#include <atomic.h>
+-
+-/* In GLIBC 2.10 HPPA switched from Linuxthreads to NPTL, and in order
+-to maintain ABI compatibility with pthread_cond_t, some care had to be
+-taken.
+-
+-The NPTL pthread_cond_t grew in size. When HPPA switched to NPTL, we
+-dropped the use of ldcw, and switched to the kernel helper routine for
+-compare-and-swap.  This allowed HPPA to use the 4-word 16-byte aligned
+-lock words, and alignment words to store the additional pthread_cond_t
+-data. Once organized properly the new NPTL pthread_cond_t was 1 word
+-smaller than the Linuxthreads version.
+-
+-However, we were faced with the case that users may have initialized the
+-pthread_cond_t with PTHREAD_COND_INITIALIZER. In this case, the first
+-four words were set to one, and must be cleared before any NPTL code
+-used these words.
+-
+-We didn't want to use LDCW, because it continues to be a source of bugs
+-when applications memset pthread_cond_t to all zeroes by accident. This
+-works on all other architectures where lock words are unlocked at zero.
+-Remember that because of the semantics of LDCW, a locked word is set to
+-zero, and an unlocked word is set to 1.
+-
+-Instead we used atomic_compare_and_exchange_val_acq, but we couldn't use
+-this on any of the pthread_cond_t words, otherwise it might interfere
+-with the current operation of the structure. To solve this problem we
+-used the left over word.
+-
+-If the stucture was initialized by a legacy Linuxthread
+-PTHREAD_COND_INITIALIZER it contained a 1, and this indicates that the
+-structure requires zeroing for NPTL. The first thread to come upon a
+-pthread_cond_t with a 1 in the __initializer field, will
+-compare-and-swap the value, placing a 2 there which will cause all other
+-threads using the same pthread_cond_t to wait for the completion of the
+-initialization. Lastly, we use a store (with memory barrier) to change
+-__initializer from 2 to 0. Note that the store is strongly ordered, but
+-we use the PA 1.1 compatible form which is ",ma" with zero offset.
+-
+-In the future, when the application is recompiled with NPTL
+-PTHREAD_COND_INITIALIZER it will be a quick compare-and-swap, which
+-fails because __initializer is zero, and the structure will be used as
+-is correctly.  */
+-
+-#define cond_compat_clear(var) \
+-({									\
+-  int tmp = 0;								\
+-  var->__data.__wseq = 0;						\
+-  var->__data.__signals_sent = 0;					\
+-  var->__data.__confirmed = 0;						\
+-  var->__data.__generation = 0;						\
+-  var->__data.__mutex = NULL;						\
+-  var->__data.__quiescence_waiters = 0;					\
+-  var->__data.__clockid = 0;						\
+-  /* Clear __initializer last, to indicate initialization is done.  */	\
+-  /* This synchronizes-with the acquire load below.  */			\
+-  atomic_store_release (&var->__data.__initializer, 0);			\
+-})
+-
+-#define cond_compat_check_and_clear(var) \
+-({								\
+-  int v;							\
+-  int *value = &var->__data.__initializer;			\
+-  /* This synchronizes-with the release store above.  */	\
+-  while ((v = atomic_load_acquire (value)) != 0)		\
+-    {								\
+-      if (v == 1						\
+-	  /* Relaxed MO is fine; it only matters who's first.  */        \
+-	  && atomic_compare_exchange_acquire_weak_relaxed (value, 1, 2)) \
+-	{							\
+-	  /* We're first; initialize structure.  */		\
+-	  cond_compat_clear (var);				\
+-	  break;						\
+-	}							\
+-      else							\
+-	/* Yield before we re-check initialization status.  */	\
+-	sched_yield ();						\
+-    }								\
+-})
+-
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/hppa/ipc_priv.h b/sysdeps/unix/sysv/linux/hppa/ipc_priv.h
+new file mode 100644
+index 0000000000..d880f5029a
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/hppa/ipc_priv.h
+@@ -0,0 +1,21 @@
++/* Old SysV permission definition for Linux.  Hppa version.
++   Copyright (C) 2017 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <sys/ipc.h>  /* For __key_t  */
++
++#define __IPC_64	0x0
+diff --git a/sysdeps/unix/sysv/linux/hppa/localplt.data b/sysdeps/unix/sysv/linux/hppa/localplt.data
+index 9dd81b47c8..db9e24b090 100644
+--- a/sysdeps/unix/sysv/linux/hppa/localplt.data
++++ b/sysdeps/unix/sysv/linux/hppa/localplt.data
+@@ -6,7 +6,6 @@ libc.so: free
+ libc.so: malloc
+ libc.so: memalign
+ libc.so: realloc
+-libc.so: _exit
+ libc.so: __sigsetjmp
+ libc.so: _IO_funlockfile
+ libc.so: sigprocmask
+diff --git a/sysdeps/unix/sysv/linux/hppa/pt-vfork.S b/sysdeps/unix/sysv/linux/hppa/pt-vfork.S
+index fc4573c86b..8b7d7df2fe 100644
+--- a/sysdeps/unix/sysv/linux/hppa/pt-vfork.S
++++ b/sysdeps/unix/sysv/linux/hppa/pt-vfork.S
+@@ -58,7 +58,10 @@ ENTRY(__vfork)
+ 	   that there is no child now, so it's safe to create
+ 	   a frame.  */
+ 	stw	%rp, -20(%sp)
++	.cfi_offset 2, -20
+ 	stwm	%r3, 64(%sp)
++	.cfi_def_cfa_offset -64
++	.cfi_offset 3, 0
+ 	stw	%sp, -4(%sp)
+ 
+ 	sub	%r0,%ret0,%r3
+diff --git a/sysdeps/unix/sysv/linux/hppa/pthread.h b/sysdeps/unix/sysv/linux/hppa/pthread.h
+index ac617201d2..806072cde4 100644
+--- a/sysdeps/unix/sysv/linux/hppa/pthread.h
++++ b/sysdeps/unix/sysv/linux/hppa/pthread.h
+@@ -26,6 +26,7 @@
+ #include <bits/pthreadtypes.h>
+ #include <bits/setjmp.h>
+ #include <bits/wordsize.h>
++#include <bits/types/struct_timespec.h>
+ 
+ 
+ /* Detach state.  */
+@@ -82,32 +83,18 @@ enum
+ #endif
+ 
+ 
+-#ifdef __PTHREAD_MUTEX_HAVE_PREV
+-# define PTHREAD_MUTEX_INITIALIZER \
+-  { { 0, 0, 0, 0, 0, __PTHREAD_SPINS, { 0, 0 } } }
+-# ifdef __USE_GNU
+-#  define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP \
+-  { { 0, 0, 0, 0, PTHREAD_MUTEX_RECURSIVE_NP, __PTHREAD_SPINS, { 0, 0 } } }
+-#  define PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP \
+-  { { 0, 0, 0, 0, PTHREAD_MUTEX_ERRORCHECK_NP, __PTHREAD_SPINS, { 0, 0 } } }
+-#  define PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP \
+-  { { 0, 0, 0, 0, PTHREAD_MUTEX_ADAPTIVE_NP, __PTHREAD_SPINS, { 0, 0 } } }
+-#  define PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP \
+-  { { 0, 0, 0, 0, PTHREAD_MUTEX_ADAPTIVE_NP, __PTHREAD_SPINS, { 0, 0 } } }
+-
+-# endif
+-#else
+-# define PTHREAD_MUTEX_INITIALIZER \
+-  { { 0, 0, 0, 0, 0, { __PTHREAD_SPINS } } }
+-# ifdef __USE_GNU
+-#  define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP \
+-  { { 0, 0, 0, PTHREAD_MUTEX_RECURSIVE_NP, 0, { __PTHREAD_SPINS } } }
+-#  define PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP \
+-  { { 0, 0, 0, PTHREAD_MUTEX_ERRORCHECK_NP, 0, { __PTHREAD_SPINS } } }
+-#  define PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP \
+-  { { 0, 0, 0, PTHREAD_MUTEX_ADAPTIVE_NP, 0, { __PTHREAD_SPINS } } }
+-
+-# endif
++#define PTHREAD_MUTEX_INITIALIZER \
++  { { 0, 0, 0, 0, { 0, 0, 0, 0 }, 0, { __PTHREAD_SPINS }, 0, 0 } }
++#ifdef __USE_GNU
++# define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP \
++  { { 0, 0, 0, PTHREAD_MUTEX_RECURSIVE_NP, { 0, 0, 0, 0 }, 0, \
++      { __PTHREAD_SPINS }, 0, 0 } }
++# define PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP \
++  { { 0, 0, 0, PTHREAD_MUTEX_ERRORCHECK_NP, { 0, 0, 0, 0 }, 0, \
++      { __PTHREAD_SPINS }, 0, 0 } }
++# define PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP \
++  { { 0, 0, 0, PTHREAD_MUTEX_ADAPTIVE_NP, { 0, 0, 0, 0 }, 0, \
++      { __PTHREAD_SPINS }, 0, 0 } }
+ #endif
+ 
+ 
+@@ -130,25 +117,14 @@ enum
+ # endif
+ #endif
+ 
++
+ /* Read-write lock initializers.  */
+ # define PTHREAD_RWLOCK_INITIALIZER \
+-  { { 0, 0, 0, 0, 0, 0, 0, 0, __PTHREAD_RWLOCK_ELISION_EXTRA, 0, 0 } }
++  { { { 0, 0, 0, 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } }
+ # ifdef __USE_GNU
+-#  ifdef __PTHREAD_RWLOCK_INT_FLAGS_SHARED
+-#   define PTHREAD_RWLOCK_WRITER_NONRECURSIVE_INITIALIZER_NP \
+-  { { 0, 0, 0, 0, 0, 0, 0, 0, __PTHREAD_RWLOCK_ELISION_EXTRA, 0,					      \
+-	PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP } }
+-#  else
+-#   if __BYTE_ORDER == __LITTLE_ENDIAN
+-#    define PTHREAD_RWLOCK_WRITER_NONRECURSIVE_INITIALIZER_NP \
+-  { { 0, 0, 0, 0, 0, 0, PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP, \
+-      0, __PTHREAD_RWLOCK_ELISION_EXTRA, 0, 0 } }
+-#   else
+-#    define PTHREAD_RWLOCK_WRITER_NONRECURSIVE_INITIALIZER_NP \
+-  { { 0, 0, 0, 0, 0, 0, 0, 0, 0, PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP,\
+-      0 } }
+-#   endif
+-#  endif
++#  define PTHREAD_RWLOCK_WRITER_NONRECURSIVE_INITIALIZER_NP \
++   { { { 0, 0, 0, 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, \
++       PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP, 0, 0, 0 } }
+ # endif
+ #endif  /* Unix98 or XOpen2K */
+ 
+@@ -183,9 +159,8 @@ enum
+ };
+ 
+ 
+-
+ /* Conditional variable handling.  */
+-#define PTHREAD_COND_INITIALIZER { { 0, 0, 0, 0, 0, (void *) 0, 0, 0 } }
++#define PTHREAD_COND_INITIALIZER { { {0}, {0}, {0, 0}, {0, 0}, 0, 0, {0, 0} } }
+ 
+ 
+ /* Cleanup buffers */
+@@ -1161,43 +1136,3 @@ __NTH (pthread_equal (pthread_t __thread1, pthread_t __thread2))
+ __END_DECLS
+ 
+ #endif	/* pthread.h */
+-
+-#ifndef _PTHREAD_H_HPPA_
+-#define _PTHREAD_H_HPPA_ 1
+-
+-/* The pthread_cond_t initializer is compatible only with NPTL. We do not
+-   want to be forwards compatible, we eventually want to drop the code
+-   that has to clear the old LT initializer.  */
+-#undef PTHREAD_COND_INITIALIZER
+-#define PTHREAD_COND_INITIALIZER { { 0, 0, 0, (void *) 0, 0, 0, 0, 0, 0 } }
+-
+-/* The pthread_mutex_t and pthread_rwlock_t initializers are compatible
+-   only with NPTL. NPTL assumes pthread_rwlock_t is all zero.  */
+-#undef PTHREAD_MUTEX_INITIALIZER
+-#undef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
+-#undef PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP
+-#undef PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP
+-/* Mutex initializers.  */
+-#define PTHREAD_MUTEX_INITIALIZER \
+-  { { 0, 0, 0, 0, { 0, 0, 0, 0 }, 0, { 0 }, 0, 0 } }
+-#ifdef __USE_GNU
+-# define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP \
+-  { { 0, 0, 0, PTHREAD_MUTEX_RECURSIVE_NP, { 0, 0, 0, 0 }, 0, { 0 }, 0, 0 } }
+-# define PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP \
+-  { { 0, 0, 0, PTHREAD_MUTEX_ERRORCHECK_NP, { 0, 0, 0, 0 }, 0, { 0 }, 0, 0 } }
+-# define PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP \
+-  { { 0, 0, 0, PTHREAD_MUTEX_ADAPTIVE_NP, { 0, 0, 0, 0 }, 0, { 0 }, 0, 0 } }
+-#endif
+-
+-#undef PTHREAD_RWLOCK_INITIALIZER
+-#undef PTHREAD_RWLOCK_WRITER_NONRECURSIVE_INITIALIZER_NP
+-/* Read-write lock initializers.  */
+-#define PTHREAD_RWLOCK_INITIALIZER \
+-  { { { 0, 0, 0, 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } }
+-#ifdef __USE_GNU
+-# define PTHREAD_RWLOCK_WRITER_NONRECURSIVE_INITIALIZER_NP \
+-  { { { 0, 0, 0, 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP,\
+-      0, 0, 0 } }
+-#endif  /* Unix98 or XOpen2K */
+-
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/hppa/pthread_cond_broadcast.c b/sysdeps/unix/sysv/linux/hppa/pthread_cond_broadcast.c
+deleted file mode 100644
+index a6f9f5d433..0000000000
+--- a/sysdeps/unix/sysv/linux/hppa/pthread_cond_broadcast.c
++++ /dev/null
+@@ -1,40 +0,0 @@
+-/* Copyright (C) 2009-2017 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Carlos O'Donell <carlos@codesourcery.com>, 2009.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#ifndef INCLUDED_SELF
+-# define INCLUDED_SELF
+-# include <pthread_cond_broadcast.c>
+-#else
+-# include <pthread.h>
+-# include <pthreadP.h>
+-# include <internaltypes.h>
+-# include <shlib-compat.h>
+-int
+-__pthread_cond_broadcast (pthread_cond_t *cond)
+-{
+-  cond_compat_check_and_clear (cond);
+-  return __pthread_cond_broadcast_internal (cond);
+-}
+-versioned_symbol (libpthread, __pthread_cond_broadcast, pthread_cond_broadcast,
+-                  GLIBC_2_3_2);
+-# undef versioned_symbol
+-# define versioned_symbol(lib, local, symbol, version)
+-# undef __pthread_cond_broadcast
+-# define __pthread_cond_broadcast __pthread_cond_broadcast_internal
+-# include_next <pthread_cond_broadcast.c>
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/hppa/pthread_cond_destroy.c b/sysdeps/unix/sysv/linux/hppa/pthread_cond_destroy.c
+deleted file mode 100644
+index 49af087bb4..0000000000
+--- a/sysdeps/unix/sysv/linux/hppa/pthread_cond_destroy.c
++++ /dev/null
+@@ -1,40 +0,0 @@
+-/* Copyright (C) 2009-2017 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Carlos O'Donell <carlos@codesourcery.com>, 2009.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#ifndef INCLUDED_SELF
+-# define INCLUDED_SELF
+-# include <pthread_cond_destroy.c>
+-#else
+-# include <pthread.h>
+-# include <pthreadP.h>
+-# include <internaltypes.h>
+-# include <shlib-compat.h>
+-int
+-__pthread_cond_destroy (pthread_cond_t *cond)
+-{
+-  cond_compat_check_and_clear (cond);
+-  return __pthread_cond_destroy_internal (cond);
+-}
+-versioned_symbol (libpthread, __pthread_cond_destroy, pthread_cond_destroy,
+-                  GLIBC_2_3_2);
+-# undef versioned_symbol
+-# define versioned_symbol(lib, local, symbol, version)
+-# undef __pthread_cond_destroy
+-# define __pthread_cond_destroy __pthread_cond_destroy_internal
+-# include_next <pthread_cond_destroy.c>
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/hppa/pthread_cond_init.c b/sysdeps/unix/sysv/linux/hppa/pthread_cond_init.c
+deleted file mode 100644
+index ccb3de07ff..0000000000
+--- a/sysdeps/unix/sysv/linux/hppa/pthread_cond_init.c
++++ /dev/null
+@@ -1,40 +0,0 @@
+-/* Copyright (C) 2009-2017 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Carlos O'Donell <carlos@codesourcery.com>, 2009.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#ifndef INCLUDED_SELF
+-# define INCLUDED_SELF
+-# include <pthread_cond_init.c>
+-#else
+-# include <pthread.h>
+-# include <pthreadP.h>
+-# include <internaltypes.h>
+-# include <shlib-compat.h>
+-int
+-__pthread_cond_init (pthread_cond_t *cond, const pthread_condattr_t *cond_attr)
+-{
+-  cond_compat_clear (cond);
+-  return __pthread_cond_init_internal (cond, cond_attr);
+-}
+-versioned_symbol (libpthread, __pthread_cond_init, pthread_cond_init,
+-                  GLIBC_2_3_2);
+-# undef versioned_symbol
+-# define versioned_symbol(lib, local, symbol, version)
+-# undef __pthread_cond_init
+-# define __pthread_cond_init __pthread_cond_init_internal
+-# include_next <pthread_cond_init.c>
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/hppa/pthread_cond_signal.c b/sysdeps/unix/sysv/linux/hppa/pthread_cond_signal.c
+deleted file mode 100644
+index 2bf32af933..0000000000
+--- a/sysdeps/unix/sysv/linux/hppa/pthread_cond_signal.c
++++ /dev/null
+@@ -1,40 +0,0 @@
+-/* Copyright (C) 2009-2017 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Carlos O'Donell <carlos@codesourcery.com>, 2009.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#ifndef INCLUDED_SELF
+-# define INCLUDED_SELF
+-# include <pthread_cond_signal.c>
+-#else
+-# include <pthread.h>
+-# include <pthreadP.h>
+-# include <internaltypes.h>
+-# include <shlib-compat.h>
+-int
+-__pthread_cond_signal (pthread_cond_t *cond)
+-{
+-  cond_compat_check_and_clear (cond);
+-  return __pthread_cond_signal_internal (cond);
+-}
+-versioned_symbol (libpthread, __pthread_cond_signal, pthread_cond_signal,
+-                  GLIBC_2_3_2);
+-# undef versioned_symbol
+-# define versioned_symbol(lib, local, symbol, version)
+-# undef __pthread_cond_signal
+-# define __pthread_cond_signal __pthread_cond_signal_internal
+-# include_next <pthread_cond_signal.c>
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/hppa/pthread_cond_wait.c b/sysdeps/unix/sysv/linux/hppa/pthread_cond_wait.c
+deleted file mode 100644
+index 1cc2fc15d4..0000000000
+--- a/sysdeps/unix/sysv/linux/hppa/pthread_cond_wait.c
++++ /dev/null
+@@ -1,53 +0,0 @@
+-/* Copyright (C) 2009-2017 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Carlos O'Donell <carlos@codesourcery.com>, 2009.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#ifndef INCLUDED_SELF
+-# define INCLUDED_SELF
+-# include <pthread_cond_wait.c>
+-#else
+-# include <pthread.h>
+-# include <pthreadP.h>
+-# include <internaltypes.h>
+-# include <shlib-compat.h>
+-int
+-__pthread_cond_wait (pthread_cond_t *cond, pthread_mutex_t *mutex)
+-{
+-  cond_compat_check_and_clear (cond);
+-  return __pthread_cond_wait_internal (cond, mutex);
+-}
+-versioned_symbol (libpthread, __pthread_cond_wait, pthread_cond_wait,
+-                  GLIBC_2_3_2);
+-int
+-__pthread_cond_timedwait (cond, mutex, abstime)
+-     pthread_cond_t *cond;
+-     pthread_mutex_t *mutex;
+-     const struct timespec *abstime;
+-{
+-  cond_compat_check_and_clear (cond);
+-  return __pthread_cond_timedwait_internal (cond, mutex, abstime);
+-}
+-versioned_symbol (libpthread, __pthread_cond_timedwait, pthread_cond_timedwait,
+-                  GLIBC_2_3_2);
+-# undef versioned_symbol
+-# define versioned_symbol(lib, local, symbol, version)
+-# undef __pthread_cond_wait
+-# define __pthread_cond_wait __pthread_cond_wait_internal
+-# undef __pthread_cond_timedwait
+-# define __pthread_cond_timedwait __pthread_cond_timedwait_internal
+-# include_next <pthread_cond_wait.c>
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/hppa/setcontext.S b/sysdeps/unix/sysv/linux/hppa/setcontext.S
+index 3f4da7938f..92cb204f8d 100644
+--- a/sysdeps/unix/sysv/linux/hppa/setcontext.S
++++ b/sysdeps/unix/sysv/linux/hppa/setcontext.S
+@@ -26,8 +26,11 @@
+ ENTRY(__setcontext)
+ 	/* Prologue */
+ 	stwm	%r3, 64(%sp)
++	.cfi_def_cfa_offset -64
++	.cfi_offset 3, 0
+ #ifdef PIC
+ 	stw	%r19, -32(%sp)
++	.cfi_offset 19, 32
+ #endif
+ 
+ 	/* Save ucp.  */
+@@ -141,7 +144,7 @@ ENTRY(__setcontext)
+ 
+ 	/* No further context available. Exit now.  */
+ 	bl	HIDDEN_JUMPTARGET(exit), %r2
+-	ldi	-1, %r26
++	ldi	0, %r26
+ 
+ 
+ .Lerror:
+diff --git a/sysdeps/unix/sysv/linux/hppa/sysdep-cancel.h b/sysdeps/unix/sysv/linux/hppa/sysdep-cancel.h
+index 5ea297267f..8b7f2b2095 100644
+--- a/sysdeps/unix/sysv/linux/hppa/sysdep-cancel.h
++++ b/sysdeps/unix/sysv/linux/hppa/sysdep-cancel.h
+@@ -62,12 +62,11 @@
+ 	ENTRY (__##syscall_name##_nocancel)				\
+ 	DOARGS_##args					ASM_LINE_SEP	\
+ 	stwm TREG, 64(%sp)				ASM_LINE_SEP	\
++	.cfi_def_cfa_offset -64				ASM_LINE_SEP	\
+ 	.cfi_offset TREG, 0				ASM_LINE_SEP	\
+-	.cfi_adjust_cfa_offset 64			ASM_LINE_SEP	\
+ 	stw %sp, -4(%sp)				ASM_LINE_SEP	\
+-	.cfi_offset 30, -4				ASM_LINE_SEP	\
+ 	stw %r19, -32(%sp)				ASM_LINE_SEP	\
+-	.cfi_offset 19, -32				ASM_LINE_SEP	\
++	.cfi_offset 19, 32				ASM_LINE_SEP	\
+ 	/* Save r19 */					ASM_LINE_SEP	\
+ 	SAVE_PIC(TREG)					ASM_LINE_SEP	\
+ 	/* Do syscall, delay loads # */			ASM_LINE_SEP	\
+@@ -91,21 +90,19 @@ L(pre_nc_end):						ASM_LINE_SEP	\
+ 	/* No need to LOAD_PIC */			ASM_LINE_SEP	\
+ 	/* Undo frame */				ASM_LINE_SEP	\
+ 	ldwm -64(%sp),TREG				ASM_LINE_SEP	\
+-	.cfi_adjust_cfa_offset -64			ASM_LINE_SEP	\
+ 	/* Restore rp before exit */			ASM_LINE_SEP	\
+ 	ldw -20(%sp), %rp				ASM_LINE_SEP	\
+-	.cfi_restore 2					ASM_LINE_SEP	\
+ 	ret						ASM_LINE_SEP	\
+ 	END(__##syscall_name##_nocancel)		ASM_LINE_SEP	\
+ 	/**********************************************/ASM_LINE_SEP	\
+ 	ENTRY (name)							\
+ 	DOARGS_##args					ASM_LINE_SEP	\
+ 	stwm TREG, 64(%sp)				ASM_LINE_SEP	\
+-	.cfi_adjust_cfa_offset 64			ASM_LINE_SEP	\
++	.cfi_def_cfa_offset -64				ASM_LINE_SEP	\
++	.cfi_offset TREG, 0				ASM_LINE_SEP	\
+ 	stw %sp, -4(%sp)				ASM_LINE_SEP	\
+-	.cfi_offset 30, -4				ASM_LINE_SEP	\
+ 	stw %r19, -32(%sp)				ASM_LINE_SEP	\
+-	.cfi_offset 19, -32				ASM_LINE_SEP	\
++	.cfi_offset 19, 32				ASM_LINE_SEP	\
+ 	/* Done setting up frame, continue... */	ASM_LINE_SEP	\
+ 	SINGLE_THREAD_P					ASM_LINE_SEP	\
+ 	cmpib,<>,n 0,%ret0,L(pseudo_cancel)		ASM_LINE_SEP	\
+@@ -168,40 +165,32 @@ L(pre_end):						ASM_LINE_SEP	\
+ 	/* No need to LOAD_PIC */			ASM_LINE_SEP	\
+ 	/* Undo frame */				ASM_LINE_SEP	\
+ 	ldwm -64(%sp),TREG				ASM_LINE_SEP	\
+-	.cfi_adjust_cfa_offset -64			ASM_LINE_SEP	\
+ 	/* Restore rp before exit */			ASM_LINE_SEP	\
+-	ldw -20(%sp), %rp				ASM_LINE_SEP	\
+-	.cfi_restore 2					ASM_LINE_SEP
++	ldw -20(%sp), %rp				ASM_LINE_SEP
+ 
+ /* Save arguments into our frame */
+ # define PUSHARGS_0	/* nothing to do */
+ # define PUSHARGS_1	PUSHARGS_0 stw %r26, -36(%sr0,%sp)	ASM_LINE_SEP	\
+-			.cfi_offset 26, -36			ASM_LINE_SEP
++			.cfi_offset 26, 28			ASM_LINE_SEP
+ # define PUSHARGS_2	PUSHARGS_1 stw %r25, -40(%sr0,%sp)	ASM_LINE_SEP	\
+-			.cfi_offset 25, -40			ASM_LINE_SEP
++			.cfi_offset 25, 24			ASM_LINE_SEP
+ # define PUSHARGS_3	PUSHARGS_2 stw %r24, -44(%sr0,%sp)	ASM_LINE_SEP	\
+-			.cfi_offset 24, -44			ASM_LINE_SEP
++			.cfi_offset 24, 20			ASM_LINE_SEP
+ # define PUSHARGS_4	PUSHARGS_3 stw %r23, -48(%sr0,%sp)	ASM_LINE_SEP	\
+-			.cfi_offset 23, -48			ASM_LINE_SEP
++			.cfi_offset 23, 16			ASM_LINE_SEP
+ # define PUSHARGS_5	PUSHARGS_4 stw %r22, -52(%sr0,%sp)	ASM_LINE_SEP	\
+-			.cfi_offset 22, -52			ASM_LINE_SEP
++			.cfi_offset 22, 12			ASM_LINE_SEP
+ # define PUSHARGS_6	PUSHARGS_5 stw %r21, -56(%sr0,%sp)	ASM_LINE_SEP	\
+-			.cfi_offset 21, -56			ASM_LINE_SEP
++			.cfi_offset 21, 8			ASM_LINE_SEP
+ 
+ /* Bring them back from the stack */
+ # define POPARGS_0	/* nothing to do */
+-# define POPARGS_1	POPARGS_0 ldw -36(%sr0,%sp), %r26	ASM_LINE_SEP	\
+-			.cfi_restore 26				ASM_LINE_SEP
+-# define POPARGS_2	POPARGS_1 ldw -40(%sr0,%sp), %r25	ASM_LINE_SEP	\
+-			.cfi_restore 25				ASM_LINE_SEP
+-# define POPARGS_3	POPARGS_2 ldw -44(%sr0,%sp), %r24	ASM_LINE_SEP	\
+-			.cfi_restore 24				ASM_LINE_SEP
+-# define POPARGS_4	POPARGS_3 ldw -48(%sr0,%sp), %r23	ASM_LINE_SEP	\
+-			.cfi_restore 23				ASM_LINE_SEP
+-# define POPARGS_5	POPARGS_4 ldw -52(%sr0,%sp), %r22	ASM_LINE_SEP	\
+-			.cfi_restore 22				ASM_LINE_SEP
+-# define POPARGS_6	POPARGS_5 ldw -56(%sr0,%sp), %r21	ASM_LINE_SEP	\
+-			.cfi_restore 21				ASM_LINE_SEP
++# define POPARGS_1	POPARGS_0 ldw -36(%sr0,%sp), %r26	ASM_LINE_SEP
++# define POPARGS_2	POPARGS_1 ldw -40(%sr0,%sp), %r25	ASM_LINE_SEP
++# define POPARGS_3	POPARGS_2 ldw -44(%sr0,%sp), %r24	ASM_LINE_SEP
++# define POPARGS_4	POPARGS_3 ldw -48(%sr0,%sp), %r23	ASM_LINE_SEP
++# define POPARGS_5	POPARGS_4 ldw -52(%sr0,%sp), %r22	ASM_LINE_SEP
++# define POPARGS_6	POPARGS_5 ldw -56(%sr0,%sp), %r21	ASM_LINE_SEP
+ 
+ # if IS_IN (libpthread)
+ #  ifdef PIC
+diff --git a/sysdeps/unix/sysv/linux/hppa/sysdep.h b/sysdeps/unix/sysv/linux/hppa/sysdep.h
+index d8dd0431a4..c0cd59e9f5 100644
+--- a/sysdeps/unix/sysv/linux/hppa/sysdep.h
++++ b/sysdeps/unix/sysv/linux/hppa/sysdep.h
+@@ -49,11 +49,9 @@
+    to another function */
+ #define TREG 4
+ #define SAVE_PIC(SREG) \
+-	copy %r19, SREG ASM_LINE_SEP	\
+-	.cfi_register 19, SREG
++	copy %r19, SREG
+ #define LOAD_PIC(LREG) \
+-	copy LREG , %r19 ASM_LINE_SEP	\
+-	.cfi_restore 19
++	copy LREG , %r19
+ /* Inline assembly defines */
+ #define TREG_ASM "%r4" /* Cant clobber r3, it holds framemarker */
+ #define SAVE_ASM_PIC	"       copy %%r19, %" TREG_ASM "\n"
+@@ -292,12 +290,11 @@
+ #define DO_CALL(syscall_name, args)				\
+ 	/* Create a frame */			ASM_LINE_SEP	\
+ 	stwm TREG, 64(%sp)			ASM_LINE_SEP	\
++	.cfi_def_cfa_offset -64			ASM_LINE_SEP	\
+ 	.cfi_offset TREG, 0			ASM_LINE_SEP	\
+-	.cfi_adjust_cfa_offset 64		ASM_LINE_SEP	\
+ 	stw %sp, -4(%sp)			ASM_LINE_SEP	\
+-	.cfi_offset 30, -4			ASM_LINE_SEP	\
+ 	stw %r19, -32(%sp)			ASM_LINE_SEP	\
+-	.cfi_offset 19, -32			ASM_LINE_SEP	\
++	.cfi_offset 19, 32			ASM_LINE_SEP	\
+ 	/* Save r19 */				ASM_LINE_SEP	\
+ 	SAVE_PIC(TREG)				ASM_LINE_SEP	\
+ 	/* Do syscall, delay loads # */		ASM_LINE_SEP	\
+@@ -320,10 +317,8 @@
+ L(pre_end):					ASM_LINE_SEP	\
+ 	/* Restore our frame, restoring TREG */	ASM_LINE_SEP	\
+ 	ldwm -64(%sp), TREG			ASM_LINE_SEP	\
+-	.cfi_adjust_cfa_offset -64		ASM_LINE_SEP	\
+ 	/* Restore return pointer */		ASM_LINE_SEP	\
+-	ldw -20(%sp),%rp			ASM_LINE_SEP	\
+-	.cfi_restore 2				ASM_LINE_SEP
++	ldw -20(%sp),%rp			ASM_LINE_SEP
+ 
+ /* We do nothing with the return, except hand it back to someone else */
+ #undef  DO_CALL_NOERRNO
 diff --git a/sysdeps/unix/sysv/linux/i386/localplt.data b/sysdeps/unix/sysv/linux/i386/localplt.data
 index 2c2584956d..8ea4333846 100644
 --- a/sysdeps/unix/sysv/linux/i386/localplt.data
@@ -2914,7 +4112,7 @@ index 2daf0c5ef0..29d8f25ab5 100644
    void *stack = __mmap (NULL, stack_size, prot,
  			MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
 diff --git a/sysdeps/x86/cpu-features.c b/sysdeps/x86/cpu-features.c
-index 1c714a4017..9afd74c42e 100644
+index 1c714a4017..5019f156c8 100644
 --- a/sysdeps/x86/cpu-features.c
 +++ b/sysdeps/x86/cpu-features.c
 @@ -139,8 +139,6 @@ init_cpu_features (struct cpu_features *cpu_features)
@@ -2926,7 +4124,7 @@ index 1c714a4017..9afd74c42e 100644
  
  	    case 0x5c:
  	    case 0x5f:
-@@ -226,6 +224,16 @@ init_cpu_features (struct cpu_features *cpu_features)
+@@ -226,11 +224,24 @@ init_cpu_features (struct cpu_features *cpu_features)
  	cpu_features->feature[index_arch_AVX_Fast_Unaligned_Load]
  	  |= bit_arch_AVX_Fast_Unaligned_Load;
  
@@ -2941,8 +4139,18 @@ index 1c714a4017..9afd74c42e 100644
 +	  |= bit_arch_Prefer_No_AVX512;
 +
        /* To avoid SSE transition penalty, use _dl_runtime_resolve_slow.
-          If XGETBV suports ECX == 1, use _dl_runtime_resolve_opt.  */
+-         If XGETBV suports ECX == 1, use _dl_runtime_resolve_opt.  */
++         If XGETBV suports ECX == 1, use _dl_runtime_resolve_opt.
++	 Use _dl_runtime_resolve_opt only with AVX512F since it is
++	 slower than _dl_runtime_resolve_slow with AVX.  */
        cpu_features->feature[index_arch_Use_dl_runtime_resolve_slow]
+ 	|= bit_arch_Use_dl_runtime_resolve_slow;
+-      if (cpu_features->max_cpuid >= 0xd)
++      if (CPU_FEATURES_ARCH_P (cpu_features, AVX512F_Usable)
++	  && cpu_features->max_cpuid >= 0xd)
+ 	{
+ 	  unsigned int eax;
+ 
 diff --git a/sysdeps/x86/cpu-features.h b/sysdeps/x86/cpu-features.h
 index 95f0fcff87..a409db67d8 100644
 --- a/sysdeps/x86/cpu-features.h
