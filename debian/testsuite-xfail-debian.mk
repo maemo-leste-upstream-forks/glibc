@@ -1033,6 +1033,19 @@ test-xfail-XPG4/unistd.h/conform = yes
 test-xfail-XPG4/utime.h/conform = yes
 test-xfail-XPG4/utmpx.h/conform = yes
 
+# Most of these failures are due to headers provided by kfreebsd-kernel-headers
+test-xfail-check-installed-headers-c = yes
+test-xfail-check-installed-headers-c = yes
+test-xfail-check-installed-headers-cxx = yes
+test-xfail-check-installed-headers-c = yes
+test-xfail-check-installed-headers-cxx = yes
+test-xfail-check-installed-headers-c = yes
+test-xfail-check-installed-headers-c = yes
+test-xfail-check-installed-headers-c = yes
+test-xfail-check-installed-headers-cxx = yes
+test-xfail-check-installed-headers-c = yes
+test-xfail-check-installed-headers-cxx = yes
+
 # will expectedly SIGSEGV on kfreebsd 10.0 and later, due to having
 # nxstack=1 by default (bug #762404)
 test-xfail-tst-execstack = yes
@@ -1046,6 +1059,8 @@ endif
 ######################################################################
 ifeq ($(config-machine)-$(config-os),x86_64-kfreebsd-gnu)
 test-xfail-check-local-headers = yes
+test-xfail-test-sysvsem = yes
+test-xfail-test-sysvshm = yes
 test-xfail-tst-aio10 = yes
 test-xfail-tst-aio9 = yes
 test-xfail-tst-attr2 = yes
@@ -1060,6 +1075,8 @@ test-xfail-tst-renameat = yes
 test-xfail-tst-setcontext2 = yes
 test-xfail-tst-shm = yes
 test-xfail-tst-spawn2 = yes
+test-xfail-tst-spawn3 = yes
+test-xfail-tst-udp-error = yes
 test-xfail-tst-waitid = yes
 test-xfail-tst-writev = yes
 endif
@@ -1070,6 +1087,8 @@ endif
 ######################################################################
 ifeq ($(config-machine)-$(config-os),i686-kfreebsd-gnu)
 test-xfail-check-local-headers = yes
+test-xfail-test-sysvsem = yes
+test-xfail-test-sysvshm = yes
 test-xfail-tst-aio10 = yes
 test-xfail-tst-aio9 = yes
 test-xfail-tst-attr2 = yes
@@ -1085,6 +1104,8 @@ test-xfail-tst-renameat = yes
 test-xfail-tst-setcontext2 = yes
 test-xfail-tst-shm = yes
 test-xfail-tst-spawn2 = yes
+test-xfail-tst-spawn3 = yes
+test-xfail-tst-udp-error = yes
 test-xfail-tst-waitid = yes
 endif
 
