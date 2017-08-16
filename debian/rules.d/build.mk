@@ -212,6 +212,13 @@ else
 	  $(MAKE) -f debian/generate-supported.mk IN=localedata/SUPPORTED \
 	    OUT=debian/tmp-$(curpass)/usr/share/i18n/SUPPORTED; \
 	fi
+
+ifeq ($(DEB_HOST_ARCH_OS),linux)
+	# Install the Python pretty printers
+	mkdir -p $(CURDIR)/debian/tmp-$(curpass)/usr/share/gdb/auto-load/$(call xx,slibdir)
+	perl -pe 'BEGIN {undef $$/; open(IN, "$(DEB_BUILDDIR)/nptl/nptl_lock_constants.py"); $$j=<IN>;} s/from nptl_lock_constants import \*/$$j/g;' \
+		$(CURDIR)/nptl/nptl-printers.py > $(CURDIR)/debian/tmp-$(curpass)/usr/share/gdb/auto-load/$(call xx,slibdir)/libpthread-$(GLIBC_VERSION).so-gdb.py
+endif
 endif
 
 	# Create the multiarch directories, and the configuration file in /etc/ld.so.conf.d
