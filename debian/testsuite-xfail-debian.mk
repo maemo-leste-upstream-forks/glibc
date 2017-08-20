@@ -1010,6 +1010,7 @@ test-xfail-tst-renameat = yes
 test-xfail-tst-setcontext2 = yes
 test-xfail-tst-shm = yes
 test-xfail-tst-spawn2 = yes
+test-xfail-tst-udp-error = yes
 test-xfail-tst-waitid = yes
 test-xfail-tst-writev = yes
 endif
@@ -1035,6 +1036,7 @@ test-xfail-tst-renameat = yes
 test-xfail-tst-setcontext2 = yes
 test-xfail-tst-shm = yes
 test-xfail-tst-spawn2 = yes
+test-xfail-tst-udp-error = yes
 test-xfail-tst-waitid = yes
 endif
 
