@@ -1,10 +1,31 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.25/master from glibc-2.25
 
 diff --git a/ChangeLog b/ChangeLog
-index f140ee67de..c80eedb68e 100644
+index f140ee67de..2bb46f4462 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,360 @@
+@@ -1,3 +1,381 @@
++2017-04-13  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #21361]
++	Limit EDNS buffer size to 1200 bytes.
++	* include/resolv.h (__res_nopt): Remove declaration.
++	* resolv/Makefile (tests): tst-resolv-edns.
++	(tst-resolv-edns): Link with -lresolv, -lpthread.
++	* resolv/res_mkquery.c (__res_ntop): Limit EDNS buffer size to the
++	interval [512, 1200].
++	* resolv/res_query.c (__libc_res_nquery): Use 1200 buffer size if
++	we can resize the buffer.
++	* resolv/resolv-internal.h (RESOLV_EDNS_BUFFER_SIZE): Define.
++	(__res_nopt): Declare.
++	* resolv/tst-resolv-edns.c: New file.
++	* resolv/resolv_test.h (struct resolv_edns_info): Define.
++	(struct resolv_response_context): Add edns member.
++	* resolv/resolv_test.c (struct query_info): Add edns member.
++	(parse_query): Extract EDNS information from the query.
++	(server_thread_udp_process_one): Propagate EDNS data.
++	(server_thread_tcp_client): Likewise.
++
 +2017-08-12  John David Anglin  <danglin@gcc.gnu.org>
 +
 +	[BZ 19170]
@@ -435,14 +456,19 @@ index e9194e54cf..7f0eef8096 100644
  	| sed -n -f $< > $@.new
  	test -s $@.new
 diff --git a/NEWS b/NEWS
-index ec15dde761..e27fd4c4f6 100644
+index ec15dde761..a2435ccc81 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,20 @@ See the end for copying conditions.
+@@ -5,6 +5,25 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <http://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
 +Version 2.25.1
++
++Security related changes:
++
++* The DNS stub resolver limits the advertised UDP buffer size to 1200 bytes,
++  to avoid fragmentation-based spoofing attacks.
 +
 +The following bugs are resolved with this release:
 +
@@ -894,6 +920,27 @@ index 04157b25c5..e4845871f5 100644
  modules.so := $(addsuffix .so, $(modules))
  
  ifeq (yes,$(build-shared))
+diff --git a/include/resolv.h b/include/resolv.h
+index 95dcd3ca37..e8f477cd86 100644
+--- a/include/resolv.h
++++ b/include/resolv.h
+@@ -37,8 +37,6 @@ extern void res_pquery (const res_state __statp, const unsigned char *__msg,
+ extern int res_ourserver_p (const res_state __statp,
+ 			    const struct sockaddr_in6 *__inp);
+ extern void __res_iclose (res_state statp, bool free_addr);
+-extern int __res_nopt(res_state statp, int n0, unsigned char *buf, int buflen,
+-		      int anslen);
+ libc_hidden_proto (__res_ninit)
+ libc_hidden_proto (__res_maybe_init)
+ libc_hidden_proto (__res_nclose)
+@@ -91,7 +89,6 @@ libresolv_hidden_proto (__res_nameinquery)
+ libresolv_hidden_proto (__res_queriesmatch)
+ libresolv_hidden_proto (__res_nsend)
+ libresolv_hidden_proto (__b64_ntop)
+-libresolv_hidden_proto (__res_nopt)
+ libresolv_hidden_proto (__dn_count_labels)
+ libresolv_hidden_proto (__p_secstodate)
+ 
 diff --git a/inet/Makefile b/inet/Makefile
 index 010792af8f..6a7d3e0664 100644
 --- a/inet/Makefile
@@ -1589,6 +1636,665 @@ index f9cc80b4b5..73f7ae31cc 100755
      echo "All OK." > $logfile
  fi
  
+diff --git a/resolv/Makefile b/resolv/Makefile
+index fdc37edff1..01086d569f 100644
+--- a/resolv/Makefile
++++ b/resolv/Makefile
+@@ -46,6 +46,7 @@ tests += \
+   tst-res_hconf_reorder \
+   tst-res_use_inet6 \
+   tst-resolv-basic \
++  tst-resolv-edns \
+   tst-resolv-network \
+   tst-resolv-search \
+ 
+@@ -124,6 +125,7 @@ $(objpfx)tst-bug18665-tcp: $(objpfx)libresolv.so $(shared-thread-library)
+ $(objpfx)tst-bug18665: $(objpfx)libresolv.so $(shared-thread-library)
+ $(objpfx)tst-res_use_inet6: $(objpfx)libresolv.so $(shared-thread-library)
+ $(objpfx)tst-resolv-basic: $(objpfx)libresolv.so $(shared-thread-library)
++$(objpfx)tst-resolv-edns: $(objpfx)libresolv.so $(shared-thread-library)
+ $(objpfx)tst-resolv-network: $(objpfx)libresolv.so $(shared-thread-library)
+ $(objpfx)tst-resolv-qtypes: $(objpfx)libresolv.so $(shared-thread-library)
+ $(objpfx)tst-resolv-search: $(objpfx)libresolv.so $(shared-thread-library)
+diff --git a/resolv/res_mkquery.c b/resolv/res_mkquery.c
+index d80b5318e5..5a0bb1044b 100644
+--- a/resolv/res_mkquery.c
++++ b/resolv/res_mkquery.c
+@@ -69,7 +69,7 @@
+ #include <netinet/in.h>
+ #include <arpa/nameser.h>
+ #include <netdb.h>
+-#include <resolv.h>
++#include <resolv/resolv-internal.h>
+ #include <stdio.h>
+ #include <string.h>
+ #include <sys/time.h>
+@@ -243,7 +243,30 @@ __res_nopt(res_state statp,
+ 	*cp++ = 0;	/* "." */
+ 
+ 	NS_PUT16(T_OPT, cp);	/* TYPE */
+-	NS_PUT16(MIN(anslen, 0xffff), cp);	/* CLASS = UDP payload size */
++
++	/* Lowering the advertised buffer size based on the actual
++	   answer buffer size is desirable because the server will
++	   minimize the reply to fit into the UDP packet (and A
++	   non-minimal response might not fit the buffer).
++
++	   The RESOLV_EDNS_BUFFER_SIZE limit could still result in TCP
++	   fallback and a non-minimal response which has to be
++	   hard-truncated in the stub resolver, but this is price to
++	   pay for avoiding fragmentation.  (This issue does not
++	   affect the nss_dns functions because they use the stub
++	   resolver in such a way that it allocates a properly sized
++	   response buffer.)  */
++	{
++	  uint16_t buffer_size;
++	  if (anslen < 512)
++	    buffer_size = 512;
++	  else if (anslen > RESOLV_EDNS_BUFFER_SIZE)
++	    buffer_size = RESOLV_EDNS_BUFFER_SIZE;
++	  else
++	    buffer_size = anslen;
++	  NS_PUT16 (buffer_size, cp);
++	}
++
+ 	*cp++ = NOERROR;	/* extended RCODE */
+ 	*cp++ = 0;		/* EDNS version */
+ 
+@@ -261,4 +284,3 @@ __res_nopt(res_state statp,
+ 
+ 	return cp - buf;
+ }
+-libresolv_hidden_def (__res_nopt)
+diff --git a/resolv/res_query.c b/resolv/res_query.c
+index 07dc6f6583..57156d01ec 100644
+--- a/resolv/res_query.c
++++ b/resolv/res_query.c
+@@ -77,6 +77,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <resolv/resolv-internal.h>
+ 
+ /* Options.  Leave them on. */
+ /* #undef DEBUG */
+@@ -146,7 +147,10 @@ __libc_res_nquery(res_state statp,
+ 		if ((oflags & RES_F_EDNS0ERR) == 0
+ 		    && (statp->options & (RES_USE_EDNS0|RES_USE_DNSSEC)) != 0)
+ 		  {
+-		    n = __res_nopt(statp, n, query1, bufsize, anslen / 2);
++		    /* Use RESOLV_EDNS_BUFFER_SIZE because the receive
++		       buffer can be reallocated.  */
++		    n = __res_nopt (statp, n, query1, bufsize,
++				    RESOLV_EDNS_BUFFER_SIZE);
+ 		    if (n < 0)
+ 		      goto unspec_nomem;
+ 		  }
+@@ -167,8 +171,10 @@ __libc_res_nquery(res_state statp,
+ 		if (n > 0
+ 		    && (oflags & RES_F_EDNS0ERR) == 0
+ 		    && (statp->options & (RES_USE_EDNS0|RES_USE_DNSSEC)) != 0)
+-		  n = __res_nopt(statp, n, query2, bufsize - nused - n,
+-				 anslen / 2);
++		  /* Use RESOLV_EDNS_BUFFER_SIZE because the receive
++		     buffer can be reallocated.  */
++		  n = __res_nopt (statp, n, query2, bufsize,
++				  RESOLV_EDNS_BUFFER_SIZE);
+ 		nquery2 = n;
+ 	      }
+ 
+@@ -182,7 +188,16 @@ __libc_res_nquery(res_state statp,
+ 	    if (n > 0
+ 		&& (oflags & RES_F_EDNS0ERR) == 0
+ 		&& (statp->options & (RES_USE_EDNS0|RES_USE_DNSSEC)) != 0)
+-	      n = __res_nopt(statp, n, query1, bufsize, anslen);
++	      {
++		/* Use RESOLV_EDNS_BUFFER_SIZE if the receive buffer
++		   can be reallocated.  */
++		size_t advertise;
++		if (answerp == NULL)
++		  advertise = anslen;
++		else
++		  advertise = RESOLV_EDNS_BUFFER_SIZE;
++		n = __res_nopt (statp, n, query1, bufsize, advertise);
++	      }
+ 
+ 	    nquery1 = n;
+ 	  }
+diff --git a/resolv/resolv-internal.h b/resolv/resolv-internal.h
+index 99fc17c609..76fbe2f1a6 100644
+--- a/resolv/resolv-internal.h
++++ b/resolv/resolv-internal.h
+@@ -32,4 +32,22 @@ res_use_inet6 (void)
+   return _res.options & DEPRECATED_RES_USE_INET6;
+ }
+ 
++enum
++  {
++    /* The advertized EDNS buffer size.  The value 1200 is derived
++       from the IPv6 minimum MTU (1280 bytes) minus some arbitrary
++       space for tunneling overhead.  If the DNS server does not react
++       to ICMP Fragmentation Needed But DF Set messages, this should
++       avoid all UDP fragments on current networks.  Avoiding UDP
++       fragments is desirable because it prevents fragmentation-based
++       spoofing attacks because the randomness in a DNS packet is
++       concentrated in the first fragment (with the headers) and does
++       not protect subsequent fragments.  */
++    RESOLV_EDNS_BUFFER_SIZE = 1200,
++  };
++
++/* Add an OPT record to a DNS query.  */
++int __res_nopt (res_state, int n0, unsigned char *buf, int buflen,
++                int anslen) attribute_hidden;
++
+ #endif  /* _RESOLV_INTERNAL_H */
+diff --git a/resolv/tst-resolv-edns.c b/resolv/tst-resolv-edns.c
+new file mode 100644
+index 0000000000..f17dbc3450
+--- /dev/null
++++ b/resolv/tst-resolv-edns.c
+@@ -0,0 +1,501 @@
++/* Test EDNS handling in the stub resolver.
++   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <netdb.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <support/check.h>
++#include <support/resolv_test.h>
++#include <support/support.h>
++#include <support/test-driver.h>
++#include <support/xthread.h>
++
++/* Data produced by a test query.  */
++struct response_data
++{
++  char *qname;
++  uint16_t qtype;
++  struct resolv_edns_info edns;
++};
++
++/* Global array used by put_response and get_response to record
++   response data.  The test DNS server returns the index of the array
++   element which contains the actual response data.  This enables the
++   test case to return arbitrary amounts of data with the limited
++   number of bits which fit into an IP addres.
++
++   The volatile specifier is needed because the test case accesses
++   these variables from a callback function called from a function
++   which is marked as __THROW (i.e., a leaf function which actually is
++   not).  */
++static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
++static struct response_data ** volatile response_data_array;
++volatile static size_t response_data_count;
++
++/* Extract information from the query, store it in a struct
++   response_data object, and return its index in the
++   response_data_array.  */
++static unsigned int
++put_response (const struct resolv_response_context *ctx,
++                 const char *qname, uint16_t qtype)
++{
++  xpthread_mutex_lock (&mutex);
++  ++response_data_count;
++  /* We only can represent 2**24 indexes in 10.0.0.0/8.  */
++  TEST_VERIFY (response_data_count < (1 << 24));
++  response_data_array = xrealloc
++    (response_data_array, sizeof (*response_data_array) * response_data_count);
++  unsigned int index = response_data_count - 1;
++  struct response_data *data = xmalloc (sizeof (*data));
++  *data = (struct response_data)
++    {
++      .qname = xstrdup (qname),
++      .qtype = qtype,
++      .edns = ctx->edns,
++    };
++  response_data_array[index] = data;
++  xpthread_mutex_unlock (&mutex);
++  return index;
++}
++
++/* Verify the index into the response_data array and return the data
++   at it.  */
++static struct response_data *
++get_response (unsigned int index)
++{
++  xpthread_mutex_lock (&mutex);
++  TEST_VERIFY_EXIT (index < response_data_count);
++  struct response_data *result = response_data_array[index];
++  xpthread_mutex_unlock (&mutex);
++  return result;
++}
++
++/* Deallocate all response data.  */
++static void
++free_response_data (void)
++{
++  xpthread_mutex_lock (&mutex);
++  size_t count = response_data_count;
++  struct response_data **array = response_data_array;
++  for (unsigned int i = 0; i < count; ++i)
++    {
++      struct response_data *data = array[i];
++      free (data->qname);
++      free (data);
++    }
++  free (array);
++  response_data_array = NULL;
++  response_data_count = 0;
++  xpthread_mutex_unlock (&mutex);
++}
++
++#define EDNS_PROBE_EXAMPLE "edns-probe.example"
++
++static void
++response (const struct resolv_response_context *ctx,
++          struct resolv_response_builder *b,
++          const char *qname, uint16_t qclass, uint16_t qtype)
++{
++  TEST_VERIFY_EXIT (qname != NULL);
++
++  /* The "tcp." prefix can be used to request TCP fallback.  */
++  const char *qname_compare = qname;
++  bool force_tcp;
++  if (strncmp ("tcp.", qname_compare, strlen ("tcp.")) == 0)
++    {
++      force_tcp = true;
++      qname_compare += strlen ("tcp.");
++    }
++  else
++    force_tcp = false;
++
++  enum {edns_probe} requested_qname;
++  if (strcmp (qname_compare, EDNS_PROBE_EXAMPLE) == 0)
++    requested_qname = edns_probe;
++  else
++    {
++      support_record_failure ();
++      printf ("error: unexpected QNAME: %s\n", qname);
++      return;
++    }
++  TEST_VERIFY_EXIT (qclass == C_IN);
++  struct resolv_response_flags flags = {.tc = force_tcp && !ctx->tcp};
++  resolv_response_init (b, flags);
++  resolv_response_add_question (b, qname, qclass, qtype);
++  if (flags.tc)
++    return;
++
++  if (test_verbose)
++    printf ("info: edns=%d payload_size=%d\n",
++            ctx->edns.active, ctx->edns.payload_size);
++
++  /* Encode the response_data object in multiple address records.
++     Each record carries two bytes of payload data, and an index.  */
++  resolv_response_section (b, ns_s_an);
++  switch (requested_qname)
++    {
++    case edns_probe:
++      {
++        unsigned int index = put_response (ctx, qname, qtype);
++        switch (qtype)
++          {
++          case T_A:
++            {
++              uint32_t addr = htonl (0x0a000000 | index);
++              resolv_response_open_record (b, qname, qclass, qtype, 0);
++              resolv_response_add_data (b, &addr, sizeof (addr));
++              resolv_response_close_record (b);
++            }
++            break;
++          case T_AAAA:
++            {
++              char addr[16]
++                = {0x20, 0x01, 0xd, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++                   index >> 16, index >> 8, index};
++              resolv_response_open_record (b, qname, qclass, qtype, 0);
++              resolv_response_add_data (b, &addr, sizeof (addr));
++              resolv_response_close_record (b);
++            }
++          }
++      }
++      break;
++    }
++}
++
++/* Update *DATA with data from ADDRESS of SIZE.  Set the corresponding
++   flag in SHADOW for each byte written.  */
++static struct response_data *
++decode_address (const void *address, size_t size)
++{
++  switch (size)
++    {
++    case 4:
++      TEST_VERIFY (memcmp (address, "\x0a", 1) == 0);
++      break;
++    case 16:
++      TEST_VERIFY (memcmp (address, "\x20\x01\x0d\xb8", 4) == 0);
++      break;
++    default:
++      FAIL_EXIT1 ("unexpected address size %zu", size);
++    }
++  const unsigned char *addr = address;
++  unsigned int index = addr[size - 3] * 256 * 256
++    + addr[size - 2] * 256
++    + addr[size - 1];
++  return get_response (index);
++}
++
++static struct response_data *
++decode_hostent (struct hostent *e)
++{
++  TEST_VERIFY_EXIT (e != NULL);
++  TEST_VERIFY_EXIT (e->h_addr_list[0] != NULL);
++  TEST_VERIFY (e->h_addr_list[1] == NULL);
++  return decode_address (e->h_addr_list[0], e->h_length);
++}
++
++static struct response_data *
++decode_addrinfo (struct addrinfo *ai, int family)
++{
++  struct response_data *data = NULL;
++  while (ai != NULL)
++    {
++      if (ai->ai_family == family)
++        {
++          struct response_data *new_data;
++          switch (family)
++            {
++            case AF_INET:
++              {
++                struct sockaddr_in *pin = (struct sockaddr_in *) ai->ai_addr;
++                new_data = decode_address (&pin->sin_addr.s_addr, 4);
++              }
++              break;
++            case AF_INET6:
++              {
++                struct sockaddr_in6 *pin = (struct sockaddr_in6 *) ai->ai_addr;
++                new_data = decode_address (&pin->sin6_addr.s6_addr, 16);
++              }
++              break;
++            default:
++              FAIL_EXIT1 ("invalid address family %d", ai->ai_family);
++            }
++          if (data == NULL)
++            data = new_data;
++          else
++            /* Check pointer equality because this should be the same
++               response (same index).  */
++            TEST_VERIFY (data == new_data);
++        }
++      ai = ai->ai_next;
++    }
++  TEST_VERIFY_EXIT (data != NULL);
++  return data;
++}
++
++/* Updated by the main test loop in accordance with what is set in
++   _res.options.  */
++static bool use_edns;
++static bool use_dnssec;
++
++/* Verify the decoded response data against the flags above.  */
++static void
++verify_response_data_payload (struct response_data *data,
++                              size_t expected_payload)
++{
++  bool edns = use_edns || use_dnssec;
++  TEST_VERIFY (data->edns.active == edns);
++  if (!edns)
++    expected_payload = 0;
++  if (data->edns.payload_size != expected_payload)
++    {
++      support_record_failure ();
++      printf ("error: unexpected payload size %d (edns=%d)\n",
++              (int) data->edns.payload_size, edns);
++    }
++  uint16_t expected_flags = 0;
++  if (use_dnssec)
++    expected_flags |= 0x8000;   /* DO flag.  */
++  if (data->edns.flags != expected_flags)
++    {
++      support_record_failure ();
++      printf ("error: unexpected EDNS flags 0x%04x (edns=%d)\n",
++              (int) data->edns.flags, edns);
++    }
++}
++
++/* Same as verify_response_data_payload, but use the default
++   payload.  */
++static void
++verify_response_data (struct response_data *data)
++{
++  verify_response_data_payload (data, 1200);
++}
++
++static void
++check_hostent (struct hostent *e)
++{
++  TEST_VERIFY_EXIT (e != NULL);
++  verify_response_data (decode_hostent (e));
++}
++
++static void
++do_ai (int family)
++{
++  struct addrinfo hints = { .ai_family = family };
++  struct addrinfo *ai;
++  int ret = getaddrinfo (EDNS_PROBE_EXAMPLE, "80", &hints, &ai);
++  TEST_VERIFY_EXIT (ret == 0);
++  switch (family)
++    {
++    case AF_INET:
++    case AF_INET6:
++      verify_response_data (decode_addrinfo (ai, family));
++      break;
++    case AF_UNSPEC:
++      verify_response_data (decode_addrinfo (ai, AF_INET));
++      verify_response_data (decode_addrinfo (ai, AF_INET6));
++      break;
++    default:
++      FAIL_EXIT1 ("invalid address family %d", family);
++    }
++  freeaddrinfo (ai);
++}
++
++enum res_op
++{
++  res_op_search,
++  res_op_query,
++  res_op_querydomain,
++  res_op_nsearch,
++  res_op_nquery,
++  res_op_nquerydomain,
++
++  res_op_last = res_op_nquerydomain,
++};
++
++static const char *
++res_op_string (enum res_op op)
++{
++  switch (op)
++    {
++      case res_op_search:
++        return "res_search";
++      case res_op_query:
++        return "res_query";
++      case res_op_querydomain:
++        return "res_querydomain";
++      case res_op_nsearch:
++        return "res_nsearch";
++      case res_op_nquery:
++        return "res_nquery";
++      case res_op_nquerydomain:
++        return "res_nquerydomain";
++    }
++  FAIL_EXIT1 ("invalid res_op value %d", (int) op);
++}
++
++/* Call libresolv function OP to look up PROBE_NAME, with an answer
++   buffer of SIZE bytes.  Check that the advertised UDP buffer size is
++   in fact EXPECTED_BUFFER_SIZE.  */
++static void
++do_res_search (const char *probe_name, enum res_op op, size_t size,
++               size_t expected_buffer_size)
++{
++  if (test_verbose)
++    printf ("info: testing %s with buffer size %zu\n",
++            res_op_string (op), size);
++  unsigned char *buffer = xmalloc (size);
++  int ret = -1;
++  switch (op)
++    {
++    case res_op_search:
++      ret = res_search (probe_name, C_IN, T_A, buffer, size);
++      break;
++    case res_op_query:
++      ret = res_query (probe_name, C_IN, T_A, buffer, size);
++      break;
++    case res_op_nsearch:
++      ret = res_nsearch (&_res, probe_name, C_IN, T_A, buffer, size);
++      break;
++    case res_op_nquery:
++      ret = res_nquery (&_res, probe_name, C_IN, T_A, buffer, size);
++      break;
++    case res_op_querydomain:
++    case res_op_nquerydomain:
++      {
++        char *example_stripped = xstrdup (probe_name);
++        char *dot_example = strstr (example_stripped, ".example");
++        if (dot_example != NULL && strcmp (dot_example, ".example") == 0)
++          {
++            /* Truncate the domain name.  */
++            *dot_example = '\0';
++            if (op == res_op_querydomain)
++              ret = res_querydomain
++              (example_stripped, "example", C_IN, T_A, buffer, size);
++            else
++              ret = res_nquerydomain
++                (&_res, example_stripped, "example", C_IN, T_A, buffer, size);
++          }
++        else
++          FAIL_EXIT1 ("invalid probe name: %s", probe_name);
++        free (example_stripped);
++      }
++      break;
++    }
++  TEST_VERIFY_EXIT (ret > 12);
++  unsigned char *end = buffer + ret;
++
++  HEADER *hd = (HEADER *) buffer;
++  TEST_VERIFY (ntohs (hd->qdcount) == 1);
++  TEST_VERIFY (ntohs (hd->ancount) == 1);
++  /* Skip over the header.  */
++  unsigned char *p = buffer + sizeof (*hd);
++  /* Skip over the question.  */
++  ret = dn_skipname (p, end);
++  TEST_VERIFY_EXIT (ret > 0);
++  p += ret;
++  TEST_VERIFY_EXIT (end - p >= 4);
++  p += 4;
++  /* Skip over the RNAME and the RR header, but stop at the RDATA
++     length.  */
++  ret = dn_skipname (p, end);
++  TEST_VERIFY_EXIT (ret > 0);
++  p += ret;
++  TEST_VERIFY_EXIT (end - p >= 2 + 2 + 4 + 2 + 4);
++  p += 2 + 2 + 4;
++  /* The IP address should be 4 bytes long.  */
++  TEST_VERIFY_EXIT (p[0] == 0);
++  TEST_VERIFY_EXIT (p[1] == 4);
++  /* Extract the address information.   */
++  p += 2;
++  struct response_data *data = decode_address (p, 4);
++
++  verify_response_data_payload (data, expected_buffer_size);
++
++  free (buffer);
++}
++
++static void
++run_test (const char *probe_name)
++{
++  if (test_verbose)
++    printf ("\ninfo: * use_edns=%d use_dnssec=%d\n",
++            use_edns, use_dnssec);
++  check_hostent (gethostbyname (probe_name));
++  check_hostent (gethostbyname2 (probe_name, AF_INET));
++  check_hostent (gethostbyname2 (probe_name, AF_INET6));
++  do_ai (AF_UNSPEC);
++  do_ai (AF_INET);
++  do_ai (AF_INET6);
++
++  for (int op = 0; op <= res_op_last; ++op)
++    {
++      do_res_search (probe_name, op, 301, 512);
++      do_res_search (probe_name, op, 511, 512);
++      do_res_search (probe_name, op, 512, 512);
++      do_res_search (probe_name, op, 513, 513);
++      do_res_search (probe_name, op, 657, 657);
++      do_res_search (probe_name, op, 1199, 1199);
++      do_res_search (probe_name, op, 1200, 1200);
++      do_res_search (probe_name, op, 1201, 1200);
++      do_res_search (probe_name, op, 65535, 1200);
++    }
++}
++
++static int
++do_test (void)
++{
++  for (int do_edns = 0; do_edns < 2; ++do_edns)
++    for (int do_dnssec = 0; do_dnssec < 2; ++do_dnssec)
++      for (int do_tcp = 0; do_tcp < 2; ++do_tcp)
++        {
++          struct resolv_test *aux = resolv_test_start
++            ((struct resolv_redirect_config)
++             {
++               .response_callback = response,
++                 });
++
++          use_edns = do_edns;
++          if (do_edns)
++            _res.options |= RES_USE_EDNS0;
++          use_dnssec = do_dnssec;
++          if (do_dnssec)
++            _res.options |= RES_USE_DNSSEC;
++
++          char *probe_name = xstrdup (EDNS_PROBE_EXAMPLE);
++          if (do_tcp)
++            {
++              char *n = xasprintf ("tcp.%s", probe_name);
++              free (probe_name);
++              probe_name = n;
++            }
++
++          run_test (probe_name);
++
++          free (probe_name);
++          resolv_test_end (aux);
++        }
++
++  free_response_data ();
++  return 0;
++}
++
++#include <support/test-driver.c>
 diff --git a/stdlib/getentropy.c b/stdlib/getentropy.c
 index a71d4cd8f5..a88bbf8de3 100644
 --- a/stdlib/getentropy.c
@@ -2788,6 +3494,131 @@ index 0000000000..db9943a03e
 +/* The minimum run time is around 17 seconds.  */
 +#define TIMEOUT 25
 +#include <support/test-driver.c>
+diff --git a/support/resolv_test.c b/support/resolv_test.c
+index 2d0ea3c17c..6b3554f1ce 100644
+--- a/support/resolv_test.c
++++ b/support/resolv_test.c
+@@ -428,6 +428,7 @@ struct query_info
+   char qname[MAXDNAME];
+   uint16_t qclass;
+   uint16_t qtype;
++  struct resolv_edns_info edns;
+ };
+ 
+ /* Update *INFO from the specified DNS packet.  */
+@@ -435,10 +436,26 @@ static void
+ parse_query (struct query_info *info,
+              const unsigned char *buffer, size_t length)
+ {
+-  if (length < 12)
++  HEADER hd;
++  _Static_assert (sizeof (hd) == 12, "DNS header size");
++  if (length < sizeof (hd))
+     FAIL_EXIT1 ("malformed DNS query: too short: %zu bytes", length);
+-
+-  int ret = dn_expand (buffer, buffer + length, buffer + 12,
++  memcpy (&hd, buffer, sizeof (hd));
++
++  if (ntohs (hd.qdcount) != 1)
++    FAIL_EXIT1 ("malformed DNS query: wrong question count: %d",
++                (int) ntohs (hd.qdcount));
++  if (ntohs (hd.ancount) != 0)
++    FAIL_EXIT1 ("malformed DNS query: wrong answer count: %d",
++                (int) ntohs (hd.ancount));
++  if (ntohs (hd.nscount) != 0)
++    FAIL_EXIT1 ("malformed DNS query: wrong authority count: %d",
++                (int) ntohs (hd.nscount));
++  if (ntohs (hd.arcount) > 1)
++    FAIL_EXIT1 ("malformed DNS query: wrong additional count: %d",
++                (int) ntohs (hd.arcount));
++
++  int ret = dn_expand (buffer, buffer + length, buffer + sizeof (hd),
+                        info->qname, sizeof (info->qname));
+   if (ret < 0)
+     FAIL_EXIT1 ("malformed DNS query: cannot uncompress QNAME");
+@@ -456,6 +473,37 @@ parse_query (struct query_info *info,
+   memcpy (&qtype_qclass, buffer + 12 + ret, sizeof (qtype_qclass));
+   info->qclass = ntohs (qtype_qclass.qclass);
+   info->qtype = ntohs (qtype_qclass.qtype);
++
++  memset (&info->edns, 0, sizeof (info->edns));
++  if (ntohs (hd.arcount) > 0)
++    {
++      /* Parse EDNS record.  */
++      struct __attribute__ ((packed, aligned (1)))
++      {
++        uint8_t root;
++        uint16_t rtype;
++        uint16_t payload;
++        uint8_t edns_extended_rcode;
++        uint8_t edns_version;
++        uint16_t flags;
++        uint16_t rdatalen;
++      } rr;
++      _Static_assert (sizeof (rr) == 11, "EDNS record size");
++
++      if (remaining < 4 + sizeof (rr))
++        FAIL_EXIT1 ("mailformed DNS query: no room for EDNS record");
++      memcpy (&rr, buffer + 12 + ret + 4, sizeof (rr));
++      if (rr.root != 0)
++        FAIL_EXIT1 ("malformed DNS query: invalid OPT RNAME: %d\n", rr.root);
++      if (rr.rtype != htons (41))
++        FAIL_EXIT1 ("malformed DNS query: invalid OPT type: %d\n",
++                    ntohs (rr.rtype));
++      info->edns.active = true;
++      info->edns.extended_rcode = rr.edns_extended_rcode;
++      info->edns.version = rr.edns_version;
++      info->edns.flags = ntohs (rr.flags);
++      info->edns.payload_size = ntohs (rr.payload);
++    }
+ }
+ 
+ 
+@@ -585,6 +633,7 @@ server_thread_udp_process_one (struct resolv_test *obj, int server_index)
+       .query_length = length,
+       .server_index = server_index,
+       .tcp = false,
++      .edns = qinfo.edns,
+     };
+   struct resolv_response_builder *b = response_builder_allocate (query, length);
+   obj->config.response_callback
+@@ -820,6 +869,7 @@ server_thread_tcp_client (void *arg)
+           .query_length = query_length,
+           .server_index = closure->server_index,
+           .tcp = true,
++          .edns = qinfo.edns,
+         };
+       struct resolv_response_builder *b = response_builder_allocate
+         (query_buffer, query_length);
+diff --git a/support/resolv_test.h b/support/resolv_test.h
+index 7a9f1f7ae8..6498751569 100644
+--- a/support/resolv_test.h
++++ b/support/resolv_test.h
+@@ -25,6 +25,16 @@
+ 
+ __BEGIN_DECLS
+ 
++/* Information about EDNS properties of a DNS query.  */
++struct resolv_edns_info
++{
++  bool active;
++  uint8_t extended_rcode;
++  uint8_t version;
++  uint16_t flags;
++  uint16_t payload_size;
++};
++
+ /* This struct provides context information when the response callback
+    specified in struct resolv_redirect_config is invoked. */
+ struct resolv_response_context
+@@ -33,6 +43,7 @@ struct resolv_response_context
+   size_t query_length;
+   int server_index;
+   bool tcp;
++  struct resolv_edns_info edns;
+ };
+ 
+ /* This opaque struct is used to construct responses from within the
 diff --git a/sysdeps/aarch64/dl-machine.h b/sysdeps/aarch64/dl-machine.h
 index 84b8aecfb8..6067a1d8a0 100644
 --- a/sysdeps/aarch64/dl-machine.h

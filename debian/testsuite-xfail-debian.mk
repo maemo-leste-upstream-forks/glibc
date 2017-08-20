@@ -17,6 +17,7 @@ test-xfail-tst-cancel24-static = yes
 test-xfail-tst-bug18665-tcp = yes
 test-xfail-tst-res_use_inet6 = yes
 test-xfail-tst-resolv-basic = yes
+test-xfail-tst-resolv-edns = yes
 test-xfail-tst-resolv-search = yes
 
 
