@@ -20,6 +20,11 @@ ifdef WITH_SYSROOT
     libc_extra_config_options += --with-headers=$(WITH_SYSROOT)/$(includedir)
 endif
 
+$(stamp)config_sub_guess: $(stamp)patch
+	@echo Updating config.sub and config.guess
+	dh_autotools-dev_updateconfig
+	touch $@
+
 $(patsubst %,mkbuilddir_%,$(GLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
 $(stamp)mkbuilddir_%: $(stamp)patch $(KERNEL_HEADER_DIR)
 	@echo Making builddir for $(curpass)
@@ -27,7 +32,7 @@ $(stamp)mkbuilddir_%: $(stamp)patch $(KERNEL_HEADER_DIR)
 	touch $@
 
 $(patsubst %,configure_%,$(GLIBC_PASSES)) :: configure_% : $(stamp)configure_%
-$(stamp)configure_%: $(stamp)mkbuilddir_%
+$(stamp)configure_%: $(stamp)config_sub_guess $(stamp)mkbuilddir_%
 	@echo Configuring $(curpass)
 	rm -f $(DEB_BUILDDIR)/configparms
 	echo "MIG = $(call xx,MIG)"               >> $(DEB_BUILDDIR)/configparms
