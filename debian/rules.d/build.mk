@@ -26,13 +26,13 @@ $(stamp)config_sub_guess: $(stamp)patch
 	touch $@
 
 $(patsubst %,mkbuilddir_%,$(GLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
-$(stamp)mkbuilddir_%: $(stamp)patch $(KERNEL_HEADER_DIR)
+$(stamp)mkbuilddir_%:
 	@echo Making builddir for $(curpass)
 	test -d $(DEB_BUILDDIR) || mkdir -p $(DEB_BUILDDIR)
 	touch $@
 
 $(patsubst %,configure_%,$(GLIBC_PASSES)) :: configure_% : $(stamp)configure_%
-$(stamp)configure_%: $(stamp)config_sub_guess $(stamp)mkbuilddir_%
+$(stamp)configure_%: $(stamp)config_sub_guess $(stamp)patch $(KERNEL_HEADER_DIR) $(stamp)mkbuilddir_%
 	@echo Configuring $(curpass)
 	rm -f $(DEB_BUILDDIR)/configparms
 	echo "MIG = $(call xx,MIG)"               >> $(DEB_BUILDDIR)/configparms
