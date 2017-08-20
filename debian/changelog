@@ -91,6 +91,27 @@ glibc (2.25-0experimental0) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Wed, 02 Aug 2017 18:54:56 +0200
 
+glibc (2.24-15) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Avoid use-after-free read access in clntudp_call (CVE-2017-12133).
+      Closes: #870648.
+  * debian/control.in/*: Change back gcc-multilib to a Recommends for
+    biarch packages. It provides the /usr/include/linux/asm symlink.
+  * debian/control.in/x32: Add a gcc-multilib Recommends for libc6-dev-x32.
+  * Update French debconf translation, by Alban Vidal.  Closes: #872025.
+  * debian/control.in/main: Change gcc-multiarch to priority optional and
+    section oldlibs.
+  * debian/control.in/opt: Remove transitional packages libc0.1-i686,
+    libc0.3-i686, libc6-i686.
+  * debian/control.in/libc, debian/control.in/main, debian/control.in/opt:
+    change the priority of libc0.1-dbg, libc0.1-udeb, libc0.3-dbg,
+    libc0.3-udeb, libc0.3-xen, libc6.1-alphaev67, libc6.1-dbg, libc6.1-udeb,
+    libc6-dbg, libc6-udeb, libc6-xen and locales-all to optional.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 20 Aug 2017 15:12:10 +0200
+
 glibc (2.24-14) unstable; urgency=medium
 
   [ Aurelien Jarno ]
@@ -123,8 +144,6 @@ glibc (2.24-13) unstable; urgency=medium
   * Update Dutch debconf translation, by Frans Spiesschaert.  Closes: #867981.
   * debian/debhelper.in/libc-bin.triggers: declare the trigger as
     interest-await.
-  * debian/control.in/*: Demote gcc-multilib 'Recommends' to a 'Suggests'.
-    Closes: #865429.
 
   [ Adam Conrad ]
   * debian/patches/arm/submitted-strip-bit-0.diff: Fix ld.so crash on armv7t.
