@@ -252,6 +252,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	    sed -e "s#RTLD_SO#$$rtld_so#g" -i $$t ; \
 	    sed -e "s#MULTIARCHDIR#$$DEB_HOST_MULTIARCH#g" -i $$t ; \
 	    $(if $(filter $(call xx,mvec),no),sed -e "/libmvec/d" -i $$t ;) \
+	    $(if $(filter-out $(DEB_HOST_ARCH_OS),linux),sed -e "/gdb/d" -i $$t ;) \
 	  done ; \
 	done
 endif
