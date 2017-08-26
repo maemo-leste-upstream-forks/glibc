@@ -22,7 +22,7 @@ endif
 
 $(stamp)config_sub_guess: $(stamp)patch
 	@echo Updating config.sub and config.guess
-	dh_autotools-dev_updateconfig
+	dh_update_autotools_config
 	touch $@
 
 $(patsubst %,mkbuilddir_%,$(GLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
