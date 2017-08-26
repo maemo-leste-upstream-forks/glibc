@@ -491,7 +491,7 @@
 +#endif /* __A_OUT_GNU_H__ */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/access.c
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,82 @@
 +/* Copyright (C) 2009 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -556,6 +556,21 @@
 +
 +  __set_errno (EACCES);
 +  return -1;
++}
++
++
++/* Test for access to FILE by our real user and group IDs without setting
++   errno.  */
++int
++__access_noerrno (const char *file, int type)
++{
++  int ret;
++  int saved_errno = errno;
++
++  ret = __access (file, type);
++
++  __set_errno(saved_errno);
++  return ret;
 +}
 +
 +weak_alias (__access, access)
