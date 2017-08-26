@@ -11,6 +11,8 @@ threads = no
 libc_add-ons = libpthread $(add-ons)
 # MIG generates a lot of warnings
 extra_config_options = --disable-werror
+# Building with stack-protector is not supported on the Hurd
+extra_config_options += --enable-stack-protector=no
 
 ifndef HURD_SOURCE
   HURD_HEADERS := /usr/include
