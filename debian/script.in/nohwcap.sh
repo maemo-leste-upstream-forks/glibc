@@ -11,10 +11,7 @@
             hwcappkgs="libc6-alphaev67"
             ;;
         i386)
-            hwcappkgs="libc6-i686 libc6-xen"
-            ;;
-        kfreebsd-i386)
-            hwcappkgs="libc0.1-i686"
+            hwcappkgs="libc6-xen"
             ;;
     esac
  
