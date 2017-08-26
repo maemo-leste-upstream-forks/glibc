@@ -33,25 +33,6 @@ if [ "$1" = deconfigure ]; then
     :; # blah, do something useful with ldso
 fi
 
-#if [ "$1" = purge ]; then
-#    update-rc.d mountkernfs remove > /dev/null
-#fi
-
-# We now use the multiarch triplet instead of the GNU triplet for the ld.so
-# configuration file, in order to keep a stable path. Remove the old file.
-case ${DPKG_MAINTSCRIPT_ARCH:-$(dpkg --print-architecture)} in
-    hurd-i386)
-        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-gnu.conf 2.19-11~ libc0.3:hurd-i386 -- "$@"
-        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-gnu-gnu.conf 2.19-11~ libc0.3:hurd-i386 -- "$@"
-        ;;
-    i386)
-        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-linux-gnu.conf 2.19-4~ libc6:i386 -- "$@"
-        ;;
-    kfreebsd-i386)
-        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-kfreebsd-gnu.conf 2.19-11~ libc0.1:kfreebsd-i386 -- "$@"
-        ;;
-esac
-
 #DEBHELPER#
 
 exit 0
