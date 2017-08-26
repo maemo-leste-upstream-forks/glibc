@@ -1,0 +1,59 @@
+2017-08-26  Aurelien Jarno  <aurelien@aurel32.net>
+
+	[BZ #21508]
+	* catgets/Makefile ($(objpfx)de.msg): Depend on
+	$(common-objpfx)intl/tst-gettext-de.po instead of $(..)po/de.po.
+	* intl/Makefile ($(objpfx)tst-gettext-de.po): Generate
+	intl/tst-gettext-de.po from po/de.po by removing the
+	POT-Creation-Date line.
+	($(objpfx)msgs.h): Depend on $(objpfx)tst-gettext-de.po instead of
+	../po/de.po.
+	* intl/tst-gettext.sh: Use ${objpfx}tst-gettext-de.po instead of
+	../po/de.po.
+
+diff --git a/catgets/Makefile b/catgets/Makefile
+index 39aab67c14..a87172ef5e 100644
+--- a/catgets/Makefile
++++ b/catgets/Makefile
+@@ -78,7 +78,7 @@ $(objpfx)de/libc.cat: $(objpfx)de.msg $(objpfx)gencat
+ $(objpfx)tst-catgets.out: $(objpfx)de/libc.cat
+ 
+ # Generate a non-simple input file.
+-$(objpfx)de.msg: xopen-msg.awk $(..)po/de.po
++$(objpfx)de.msg: xopen-msg.awk $(common-objpfx)intl/tst-gettext-de.po
+ 	LC_ALL=C $(AWK) -f $^ $< > $@
+ 
+ $(objpfx)test-gencat.out: test-gencat.sh $(objpfx)test-gencat \
+diff --git a/intl/Makefile b/intl/Makefile
+index c8bec9b138..752aa9f5f5 100644
+--- a/intl/Makefile
++++ b/intl/Makefile
+@@ -120,7 +120,11 @@ $(objpfx)tst-gettext6.out: $(gen-locales)
+ $(objpfx)tst-translit.out: $(gen-locales)
+ endif
+ 
+-$(objpfx)msgs.h: po2test.awk ../po/de.po
++$(objpfx)tst-gettext-de.po: ../po/de.po
++	$(make-target-directory)
++	LC_ALL=C $(AWK) '!/^"POT-Creation-Date: [0-9-]+ [0-9:+-]+\\n"$$/' $^ > $@
++
++$(objpfx)msgs.h: po2test.awk $(objpfx)tst-gettext-de.po
+ 	$(make-target-directory)
+ 	LC_ALL=C $(AWK) -f $^ > $@
+ 
+diff --git a/intl/tst-gettext.sh b/intl/tst-gettext.sh
+index 5c4775b817..be7ea3a399 100755
+--- a/intl/tst-gettext.sh
++++ b/intl/tst-gettext.sh
+@@ -42,9 +42,9 @@ mkdir -p ${objpfx}domaindir/existing-locale/LC_MESSAGES
+ mkdir -p ${objpfx}domaindir/existing-locale/LC_TIME
+ # Populate them.
+ msgfmt -o ${objpfx}domaindir/existing-locale/LC_MESSAGES/existing-domain.mo \
+-       -f ../po/de.po
++       -f ${objpfx}tst-gettext-de.po
+ msgfmt -o ${objpfx}domaindir/existing-locale/LC_TIME/existing-time-domain.mo \
+-       -f ../po/de.po
++       -f ${objpfx}tst-gettext-de.po
+ 
+ # Now run the test.
+ ${test_program_prefix_before_env} \
