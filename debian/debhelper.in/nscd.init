@@ -115,6 +115,21 @@ restart|force-reload)
 		;;
 	esac
 	;;
+try-restart)
+	log_daemon_msg "Trying to restart $DESC" "$NAME"
+	stop_nscd
+	case "$?" in
+		0)
+			start_nscd
+			case "$?" in
+				0) invalidate_cache ; log_end_msg 0 ; exit 0 ;;
+				*) log_failure_msg " (failed to start)." ; exit 1 ;;
+			esac
+			;;
+		1) log_success_msg "(not running)." ; exit 0 ;;
+		*) log_failure_msg "(failed to stop)." ; exit 1 ;;
+	esac
+	;;
 status)
 	log_daemon_msg "Status of $DESC service: "
 	status
