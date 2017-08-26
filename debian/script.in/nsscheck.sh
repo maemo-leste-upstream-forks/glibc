@@ -11,6 +11,7 @@
 	    	    	-e's/\blpr-ppd\b/lpd-ppd/g' \
 	    	    	-e's/\bmysql-server\b/mysql/g' \
 	    	    	-e's/\bsasl2-bin\b/saslauthd/g' \
+	    	    	-e's/\bsamaba\b/smbd/g' \
 	    )
 	    echo
 	    echo "Checking init scripts..."
