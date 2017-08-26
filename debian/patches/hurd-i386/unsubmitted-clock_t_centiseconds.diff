@@ -2,7 +2,6 @@ Some applications assume centisecond precision, or at most millisecond precision
 (e.g. guile).  This is a work-around for them.
 
 ---
- clock.c     |    8 ++++----
  getclktck.c |    5 ++---
  setitimer.c |    2 +-
  times.c     |    2 +-
@@ -11,27 +10,8 @@ commit d57f2f9b4bd007846af2fb4217486ea572579010
 Author: Richard Braun <rbraun@sceen.net>
 Date:   Tue Aug 27 11:35:31 2013 +0200
 
-    Express CPU time (clock_t) in centiseconds
+    Express CPU time (clock_t of times(2)) in centiseconds
 
-diff --git a/sysdeps/mach/hurd/clock.c b/sysdeps/mach/hurd/clock.c
-index 61a66be..51f7abe 100644
---- a/sysdeps/mach/hurd/clock.c
-+++ b/sysdeps/mach/hurd/clock.c
-@@ -44,10 +44,10 @@ clock (void)
-   if (err)
-     return __hurd_fail (err);
- 
--  total = bi.user_time.seconds * 1000000 + bi.user_time.microseconds;
--  total += tti.user_time.seconds * 1000000 + tti.user_time.microseconds;
--  total += bi.system_time.seconds * 1000000 + bi.system_time.microseconds;
--  total += tti.system_time.seconds * 1000000 + tti.system_time.microseconds;
-+  total = bi.user_time.seconds * 100 + bi.user_time.microseconds / 10000;
-+  total += tti.user_time.seconds * 100 + tti.user_time.microseconds / 10000;
-+  total += bi.system_time.seconds * 100 + bi.system_time.microseconds / 10000;
-+  total += tti.system_time.seconds * 100 + tti.system_time.microseconds / 10000;
- 
-   return total;
- }
 diff --git a/sysdeps/mach/hurd/getclktck.c b/sysdeps/mach/hurd/getclktck.c
 index 69be2cc..5f7d946 100644
 --- a/sysdeps/mach/hurd/getclktck.c
