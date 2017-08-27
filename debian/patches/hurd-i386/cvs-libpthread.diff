@@ -1,7 +1,7 @@
-git diff empty --patch-with-stat --src-prefix=glibc/libpthread/ --dst-prefix=glibc/libpthread/ de1a908af2944e6601fb14f88933abebd02649e1
+git diff empty --patch-with-stat --src-prefix=glibc/libpthread/ --dst-prefix=glibc/libpthread/ 1f065f9ad49b78b40d29af92820225b328319fc6
 from git.savannah.gnu.org:/srv/git/hurd/libpthread.git/
 thus by construction only libpthread/ files, thus hurd-only
-Date:   Thu Aug 3 11:52:22 2017 +0200
+Date:   Mon Aug 28 00:14:36 2017 +0200
 
  ChangeLog                                     |   6 +
  Makeconfig                                    |  13 +
@@ -6499,7 +6499,7 @@ new file mode 100644
 index 0000000..00974cf
 --- /dev/null
 +++ glibc/libpthread/sysdeps/generic/pt-getschedparam.c
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,32 @@
 +/* Get the scheduling parameters for a thread.  Generic version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -6526,11 +6526,12 @@ index 0000000..00974cf
 +__pthread_getschedparam (pthread_t thread, int *policy,
 +		       struct sched_param *param)
 +{
-+  return ENOSYS;
++  *policy = SCHED_OTHER;
++  param->__sched_priority = 0;
++  return 0;
 +}
 +
 +strong_alias (__pthread_getschedparam, pthread_getschedparam);
-+stub_warning (pthread_getschedparam)
 diff --git glibc/libpthread/sysdeps/generic/pt-getspecific.c glibc/libpthread/sysdeps/generic/pt-getspecific.c
 new file mode 100644
 index 0000000..2a7c4a9
