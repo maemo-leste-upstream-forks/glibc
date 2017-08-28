@@ -11,24 +11,7 @@ Date:   Sun Aug 27 22:10:17 2017 +0200
            * hurd/stack_chk_fail_local.c: New file.
            * mach/Machrules ($(interface-library)-routines): Add
            stack_chk_fail_local.
-           * mach/Versions (GLIBC_2.4): Add __stack_chk_fail.
-           * hurd/Versions (GLIBC_2.4): Add __stack_chk_fail.
 
-diff --git a/hurd/Versions b/hurd/Versions
-index 77f5b4271e..011edc7384 100644
---- a/hurd/Versions
-+++ b/hurd/Versions
-@@ -129,6 +129,10 @@ libc {
-     # functions used in macros & inline functions
-     __errno_location;
-   }
-+  GLIBC_2.4 {
-+    # functions used by RPC stubs
-+    __stack_chk_fail
-+  }
- 
-   HURD_CTHREADS_0.3 {
-     # weak refs to libthreads functions that libc calls iff libthreads in use
 diff --git a/hurd/stack_chk_fail_local.c b/hurd/stack_chk_fail_local.c
 new file mode 100644
 index 0000000000..305871fbc0
@@ -49,21 +32,6 @@ index 36adfc7681..29114b1eef 100644
  extra-libs += $(interface-library)
  extra-libs-others += $(interface-library)
  
-diff --git a/mach/Versions b/mach/Versions
-index 0097aad59b..b22fda4cf4 100644
---- a/mach/Versions
-+++ b/mach/Versions
-@@ -54,6 +54,10 @@ libc {
-     # This was always there, but not exported as it should have been.
-     mig_strncpy;
-   }
-+  GLIBC_2.4 {
-+    # functions used by RPC stubs
-+    __stack_chk_fail
-+  }
-   GLIBC_2.23 {
-     __mach_host_self_;
-   }
 diff --git a/mach/stack_chk_fail_local.c b/mach/stack_chk_fail_local.c
 new file mode 100644
 index 0000000000..305871fbc0
