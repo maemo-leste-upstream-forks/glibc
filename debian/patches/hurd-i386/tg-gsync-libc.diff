@@ -51,10 +51,10 @@ cleanup routines now use gcc's cleanup attribute
  sysdeps/mach/hurd/setsid.c         |  10 +-
  18 files changed, 666 insertions(+), 309 deletions(-)
 
-Index: glibc-2.23/hurd/Makefile
+Index: glibc-2.26/hurd/Makefile
 ===================================================================
---- glibc-2.23.orig/hurd/Makefile
-+++ glibc-2.23/hurd/Makefile
+--- glibc-2.26.orig/hurd/Makefile
++++ glibc-2.26/hurd/Makefile
 @@ -56,6 +56,7 @@ routines = hurdstartup hurdinit \
  	   ports-get ports-set hurdports hurdmsg \
  	   errno-loc \
@@ -63,10 +63,10 @@ Index: glibc-2.23/hurd/Makefile
  	   $(sig) $(dtable) $(inlines) port-cleanup report-wait xattr
  sig	= hurdsig hurdfault siginfo hurd-raise preempt-sig \
  	  trampoline longjmp-ts catch-exc exc2signal hurdkill sigunwind \
-Index: glibc-2.23/hurd/Versions
+Index: glibc-2.26/hurd/Versions
 ===================================================================
---- glibc-2.23.orig/hurd/Versions
-+++ glibc-2.23/hurd/Versions
+--- glibc-2.26.orig/hurd/Versions
++++ glibc-2.26/hurd/Versions
 @@ -161,4 +161,13 @@ libc {
      cthread_keycreate; cthread_getspecific; cthread_setspecific;
      __libc_getspecific;
@@ -81,10 +81,10 @@ Index: glibc-2.23/hurd/Versions
 +    lll_set_wake; lll_robust_unlock; lll_requeue;
 +  }
  }
-Index: glibc-2.23/hurd/hurdlock.c
+Index: glibc-2.26/hurd/hurdlock.c
 ===================================================================
 --- /dev/null
-+++ glibc-2.23/hurd/hurdlock.c
++++ glibc-2.26/hurd/hurdlock.c
 @@ -0,0 +1,247 @@
 +/* Copyright (C) 1999-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -333,10 +333,10 @@ Index: glibc-2.23/hurd/hurdlock.c
 +    }
 +}
 +
-Index: glibc-2.23/hurd/hurdlock.h
+Index: glibc-2.26/hurd/hurdlock.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.23/hurd/hurdlock.h
++++ glibc-2.26/hurd/hurdlock.h
 @@ -0,0 +1,117 @@
 +/* Copyright (C) 1999-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -455,10 +455,10 @@ Index: glibc-2.23/hurd/hurdlock.h
 +   })
 +
 +#endif
-Index: glibc-2.23/hurd/hurdpid.c
+Index: glibc-2.26/hurd/hurdpid.c
 ===================================================================
---- glibc-2.23.orig/hurd/hurdpid.c
-+++ glibc-2.23/hurd/hurdpid.c
+--- glibc-2.26.orig/hurd/hurdpid.c
++++ glibc-2.26/hurd/hurdpid.c
 @@ -16,6 +16,8 @@
     <http://www.gnu.org/licenses/>.  */
  
@@ -476,10 +476,10 @@ Index: glibc-2.23/hurd/hurdpid.c
  
    return 0;
  }
-Index: glibc-2.23/hurd/hurdsig.c
+Index: glibc-2.26/hurd/hurdsig.c
 ===================================================================
---- glibc-2.23.orig/hurd/hurdsig.c
-+++ glibc-2.23/hurd/hurdsig.c
+--- glibc-2.26.orig/hurd/hurdsig.c
++++ glibc-2.26/hurd/hurdsig.c
 @@ -1617,14 +1617,14 @@ reauth_proc (mach_port_t new)
    __mach_port_destroy (__mach_task_self (), ref);
  
@@ -497,10 +497,10 @@ Index: glibc-2.23/hurd/hurdsig.c
  
    (void) &reauth_proc;		/* Silence compiler warning.  */
  }
-Index: glibc-2.23/hurd/setauth.c
+Index: glibc-2.26/hurd/setauth.c
 ===================================================================
---- glibc-2.23.orig/hurd/setauth.c
-+++ glibc-2.23/hurd/setauth.c
+--- glibc-2.26.orig/hurd/setauth.c
++++ glibc-2.26/hurd/setauth.c
 @@ -18,14 +18,13 @@
  #include <hurd.h>
  #include <hurd/port.h>
@@ -518,10 +518,10 @@ Index: glibc-2.23/hurd/setauth.c
  
  /* Set the auth port to NEW, and reauthenticate
     everything used by the library.  */
-Index: glibc-2.23/hurd/sysvshm.c
+Index: glibc-2.26/hurd/sysvshm.c
 ===================================================================
---- glibc-2.23.orig/hurd/sysvshm.c
-+++ glibc-2.23/hurd/sysvshm.c
+--- glibc-2.26.orig/hurd/sysvshm.c
++++ glibc-2.26/hurd/sysvshm.c
 @@ -26,6 +26,7 @@
  #include <dirent.h>
  #include <sys/stat.h>
@@ -539,10 +539,10 @@ Index: glibc-2.23/hurd/sysvshm.c
  
  
  /* Adds a segment attachment.  */
-Index: glibc-2.23/mach/Makefile
+Index: glibc-2.26/mach/Makefile
 ===================================================================
---- glibc-2.23.orig/mach/Makefile
-+++ glibc-2.23/mach/Makefile
+--- glibc-2.26.orig/mach/Makefile
++++ glibc-2.26/mach/Makefile
 @@ -23,7 +23,7 @@ headers = mach_init.h mach.h mach_error.
  	  $(interface-headers) mach/mach.h mach/mig_support.h mach/error.h \
  	  $(lock-headers) machine-sp.h
@@ -552,11 +552,11 @@ Index: glibc-2.23/mach/Makefile
  routines = $(mach-syscalls) $(mach-shortcuts) \
  	   mach_init mig_strncpy msg \
  	   mig-alloc mig-dealloc mig-reply \
-Index: glibc-2.23/mach/lock-intern.h
+Index: glibc-2.26/mach/lock-intern.h
 ===================================================================
---- glibc-2.23.orig/mach/lock-intern.h
-+++ glibc-2.23/mach/lock-intern.h
-@@ -19,73 +19,92 @@
+--- glibc-2.26.orig/mach/lock-intern.h
++++ glibc-2.26/mach/lock-intern.h
+@@ -19,12 +19,19 @@
  #define	_LOCK_INTERN_H
  
  #include <sys/cdefs.h>
@@ -577,9 +577,7 @@ Index: glibc-2.23/mach/lock-intern.h
  
  /* Initialize LOCK.  */
  
- void __spin_lock_init (__spin_lock_t *__lock);
- 
- #if defined __USE_EXTERN_INLINES && defined _LIBC
+@@ -34,14 +41,11 @@ void __spin_lock_init (__spin_lock_t *__
  _EXTERN_INLINE void
  __spin_lock_init (__spin_lock_t *__lock)
  {
@@ -595,8 +593,7 @@ Index: glibc-2.23/mach/lock-intern.h
  /* Lock the spin lock LOCK.  */
  
  void __spin_lock (__spin_lock_t *__lock);
- 
- #if defined __USE_EXTERN_INLINES && defined _LIBC
+@@ -50,31 +54,47 @@ void __spin_lock (__spin_lock_t *__lock)
  _EXTERN_INLINE void
  __spin_lock (__spin_lock_t *__lock)
  {
@@ -662,9 +659,7 @@ Index: glibc-2.23/mach/lock-intern.h
  
  /* Lock the mutex lock LOCK.  */
  
- void __mutex_lock (void *__lock);
- 
- #if defined __USE_EXTERN_INLINES && defined _LIBC
+@@ -84,8 +104,7 @@ void __mutex_lock (void *__lock);
  _EXTERN_INLINE void
  __mutex_lock (void *__lock)
  {
@@ -674,7 +669,7 @@ Index: glibc-2.23/mach/lock-intern.h
  }
  #endif
  
-@@ -97,19 +116,18 @@ __mutex_lock (void *__lock)
+@@ -97,8 +116,7 @@ void __mutex_unlock (void *__lock);
  _EXTERN_INLINE void
  __mutex_unlock (void *__lock)
  {
@@ -684,10 +679,7 @@ Index: glibc-2.23/mach/lock-intern.h
  }
  #endif
  
- 
- int __mutex_trylock (void *__lock);
- 
- #if defined __USE_EXTERN_INLINES && defined _LIBC
+@@ -109,7 +127,7 @@ int __mutex_trylock (void *__lock);
  _EXTERN_INLINE int
  __mutex_trylock (void *__lock)
  {
@@ -696,10 +688,10 @@ Index: glibc-2.23/mach/lock-intern.h
  }
  #endif
  
-Index: glibc-2.23/mach/lowlevellock.h
+Index: glibc-2.26/mach/lowlevellock.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.23/mach/lowlevellock.h
++++ glibc-2.26/mach/lowlevellock.h
 @@ -0,0 +1,80 @@
 +/* Copyright (C) 1994-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -781,10 +773,10 @@ Index: glibc-2.23/mach/lowlevellock.h
 +   })
 +
 +#endif
-Index: glibc-2.23/mach/mutex-init.c
+Index: glibc-2.26/mach/mutex-init.c
 ===================================================================
---- glibc-2.23.orig/mach/mutex-init.c
-+++ glibc-2.23/mach/mutex-init.c
+--- glibc-2.26.orig/mach/mutex-init.c
++++ glibc-2.26/mach/mutex-init.c
 @@ -17,13 +17,10 @@
     <http://www.gnu.org/licenses/>.  */
  
@@ -801,10 +793,10 @@ Index: glibc-2.23/mach/mutex-init.c
 -  mutex_init ((struct mutex *) lock);
 +  *(int *)lock = LLL_INITIALIZER;
  }
-Index: glibc-2.23/sysdeps/mach/Makefile
+Index: glibc-2.26/sysdeps/mach/Makefile
 ===================================================================
---- glibc-2.23.orig/sysdeps/mach/Makefile
-+++ glibc-2.23/sysdeps/mach/Makefile
+--- glibc-2.26.orig/sysdeps/mach/Makefile
++++ glibc-2.26/sysdeps/mach/Makefile
 @@ -50,4 +50,22 @@ mach-before-compile:
  before-compile += $(mach-before-compile)
  endif
@@ -828,10 +820,10 @@ Index: glibc-2.23/sysdeps/mach/Makefile
 +endif
 +
  endif	# in-Makerules
-Index: glibc-2.23/sysdeps/mach/libc-lock.h
+Index: glibc-2.26/sysdeps/mach/libc-lock.h
 ===================================================================
---- glibc-2.23.orig/sysdeps/mach/libc-lock.h
-+++ glibc-2.23/sysdeps/mach/libc-lock.h
+--- glibc-2.26.orig/sysdeps/mach/libc-lock.h
++++ glibc-2.26/sysdeps/mach/libc-lock.h
 @@ -20,10 +20,31 @@
  #define _LIBC_LOCK_H 1
  
@@ -1061,42 +1053,39 @@ Index: glibc-2.23/sysdeps/mach/libc-lock.h
 +#endif
  
  #endif	/* libc-lock.h */
-Index: glibc-2.23/sysdeps/mach/hurd/bits/errno.h
+Index: glibc-2.26/sysdeps/mach/hurd/bits/errno.h
 ===================================================================
---- glibc-2.23.orig/sysdeps/mach/hurd/bits/errno.h
-+++ glibc-2.23/sysdeps/mach/hurd/bits/errno.h
-@@ -224,6 +224,10 @@ enum __error_t_codes
- #define	ETIME           _HURD_ERRNO (117)/* Timer expired */
- 	ECANCELED       = _HURD_ERRNO (119),
- #define	ECANCELED       _HURD_ERRNO (119)/* Operation canceled */
-+	EOWNERDEAD      = _HURD_ERRNO (120),
-+#define	EOWNERDEAD      _HURD_ERRNO (120)/* Robust mutex owner died */
-+	ENOTRECOVERABLE = _HURD_ERRNO (121),
-+#define	ENOTRECOVERABLE _HURD_ERRNO (121)/* Robust mutex irrecoverable */
+--- glibc-2.26.orig/sysdeps/mach/hurd/bits/errno.h
++++ glibc-2.26/sysdeps/mach/hurd/bits/errno.h
+@@ -129,6 +129,8 @@ enum __error_t_codes
+   EPROTO                         = 0x40000074,	/* Protocol error */
+   ETIME                          = 0x40000075,	/* Timer expired */
+   ECANCELED                      = 0x40000077,	/* Operation canceled */
++  EOWNERDEAD                     = 0x40000078,	/* Robust mutex owner died */
++  ENOTRECOVERABLE                = 0x40000079,	/* Robust mutex irrecoverable */
  
- 	/* Errors from <mach/message.h>.  */
- 	EMACH_SEND_IN_PROGRESS          = 0x10000001,
-@@ -280,6 +284,8 @@ enum __error_t_codes
- 	EKERN_MEMORY_PRESENT            = 23,
- 	EKERN_WRITE_PROTECTION_FAILURE  = 24,
- 	EKERN_TERMINATED                = 26,
-+	EKERN_TIMEDOUT                  = 27,
-+	EKERN_INTERRUPTED               = 28,
+ /* Errors from <mach/message.h>.  */
+   EMACH_SEND_IN_PROGRESS         = 0x10000001,
+@@ -334,6 +336,8 @@ typedef enum __error_t_codes error_t;
+ #define EPROTO                         0x40000074
+ #define ETIME                          0x40000075
+ #define ECANCELED                      0x40000077
++#define EOWNERDEAD                     0x40000078
++#define ENOTRECOVERABLE                0x40000079
  
- 	/* Errors from <mach/mig_errors.h>.  */
- 	EMIG_TYPE_ERROR         = -300  /* client type check failure */,
-@@ -307,7 +313,7 @@ enum __error_t_codes
+ /* Errors from <mach/message.h>.  */
+ #define EMACH_SEND_IN_PROGRESS         0x10000001
+@@ -417,6 +421,6 @@ typedef enum __error_t_codes error_t;
+ #define ED_NO_MEMORY                   2508
+ #define ED_READ_ONLY                   2509
  
- };
+-#define _HURD_ERRNOS 120
++#define _HURD_ERRNOS 122
  
--#define	_HURD_ERRNOS	120
-+#define	_HURD_ERRNOS	122
- 
- /* User-visible type of error codes.  It is ok to use `int' or
-    `kern_return_t' for these, but with `error_t' the debugger prints
-Index: glibc-2.23/sysdeps/mach/hurd/libc-lock.h
+ #endif /* bits/errno.h.  */
+Index: glibc-2.26/sysdeps/mach/hurd/libc-lock.h
 ===================================================================
---- glibc-2.23.orig/sysdeps/mach/hurd/libc-lock.h
+--- glibc-2.26.orig/sysdeps/mach/hurd/libc-lock.h
 +++ /dev/null
 @@ -1,219 +0,0 @@
 -/* libc-internal interface for mutex locks.  Hurd version using Mach cthreads.
@@ -1318,10 +1307,10 @@ Index: glibc-2.23/sysdeps/mach/hurd/libc-lock.h
 -#endif
 -
 -#endif	/* libc-lock.h */
-Index: glibc-2.23/sysdeps/mach/hurd/setpgid.c
+Index: glibc-2.26/sysdeps/mach/hurd/setpgid.c
 ===================================================================
---- glibc-2.23.orig/sysdeps/mach/hurd/setpgid.c
-+++ glibc-2.23/sysdeps/mach/hurd/setpgid.c
+--- glibc-2.26.orig/sysdeps/mach/hurd/setpgid.c
++++ glibc-2.26/sysdeps/mach/hurd/setpgid.c
 @@ -19,6 +19,7 @@
  #include <unistd.h>
  #include <hurd.h>
@@ -1346,10 +1335,10 @@ Index: glibc-2.23/sysdeps/mach/hurd/setpgid.c
  
    return 0;
  
-Index: glibc-2.23/sysdeps/mach/hurd/setsid.c
+Index: glibc-2.26/sysdeps/mach/hurd/setsid.c
 ===================================================================
---- glibc-2.23.orig/sysdeps/mach/hurd/setsid.c
-+++ glibc-2.23/sysdeps/mach/hurd/setsid.c
+--- glibc-2.26.orig/sysdeps/mach/hurd/setsid.c
++++ glibc-2.26/sysdeps/mach/hurd/setsid.c
 @@ -21,6 +21,7 @@
  #include <hurd/port.h>
  #include <hurd/fd.h>
@@ -1374,5 +1363,3 @@ Index: glibc-2.23/sysdeps/mach/hurd/setsid.c
      }
  
    HURD_CRITICAL_END;
--- 
-tg: (bde3bfa..) t/gsync-libc (depends on: t/gsync-libc-merge)

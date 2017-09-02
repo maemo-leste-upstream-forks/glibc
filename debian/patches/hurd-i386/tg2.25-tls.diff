@@ -12,22 +12,26 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
  sysdeps/mach/hurd/i386/init-first.c |    3 ++-
  2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/csu/libc-start.c
-+++ b/csu/libc-start.c
-@@ -185,8 +185,10 @@ LIBC_START_MAIN (int (*main) (int, char
+Index: glibc-2.26/csu/libc-start.c
+===================================================================
+--- glibc-2.26.orig/csu/libc-start.c
++++ glibc-2.26/csu/libc-start.c
+@@ -193,8 +193,10 @@ LIBC_START_MAIN (int (*main) (int, char
    /* Perform IREL{,A} relocations.  */
-   apply_irel ();
+   ARCH_SETUP_IREL ();
  
 +#ifndef __GNU__
    /* The stack guard goes into the TCB, so initialize it early.  */
    __libc_setup_tls ();
 +#endif
  
-   /* Set up the stack checker's canary.  */
-   uintptr_t stack_chk_guard = _dl_setup_stack_chk_guard (_dl_random);
---- a/sysdeps/mach/hurd/i386/init-first.c
-+++ b/sysdeps/mach/hurd/i386/init-first.c
-@@ -197,7 +197,8 @@ init (int *data)
+   /* In some architectures, IREL{,A} relocations happen after TLS setup in
+      order to let IFUNC resolvers benefit from TCB information, e.g. powerpc's
+Index: glibc-2.26/sysdeps/mach/hurd/i386/init-first.c
+===================================================================
+--- glibc-2.26.orig/sysdeps/mach/hurd/i386/init-first.c
++++ glibc-2.26/sysdeps/mach/hurd/i386/init-first.c
+@@ -189,7 +189,8 @@ init (int *data)
        assert (d->phdrsz % sizeof (ElfW(Phdr)) == 0);
      }
  
