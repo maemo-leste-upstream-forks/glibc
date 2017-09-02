@@ -15,16 +15,16 @@ index d80b5318e5..99d7d96027 100644
 +typedef HEADER __attribute__ ((__aligned__(1))) UHEADER;
 +#define HEADER UHEADER
 +
- /*
-  * Form all types of queries.
-  * Returns the size of the result or -1.
+ int
+ __res_context_mkquery (struct resolv_context *ctx, int op, const char *dname,
+                        int class, int type, const unsigned char *data,
 diff --git a/resolv/res_query.c b/resolv/res_query.c
 index 07dc6f6583..f26338bc9b 100644
 --- a/resolv/res_query.c
 +++ b/resolv/res_query.c
 @@ -81,6 +81,14 @@
- /* Options.  Leave them on. */
- /* #undef DEBUG */
+ #include <string.h>
+ #include <shlib-compat.h>
  
 +/* The structure HEADER is normally aligned to a word boundary and its
 +   fields are accessed using word loads and stores.  We need to access 
@@ -38,20 +38,20 @@ index 07dc6f6583..f26338bc9b 100644
  #define MAXPACKET	PACKETSZ
  #else
 @@ -117,8 +125,8 @@ __libc_res_nquery(res_state statp,
- 		  int *resplen2,
- 		  int *answerp2_malloced)
+ 		     int *nanswerp2, int *resplen2, int *answerp2_malloced)
  {
+ 	struct __res_state *statp = ctx->resp;
 -	HEADER *hp = (HEADER *) answer;
 -	HEADER *hp2;
 +	UHEADER *hp = (UHEADER *) answer;
 +	UHEADER *hp2;
  	int n, use_malloc = 0;
- 	u_int oflags = statp->_flags;
  
+ 	size_t bufsize = (type == T_QUERY_A_AND_AAAA ? 2 : 1) * QUERYSIZE;
 @@ -235,7 +243,7 @@ __libc_res_nquery(res_state statp,
  
  	if (answerp != NULL)
- 	  /* __libc_res_nsend might have reallocated the buffer.  */
+ 	  /* __res_context_send might have reallocated the buffer.  */
 -	  hp = (HEADER *) *answerp;
 +	  hp = (UHEADER *) *answerp;
  
@@ -67,9 +67,9 @@ index 07dc6f6583..f26338bc9b 100644
  	      {
  	        hp = hp2;
 @@ -336,7 +344,7 @@ __libc_res_nsearch(res_state statp,
- 		   int *answerp2_malloced)
  {
- 	const char *cp, * const *domain;
+ 	struct __res_state *statp = ctx->resp;
+ 	const char *cp;
 -	HEADER *hp = (HEADER *) answer;
 +	UHEADER *hp = (UHEADER *) answer;
  	char tmp[NS_MAXDNAME];
@@ -80,8 +80,8 @@ index 93db5b9a61..36a389509d 100644
 --- a/resolv/res_send.c
 +++ b/resolv/res_send.c
 @@ -110,6 +110,15 @@
- #include <kernel-features.h>
- #include <libc-internal.h>
+ #include <libc-diag.h>
+ #include <hp-timing.h>
  
 +/* The structure HEADER is normally aligned to a word boundary and its
 +   fields are accessed using word loads and stores.  We need to access 

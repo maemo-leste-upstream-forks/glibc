@@ -13,7 +13,7 @@
 --- a/sysdeps/unix/sysv/linux/tcsetattr.c
 +++ b/sysdeps/unix/sysv/linux/tcsetattr.c
 @@ -44,7 +44,12 @@
- tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
+ __tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
  {
    struct __kernel_termios k_termios;
 +  struct __kernel_termios k_termios_old;
@@ -25,7 +25,7 @@
  
    switch (optional_actions)
      {
-@@ -75,6 +80,54 @@
+@@ -75,7 +80,55 @@
    memcpy (&k_termios.c_cc[0], &termios_p->c_cc[0],
  	  __KERNEL_NCCS * sizeof (cc_t));
  
@@ -80,4 +80,5 @@
 +    }
 +   return retval;
  }
+ weak_alias (__tcsetattr, tcsetattr)
  libc_hidden_def (tcsetattr)

@@ -1,5 +1,5 @@
 # configuration options for all flavours
-extra_config_options = --enable-multi-arch --enable-lock-elision
+extra_config_options = --enable-multi-arch
 
 # build 64-bit (ppc64) alternative library
 GLIBC_MULTILIB_PASSES += ppc64

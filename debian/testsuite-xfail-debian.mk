@@ -10,16 +10,10 @@ test-xfail-tst-timer = yes
 # see https://sourceware.org/bugzilla/show_bug.cgi?id=19303
 test-xfail-tst-cancel24-static = yes
 
-# These failures are due to local-dynamic-resolvconf.diff, which
-# automatically reload a changed /etc/resolv.conf file.  A better
-# version of this patch has been merged in glibc 2.26, but is not
-# easily backportable.  Just ignore the failures for now.
-test-xfail-tst-bug18665-tcp = yes
-test-xfail-tst-res_use_inet6 = yes
-test-xfail-tst-resolv-basic = yes
-test-xfail-tst-resolv-edns = yes
-test-xfail-tst-resolv-search = yes
-
+# Due to the nature of this test, it's very sensitive to system load
+# in that, strangely, it wants more, not less.  Given that's hard to
+# control, we'll just let it fail
+test-xfail-tst-create-detached = yes
 
 ######################################################################
 # alpha (including optimized flavours)
@@ -1412,10 +1406,11 @@ test-xfail-tst-waitid = yes
 # The pow and setpayloadsig functions fail to handle some corner cases
 # involving NaN due to the use of load-and-test instruction.  This is
 # however not a regression compared to 2.24 and is fixed in GCC 7.
-test-xfail-test-double = yes
-test-xfail-test-idouble = yes
-test-xfail-test-ifloat = yes
-test-xfail-test-ildouble = yes
+test-xfail-test-double-pow = yes
+test-xfail-test-idouble-pow = yes
+test-xfail-test-idouble-setpayloadsig = yes
+test-xfail-test-ifloat-setpayloadsig = yes
+test-xfail-test-ildouble-setpayloadsig = yes
 endif
 
 

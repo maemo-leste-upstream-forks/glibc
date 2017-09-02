@@ -24,9 +24,9 @@
 +mod-tlsopt-powerpc.so-no-z-defs = yes
  tests += tst-tlsopt-powerpc
 +$(objpfx)tst-tlsopt-powerpc: $(objpfx)mod-tlsopt-powerpc.so
- endif
  
- ifeq ($(subdir),setjmp)
+ ifneq (no,$(multi-arch))
+ tests-static += tst-tlsifunc-static
 --- /dev/null
 +++ b/sysdeps/powerpc/mod-tlsopt-powerpc.c
 @@ -0,0 +1,49 @@
@@ -107,7 +107,7 @@
  	  : __TLS_CALL_CLOBBERS);					      \
 --- a/sysdeps/powerpc/tst-tlsopt-powerpc.c
 +++ b/sysdeps/powerpc/tst-tlsopt-powerpc.c
-@@ -1,52 +1,12 @@
+@@ -1,51 +1,11 @@
  /* glibc test for __tls_get_addr optimization.  */
 -#include <stdio.h>
 -
@@ -118,7 +118,6 @@
 -COMMON_INT_DEF(foo);
 -
  
- #define TEST_FUNCTION do_test ()
  static int
  do_test (void)
  {
@@ -161,4 +160,4 @@
 +  return tls_get_addr_opt_test ();
  }
  
- #include "../../test-skeleton.c"
+ #include <support/test-driver.c>

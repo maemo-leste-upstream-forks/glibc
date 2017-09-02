@@ -1,3 +1,63 @@
+glibc (2.26-0experimental0~ppa4) UNRELEASED; urgency=medium
+
+  * New upstream release (LP: #1703368), with git updates to 2017-09-01:
+    - debian/{symbols.wildcards,control}: Update and regen for 2.26.
+    - debian/patches/alpha/submitted-termios_h.diff: upstreamed.
+    - debian/patches/arm/submitted-strip-bit-0.diff: upstreamed.
+    - debian/patches/hurd-i386/git-__inet6_scopeid_pton.diff: upstreamed.
+    - debian/patches/any/submitted-string2-strcmp.diff: obsolete.
+    - debian/patches/any/local-tst-writev.diff: fixed upstream.
+    - debian/patches/any/local-dynamic-resolvconf.diff: fixed upstream.
+    - debian/patches/any/submitted-unicode-9.0.0.diff: obsolete.
+    - debian/patches/any/cvs-malloc-hardening.diff: upstreamed.
+    - debian/patches/any/local-bits-sigstack.diff: fixed upstream.
+    - debian/patches/i386/local-cmov.diff: dropped, no longer useful.
+    - debian/patches/all/local-ldd.diff: rebased.
+    - debian/patches/any/local-ldso-disable-hwcap.diff: rebased.
+    - debian/patches/any/local-tcsetaddr.diff: rebased.
+    - debian/patches/any/submitted-resolv-unaligned.diff: rebased.
+    - debian/patches/arm/local-arm-futex.diff: rebased.
+    - debian/patches/hurd-i386/local-ED.diff: rebased.
+    - debian/patches/hurd-i386/tg-EGREGIOUS-fr.diff: rebased.
+    - debian/patches/hurd-i386/tg-EIEIO-fr.diff: rebased.
+    - debian/patches/kfreebsd/submitted-auxv.diff: rebased.
+    - debian/patches/kfreebsd/submitted-waitid.diff: rebased.
+    - debian/patches/localedata/locales-fr.diff: rebased.
+    - debian/patches/powerpc/submitted-tst-tlsopt-powerpc.diff: rebased.
+    - debian/patches/sparc/submitted-sparc64-socketcall.diff: rebased.
+    - Disabled the following hurd-i386 patches to speed up Linux porting:
+      - hurd-i386/tg-hurdsig-global-dispositions.diff: disabled.
+      - hurd-i386/local-hurdsig-global-dispositions-version.diff: disabled.
+      - hurd-i386/tg-hurdsig-SA_SIGINFO.diff: disabled.
+      - hurd-i386/tg-hurdsig-fixes-2.diff: disabled.
+      - hurd-i386/submitted-exec_filename.diff: disabled.
+      - hurd-i386/tg-hurdsig-boot-fix.diff: disabled.
+      - hurd-i386/tg-io_select_timeout.diff: disabled.
+      - hurd-i386/tg-poll_errors_fixes.diff: disabled.
+      - hurd-i386/tg-socket_flags.diff: disabled.
+      - hurd-i386/tg-pipe2.diff: disabled.
+      - hurd-i386/tg-sigstate_thread_reference.diff: disabled.
+      - hurd-i386/tg-extern_inline.diff: disabled.
+      - hurd-i386/tg-gsync-libc.diff: disabled.
+      - hurd-i386/tg-ONSTACK.diff: disabled.
+      - hurd-i386/tg-libc_rwlock_recursive.diff: disabled.
+      - hurd-i386/tg2.25-tls.diff: disabled.
+    - debian/patches/localedata/local-hu_HU-sort.diff: Make testsuite
+      agree with the sorting we see in Debian, may need another look.
+    - debian/control.in/libc: Drop ancient Breaks satisfied in oldoldstable.
+    - debian/{debhelper.in/libc.preinst,sysdeps/amd64.mk,sysdeps/i386.mk}:
+      Bump MIN_KERNEL_SUPPORTED to 3.2 on x86, following upstream's change.
+    - debian/sysdeps/{powerpc.mk,ppc64.mk,ppc64el.mk,s390x.mk}: Disable
+      lock-elision on powerpc and s390, following IBM's recommendation,
+      and fixing testsuite regressions on (at least) ppc64el in the process.
+    - debian/testsuite-xfail-debian.mk: Re-enable xfailed resolv tests.
+    - debian/testsuite-xfail-debian.mk: Allow tst-create-detached to fail on
+      all platforms; the design of this test is such that the outcome relies
+      on cache sizes and noisiness of the build system, which is unreliable.
+    - debian/testsuite-xfail-debian.mk: Use granular pow/setpayloadsig xfails.
+
+ -- Adam Conrad <adconrad@0c3.net>  Sat, 02 Sep 2017 12:15:10 -0600
+
 glibc (2.25-0experimental4) UNRELEASED; urgency=medium
 
   [ Samuel Thibault ]

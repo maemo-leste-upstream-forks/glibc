@@ -71,14 +71,14 @@
        /* This is where the strings start.  */
        cache_data = (const char *) cache_new;
 @@ -255,6 +256,9 @@
-       if (platform != (uint64_t) -1)
- 	platform = 1ULL << platform;
+ 
+       uint64_t hwcap_mask = GET_HWCAP_MASK();
  
 +      if (__access ("/etc/ld.so.nohwcap", F_OK) == 0)
 +	disable_hwcap = 1;
 +
  #define _DL_HWCAP_TLS_MASK (1LL << 63)
-       uint64_t hwcap_exclude = ~((GLRO(dl_hwcap) & GLRO(dl_hwcap_mask))
+       uint64_t hwcap_exclude = ~((GLRO(dl_hwcap) & hwcap_mask)
  				 | _DL_HWCAP_PLATFORM | _DL_HWCAP_TLS_MASK);
 @@ -265,6 +269,8 @@
  	continue;							      \

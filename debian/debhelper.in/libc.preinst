@@ -144,12 +144,6 @@ then
         # sanity checking for the appropriate kernel on each architecture.
         kernel_ver=`uname -r`
         case ${DPKG_MAINTSCRIPT_ARCH:-$(dpkg --print-architecture)} in
-            amd64|i386)
-                # The GNU libc requires a >= 2.6.32 kernel, found in squeeze or RHEL6
-                kernel_ver_min=2.6.32
-                # But we don't officially support kernels before 3.2
-                kernel_ver_rec=3.2
-                ;;
             *)
                 # The GNU libc requires a >= 3.2 kernel, found in wheezy
                 kernel_ver_min=3.2

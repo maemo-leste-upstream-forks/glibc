@@ -1,6 +1,5 @@
 # configuration options for all flavours
 extra_config_options = --enable-multi-arch
-MIN_KERNEL_SUPPORTED := 2.6.32
 
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
 # greatly increase the speed when running under the 32bit Xen hypervisor.
