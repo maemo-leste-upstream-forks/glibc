@@ -13,8 +13,9 @@ and alike.
 Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
 ---
- bits/sched.h | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ bits/sched.h  | 16 ++++++++++++++++
+ posix/sched.h |  5 ++---
+ 2 files changed, 18 insertions(+), 3 deletions(-)
 
 diff --git a/bits/sched.h b/bits/sched.h
 index 0588f3142e..e96ee3ba03 100644
@@ -47,5 +48,21 @@ index 0588f3142e..e96ee3ba03 100644
 +# undef __need_schedparam
 +#endif
 +
+diff --git a/posix/sched.h b/posix/sched.h
+index d5cdac37b0..d139ad27aa 100644
+--- a/posix/sched.h
++++ b/posix/sched.h
+@@ -43,9 +43,8 @@ typedef __pid_t pid_t;
+ #include <bits/sched.h>
+ #include <bits/cpu-set.h>
+ 
+-/* Backward compatibility.  */
+-#define sched_priority    sched_priority
+-#define __sched_priority  sched_priority
++/* Define the real names for the elements of `struct sched_param'.  */
++#define sched_priority    __sched_priority
+ 
+ 
+ __BEGIN_DECLS
 -- 
 tg: (854baea9b7..) t2.26/sched_param (depends on: baseline-2.26)
