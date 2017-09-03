@@ -1,0 +1,29 @@
+commit b96aca4d05b2da5d5134b1c3176b16f48db9fe4d
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Sep 3 04:25:35 2017 +0200
+
+    hurd: Fix rtld link
+    
+            * sysdeps/mach/hurd/dl-sysdep.c (__sbrk): New function.
+
+diff --git a/sysdeps/mach/hurd/dl-sysdep.c b/sysdeps/mach/hurd/dl-sysdep.c
+index 2bfa64f02a..dec00f35f0 100644
+--- a/sysdeps/mach/hurd/dl-sysdep.c
++++ b/sysdeps/mach/hurd/dl-sysdep.c
+@@ -591,6 +591,16 @@ __getcwd (char *buf, size_t size)
+   return NULL;
+ }
+ 
++/* This is used by dl-tunables.c to strdup strings.  We can just make this a
++   mere allocation.  */
++void *
++__sbrk (intptr_t increment)
++{
++  vm_address_t addr;
++  __vm_allocate (__mach_task_self (), &addr, increment, 1);
++  return (void *) addr;
++}
++
+ void weak_function attribute_hidden
+ _exit (int status)
+ {
