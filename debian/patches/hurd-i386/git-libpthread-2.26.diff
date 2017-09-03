@@ -1,0 +1,20 @@
+commit 0a69b89843ec466fa20c994a29d13de6a45c3acb
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Sep 3 05:58:26 2017 +0200
+
+    Fix link with glibc 2.26
+    
+            * sysdeps/mach/hurd/pt-sigstate.c: Include <sigsetops.h>
+
+diff --git a/libpthread/sysdeps/mach/hurd/pt-sigstate.c b/libpthread/sysdeps/mach/hurd/pt-sigstate.c
+index 74fd72a..6c3264d 100644
+--- a/libpthread/sysdeps/mach/hurd/pt-sigstate.c
++++ b/libpthread/sysdeps/mach/hurd/pt-sigstate.c
+@@ -22,6 +22,7 @@
+ #include <signal.h>
+ #include <hurd/signal.h>
+ #include <hurd/msg.h>
++#include <sigsetops.h>
+ 
+ #include <pt-internal.h>
+ 
