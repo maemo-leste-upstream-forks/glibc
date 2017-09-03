@@ -1,0 +1,23 @@
+commit 1946d950f2235a4790fb5e386b9ba92dff55a930
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Sep 3 05:32:10 2017 +0200
+
+    hurd: fix libm link
+    
+            * sysdeps/x86/fpu/include/bits/fenv.h [NO_HIDDEN]: Redirect
+            __feraiseexcept_renamed to feraiseexcept instead of
+            __GI_feraiseexcept.
+
+diff --git a/sysdeps/x86/fpu/include/bits/fenv.h b/sysdeps/x86/fpu/include/bits/fenv.h
+index aa61666fc3..7b9741fd89 100644
+--- a/sysdeps/x86/fpu/include/bits/fenv.h
++++ b/sysdeps/x86/fpu/include/bits/fenv.h
+@@ -19,7 +19,7 @@
+ #ifndef _BITS_FENV_H
+ 
+ #if defined _LIBC && defined __USE_EXTERN_INLINES
+-# if defined SHARED && IS_IN (libm)
++# if defined SHARED && !defined NO_HIDDEN && IS_IN (libm)
+ extern int __REDIRECT_NTH (__feraiseexcept_renamed, (int), __GI_feraiseexcept);
+ # else
+ extern int __REDIRECT_NTH (__feraiseexcept_renamed, (int), feraiseexcept);
