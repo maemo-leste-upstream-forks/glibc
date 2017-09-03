@@ -1,7 +1,7 @@
-git diff empty --patch-with-stat --src-prefix=glibc/libpthread/ --dst-prefix=glibc/libpthread/ ef0a8fccc49b69a9f229069278148fdccddf2541
+git diff empty --patch-with-stat --src-prefix=glibc/libpthread/ --dst-prefix=glibc/libpthread/ 28ecdd1fccf631b74196836caac889a133a6d097
 from git.savannah.gnu.org:/srv/git/hurd/libpthread.git/
 thus by construction only libpthread/ files, thus hurd-only
-Date:   Sun Sep 3 05:45:11 2017 +0200
+Date: Sun Sep 3 15:57:52 2017 +0200
 
  ChangeLog                                     |   6 +
  Makeconfig                                    |  13 +
@@ -10182,6 +10182,63 @@ index 0000000..0dfc1f6
 +}
 +
 +#endif
+diff --git a/libpthread/sysdeps/i386/bits/pthreadtypes-arch.h b/libpthread/sysdeps/i386/bits/pthreadtypes-arch.h
+new file mode 100644
+index 0000000..7e7a311
+--- /dev/null
++++ b/libpthread/sysdeps/i386/bits/pthreadtypes-arch.h
+@@ -0,0 +1,21 @@
++/* Copyright (C) 2002-2017 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef _BITS_PTHREADTYPES_ARCH_H
++#define _BITS_PTHREADTYPES_ARCH_H	1
++
++#endif	/* bits/pthreadtypes.h */
+diff --git a/libpthread/sysdeps/pthread/bits/thread-shared-types.h b/libpthread/sysdeps/pthread/bits/thread-shared-types.h
+new file mode 100644
+index 0000000..369fead
+--- /dev/null
++++ b/libpthread/sysdeps/pthread/bits/thread-shared-types.h
+@@ -0,0 +1,24 @@
++/* Common threading primitives definitions for both POSIX and C11.
++   Copyright (C) 2017 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef _THREAD_SHARED_TYPES_H
++#define _THREAD_SHARED_TYPES_H 1
++
++#include <bits/pthreadtypes-arch.h>
++
++#endif /* _THREAD_SHARED_TYPES_H  */
 diff --git glibc/libpthread/sysdeps/i386/machine-sp.h glibc/libpthread/sysdeps/i386/machine-sp.h
 new file mode 100644
 index 0000000..cef6ab7
@@ -12587,9 +12644,9 @@ new file mode 100644
 index 0000000..70368ff
 --- /dev/null
 +++ glibc/libpthread/sysdeps/pthread/bits/pthreadtypes.h
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,30 @@
 +/* 
-+   Copyright (C) 2000 Free Software Foundation, Inc.
++   Copyright (C) 2000-2017 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12615,6 +12672,7 @@ index 0000000..70368ff
 +#define _BITS_PTHREADTYPES_H    1
 +
 +#include <pthread/pthreadtypes.h>
++#include <bits/thread-shared-types.h>
 +
 +#endif /* bits/pthreadtypes.h */
 diff --git glibc/libpthread/sysdeps/pthread/bits/rwlock-attr.h glibc/libpthread/sysdeps/pthread/bits/rwlock-attr.h
