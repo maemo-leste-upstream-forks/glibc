@@ -1,0 +1,32 @@
+commit 507fe02799e7dbaba9ebaf3264731fc3b928ba77
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Sep 7 00:51:17 2017 +0200
+
+    hurd: fix gethostname(NULL, 0)
+    
+            * hurd/get-host.c (_hurd_get_host_config): Also check that more == 0
+            before assuming that the file is empty.  Avoid testing buffer content
+            when nread == 0.
+
+diff --git a/hurd/get-host.c b/hurd/get-host.c
+index be8345fbf9..e5d0539275 100644
+--- a/hurd/get-host.c
++++ b/hurd/get-host.c
+@@ -65,7 +65,7 @@ _hurd_get_host_config (const char *item, char *buf, size_t buflen)
+     }
+ 
+   /* If the file is empty, give an empty value.  */
+-  if (nread == 0)
++  if (nread == 0 && more == 0)
+     {
+       if (buflen != 0)
+ 	*buf = '\0';
+@@ -80,7 +80,7 @@ _hurd_get_host_config (const char *item, char *buf, size_t buflen)
+   if (nread < buflen)
+     buf[nread] = '\0';
+   else
+-    if (buf[nread - 1] != '\0')
++    if (nread != 0 && buf[nread - 1] != '\0')
+       more = 1;
+ 
+   if (more)
