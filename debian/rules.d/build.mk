@@ -96,6 +96,7 @@ $(stamp)configure_%: $(stamp)config_sub_guess $(stamp)patch $(KERNEL_HEADER_DIR)
 		--enable-stackguard-randomization \
 		--enable-stack-protector=strong \
 		--enable-obsolete-rpc \
+		--enable-obsolete-nsl \
 		--with-pkgversion="Debian GLIBC $(DEB_VERSION)" \
 		--with-bugurl="http://www.debian.org/Bugs/" \
 		$(if $(filter $(pt_chown),yes),--enable-pt_chown) \
