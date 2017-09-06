@@ -144,6 +144,7 @@ tests-unsupported += tst-malloc-backtrace
 
 # bounding memory allocation is not supported yet
 tests-unsupported += tst-malloc-thread-fail
+tests-unsupported += tst-dynarray-fail
 
 # Need actual porting
 test-xfail-exe = yes
@@ -730,6 +731,95 @@ test-xfail-tst-env-setuid-tunables = yes
 test-xfail-test-ildouble = yes
 test-xfail-test-ldouble = yes
 test-xfail-test-ldouble-finite = yes
+
+# new in 2.26
+test-xfail-tst-malloc-usable-static-tunables = yes
+test-xfail-tst-malloc-usable-static = yes
+test-xfail-tst-dynarray-fail-mem = yes
+test-xfail-test-ifloat-expm1 = yes
+test-xfail-test-ifloat-sinh = yes
+test-xfail-test-idouble-expm1 = yes
+test-xfail-test-idouble-sinh = yes
+test-xfail-test-idouble-expm1 = yes
+test-xfail-test-ildouble-expm1 = yes
+test-xfail-test-ildouble-sinh = yes
+test-xfail-test-ldouble-expm1 = yes
+test-xfail-test-ldouble-finite-expm1 = yes
+test-xfail-test-errno = yes
+
+test-xfail-UNIX98/arpa/inet.h/conform = yes
+test-xfail-UNIX98/netdb.h/conform = yes
+test-xfail-UNIX98/netinet/in.h/conform = yes
+test-xfail-UNIX98/sys/socket.h/conform = yes
+test-xfail-POSIX2008/arpa/inet.h/conform = yes
+test-xfail-POSIX2008/netdb.h/conform = yes
+test-xfail-POSIX2008/netinet/in.h/conform = yes
+test-xfail-POSIX2008/sys/socket.h/conform = yes
+test-xfail-XPG42/arpa/inet.h/conform = yes
+test-xfail-XPG42/fcntl.h/conform = yes
+test-xfail-XPG42/netdb.h/conform = yes
+test-xfail-XPG42/netinet/in.h/conform = yes
+test-xfail-XPG42/sys/ipc.h/conform = yes
+test-xfail-XPG42/sys/msg.h/conform = yes
+test-xfail-XPG42/sys/resource.h/conform = yes
+test-xfail-XPG42/sys/shm.h/conform = yes
+test-xfail-XPG42/sys/socket.h/conform = yes
+test-xfail-XPG42/sys/stat.h/conform = yes
+test-xfail-XPG42/sys/statvfs.h/conform = yes
+test-xfail-XPG42/sys/un.h/conform = yes
+test-xfail-XPG42/termios.h/conform = yes
+
+test-xfail-XPG42/arpa/inet.h/linknamespace = yes
+test-xfail-XPG42/assert.h/linknamespace = yes
+test-xfail-XPG42/dirent.h/linknamespace = yes
+test-xfail-XPG42/fcntl.h/linknamespace = yes
+test-xfail-XPG42/fmtmsg.h/linknamespace = yes
+test-xfail-XPG42/fnmatch.h/linknamespace = yes
+test-xfail-XPG42/ftw.h/linknamespace = yes
+test-xfail-XPG42/glob.h/linknamespace = yes
+test-xfail-XPG42/grp.h/linknamespace = yes
+test-xfail-XPG42/iconv.h/linknamespace = yes
+test-xfail-XPG42/langinfo.h/linknamespace = yes
+test-xfail-XPG42/locale.h/linknamespace = yes
+test-xfail-XPG42/math.h/linknamespace = yes
+test-xfail-XPG42/monetary.h/linknamespace = yes
+test-xfail-XPG42/netdb.h/linknamespace = yes
+test-xfail-XPG42/netinet/in.h/linknamespace = yes
+test-xfail-XPG42/nl_types.h/linknamespace = yes
+test-xfail-XPG42/poll.h/linknamespace = yes
+test-xfail-XPG42/pwd.h/linknamespace = yes
+test-xfail-XPG42/regex.h/linknamespace = yes
+test-xfail-XPG42/search.h/linknamespace = yes
+test-xfail-XPG42/setjmp.h/linknamespace = yes
+test-xfail-XPG42/signal.h/linknamespace = yes
+test-xfail-XPG42/stdio.h/linknamespace = yes
+test-xfail-XPG42/stdlib.h/linknamespace = yes
+test-xfail-XPG42/string.h/linknamespace = yes
+test-xfail-XPG42/stropts.h/linknamespace = yes
+test-xfail-XPG42/sys/ipc.h/linknamespace = yes
+test-xfail-XPG42/sys/mman.h/linknamespace = yes
+test-xfail-XPG42/sys/msg.h/linknamespace = yes
+test-xfail-XPG42/sys/resource.h/linknamespace = yes
+test-xfail-XPG42/sys/sem.h/linknamespace = yes
+test-xfail-XPG42/sys/shm.h/linknamespace = yes
+test-xfail-XPG42/sys/socket.h/linknamespace = yes
+test-xfail-XPG42/sys/stat.h/linknamespace = yes
+test-xfail-XPG42/sys/statvfs.h/linknamespace = yes
+test-xfail-XPG42/sys/time.h/linknamespace = yes
+test-xfail-XPG42/sys/timeb.h/linknamespace = yes
+test-xfail-XPG42/sys/times.h/linknamespace = yes
+test-xfail-XPG42/sys/uio.h/linknamespace = yes
+test-xfail-XPG42/sys/utsname.h/linknamespace = yes
+test-xfail-XPG42/sys/wait.h/linknamespace = yes
+test-xfail-XPG42/syslog.h/linknamespace = yes
+test-xfail-XPG42/termios.h/linknamespace = yes
+test-xfail-XPG42/time.h/linknamespace = yes
+test-xfail-XPG42/ucontext.h/linknamespace = yes
+test-xfail-XPG42/ulimit.h/linknamespace = yes
+test-xfail-XPG42/unistd.h/linknamespace = yes
+test-xfail-XPG42/utime.h/linknamespace = yes
+test-xfail-XPG42/utmpx.h/linknamespace = yes
+test-xfail-XPG42/wordexp.h/linknamespace = yes
 endif
 
 
