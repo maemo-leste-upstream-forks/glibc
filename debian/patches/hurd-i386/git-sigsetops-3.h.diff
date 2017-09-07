@@ -1,0 +1,33 @@
+commit 127e7773b437bd5866a4424cc9b338bac6beb08b
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Sep 3 04:36:29 2017 +0200
+
+    hurd: Fix libc link
+    
+            * sysdeps/posix/pause.c: Include <sigsetops.h>.
+            * sysdeps/posix/system.c: Include <sigsetops.h>.
+
+diff --git a/sysdeps/posix/pause.c b/sysdeps/posix/pause.c
+index 53e143d98f..7c17f49ffb 100644
+--- a/sysdeps/posix/pause.c
++++ b/sysdeps/posix/pause.c
+@@ -19,6 +19,7 @@
+ #include <signal.h>
+ #include <unistd.h>
+ #include <sysdep-cancel.h>
++#include <sigsetops.h>
+ 
+ /* Suspend the process until a signal arrives.
+    This always returns -1 and sets errno to EINTR.  */
+diff --git a/sysdeps/posix/system.c b/sysdeps/posix/system.c
+index d49cc3f01c..56195b529f 100644
+--- a/sysdeps/posix/system.c
++++ b/sysdeps/posix/system.c
+@@ -24,6 +24,7 @@
+ #include <sys/wait.h>
+ #include <libc-lock.h>
+ #include <sysdep-cancel.h>
++#include <sigsetops.h>
+ 
+ 
+ #define	SHELL_PATH	"/bin/sh"	/* Path of the shell.  */

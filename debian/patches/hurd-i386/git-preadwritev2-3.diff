@@ -1,0 +1,141 @@
+commit 2263ca7ce8a824f53debcc724bd21cd7099e1161
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Sep 3 03:03:40 2017 +0200
+
+    hurd: Fix p{read,write}{,v64}v2.c build
+    
+            * misc/preadv2.c: Include <errno.h>.
+            * misc/preadv64v2.c: Include <errno.h>.
+            * misc/pwritev2.c: Include <errno.h>.
+            * misc/pwritev64v2.c: Include <errno.h>.
+            * sysdeps/posix/preadv2.c: Include <errno.h>.
+            * sysdeps/posix/preadv64v2.c: Include <errno.h>.
+            Fix <unistd.h> inclusion.
+            * sysdeps/posix/pwritev2.c: Include <errno.h>.
+            * sysdeps/posix/pwritev64v2.c: Include <errno.h>.
+
+diff --git a/misc/preadv2.c b/misc/preadv2.c
+index a62dcaa699..fe379401ee 100644
+--- a/misc/preadv2.c
++++ b/misc/preadv2.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
++#include <errno.h>
+ #include <sys/uio.h>
+ 
+ /* Same as preadv but with an additional flags argument.  */
+diff --git a/misc/preadv64v2.c b/misc/preadv64v2.c
+index a802c2f1ab..e0f05a506a 100644
+--- a/misc/preadv64v2.c
++++ b/misc/preadv64v2.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
++#include <errno.h>
+ #include <sys/uio.h>
+ 
+ /* Same as preadv64 but with an addional flag argument.  */
+diff --git a/misc/pwritev2.c b/misc/pwritev2.c
+index b9e07272da..ead84471fc 100644
+--- a/misc/pwritev2.c
++++ b/misc/pwritev2.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
++#include <errno.h>
+ #include <sys/uio.h>
+ 
+ /* Same as pwritev but with an additional flags argument.  */
+diff --git a/misc/pwritev64v2.c b/misc/pwritev64v2.c
+index 1f874f054c..c72689cc70 100644
+--- a/misc/pwritev64v2.c
++++ b/misc/pwritev64v2.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
++#include <errno.h>
+ #include <sys/uio.h>
+ 
+ /* Same as preadv64 but with an addional flag argument.  */
+diff --git a/sysdeps/posix/preadv2.c b/sysdeps/posix/preadv2.c
+index b79b7b1bc3..cd96677ade 100644
+--- a/sysdeps/posix/preadv2.c
++++ b/sysdeps/posix/preadv2.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
++#include <errno.h>
+ #include <unistd.h>
+ #include <sys/uio.h>
+ 
+diff --git a/sysdeps/posix/preadv64v2.c b/sysdeps/posix/preadv64v2.c
+index 263f9b77c4..649bde4c5a 100644
+--- a/sysdeps/posix/preadv64v2.c
++++ b/sysdeps/posix/preadv64v2.c
+@@ -16,7 +16,8 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
+-#include <unistd.>
++#include <errno.h>
++#include <unistd.h>
+ #include <sys/uio.h>
+ 
+ ssize_t
+diff --git a/sysdeps/posix/pwritev2.c b/sysdeps/posix/pwritev2.c
+index d746059d42..601f6b1b10 100644
+--- a/sysdeps/posix/pwritev2.c
++++ b/sysdeps/posix/pwritev2.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
++#include <errno.h>
+ #include <unistd.h>
+ #include <sys/uio.h>
+ 
+diff --git a/sysdeps/posix/pwritev64v2.c b/sysdeps/posix/pwritev64v2.c
+index f340c8a46d..9f05f97b40 100644
+--- a/sysdeps/posix/pwritev64v2.c
++++ b/sysdeps/posix/pwritev64v2.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
++#include <errno.h>
+ #include <unistd.h>
+ #include <sys/uio.h>
+ 
+diff --git a/misc/tst-preadvwritev2-common.c b/misc/tst-preadvwritev2-common.c
+index 8abedc14d0..913d683e33 100644
+--- a/misc/tst-preadvwritev2-common.c
++++ b/misc/tst-preadvwritev2-common.c
+@@ -22,9 +22,21 @@
+ static void
+ do_test_with_invalid_flags (void)
+ {
++#ifndef RWF_HIPRI
++# define RWF_HIPRI 0
++#endif
++#ifndef RWF_DSYNC
++# define RWF_DSYNC 0
++#endif
++#ifndef RWF_SYNC
++# define RWF_SYNC 0
++#endif
++#ifndef RWF_NOWAIT
++# define RWF_NOWAIT 0
++#endif
+ #define RWF_SUPPORTED	(RWF_HIPRI | RWF_DSYNC | RWF_SYNC | RWF_NOWAIT)
+   /* Set the next bit from the mask of all supported flags.  */
+-  int invalid_flag = __builtin_clz (RWF_SUPPORTED);
++  int invalid_flag = RWF_SUPPORTED != 0 ? __builtin_clz (RWF_SUPPORTED) : 2;
+   invalid_flag = 0x1 << ((sizeof (int) * CHAR_BIT) - invalid_flag);
+ 
+   char buf[32];
