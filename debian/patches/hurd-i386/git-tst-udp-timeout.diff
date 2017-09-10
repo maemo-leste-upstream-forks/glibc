@@ -1,0 +1,33 @@
+commit 00c3da43ace363315fb9e70a6d4696de0630f6cf
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Sep 10 14:37:28 2017 +0200
+
+    sunrpc/tst-udp-timeout: Fix timeout value
+    
+    2.3 is not representable with double, and thus leads to rounding issues if
+    the clock is not very precise and the measured delay is then exactly 2.3.
+    
+            * sunrpc/tst-udp-timeout.c (test_udp_server): Increase timeout to 2.5
+            seconds.
+
+diff --git a/sunrpc/tst-udp-timeout.c b/sunrpc/tst-udp-timeout.c
+index db9943a03e..7ceba98432 100644
+--- a/sunrpc/tst-udp-timeout.c
++++ b/sunrpc/tst-udp-timeout.c
+@@ -352,13 +352,13 @@ test_udp_server (int port)
+            .a = 170, .b = 40, .timeout_ms = 3000,
+            .garbage_packets = with_garbage * 30
+          },
+-         (struct timeval) { 2, 300 * 1000 });
++         (struct timeval) { 2, 500 * 1000 });
+       after = get_ticks ();
+       if (test_verbose)
+-        printf ("info: test_udp_server: 2.3 second timeout took %f seconds"
++        printf ("info: test_udp_server: 2.5 second timeout took %f seconds"
+                 " (garbage %d)\n",
+                 after - before, with_garbage);
+-      TEST_VERIFY (2.3 <= after - before);
++      TEST_VERIFY (2.5 <= after - before);
+       TEST_VERIFY (after - before < 3.0);
+       test_call_flush (clnt);
+     }
