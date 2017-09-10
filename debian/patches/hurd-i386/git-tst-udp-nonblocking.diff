@@ -1,0 +1,38 @@
+commit 3bdfd9fbed7165e75624845a3dab13f42b899096
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Sep 10 21:09:28 2017 +0200
+
+    sunrpc/tst-udp-nonblocking: Fix timeout value
+    
+    This a follow-up to 00c3da4 ('sunrpc/tst-udp-timeout: Fix timeout value')
+    
+    * sunrpc/tst-udp-nonblocking.c (do_test): Increase timeout to 0.75
+    seconds.
+
+diff --git a/sunrpc/tst-udp-nonblocking.c b/sunrpc/tst-udp-nonblocking.c
+index c6a68498f7..46237a2f68 100644
+--- a/sunrpc/tst-udp-nonblocking.c
++++ b/sunrpc/tst-udp-nonblocking.c
+@@ -257,9 +257,9 @@ do_test (void)
+         /* Shorter timeout to prefer this server.  These timeouts must
+            be much shorter than the 5-second per-response timeout
+            configured with clntudp_create.  */
+-        query.timeout_ms = 700;
++        query.timeout_ms = 750;
+       else
+-        query.timeout_ms = 1400;
++        query.timeout_ms = 1500;
+       struct test_response response = { 0 };
+       /* NB: Do not check the return value.  The server reply will
+          prove that the call worked.  */
+@@ -289,8 +289,8 @@ do_test (void)
+   if (test_verbose)
+     printf ("info: send/receive took %f seconds\n",
+             after_pings - before_pings);
+-  /* Expected timeout is 0.7 seconds.  */
+-  TEST_VERIFY (0.7 <= after_pings - before_pings);
++  /* Expected timeout is 0.75 seconds.  */
++  TEST_VERIFY (0.75 <= after_pings - before_pings);
+   TEST_VERIFY (after_pings - before_pings < 1.2);
+ 
+   uint32_t xid;
