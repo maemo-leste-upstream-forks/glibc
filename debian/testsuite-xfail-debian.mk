@@ -171,9 +171,9 @@ test-xfail-check-abi-librt = yes
 # Overzealous test
 test-xfail-tst-pathconf = yes
 
-# Need investigation
-test-xfail-check-execstack = yes
-test-xfail-check-localplt = yes
+# This jumps to bogus place from sysdeps/i386/fpu/e_expl.S'
+# jae     HIDDEN_JUMPTARGET (__expl)
+# This jumps to __expl@plt, but %ebx is not set as PIC register!
 test-xfail-test-ifloat-expm1 = yes
 test-xfail-test-ifloat-sinh = yes
 test-xfail-test-idouble-expm1 = yes
@@ -183,6 +183,10 @@ test-xfail-test-ildouble-expm1 = yes
 test-xfail-test-ildouble-sinh = yes
 test-xfail-test-ldouble-expm1 = yes
 test-xfail-test-ldouble-finite-expm1 = yes
+
+# Need investigation
+test-xfail-check-execstack = yes
+test-xfail-check-localplt = yes
 test-xfail-tst-aio10 = yes
 test-xfail-tst-aio9 = yes
 test-xfail-tst-audit1 = yes
