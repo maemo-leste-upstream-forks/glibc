@@ -210,10 +210,6 @@ tests-unsupported += test-lfs
 #test-xfail-test-lfs = yes
 test-xfail-tst-tzset = yes
 
-# happens seldomly
-test-xfail-tst-clock_nanosleep = yes
-test-xfail-tst-nanosleep = yes
-
 # new in 2.21
 test-xfail-test-misc = yes
 test-xfail-tst-ptsname = yes
