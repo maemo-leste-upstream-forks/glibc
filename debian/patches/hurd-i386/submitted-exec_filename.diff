@@ -189,16 +189,33 @@ from argv[0] but argv[0] only contains the executable name by convention.
 +#endif
 --- a/sysdeps/mach/hurd/execve.c
 +++ b/sysdeps/mach/hurd/execve.c
-@@ -31,7 +31,8 @@ __execve (const char *file_name, char *c
-     return -1;
+@@ -18,6 +18,7 @@
+ #include <unistd.h>
+ #include <hurd.h>
+ #include <fcntl.h>
++#include <stdlib.h>
  
+ /* Replace the current process, executing FILE_NAME with arguments ARGV and
+    environment ENVP.  ARGV and ENVP are terminated by NULL pointers.  */
+@@ -31,11 +31,17 @@ __execve (const char *file_name, char *c
+   if (file == MACH_PORT_NULL)
+     return -1;
+
++  char *abs_path = realpath (file_name, NULL);
++  if (abs_path == NULL)
++    return -1;
++
    /* Hopefully this will not return.  */
 -  err = _hurd_exec (__mach_task_self (), file, argv, envp);
 +  err = _hurd_exec_file_name (__mach_task_self (), file,
-+			      file_name, argv, envp);
++			      abs_path, argv, envp);
  
    /* Oh well.  Might as well be tidy.  */
    __mach_port_deallocate (__mach_task_self (), file);
++  free(abs_path);
+ 
+   return __hurd_fail (err);
+ }
 --- a/sysdeps/mach/hurd/fexecve.c
 +++ b/sysdeps/mach/hurd/fexecve.c
 @@ -25,8 +25,9 @@
@@ -227,7 +244,7 @@ from argv[0] but argv[0] only contains the executable name by convention.
  {
    pid_t new_pid;
    char *path, *p, *name;
-+  const char *filename;
++  const char *filename, *abs_path = NULL;
    size_t len;
    size_t pathlen;
    short int flags;
@@ -254,12 +271,20 @@ from argv[0] but argv[0] only contains the executable name by convention.
       except that all errors will be detected here (in the parent process)
       and return proper errno codes rather than the child dying with 127.
  
-@@ -546,7 +548,7 @@ __spawni (pid_t *pid, const char *file,
+@@ -546,8 +548,14 @@ __spawni (pid_t *pid, const char *file,
+      etc) can be observed before what errors.  */
  
    if ((xflags & SPAWN_XFLAGS_USE_PATH) == 0 || strchr (file, '/') != NULL)
-     /* The FILE parameter is actually a path.  */
+-    /* The FILE parameter is actually a path.  */
 -    err = child_lookup (file, O_EXEC, 0, &execfile);
-+    err = child_lookup (filename = file, O_EXEC, 0, &execfile);
++    {
++      /* The FILE parameter is actually a path.  */
++      abs_path = realpath (file, NULL);
++      if (abs_path == NULL)
++        goto out;
++      err = child_lookup (file, O_EXEC, 0, &execfile);
++      filename = abs_path;
++    }
    else
      {
        /* We have to search for FILE on the path.  */
