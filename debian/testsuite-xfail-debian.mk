@@ -146,6 +146,9 @@ tests-unsupported += tst-malloc-backtrace
 tests-unsupported += tst-malloc-thread-fail
 tests-unsupported += tst-dynarray-fail
 
+# We don't provide /proc/cpuinfo yet
+test-xfail-test-multiarch = yes
+
 # Need actual porting
 test-xfail-exe = yes
 test-xfail-tst-pselect = yes
