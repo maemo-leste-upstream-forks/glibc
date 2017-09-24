@@ -1,0 +1,136 @@
+commit a166531fdf601560a0005479427f60d3173f8257
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Sep 12 01:34:19 2017 +0200
+
+    hurd: Fix build without NO_HIDDEN
+    
+            * posix/sched_primax.c (__sched_get_priority_max): Add
+            libc_hidden_def.
+            * posix/sched_primin.c (__sched_get_priority_min): Likewise.
+            * sysdeps/mach/hurd/mmap.c (__mmap): Likewise.
+            * sysdeps/mach/hurd/mmap64.c (__mmap64): Likewise.
+            * sysdeps/mach/hurd/mprotect.c (__mprotect): Likewise.
+            * sysdeps/mach/hurd/munmap.c (__munmap): Likewise.
+            * sysdeps/mach/hurd/dl-sysdep.c (__GI___getpid,
+            __GI___strtoul_internal, __GI_____strtoul_internal, __GI___chk_fail,
+            __GI___fortify_fail, __GI___assert_fail, __GI___assert_perror_fail):
+            Add aliases.
+
+Index: glibc-2.26/posix/sched_primax.c
+===================================================================
+--- glibc-2.26.orig/posix/sched_primax.c
++++ glibc-2.26/posix/sched_primax.c
+@@ -26,6 +26,7 @@ __sched_get_priority_max (int algorithm)
+   __set_errno (ENOSYS);
+   return -1;
+ }
++libc_hidden_def (__sched_get_priority_max)
+ stub_warning (sched_get_priority_max)
+ 
+ weak_alias (__sched_get_priority_max, sched_get_priority_max)
+Index: glibc-2.26/posix/sched_primin.c
+===================================================================
+--- glibc-2.26.orig/posix/sched_primin.c
++++ glibc-2.26/posix/sched_primin.c
+@@ -26,6 +26,7 @@ __sched_get_priority_min (int algorithm)
+   __set_errno (ENOSYS);
+   return -1;
+ }
++libc_hidden_def (__sched_get_priority_min)
+ stub_warning (sched_get_priority_min)
+ 
+ weak_alias (__sched_get_priority_min, sched_get_priority_min)
+Index: glibc-2.26/sysdeps/mach/hurd/mmap.c
+===================================================================
+--- glibc-2.26.orig/sysdeps/mach/hurd/mmap.c
++++ glibc-2.26/sysdeps/mach/hurd/mmap.c
+@@ -162,4 +162,5 @@ __mmap (__ptr_t addr, size_t len, int pr
+   return (__ptr_t) mapaddr;
+ }
+ 
++libc_hidden_def (__mmap)
+ weak_alias (__mmap, mmap)
+Index: glibc-2.26/sysdeps/mach/hurd/mmap64.c
+===================================================================
+--- glibc-2.26.orig/sysdeps/mach/hurd/mmap64.c
++++ glibc-2.26/sysdeps/mach/hurd/mmap64.c
+@@ -44,4 +44,5 @@ __mmap64 (__ptr_t addr, size_t len, int
+   return __mmap (addr, len, prot, flags, fd, small_offset);
+ }
+ 
++libc_hidden_def (__mmap64)
+ weak_alias (__mmap64, mmap64)
+Index: glibc-2.26/sysdeps/mach/munmap.c
+===================================================================
+--- glibc-2.26.orig/sysdeps/mach/munmap.c
++++ glibc-2.26/sysdeps/mach/munmap.c
+@@ -43,4 +43,5 @@ __munmap (__ptr_t addr, size_t len)
+   return 0;
+ }
+ 
++libc_hidden_def (__munmap)
+ weak_alias (__munmap, munmap)
+Index: glibc-2.26/sysdeps/mach/mprotect.c
+===================================================================
+--- glibc-2.26.orig/sysdeps/mach/mprotect.c
++++ glibc-2.26/sysdeps/mach/mprotect.c
+@@ -47,4 +47,5 @@ __mprotect (__ptr_t addr, size_t len, in
+     }
+   return 0;
+ }
++libc_hidden_def (__mprotect)
+ weak_alias (__mprotect, mprotect)
+Index: glibc-2.26/sysdeps/mach/hurd/dl-sysdep.c
+===================================================================
+--- glibc-2.26.orig/sysdeps/mach/hurd/dl-sysdep.c
++++ glibc-2.26/sysdeps/mach/hurd/dl-sysdep.c
+@@ -577,6 +577,10 @@ __getpid (void)
+   return pid;
+ }
+ 
++/* We need this alias to satisfy references from libc_pic.a objects
++   that were affected by the libc_hidden_proto declaration for __getpid.  */
++strong_alias (__getpid, __GI___getpid)
++
+ /* This is called only in some strange cases trying to guess a value
+    for $ORIGIN for the executable.  The dynamic linker copes with
+    getcwd failing (dl-object.c), and it's too much hassle to include
+@@ -611,6 +615,11 @@ __strtoul_internal (const char *nptr, ch
+   return _dl_strtoul (nptr, endptr);
+ }
+ 
++/* We need this alias to satisfy references from libc_pic.a objects
++   that were affected by the libc_hidden_proto declaration for __strtoul_internal.  */
++strong_alias (__strtoul_internal, __GI___strtoul_internal)
++strong_alias (__strtoul_internal, __GI_____strtoul_internal)
++
+ void weak_function attribute_hidden
+ _exit (int status)
+ {
+@@ -649,6 +658,10 @@ abort (void)
+ /* We need this alias to satisfy references from libc_pic.a objects
+    that were affected by the libc_hidden_proto declaration for abort.  */
+ strong_alias (abort, __GI_abort)
++strong_alias (abort, __GI___chk_fail)
++strong_alias (abort, __GI___fortify_fail)
++strong_alias (abort, __GI___assert_fail)
++strong_alias (abort, __GI___assert_perror_fail)
+ 
+ /* This function is called by interruptible RPC stubs.  For initial
+    dynamic linking, just use the normal mach_msg.  Since this defn is
+Index: glibc-2.26/sysdeps/i386/dl-tlsdesc.S
+===================================================================
+--- glibc-2.26.orig/sysdeps/i386/dl-tlsdesc.S
++++ glibc-2.26/sysdeps/i386/dl-tlsdesc.S
+@@ -126,7 +126,11 @@ _dl_tlsdesc_dynamic:
+ 	.p2align 4,,7
+ .Lslow:
+ 	cfi_adjust_cfa_offset (28)
++#ifdef NO_RTLD_HIDDEN
++	call	JUMPTARGET (___tls_get_addr)
++#else
+ 	call	HIDDEN_JUMPTARGET (___tls_get_addr)
++#endif
+ 	jmp	.Lret
+ 	cfi_endproc
+ 	.size	_dl_tlsdesc_dynamic, .-_dl_tlsdesc_dynamic

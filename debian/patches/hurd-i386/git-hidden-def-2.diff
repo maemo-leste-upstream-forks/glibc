@@ -1,0 +1,83 @@
+commit 1c6d89e9a40302430d5986a09c7cf7594b93143c
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Sep 17 21:57:39 2017 +0200
+
+    Add missing libc_hidden_weak/def calls
+    
+            * io/read.c (read): Add libc_hidden_weak.
+            * sysdeps/mach/hurd/read.c (read): Likewise.
+            * io/write.c (write): Likewise.
+            * sysdeps/mach/hurd/write.c (write): Likewise.
+            * io/pread64.c (__pread64): Likewise.
+            * sysdeps/mach/hurd/pread64.c (__pread64): Likewise.
+            * posix/pread64.c (__pread64): Add libc_hidden_def.
+
+diff --git a/io/read.c b/io/read.c
+index 2f7b6743f7..7537dd759d 100644
+--- a/io/read.c
++++ b/io/read.c
+@@ -45,3 +45,4 @@ stub_warning (read)
+ weak_alias (__libc_read, __read)
+ libc_hidden_weak (__read)
+ weak_alias (__libc_read, read)
++libc_hidden_weak (read)
+diff --git a/io/write.c b/io/write.c
+index cb413c76f9..931f837dfa 100644
+--- a/io/write.c
++++ b/io/write.c
+@@ -46,3 +46,4 @@ stub_warning (write)
+ weak_alias (__libc_write, __write)
+ libc_hidden_weak (__write)
+ weak_alias (__libc_write, write)
++libc_hidden_weak (write)
+diff --git a/posix/pread64.c b/posix/pread64.c
+index c20e75c7a8..9ff06d99bf 100644
+--- a/posix/pread64.c
++++ b/posix/pread64.c
+@@ -40,5 +40,6 @@ __libc_pread64 (int fd, void *buf, size_t nbytes, off64_t offset)
+   return -1;
+ }
+ strong_alias (__libc_pread64, __pread64)
++libc_hidden_def (__pread64)
+ weak_alias (__libc_pread64, pread64)
+ stub_warning (pread64)
+diff --git a/sysdeps/mach/hurd/pread64.c b/sysdeps/mach/hurd/pread64.c
+index c4a61c92e2..903304956c 100644
+--- a/sysdeps/mach/hurd/pread64.c
++++ b/sysdeps/mach/hurd/pread64.c
+@@ -34,5 +34,6 @@ __libc_pread64 (int fd, void *buf, size_t nbytes, off64_t offset)
+ 
+ #ifndef __libc_pread64
+ weak_alias (__libc_pread64, __pread64)
++libc_hidden_weak (__pread64)
+ weak_alias (__libc_pread64, pread64)
+ #endif
+diff --git a/sysdeps/mach/hurd/read.c b/sysdeps/mach/hurd/read.c
+index 5cef0b415f..776a7a5610 100644
+--- a/sysdeps/mach/hurd/read.c
++++ b/sysdeps/mach/hurd/read.c
+@@ -30,3 +30,4 @@ libc_hidden_def (__libc_read)
+ weak_alias (__libc_read, __read)
+ libc_hidden_weak (__read)
+ weak_alias (__libc_read, read)
++libc_hidden_weak (read)
+diff --git a/sysdeps/mach/hurd/write.c b/sysdeps/mach/hurd/write.c
+index bfa96735e2..32f4905df1 100644
+--- a/sysdeps/mach/hurd/write.c
++++ b/sysdeps/mach/hurd/write.c
+@@ -30,3 +30,4 @@ libc_hidden_def (__libc_write)
+ weak_alias (__libc_write, __write)
+ libc_hidden_weak (__write)
+ weak_alias (__libc_write, write)
++libc_hidden_weak (write)
+diff --git a/sysdeps/posix/pread64.c b/sysdeps/posix/pread64.c
+index f28ef31329..68ef9cbbcc 100644
+--- a/sysdeps/posix/pread64.c
++++ b/sysdeps/posix/pread64.c
+@@ -58,5 +58,6 @@ __libc_pread64 (int fd, void *buf, size_t nbyte, off64_t offset)
+ 
+ #ifndef __libc_pread64
+ weak_alias (__libc_pread64, __pread64)
++libc_hidden_weak (__pread64)
+ weak_alias (__libc_pread64, pread64)
+ #endif
