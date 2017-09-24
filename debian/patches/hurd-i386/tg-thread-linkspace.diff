@@ -1,0 +1,147 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Fix thread linkspace
+
+Libc uses some thread functions, but should not expose the corresponding
+symbols, so call aliases.
+
+---
+ hurd/Versions                |  6 +++---
+ hurd/hurdsig.c               | 20 ++++++++++----------
+ sysdeps/mach/hurd/cthreads.c | 10 +++++-----
+ sysdeps/mach/libc-lock.h     |  4 ++--
+ 4 files changed, 20 insertions(+), 20 deletions(-)
+
+diff --git a/hurd/Versions b/hurd/Versions
+index 414231b5b4..e040b49edc 100644
+--- a/hurd/Versions
++++ b/hurd/Versions
+@@ -143,14 +143,14 @@ libc {
+ 
+   HURD_CTHREADS_0.3 {
+     # weak refs to libthreads functions that libc calls iff libthreads in use
+-    cthread_fork; cthread_detach;
+-    pthread_getattr_np; pthread_attr_getstack;
++    __cthread_fork; __cthread_detach;
++    __pthread_getattr_np; __pthread_attr_getstack;
+ 
+     # variables used for detecting cthreads
+     _cthread_exit_routine; _cthread_init_routine;
+ 
+     # cthreads functions with stubs in libc
+-    cthread_keycreate; cthread_getspecific; cthread_setspecific;
++    __cthread_keycreate; __cthread_getspecific; __cthread_setspecific;
+     __libc_getspecific;
+   }
+ 
+diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
+index fd787c6c1b..8584d5c631 100644
+--- a/hurd/hurdsig.c
++++ b/hurd/hurdsig.c
+@@ -1466,11 +1466,11 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
+ 
+   /* Start the signal thread listening on the message port.  */
+ 
+-#pragma weak cthread_fork
+-#pragma weak cthread_detach
+-#pragma weak pthread_getattr_np
+-#pragma weak pthread_attr_getstack
+-  if (!cthread_fork)
++#pragma weak __cthread_fork
++#pragma weak __cthread_detach
++#pragma weak __pthread_getattr_np
++#pragma weak __pthread_attr_getstack
++  if (!__cthread_fork)
+     {
+       err = __thread_create (__mach_task_self (), &_hurd_msgport_thread);
+       assert_perror (err);
+@@ -1495,7 +1495,7 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
+     }
+   else
+     {
+-      cthread_t thread;
++      __cthread_t thread;
+       /* When cthreads is being used, we need to make the signal thread a
+          proper cthread.  Otherwise it cannot use mutex_lock et al, which
+          will be the cthreads versions.  Various of the message port RPC
+@@ -1505,17 +1505,17 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
+          we'll let the signal thread's per-thread variables be found as for
+          any normal cthread, and just leave the magic __hurd_sigthread_*
+          values all zero so they'll be ignored.  */
+-      cthread_detach (thread = cthread_fork ((cthread_fn_t) &_hurd_msgport_receive, 0));
++      __cthread_detach (thread = __cthread_fork ((__cthread_fn_t) &_hurd_msgport_receive, 0));
+ 
+-      if (pthread_getattr_np)
++      if (__pthread_getattr_np)
+ 	{
+ 	  /* Record stack layout for fork() */
+ 	  pthread_attr_t attr;
+ 	  void *addr;
+ 	  size_t size;
+ 
+-	  pthread_getattr_np ((pthread_t) thread, &attr);
+-	  pthread_attr_getstack (&attr, &addr, &size);
++	  __pthread_getattr_np ((pthread_t) thread, &attr);
++	  __pthread_attr_getstack (&attr, &addr, &size);
+ 	  __hurd_sigthread_stack_base = (uintptr_t) addr;
+ 	  __hurd_sigthread_stack_end = __hurd_sigthread_stack_base + size;
+ 	}
+diff --git a/sysdeps/mach/hurd/cthreads.c b/sysdeps/mach/hurd/cthreads.c
+index f223e00b12..0a3780b273 100644
+--- a/sysdeps/mach/hurd/cthreads.c
++++ b/sysdeps/mach/hurd/cthreads.c
+@@ -24,7 +24,7 @@ char __libc_lock_self0[0];
+ /* Placeholder for key creation routine from Hurd cthreads library.  */
+ int
+ weak_function
+-cthread_keycreate (cthread_key_t *key)
++__cthread_keycreate (cthread_key_t *key)
+ {
+   __set_errno (ENOSYS);
+  *key = -1;
+@@ -34,7 +34,7 @@ cthread_keycreate (cthread_key_t *key)
+ /* Placeholder for key retrieval routine from Hurd cthreads library.  */
+ int
+ weak_function
+-cthread_getspecific (cthread_key_t key, void **pval)
++__cthread_getspecific (cthread_key_t key, void **pval)
+ {
+   *pval = NULL;
+   __set_errno (ENOSYS);
+@@ -44,19 +44,19 @@ cthread_getspecific (cthread_key_t key, void **pval)
+ /* Placeholder for key setting routine from Hurd cthreads library.  */
+ int
+ weak_function
+-cthread_setspecific (cthread_key_t key, void *val)
++__cthread_setspecific (cthread_key_t key, void *val)
+ {
+   __set_errno (ENOSYS);
+   return -1;
+ }
+ 
+-/* Call cthread_getspecific which gets a pointer to the return value instead
++/* Call __cthread_getspecific which gets a pointer to the return value instead
+    of just returning it.  */
+ void *
+ weak_function
+ __libc_getspecific (cthread_key_t key)
+ {
+   void *val;
+-  cthread_getspecific (key, &val);
++  __cthread_getspecific (key, &val);
+   return val;
+ }
+diff --git a/sysdeps/mach/libc-lock.h b/sysdeps/mach/libc-lock.h
+index f9f57a0a65..35233f797e 100644
+--- a/sysdeps/mach/libc-lock.h
++++ b/sysdeps/mach/libc-lock.h
+@@ -223,8 +223,8 @@ struct __libc_once
+    used as argument to __libc_cleanup_region_start.  */
+ #define __libc_mutex_unlock __libc_lock_unlock
+ 
+-#define __libc_key_create(KEY,DEST) cthread_keycreate (KEY)
+-#define __libc_setspecific(KEY,VAL) cthread_setspecific (KEY, VAL)
++#define __libc_key_create(KEY,DEST) __cthread_keycreate (KEY)
++#define __libc_setspecific(KEY,VAL) __cthread_setspecific (KEY, VAL)
+ void *__libc_getspecific (__libc_key_t key);
+ 
+ /* Hide the definitions which are only supposed to be used inside libc in
