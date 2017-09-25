@@ -1,7 +1,7 @@
-git diff empty --patch-with-stat --src-prefix=glibc/libpthread/ --dst-prefix=glibc/libpthread/ f881f17267506f3ced17259a066a4d95bffb57f0
+git diff empty --patch-with-stat --src-prefix=glibc/libpthread/ --dst-prefix=glibc/libpthread/ 596061769ee34741a42eb375b1a2e06fffb4c5a3
 from git.savannah.gnu.org:/srv/git/hurd/libpthread.git/
 thus by construction only libpthread/ files, thus hurd-only
-Date: Sun Sep 24 23:09:59 2017 +0200
+Date: Mon Sep 25 21:47:12 2017 +0200
 
  ChangeLog                                     |   6 +
  Makeconfig                                    |  20 +
@@ -11,6 +11,7 @@ Date: Sun Sep 24 23:09:59 2017 +0200
  configure                                     |   2 +
  configure.in                                  |   4 +
  forward.c                                     | 281 +++++++++
+ sysdeps/pthread/pthread.h                     |  22 +
  include/pthread/pthread.h                     | 835 ++++++++++++++++++++++++++
  include/pthread/pthreadtypes.h                | 125 ++++
  libc_pthread_init.c                           |  35 ++
@@ -122,8 +123,8 @@ Date: Sun Sep 24 23:09:59 2017 +0200
  sysdeps/generic/pt-rwlock-destroy.c           |  29 +
  sysdeps/generic/pt-rwlock-init.c              |  45 ++
  sysdeps/generic/pt-rwlock-rdlock.c            |  33 +
- sysdeps/generic/pt-rwlock-timedrdlock.c       | 120 ++++
- sysdeps/generic/pt-rwlock-timedwrlock.c       | 103 ++++
+ sysdeps/generic/pt-rwlock-timedrdlock.c       | 121 ++++
+ sysdeps/generic/pt-rwlock-timedwrlock.c       | 104 ++++
  sysdeps/generic/pt-rwlock-tryrdlock.c         |  56 ++
  sysdeps/generic/pt-rwlock-trywrlock.c         |  46 ++
  sysdeps/generic/pt-rwlock-unlock.c            |  99 +++
@@ -154,12 +155,13 @@ Date: Sun Sep 24 23:09:59 2017 +0200
  sysdeps/hurd/pt-init-specific.c               |  30 +
  sysdeps/hurd/pt-key-create.c                  | 110 ++++
  sysdeps/hurd/pt-key-delete.c                  |  64 ++
- sysdeps/hurd/pt-key.h                         |  76 +++
+ sysdeps/hurd/pt-key.h                         |  77 +++
  sysdeps/hurd/pt-kill.c                        |  52 ++
  sysdeps/hurd/pt-setspecific.c                 |  48 ++
  sysdeps/i386/bits/memory.h                    |  40 ++
  sysdeps/i386/bits/pt-atomic.h                 |  66 ++
  sysdeps/i386/bits/pthreadtypes-arch.h         |  21 +
+ sysdeps/pthread/bits/thread-shared-types.h    |  24 +
  sysdeps/i386/machine-sp.h                     |  30 +
  sysdeps/i386/pt-machdep.h                     |  29 +
  sysdeps/mach/bits/spin-lock-inline.h          |  90 +++
@@ -205,14 +207,12 @@ Date: Sun Sep 24 23:09:59 2017 +0200
  sysdeps/pthread/bits/rwlock.h                 |  46 ++
  sysdeps/pthread/bits/semaphore.h              |  44 ++
  sysdeps/pthread/bits/thread-attr.h            |  47 ++
- sysdeps/pthread/bits/thread-shared-types.h    |  24 +
  sysdeps/pthread/bits/thread-specific.h        |  25 +
  sysdeps/pthread/flockfile.c                   |  32 +
  sysdeps/pthread/ftrylockfile.c                |  35 ++
  sysdeps/pthread/funlockfile.c                 |  33 +
  sysdeps/pthread/libc-lockP.h                  | 158 +++++
  sysdeps/pthread/pthread-functions.h           | 141 +++++
- sysdeps/pthread/pthread.h                     |  22 +
  sysdeps/pthread/semaphore.h                   |  81 +++
  tests/.cvsignore                              |   1 +
  tests/Makefile                                |  40 ++
@@ -235,7 +235,7 @@ Date: Sun Sep 24 23:09:59 2017 +0200
  tests/test-8.c                                |  60 ++
  tests/test-9.c                                |  88 +++
  tests/test-__pthread_destroy_specific-skip.c  |  83 +++
- 232 files changed, 13233 insertions(+)
+ 232 files changed, 13236 insertions(+)
 
 diff --git glibc/libpthread/ChangeLog glibc/libpthread/ChangeLog
 new file mode 100644
@@ -8088,7 +8088,7 @@ index 0000000..c9ff9b2
 +strong_alias (_pthread_rwlock_init, pthread_rwlock_init);
 diff --git glibc/libpthread/sysdeps/generic/pt-rwlock-rdlock.c glibc/libpthread/sysdeps/generic/pt-rwlock-rdlock.c
 new file mode 100644
-index 0000000..6eca601
+index 0000000..708e3e1
 --- /dev/null
 +++ glibc/libpthread/sysdeps/generic/pt-rwlock-rdlock.c
 @@ -0,0 +1,33 @@
@@ -8124,13 +8124,13 @@ index 0000000..6eca601
 +{
 +  return __pthread_rwlock_timedrdlock_internal (rwlock, 0);
 +}
-+strong_alias (__pthread_rwlock_rdlock, pthread_rwlock_rdlock);
++weak_alias (__pthread_rwlock_rdlock, pthread_rwlock_rdlock);
 diff --git glibc/libpthread/sysdeps/generic/pt-rwlock-timedrdlock.c glibc/libpthread/sysdeps/generic/pt-rwlock-timedrdlock.c
 new file mode 100644
-index 0000000..69bc757
+index 0000000..4cfba43
 --- /dev/null
 +++ glibc/libpthread/sysdeps/generic/pt-rwlock-timedrdlock.c
-@@ -0,0 +1,120 @@
+@@ -0,0 +1,121 @@
 +/* Acquire a rwlock for reading.  Generic version.
 +   Copyright (C) 2002, 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -8246,17 +8246,18 @@ index 0000000..69bc757
 +}
 +
 +int
-+pthread_rwlock_timedrdlock (struct __pthread_rwlock *rwlock,
++__pthread_rwlock_timedrdlock (struct __pthread_rwlock *rwlock,
 +			    const struct timespec *abstime)
 +{
 +  return __pthread_rwlock_timedrdlock_internal (rwlock, abstime);
 +}
++weak_alias (__pthread_rwlock_timedrdlock, pthread_rwlock_timedrdlock)
 diff --git glibc/libpthread/sysdeps/generic/pt-rwlock-timedwrlock.c glibc/libpthread/sysdeps/generic/pt-rwlock-timedwrlock.c
 new file mode 100644
-index 0000000..be25629
+index 0000000..2adaf03
 --- /dev/null
 +++ glibc/libpthread/sysdeps/generic/pt-rwlock-timedwrlock.c
-@@ -0,0 +1,103 @@
+@@ -0,0 +1,104 @@
 +/* Acquire a rwlock for writing.  Generic version.
 +   Copyright (C) 2002, 2005 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -8355,11 +8356,12 @@ index 0000000..be25629
 +}
 +
 +int
-+pthread_rwlock_timedwrlock (struct __pthread_rwlock *rwlock,
++__pthread_rwlock_timedwrlock (struct __pthread_rwlock *rwlock,
 +			    const struct timespec *abstime)
 +{
 +  return __pthread_rwlock_timedwrlock_internal (rwlock, abstime);
 +}
++weak_alias (__pthread_rwlock_timedwrlock, pthread_rwlock_timedwrlock)
 diff --git glibc/libpthread/sysdeps/generic/pt-rwlock-tryrdlock.c glibc/libpthread/sysdeps/generic/pt-rwlock-tryrdlock.c
 new file mode 100644
 index 0000000..30cb6cf
@@ -8476,7 +8478,7 @@ index 0000000..af8f911
 +}
 diff --git glibc/libpthread/sysdeps/generic/pt-rwlock-unlock.c glibc/libpthread/sysdeps/generic/pt-rwlock-unlock.c
 new file mode 100644
-index 0000000..d538544
+index 0000000..0506ae6
 --- /dev/null
 +++ glibc/libpthread/sysdeps/generic/pt-rwlock-unlock.c
 @@ -0,0 +1,99 @@
@@ -8578,10 +8580,10 @@ index 0000000..d538544
 +  __pthread_spin_unlock (&rwlock->__lock);
 +  return 0;
 +}
-+strong_alias (__pthread_rwlock_unlock, pthread_rwlock_unlock);
++weak_alias (__pthread_rwlock_unlock, pthread_rwlock_unlock);
 diff --git glibc/libpthread/sysdeps/generic/pt-rwlock-wrlock.c glibc/libpthread/sysdeps/generic/pt-rwlock-wrlock.c
 new file mode 100644
-index 0000000..68254d1
+index 0000000..c769bc6
 --- /dev/null
 +++ glibc/libpthread/sysdeps/generic/pt-rwlock-wrlock.c
 @@ -0,0 +1,35 @@
@@ -8619,7 +8621,7 @@ index 0000000..68254d1
 +{
 +  return __pthread_rwlock_timedwrlock_internal (rwlock, 0);
 +}
-+strong_alias (__pthread_rwlock_wrlock, pthread_rwlock_wrlock);
++weak_alias (__pthread_rwlock_wrlock, pthread_rwlock_wrlock);
 diff --git glibc/libpthread/sysdeps/generic/pt-rwlockattr-destroy.c glibc/libpthread/sysdeps/generic/pt-rwlockattr-destroy.c
 new file mode 100644
 index 0000000..eabfcbe
@@ -9281,7 +9283,7 @@ index 0000000..6d438bf
 +strong_alias (__sem_post, sem_post);
 diff --git glibc/libpthread/sysdeps/generic/sem-timedwait.c glibc/libpthread/sysdeps/generic/sem-timedwait.c
 new file mode 100644
-index 0000000..7ab1583
+index 0000000..11c1391
 --- /dev/null
 +++ glibc/libpthread/sysdeps/generic/sem-timedwait.c
 @@ -0,0 +1,100 @@
@@ -9384,7 +9386,7 @@ index 0000000..7ab1583
 +  return __sem_timedwait_internal (sem, timeout);
 +}
 +
-+strong_alias (__sem_timedwait, sem_timedwait);
++weak_alias (__sem_timedwait, sem_timedwait);
 diff --git glibc/libpthread/sysdeps/generic/sem-trywait.c glibc/libpthread/sysdeps/generic/sem-trywait.c
 new file mode 100644
 index 0000000..437e282
@@ -9901,10 +9903,10 @@ index 0000000..8b2c8bb
 +}
 diff --git glibc/libpthread/sysdeps/hurd/pt-key.h glibc/libpthread/sysdeps/hurd/pt-key.h
 new file mode 100644
-index 0000000..494e01d
+index 0000000..7b6a2c2
 --- /dev/null
 +++ glibc/libpthread/sysdeps/hurd/pt-key.h
-@@ -0,0 +1,76 @@
+@@ -0,0 +1,77 @@
 +/* pthread_key internal declatations for the Hurd version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -9926,6 +9928,7 @@ index 0000000..494e01d
 +
 +#include <pthread.h>
 +#include <hurd/ihash.h>
++#include <libc-lockP.h>
 +
 +#define PTHREAD_KEY_MEMBERS \
 +  hurd_ihash_t thread_specifics;
@@ -9966,20 +9969,20 @@ index 0000000..494e01d
 +      int err;
 +      pthread_mutexattr_t attr;
 +
-+      err = pthread_mutexattr_init (&attr);
++      err = __pthread_mutexattr_init (&attr);
 +      assert_perror (err);
 +
-+      err = pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
++      err = __pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
 +      assert_perror (err);
 +
-+      err = pthread_mutex_init (&__pthread_key_lock, &attr);
++      err = _pthread_mutex_init (&__pthread_key_lock, &attr);
 +      assert_perror (err);
 +
-+      err = pthread_mutexattr_destroy (&attr);
++      err = __pthread_mutexattr_destroy (&attr);
 +      assert_perror (err);
 +    }
 +
-+  pthread_once (&o, do_init);
++  __pthread_once (&o, do_init);
 +}
 diff --git glibc/libpthread/sysdeps/hurd/pt-kill.c glibc/libpthread/sysdeps/hurd/pt-kill.c
 new file mode 100644
