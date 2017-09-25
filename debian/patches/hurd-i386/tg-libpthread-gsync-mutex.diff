@@ -455,7 +455,7 @@ index 0000000..8104fa3
 +      case PT_MTX_RECURSIVE  | PTHREAD_MUTEX_ROBUST:
 +      case PT_MTX_ERRORCHECK | PTHREAD_MUTEX_ROBUST:
 +        self = _pthread_self ();
-+        ROBUST_LOCK (self, mtxp, lll_robust_lock, flags);
++        ROBUST_LOCK (self, mtxp, __lll_robust_lock, flags);
 +        break;
 +
 +      default:
@@ -512,7 +512,7 @@ index 0000000..8104fa3
 +      case PT_MTX_RECURSIVE  | PTHREAD_MUTEX_ROBUST:
 +      case PT_MTX_ERRORCHECK | PTHREAD_MUTEX_ROBUST:
 +        self = _pthread_self ();
-+        ROBUST_LOCK (self, mtxp, lll_robust_trylock);
++        ROBUST_LOCK (self, mtxp, __lll_robust_trylock);
 +        break;
 +
 +      default:
@@ -632,7 +632,7 @@ index 0000000..8104fa3
 +             * state, mark it as irrecoverable. */
 +            mtxp->__owner_id = (mtxp->__lock & LLL_DEAD_OWNER) ?
 +              NOTRECOVERABLE_ID : 0;
-+            lll_robust_unlock (&mtxp->__lock, flags);
++            __lll_robust_unlock (&mtxp->__lock, flags);
 +          }
 +
 +        break;
