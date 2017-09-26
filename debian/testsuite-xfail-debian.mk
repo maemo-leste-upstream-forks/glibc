@@ -645,6 +645,11 @@ test-xfail-XPG42/sys/socket.h/linknamespace = yes
 test-xfail-XPG42/sys/wait.h/linknamespace = yes
 test-xfail-XPG42/unistd.h/linknamespace = yes
 test-xfail-XPG42/wordexp.h/linknamespace = yes
+
+# will be fixed in hurd >= 20170926
+test-xfail-tst-bug18665-tcp = yes
+test-xfail-tst-resolv-basic = yes
+test-xfail-tst-resolv-search = yes
 endif
 
 
