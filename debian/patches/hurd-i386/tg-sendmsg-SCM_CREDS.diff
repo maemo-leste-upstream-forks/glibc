@@ -75,7 +75,7 @@ index 0200b13..b66e5b5 100644
 +  size_t tw_size = 0;
 +  unsigned i;
 +
-+  err = mach_port_mod_refs (mach_task_self (), rendezvous,
++  err = __mach_port_mod_refs (mach_task_self (), rendezvous,
 +			    MACH_PORT_RIGHT_SEND, 1);
 +  if (err)
 +    goto out;
@@ -130,7 +130,7 @@ index 0200b13..b66e5b5 100644
 +    err = EIO;
 +
 +out:
-+  mach_port_deallocate (mach_task_self (), rendezvous);
++  __mach_port_deallocate (__mach_task_self (), rendezvous);
 +  if (euids != euids_buf)
 +    __vm_deallocate (__mach_task_self(), (vm_address_t) euids, neuids * sizeof(uid_t));
 +  if (auids != auids_buf)
@@ -221,8 +221,8 @@ index 612581c..51167e8 100644
 +	  mach_port_t rendezvous  = __mach_reply_port (), reply;
 +	  struct cmsgcred *ucredp;
 +
-+	  err = mach_port_insert_right (mach_task_self (), rendezvous,
-+					rendezvous, MACH_MSG_TYPE_MAKE_SEND);
++	  err = __mach_port_insert_right (mach_task_self (), rendezvous,
++					  rendezvous, MACH_MSG_TYPE_MAKE_SEND);
 +	  ports[nports++] = rendezvous;
 +	  if (err)
 +	    goto out;
