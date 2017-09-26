@@ -1,11 +1,12 @@
-git diff empty --patch-with-stat --src-prefix=glibc/libpthread/ --dst-prefix=glibc/libpthread/ 596061769ee34741a42eb375b1a2e06fffb4c5a3
+lsdiff -p2 cvs-libpthread.diff > orderfile
+git diff empty --patch-with-stat --src-prefix=glibc/libpthread/ --dst-prefix=glibc/libpthread/ -Oorderfile 64727f50e23a744e1607cb6aff72f0813d56c6c9
 from git.savannah.gnu.org:/srv/git/hurd/libpthread.git/
 thus by construction only libpthread/ files, thus hurd-only
-Date: Mon Sep 25 21:47:12 2017 +0200
+Date: Tue Sep 26 21:29:14 2017 +0200
 
  ChangeLog                                     |   6 +
- Makeconfig                                    |  20 +
- Makefile                                      | 371 ++++++++++++
+ Makeconfig                                    |  13 +
+ Makefile                                      | 365 +++++++++++
  TODO                                          | 131 ++++
  Versions                                      | 155 +++++
  configure                                     |   2 +
@@ -150,14 +151,14 @@ Date: Mon Sep 25 21:47:12 2017 +0200
  sysdeps/generic/sem-unlink.c                  |  32 +
  sysdeps/generic/sem-wait.c                    |  32 +
  sysdeps/generic/shm-directory.h               |  31 +
- sysdeps/hurd/pt-destroy-specific.c            |  79 +++
- sysdeps/hurd/pt-getspecific.c                 |  40 ++
- sysdeps/hurd/pt-init-specific.c               |  30 +
+ sysdeps/hurd/pt-destroy-specific.c            |  77 +++
+ sysdeps/hurd/pt-getspecific.c                 |  39 ++
+ sysdeps/hurd/pt-init-specific.c               |  31 +
  sysdeps/hurd/pt-key-create.c                  | 110 ++++
  sysdeps/hurd/pt-key-delete.c                  |  64 ++
  sysdeps/hurd/pt-key.h                         |  77 +++
  sysdeps/hurd/pt-kill.c                        |  52 ++
- sysdeps/hurd/pt-setspecific.c                 |  48 ++
+ sysdeps/hurd/pt-setspecific.c                 |  51 ++
  sysdeps/i386/bits/memory.h                    |  40 ++
  sysdeps/i386/bits/pt-atomic.h                 |  66 ++
  sysdeps/i386/bits/pthreadtypes-arch.h         |  21 +
@@ -235,7 +236,7 @@ Date: Mon Sep 25 21:47:12 2017 +0200
  tests/test-8.c                                |  60 ++
  tests/test-9.c                                |  88 +++
  tests/test-__pthread_destroy_specific-skip.c  |  83 +++
- 232 files changed, 13236 insertions(+)
+ 232 files changed, 13224 insertions(+)
 
 diff --git glibc/libpthread/ChangeLog glibc/libpthread/ChangeLog
 new file mode 100644
@@ -251,10 +252,10 @@ index 0000000..e991eac
 +    $ git show 51839d398b0f9885a17ab5c0768b8dec4dd9eb79:ChangeLog
 diff --git glibc/libpthread/Makeconfig glibc/libpthread/Makeconfig
 new file mode 100644
-index 0000000..a8ef68e
+index 0000000..e90f5f7
 --- /dev/null
 +++ glibc/libpthread/Makeconfig
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,13 @@
 +# Makeconfig fragment for Hurd libpthread add-on.
 +# This gets included at the end of the main glibc Makeconfig.
 +
@@ -265,22 +266,15 @@ index 0000000..a8ef68e
 +static-thread-library = $(common-objpfx)libpthread/libpthread.a
 +bounded-thread-library = $(static-thread-library)
 +
-+ifeq ($(subdir),malloc)
-+LDLIBS-tst-interpose-static-thread += -lihash
-+endif
-+ifeq ($(subdir),elf)
-+LDLIBS-tst-linkall-static += -lihash
-+endif
-+
 +rpath-dirs += libpthread
 +
 ++includes += -I$(..)libpthread/include
 diff --git glibc/libpthread/Makefile glibc/libpthread/Makefile
 new file mode 100644
-index 0000000..9707f57
+index 0000000..3f59924
 --- /dev/null
 +++ glibc/libpthread/Makefile
-@@ -0,0 +1,371 @@
+@@ -0,0 +1,365 @@
 +#
 +#   Copyright (C) 1994, 1995, 1996, 1997, 2000, 2002, 2004, 2005, 2006, 2007,
 +#     2008, 2011 Free Software Foundation, Inc.
@@ -501,12 +495,6 @@ index 0000000..9707f57
 +	 $(srcdir)/include
 +
 +VPATH += $(SYSDEP_PATH)
-+
-+ifeq ($(IN_GLIBC),no)
-+HURDLIBS = ihash
-+else
-+LDLIBS-pthread.so = -lihash
-+endif
 +
 +ifeq ($(IN_GLIBC),no)
 +installhdrs :=
@@ -2298,7 +2286,7 @@ index 0000000..afce1f7
 +}
 diff --git glibc/libpthread/libpthread.a glibc/libpthread/libpthread.a
 new file mode 100644
-index 0000000..7d3f8d3
+index 0000000..e5bd2cc
 --- /dev/null
 +++ glibc/libpthread/libpthread.a
 @@ -0,0 +1,22 @@
@@ -2323,10 +2311,10 @@ index 0000000..7d3f8d3
 +EXTERN(pthread_getattr_np)
 +EXTERN(pthread_attr_getstack)
 +
-+GROUP(-lpthread2 -lihash -lrt)
++GROUP(-lpthread2 -lrt)
 diff --git glibc/libpthread/libpthread_pic.a glibc/libpthread/libpthread_pic.a
 new file mode 100644
-index 0000000..cf0bd90
+index 0000000..33346b4
 --- /dev/null
 +++ glibc/libpthread/libpthread_pic.a
 @@ -0,0 +1,22 @@
@@ -2351,7 +2339,7 @@ index 0000000..cf0bd90
 +EXTERN(pthread_getattr_np)
 +EXTERN(pthread_attr_getstack)
 +
-+GROUP(-lpthread2_pic -lihash_pic)
++GROUP(-lpthread2_pic)
 diff --git glibc/libpthread/lockfile.c glibc/libpthread/lockfile.c
 new file mode 100644
 index 0000000..040cbfb
@@ -9550,10 +9538,10 @@ index 0000000..8950284
 +#endif  /* shm-directory.h */
 diff --git glibc/libpthread/sysdeps/hurd/pt-destroy-specific.c glibc/libpthread/sysdeps/hurd/pt-destroy-specific.c
 new file mode 100644
-index 0000000..f7896e5
+index 0000000..642c61c
 --- /dev/null
 +++ glibc/libpthread/sysdeps/hurd/pt-destroy-specific.c
-@@ -0,0 +1,79 @@
+@@ -0,0 +1,77 @@
 +/* __pthread_destory_specific.  Hurd version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -9575,14 +9563,12 @@ index 0000000..f7896e5
 +
 +#include <pthread.h>
 +#include <stdlib.h>
-+#include <hurd/ihash.h>
 +
 +#include <pt-internal.h>
 +
 +void
 +__pthread_destroy_specific (struct __pthread *thread)
 +{
-+  error_t err;
 +  int i;
 +  int seen_one;
 +
@@ -9599,18 +9585,17 @@ index 0000000..f7896e5
 +
 +      __pthread_mutex_lock (&__pthread_key_lock);
 +
-+      for (i = 0; i < __pthread_key_count; i ++)
++      for (i = 0; i < __pthread_key_count && i < thread->thread_specifics_size; i ++)
 +	{
 +	  void *value;
 +
 +	  if (__pthread_key_destructors[i] == PTHREAD_KEY_INVALID)
 +	    continue;
 +
-+	  value = hurd_ihash_find (thread->thread_specifics, i);
++	  value = thread->thread_specifics[i];
 +	  if (value)
 +	    {
-+	      err = hurd_ihash_remove (thread->thread_specifics, i);
-+	      assert (err == 1);
++	      thread->thread_specifics[i] = 0;
 +
 +	      if (__pthread_key_destructors[i])
 +		{
@@ -9630,15 +9615,16 @@ index 0000000..f7896e5
 +      sched_yield ();
 +    }
 +
-+  hurd_ihash_free (thread->thread_specifics);
++  free (thread->thread_specifics);
 +  thread->thread_specifics = 0;
++  thread->thread_specifics_size = 0;
 +}
 diff --git glibc/libpthread/sysdeps/hurd/pt-getspecific.c glibc/libpthread/sysdeps/hurd/pt-getspecific.c
 new file mode 100644
-index 0000000..8a01470
+index 0000000..1f49c03
 --- /dev/null
 +++ glibc/libpthread/sysdeps/hurd/pt-getspecific.c
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,39 @@
 +/* pthread_getspecific.  Hurd version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -9659,7 +9645,6 @@ index 0000000..8a01470
 +   Boston, MA 02111-1307, USA.  */
 +
 +#include <pthread.h>
-+#include <hurd/ihash.h>
 +
 +#include <pt-internal.h>
 +
@@ -9673,18 +9658,18 @@ index 0000000..8a01470
 +    return NULL;
 +
 +  self = _pthread_self ();
-+  if (! self->thread_specifics)
++  if (key >= self->thread_specifics_size)
 +    return 0;
 +
-+  return hurd_ihash_find (self->thread_specifics, key);
++  return self->thread_specifics[key];
 +}
 +strong_alias (__pthread_getspecific, pthread_getspecific);
 diff --git glibc/libpthread/sysdeps/hurd/pt-init-specific.c glibc/libpthread/sysdeps/hurd/pt-init-specific.c
 new file mode 100644
-index 0000000..c1bacbc
+index 0000000..78958cb
 --- /dev/null
 +++ glibc/libpthread/sysdeps/hurd/pt-init-specific.c
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,31 @@
 +/* __pthread_init_specific.  Hurd version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -9713,6 +9698,7 @@ index 0000000..c1bacbc
 +__pthread_init_specific (struct __pthread *thread)
 +{
 +  thread->thread_specifics = 0;
++  thread->thread_specifics_size = 0;
 +  return 0;
 +}
 diff --git glibc/libpthread/sysdeps/hurd/pt-key-create.c glibc/libpthread/sysdeps/hurd/pt-key-create.c
@@ -9833,7 +9819,7 @@ index 0000000..f26ec36
 +strong_alias (__pthread_key_create, pthread_key_create)
 diff --git glibc/libpthread/sysdeps/hurd/pt-key-delete.c glibc/libpthread/sysdeps/hurd/pt-key-delete.c
 new file mode 100644
-index 0000000..8b2c8bb
+index 0000000..499e9f3
 --- /dev/null
 +++ glibc/libpthread/sysdeps/hurd/pt-key-delete.c
 @@ -0,0 +1,64 @@
@@ -9891,8 +9877,8 @@ index 0000000..8b2c8bb
 +
 +	  /* Just remove the key, no need to care whether it was
 +	     already there. */
-+	  if (t->thread_specifics)
-+	    hurd_ihash_remove (t->thread_specifics, key);
++	  if (key < t->thread_specifics_size)
++	    t->thread_specifics[key] = 0;
 +	}
 +      __pthread_rwlock_unlock (&__pthread_threads_lock);
 +    }
@@ -9903,7 +9889,7 @@ index 0000000..8b2c8bb
 +}
 diff --git glibc/libpthread/sysdeps/hurd/pt-key.h glibc/libpthread/sysdeps/hurd/pt-key.h
 new file mode 100644
-index 0000000..7b6a2c2
+index 0000000..46830d7
 --- /dev/null
 +++ glibc/libpthread/sysdeps/hurd/pt-key.h
 @@ -0,0 +1,77 @@
@@ -9927,11 +9913,11 @@ index 0000000..7b6a2c2
 +   Boston, MA 02111-1307, USA.  */
 +
 +#include <pthread.h>
-+#include <hurd/ihash.h>
 +#include <libc-lockP.h>
 +
 +#define PTHREAD_KEY_MEMBERS \
-+  hurd_ihash_t thread_specifics;
++  void **thread_specifics;		/* This is only resized by the thread, and always growing */ \
++  unsigned thread_specifics_size;	/* Number of entries in thread_specifics */
 +
 +#define PTHREAD_KEY_INVALID (void *) (-1)
 +
@@ -10044,10 +10030,10 @@ index 0000000..6aaf241
 +strong_alias (__pthread_kill, pthread_kill)
 diff --git glibc/libpthread/sysdeps/hurd/pt-setspecific.c glibc/libpthread/sysdeps/hurd/pt-setspecific.c
 new file mode 100644
-index 0000000..b3976cc
+index 0000000..871560c
 --- /dev/null
 +++ glibc/libpthread/sysdeps/hurd/pt-setspecific.c
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,51 @@
 +/* pthread_setspecific.  Generic version.
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -10068,31 +10054,34 @@ index 0000000..b3976cc
 +   Boston, MA 02111-1307, USA.  */
 +
 +#include <pthread.h>
-+#include <hurd/ihash.h>
 +
 +#include <pt-internal.h>
 +
 +int
 +__pthread_setspecific (pthread_key_t key, const void *value)
 +{
-+  error_t err;
 +  struct __pthread *self = _pthread_self ();
 +
 +  if (key < 0 || key >= __pthread_key_count
 +      || __pthread_key_destructors[key] == PTHREAD_KEY_INVALID)
 +    return EINVAL;
 +
-+  if (! self->thread_specifics)
++  if (key >= self->thread_specifics_size)
 +    {
-+      err = hurd_ihash_create (&self->thread_specifics, HURD_IHASH_NO_LOCP);
-+      if (err)
++      /* Amortize reallocation cost.  */
++      int newsize = 2 * key + 1;
++      void **new = realloc (self->thread_specifics,
++			    newsize * sizeof (new[0]));
++      if (! new )
 +	return ENOMEM;
++
++      memset (&new[self->thread_specifics_size], 0,
++	      (newsize - self->thread_specifics_size) * sizeof (new[0]));
++      self->thread_specifics = new;
++      self->thread_specifics_size = newsize;
 +    }
 +
-+  err = hurd_ihash_add (self->thread_specifics, key, (void *) value);
-+  if (err)
-+    return ENOMEM;
-+      
++  self->thread_specifics[key] = (void*) value;
 +  return 0;
 +}
 +strong_alias (__pthread_setspecific, pthread_setspecific);
@@ -11825,7 +11814,7 @@ index 0000000..77aa933
 +    }
 +
 +  /* No need to queue more than one wakeup message on this port.  */
-+  mach_port_set_qlimit (__mach_task_self (),
++  __mach_port_set_qlimit (__mach_task_self (),
 +			thread->wakeupmsg.msgh_remote_port, 1);
 +
 +  return 0;
