@@ -246,6 +246,7 @@ test-xfail-tst-audit3 = yes
 test-xfail-tst-prelink = yes
 test-xfail-tst-tls-atexit = yes
 
+test-xfail-POSIX2008/fcntl.h/conform = yes
 test-xfail-UNIX98/sys/ipc.h/conform = yes
 test-xfail-UNIX98/sys/msg.h/conform = yes
 test-xfail-UNIX98/sys/resource.h/conform = yes
