@@ -235,12 +235,6 @@ test-xfail-XOPEN2K8/pthread.h/conform = yes
 test-xfail-XOPEN2K8/sys/stat.h/conform = yes
 test-xfail-XOPEN2K/sys/stat.h/conform = yes
 
-test-xfail-POSIX/dirent.h/linknamespace = yes
-test-xfail-UNIX98/ftw.h/linknamespace = yes
-test-xfail-XOPEN2K/ftw.h/linknamespace = yes
-test-xfail-XPG4/ftw.h/linknamespace = yes
-test-xfail-XPG4/sys/shm.h/linknamespace = yes
-
 # new in 2.22
 test-xfail-tst-audit3 = yes
 test-xfail-tst-prelink = yes
@@ -275,22 +269,6 @@ test-xfail-XOPEN2K/sys/un.h/conform = yes
 test-xfail-XPG4/sys/ipc.h/conform = yes
 test-xfail-XPG4/sys/msg.h/conform = yes
 test-xfail-XPG4/sys/shm.h/conform = yes
-
-test-xfail-POSIX2008/dirent.h/linknamespace = yes
-test-xfail-POSIX2008/netdb.h/linknamespace = yes
-test-xfail-POSIX/glob.h/linknamespace = yes
-test-xfail-POSIX/wordexp.h/linknamespace = yes
-test-xfail-UNIX98/glob.h/linknamespace = yes
-test-xfail-UNIX98/stdlib.h/linknamespace = yes
-test-xfail-UNIX98/wordexp.h/linknamespace = yes
-test-xfail-XOPEN2K8/netdb.h/linknamespace = yes
-test-xfail-XOPEN2K8/stdlib.h/linknamespace = yes
-test-xfail-XOPEN2K/glob.h/linknamespace = yes
-test-xfail-XOPEN2K/netdb.h/linknamespace = yes
-test-xfail-XOPEN2K/stdlib.h/linknamespace = yes
-test-xfail-XOPEN2K/wordexp.h/linknamespace = yes
-test-xfail-XPG4/glob.h/linknamespace = yes
-test-xfail-XPG4/wordexp.h/linknamespace = yes
 
 # changed in 2.22, tests were run directly, now using threads
 # TODO: should be succeeding again with gnumach >= 2016-03-06
@@ -370,11 +348,6 @@ test-xfail-XPG42/sys/stat.h/conform = yes
 test-xfail-XPG42/sys/statvfs.h/conform = yes
 test-xfail-XPG42/sys/un.h/conform = yes
 test-xfail-XPG42/termios.h/conform = yes
-
-test-xfail-XPG42/ftw.h/linknamespace = yes
-test-xfail-XPG42/glob.h/linknamespace = yes
-test-xfail-XPG42/stdlib.h/linknamespace = yes
-test-xfail-XPG42/wordexp.h/linknamespace = yes
 
 # will be fixed in hurd >= 20170926
 test-xfail-tst-bug18665-tcp = yes
