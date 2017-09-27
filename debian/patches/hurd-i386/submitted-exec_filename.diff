@@ -4,6 +4,7 @@ TODO: _DEBIAN_ in versions however pose problem. Remove the _DEBIAN_ version
 once packages are rebuilt against 2.21.
 
 2010-08-04  Emilio Pozuelo Monfort  <pochu27@gmail.com>
+2017-09-26  Svante Signell  <svante.signell@gmail.com>
 	* hurd/hurdexec.c (_hurd_exec): Deprecate it.
 	(_hurd_exec_file_name): New function.
 	* hurd/hurd.h (_hurd_exec): Deprecate it.
@@ -12,7 +13,6 @@ once packages are rebuilt against 2.21.
 	* sysdeps/mach/hurd/execve.c: Use it.
 	* sysdeps/mach/hurd/fexecve.c: Likewise.
 	* sysdeps/mach/hurd/spawni.c: Likewise.
-
 
 
 From d1793416cf8bf6fccd42679a8ec30b0058823ab8 Mon Sep 17 00:00:00 2001
@@ -24,14 +24,14 @@ Pass the file name of executable to the exec server, which it needs to
 execute #!-scripts.  Currently, the exec server tries to guess the name
 from argv[0] but argv[0] only contains the executable name by convention.
 ---
- hurd/Makefile               |    4 +-
- hurd/Versions               |    4 ++
- hurd/hurd.h                 |   14 ++++++++--
- hurd/hurdexec.c             |   50 ++++++++++++++++++++++++++++++-------
- sysdeps/mach/hurd/execve.c  |    6 ++--
- sysdeps/mach/hurd/fexecve.c |    7 ++---
- sysdeps/mach/hurd/spawni.c  |   59 ++++++++++++++++++++++++++------------------
- 8 files changed, 102 insertions(+), 43 deletions(-)
+ hurd/Makefile               |    4 -
+ hurd/Versions               |    8 +++
+ hurd/hurd.h                 |   12 ++++-
+ hurd/hurdexec.c             |   63 +++++++++++++++++++++++----
+ sysdeps/mach/hurd/execve.c  |   34 ++++++++++++++
+ sysdeps/mach/hurd/fexecve.c |    5 +-
+ sysdeps/mach/hurd/spawni.c  |  100 +++++++++++++++++++++++++++++++++-----------
+ 7 files changed, 184 insertions(+), 42 deletions(-)
 
 --- a/hurd/Versions
 +++ b/hurd/Versions
@@ -65,7 +65,7 @@ from argv[0] but argv[0] only contains the executable name by convention.
  server-interfaces	:= hurd/msg faultexc
 --- a/hurd/hurd.h
 +++ b/hurd/hurd.h
-@@ -245,12 +245,20 @@ extern FILE *fopenport (io_t port, const
+@@ -241,12 +241,20 @@ extern FILE *fopenport (io_t port, const
  extern FILE *__fopenport (io_t port, const char *mode);
  
  
@@ -189,16 +189,63 @@ from argv[0] but argv[0] only contains the executable name by convention.
 +#endif
 --- a/sysdeps/mach/hurd/execve.c
 +++ b/sysdeps/mach/hurd/execve.c
-@@ -31,7 +31,8 @@ __execve (const char *file_name, char *c
+@@ -18,6 +18,8 @@
+ #include <unistd.h>
+ #include <hurd.h>
+ #include <fcntl.h>
++#include <stdlib.h>
++#include <stdio.h>
+ 
+ /* Replace the current process, executing FILE_NAME with arguments ARGV and
+    environment ENVP.  ARGV and ENVP are terminated by NULL pointers.  */
+@@ -25,17 +27,45 @@ int
+ __execve (const char *file_name, char *const argv[], char *const envp[])
+ {
+   error_t err;
+-  file_t file = __file_name_lookup (file_name, O_EXEC, 0);
++  char *concat_name = NULL;
++  const char *abs_name;
+ 
++  file_t file = __file_name_lookup (file_name, O_EXEC, 0);
+   if (file == MACH_PORT_NULL)
      return -1;
  
++  if (file_name[0] == '/')
++    {
++      /* Absolute path */
++      abs_name = file_name;
++    }
++  else
++    {
++      /* Relative path */
++      char *cwd = __getcwd (NULL, 0);
++      if (cwd == NULL)
++	{
++	  __mach_port_deallocate (__mach_task_self (), file);
++	  return -1;
++	}
++      int res = __asprintf (&concat_name, "%s/%s", cwd, file_name);
++      free (cwd);
++      if (res == -1)
++	{
++	  __mach_port_deallocate (__mach_task_self (), file);
++	  return -1;
++	}
++      abs_name = concat_name;
++    }
++
    /* Hopefully this will not return.  */
 -  err = _hurd_exec (__mach_task_self (), file, argv, envp);
 +  err = _hurd_exec_file_name (__mach_task_self (), file,
-+			      file_name, argv, envp);
++			      abs_name, argv, envp);
  
    /* Oh well.  Might as well be tidy.  */
    __mach_port_deallocate (__mach_task_self (), file);
+ 
++  free (concat_name);
+   return __hurd_fail (err);
+ }
+ 
 --- a/sysdeps/mach/hurd/fexecve.c
 +++ b/sysdeps/mach/hurd/fexecve.c
 @@ -25,8 +25,9 @@
@@ -215,7 +262,15 @@ from argv[0] but argv[0] only contains the executable name by convention.
    return __hurd_fail (err);
 --- a/sysdeps/mach/hurd/spawni.c
 +++ b/sysdeps/mach/hurd/spawni.c
-@@ -29,6 +29,7 @@
+@@ -22,6 +22,7 @@
+ #include <spawn.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <stdio.h>
+ #include <unistd.h>
+ #include <hurd.h>
+ #include <hurd/signal.h>
+@@ -29,6 +30,7 @@
  #include <hurd/id.h>
  #include <hurd/lookup.h>
  #include <hurd/resource.h>
@@ -223,15 +278,19 @@ from argv[0] but argv[0] only contains the executable name by convention.
  #include <assert.h>
  #include <argz.h>
  #include "spawn_int.h"
-@@ -44,6 +45,7 @@ __spawni (pid_t *pid, const char *file,
+@@ -44,8 +46,9 @@ __spawni (pid_t *pid, const char *file,
  {
    pid_t new_pid;
    char *path, *p, *name;
-+  const char *filename;
-   size_t len;
-   size_t pathlen;
+-  size_t len;
+-  size_t pathlen;
++  char *concat_name = NULL, *filename;
++  int res;
++  size_t len, pathlen;
    short int flags;
-@@ -59,14 +61,14 @@ __spawni (pid_t *pid, const char *file,
+ 
+   /* The generic POSIX.1 implementation of posix_spawn uses fork and exec.
+@@ -59,14 +62,14 @@ __spawni (pid_t *pid, const char *file,
       that remains visible after an exec is registration with the proc
       server, and the inheritance of various values and ports.  All those
       inherited values and ports are what get collected up and passed in the
@@ -254,16 +313,39 @@ from argv[0] but argv[0] only contains the executable name by convention.
       except that all errors will be detected here (in the parent process)
       and return proper errno codes rather than the child dying with 127.
  
-@@ -546,7 +548,7 @@ __spawni (pid_t *pid, const char *file,
+@@ -545,8 +548,29 @@ __spawni (pid_t *pid, const char *file,
+      etc) can be observed before what errors.  */
  
    if ((xflags & SPAWN_XFLAGS_USE_PATH) == 0 || strchr (file, '/') != NULL)
-     /* The FILE parameter is actually a path.  */
+-    /* The FILE parameter is actually a path.  */
 -    err = child_lookup (file, O_EXEC, 0, &execfile);
-+    err = child_lookup (filename = file, O_EXEC, 0, &execfile);
++    {
++      /* The FILE parameter is actually a path.  */
++      if (file[0] == '/')
++	{
++	  /* Absolute path */
++	  filename = file;
++	}
++      else
++	{
++	  /* Relative path */
++	  char *cwd = getcwd (NULL, 0);
++	  if (cwd == NULL)
++	    goto out;
++
++	  res = __asprintf (&concat_name, "%s/%s", cwd, file);
++	  free (cwd);
++	  if (res == -1)
++	    goto out;
++
++	  filename = concat_name;
++	}
++      err = child_lookup (filename, O_EXEC, 0, &execfile);
++    }
    else
      {
        /* We have to search for FILE on the path.  */
-@@ -573,20 +575,18 @@ __spawni (pid_t *pid, const char *file,
+@@ -573,20 +597,18 @@ __spawni (pid_t *pid, const char *file,
        p = path;
        do
  	{
@@ -287,7 +369,28 @@ from argv[0] but argv[0] only contains the executable name by convention.
  	  switch (err)
  	    {
  	    case EACCES:
-@@ -623,14 +623,27 @@ __spawni (pid_t *pid, const char *file,
+@@ -607,6 +629,20 @@ __spawni (pid_t *pid, const char *file,
+ 	    }
+ 
+ 	  // We only get here when we are done looking for the file.
++	  if (filename[0] != '/')
++	    {
++	      /* Relative path */
++	      char *cwd = getcwd (NULL, 0);
++	      if (cwd == NULL)
++		goto out;
++
++	      res = __asprintf (&concat_name, "%s/%s", cwd, filename);
++	      free (cwd);
++	      if (res == -1)
++		goto out;
++
++	      filename = concat_name;
++	    }
+ 	  break;
+ 	}
+       while (*p++ != '\0');
+@@ -623,14 +659,27 @@ __spawni (pid_t *pid, const char *file,
  
      inline error_t exec (file_t file)
        {
@@ -323,3 +426,11 @@ from argv[0] but argv[0] only contains the executable name by convention.
        }
  
      /* Now we are out of things that can fail before the file_exec RPC,
+@@ -749,6 +798,7 @@ __spawni (pid_t *pid, const char *file,
+ 	    _hurd_port_free (dtable_cells[i], &ulink_dtable[i], dtable[i]);
+ 	}
+ 
++  free (concat_name);
+   if (err)
+     /* This hack canonicalizes the error code that we return.  */
+     err = (__hurd_fail (err), errno);
