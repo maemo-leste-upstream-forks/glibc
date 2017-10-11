@@ -16,3 +16,14 @@ Last-Update: 2017-10-11
  # define __HAVE_FLOAT128 1
  #else
  # define __HAVE_FLOAT128 0
+--- glibc-2.26.orig/sysdeps/powerpc/bits/floatn.h
++++ glibc-2.26/sysdeps/powerpc/bits/floatn.h
+@@ -25,7 +25,7 @@
+    floating-point type with the IEEE 754 binary128 format, and this glibc
+    includes corresponding *f128 interfaces for it.  */
+ #if defined _ARCH_PWR8 && defined __LITTLE_ENDIAN__ && (_CALL_ELF == 2) \
+-    && defined __FLOAT128__
++    && defined __FLOAT128__ && !defined(__CUDACC__)
+ # define __HAVE_FLOAT128 1
+ #else
+ # define __HAVE_FLOAT128 0
