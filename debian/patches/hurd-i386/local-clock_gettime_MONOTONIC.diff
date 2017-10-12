@@ -34,18 +34,6 @@ Index: glibc-2.24/sysdeps/posix/clock_getres.c
        retval = realtime_getres (res);
        break;
  #endif	/* handled REALTIME */
-Index: glibc-2.24/sysdeps/unix/clock_settime.c
-===================================================================
---- glibc-2.24.orig/sysdeps/unix/clock_settime.c
-+++ glibc-2.24/sysdeps/unix/clock_settime.c
-@@ -99,6 +99,7 @@ __clock_settime (clockid_t clock_id, con
- 
- #ifndef HANDLED_REALTIME
-     case CLOCK_REALTIME:
-+    case CLOCK_MONOTONIC:
-       HANDLE_REALTIME;
-       break;
- #endif
 Index: glibc-2.24/sysdeps/pthread/timer_create.c
 ===================================================================
 --- glibc-2.24.orig/sysdeps/pthread/timer_create.c
