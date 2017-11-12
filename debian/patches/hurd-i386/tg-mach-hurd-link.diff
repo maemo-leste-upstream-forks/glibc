@@ -1,3 +1,6 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Add -lmachuser -lhurduser to libc.so on GNU/Hurd.
+
 http://lists.gnu.org/archive/html/bug-hurd/2011-03/msg00112.html
 
 2011-03-29  Samuel Thibault  <samuel.thibault@ens-lyon.org>
@@ -5,14 +8,17 @@ http://lists.gnu.org/archive/html/bug-hurd/2011-03/msg00112.html
         * Makerules ($(inst_libdir)/libc.so): Add -lmachuser -lhurduser to
         libc.so on GNU/Hurd.
 
-No topgit branch. It's still unclear what we want to aim for.
+It's still unclear what we want to aim for.
 
 ---
- Makerules |    3 +++
+ Makerules | 3 +++
  1 file changed, 3 insertions(+)
+
+diff --git a/Makerules b/Makerules
+index 53eabfaba8..b0f5e1b3a0 100644
 --- a/Makerules
 +++ b/Makerules
-@@ -1001,6 +1001,9 @@ $(inst_libdir)/libc.so: $(common-objpfx)
+@@ -1066,6 +1066,9 @@ $(inst_libdir)/libc.so: $(common-objpfx)format.lds \
  	      '$(libdir)/$(patsubst %,$(libtype.oS),$(libprefix)$(libc-name))'\
  	      ' AS_NEEDED (' $(rtlddir)/$(rtld-installed-name) ') )' \
  	) > $@.new
@@ -22,3 +28,5 @@ No topgit branch. It's still unclear what we want to aim for.
  	mv -f $@.new $@
  
  endif
+-- 
+tg: (7bb5f8a836..) t/mach-hurd-link (depends on: baseline)
