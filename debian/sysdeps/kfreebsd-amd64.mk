@@ -4,7 +4,7 @@ GLIBC_PASSES += i386
 # multilib flavours
 ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
 
-DEB_ARCH_REGULAR_PACKAGES += libc0.1-i386 libc0.1-dev-i386
+DEB_ARCH_MULTILIB_PACKAGES += libc0.1-i386 libc0.1-dev-i386
 libc0.1-i386_shlib_dep = libc0.1-i386 (>= $(shlib_dep_ver))
 
 i386_add-ons = $(libc_add-ons)

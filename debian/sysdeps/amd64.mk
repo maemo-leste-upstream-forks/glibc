@@ -11,7 +11,7 @@ ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
 
 # build 32-bit (i386) alternative library
 GLIBC_PASSES += i386
-DEB_ARCH_REGULAR_PACKAGES += libc6-i386 libc6-dev-i386
+DEB_ARCH_MULTILIB_PACKAGES += libc6-i386 libc6-dev-i386
 libc6-i386_shlib_dep = libc6-i386 (>= $(shlib_dep_ver))
 i386_configure_target = i686-linux-gnu
 i386_CC = $(CC) -m32 -march=pentium4 -mtune=generic
@@ -44,7 +44,7 @@ endef
 
 # build x32 ABI alternative library
 GLIBC_PASSES += x32
-DEB_ARCH_REGULAR_PACKAGES += libc6-x32 libc6-dev-x32
+DEB_ARCH_MULTILIB_PACKAGES += libc6-x32 libc6-dev-x32
 libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
 x32_configure_target = x86_64-linux-gnux32
 x32_CC = $(CC) -mx32

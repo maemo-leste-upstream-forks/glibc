@@ -10,7 +10,7 @@ ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
 
 # build 32-bit (sparc) alternative library
 GLIBC_PASSES += sparc
-DEB_ARCH_REGULAR_PACKAGES += libc6-sparc libc6-dev-sparc
+DEB_ARCH_MULTILIB_PACKAGES += libc6-sparc libc6-dev-sparc
 libc6-sparc_shlib_dep = libc6-sparc (>= $(shlib_dep_ver))
 sparc_configure_target=sparcv9-linux-gnu
 sparc_CC = $(CC) -m32

@@ -9,7 +9,7 @@ ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
 
 # build 64-bit alternative library
 GLIBC_PASSES += mips64
-DEB_ARCH_REGULAR_PACKAGES += libc6-mips64 libc6-dev-mips64
+DEB_ARCH_MULTILIB_PACKAGES += libc6-mips64 libc6-dev-mips64
 libc6-mips64_shlib_dep = libc6-mips64 (>= $(shlib_dep_ver))
 mips64_configure_target = mips64el-linux-gnuabi64
 mips64_CC = $(CC) -mabi=64
@@ -20,7 +20,7 @@ mips64_libdir = /usr/lib64
 
 # build 32-bit (o32) alternative library
 GLIBC_PASSES += mips32
-DEB_ARCH_REGULAR_PACKAGES += libc6-mips32 libc6-dev-mips32
+DEB_ARCH_MULTILIB_PACKAGES += libc6-mips32 libc6-dev-mips32
 libc6-mips32_shlib_dep = libc6-mips32 (>= $(shlib_dep_ver))
 mips32_configure_target = mipsel-linux-gnu
 mips32_CC = $(CC) -mabi=32

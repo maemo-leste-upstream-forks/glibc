@@ -9,7 +9,7 @@ ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
 
 # build 32-bit (s390) alternative library
 GLIBC_PASSES += s390
-DEB_ARCH_REGULAR_PACKAGES += libc6-s390 libc6-dev-s390
+DEB_ARCH_MULTILIB_PACKAGES += libc6-s390 libc6-dev-s390
 libc6-s390_shlib_dep = libc6-s390 (>= $(shlib_dep_ver))
 s390_configure_target = s390-linux-gnu
 s390_CC = $(CC) -m31
