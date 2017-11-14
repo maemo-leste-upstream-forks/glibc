@@ -8,7 +8,7 @@
     # in the Conflicts: line of libc.
     case ${DPKG_MAINTSCRIPT_ARCH} in
         alpha)
-            hwcappkgs="libc6-alphaev67"
+            hwcappkgs="libc6.1-alphaev67"
             ;;
         i386)
             hwcappkgs="libc6-xen"
