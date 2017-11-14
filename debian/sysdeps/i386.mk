@@ -2,6 +2,7 @@
 extra_config_options = --enable-multi-arch
 MIN_KERNEL_SUPPORTED := 2.6.32
 
+ifeq (,$(filter stage1 stage2, $(DEB_BUILD_PROFILES)))
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
 # greatly increase the speed when running under the 32bit Xen hypervisor.
 GLIBC_PASSES += xen
@@ -18,6 +19,7 @@ echo '# search in nosegneg subdirectories and to match this extra hwcap bit'  >>
 echo '# in the ld.so.cache file.'                                             >> debian/libc6-xen/etc/ld.so.conf.d/libc6-xen.conf
 echo 'hwcap 1 nosegneg'                                                       >> debian/libc6-xen/etc/ld.so.conf.d/libc6-xen.conf
 endef
+endif
 
 # build 64-bit (amd64) alternative library
 GLIBC_MULTILIB_PASSES += amd64
