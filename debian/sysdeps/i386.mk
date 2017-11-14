@@ -27,9 +27,12 @@ cp -af debian/tmp-xen/$(libdir)/*.a \
 endef
 endif
 
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 # build 64-bit (amd64) alternative library
-GLIBC_MULTILIB_PASSES += amd64
-DEB_ARCH_MULTILIB_PACKAGES += libc6-amd64 libc6-dev-amd64
+GLIBC_PASSES += amd64
+DEB_ARCH_REGULAR_PACKAGES += libc6-amd64 libc6-dev-amd64
 libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
 amd64_configure_target = x86_64-linux-gnu
 # __x86_64__ is defined here because Makeconfig uses -undef and the
@@ -65,8 +68,8 @@ done
 endef
 
 # build x32 ABI alternative library
-GLIBC_MULTILIB_PASSES += x32
-DEB_ARCH_MULTILIB_PACKAGES += libc6-x32 libc6-dev-x32
+GLIBC_PASSES += x32
+DEB_ARCH_REGULAR_PACKAGES += libc6-x32 libc6-dev-x32
 libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
 x32_configure_target = x86_64-linux-gnux32
 x32_CC = $(CC) -mx32
@@ -83,3 +86,5 @@ cp -a debian/tmp-x32/usr/include/gnu/stubs-x32.h \
 	debian/libc6-dev-x32/usr/include/i386-linux-gnu/gnu
 
 endef
+
+endif # multilib

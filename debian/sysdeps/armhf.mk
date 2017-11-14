@@ -12,9 +12,12 @@ mkdir -p debian/libc6-udeb/lib/arm-linux-gnueabihf
 ln -sf /lib/ld-linux-armhf.so.3 debian/libc6-udeb/lib/arm-linux-gnueabihf/ld-linux.so.3
 endef
 
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 # build soft-float (armel) alternative library
-#GLIBC_MULTILIB_PASSES += armel
-#DEB_ARCH_MULTILIB_PACKAGES += libc6-armel libc6-dev-armel
+#GLIBC_PASSES += armel
+#DEB_ARCH_REGULAR_PACKAGES += libc6-armel libc6-dev-armel
 #armel_configure_target = arm-linux-gnueabi
 #armel_CC = $(CC) -mfloat-abi=soft
 #armel_CXX = $(CXX) -mfloat-abi=soft
@@ -43,3 +46,5 @@ endef
 #mkdir -p debian/libc6-armel/lib
 #ln -sf $(armel_slibdir)/ld-linux.so.3 debian/libc6-armel/lib
 #endef
+
+endif # multilib

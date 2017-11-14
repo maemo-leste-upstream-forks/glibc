@@ -1,9 +1,12 @@
 # configuration options for all flavours
 extra_config_options = --enable-multi-arch --enable-lock-elision
 
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 # build 64-bit (ppc64) alternative library
-GLIBC_MULTILIB_PASSES += ppc64
-DEB_ARCH_MULTILIB_PACKAGES += libc6-ppc64 libc6-dev-ppc64
+GLIBC_PASSES += ppc64
+DEB_ARCH_REGULAR_PACKAGES += libc6-ppc64 libc6-dev-ppc64
 ppc64_configure_target = powerpc64-linux-gnu
 ppc64_CC = $(CC) -m64
 ppc64_CXX = $(CXX) -m64
@@ -30,3 +33,4 @@ done
 
 endef
 
+endif # multilib

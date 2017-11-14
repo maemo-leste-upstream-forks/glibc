@@ -4,9 +4,12 @@ extra_config_options = --enable-multi-arch --enable-lock-elision
 # main library
 libc_rtlddir = /lib
 
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 # build 32-bit (s390) alternative library
-GLIBC_MULTILIB_PASSES += s390
-DEB_ARCH_MULTILIB_PACKAGES += libc6-s390 libc6-dev-s390
+GLIBC_PASSES += s390
+DEB_ARCH_REGULAR_PACKAGES += libc6-s390 libc6-dev-s390
 libc6-s390_shlib_dep = libc6-s390 (>= $(shlib_dep_ver))
 s390_configure_target = s390-linux-gnu
 s390_CC = $(CC) -m31
@@ -36,3 +39,5 @@ define libc6-s390_extra_pkg_install
 mkdir -p debian/$(curpass)/lib
 ln -s /lib32/ld.so.1 debian/$(curpass)/lib
 endef
+
+endif # multilib
