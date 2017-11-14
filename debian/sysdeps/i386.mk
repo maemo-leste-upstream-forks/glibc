@@ -19,6 +19,12 @@ echo '# search in nosegneg subdirectories and to match this extra hwcap bit'  >>
 echo '# in the ld.so.cache file.'                                             >> debian/libc6-xen/etc/ld.so.conf.d/libc6-xen.conf
 echo 'hwcap 1 nosegneg'                                                       >> debian/libc6-xen/etc/ld.so.conf.d/libc6-xen.conf
 endef
+
+define libc6-dev_extra_pkg_install
+mkdir -p debian/libc6-dev/$(libdir)/xen
+cp -af debian/tmp-xen/$(libdir)/*.a \
+	debian/libc6-dev/$(libdir)/xen
+endef
 endif
 
 # build 64-bit (amd64) alternative library
@@ -39,14 +45,6 @@ define amd64_extra_install
 cp debian/tmp-amd64/usr/bin/ldd \
 	debian/tmp-libc/usr/bin
 endef
-
-ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
-define libc6-dev_extra_pkg_install
-mkdir -p debian/libc6-dev/$(libdir)/xen
-cp -af debian/tmp-xen/$(libdir)/*.a \
-	debian/libc6-dev/$(libdir)/xen
-endef
-endif
 
 define libc6-dev-amd64_extra_pkg_install
 
