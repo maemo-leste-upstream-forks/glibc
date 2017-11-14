@@ -210,6 +210,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 		-e "s#RTLDDIR#$$rtlddir#g" \
 		-e "s#SLIBDIR#$$slibdir#g" \
 		-e "s#LIBDIR#$$libdir#g" \
+		-e "/gdb/d" \
 	      $$t; \
 	  done ; \
 	done
