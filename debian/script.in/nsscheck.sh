@@ -12,6 +12,7 @@
 	    	    	-e's/\bmysql-server\b/mysql/g' \
 	    	    	-e's/\bsasl2-bin\b/saslauthd/g' \
 	    	    	-e's/\bsamaba\b/smbd/g' \
+	    	    	-e's/\bpostgresql-common\b/postgresql/g' \
 	    )
 	    echo
 	    echo "Checking init scripts..."

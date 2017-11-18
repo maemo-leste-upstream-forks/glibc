@@ -4,8 +4,11 @@ extra_config_options = --disable-multi-arch
 # main library
 libc_configure_target=sparcv9-linux-gnu
 
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 # build 64-bit (sparc64) alternative library
-GLIBC_MULTILIB_PASSES += sparc64
+GLIBC_PASSES += sparc64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-sparc64 libc6-dev-sparc64
 libc6-sparc64_shlib_dep = libc6-sparc64 (>= $(shlib_dep_ver))
 sparc64_configure_target=sparc64-linux-gnu
@@ -32,3 +35,5 @@ for i in `ls debian/tmp-libc/usr/include/sparc-linux-gnu/sys` ; do \
 done
 
 endef
+
+endif # multilib

@@ -37,9 +37,8 @@ glibc (2.26-0experimental0) UNRELEASED; urgency=medium
     - debian/control.in/libc: Drop ancient Breaks satisfied in oldoldstable.
     - debian/{debhelper.in/libc.preinst,sysdeps/amd64.mk,sysdeps/i386.mk}:
       Bump MIN_KERNEL_SUPPORTED to 3.2 on x86, following upstream's change.
-    - debian/sysdeps/{powerpc.mk,ppc64.mk,ppc64el.mk,s390x.mk}: Disable
-      lock-elision on powerpc and s390, following IBM's recommendation,
-      and fixing testsuite regressions on (at least) ppc64el in the process.
+    - debian/sysdeps/{powerpc.mk,ppc64.mk,s390x.mk}: Disable lock-elision on
+      on powerpc and s390, following IBM's recommendation.
     - debian/testsuite-xfail-debian.mk: Re-enable xfailed resolv tests.
     - debian/testsuite-xfail-debian.mk: Allow tst-create-detached to fail on
       all platforms; the design of this test is such that the outcome relies
@@ -47,9 +46,6 @@ glibc (2.26-0experimental0) UNRELEASED; urgency=medium
     - debian/testsuite-xfail-debian.mk: Use granular pow/setpayloadsig xfails.
     - debian/rules.d/build.mk: Configure with --enable-obsolete-nsl until we
       sort out a reasonable nsswitch migration strategy from compat to files.
-
-  [ Matthias Klose ]
-  * debian/rules.d/debhelper.mk: Filter python hooks in stage1 (closes: #874491)
 
   [ Samuel Thibault ]
   * Adjust hurd-i386 patches to restore build and functionality with 2.26:
@@ -110,7 +106,15 @@ glibc (2.26-0experimental0) UNRELEASED; urgency=medium
 
  -- Adam Conrad <adconrad@0c3.net>  Sat, 02 Sep 2017 12:15:10 -0600
 
-glibc (2.25-0experimental4) UNRELEASED; urgency=medium
+glibc (2.25-1) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/rules.d/debhelper.mk: relax the dependency on linux-libc-dev
+    to the major upstream version.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sat, 18 Nov 2017 10:13:37 +0100
+
+glibc (2.25-0experimental4) experimental; urgency=medium
 
   [ Samuel Thibault ]
   * patches/hurd-i386/git-bits-sysmacros.h.diff: New patch.
@@ -121,10 +125,30 @@ glibc (2.25-0experimental4) UNRELEASED; urgency=medium
   * sysdeps/hurd.mk: Enable stack-protector on the Hurd.
 
   [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix TLS relocations against local symbols on powerpc, sparc and
+      sparc64.  Closes: #874074.
   * Replace debian/patches/mips/submitted-syscalls5-7-unbound-stack.diff
     by the final version git/submitted-syscalls5-7-unbound-stack.diff.
+  * debian/rules.d/debhelper.mk: do not install gdb python hooks for stage 1.
+    Closes: #874491.
+  * Update Portuguese debconf translation, by Pedro Ribeiro.
+    Closes: #874610.
+  * Update German debconf translation, by Helge Kreutzman.  Closes: #877291.
+  * debian/sysdeps/ppc64el.mk: disable lock elision.  Closes:# 878071.
+  * debian/script.in/nohwcap.sh: fix alpha ev67 optimized package name.
+    Closes: #881147.
+  * debian/debhelper.in/libc.postinst, script.in/nsscheck.sh: check for
+    postgresql in NSS check.  Closes: #710275.
+  * debian/sysdeps/{alpha,hurd-i386,i386}.mk: do not build optimized libraries
+    libc6.1-alphaev67, libc6-xen and libc0.3-xen during stage 1 and stage 2.
+    Closes: #881455, #881636.
+  * debian/rules, debian/sysdeps/*.mk: skip the multilib pass for the nobiarch
+    profile (in addition to skipping the package creation).
+  * debian/rules: only build -dev multilib packages in stage1.  Closes:
+    #881454, #881646.
 
- -- Aurelien Jarno <aurel32@debian.org>  Sun, 27 Aug 2017 01:51:15 +0200
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 14 Nov 2017 23:38:04 +0100
 
 glibc (2.25-0experimental3) experimental; urgency=medium
 

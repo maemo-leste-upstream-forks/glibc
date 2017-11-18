@@ -163,8 +163,9 @@ standard-add-ons = libidn,
 -include debian/sysdeps/$(DEB_HOST_ARCH_OS).mk
 -include debian/sysdeps/$(DEB_HOST_ARCH).mk
 
-ifeq ($(filter nobiarch,$(DEB_BUILD_PROFILES)),)
-GLIBC_PASSES += $(GLIBC_MULTILIB_PASSES)
+ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
+DEB_ARCH_REGULAR_PACKAGES += $(foreach p,$(DEB_ARCH_MULTILIB_PACKAGES), $(if $(findstring -dev,$(p)), $(p)))
+else
 DEB_ARCH_REGULAR_PACKAGES += $(DEB_ARCH_MULTILIB_PACKAGES)
 endif
 

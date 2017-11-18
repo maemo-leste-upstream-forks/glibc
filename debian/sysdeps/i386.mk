@@ -1,6 +1,7 @@
 # configuration options for all flavours
 extra_config_options = --enable-multi-arch
 
+ifeq (,$(filter stage1 stage2, $(DEB_BUILD_PROFILES)))
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
 # greatly increase the speed when running under the 32bit Xen hypervisor.
 GLIBC_PASSES += xen
@@ -18,8 +19,18 @@ echo '# in the ld.so.cache file.'                                             >>
 echo 'hwcap 1 nosegneg'                                                       >> debian/libc6-xen/etc/ld.so.conf.d/libc6-xen.conf
 endef
 
+define libc6-dev_extra_pkg_install
+mkdir -p debian/libc6-dev/$(libdir)/xen
+cp -af debian/tmp-xen/$(libdir)/*.a \
+	debian/libc6-dev/$(libdir)/xen
+endef
+endif
+
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 # build 64-bit (amd64) alternative library
-GLIBC_MULTILIB_PASSES += amd64
+GLIBC_PASSES += amd64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-amd64 libc6-dev-amd64
 libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
 amd64_configure_target = x86_64-linux-gnu
@@ -36,14 +47,6 @@ define amd64_extra_install
 cp debian/tmp-amd64/usr/bin/ldd \
 	debian/tmp-libc/usr/bin
 endef
-
-ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
-define libc6-dev_extra_pkg_install
-mkdir -p debian/libc6-dev/$(libdir)/xen
-cp -af debian/tmp-xen/$(libdir)/*.a \
-	debian/libc6-dev/$(libdir)/xen
-endef
-endif
 
 define libc6-dev-amd64_extra_pkg_install
 
@@ -64,7 +67,7 @@ done
 endef
 
 # build x32 ABI alternative library
-GLIBC_MULTILIB_PASSES += x32
+GLIBC_PASSES += x32
 DEB_ARCH_MULTILIB_PACKAGES += libc6-x32 libc6-dev-x32
 libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
 x32_configure_target = x86_64-linux-gnux32
@@ -82,3 +85,5 @@ cp -a debian/tmp-x32/usr/include/gnu/stubs-x32.h \
 	debian/libc6-dev-x32/usr/include/i386-linux-gnu/gnu
 
 endef
+
+endif # multilib

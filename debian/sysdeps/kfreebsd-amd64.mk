@@ -1,5 +1,9 @@
 # build 32-bit (i386) alternative library
-GLIBC_MULTILIB_PASSES += i386
+GLIBC_PASSES += i386
+
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 DEB_ARCH_MULTILIB_PACKAGES += libc0.1-i386 libc0.1-dev-i386
 libc0.1-i386_shlib_dep = libc0.1-i386 (>= $(shlib_dep_ver))
 
@@ -36,3 +40,4 @@ mkdir -p debian/libc0.1-i386/lib
 ln -sf /lib32/ld.so.1 debian/libc0.1-i386/lib
 endef
 
+endif # multilib

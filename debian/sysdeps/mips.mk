@@ -1,8 +1,11 @@
 # configuration options for all flavours
 extra_cflags = -mno-plt
 
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 # build 32-bit (n32) alternative library
-GLIBC_MULTILIB_PASSES += mipsn32
+GLIBC_PASSES += mipsn32
 DEB_ARCH_MULTILIB_PACKAGES += libc6-mipsn32 libc6-dev-mipsn32
 mipsn32_configure_target = mips64-linux-gnuabin32
 mipsn32_CC = $(CC) -mabi=n32
@@ -13,7 +16,7 @@ mipsn32_slibdir = /lib32
 mipsn32_libdir = /usr/lib32
 
 # build 64-bit alternative library
-GLIBC_MULTILIB_PASSES += mips64
+GLIBC_PASSES += mips64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-mips64 libc6-dev-mips64
 mips64_configure_target = mips64-linux-gnuabi64
 mips64_CC = $(CC) -mabi=64
@@ -53,3 +56,5 @@ endef
 define mipsn32_extra_install
 cp debian/tmp-mipsn32/usr/bin/ldd debian/tmp-libc/usr/bin
 endef
+
+endif # multilib

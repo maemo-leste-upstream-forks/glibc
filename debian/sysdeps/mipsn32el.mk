@@ -4,8 +4,11 @@ extra_cflags = -mno-plt
 # main library
 libc_rtlddir = /lib32
 
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 # build 64-bit alternative library
-GLIBC_MULTILIB_PASSES += mips64
+GLIBC_PASSES += mips64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-mips64 libc6-dev-mips64
 libc6-mips64_shlib_dep = libc6-mips64 (>= $(shlib_dep_ver))
 mips64_configure_target = mips64el-linux-gnuabi64
@@ -16,7 +19,7 @@ mips64_slibdir = /lib64
 mips64_libdir = /usr/lib64
 
 # build 32-bit (o32) alternative library
-GLIBC_MULTILIB_PASSES += mips32
+GLIBC_PASSES += mips32
 DEB_ARCH_MULTILIB_PACKAGES += libc6-mips32 libc6-dev-mips32
 libc6-mips32_shlib_dep = libc6-mips32 (>= $(shlib_dep_ver))
 mips32_configure_target = mipsel-linux-gnu
@@ -57,3 +60,5 @@ define libc6-mips32_extra_pkg_install
 mkdir -p debian/libc6-mips32/lib
 ln -sf /libo32/ld.so.1 debian/libc6-mips32/lib
 endef
+
+endif # multilib

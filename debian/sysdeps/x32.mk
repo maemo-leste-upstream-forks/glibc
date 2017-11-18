@@ -5,8 +5,11 @@ extra_config_options = --enable-multi-arch
 libc_mvec = yes
 libc_rtlddir = /libx32
 
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 # build 64-bit (amd64) alternative library
-GLIBC_MULTILIB_PASSES += amd64
+GLIBC_PASSES += amd64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-amd64 libc6-dev-amd64
 libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
 amd64_configure_target = x86_64-linux-gnu
@@ -36,7 +39,7 @@ done
 endef
 
 # build 32-bit (i386) alternative library
-GLIBC_MULTILIB_PASSES += i386
+GLIBC_PASSES += i386
 DEB_ARCH_MULTILIB_PACKAGES += libc6-i386 libc6-dev-i386
 libc6-i386_shlib_dep = libc6-i386 (>= $(shlib_dep_ver))
 i386_configure_target = i686-linux-gnu
@@ -58,3 +61,5 @@ define libc6-i386_extra_pkg_install
 mkdir -p debian/libc6-i386/lib
 ln -sf /lib32/ld-linux.so.2 debian/libc6-i386/lib
 endef
+
+endif # multilib

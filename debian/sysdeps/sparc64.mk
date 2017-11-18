@@ -5,8 +5,11 @@ extra_cflags = -mcpu=ultrasparc
 # main library
 libc_rtlddir = /lib64
 
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 # build 32-bit (sparc) alternative library
-GLIBC_MULTILIB_PASSES += sparc
+GLIBC_PASSES += sparc
 DEB_ARCH_MULTILIB_PACKAGES += libc6-sparc libc6-dev-sparc
 libc6-sparc_shlib_dep = libc6-sparc (>= $(shlib_dep_ver))
 sparc_configure_target=sparcv9-linux-gnu
@@ -38,3 +41,5 @@ define libc6-sparc_extra_pkg_install
 mkdir -p debian/$(curpass)/lib
 ln -s /lib32/ld-linux.so.2 debian/$(curpass)/lib
 endef
+
+endif # multilib
