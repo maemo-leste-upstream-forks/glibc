@@ -1,3 +1,29 @@
+commit 7edd06916d0f18714f323b180b890f1fea39e1ff
+Author: H.J. Lu <hjl.tools@gmail.com>
+Date:   Wed Sep 27 17:18:32 2017 -0700
+
+    Update sysdeps/unix/sysv/linux/ifaddrs.c
+    
+    Fix
+    
+    ../sysdeps/unix/sysv/linux/ifaddrs.c:835:27: error: ‘getifaddrs’ aliased to undefined symbol ‘__getifaddrs’
+     weak_alias (__getifaddrs, getifaddrs)
+                               ^
+    ../sysdeps/unix/sysv/linux/ifaddrs.c:844:28: error: ‘freeifaddrs’ aliased to undefined symbol ‘__freeifaddrs’
+     weak_alias (__freeifaddrs, freeifaddrs)
+    
+    caused by
+    
+    commit 4009ddc69225d571772aaea597615a0c032e14ab
+    Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+    Date:   Thu Sep 28 00:19:18 2017 +0200
+    
+        hurd: Fix `getifaddrs' and `freeifaddrs' symbol exposition
+    
+            * sysdeps/unix/sysv/linux/ifaddrs.c (__getifaddrs): Add
+            libc_hidden_def.
+            (__freeifaddrs): Likewise.
+
 commit 4009ddc69225d571772aaea597615a0c032e14ab
 Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Date:   Thu Sep 28 00:19:18 2017 +0200
@@ -87,6 +113,24 @@ Index: glibc-2.26/sysdeps/gnu/ifaddrs.c
  libc_hidden_weak (getifaddrs)
  #endif
 @@ -161,4 +162,5 @@ __freeifaddrs (struct ifaddrs *ifa)
+   free (ifa);
+ }
+ weak_alias (__freeifaddrs, freeifaddrs)
++libc_hidden_def (__freeifaddrs)
+ libc_hidden_weak (freeifaddrs)
+Index: glibc-2.26/sysdeps/unix/sysv/linux/ifaddrs.c
+===================================================================
+--- glibc-2.26.orig/sysdeps/unix/sysv/linux/ifaddrs.c
++++ glibc-2.26/sysdeps/unix/sysv/linux/ifaddrs.c
+@@ -833,6 +833,7 @@ __getifaddrs (struct ifaddrs **ifap)
+   return res;
+ }
+ weak_alias (__getifaddrs, getifaddrs)
++libc_hidden_def (__getifaddrs)
+ libc_hidden_weak (getifaddrs)
+ 
+ 
+@@ -842,4 +843,5 @@ __freeifaddrs (struct ifaddrs *ifa)
    free (ifa);
  }
  weak_alias (__freeifaddrs, freeifaddrs)
