@@ -759,26 +759,10 @@ ifneq (,$(filter $(config-machine)-$(config-os), mips-linux-gnu mipsel-linux-gnu
 # MIPS GCC does not use PT_GNU_STACK markers (this is a GCC issue)
 test-xfail-check-execstack = yes
 
-# Peculiarities of MIPS ELF
-test-xfail-check-localplt = yes
-
 # These tests require at least a kernel 4.0
 test-xfail-tst-mode-switch-1 = yes
 test-xfail-tst-mode-switch-2 = yes
 test-xfail-tst-mode-switch-3 = yes
-
-# This is a namespace pollution from kernel header <asm/sockios.h>
-# which includes <asm/ioctl.h>
-test-xfail-UNIX98/sys/socket.h/conform = yes
-test-xfail-XOPEN2K/arpa/inet.h/conform = yes
-test-xfail-XOPEN2K/netdb.h/conform = yes
-test-xfail-XOPEN2K/netinet/in.h/conform = yes
-test-xfail-XOPEN2K/sys/socket.h/conform = yes
-test-xfail-XOPEN2K8/arpa/inet.h/conform = yes
-test-xfail-XOPEN2K8/netdb.h/conform = yes
-test-xfail-XOPEN2K8/netinet/in.h/conform = yes
-test-xfail-XOPEN2K8/sys/socket.h/conform = yes
-test-xfail-XPG4/sys/socket.h/conform = yes
 
 # Theses failures are due to a bug in the cvt.s.d instruction on some FPU
 # (at least Octeon 3 and XBurst). The tininess detection is done on a
@@ -795,29 +779,9 @@ endif
 
 
 ######################################################################
-# mips/mipsel
-######################################################################
-ifneq (,$(filter $(config-machine)-$(config-os), mips-linux-gnu mipsel-linux-gnu))
-# These tests fails because the o32 ABI defines stat.st_dev as unsigned
-# long int instead of dev_t for historical reasons. This can not be changed
-# anymore without breaking the ABI.
-test-xfail-POSIX2008/sys/stat.h/conform = yes
-test-xfail-POSIX/sys/stat.h/conform = yes
-test-xfail-UNIX98/sys/stat.h/conform = yes
-test-xfail-XOPEN2K8/sys/stat.h/conform = yes
-test-xfail-XOPEN2K/sys/stat.h/conform = yes
-test-xfail-XPG4/sys/stat.h/conform = yes
-endif
-
-
-######################################################################
 # mips
 ######################################################################
 ifeq ($(config-machine)-$(config-os),mips-linux-gnu)
-test-xfail-tst-audit1 = yes
-test-xfail-tst-audit2 = yes
-test-xfail-tst-audit8 = yes
-test-xfail-tst-audit9 = yes
 test-xfail-tst-cond16 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-stack4 = yes
@@ -829,19 +793,10 @@ endif
 # mipsel
 ######################################################################
 ifeq ($(config-machine)-$(config-os),mipsel-linux-gnu)
-test-xfail-tst-audit1 = yes
-test-xfail-tst-audit2 = yes
-test-xfail-tst-audit8 = yes
-test-xfail-tst-audit9 = yes
 test-xfail-tst-cond16 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-stack4 = yes
 test-xfail-tst-waitid = yes
-
-# These failures are due to a bug in the Loongson 3A FPU
-test-xfail-test-double = yes
-test-xfail-test-double-finite = yes
-test-xfail-test-idouble = yes
 endif
 
 
@@ -849,10 +804,6 @@ endif
 # mips64el
 ######################################################################
 ifeq ($(config-machine)-$(config-os),mips64el-linux-gnuabi64)
-test-xfail-tst-audit1 = yes
-test-xfail-tst-audit2 = yes
-test-xfail-tst-audit8 = yes
-test-xfail-tst-audit9 = yes
 test-xfail-tst-cond16 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-stack4 = yes
