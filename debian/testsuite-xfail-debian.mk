@@ -949,6 +949,9 @@ test-xfail-test-double = yes
 test-xfail-test-float = yes
 test-xfail-test-idouble = yes
 test-xfail-test-ifloat = yes
+
+# Requires a recent CPU or a recent kernel for CPU feature detection
+test-xfail-tst-set_ppr = yes
 endif
 
 
