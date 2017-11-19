@@ -799,8 +799,8 @@ test-xfail-XPG4/sys/stat.h/conform = yes
 # Theses failures are due to a bug in the cvt.s.d instruction on some FPU
 # (at least Octeon 3 and XBurst). The tininess detection is done on a
 # before-rounding basis instead of an after-rounding basis.
-test-xfail-test-float = yes
-test-xfail-test-float-finite = yes
+test-xfail-test-float-fma = yes
+test-xfail-test-float-finite-fma = yes
 
 # Theses failures are due to a bug in the cvt.d.s instruction on some FPU
 # (at least Octeon 3 and XBurst). The qNaN payload is not preserved in
