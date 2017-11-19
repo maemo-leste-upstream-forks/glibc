@@ -327,6 +327,7 @@ test-xfail-tst-env-setuid-tunables = yes
 # new in 2.26
 test-xfail-tst-malloc-usable-static-tunables = yes
 test-xfail-tst-malloc-usable-static = yes
+test-xfail-tst-malloc-tcache-leak = yes
 test-xfail-tst-dynarray-fail-mem = yes
 test-xfail-test-errno = yes
 
