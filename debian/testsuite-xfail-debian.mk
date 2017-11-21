@@ -114,6 +114,7 @@ test-xfail-tst-backtrace4 = yes
 test-xfail-tst-backtrace5 = yes
 test-xfail-tst-backtrace6 = yes
 test-xfail-tst-cleanupx4 = yes
+test-xfail-tst-create-detached = yes
 test-xfail-tst-makecontext = yes
 test-xfail-tst-protected1a = yes
 test-xfail-tst-protected1b = yes

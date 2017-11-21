@@ -3,30 +3,16 @@
     # from /lib, and ignore all optimised libraries. This file is
     # inconditionaly created in the preinst script of libc.
  
-    # Get the list of optimized packages for a given architecture
-    # Before removing a package from this list, make sure it appears
-    # in the Conflicts: line of libc.
-    case ${DPKG_MAINTSCRIPT_ARCH} in
-        alpha)
-            hwcappkgs="libc6.1-alphaev67"
-            ;;
-        i386)
-            hwcappkgs="libc6-xen"
-            ;;
-    esac
- 
     # We check the version between the current installed libc and
-    # all optimized packages (on architectures where such packages
-    # exists).
+    # all optimized packages. Due to multiarch, this has to be done
+    # independently of the architecture of the package.
     all_upgraded=yes
-    if [ -n "$hwcappkgs" ]; then
-        for pkg in $hwcappkgs ; do
-            ver=$(dpkg-query -l $pkg 2>/dev/null | sed -e '/^[a-z][a-z]\s/!d;/^.[nc]/d;' -e "s/^..\s\+$pkg[0-9a-z:]*\s\+//;s/\s.*//g")
-            if [ -n "$ver" ] && [ "$ver" != "CURRENT_VER" ]; then
-                all_upgraded=no
-            fi
-        done
-    fi
+    for pkg in libc6.1-alphaev67 libc6-xen ; do
+        ver=$(dpkg-query -l $pkg 2>/dev/null | sed -e '/^[a-z][a-z]\s/!d;/^.[nc]/d;' -e "s/^..\s\+$pkg[0-9a-z:]*\s\+//;s/\s.*//g")
+        if [ -n "$ver" ] && [ "$ver" != "CURRENT_VER" ]; then
+            all_upgraded=no
+        fi
+    done
 
     # If the versions of all optimized packages are the same as the libc
     # one, we could remove /etc/ld.so.nohwcap. Otherwise, it will be removed
