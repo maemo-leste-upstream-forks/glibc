@@ -1,10 +1,31 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.25/master from glibc-2.25
 
 diff --git a/ChangeLog b/ChangeLog
-index f140ee67de..687fd20c46 100644
+index f140ee67de..d3c5570239 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,576 @@
+@@ -1,3 +1,597 @@
++2017-08-09  Andreas Schwab  <schwab@suse.de>
++
++	* nptl/Makefile (tests) [$(build-shared) = yes]: Add
++	tst-compat-forwarder.
++	(modules-names): Add tst-compat-forwarder-mod.
++	($(objpfx)tst-compat-forwarder): Depend on
++	$(objpfx)tst-compat-forwarder-mod.so.
++	* nptl/tst-compat-forwarder.c: New file.
++	* nptl/tst-compat-forwarder-mod.c: New file.
++
++2017-08-09  Andreas Schwab  <schwab@suse.de>
++
++	* sysdeps/unix/sysv/linux/s390/pt-longjmp.c: Update reference to
++	renamed alias.
++
++2017-08-08  Andreas Schwab  <schwab@suse.de>
++
++	[BZ #21041]
++	* nptl/pt-longjmp.c (longjmp, siglongjmp): Don't use IFUNC resolver.
++	* nptl/pt-system.c (system): Likewise.
++
 +2017-10-13  James Clarke  <jrtc27@jrtc27.com>
 +
 +	* sysdeps/powerpc/powerpc32/dl-machine.h (elf_machine_rela):
@@ -2073,7 +2094,7 @@ index 19d76c0c37..eaea7c3b89 100644
  
  
 diff --git a/nptl/Makefile b/nptl/Makefile
-index 6d48c0cfc8..24067768ed 100644
+index 6d48c0cfc8..8def69ae22 100644
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
 @@ -224,6 +224,7 @@ tests = tst-typesizes \
@@ -2093,6 +2114,33 @@ index 6d48c0cfc8..24067768ed 100644
  	tst-once1 tst-once2 tst-once3 tst-once4 tst-once5 \
  	tst-key1 tst-key2 tst-key3 tst-key4 \
  	tst-sem1 tst-sem2 tst-sem3 tst-sem4 tst-sem5 tst-sem6 tst-sem7 \
+@@ -355,7 +356,7 @@ tests += tst-cancelx2 tst-cancelx3 tst-cancelx4 tst-cancelx5 \
+ 	 tst-oncex3 tst-oncex4
+ ifeq ($(build-shared),yes)
+ tests += tst-atfork2 tst-tls3 tst-tls3-malloc tst-tls4 tst-tls5 tst-_res1 \
+-	 tst-fini1 tst-stackguard1
++	 tst-fini1 tst-stackguard1 tst-compat-forwarder
+ tests-nolibpthread += tst-fini1
+ ifeq ($(have-z-execstack),yes)
+ tests += tst-execstack
+@@ -366,7 +367,7 @@ modules-names = tst-atfork2mod tst-tls3mod tst-tls4moda tst-tls4modb \
+ 		tst-tls5mod tst-tls5moda tst-tls5modb tst-tls5modc \
+ 		tst-tls5modd tst-tls5mode tst-tls5modf tst-stack4mod \
+ 		tst-_res1mod1 tst-_res1mod2 tst-execstack-mod tst-fini1mod \
+-		tst-join7mod
++		tst-join7mod tst-compat-forwarder-mod
+ extra-test-objs += $(addsuffix .os,$(strip $(modules-names))) \
+ 		   tst-cleanup4aux.o tst-cleanupx4aux.o
+ test-extras += $(modules-names) tst-cleanup4aux tst-cleanupx4aux
+@@ -704,6 +705,8 @@ $(objpfx)tst-oddstacklimit.out: $(objpfx)tst-oddstacklimit $(objpfx)tst-basic1
+ 	$(evaluate-test)
+ endif
+ 
++$(objpfx)tst-compat-forwarder: $(objpfx)tst-compat-forwarder-mod.so
++
+ # The tests here better do not run in parallel
+ ifneq ($(filter %tests,$(MAKECMDGOALS)),)
+ .NOTPARALLEL:
 diff --git a/nptl/allocatestack.c b/nptl/allocatestack.c
 index 8a228ab254..368fe3c36b 100644
 --- a/nptl/allocatestack.c
@@ -2114,6 +2162,99 @@ index 8a228ab254..368fe3c36b 100644
  	    goto mprot_error;
  #endif
  
+diff --git a/nptl/pt-longjmp.c b/nptl/pt-longjmp.c
+index 2ef757e687..8f3c6b3a09 100644
+--- a/nptl/pt-longjmp.c
++++ b/nptl/pt-longjmp.c
+@@ -25,21 +25,14 @@
+    symbol in libpthread, but the historical ABI requires it.  For static
+    linking, there is no need to provide anything here--the libc version
+    will be linked in.  For shared library ABI compatibility, there must be
+-   longjmp and siglongjmp symbols in libpthread.so; so we define them using
+-   IFUNC to redirect to the libc function.  */
++   longjmp and siglongjmp symbols in libpthread.so.
+ 
+-#if SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_22)
+-
+-# if HAVE_IFUNC
+-
+-#  undef INIT_ARCH
+-#  define INIT_ARCH()
+-#  define DEFINE_LONGJMP(name) libc_ifunc (name, &__libc_longjmp)
+-
+-extern __typeof(longjmp) longjmp_ifunc;
+-extern __typeof(siglongjmp) siglongjmp_ifunc;
++   With an IFUNC resolver, it would be possible to avoid the indirection,
++   but the IFUNC resolver might run before the __libc_longjmp symbol has
++   been relocated, in which case the IFUNC resolver would not be able to
++   provide the correct address.  */
+ 
+-# else  /* !HAVE_IFUNC */
++#if SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_22)
+ 
+ static void __attribute__ ((noreturn, used))
+ longjmp_compat (jmp_buf env, int val)
+@@ -47,14 +40,10 @@ longjmp_compat (jmp_buf env, int val)
+   __libc_longjmp (env, val);
+ }
+ 
+-# define DEFINE_LONGJMP(name) strong_alias (longjmp_compat, name)
+-
+-# endif  /* HAVE_IFUNC */
+-
+-DEFINE_LONGJMP (longjmp_ifunc)
+-compat_symbol (libpthread, longjmp_ifunc, longjmp, GLIBC_2_0);
++strong_alias (longjmp_compat, longjmp_alias)
++compat_symbol (libpthread, longjmp_alias, longjmp, GLIBC_2_0);
+ 
+-strong_alias (longjmp_ifunc, siglongjmp_ifunc)
+-compat_symbol (libpthread, siglongjmp_ifunc, siglongjmp, GLIBC_2_0);
++strong_alias (longjmp_alias, siglongjmp_alias)
++compat_symbol (libpthread, siglongjmp_alias, siglongjmp, GLIBC_2_0);
+ 
+ #endif
+diff --git a/nptl/pt-system.c b/nptl/pt-system.c
+index f8ca6ba0d9..b30ddf2b39 100644
+--- a/nptl/pt-system.c
++++ b/nptl/pt-system.c
+@@ -25,29 +25,21 @@
+    libpthread, but the historical ABI requires it.  For static linking,
+    there is no need to provide anything here--the libc version will be
+    linked in.  For shared library ABI compatibility, there must be a
+-   'system' symbol in libpthread.so; so we define it using IFUNC to
+-   redirect to the libc function.  */
++   'system' symbol in libpthread.so.
+ 
+-#if SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_22)
+-
+-# if HAVE_IFUNC
+-
+-extern __typeof(system) system_ifunc;
+-#  undef INIT_ARCH
+-#  define INIT_ARCH()
+-libc_ifunc (system_ifunc, &__libc_system)
++   With an IFUNC resolver, it would be possible to avoid the indirection,
++   but the IFUNC resolver might run before the __libc_system symbol has
++   been relocated, in which case the IFUNC resolver would not be able to
++   provide the correct address.  */
+ 
+-# else  /* !HAVE_IFUNC */
++#if SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_22)
+ 
+ static int __attribute__ ((used))
+ system_compat (const char *line)
+ {
+   return __libc_system (line);
+ }
+-strong_alias (system_compat, system_ifunc)
+-
+-# endif  /* HAVE_IFUNC */
+-
+-compat_symbol (libpthread, system_ifunc, system, GLIBC_2_0);
++strong_alias (system_compat, system_alias)
++compat_symbol (libpthread, system_alias, system, GLIBC_2_0);
+ 
+ #endif
 diff --git a/nptl/pthread_mutex_lock.c b/nptl/pthread_mutex_lock.c
 index dc9ca4c476..4425927c30 100644
 --- a/nptl/pthread_mutex_lock.c
@@ -2737,6 +2878,81 @@ index 256508ca2a..846687e1cf 100644
    atomic_store_relaxed (&rwlock->__data.__cur_writer,
        THREAD_GETMEM (THREAD_SELF, tid));
    return 0;
+diff --git a/nptl/tst-compat-forwarder-mod.c b/nptl/tst-compat-forwarder-mod.c
+new file mode 100644
+index 0000000000..823bfa22de
+--- /dev/null
++++ b/nptl/tst-compat-forwarder-mod.c
+@@ -0,0 +1,28 @@
++/* Copyright (C) 2017 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* Call the function system through a statically initialized pointer.  */
++
++#include <stdlib.h>
++
++int (*system_function) (const char *) = system;
++
++void
++call_system (void)
++{
++  system_function (NULL);
++}
+diff --git a/nptl/tst-compat-forwarder.c b/nptl/tst-compat-forwarder.c
+new file mode 100644
+index 0000000000..f96806b7fe
+--- /dev/null
++++ b/nptl/tst-compat-forwarder.c
+@@ -0,0 +1,35 @@
++/* Copyright (C) 2017 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* Test that the compat forwaders in libpthread work correctly.  */
++
++#include <support/test-driver.h>
++
++extern void call_system (void);
++
++int
++do_test (void)
++{
++  /* Calling the system function from a shared library that is not linked
++     against libpthread, when the main program is linked against
++     libpthread, should not crash.  */
++  call_system ();
++
++  return 0;
++}
++
++#include <support/test-driver.c>
 diff --git a/nptl/tst-mutex7.c b/nptl/tst-mutex7.c
 index a11afdba5e..08fe251eeb 100644
 --- a/nptl/tst-mutex7.c
@@ -9633,6 +9849,21 @@ index 2c2584956d..8ea4333846 100644
  # The main malloc is interposed into the dynamic linker, for
  # allocations after the initial link (when dlopen is used).
  ld.so: malloc + REL R_386_GLOB_DAT
+diff --git a/sysdeps/unix/sysv/linux/s390/pt-longjmp.c b/sysdeps/unix/sysv/linux/s390/pt-longjmp.c
+index d324237edd..0221ac2cf5 100644
+--- a/sysdeps/unix/sysv/linux/s390/pt-longjmp.c
++++ b/sysdeps/unix/sysv/linux/s390/pt-longjmp.c
+@@ -26,8 +26,8 @@
+ /* In glibc release 2.19 new versions of longjmp-functions were introduced,
+    but were reverted before 2.20. Thus both versions are the same function.  */
+ 
+-strong_alias (longjmp_ifunc, __v2longjmp)
++strong_alias (longjmp_alias, __v2longjmp)
+ compat_symbol (libpthread, __v2longjmp, longjmp, GLIBC_2_19);
+-strong_alias (siglongjmp_ifunc, __v2siglongjmp)
++strong_alias (siglongjmp_alias, __v2siglongjmp)
+ compat_symbol (libpthread, __v2siglongjmp, siglongjmp, GLIBC_2_19);
+ #endif /* SHLIB_COMPAT (libpthread, GLIBC_2_19, GLIBC_2_20))  */
 diff --git a/sysdeps/unix/sysv/linux/sparc/bits/long-double.h b/sysdeps/unix/sysv/linux/sparc/bits/long-double.h
 deleted file mode 100644
 index 094e05124b..0000000000
