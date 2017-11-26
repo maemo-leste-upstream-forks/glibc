@@ -1,10 +1,22 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.25/master from glibc-2.25
 
 diff --git a/ChangeLog b/ChangeLog
-index f140ee67de..d3c5570239 100644
+index f140ee67de..c1df219b61 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,597 @@
+@@ -1,3 +1,609 @@
++2017-10-23  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++
++	* sysdeps/unix/sysv/linux/spawni.c (__spawnix): Use 0 instead of
++	WNOHANG in waitpid call.
++
++2017-10-20  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++
++	[BZ #22273]
++	* sysdeps/unix/sysv/linux/spawni.c (__spawnix): Handle the case where
++	the auxiliary process is terminated by a signal before calling _exit
++	or execve.
++
 +2017-08-09  Andreas Schwab  <schwab@suse.de>
 +
 +	* nptl/Makefile (tests) [$(build-shared) = yes]: Add
@@ -9961,10 +9973,18 @@ index 0000000000..094e05124b
 +# endif
 +#endif
 diff --git a/sysdeps/unix/sysv/linux/spawni.c b/sysdeps/unix/sysv/linux/spawni.c
-index 2daf0c5ef0..29d8f25ab5 100644
+index 2daf0c5ef0..ee09fb762b 100644
 --- a/sysdeps/unix/sysv/linux/spawni.c
 +++ b/sysdeps/unix/sysv/linux/spawni.c
-@@ -61,17 +61,18 @@
+@@ -17,7 +17,6 @@
+    <http://www.gnu.org/licenses/>.  */
+ 
+ #include <spawn.h>
+-#include <assert.h>
+ #include <fcntl.h>
+ #include <paths.h>
+ #include <string.h>
+@@ -61,17 +60,18 @@
  #define SPAWN_ERROR	127
  
  #ifdef __ia64__
@@ -9988,7 +10008,15 @@ index 2daf0c5ef0..29d8f25ab5 100644
  #endif
  
  
-@@ -318,6 +319,11 @@ __spawnix (pid_t * pid, const char *file,
+@@ -265,7 +265,6 @@ __spawni_child (void *arguments)
+   __sigprocmask (SIG_SETMASK, (attr->__flags & POSIX_SPAWN_SETSIGMASK)
+ 		 ? &attr->__ss : &args->oldmask, 0);
+ 
+-  args->err = 0;
+   args->exec (args->file, args->argv, args->envp);
+ 
+   /* This is compatibility function required to enable posix_spawn run
+@@ -318,6 +317,11 @@ __spawnix (pid_t * pid, const char *file,
  
    /* Add a slack area for child's stack.  */
    size_t argv_size = (argc * sizeof (void *)) + 512;
@@ -10000,6 +10028,45 @@ index 2daf0c5ef0..29d8f25ab5 100644
    size_t stack_size = ALIGN_UP (argv_size, GLRO(dl_pagesize));
    void *stack = __mmap (NULL, stack_size, prot,
  			MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
+@@ -331,7 +335,7 @@ __spawnix (pid_t * pid, const char *file,
+ 
+   /* Child must set args.err to something non-negative - we rely on
+      the parent and child sharing VM.  */
+-  args.err = -1;
++  args.err = 0;
+   args.file = file;
+   args.exec = exec;
+   args.fa = file_actions;
+@@ -354,12 +358,26 @@ __spawnix (pid_t * pid, const char *file,
+   new_pid = CLONE (__spawni_child, STACK (stack, stack_size), stack_size,
+ 		   CLONE_VM | CLONE_VFORK | SIGCHLD, &args);
+ 
++  /* It needs to collect the case where the auxiliary process was created
++     but failed to execute the file (due either any preparation step or
++     for execve itself).  */
+   if (new_pid > 0)
+     {
++      /* Also, it handles the unlikely case where the auxiliary process was
++	 terminated before calling execve as if it was successfully.  The
++	 args.err is set to 0 as default and changed to a positive value
++	 only in case of failure, so in case of premature termination
++	 due a signal args.err will remain zeroed and it will be up to
++	 caller to actually collect it.  */
+       ec = args.err;
+-      assert (ec >= 0);
+-      if (ec != 0)
+-	  __waitpid (new_pid, NULL, 0);
++      if (ec > 0)
++	/* There still an unlikely case where the child is cancelled after
++	   setting args.err, due to a positive error value.  Also there is
++	   possible pid reuse race (where the kernel allocated the same pid
++	   to an unrelated process).  Unfortunately due synchronization
++	   issues where the kernel might not have the process collected
++	   the waitpid below can not use WNOHANG.  */
++	__waitpid (new_pid, NULL, 0);
+     }
+   else
+     ec = -new_pid;
 diff --git a/sysdeps/x86/cpu-features-offsets.sym b/sysdeps/x86/cpu-features-offsets.sym
 index f6739fae81..33dd094e37 100644
 --- a/sysdeps/x86/cpu-features-offsets.sym
