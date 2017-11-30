@@ -3,7 +3,7 @@ libc0_1_archs := kfreebsd-amd64 kfreebsd-i386
 libc0_3_archs := hurd-i386
 libc6_archs   := amd64 arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32el mips64 mips64el mipsr6 mipsr6el \
                  mipsn32r6 mipsn32r6el mips64r6 mips64r6el nios2 powerpc powerpcspe ppc64 ppc64el sparc sparc64 s390x sh3 sh4 x32
-libc6_1_archs := alpha
+libc6_1_archs := alpha ia64
 
 control_deps := $(wildcard debian/control.in/*) $(addprefix debian/control.in/, $(libc_packages))
 triggers := binutils, linux-libc-dev [linux-any], $(BASE_CC)$(DEB_GCC_VERSION)
