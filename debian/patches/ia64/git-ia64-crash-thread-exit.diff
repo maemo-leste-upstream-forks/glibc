@@ -1,0 +1,79 @@
+2017-08-29  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
+
+	[BZ #21672]
+	* nptl/allocatestack.c (advise_stack_range): New function.
+	* nptl/pthread_create.c (START_THREAD_DEFN): Move logic to mark
+	stack non required to advise_stack_range at allocatestack.c
+
+--- a/nptl/allocatestack.c
++++ b/nptl/allocatestack.c
+@@ -340,6 +340,33 @@
+ }
+ 
+ 
++/* Mark the memory of the stack as usable to the kernel.  It frees everything
++   except for the space used for the TCB itself.  */
++static inline void
++__always_inline
++advise_stack_range (void *mem, size_t size, uintptr_t pd, size_t guardsize)
++{
++  uintptr_t sp = (uintptr_t) CURRENT_STACK_FRAME;
++  size_t pagesize_m1 = __getpagesize () - 1;
++#if _STACK_GROWS_DOWN && !defined(NEED_SEPARATE_REGISTER_STACK)
++  size_t freesize = (sp - (uintptr_t) mem) & ~pagesize_m1;
++  assert (freesize < size);
++  if (freesize > PTHREAD_STACK_MIN)
++    __madvise (mem, freesize - PTHREAD_STACK_MIN, MADV_DONTNEED);
++#else
++  /* Page aligned start of memory to free (higher than or equal
++     to current sp plus the minimum stack size).  */
++  uintptr_t freeblock = (sp + PTHREAD_STACK_MIN + pagesize_m1) & ~pagesize_m1;
++  uintptr_t free_end = (pd - guardsize) & ~pagesize_m1;
++  if (free_end > freeblock)
++    {
++      size_t freesize = free_end - freeblock;
++      assert (freesize < size);
++      __madvise ((void*) freeblock, freesize, MADV_DONTNEED);
++    }
++#endif
++}
++
+ /* Returns a usable stack for a new thread either by allocating a
+    new stack or reusing a cached stack of sufficient size.
+    ATTR must be non-NULL and point to a valid pthread_attr.
+--- a/nptl/pthread_create.c
++++ b/nptl/pthread_create.c
+@@ -545,31 +545,8 @@
+     }
+ #endif
+ 
+-  /* Mark the memory of the stack as usable to the kernel.  We free
+-     everything except for the space used for the TCB itself.  */
+-  size_t pagesize_m1 = __getpagesize () - 1;
+-#ifdef _STACK_GROWS_DOWN
+-  char *sp = CURRENT_STACK_FRAME;
+-  size_t freesize = (sp - (char *) pd->stackblock) & ~pagesize_m1;
+-  assert (freesize < pd->stackblock_size);
+-  if (freesize > PTHREAD_STACK_MIN)
+-    __madvise (pd->stackblock, freesize - PTHREAD_STACK_MIN, MADV_DONTNEED);
+-#else
+-  /* Page aligned start of memory to free (higher than or equal
+-     to current sp plus the minimum stack size).  */
+-  void *freeblock = (void*)((size_t)(CURRENT_STACK_FRAME
+-				     + PTHREAD_STACK_MIN
+-				     + pagesize_m1)
+-				    & ~pagesize_m1);
+-  char *free_end = (char *) (((uintptr_t) pd - pd->guardsize) & ~pagesize_m1);
+-  /* Is there any space to free?  */
+-  if (free_end > (char *)freeblock)
+-    {
+-      size_t freesize = (size_t)(free_end - (char *)freeblock);
+-      assert (freesize < pd->stackblock_size);
+-      __madvise (freeblock, freesize, MADV_DONTNEED);
+-    }
+-#endif
++  advise_stack_range (pd->stackblock, pd->stackblock_size, (uintptr_t) pd,
++		      pd->guardsize);
+ 
+   /* If the thread is detached free the TCB.  */
+   if (IS_DETACHED (pd))
