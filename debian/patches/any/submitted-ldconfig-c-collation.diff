@@ -1,0 +1,17 @@
+Submitted upstream, won't be backported in upstream stable branches.
+
+diff --git a/elf/ldconfig.c b/elf/ldconfig.c
+index 89042351f8..2c01ab567b 100644
+--- a/elf/ldconfig.c
++++ b/elf/ldconfig.c
+@@ -1259,6 +1259,10 @@ main (int argc, char **argv)
+   /* Set locale via LC_ALL.  */
+   setlocale (LC_ALL, "");
+ 
++  /* But keep the C collation.  That way `include' directives using
++     globbing patterns are processed in a locale-independent order.  */
++  setlocale (LC_COLLATE, "C");
++
+   /* Set the text message domain.  */
+   textdomain (_libc_intl_domainname);
+ 
