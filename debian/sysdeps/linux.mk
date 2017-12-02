@@ -1,4 +1,6 @@
-# When changing this, make sure to update debian/debhelper.in/libc.preinst!
+# When changing this, make sure:
+# - to update debian/debhelper.in/libc.preinst!
+# - that all builds for a given gnu triplet have the same minimum version (see bug#882255)
 MIN_KERNEL_SUPPORTED := 3.2
 libc = libc6
 

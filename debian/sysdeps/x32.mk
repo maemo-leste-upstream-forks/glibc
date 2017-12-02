@@ -12,6 +12,7 @@ ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
 GLIBC_PASSES += amd64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-amd64 libc6-dev-amd64
 libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
+amd64_MIN_KERNEL_SUPPORTED := 2.6.32
 amd64_configure_target = x86_64-linux-gnu
 amd64_CC = $(CC) -m64
 amd64_CXX = $(CXX) -m64
@@ -42,6 +43,7 @@ endef
 GLIBC_PASSES += i386
 DEB_ARCH_MULTILIB_PACKAGES += libc6-i386 libc6-dev-i386
 libc6-i386_shlib_dep = libc6-i386 (>= $(shlib_dep_ver))
+i386_MIN_KERNEL_SUPPORTED := 2.6.32
 i386_configure_target = i686-linux-gnu
 i386_CC = $(CC) -m32 -march=pentium4 -mtune=generic
 i386_CXX = $(CXX) -m32 -march=pentium4 -mtune=generic

@@ -144,6 +144,41 @@ glibc (2.26-0experimental0) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Sun, 19 Nov 2017 12:49:13 +0100
 
+glibc (2.25-3) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix assertion failure in posix_spawn().  Closes: #882794.
+    - Fix missing posix_fadvise64 from static mips64el build. Closes:
+      #883186.
+    - Fix buffer overflow in glob with GLOB_TILDE (CVE-2017-15670).  Closes:
+      #879501.
+    - Fix memory leak in glob with GLOB_TILDE (CVE-2017-15671).  Closes:
+      #879500.
+    - Fix a buffer overflow in glob with GLOB_TILDE in unescaping
+      (CVE-2017-15804).  Closes: #879955.
+  * debian/patches/any/local-dlfptr.diff: remove, it's not used anymore by
+    HPPA and causes issues on IA64.  Closes: #882874.
+  * debian/patches/submitted-ldconfig-c-collation.diff: New patch to process
+    include directives in ldconfig using the C/POSIX collation.
+  * debian/patches/ia64/git-ia64-crash-thread-exit.diff: Fix crash on thread
+    exit on IA64.  Closes: #883285.
+  * debian/sysdeps/x32.mk: set the minimum kernel version to 2.6.32 for the
+    libc6-amd64:x32 and libc6-i386:x32 flavours, to match libc6:amd64 and
+    libc6:i386.  Closes: #882255.
+  * debian/sysdeps/linux.mk: note that all builds for a given gnu triplet
+    have the same minimum kernel version.
+
+  [ Samuel Thibault ]
+  * libc0.3.symbols.hurd-i386: Update against newer hurd definitions.
+  * control: Bump dependency accordingly.
+
+  [ Jason Duerstock ]
+  * debian/control.in/libc, debian/control.in/main, debian/rules.d/control.mk:
+    Add support for IA64.  Closes: #883012.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sat, 02 Dec 2017 11:07:17 +0100
+
 glibc (2.25-2) unstable; urgency=medium
 
   [ Aurelien Jarno ]
