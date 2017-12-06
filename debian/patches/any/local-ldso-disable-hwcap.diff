@@ -22,11 +22,11 @@
    struct r_strlenpair *result;
    struct r_strlenpair *rp;
    char *cp;
-@@ -417,8 +417,22 @@
+@@ -111,8 +113,22 @@
    /* For TLS enabled builds always add 'tls'.  */
    ++cnt;
  
-+  if (__access ("/etc/ld.so.nohwcap", F_OK) == 0)
++  if (__access_noerrno ("/etc/ld.so.nohwcap", F_OK) == 0)
 +    {
 +      /* If hwcap is disabled, we only have the base directory to search.  */
 +      result = (struct r_strlenpair *) malloc (sizeof (*result));
@@ -46,7 +46,7 @@
    m = 0;
  #ifdef NEED_DL_SYSINFO_DSO
    if (dsocaps != NULL)
-@@ -496,8 +510,11 @@
+@@ -192,8 +208,11 @@
    *sz = 1 << cnt;
    result = (struct r_strlenpair *) malloc (*sz * sizeof (*result) + total);
    if (result == NULL)
@@ -70,17 +70,17 @@
  
        /* This is where the strings start.  */
        cache_data = (const char *) cache_new;
-@@ -255,6 +256,9 @@
+@@ -258,6 +260,9 @@
        if (platform != (uint64_t) -1)
  	platform = 1ULL << platform;
  
-+      if (__access ("/etc/ld.so.nohwcap", F_OK) == 0)
++      if (__access_noerrno ("/etc/ld.so.nohwcap", F_OK) == 0)
 +	disable_hwcap = 1;
 +
  #define _DL_HWCAP_TLS_MASK (1LL << 63)
        uint64_t hwcap_exclude = ~((GLRO(dl_hwcap) & GLRO(dl_hwcap_mask))
  				 | _DL_HWCAP_PLATFORM | _DL_HWCAP_TLS_MASK);
-@@ -265,6 +269,8 @@
+@@ -268,6 +273,8 @@
  	continue;							      \
        if (GLRO(dl_osversion) && lib->osversion > GLRO(dl_osversion))	      \
  	continue;							      \
