@@ -732,6 +732,8 @@ test-xfail-tst-vfork3 = yes
 test-xfail-tst-wcstod-round = yes
 test-xfail-tst-env-setuid = yes
 test-xfail-tst-env-setuid-tunables = yes
+test-xfail-tst-glob-tilde = yes
+test-xfail-tst-glob-tilde-mem = yes
 
 # regression in 2.25
 test-xfail-test-ildouble = yes
