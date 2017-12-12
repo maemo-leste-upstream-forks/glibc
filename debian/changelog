@@ -151,6 +151,41 @@ glibc (2.26-0experimental0) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Sun, 19 Nov 2017 12:49:13 +0100
 
+glibc (2.25-4) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/patches/kfreebsd/local-sysdeps.diff: update to revision 6194 (from
+    glibc-bsd):
+    - Provide TCP_KEEPIDLE in netinet/tcp.h.  Closes: #881185.
+    - Fix FTBFS on kfreebsd-amd64.
+  * debian/control.in/libc: add conflicts with libc0.1-i686 on kfreebsd-i386
+    and libc6-i686 on i386, to make sure the transitional packages are not
+    kept when upgrading from stretch.
+  * debian/patches/any/local-ldso-disable-hwcap.diff: use __access_noerrno
+    instead of __access.  Closes: #877493.
+  * debian/rules, debian/rules.d/debhelper.mk: reverse the logic to build
+    libc6-dbg. Only fill it with files from the main libc and optimized
+    flavours. Other debugging symbols are available in the dbgsym packages.
+    Closes: #520680.
+  * debian/rules.d/build.mk: add /usr/local multi-arch paths to ld.so.conf
+    files.  Closes: #685519, #771934.
+  * debian/patches/any/git-any-ld.so-newline.diff: add missing newline after
+    "cannot allocate TLS data structures for initial thread".  Closes:
+    #776659.
+  * debian/glibc-source.filelist: update with the latest mips* symbol files.
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix SysV IPC on IA64.  Closes: #884194.
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/local-no-bootstrap-fs-access.diff: Refresh.
+  * patches/hurd-i386/git-rtld-access.diff: New patch.
+  * patches/hurd-i386/local-msg-nosignal.diff: Remove, now useless.
+  * testsuite-xfail-debian.mk: Update gnu-gnu according to git-updates.diff.
+  * control: Bump hurd-dev build-dep.
+  * libc0.3.symbols.hurd-i386: Update symbols accordingly.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 12 Dec 2017 20:21:48 +0100
+
 glibc (2.25-3) unstable; urgency=medium
 
   [ Aurelien Jarno ]

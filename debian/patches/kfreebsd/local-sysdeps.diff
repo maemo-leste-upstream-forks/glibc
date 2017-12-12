@@ -14132,6 +14132,18 @@
 +   'struct stat64' != 'struct stat'.  */
 +#include <sysdeps/gnu/glob64.c>
 --- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/globfree.c
+@@ -0,0 +1,3 @@
++/* 'globfree64' is different from 'globfree', because
++   'struct stat64' != 'struct stat'.  */
++#include <posix/globfree.c>
+--- /dev/null
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/globfree64.c
+@@ -0,0 +1,3 @@
++/* 'globfree64' is different from 'globfree', because
++   'struct stat64' != 'struct stat'.  */
++#include <sysdeps/gnu/globfree64.c>
+--- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/grantpt.c
 @@ -0,0 +1,36 @@
 +#include <assert.h>
@@ -24346,7 +24358,7 @@
 +#endif /* netinet/ip_icmp.h */
 --- /dev/null
 +++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/netinet/tcp.h
-@@ -0,0 +1,269 @@
+@@ -0,0 +1,278 @@
 +/* netinet/tcp.h
 +   Copyright (C) 2002 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -24406,13 +24418,22 @@
 +/*
 + * User-settable options (used with setsockopt).
 + */
-+#define	TCP_NODELAY	 1	/* Don't delay send to coalesce packets  */
-+#define	TCP_MAXSEG	 2	/* Set maximum segment size  */
++#define TCP_NODELAY	 1	/* Don't delay send to coalesce packets  */
++#define TCP_MAXSEG	 2	/* Set maximum segment size  */
 +#define TCP_NOPUSH	 4	/* Don't push last block of write  */
 +#define TCP_NOOPT	 8	/* Don't use TCP options  */
 +#define TCP_MD5SIG	16	/* use MD5 digests (RFC2385) */
 +#define TCP_INFO	32	/* retrieve tcp_info structure */
-+#define TCP_CONGESTION  64	/* get/set congestion control algorithm */
++#define TCP_CONGESTION	64	/* get/set congestion control algorithm */
++#define TCP_CCALGOOPT	65	/* get/set cc algorithm specific options */
++#define TCP_KEEPINIT	128	/* N, time to establish connection */
++#define TCP_KEEPIDLE	256	/* L,N,X start keeplives after this period */
++#define TCP_KEEPINTVL	512	/* L,N interval between keepalives */
++#define TCP_KEEPCNT	1024	/* L,N number of keepalives before close */
++#define TCP_FASTOPEN	1025	/* enable TFO / was created via TFO */
++#define TCP_PCAP_OUT	2048	/* number of output packets to keep */
++#define TCP_PCAP_IN	4096	/* number of input packets to keep */
++#define TCP_FUNCTION_BLK 8192	/* Set the tcp function pointers to the specified stack */
 +
 +#ifdef __USE_MISC
 +# include <sys/types.h>

@@ -324,6 +324,8 @@ test-xfail-tst-vfork3 = yes
 test-xfail-tst-wcstod-round = yes
 test-xfail-tst-env-setuid = yes
 test-xfail-tst-env-setuid-tunables = yes
+test-xfail-tst-glob-tilde = yes
+test-xfail-tst-glob-tilde-mem = yes
 
 # new in 2.26
 test-xfail-tst-malloc-usable-static-tunables = yes
