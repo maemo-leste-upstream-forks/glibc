@@ -1,10 +1,15 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.25/master from glibc-2.25
 
 diff --git a/ChangeLog b/ChangeLog
-index f140ee67de..f85bf022b9 100644
+index f140ee67de..574ea60130 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,709 @@
+@@ -1,3 +1,714 @@
++2017-12-12  James Clarke <jrtc27@jrtc27.com>
++
++	* sysdeps/unix/sysv/linux/ia64/ipc_priv.h: New file defining
++	__IPC_64 to 0 to avoid IPC_64 being set.
++
 +2017-11-02  Florian Weimer  <fweimer@redhat.com>
 +
 +	[BZ #22332]
@@ -12057,6 +12062,33 @@ index 2c2584956d..8ea4333846 100644
  # The main malloc is interposed into the dynamic linker, for
  # allocations after the initial link (when dlopen is used).
  ld.so: malloc + REL R_386_GLOB_DAT
+diff --git a/sysdeps/unix/sysv/linux/ia64/ipc_priv.h b/sysdeps/unix/sysv/linux/ia64/ipc_priv.h
+new file mode 100644
+index 0000000000..e602eea455
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/ia64/ipc_priv.h
+@@ -0,0 +1,21 @@
++/* Old SysV permission definition for Linux.  IA64 version.
++   Copyright (C) 2017 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <sys/ipc.h>  /* For __key_t  */
++
++#define __IPC_64	0x0
 diff --git a/sysdeps/unix/sysv/linux/mips/mips64/n64/globfree64.c b/sysdeps/unix/sysv/linux/mips/mips64/n64/globfree64.c
 new file mode 100644
 index 0000000000..abc35fdd2b
