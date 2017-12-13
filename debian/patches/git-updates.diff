@@ -1,10 +1,37 @@
 GIT update of git://sourceware.org/git/glibc.git/release/2.26/master from glibc-2.26
 
 diff --git a/ChangeLog b/ChangeLog
-index 8dbfc7eaff..4fb30a1d8f 100644
+index 8dbfc7eaff..b90e7eb827 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,1005 @@
+@@ -1,3 +1,1032 @@
++2017-12-13  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++
++	* sysdeps/ia64/fpu/libm-test-ulps: Update.
++
++2017-12-12  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++
++	[BZ #21672]
++	* nptl/allocatestack.c [_STACK_GROWS_DOWN] (setup_stack_prot):
++	Set to use !NEED_SEPARATE_REGISTER_STACK as well.
++	(advise_stack_range): New function.
++	* nptl/pthread_create.c (START_THREAD_DEFN): Move logic to mark
++	stack non required to advise_stack_range at allocatestack.c
++
++2017-12-12  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++	    Sergei Trofimovich  <slyfox@inbox.ru>
++
++	[BZ #21908]
++	* sysdeps/unix/sysv/linux/m68k/mmap_internal.h (MMAP2_PAGE_SHIFT):
++	Rename to MMAP2_PAGE_UNIT.
++	* sysdeps/unix/sysv/linux/ia64/mmap_internal.h: New file.
++	* sysdeps/unix/sysv/linux/mmap.c: Include mmap_internal iff
++	__OFF_T_MATCHES_OFF64_T is not defined.
++	* sysdeps/unix/sysv/linux/mmap_internal.h (page_unit): Declare as
++	uint64_t.
++	(MMAP2_PAGE_UNIT) [MMAP2_PAGE_UNIT == -1]: Redefine to page_unit.
++	(page_unit) [MMAP2_PAGE_UNIT != -1]: Remove definition.
++
 +2017-12-12  James Clarke <jrtc27@jrtc27.com>
 +
 +	* sysdeps/unix/sysv/linux/ia64/ipc_priv.h: New file defining
@@ -3316,10 +3343,53 @@ index 5cb1bb2c3d..9ca6d01b8c 100644
  ifneq ($(filter %tests,$(MAKECMDGOALS)),)
  .NOTPARALLEL:
 diff --git a/nptl/allocatestack.c b/nptl/allocatestack.c
-index ce2e24af95..dff5d3469e 100644
+index ce2e24af95..1a760e92e5 100644
 --- a/nptl/allocatestack.c
 +++ b/nptl/allocatestack.c
-@@ -727,7 +727,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
+@@ -356,7 +356,7 @@ setup_stack_prot (char *mem, size_t size, char *guard, size_t guardsize,
+ 		  const int prot)
+ {
+   char *guardend = guard + guardsize;
+-#if _STACK_GROWS_DOWN
++#if _STACK_GROWS_DOWN && !defined(NEED_SEPARATE_REGISTER_STACK)
+   /* As defined at guard_position, for architectures with downward stack
+      the guard page is always at start of the allocated area.  */
+   if (__mprotect (guardend, size - guardsize, prot) != 0)
+@@ -372,6 +372,33 @@ setup_stack_prot (char *mem, size_t size, char *guard, size_t guardsize,
+   return 0;
+ }
+ 
++/* Mark the memory of the stack as usable to the kernel.  It frees everything
++   except for the space used for the TCB itself.  */
++static inline void
++__always_inline
++advise_stack_range (void *mem, size_t size, uintptr_t pd, size_t guardsize)
++{
++  uintptr_t sp = (uintptr_t) CURRENT_STACK_FRAME;
++  size_t pagesize_m1 = __getpagesize () - 1;
++#if _STACK_GROWS_DOWN && !defined(NEED_SEPARATE_REGISTER_STACK)
++  size_t freesize = (sp - (uintptr_t) mem) & ~pagesize_m1;
++  assert (freesize < size);
++  if (freesize > PTHREAD_STACK_MIN)
++    __madvise (mem, freesize - PTHREAD_STACK_MIN, MADV_DONTNEED);
++#else
++  /* Page aligned start of memory to free (higher than or equal
++     to current sp plus the minimum stack size).  */
++  uintptr_t freeblock = (sp + PTHREAD_STACK_MIN + pagesize_m1) & ~pagesize_m1;
++  uintptr_t free_end = (pd - guardsize) & ~pagesize_m1;
++  if (free_end > freeblock)
++    {
++      size_t freesize = free_end - freeblock;
++      assert (freesize < size);
++      __madvise ((void*) freeblock, freesize, MADV_DONTNEED);
++    }
++#endif
++}
++
+ /* Returns a usable stack for a new thread either by allocating a
+    new stack or reusing a cached stack of sufficient size.
+    ATTR must be non-NULL and point to a valid pthread_attr.
+@@ -727,7 +754,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
  				  - offsetof (pthread_mutex_t,
  					      __data.__list.__next));
    pd->robust_head.list_op_pending = NULL;
@@ -3463,7 +3533,7 @@ index 6e7d6ff09e..c5ae04692e 100644
 +
  #endif	/* pthreadP.h */
 diff --git a/nptl/pthread_create.c b/nptl/pthread_create.c
-index 2f8ada34d6..16c05c3a58 100644
+index 2f8ada34d6..791587218b 100644
 --- a/nptl/pthread_create.c
 +++ b/nptl/pthread_create.c
 @@ -520,7 +520,7 @@ START_THREAD_DEFN
@@ -3484,6 +3554,40 @@ index 2f8ada34d6..16c05c3a58 100644
  	  this->__list.__prev = NULL;
  # endif
  	  this->__list.__next = NULL;
+@@ -551,31 +551,8 @@ START_THREAD_DEFN
+     }
+ #endif
+ 
+-  /* Mark the memory of the stack as usable to the kernel.  We free
+-     everything except for the space used for the TCB itself.  */
+-  size_t pagesize_m1 = __getpagesize () - 1;
+-#ifdef _STACK_GROWS_DOWN
+-  char *sp = CURRENT_STACK_FRAME;
+-  size_t freesize = (sp - (char *) pd->stackblock) & ~pagesize_m1;
+-  assert (freesize < pd->stackblock_size);
+-  if (freesize > PTHREAD_STACK_MIN)
+-    __madvise (pd->stackblock, freesize - PTHREAD_STACK_MIN, MADV_DONTNEED);
+-#else
+-  /* Page aligned start of memory to free (higher than or equal
+-     to current sp plus the minimum stack size).  */
+-  void *freeblock = (void*)((size_t)(CURRENT_STACK_FRAME
+-				     + PTHREAD_STACK_MIN
+-				     + pagesize_m1)
+-				    & ~pagesize_m1);
+-  char *free_end = (char *) (((uintptr_t) pd - pd->guardsize) & ~pagesize_m1);
+-  /* Is there any space to free?  */
+-  if (free_end > (char *)freeblock)
+-    {
+-      size_t freesize = (size_t)(free_end - (char *)freeblock);
+-      assert (freesize < pd->stackblock_size);
+-      __madvise (freeblock, freesize, MADV_DONTNEED);
+-    }
+-#endif
++  advise_stack_range (pd->stackblock, pd->stackblock_size, (uintptr_t) pd,
++		      pd->guardsize);
+ 
+   /* If the thread is detached free the TCB.  */
+   if (IS_DETACHED (pd))
 diff --git a/nptl/pthread_mutex_init.c b/nptl/pthread_mutex_init.c
 index 6f2fc808ff..e1f911bf29 100644
 --- a/nptl/pthread_mutex_init.c
@@ -11503,6 +11607,2544 @@ index 0000000000..9617354dc7
 +#define __PTHREAD_MUTEX_SPINS_OFFSET    20
 +#define __PTHREAD_MUTEX_ELISION_OFFSET  22
 +#define __PTHREAD_MUTEX_LIST_OFFSET     20
+diff --git a/sysdeps/ia64/fpu/libm-test-ulps b/sysdeps/ia64/fpu/libm-test-ulps
+index 2776ba7fae..543cebcb63 100644
+--- a/sysdeps/ia64/fpu/libm-test-ulps
++++ b/sysdeps/ia64/fpu/libm-test-ulps
+@@ -1,508 +1,2396 @@
+ # Begin of automatic generation
+ 
+ # Maximal error of functions:
+-Function: "asin_downward":
++Function: "acos":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++
++Function: "acos_downward":
+ double: 1
+ float: 1
++float128: 1
+ idouble: 1
+ ifloat: 1
+-ildouble: 1
+-ldouble: 1
++ifloat128: 1
+ 
+-Function: "asin_towardzero":
++Function: "acos_towardzero":
+ double: 1
+ float: 1
++float128: 1
+ idouble: 1
+ ifloat: 1
+-ildouble: 1
+-ldouble: 1
++ifloat128: 1
+ 
+-Function: "asin_upward":
++Function: "acos_upward":
+ double: 1
+ float: 1
++float128: 1
+ idouble: 1
+ ifloat: 1
+-ildouble: 1
+-ldouble: 1
++ifloat128: 1
+ 
+-Function: Real part of "cacos":
++Function: "acosh":
+ double: 1
+-float: 2
++float128: 2
+ idouble: 1
+-ifloat: 2
++ifloat128: 2
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Imaginary part of "cacos":
+-double: 1
+-float: 2
+-idouble: 1
+-ifloat: 2
+-ildouble: 2
+-ldouble: 2
++Function: "acosh_downward":
++float128: 3
++ifloat128: 3
+ 
+-Function: Real part of "cacosh":
+-double: 1
+-float: 2
+-idouble: 1
+-ifloat: 2
+-ildouble: 2
+-ldouble: 2
++Function: "acosh_towardzero":
++float128: 2
++ifloat128: 2
+ 
+-Function: Imaginary part of "cacosh":
++Function: "acosh_upward":
++float128: 2
++ifloat128: 2
++
++Function: "asin":
++float128: 1
++ifloat128: 1
++
++Function: "asin_downward":
+ double: 1
+-float: 2
++float: 1
++float128: 2
+ idouble: 1
+-ifloat: 2
++ifloat: 1
++ifloat128: 2
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Real part of "casin":
++Function: "asin_towardzero":
+ double: 1
+ float: 1
++float128: 1
+ idouble: 1
+ ifloat: 1
++ifloat128: 1
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Imaginary part of "casin":
++Function: "asin_upward":
+ double: 1
+-float: 2
++float: 1
++float128: 2
+ idouble: 1
+-ifloat: 2
+-ildouble: 2
+-ldouble: 2
++ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
+ 
+-Function: Real part of "casinh":
++Function: "asinh":
+ double: 1
+-float: 2
++float128: 3
+ idouble: 1
+-ifloat: 2
+-ildouble: 2
+-ldouble: 2
++ifloat128: 3
+ 
+-Function: Imaginary part of "casinh":
++Function: "asinh_downward":
++float128: 4
++ifloat128: 4
++
++Function: "asinh_towardzero":
++float128: 2
++ifloat128: 2
++
++Function: "asinh_upward":
++float128: 4
++ifloat128: 4
++
++Function: "atan":
++float128: 1
++ifloat128: 1
++
++Function: "atan2":
++float128: 1
++ifloat128: 1
++
++Function: "atan2_downward":
+ double: 1
+ float: 1
++float128: 2
+ idouble: 1
+ ifloat: 1
++ifloat128: 2
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Imaginary part of "catan":
+-double: 1
++Function: "atan2_towardzero":
+ float: 1
+-idouble: 1
++float128: 3
+ ifloat: 1
++ifloat128: 3
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Real part of "catanh":
++Function: "atan2_upward":
+ double: 1
+ float: 1
++float128: 2
+ idouble: 1
+ ifloat: 1
++ifloat128: 2
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Real part of "ccos":
++Function: "atan_downward":
+ double: 1
++float: 1
++float128: 2
+ idouble: 1
++ifloat: 1
++ifloat128: 2
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Imaginary part of "ccos":
+-double: 1
++Function: "atan_towardzero":
+ float: 1
+-idouble: 1
++float128: 1
+ ifloat: 1
++ifloat128: 1
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Real part of "ccosh":
++Function: "atan_upward":
+ double: 1
+ float: 1
++float128: 2
+ idouble: 1
+ ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
+ 
+-Function: Imaginary part of "ccosh":
+-double: 1
++Function: "atanh":
++float128: 3
++ifloat128: 3
++
++Function: "atanh_downward":
+ float: 1
+-idouble: 1
++float128: 4
+ ifloat: 1
+-ildouble: 1
+-ldouble: 1
++ifloat128: 4
+ 
+-Function: Real part of "cexp":
+-double: 2
++Function: "atanh_towardzero":
+ float: 1
+-idouble: 2
++float128: 2
++ifloat: 1
++ifloat128: 2
++
++Function: "atanh_upward":
++float: 1
++float128: 4
++ifloat: 1
++ifloat128: 4
++
++Function: "cabs":
++float128: 1
++ifloat128: 1
++
++Function: "cabs_downward":
++double: 1
++float: 1
++float128: 1
++idouble: 1
+ ifloat: 1
++ifloat128: 1
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Imaginary part of "cexp":
++Function: "cabs_towardzero":
+ double: 1
+-float: 2
++float: 1
++float128: 1
+ idouble: 1
+-ifloat: 2
++ifloat: 1
++ifloat128: 1
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Real part of "clog":
++Function: "cabs_upward":
+ double: 1
+ float: 1
++float128: 1
+ idouble: 1
+ ifloat: 1
++ifloat128: 1
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Imaginary part of "clog":
++Function: Real part of "cacos":
+ double: 1
++float: 2
++float128: 2
+ idouble: 1
++ifloat: 2
++ifloat128: 2
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Real part of "clog10":
++Function: Imaginary part of "cacos":
+ double: 2
+ float: 2
++float128: 2
+ idouble: 2
+ ifloat: 2
+-ildouble: 1
+-ldouble: 1
++ifloat128: 2
++ildouble: 2
++ldouble: 2
+ 
+-Function: Imaginary part of "clog10":
++Function: Real part of "cacos_downward":
+ double: 1
+ float: 1
++float128: 3
+ idouble: 1
+ ifloat: 1
+-ildouble: 1
+-ldouble: 1
++ifloat128: 3
++ildouble: 2
++ldouble: 2
+ 
+-Function: "cos":
+-double: 1
+-idouble: 1
++Function: Imaginary part of "cacos_downward":
++double: 5
++float: 6
++float128: 6
++idouble: 5
++ifloat: 6
++ifloat128: 6
++ildouble: 5
++ldouble: 5
+ 
+-Function: "cos_downward":
++Function: Real part of "cacos_towardzero":
+ double: 1
+ float: 1
++float128: 3
+ idouble: 1
+ ifloat: 1
+-ildouble: 1
+-ldouble: 1
++ifloat128: 3
++ildouble: 2
++ldouble: 2
+ 
+-Function: "cos_towardzero":
++Function: Imaginary part of "cacos_towardzero":
++double: 4
++float: 5
++float128: 5
++idouble: 4
++ifloat: 5
++ifloat128: 5
++ildouble: 4
++ldouble: 4
++
++Function: Real part of "cacos_upward":
++double: 2
++float: 2
++float128: 3
++idouble: 2
++ifloat: 2
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "cacos_upward":
++double: 5
++float: 5
++float128: 7
++idouble: 5
++ifloat: 5
++ifloat128: 7
++ildouble: 5
++ldouble: 5
++
++Function: Real part of "cacosh":
++double: 2
++float: 2
++float128: 2
++idouble: 2
++ifloat: 2
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "cacosh":
+ double: 1
+-float: 1
++float: 2
++float128: 2
+ idouble: 1
+-ifloat: 1
++ifloat: 2
++ifloat128: 2
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: "cos_upward":
+-ildouble: 1
+-ldouble: 1
++Function: Real part of "cacosh_downward":
++double: 4
++float: 5
++float128: 5
++idouble: 4
++ifloat: 5
++ifloat128: 5
++ildouble: 4
++ldouble: 4
+ 
+-Function: Real part of "cpow":
++Function: Imaginary part of "cacosh_downward":
+ double: 2
+-float: 5
++float: 2
++float128: 4
+ idouble: 2
+-ifloat: 5
++ifloat: 2
++ifloat128: 4
+ ildouble: 3
+ ldouble: 3
+ 
+-Function: Imaginary part of "cpow":
+-float: 2
+-ifloat: 2
++Function: Real part of "cacosh_towardzero":
++double: 4
++float: 5
++float128: 5
++idouble: 4
++ifloat: 5
++ifloat128: 5
+ ildouble: 4
+ ldouble: 4
+ 
+-Function: Real part of "csin":
++Function: Imaginary part of "cacosh_towardzero":
+ double: 1
+ float: 1
++float128: 3
+ idouble: 1
+ ifloat: 1
+-ildouble: 1
+-ldouble: 1
++ifloat128: 3
++ildouble: 2
++ldouble: 2
+ 
+-Function: Imaginary part of "csin":
+-float: 1
+-ifloat: 1
++Function: Real part of "cacosh_upward":
++double: 4
++float: 3
++float128: 6
++idouble: 4
++ifloat: 3
++ifloat128: 6
++ildouble: 4
++ldouble: 4
+ 
+-Function: Real part of "csinh":
++Function: Imaginary part of "cacosh_upward":
++double: 3
++float: 2
++float128: 4
++idouble: 3
++ifloat: 2
++ifloat128: 4
++ildouble: 3
++ldouble: 3
++
++Function: "carg":
++float128: 2
++ifloat128: 2
++
++Function: "carg_downward":
+ double: 1
+ float: 1
++float128: 2
+ idouble: 1
+ ifloat: 1
++ifloat128: 2
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Imaginary part of "csinh":
+-double: 1
+-float: 1
+-idouble: 1
+-ifloat: 1
+-
+-Function: Real part of "csqrt":
+-double: 1
++Function: "carg_towardzero":
+ float: 1
+-idouble: 1
++float128: 3
+ ifloat: 1
++ifloat128: 3
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Imaginary part of "csqrt":
++Function: "carg_upward":
+ double: 1
+ float: 1
++float128: 2
+ idouble: 1
+ ifloat: 1
++ifloat128: 2
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: Real part of "ctan":
++Function: Real part of "casin":
+ double: 1
+ float: 1
++float128: 2
+ idouble: 1
+ ifloat: 1
+-ildouble: 2
+-ldouble: 2
++ifloat128: 2
++ildouble: 1
++ldouble: 1
+ 
+-Function: Imaginary part of "ctan":
++Function: Imaginary part of "casin":
+ double: 2
+-float: 1
++float: 2
++float128: 2
+ idouble: 2
+-ifloat: 1
+-ildouble: 2
+-ldouble: 2
+-
+-Function: Real part of "ctan_downward":
+-double: 4
+-float: 4
+-idouble: 4
+-ifloat: 4
++ifloat: 2
++ifloat128: 2
+ ildouble: 2
+ ldouble: 2
+ 
+-Function: Imaginary part of "ctan_downward":
++Function: Real part of "casin_downward":
+ double: 3
+ float: 2
++float128: 3
+ idouble: 3
+ ifloat: 2
+-ildouble: 2
+-ldouble: 2
++ifloat128: 3
++ildouble: 3
++ldouble: 3
+ 
+-Function: Real part of "ctan_towardzero":
+-double: 2
+-float: 1
+-idouble: 2
+-ifloat: 1
+-ildouble: 2
+-ldouble: 2
++Function: Imaginary part of "casin_downward":
++double: 5
++float: 6
++float128: 6
++idouble: 5
++ifloat: 6
++ifloat128: 6
++ildouble: 5
++ldouble: 5
+ 
+-Function: Imaginary part of "ctan_towardzero":
++Function: Real part of "casin_towardzero":
+ double: 3
+ float: 2
++float128: 3
+ idouble: 3
+ ifloat: 2
++ifloat128: 3
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "casin_towardzero":
++double: 4
++float: 5
++float128: 5
++idouble: 4
++ifloat: 5
++ifloat128: 5
+ ildouble: 4
+ ldouble: 4
+ 
+-Function: Real part of "ctan_upward":
++Function: Real part of "casin_upward":
+ double: 2
+-float: 3
++float: 1
++float128: 3
+ idouble: 2
+-ifloat: 3
+-ildouble: 5
++ifloat: 1
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "casin_upward":
++double: 5
++float: 5
++float128: 7
++idouble: 5
++ifloat: 5
++ifloat128: 7
++ildouble: 5
++ldouble: 5
++
++Function: Real part of "casinh":
++double: 2
++float: 2
++float128: 2
++idouble: 2
++ifloat: 2
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "casinh":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "casinh_downward":
++double: 5
++float: 6
++float128: 6
++idouble: 5
++ifloat: 6
++ifloat128: 6
++ildouble: 5
++ldouble: 5
++
++Function: Imaginary part of "casinh_downward":
++double: 3
++float: 2
++float128: 3
++idouble: 3
++ifloat: 2
++ifloat128: 3
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "casinh_towardzero":
++double: 4
++float: 5
++float128: 5
++idouble: 4
++ifloat: 5
++ifloat128: 5
++ildouble: 4
++ldouble: 4
++
++Function: Imaginary part of "casinh_towardzero":
++double: 3
++float: 2
++float128: 3
++idouble: 3
++ifloat: 2
++ifloat128: 3
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "casinh_upward":
++double: 5
++float: 5
++float128: 7
++idouble: 5
++ifloat: 5
++ifloat128: 7
++ildouble: 5
++ldouble: 5
++
++Function: Imaginary part of "casinh_upward":
++double: 2
++float: 1
++float128: 3
++idouble: 2
++ifloat: 1
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "catan":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++
++Function: Imaginary part of "catan":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "catan_downward":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: Imaginary part of "catan_downward":
++double: 2
++float: 1
++float128: 2
++idouble: 2
++ifloat: 1
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "catan_towardzero":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: Imaginary part of "catan_towardzero":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "catan_upward":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: Imaginary part of "catan_upward":
++double: 2
++float: 2
++float128: 3
++idouble: 2
++ifloat: 2
++ifloat128: 3
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "catanh":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: Imaginary part of "catanh":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++
++Function: Real part of "catanh_downward":
++double: 2
++float: 1
++float128: 2
++idouble: 2
++ifloat: 1
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "catanh_downward":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "catanh_towardzero":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "catanh_towardzero":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "catanh_upward":
++double: 4
++float: 4
++float128: 4
++idouble: 4
++ifloat: 4
++ifloat128: 4
++ildouble: 4
++ldouble: 4
++
++Function: Imaginary part of "catanh_upward":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: "cbrt":
++float128: 1
++ifloat128: 1
++
++Function: "cbrt_downward":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: "cbrt_towardzero":
++float: 1
++float128: 1
++ifloat: 1
++ifloat128: 1
++
++Function: "cbrt_upward":
++float: 1
++float128: 1
++ifloat: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "ccos":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: Imaginary part of "ccos":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "ccos_downward":
++double: 3
++float: 1
++float128: 2
++idouble: 3
++ifloat: 1
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "ccos_downward":
++double: 3
++float: 3
++float128: 2
++idouble: 3
++ifloat: 3
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "ccos_towardzero":
++double: 3
++float: 1
++float128: 2
++idouble: 3
++ifloat: 1
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "ccos_towardzero":
++double: 3
++float: 3
++float128: 2
++idouble: 3
++ifloat: 3
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "ccos_upward":
++double: 1
++float: 2
++float128: 3
++idouble: 1
++ifloat: 2
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "ccos_upward":
++double: 2
++float: 2
++float128: 2
++idouble: 2
++ifloat: 2
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "ccosh":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
++
++Function: Imaginary part of "ccosh":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "ccosh_downward":
++double: 3
++float: 2
++float128: 2
++idouble: 3
++ifloat: 2
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "ccosh_downward":
++double: 3
++float: 3
++float128: 2
++idouble: 3
++ifloat: 3
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "ccosh_towardzero":
++double: 3
++float: 2
++float128: 2
++idouble: 3
++ifloat: 2
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "ccosh_towardzero":
++double: 3
++float: 3
++float128: 2
++idouble: 3
++ifloat: 3
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "ccosh_upward":
++double: 1
++float: 2
++float128: 3
++idouble: 1
++ifloat: 2
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "ccosh_upward":
++double: 2
++float: 2
++float128: 2
++idouble: 2
++ifloat: 2
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "cexp":
++double: 2
++float: 1
++float128: 1
++idouble: 2
++ifloat: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: Imaginary part of "cexp":
++double: 1
++float: 2
++float128: 1
++idouble: 1
++ifloat: 2
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "cexp_downward":
++double: 4
++float: 2
++float128: 2
++idouble: 4
++ifloat: 2
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "cexp_downward":
++double: 3
++float: 3
++float128: 2
++idouble: 3
++ifloat: 3
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "cexp_towardzero":
++double: 4
++float: 2
++float128: 2
++idouble: 4
++ifloat: 2
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "cexp_towardzero":
++double: 3
++float: 3
++float128: 2
++idouble: 3
++ifloat: 3
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "cexp_upward":
++double: 2
++float: 2
++float128: 3
++idouble: 2
++ifloat: 2
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "cexp_upward":
++double: 3
++float: 2
++float128: 3
++idouble: 3
++ifloat: 2
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "clog":
++double: 2
++float: 3
++float128: 2
++idouble: 2
++ifloat: 3
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "clog":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "clog10":
++double: 3
++float: 4
++float128: 2
++idouble: 3
++ifloat: 4
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "clog10":
++double: 2
++float: 1
++float128: 2
++idouble: 2
++ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "clog10_downward":
++double: 4
++float: 4
++float128: 3
++idouble: 4
++ifloat: 4
++ifloat128: 3
++ildouble: 4
++ldouble: 4
++
++Function: Imaginary part of "clog10_downward":
++double: 2
++float: 2
++float128: 3
++idouble: 2
++ifloat: 2
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "clog10_towardzero":
++double: 5
++float: 5
++float128: 4
++idouble: 5
++ifloat: 5
++ifloat128: 4
++ildouble: 4
++ldouble: 4
++
++Function: Imaginary part of "clog10_towardzero":
++double: 2
++float: 2
++float128: 3
++idouble: 2
++ifloat: 2
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "clog10_upward":
++double: 4
++float: 5
++float128: 4
++idouble: 4
++ifloat: 5
++ifloat128: 4
++ildouble: 4
++ldouble: 4
++
++Function: Imaginary part of "clog10_upward":
++double: 2
++float: 2
++float128: 3
++idouble: 2
++ifloat: 2
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "clog_downward":
++double: 3
++float: 3
++float128: 3
++idouble: 3
++ifloat: 3
++ifloat128: 3
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "clog_downward":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "clog_towardzero":
++double: 3
++float: 4
++float128: 3
++idouble: 3
++ifloat: 4
++ifloat128: 3
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "clog_towardzero":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "clog_upward":
++double: 2
++float: 3
++float128: 4
++idouble: 2
++ifloat: 3
++ifloat128: 4
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "clog_upward":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: "cos":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++
++Function: "cos_downward":
++double: 1
++float: 1
++float128: 3
++idouble: 1
++ifloat: 1
++ifloat128: 3
++ildouble: 1
++ldouble: 1
++
++Function: "cos_towardzero":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: "cos_upward":
++double: 1
++float128: 2
++idouble: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: "cosh":
++float128: 1
++ifloat128: 1
++
++Function: "cosh_downward":
++float128: 2
++ifloat128: 1
++
++Function: "cosh_towardzero":
++float128: 2
++ifloat128: 1
++
++Function: "cosh_upward":
++float128: 3
++ifloat128: 1
++
++Function: Real part of "cpow":
++double: 2
++float: 5
++float128: 4
++idouble: 2
++ifloat: 5
++ifloat128: 4
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "cpow":
++float: 2
++float128: 1
++ifloat: 2
++ifloat128: 1
++ildouble: 4
++ldouble: 4
++
++Function: Real part of "cpow_downward":
++double: 5
++float: 8
++float128: 6
++idouble: 5
++ifloat: 8
++ifloat128: 6
++ildouble: 7
++ldouble: 7
++
++Function: Imaginary part of "cpow_downward":
++double: 2
++float: 2
++float128: 2
++idouble: 2
++ifloat: 2
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "cpow_towardzero":
++double: 5
++float: 8
++float128: 6
++idouble: 5
++ifloat: 8
++ifloat128: 6
++ildouble: 7
++ldouble: 7
++
++Function: Imaginary part of "cpow_towardzero":
++double: 2
++float: 2
++float128: 2
++idouble: 2
++ifloat: 2
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "cpow_upward":
++double: 4
++float: 1
++float128: 3
++idouble: 4
++ifloat: 1
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "cpow_upward":
++double: 2
++float: 2
++float128: 2
++idouble: 2
++ifloat: 2
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "csin":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: Imaginary part of "csin":
++float: 1
++float128: 1
++ifloat: 1
++ifloat128: 1
++
++Function: Real part of "csin_downward":
++double: 3
++float: 3
++float128: 2
++idouble: 3
++ifloat: 3
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "csin_downward":
++double: 3
++float: 1
++float128: 2
++idouble: 3
++ifloat: 1
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "csin_towardzero":
++double: 3
++float: 3
++float128: 2
++idouble: 3
++ifloat: 3
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "csin_towardzero":
++double: 3
++float: 1
++float128: 2
++idouble: 3
++ifloat: 1
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "csin_upward":
++double: 2
++float: 2
++float128: 2
++idouble: 2
++ifloat: 2
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "csin_upward":
++double: 1
++float: 2
++float128: 3
++idouble: 1
++ifloat: 2
++ifloat128: 3
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "csinh":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: Imaginary part of "csinh":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: Real part of "csinh_downward":
++double: 3
++float: 1
++float128: 2
++idouble: 3
++ifloat: 1
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "csinh_downward":
++double: 3
++float: 3
++float128: 2
++idouble: 3
++ifloat: 3
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "csinh_towardzero":
++double: 3
++float: 1
++float128: 2
++idouble: 3
++ifloat: 1
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "csinh_towardzero":
++double: 3
++float: 3
++float128: 2
++idouble: 3
++ifloat: 3
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "csinh_upward":
++double: 1
++float: 2
++float128: 3
++idouble: 1
++ifloat: 2
++ifloat128: 3
++ildouble: 1
++ldouble: 1
++
++Function: Imaginary part of "csinh_upward":
++double: 2
++float: 2
++float128: 2
++idouble: 2
++ifloat: 2
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "csqrt":
++double: 2
++float: 2
++float128: 2
++idouble: 2
++ifloat: 2
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "csqrt":
++double: 2
++float: 2
++float128: 2
++idouble: 2
++ifloat: 2
++ifloat128: 2
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "csqrt_downward":
++double: 4
++float: 4
++float128: 4
++idouble: 4
++ifloat: 4
++ifloat128: 4
++ildouble: 4
++ldouble: 4
++
++Function: Imaginary part of "csqrt_downward":
++double: 3
++float: 3
++float128: 3
++idouble: 3
++ifloat: 3
++ifloat128: 3
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "csqrt_towardzero":
++double: 3
++float: 3
++float128: 3
++idouble: 3
++ifloat: 3
++ifloat128: 3
++ildouble: 3
++ldouble: 3
++
++Function: Imaginary part of "csqrt_towardzero":
++double: 3
++float: 3
++float128: 3
++idouble: 3
++ifloat: 3
++ifloat128: 3
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "csqrt_upward":
++double: 4
++float: 4
++float128: 4
++idouble: 4
++ifloat: 4
++ifloat128: 4
++ildouble: 4
++ldouble: 4
++
++Function: Imaginary part of "csqrt_upward":
++double: 3
++float: 2
++float128: 3
++idouble: 3
++ifloat: 2
++ifloat128: 3
++ildouble: 3
++ldouble: 3
++
++Function: Real part of "ctan":
++double: 1
++float: 1
++float128: 3
++idouble: 1
++ifloat: 1
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "ctan":
++double: 2
++float: 1
++float128: 3
++idouble: 2
++ifloat: 1
++ifloat128: 3
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "ctan_downward":
++double: 4
++float: 4
++float128: 4
++idouble: 4
++ifloat: 4
++ifloat128: 4
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "ctan_downward":
++double: 3
++float: 2
++float128: 5
++idouble: 3
++ifloat: 2
++ifloat128: 5
++ildouble: 2
++ldouble: 2
++
++Function: Real part of "ctan_towardzero":
++double: 2
++float: 2
++float128: 4
++idouble: 2
++ifloat: 2
++ifloat128: 4
++ildouble: 2
++ldouble: 2
++
++Function: Imaginary part of "ctan_towardzero":
++double: 3
++float: 2
++float128: 5
++idouble: 3
++ifloat: 2
++ifloat128: 5
++ildouble: 4
++ldouble: 4
++
++Function: Real part of "ctan_upward":
++double: 2
++float: 3
++float128: 5
++idouble: 2
++ifloat: 3
++ifloat128: 5
++ildouble: 5
+ ldouble: 5
+ 
+ Function: Imaginary part of "ctan_upward":
+ double: 6
+ float: 2
++float128: 5
+ idouble: 6
+ ifloat: 2
++ifloat128: 5
+ ildouble: 7
+ ldouble: 7
+ 
+ Function: Real part of "ctanh":
+ double: 2
+ float: 1
++float128: 3
+ idouble: 2
+ ifloat: 1
++ifloat128: 3
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: Imaginary part of "ctanh":
+ double: 2
+ float: 1
++float128: 3
+ idouble: 2
+ ifloat: 1
++ifloat128: 3
+ ildouble: 2
+ ldouble: 2
+ 
+ Function: Real part of "ctanh_downward":
+ double: 3
+ float: 2
++float128: 5
+ idouble: 3
+ ifloat: 2
++ifloat128: 5
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: Imaginary part of "ctanh_downward":
+ double: 4
+ float: 4
++float128: 4
+ idouble: 4
+ ifloat: 4
++ifloat128: 4
+ ildouble: 2
+ ldouble: 2
+ 
+ Function: Real part of "ctanh_towardzero":
+ double: 3
+ float: 2
++float128: 5
+ idouble: 3
+ ifloat: 2
++ifloat128: 5
+ ildouble: 4
+ ldouble: 4
+ 
+ Function: Imaginary part of "ctanh_towardzero":
+ double: 2
+ float: 1
++float128: 3
+ idouble: 2
+ ifloat: 1
++ifloat128: 3
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: Real part of "ctanh_upward":
+ double: 6
+ float: 2
++float128: 5
+ idouble: 6
+ ifloat: 2
++ifloat128: 5
+ ildouble: 7
+ ldouble: 7
+ 
+ Function: Imaginary part of "ctanh_upward":
+ double: 2
+ float: 3
++float128: 5
+ idouble: 2
+ ifloat: 3
++ifloat128: 5
+ ildouble: 5
+ ldouble: 5
+ 
+-Function: "expm1":
++Function: "erf":
++float128: 1
++ifloat128: 1
++
++Function: "erf_downward":
++float128: 2
++ifloat128: 2
++
++Function: "erf_towardzero":
++float128: 1
++ifloat128: 1
++
++Function: "erf_upward":
++float128: 2
++ifloat128: 2
++
++Function: "erfc":
++float128: 2
++ifloat128: 2
++
++Function: "erfc_downward":
++double: 1
++float128: 5
++idouble: 1
++ifloat128: 5
++
++Function: "erfc_towardzero":
++double: 1
++float128: 4
++idouble: 1
++ifloat128: 4
++
++Function: "erfc_upward":
++double: 1
++float128: 5
++idouble: 1
++ifloat128: 5
++
++Function: "exp":
++float: 1
++float128: 1
++ifloat: 1
++ifloat128: 1
++
++Function: "exp10":
++float128: 2
++ifloat128: 2
++
++Function: "exp10_downward":
++float128: 3
++ifloat128: 3
++
++Function: "exp10_towardzero":
++float128: 3
++ifloat128: 3
++
++Function: "exp10_upward":
++float128: 3
++ifloat128: 3
++
++Function: "exp2":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: "exp2_downward":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: "exp2_towardzero":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: "exp2_upward":
++double: 1
++float128: 2
++idouble: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: "expm1":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: "expm1_downward":
++float128: 2
++ifloat128: 2
++ildouble: 1
++ldouble: 1
++
++Function: "expm1_towardzero":
++float128: 4
++ifloat128: 4
++
++Function: "expm1_upward":
++float128: 3
++ifloat128: 3
++
++Function: "gamma":
++float: 1
++ifloat: 1
++
++Function: "gamma_downward":
++double: 1
++float: 1
++idouble: 1
++ifloat: 1
++
++Function: "gamma_towardzero":
++double: 1
++float: 1
++idouble: 1
++ifloat: 1
++
++Function: "gamma_upward":
++double: 1
++float: 1
++idouble: 1
++ifloat: 1
++
++Function: "hypot":
++float128: 1
++ifloat128: 1
++
++Function: "hypot_downward":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: "hypot_towardzero":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
+ ildouble: 1
+ ldouble: 1
+ 
+-Function: "expm1_downward":
++Function: "hypot_upward":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "j0":
+ double: 2
+ float: 2
++float128: 2
+ idouble: 2
+ ifloat: 2
++ifloat128: 2
+ ildouble: 2
+ ldouble: 2
+ 
++Function: "j0_downward":
++double: 6
++float: 4
++float128: 4
++idouble: 6
++ifloat: 4
++ifloat128: 4
++ildouble: 3
++ldouble: 3
++
++Function: "j0_towardzero":
++double: 2
++float: 1
++float128: 2
++idouble: 2
++ifloat: 1
++ifloat128: 2
++ildouble: 5
++ldouble: 5
++
++Function: "j0_upward":
++double: 3
++float: 2
++float128: 5
++idouble: 3
++ifloat: 2
++ifloat128: 5
++ildouble: 5
++ldouble: 5
++
+ Function: "j1":
+ double: 1
+ float: 2
++float128: 4
+ idouble: 1
+ ifloat: 2
++ifloat128: 4
+ ildouble: 1
+ ldouble: 1
+ 
++Function: "j1_downward":
++double: 3
++float: 2
++float128: 4
++idouble: 3
++ifloat: 2
++ifloat128: 4
++ildouble: 4
++ldouble: 4
++
++Function: "j1_towardzero":
++double: 3
++float: 2
++float128: 4
++idouble: 3
++ifloat: 2
++ifloat128: 4
++ildouble: 4
++ldouble: 4
++
++Function: "j1_upward":
++double: 3
++float: 4
++float128: 3
++idouble: 3
++ifloat: 4
++ifloat128: 3
++ildouble: 3
++ldouble: 3
++
+ Function: "jn":
+ double: 4
+ float: 4
++float128: 7
+ idouble: 4
+ ifloat: 4
++ifloat128: 7
++ildouble: 4
++ldouble: 4
++
++Function: "jn_downward":
++double: 4
++float: 5
++float128: 8
++idouble: 4
++ifloat: 5
++ifloat128: 8
+ ildouble: 4
+ ldouble: 4
+ 
++Function: "jn_towardzero":
++double: 4
++float: 5
++float128: 8
++idouble: 4
++ifloat: 5
++ifloat128: 8
++ildouble: 5
++ldouble: 5
++
++Function: "jn_upward":
++double: 5
++float: 4
++float128: 7
++idouble: 5
++ifloat: 4
++ifloat128: 7
++ildouble: 5
++ldouble: 5
++
++Function: "lgamma":
++float: 1
++float128: 5
++ifloat: 1
++ifloat128: 5
++
++Function: "lgamma_downward":
++double: 1
++float: 1
++float128: 8
++idouble: 1
++ifloat: 1
++ifloat128: 8
++
++Function: "lgamma_towardzero":
++double: 1
++float: 1
++float128: 5
++idouble: 1
++ifloat: 1
++ifloat128: 5
++
++Function: "lgamma_upward":
++double: 1
++float: 1
++float128: 8
++idouble: 1
++ifloat: 1
++ifloat128: 8
++
++Function: "log":
++float128: 1
++ifloat128: 1
++
++Function: "log10":
++float128: 1
++ifloat128: 1
++
++Function: "log10_downward":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: "log10_towardzero":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: "log10_upward":
++double: 1
++float: 1
++float128: 1
++idouble: 1
++ifloat: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
++
++Function: "log1p":
++float128: 2
++ifloat128: 2
++
++Function: "log1p_downward":
++double: 1
++float128: 3
++idouble: 1
++ifloat128: 3
++
++Function: "log1p_towardzero":
++double: 1
++float128: 3
++idouble: 1
++ifloat128: 3
++
++Function: "log1p_upward":
++double: 1
++float128: 2
++idouble: 1
++ifloat128: 2
++
++Function: "log2":
++float128: 2
++ifloat128: 2
++
++Function: "log2_downward":
++float128: 3
++ifloat128: 3
++
++Function: "log2_towardzero":
++float128: 1
++ifloat128: 1
++
++Function: "log2_upward":
++float128: 1
++ifloat128: 1
++
++Function: "log_downward":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++
++Function: "log_towardzero":
++double: 1
++float128: 2
++idouble: 1
++ifloat128: 2
++
++Function: "log_upward":
++double: 1
++float128: 1
++idouble: 1
++ifloat128: 1
++
++Function: "pow":
++float128: 2
++ifloat128: 2
++
+ Function: "pow_downward":
+ double: 1
+ float: 1
++float128: 2
+ idouble: 1
+ ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
+ 
+ Function: "pow_towardzero":
+ double: 1
+ float: 1
++float128: 2
+ idouble: 1
+ ifloat: 1
++ifloat128: 2
++ildouble: 1
++ldouble: 1
+ 
+ Function: "pow_upward":
+ double: 1
+ float: 1
++float128: 2
+ idouble: 1
+ ifloat: 1
++ifloat128: 2
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "sin":
+ double: 1
++float128: 1
+ idouble: 1
++ifloat128: 1
+ 
+ Function: "sin_downward":
+ double: 1
++float: 1
++float128: 3
+ idouble: 1
++ifloat: 1
++ifloat128: 3
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "sin_towardzero":
+ double: 1
++float: 1
++float128: 2
+ idouble: 1
++ifloat: 1
++ifloat128: 2
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "sin_upward":
+ double: 1
++float: 1
++float128: 3
+ idouble: 1
++ifloat: 1
++ifloat128: 3
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "sincos":
+ double: 1
++float128: 1
+ idouble: 1
++ifloat128: 1
++
++Function: "sincos_downward":
++double: 1
++float: 1
++float128: 3
++idouble: 1
++ifloat: 1
++ifloat128: 3
++
++Function: "sincos_towardzero":
++double: 1
++float: 1
++float128: 2
++idouble: 1
++ifloat: 1
++ifloat128: 2
++
++Function: "sincos_upward":
++double: 1
++float: 1
++float128: 3
++idouble: 1
++ifloat: 1
++ifloat128: 3
++
++Function: "sinh":
++float128: 2
++ifloat128: 2
++
++Function: "sinh_downward":
++float128: 3
++ifloat128: 3
++
++Function: "sinh_towardzero":
++float128: 3
++ifloat128: 3
++
++Function: "sinh_upward":
++float128: 4
++ifloat128: 4
++
++Function: "tan":
++float128: 1
++ifloat128: 1
++ildouble: 1
++ldouble: 1
+ 
+ Function: "tan_downward":
++float128: 1
++ifloat128: 1
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "tan_towardzero":
++float128: 1
++ifloat128: 1
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "tan_upward":
++float128: 1
++ifloat128: 1
+ ildouble: 1
+ ldouble: 1
+ 
++Function: "tanh":
++float128: 2
++ifloat128: 2
++
++Function: "tanh_downward":
++float128: 4
++ifloat128: 4
++
++Function: "tanh_towardzero":
++float128: 3
++ifloat128: 3
++
++Function: "tanh_upward":
++float128: 3
++ifloat128: 3
++
+ Function: "tgamma":
++float128: 4
++ifloat128: 4
++ildouble: 1
++ldouble: 1
++
++Function: "tgamma_downward":
++double: 1
++float: 1
++float128: 5
++idouble: 1
++ifloat: 1
++ifloat128: 5
++ildouble: 1
++ldouble: 1
++
++Function: "tgamma_towardzero":
++double: 1
++float: 1
++float128: 5
++idouble: 1
++ifloat: 1
++ifloat128: 5
++ildouble: 1
++ldouble: 1
++
++Function: "tgamma_upward":
++double: 1
++float: 1
++float128: 4
++idouble: 1
++ifloat: 1
++ifloat128: 4
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "y0":
+ double: 2
+ float: 1
++float128: 3
+ idouble: 2
+ ifloat: 1
++ifloat128: 3
+ ildouble: 1
+ ldouble: 1
+ 
++Function: "y0_downward":
++double: 4
++float: 4
++float128: 4
++idouble: 4
++ifloat: 4
++ifloat128: 4
++ildouble: 4
++ldouble: 4
++
++Function: "y0_towardzero":
++double: 3
++float: 3
++float128: 3
++idouble: 3
++ifloat: 3
++ifloat128: 3
++ildouble: 5
++ldouble: 5
++
++Function: "y0_upward":
++double: 4
++float: 5
++float128: 3
++idouble: 4
++ifloat: 5
++ifloat128: 3
++ildouble: 3
++ldouble: 3
++
+ Function: "y1":
+ double: 3
+ float: 2
++float128: 2
+ idouble: 3
+ ifloat: 2
++ifloat128: 2
+ ildouble: 2
+ ldouble: 2
+ 
++Function: "y1_downward":
++double: 9
++float: 2
++float128: 4
++idouble: 9
++ifloat: 2
++ifloat128: 4
++ildouble: 3
++ldouble: 3
++
++Function: "y1_towardzero":
++double: 3
++float: 2
++float128: 2
++idouble: 3
++ifloat: 2
++ifloat128: 2
++ildouble: 3
++ldouble: 3
++
++Function: "y1_upward":
++double: 4
++float: 2
++float128: 5
++idouble: 4
++ifloat: 2
++ifloat128: 5
++ildouble: 7
++ldouble: 7
++
+ Function: "yn":
+ double: 3
+ float: 3
++float128: 5
+ idouble: 3
+ ifloat: 3
+-ildouble: 2
+-ldouble: 2
++ifloat128: 5
++ildouble: 3
++ldouble: 3
++
++Function: "yn_downward":
++double: 4
++float: 4
++float128: 5
++idouble: 4
++ifloat: 4
++ifloat128: 5
++ildouble: 4
++ldouble: 4
++
++Function: "yn_towardzero":
++double: 3
++float: 3
++float128: 5
++idouble: 3
++ifloat: 3
++ifloat128: 5
++ildouble: 5
++ldouble: 5
++
++Function: "yn_upward":
++double: 4
++float: 5
++float128: 5
++idouble: 4
++ifloat: 5
++ifloat128: 5
++ildouble: 3
++ldouble: 3
+ 
+ # end of automatic generation
 diff --git a/sysdeps/ia64/nptl/bits/pthreadtypes-arch.h b/sysdeps/ia64/nptl/bits/pthreadtypes-arch.h
 index 631cb33d09..2a3bc75b20 100644
 --- a/sysdeps/ia64/nptl/bits/pthreadtypes-arch.h
@@ -17516,6 +20158,41 @@ index 0000000000..e602eea455
 +#include <sys/ipc.h>  /* For __key_t  */
 +
 +#define __IPC_64	0x0
+diff --git a/sysdeps/unix/sysv/linux/ia64/mmap_internal.h b/sysdeps/unix/sysv/linux/ia64/mmap_internal.h
+new file mode 100644
+index 0000000000..dbaaa3f904
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/ia64/mmap_internal.h
+@@ -0,0 +1,29 @@
++/* Common mmap definition for Linux implementation.  Linux/ia64 version.
++   Copyright (C) 2017 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef MMAP_IA64_INTERNAL_LINUX_H
++#define MMAP_IA64_INTERNAL_LINUX_H
++
++/* Linux allows PAGE_SHIFT in range of [12-16] and expect
++   mmap2 offset to be provided in based on the configured pagesize.
++   Determine the shift dynamically with getpagesize.  */
++#define MMAP2_PAGE_UNIT -1
++
++#include_next <mmap_internal.h>
++
++#endif
 diff --git a/sysdeps/unix/sysv/linux/m68k/glob64.c b/sysdeps/unix/sysv/linux/m68k/glob64.c
 deleted file mode 100644
 index 82a9a296a7..0000000000
@@ -17523,6 +20200,19 @@ index 82a9a296a7..0000000000
 +++ /dev/null
 @@ -1 +0,0 @@
 -#include <sysdeps/unix/sysv/linux/i386/glob64.c>
+diff --git a/sysdeps/unix/sysv/linux/m68k/mmap_internal.h b/sysdeps/unix/sysv/linux/m68k/mmap_internal.h
+index bd8bd3843b..9fe9d9127d 100644
+--- a/sysdeps/unix/sysv/linux/m68k/mmap_internal.h
++++ b/sysdeps/unix/sysv/linux/m68k/mmap_internal.h
+@@ -22,7 +22,7 @@
+ /* ColdFire and Sun 3 kernels have PAGE_SHIFT set to 13 and expect
+    mmap2 offset to be provided in 8K pages.  Determine the shift
+    dynamically with getpagesize.  */
+-#define MMAP2_PAGE_SHIFT -1
++#define MMAP2_PAGE_UNIT -1
+ 
+ #include_next <mmap_internal.h>
+ 
 diff --git a/sysdeps/unix/sysv/linux/mips/mips64/n64/glob64.c b/sysdeps/unix/sysv/linux/mips/mips64/n64/glob64.c
 deleted file mode 100644
 index 33918ea6a5..0000000000
@@ -17530,6 +20220,42 @@ index 33918ea6a5..0000000000
 +++ /dev/null
 @@ -1 +0,0 @@
 -/* glob64 is in glob.c */
+diff --git a/sysdeps/unix/sysv/linux/mmap.c b/sysdeps/unix/sysv/linux/mmap.c
+index 98c2f88eb8..59292b6d79 100644
+--- a/sysdeps/unix/sysv/linux/mmap.c
++++ b/sysdeps/unix/sysv/linux/mmap.c
+@@ -21,9 +21,9 @@
+ #include <sys/mman.h>
+ #include <sysdep.h>
+ #include <stdint.h>
+-#include <mmap_internal.h>
+ 
+ #ifndef __OFF_T_MATCHES_OFF64_T
++# include <mmap_internal.h>
+ 
+ /* An architecture may override this.  */
+ # ifndef MMAP_ADJUST_OFFSET
+diff --git a/sysdeps/unix/sysv/linux/mmap_internal.h b/sysdeps/unix/sysv/linux/mmap_internal.h
+index 499e389605..47c099183c 100644
+--- a/sysdeps/unix/sysv/linux/mmap_internal.h
++++ b/sysdeps/unix/sysv/linux/mmap_internal.h
+@@ -27,13 +27,13 @@
+ #endif
+ 
+ #if MMAP2_PAGE_UNIT == -1
+-static int page_unit;
+-
++static uint64_t page_unit;
+ # define MMAP_CHECK_PAGE_UNIT()			\
+   if (page_unit == 0)				\
+     page_unit = __getpagesize ();
++# undef MMAP2_PAGE_UNIT
++# define MMAP2_PAGE_UNIT page_unit
+ #else
+-# define page_unit MMAP2_PAGE_UNIT
+ # define MMAP_CHECK_PAGE_UNIT()
+ #endif
+ 
 diff --git a/sysdeps/unix/sysv/linux/olddirent.h b/sysdeps/unix/sysv/linux/olddirent.h
 new file mode 100644
 index 0000000000..413f78d108
