@@ -1004,25 +1004,8 @@ endif
 # x32
 ######################################################################
 ifeq ($(config-machine)-$(config-os),x86_64-linux-gnux32)
-test-xfail-ISO11/time.h/conform = yes
-test-xfail-POSIX2008/mqueue.h/conform = yes
-test-xfail-POSIX2008/sys/select.h/conform = yes
-test-xfail-POSIX2008/sys/stat.h/conform = yes
-test-xfail-POSIX2008/time.h/conform = yes
-test-xfail-POSIX/mqueue.h/conform = yes
-test-xfail-POSIX/sched.h/conform = yes
-test-xfail-POSIX/time.h/conform = yes
-test-xfail-UNIX98/mqueue.h/conform = yes
-test-xfail-UNIX98/sched.h/conform = yes
-test-xfail-UNIX98/time.h/conform = yes
-test-xfail-XOPEN2K8/mqueue.h/conform = yes
-test-xfail-XOPEN2K8/sys/select.h/conform = yes
-test-xfail-XOPEN2K8/sys/stat.h/conform = yes
-test-xfail-XOPEN2K8/time.h/conform = yes
-test-xfail-XOPEN2K/mqueue.h/conform = yes
-test-xfail-XOPEN2K/sys/select.h/conform = yes
-test-xfail-XOPEN2K/time.h/conform = yes
 test-xfail-tst-backtrace6 = yes
 test-xfail-tst-mqueue5 = yes
+test-xfail-tst-platform-1 = yes
 test-xfail-tst-waitid = yes
 endif
