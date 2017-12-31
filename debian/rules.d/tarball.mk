@@ -1,4 +1,4 @@
-GLIBC_GIT = git://sourceware.org/git/glibc.git
+GLIBC_GIT = https://sourceware.org/git/glibc.git
 GLIBC_BRANCH = release/$(GLIBC_VERSION)/master
 GLIBC_TAG = glibc-$(GLIBC_VERSION)
 GLIBC_CHECKOUT = glibc-checkout
