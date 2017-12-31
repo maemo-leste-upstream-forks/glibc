@@ -178,6 +178,27 @@ glibc (2.26-0experimental0) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Sun, 19 Nov 2017 12:49:13 +0100
 
+glibc (2.25-6) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/control.in/main: add mips r6 architectures to Build-Depends:
+    g++-6-multilib.  Closes: #884774.
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fixes incorrect RPATH/RUNPATH handling for SUID binaries
+      (CVE-2017-16997).  Closes: #884615.
+  * debian/control.in/main, debian/copyright, rules.d/tarball.mk: prefer
+    https for upstream links.
+  * debian/control.in/main: bump Standards-Version to 4.1.3.
+  * debian/patches/alpha/submitted-rlimit.diff: new patch to fix getrlimit
+    and setrlimit with RLIM_INFINITY on alpha.
+  * debian/patches/alpha/submitted-fminmax.diff: new patch to fix fmin and
+    fmax on alpha.
+  * debian/testsuite-xfail-debian.mk: mark test-fexcept, test-ldouble and
+    test-ldouble-finite as XFAIL as the failures are due to new tests, and
+    thus not a regression.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 31 Dec 2017 18:50:30 +0100
+
 glibc (2.25-5) unstable; urgency=medium
 
   [ Samuel Thibault ]
