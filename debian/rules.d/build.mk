@@ -3,14 +3,6 @@
 # This little bit of magic makes it possible:
 xx=$(if $($(curpass)_$(1)),$($(curpass)_$(1)),$($(1)))
 
-# We want to log output to a logfile but we also need to preserve the
-# return code of the command being run.
-# This little bit of magic makes it possible:
-# $(call logme, [-a] <log file>, <cmd>)
-define logme
-(exec 3>&1; exit `( ( ( $(2) ) 2>&1 3>&-; echo $$? >&4) | tee $(1) >&3) 4>&1`)
-endef
-
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
     libc_extra_config_options = $(extra_config_options) --disable-sanity-checks \
                                --enable-hacker-mode
@@ -80,9 +72,9 @@ $(stamp)configure_%: $(stamp)config_sub_guess $(stamp)patch $(KERNEL_HEADER_DIR)
 	    echo "No.  Forcing cross-compile by setting build to $$configure_build."; \
 	  fi; \
 	fi; \
-	$(call logme, -a $(log_build), echo -n "Build started: " ; date --rfc-2822 ; echo "---------------") ; \
-	$(call logme, -a $(log_build), \
-		cd $(DEB_BUILDDIR) && \
+	echo -n "Build started: " ; date --rfc-2822
+	echo "---------------"
+	cd $(DEB_BUILDDIR) && \
 		CC="$(call xx,CC)" \
 		CXX=$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),:,"$(call xx,CXX)") \
 		MIG="$(call xx,MIG)" \
@@ -102,7 +94,7 @@ $(stamp)configure_%: $(stamp)config_sub_guess $(stamp)patch $(KERNEL_HEADER_DIR)
 		$(if $(filter $(pt_chown),yes),--enable-pt_chown) \
 		$(if $(filter $(threads),no),--disable-nscd) \
 		$(if $(filter $(call xx,mvec),no),--disable-mathvec) \
-		$(call xx,with_headers) $(call xx,extra_config_options))
+		$(call xx,with_headers) $(call xx,extra_config_options)
 	touch $@
 
 $(patsubst %,build_%,$(GLIBC_PASSES)) :: build_% : $(stamp)build_%
@@ -112,8 +104,9 @@ $(stamp)build_%: $(stamp)configure_%
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	$(MAKE) cross-compiling=yes -C $(DEB_BUILDDIR) $(NJOBS) csu/subdir_lib
 else
-	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS))
-	$(call logme, -a $(log_build), echo "---------------" ; echo -n "Build ended: " ; date --rfc-2822)
+	$(MAKE) -C $(DEB_BUILDDIR) $(NJOBS)
+	echo "---------------"
+	echo -n "Build ended: " ; date --rfc-2822
 endif
 	touch $@
 
@@ -131,7 +124,7 @@ $(stamp)check_%: $(stamp)build_%
 	  echo "Testsuite disabled for $(curpass), skipping tests."; \
 	else \
 	  find $(DEB_BUILDDIR) -name '*.out' -delete ; \
-	  LD_PRELOAD="" LANG="" TIMEOUTFACTOR="25" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) check 2>&1 | tee $(log_test) ; \
+	  LD_PRELOAD="" LANG="" TIMEOUTFACTOR="25" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) check || true ; \
 	  if ! test -f $(DEB_BUILDDIR)/tests.sum ; then \
 	    echo "+---------------------------------------------------------------------+" ; \
 	    echo "|                     Testsuite failed to build.                      |" ; \
@@ -171,7 +164,7 @@ $(stamp)install_%: $(stamp)build_%
 	@echo Installing $(curpass)
 	rm -rf $(CURDIR)/debian/tmp-$(curpass)
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
-	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS)	\
+	$(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) \
 	    cross-compiling=yes install_root=$(CURDIR)/debian/tmp-$(curpass)	\
 	    install-bootstrap-headers=yes install-headers )
 
