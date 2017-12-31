@@ -1,3 +1,6 @@
+# HPPA build daemons are very slow
+TIMEOUTFACTOR=100
+
 # hppa64 needs symlink /usr/hppa64-linux/include to /usr/include
 # (See: Bug#239020)  In future we may drop this file with supporting hppa64.
 
