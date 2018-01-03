@@ -1,0 +1,16 @@
+---
+ support/support_enter_mount_namespace.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/support/support_enter_mount_namespace.c
++++ b/support/support_enter_mount_namespace.c
+@@ -20,7 +20,9 @@
+ 
+ #include <sched.h>
+ #include <stdio.h>
++#ifdef CLONE_NEWNS
+ #include <sys/mount.h>
++#endif /* CLONE_NEWNS */
+ 
+ bool
+ support_enter_mount_namespace (void)
