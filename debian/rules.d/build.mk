@@ -166,7 +166,7 @@ $(stamp)install_%: $(stamp)build_%
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	$(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) \
 	    cross-compiling=yes install_root=$(CURDIR)/debian/tmp-$(curpass)	\
-	    install-bootstrap-headers=yes install-headers )
+	    install-bootstrap-headers=yes install-headers
 
 	install -d $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)
 	install -m 644 $(DEB_BUILDDIR)/csu/crt[01in].o $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)/.
