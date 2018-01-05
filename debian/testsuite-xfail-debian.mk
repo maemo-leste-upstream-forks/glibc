@@ -85,6 +85,10 @@ test-xfail-tst-waitid = yes
 test-xfail-tst-writev = yes
 test-xfail-XOPEN2K8/netdb.h/conform = yes
 test-xfail-XOPEN2K/netdb.h/conform = yes
+
+# There is not support for protection key on Alpha yet, and there is a
+# disagreement between kernel and glibc how to report that.
+test-xfail-tst-pkey = yes
 endif
 
 
@@ -115,6 +119,10 @@ test-xfail-tst-stack4 = yes
 
 # This can be removed once bug#750834 is fixed
 test-xfail-basic-test = yes
+
+# There is not support for protection key on ARM64 yet, and there is a
+# disagreement between kernel and glibc how to report that.
+test-xfail-tst-pkey = yes
 endif
 
 
@@ -825,6 +833,10 @@ test-xfail-test-float32-finite-fma = yes
 # the conversion and a new qNaN is generated.
 test-xfail-tst-strfrom = yes
 test-xfail-tst-strfrom-locale = yes
+
+# There is not support for protection key on MIPS yet, and there is a
+# disagreement between kernel and glibc how to report that.
+test-xfail-tst-pkey = yes
 endif
 
 
