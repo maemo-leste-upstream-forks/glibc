@@ -17,16 +17,14 @@ reauthenticate_cwdir_at helper to implement AT mechanism.
 (faccessat): Define weak alias.
 
 ---
- hurd/hurd/fd.h                 |  21 ++++++
- hurd/lookup-at.c               |  13 +---
- include/unistd.h               |   1 +
- sysdeps/mach/hurd/access.c     | 120 +-------------------------------
- sysdeps/mach/hurd/euidaccess.c |  31 +--------
- sysdeps/mach/hurd/faccessat.c  | 152 +++++++++++++++++++++++++++++++++++++----
- 6 files changed, 165 insertions(+), 173 deletions(-)
+ hurd/hurd/fd.h                 |   21 +++++
+ hurd/lookup-at.c               |   13 ---
+ include/unistd.h               |    1 
+ sysdeps/mach/hurd/access.c     |  156 +++--------------------------------------
+ sysdeps/mach/hurd/euidaccess.c |   31 --------
+ sysdeps/mach/hurd/faccessat.c  |  150 ++++++++++++++++++++++++++++++++++++---
+ 6 files changed, 176 insertions(+), 196 deletions(-)
 
-diff --git a/hurd/hurd/fd.h b/hurd/hurd/fd.h
-index adb865a..1f22153 100644
 --- a/hurd/hurd/fd.h
 +++ b/hurd/hurd/fd.h
 @@ -26,6 +26,7 @@
@@ -37,7 +35,7 @@ index adb865a..1f22153 100644
  
  
  /* Structure representing a file descriptor.  */
-@@ -254,6 +255,26 @@ extern int _hurd_select (int nfds, struct pollfd *pollfds,
+@@ -254,6 +255,26 @@
  			 const struct timespec *timeout,
  			 const sigset_t *sigmask);
  
@@ -64,11 +62,9 @@ index adb865a..1f22153 100644
  /* Variant of file_name_lookup used in *at function implementations.
     AT_FLAGS may only contain AT_SYMLINK_FOLLOW or AT_SYMLINK_NOFOLLOW,
     which will remove and add O_NOLINK from FLAGS respectively.
-diff --git a/hurd/lookup-at.c b/hurd/lookup-at.c
-index 0288bcf..d729f67 100644
 --- a/hurd/lookup-at.c
 +++ b/hurd/lookup-at.c
-@@ -29,16 +29,9 @@ __file_name_lookup_at (int fd, int at_flags,
+@@ -29,16 +29,9 @@
    error_t err;
    file_t result;
  
@@ -88,20 +84,16 @@ index 0288bcf..d729f67 100644
  
    if (fd == AT_FDCWD || file_name[0] == '/')
      return __file_name_lookup (file_name, flags, mode);
-diff --git a/include/unistd.h b/include/unistd.h
-index a5cbc5d..09f9342 100644
 --- a/include/unistd.h
 +++ b/include/unistd.h
-@@ -23,6 +23,7 @@ libc_hidden_proto (readlinkat)
+@@ -25,6 +25,7 @@
  /* Now define the internal interfaces.  */
- extern int __access (const char *__name, int __type);
+ extern int __access (const char *__name, int __type) attribute_hidden;
  extern int __euidaccess (const char *__name, int __type);
 +extern int __faccessat (int __fd, const char *__file, int __type, int __flag);
- extern __off64_t __lseek64 (int __fd, __off64_t __offset, int __whence);
+ extern __off64_t __lseek64 (int __fd, __off64_t __offset, int __whence)
+      attribute_hidden;
  extern __off_t __lseek (int __fd, __off_t __offset, int __whence);
- libc_hidden_proto (__lseek)
-diff --git a/sysdeps/mach/hurd/access.c b/sysdeps/mach/hurd/access.c
-index 3a54df7..9379689 100644
 --- a/sysdeps/mach/hurd/access.c
 +++ b/sysdeps/mach/hurd/access.c
 @@ -15,159 +15,29 @@
@@ -124,16 +116,16 @@ index 3a54df7..9379689 100644
 -
 -static int
 -hurd_fail_noerrno (error_t err)
--{
++/* Test for access to FILE by our real user and group IDs.  */
++int
++__access (const char *file, int type)
+ {
 -  return -1;
 -}
 -
 -static int
 -access_common (const char *file, int type, int (*errfunc) (error_t))
-+/* Test for access to FILE by our real user and group IDs.  */
-+int
-+__access (const char *file, int type)
- {
+-{
 -  error_t err;
 -  file_t rcrdir, rcwdir, io;
 -  int flags, allowed;
@@ -277,8 +269,6 @@ index 3a54df7..9379689 100644
  }
 +
  weak_alias (__access, access)
-diff --git a/sysdeps/mach/hurd/euidaccess.c b/sysdeps/mach/hurd/euidaccess.c
-index 5b96a3c..a4da9da 100644
 --- a/sysdeps/mach/hurd/euidaccess.c
 +++ b/sysdeps/mach/hurd/euidaccess.c
 @@ -16,42 +16,13 @@
@@ -325,8 +315,6 @@ index 5b96a3c..a4da9da 100644
  }
  weak_alias (__euidaccess, euidaccess)
  weak_alias (__euidaccess, eaccess)
-diff --git a/sysdeps/mach/hurd/faccessat.c b/sysdeps/mach/hurd/faccessat.c
-index 91bec43..5ca7ff7 100644
 --- a/sysdeps/mach/hurd/faccessat.c
 +++ b/sysdeps/mach/hurd/faccessat.c
 @@ -23,29 +23,152 @@
@@ -366,7 +354,10 @@ index 91bec43..5ca7ff7 100644
 +
 +      int hurd_flags = 0;
 +      __hurd_at_flags (&at_flags, &hurd_flags);
-+
+ 
+-  port = __file_name_lookup_at (fd, flag &~ AT_EACCESS, file, 0, 0);
+-  if (port == MACH_PORT_NULL)
+-    return -1;
 +      error_t reauthenticate_cwdir_at (file_t *result)
 +	{
 +	  /* Get a port to the FD directory, authenticated with the real IDs.  */
@@ -436,10 +427,7 @@ index 91bec43..5ca7ff7 100644
 +      /* Get _hurd_id up to date.  */
 +      if (err = _hurd_check_ids ())
 +	goto lose;
- 
--  port = __file_name_lookup_at (fd, flag &~ AT_EACCESS, file, 0, 0);
--  if (port == MACH_PORT_NULL)
--    return -1;
++
 +      if (_hurd_id.rid_auth == MACH_PORT_NULL)
 +	{
 +	  /* Set up _hurd_id.rid_auth.  This is a special auth server port
@@ -495,10 +483,8 @@ index 91bec43..5ca7ff7 100644
    if (err)
      return __hurd_fail (err);
  
-@@ -67,3 +190,4 @@ faccessat (fd, file, type, flag)
+@@ -63,3 +186,4 @@
  
    return 0;
  }
 +weak_alias (__faccessat, faccessat)
--- 
-tg: (58695b8..) t/faccessat (depends on: baseline)

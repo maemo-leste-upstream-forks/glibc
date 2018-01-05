@@ -9,31 +9,26 @@ manual -lpthread testing also looks fine (within the given bounds for a new
 stack to be used with makecontext).
 
 ---
- sysdeps/mach/hurd/i386/Makefile             |    5 ++
+ sysdeps/mach/hurd/i386/Makefile             |    5 +
  sysdeps/mach/hurd/i386/getcontext.S         |   74 +++++++++++++++
  sysdeps/mach/hurd/i386/makecontext-helper.c |   69 ++++++++++++++
- sysdeps/mach/hurd/i386/makecontext.S        |  130 +++++++++++++++++++++++++++
+ sysdeps/mach/hurd/i386/makecontext.S        |  130 ++++++++++++++++++++++++++++
  sysdeps/mach/hurd/i386/setcontext.S         |   92 +++++++++++++++++++
  sysdeps/mach/hurd/i386/swapcontext.S        |  110 +++++++++++++++++++++++
  sysdeps/mach/hurd/i386/ucontext_i.sym       |   29 ++++++
  7 files changed, 509 insertions(+)
 
-diff --git a/sysdeps/mach/hurd/i386/Makefile b/sysdeps/mach/hurd/i386/Makefile
-index 5f98809..9e1a978 100644
 --- a/sysdeps/mach/hurd/i386/Makefile
 +++ b/sysdeps/mach/hurd/i386/Makefile
-@@ -6,3 +6,8 @@ endif
- ifeq ($(subdir),debug)
- gen-as-const-headers += signal-defines.sym
+@@ -14,3 +14,8 @@
+ CPPFLAGS-divdi3.c = -Din_divdi3_c
+ endif
  endif
 +
 +ifeq ($(subdir),stdlib)
 +gen-as-const-headers += ucontext_i.sym
 +sysdep_routines += makecontext-helper
 +endif
-diff --git a/sysdeps/mach/hurd/i386/getcontext.S b/sysdeps/mach/hurd/i386/getcontext.S
-new file mode 100644
-index 0000000..b456158
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/getcontext.S
 @@ -0,0 +1,74 @@
@@ -111,9 +106,6 @@ index 0000000..b456158
 +PSEUDO_END(__getcontext)
 +
 +weak_alias (__getcontext, getcontext)
-diff --git a/sysdeps/mach/hurd/i386/makecontext-helper.c b/sysdeps/mach/hurd/i386/makecontext-helper.c
-new file mode 100644
-index 0000000..6db3b7e
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/makecontext-helper.c
 @@ -0,0 +1,69 @@
@@ -186,9 +178,6 @@ index 0000000..6db3b7e
 +      ucp->uc_stack.ss_size -= t_size;
 +    }
 +}
-diff --git a/sysdeps/mach/hurd/i386/makecontext.S b/sysdeps/mach/hurd/i386/makecontext.S
-new file mode 100644
-index 0000000..7f3f6b0
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/makecontext.S
 @@ -0,0 +1,130 @@
@@ -322,9 +311,6 @@ index 0000000..7f3f6b0
 +END(__makecontext)
 +
 +weak_alias (__makecontext, makecontext)
-diff --git a/sysdeps/mach/hurd/i386/setcontext.S b/sysdeps/mach/hurd/i386/setcontext.S
-new file mode 100644
-index 0000000..2294eb6
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/setcontext.S
 @@ -0,0 +1,92 @@
@@ -420,9 +406,6 @@ index 0000000..2294eb6
 +PSEUDO_END(__setcontext)
 +
 +weak_alias (__setcontext, setcontext)
-diff --git a/sysdeps/mach/hurd/i386/swapcontext.S b/sysdeps/mach/hurd/i386/swapcontext.S
-new file mode 100644
-index 0000000..fb45b70
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/swapcontext.S
 @@ -0,0 +1,110 @@
@@ -536,9 +519,6 @@ index 0000000..fb45b70
 +PSEUDO_END(__swapcontext)
 +
 +weak_alias (__swapcontext, swapcontext)
-diff --git a/sysdeps/mach/hurd/i386/ucontext_i.sym b/sysdeps/mach/hurd/i386/ucontext_i.sym
-new file mode 100644
-index 0000000..cc1cfd5
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/ucontext_i.sym
 @@ -0,0 +1,29 @@
@@ -571,5 +551,3 @@ index 0000000..cc1cfd5
 +oEIP		mreg (EIP)
 +oFPREGS		mcontext (fpregs)
 +oSIGMASK	ucontext (uc_sigmask)
--- 
-tg: (4a7fa7e..) t/context_functions (depends on: fbeafedeea37e0af1984a6511018d159f5ceed6a)

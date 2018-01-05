@@ -4,12 +4,12 @@
 
 --- a/localedata/Makefile
 +++ b/localedata/Makefile
-@@ -238,7 +238,7 @@
+@@ -222,7 +222,7 @@
  	echo -n `echo $$locale | sed 's/\([^\@]*\)\(\@.*\)*/\2/'`; \
  	echo -n '...'; \
  	input=`echo $$locale | sed 's/\([^.]*\)[^@]*\(.*\)/\1\2/'`; \
--	$(LOCALEDEF) --alias-file=../intl/locale.alias \
-+	$(LOCALEDEF) --alias-file=../intl/locale.alias --no-archive \
- 		     -i locales/$$input -c -f charmaps/$$charset \
+-	$(LOCALEDEF) $$flags --alias-file=../intl/locale.alias \
++	$(LOCALEDEF) $$flags --alias-file=../intl/locale.alias --no-archive \
+ 		     -i locales/$$input -f charmaps/$$charset \
  		     $(addprefix --prefix=,$(install_root)) $$locale \
  	&& echo ' done'; \
