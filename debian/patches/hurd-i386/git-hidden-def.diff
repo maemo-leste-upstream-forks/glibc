@@ -1,0 +1,42 @@
+commit 4a5ce6e908c6b45d976fb78b65434b489dc570b6
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Jan 6 18:18:49 2018 +0100
+
+    hurd: Fix build without NO_HIDDEN
+    
+    * sysdeps/i386/dl-tlsdesc.S (_dl_tlsdesc_dynamic) [NO_RTLD_HIDDEN]: Call
+    JUMPTARGET (___tls_get_addr) instead of HIDDEN_JUMPTARGET (___tls_get_addr).
+    * sysdeps/x86_64/dl-tlsdesc.S (_dl_tlsdesc_dynamic): Likewise.
+
+diff --git a/sysdeps/i386/dl-tlsdesc.S b/sysdeps/i386/dl-tlsdesc.S
+index 8c2c40b7ec..2c4764d1aa 100644
+--- a/sysdeps/i386/dl-tlsdesc.S
++++ b/sysdeps/i386/dl-tlsdesc.S
+@@ -126,7 +126,11 @@ _dl_tlsdesc_dynamic:
+ 	.p2align 4,,7
+ .Lslow:
+ 	cfi_adjust_cfa_offset (28)
++#ifdef NO_RTLD_HIDDEN
++	call	JUMPTARGET (___tls_get_addr)
++#else
+ 	call	HIDDEN_JUMPTARGET (___tls_get_addr)
++#endif
+ 	jmp	.Lret
+ 	cfi_endproc
+ 	.size	_dl_tlsdesc_dynamic, .-_dl_tlsdesc_dynamic
+diff --git a/sysdeps/x86_64/dl-tlsdesc.S b/sysdeps/x86_64/dl-tlsdesc.S
+index 6c4e6b6c91..437bd8cde7 100644
+--- a/sysdeps/x86_64/dl-tlsdesc.S
++++ b/sysdeps/x86_64/dl-tlsdesc.S
+@@ -128,7 +128,11 @@ _dl_tlsdesc_dynamic:
+ 	movq	%r10, 40(%rsp)
+ 	movq	%r11, 48(%rsp)
+ 	/* %rdi already points to the tlsinfo data structure.  */
++#ifdef NO_RTLD_HIDDEN
++	call	JUMPTARGET (__tls_get_addr)
++#else
+ 	call	HIDDEN_JUMPTARGET (__tls_get_addr)
++#endif
+ 	movq	8(%rsp), %rdx
+ 	movq	16(%rsp), %rcx
+ 	movq	24(%rsp), %r8

@@ -8,7 +8,6 @@ pldd = no
 
 # Linuxthreads Config (we claim "no threads" as nptl keys off this)
 threads = no
-libc_add-ons = libpthread $(add-ons)
 # MIG generates a lot of warnings
 extra_config_options = --disable-werror
 
