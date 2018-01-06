@@ -13,7 +13,7 @@ Index: glibc-2.22/gmon/gmon.c
      if (fd == -1)
        {
 +       do
- 	fd = open_not_cancel ("gmon.out", O_CREAT|O_TRUNC|O_WRONLY|O_NOFOLLOW,
+ 	fd = __open_nocancel ("gmon.out", O_CREAT|O_TRUNC|O_WRONLY|O_NOFOLLOW,
  			      0666);
 +       while (fd < 0 && errno == EINTR);
 +
