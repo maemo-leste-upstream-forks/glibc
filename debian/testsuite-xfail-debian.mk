@@ -130,15 +130,11 @@ endif
 # armel
 ######################################################################
 ifeq ($(config-machine)-$(config-os),arm-linux-gnueabi)
-test-xfail-test-misc = yes
 test-xfail-tst-backtrace6 = yes
 test-xfail-tst-makecontext = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-stack4 = yes
 test-xfail-tst-waitid = yes
-
-# This can be removed once bug#748616 is fixed
-test-xfail-basic-test = yes
 
 # There is not support for protection key on Alpha yet, and there is a
 # disagreement between kernel and glibc how to report that.
