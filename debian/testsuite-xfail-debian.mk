@@ -463,6 +463,9 @@ test-xfail-tst-resolv-search = yes
 test-xfail-tst-fexecve = yes
 test-xfail-tst-gmon-static = yes
 test-xfail-tst-gmon-static-gprof = yes
+test-xfail-tst-tls1-static-non-pie = yes
+test-xfail-tst-libc_dlvsym-static = yes
+test-xfail-tst-libc_dlvsym = yes
 
 # Tests failing to build
 tests-unsupported += tst-copy_file_range
