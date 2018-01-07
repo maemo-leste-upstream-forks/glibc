@@ -829,6 +829,8 @@ test-xfail-tst-mode-switch-3 = yes
 # Theses failures are due to a bug in the cvt.s.d instruction on some FPU
 # (at least Octeon 3 and XBurst). The tininess detection is done on a
 # before-rounding basis instead of an after-rounding basis.
+test-xfail-test-float-fma = yes
+test-xfail-test-float-finite-fma = yes
 test-xfail-test-float32-fma = yes
 test-xfail-test-float32-finite-fma = yes
 
