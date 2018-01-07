@@ -408,9 +408,6 @@ test-xfail-XPG4/termios.h/conform = yes
 test-xfail-tst-preadvwritev64 = yes
 test-xfail-tst-preadwrite64 = yes
 
-# fixed upstream
-test-xfail-POSIX/signal.h/conform = yes
-
 # happens on linux-i386 too
 test-xfail-annexc = yes
 test-xfail-tst-backtrace6 = yes
@@ -464,10 +461,29 @@ test-xfail-tst-resolv-search = yes
 
 # new in 2.27
 test-xfail-tst-fexecve = yes
+test-xfail-tst-gmon-static = yes
+test-xfail-tst-gmon-static-gprof = yes
 
 # Tests failing to build
 tests-unsupported += tst-copy_file_range
 tests-unsupported += tst-copy_file_range-compat
+
+test-xfail-POSIX/signal.h/conform = yes
+test-xfail-POSIX2008/signal.h/conform = yes
+test-xfail-UNIX98/signal.h/conform = yes
+test-xfail-XOPEN2K/signal.h/conform = yes
+test-xfail-XOPEN2K8/signal.h/conform = yes
+test-xfail-XPG42/signal.h/conform = yes
+
+test-xfail-POSIX2008/sys/wait.h/conform = yes
+test-xfail-UNIX98/sys/wait.h/conform = yes
+test-xfail-XOPEN2K/sys/wait.h/conform = yes
+test-xfail-XOPEN2K8/sys/wait.h/conform = yes
+test-xfail-XPG42/sys/wait.h/conform = yes
+
+test-xfail-UNIX98/ucontext.h/conform = yes
+test-xfail-XOPEN2K/ucontext.h/conform = yes
+test-xfail-XPG42/ucontext.h/conform = yes
 endif
 
 
