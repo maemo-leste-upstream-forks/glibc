@@ -461,6 +461,13 @@ test-xfail-XPG42/termios.h/conform = yes
 test-xfail-tst-bug18665-tcp = yes
 test-xfail-tst-resolv-basic = yes
 test-xfail-tst-resolv-search = yes
+
+# new in 2.27
+test-xfail-tst-fexecve = yes
+
+# Tests failing to build
+tests-unsupported += tst-copy_file_range
+tests-unsupported += tst-copy_file_range-compat
 endif
 
 
