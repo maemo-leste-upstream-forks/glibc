@@ -19,19 +19,17 @@ Index: glibc-2.26/hurd/Versions
 ===================================================================
 --- glibc-2.26.orig/hurd/Versions
 +++ glibc-2.26/hurd/Versions
-@@ -140,7 +140,11 @@ libc {
+@@ -140,6 +140,10 @@ libc {
      _hurd_sigstate_unlock;
      _hurd_sigstate_delete;
    }
--  GLIBC_2.27 {
 +  GLIBC_2.21 {
 +    # "quasi-internal" functions
 +    _hurd_exec_file_name;
 +  }
-+  GLIBC_2.26 {
+   GLIBC_2.27 {
      # "quasi-internal" functions
      _hurd_exec_paths;
-   }
 Index: glibc-2.26/hurd/hurdexec.c
 ===================================================================
 --- glibc-2.26.orig/hurd/hurdexec.c
@@ -83,10 +81,13 @@ Index: glibc-2.26/hurd/hurdexec.c
  	err = __file_exec (file, task, flags,
  			   args, argslen, env, envlen,
  			   dtable, MACH_MSG_TYPE_COPY_SEND, dtablesize,
-@@ -435,3 +458,9 @@ _hurd_exec_paths (task_t task, file_t fi
+@@ -435,3 +458,12 @@ _hurd_exec_paths (task_t task, file_t fi
    free (env);
    return err;
  }
++#if SHLIB_COMPAT (libc, GLIBC_2_26, GLIBC_2_27)
++compat_symbol (libc, _hurd_exec_paths, _hurd_exec_paths, GLIBC_2_26);
++#endif
 +extern error_t _hurd_exec_file_name (task_t task,
 +				     file_t file,
 +				     const char *filename,
