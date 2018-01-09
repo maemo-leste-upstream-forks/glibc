@@ -1,9 +1,14 @@
 Keep compatibility with experimental implementation
 
-Index: glibc-2.26/hurd/Makefile
-===================================================================
---- glibc-2.26.orig/hurd/Makefile
-+++ glibc-2.26/hurd/Makefile
+---
+ hurd/Makefile              |    4 ++--
+ hurd/Versions              |    8 ++++++++
+ hurd/hurdexec.c            |   32 ++++++++++++++++++++++++++++++++
+ sysdeps/mach/hurd/spawni.c |   13 +++++++++++++
+ 4 files changed, 55 insertions(+), 2 deletions(-)
+
+--- a/hurd/Makefile
++++ b/hurd/Makefile
 @@ -32,8 +32,8 @@ user-interfaces		:= $(addprefix hurd/,\
  				       auth auth_request auth_reply startup \
  				       process process_request \
@@ -15,11 +20,9 @@ Index: glibc-2.26/hurd/Makefile
  				       term tioctl socket ifsock \
  				       login password pfinet \
  				       )
-Index: glibc-2.26/hurd/Versions
-===================================================================
---- glibc-2.26.orig/hurd/Versions
-+++ glibc-2.26/hurd/Versions
-@@ -140,6 +140,10 @@ libc {
+--- a/hurd/Versions
++++ b/hurd/Versions
+@@ -140,6 +140,14 @@ libc {
      _hurd_sigstate_unlock;
      _hurd_sigstate_delete;
    }
@@ -27,13 +30,15 @@ Index: glibc-2.26/hurd/Versions
 +    # "quasi-internal" functions
 +    _hurd_exec_file_name;
 +  }
++  GLIBC_2.26 {
++    # "quasi-internal" functions
++    _hurd_exec_paths;
++  }
    GLIBC_2.27 {
      # "quasi-internal" functions
      _hurd_exec_paths;
-Index: glibc-2.26/hurd/hurdexec.c
-===================================================================
---- glibc-2.26.orig/hurd/hurdexec.c
-+++ glibc-2.26/hurd/hurdexec.c
+--- a/hurd/hurdexec.c
++++ b/hurd/hurdexec.c
 @@ -25,9 +25,12 @@
  #include <hurd/fd.h>
  #include <hurd/signal.h>
@@ -94,10 +99,8 @@ Index: glibc-2.26/hurd/hurdexec.c
 +				     char *const argv[],
 +				     char *const envp[]);
 +versioned_symbol (libc, __hurd_exec_file_name, _hurd_exec_file_name, GLIBC_2_21);
-Index: glibc-2.26/sysdeps/mach/hurd/spawni.c
-===================================================================
---- glibc-2.26.orig/sysdeps/mach/hurd/spawni.c
-+++ glibc-2.26/sysdeps/mach/hurd/spawni.c
+--- a/sysdeps/mach/hurd/spawni.c
++++ b/sysdeps/mach/hurd/spawni.c
 @@ -30,6 +30,7 @@
  #include <hurd/id.h>
  #include <hurd/lookup.h>
@@ -106,10 +109,11 @@ Index: glibc-2.26/sysdeps/mach/hurd/spawni.c
  #include <assert.h>
  #include <argz.h>
  #include "spawn_int.h"
-@@ -673,6 +674,18 @@ __spawni (pid_t *pid, const char *file,
+@@ -657,6 +658,18 @@ __spawni (pid_t *pid, const char *file,
+ 	   dtable, MACH_MSG_TYPE_COPY_SEND, dtablesize,
  	   ports, MACH_MSG_TYPE_COPY_SEND, _hurd_nports,
  	   ints, INIT_INT_MAX,
- 	   NULL, 0, NULL, 0);
++	   NULL, 0, NULL, 0);
 +
 +	/* Fallback for backwards compatibility.  This can just be removed
 +	   when __file_exec goes away.  */
@@ -121,7 +125,6 @@ Index: glibc-2.26/sysdeps/mach/hurd/spawni.c
 +	   dtable, MACH_MSG_TYPE_COPY_SEND, dtablesize,
 +	   ports, MACH_MSG_TYPE_COPY_SEND, _hurd_nports,
 +	   ints, INIT_INT_MAX,
-+	   NULL, 0, NULL, 0);
+ 	   NULL, 0, NULL, 0);
  
  	/* Fallback for backwards compatibility.  This can just be removed
- 	   when __file_exec goes away.  */
