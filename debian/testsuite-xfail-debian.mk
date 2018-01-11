@@ -964,9 +964,18 @@ test-xfail-tst-stack4 = yes
 test-xfail-tst-waitid = yes
 
 # These failures are due to a bug in the Loongson 3A FPU
-test-xfail-test-double-lround = yes
 test-xfail-test-double-finite-lround = yes
+test-xfail-test-double-lround = yes
+test-xfail-test-float32x-finite-lround = yes
+test-xfail-test-float32x-lround = yes
+test-xfail-test-float64-finite-lround = yes
+test-xfail-test-float64-lround = yes
 test-xfail-test-idouble-lround = yes
+test-xfail-test-ifloat32x-lround = yes
+test-xfail-test-ifloat64-lround = yes
+test-xfail-test-ildouble-lround = yes
+test-xfail-test-ldouble-finite-lround = yes
+test-xfail-test-ldouble-lround = yes
 endif
 
 
