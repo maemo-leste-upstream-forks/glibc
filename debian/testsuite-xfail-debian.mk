@@ -806,6 +806,8 @@ endif
 # mips*
 ######################################################################
 ifneq (,$(filter $(config-machine)-$(config-os), mips-linux-gnu mipsel-linux-gnu mips64-linux-gnuabi64 mips64el-linux-gnuabi64 mips64-linux-gnuabin32 mips64el-linux-gnuabin32))
+test-xfail-tst-stack4 = yes
+
 # MIPS GCC does not use PT_GNU_STACK markers (this is a GCC issue)
 test-xfail-check-execstack = yes
 
@@ -829,90 +831,13 @@ endif
 
 
 ######################################################################
-# mips
+# little-endian mips*
 ######################################################################
-ifeq ($(config-machine)-$(config-os),mips-linux-gnu)
-test-xfail-tst-cond16 = yes
-test-xfail-tst-mqueue5 = yes
-test-xfail-tst-stack4 = yes
-test-xfail-tst-waitid = yes
-endif
-
-
-######################################################################
-# mipsel
-######################################################################
-ifeq ($(config-machine)-$(config-os),mipsel-linux-gnu)
-test-xfail-tst-cond16 = yes
-test-xfail-tst-mqueue5 = yes
-test-xfail-tst-stack4 = yes
-test-xfail-tst-waitid = yes
-
+ifneq (,$(filter $(config-machine)-$(config-os), mipsel-linux-gnu mips64el-linux-gnuabi64 mips64el-linux-gnuabin32))
 # These failures are due to a bug in the Loongson 3A FPU
 test-xfail-test-double-lround = yes
 test-xfail-test-double-finite-lround = yes
 test-xfail-test-idouble-lround = yes
-endif
-
-
-######################################################################
-# mips64el
-######################################################################
-ifeq ($(config-machine)-$(config-os),mips64el-linux-gnuabi64)
-test-xfail-tst-cond16 = yes
-test-xfail-tst-mqueue5 = yes
-test-xfail-tst-stack4 = yes
-test-xfail-tst-waitid = yes
-
-# These failures are due to a bug in the Loongson 3A FPU
-test-xfail-test-double-lround = yes
-test-xfail-test-double-finite-lround = yes
-test-xfail-test-idouble-lround = yes
-endif
-
-
-######################################################################
-# mipsn32el
-######################################################################
-ifeq ($(config-machine)-$(config-os),mips64el-linux-gnuabin32)
-test-xfail-tst-audit1 = yes
-test-xfail-tst-audit2 = yes
-test-xfail-tst-audit8 = yes
-test-xfail-tst-audit9 = yes
-test-xfail-tst-cond16 = yes
-test-xfail-tst-mqueue5 = yes
-test-xfail-tst-stack4 = yes
-test-xfail-tst-waitid = yes
-endif
-
-
-######################################################################
-# mips64
-######################################################################
-ifeq ($(config-machine)-$(config-os),mips64-linux-gnuabi64)
-test-xfail-tst-audit1 = yes
-test-xfail-tst-audit2 = yes
-test-xfail-tst-audit8 = yes
-test-xfail-tst-audit9 = yes
-test-xfail-tst-cond16 = yes
-test-xfail-tst-mqueue5 = yes
-test-xfail-tst-stack4 = yes
-test-xfail-tst-waitid = yes
-endif
-
-
-######################################################################
-# mipsn32
-######################################################################
-ifeq ($(config-machine)-$(config-os),mips64-linux-gnuabin32)
-test-xfail-tst-audit1 = yes
-test-xfail-tst-audit2 = yes
-test-xfail-tst-audit8 = yes
-test-xfail-tst-audit9 = yes
-test-xfail-tst-cond16 = yes
-test-xfail-tst-mqueue5 = yes
-test-xfail-tst-stack4 = yes
-test-xfail-tst-waitid = yes
 endif
 
 
@@ -925,6 +850,7 @@ test-xfail-tst-cancelx17 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
 endif
+
 
 ######################################################################
 # ppc64
