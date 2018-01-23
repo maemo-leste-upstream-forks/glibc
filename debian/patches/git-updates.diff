@@ -1,10 +1,65 @@
 GIT update of https://sourceware.org/git/glibc.git/release/2.26/master from glibc-2.26
 
 diff --git a/ChangeLog b/ChangeLog
-index 8dbfc7eaff..98ef90f461 100644
+index 8dbfc7eaff..d1a23a4f1b 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,1146 @@
+@@ -1,3 +1,1201 @@
++2018-01-19  H.J. Lu  <hongjiu.lu@intel.com>
++
++	[BZ #22715]
++	* sysdeps/x86_64/dl-trampoline.h (_dl_runtime_profile): Properly
++	align La_x86_64_retval to VEC_SIZE.
++
++2018-01-16  Florian Weimer  <fweimer@redhat.com>
++
++	* nptl/Makefile [$(have-cxx-thread_local)] (tests-unsupported):
++	Move tst-thread-exit-clobber ...
++	[$(CXX)] (tests-unsupported): ... to here.
++
++2018-01-16  Florian Weimer  <fweimer@redhat.com>
++
++	* nptl/Makefile (CFLAGS-tst-minstack-throw.o): Compile in C++11
++	mode with GNU extensions.
++
++2018-01-15  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #22636]
++	* nptl/tst-minstack-throw.cc: New file.
++	* nptl/Makefile (tests): Add tst-minstack-throw.
++	(LDLIBS-tst-minstack-throw): Link with libstdc++.
++	[!CXX] (tests-unsupported): Add tst-minstack-throw.
++
++2018-01-11  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #22636]
++	* nptl/Makefile (tests): Add tst-minstack-cancel, tst-minstack-exit.
++	* nptl/tst-minstack-cancel.c, nptl/tst-minstack-exit.c: New files.
++
++2018-01-10  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #22636]
++	* sysdeps/nptl/unwind-forcedunwind.c (pthread_cancel_init): Open
++	libgcc.so with RTLD_NOW, to avoid lazy binding during unwind.
++
++2018-01-08  Szabolcs Nagy  <szabolcs.nagy@arm.com>
++
++	[BZ #22637]
++	* nptl/descr.h (stackblock, stackblock_size): Update comments.
++	* nptl/allocatestack.c (allocate_stack): Add guardsize to stacksize.
++	* nptl/nptl-init.c (__pthread_get_minstack): Remove guardsize from
++	stacksize.
++	* nptl/pthread_getattr_np.c (pthread_getattr_np): Likewise.
++
++2018-01-08  Florian Weimer  <fweimer@redhat.com>
++
++	* nptl/tst-thread-exit-clobber.cc: New file.
++	* nptl/Makefile (CFLAGS-tst-thread-exit-clobber.o): Compile in
++	C++11 mode.
++	(LDLIBS-tst-thread-exit-clobber): Link with libstdc++.
++	(tests): Add tst-thread-exit-clobber.
++	[!CXX] (tests-unsupported): Add tst-thread-exit-clobber.
++
 +2018-01-12  Dmitry V. Levin  <ldv@altlinux.org>
 +
 +	[BZ #22679]
@@ -1175,10 +1230,10 @@ index 9bb707c168..828a445f24 100644
  # Don't try to use -lc when making libc.so itself.
  # Also omits crti.o and crtn.o, which we do not want
 diff --git a/NEWS b/NEWS
-index 8295f20c0a..7f88e9e310 100644
+index 8295f20c0a..d4af1653f2 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,105 @@ See the end for copying conditions.
+@@ -5,6 +5,108 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <http://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
@@ -1277,9 +1332,12 @@ index 8295f20c0a..7f88e9e310 100644
 +  [22322] libc: [mips64] wrong bits/long-double.h installed
 +  [22325] glibc: Memory leak in glob with GLOB_TILDE (CVE-2017-15671)
 +  [22375] malloc returns pointer from tcache instead of NULL (CVE-2017-17426)
++  [22636] PTHREAD_STACK_MIN is too small on x86-64
 +  [22627] $ORIGIN in $LD_LIBRARY_PATH is substituted twice
++  [22637] nptl: Fix stack guard size accounting
 +  [22679] getcwd(3) can succeed without returning an absolute path
 +    (CVE-2018-1000001)
++  [22715] x86-64: Properly align La_x86_64_retval to VEC_SIZE
 +
  Version 2.26
  
@@ -3753,10 +3811,32 @@ index 06523bfe9c..0c808216a4 100644
  #else
  # define __HAVE_GENERIC_SELECTION 0
 diff --git a/nptl/Makefile b/nptl/Makefile
-index 5cb1bb2c3d..9ca6d01b8c 100644
+index 5cb1bb2c3d..0b01e18106 100644
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
-@@ -367,7 +367,7 @@ tests += tst-cancelx2 tst-cancelx3 tst-cancelx4 tst-cancelx5 \
+@@ -227,6 +227,10 @@ CFLAGS-pt-system.c = -fexceptions
+ LDLIBS-tst-once5 = -lstdc++
+ CFLAGS-tst-thread_local1.o = -std=gnu++11
+ LDLIBS-tst-thread_local1 = -lstdc++
++CFLAGS-tst-thread-exit-clobber.o = -std=gnu++11
++LDLIBS-tst-thread-exit-clobber = -lstdc++
++CFLAGS-tst-minstack-throw.o = -std=gnu++11
++LDLIBS-tst-minstack-throw = -lstdc++
+ 
+ tests = tst-attr1 tst-attr2 tst-attr3 tst-default-attr \
+ 	tst-mutex1 tst-mutex2 tst-mutex3 tst-mutex4 tst-mutex5 tst-mutex6 \
+@@ -302,7 +306,9 @@ tests = tst-attr1 tst-attr2 tst-attr3 tst-default-attr \
+ 			    c89 gnu89 c99 gnu99 c11 gnu11) \
+ 	tst-bad-schedattr \
+ 	tst-thread_local1 tst-mutex-errorcheck tst-robust10 \
+-	tst-robust-fork tst-create-detached tst-memstream
++	tst-robust-fork tst-create-detached tst-memstream \
++	tst-thread-exit-clobber tst-minstack-cancel tst-minstack-exit \
++	tst-minstack-throw
+ 
+ tests-internal := tst-typesizes \
+ 		  tst-rwlock19 tst-rwlock20 \
+@@ -367,7 +373,7 @@ tests += tst-cancelx2 tst-cancelx3 tst-cancelx4 tst-cancelx5 \
  	 tst-cleanupx0 tst-cleanupx1 tst-cleanupx2 tst-cleanupx3 tst-cleanupx4 \
  	 tst-oncex3 tst-oncex4
  ifeq ($(build-shared),yes)
@@ -3765,7 +3845,7 @@ index 5cb1bb2c3d..9ca6d01b8c 100644
  tests-internal += tst-tls3 tst-tls3-malloc tst-tls5 tst-stackguard1
  tests-nolibpthread += tst-fini1
  ifeq ($(have-z-execstack),yes)
-@@ -379,7 +379,7 @@ modules-names = tst-atfork2mod tst-tls3mod tst-tls4moda tst-tls4modb \
+@@ -379,7 +385,7 @@ modules-names = tst-atfork2mod tst-tls3mod tst-tls4moda tst-tls4modb \
  		tst-tls5mod tst-tls5moda tst-tls5modb tst-tls5modc \
  		tst-tls5modd tst-tls5mode tst-tls5modf tst-stack4mod \
  		tst-_res1mod1 tst-_res1mod2 tst-execstack-mod tst-fini1mod \
@@ -3774,7 +3854,17 @@ index 5cb1bb2c3d..9ca6d01b8c 100644
  extra-test-objs += $(addsuffix .os,$(strip $(modules-names))) \
  		   tst-cleanup4aux.o tst-cleanupx4aux.o
  test-extras += tst-cleanup4aux tst-cleanupx4aux
-@@ -718,6 +718,8 @@ $(objpfx)tst-oddstacklimit.out: $(objpfx)tst-oddstacklimit $(objpfx)tst-basic1
+@@ -453,7 +459,8 @@ endif
+ 
+ ifeq (,$(CXX))
+ # These tests require a C++ compiler and runtime.
+-tests-unsupported += tst-cancel24 tst-cancel24-static tst-once5
++tests-unsupported += tst-cancel24 tst-cancel24-static tst-once5 \
++  tst-thread-exit-clobber tst-minstack-throw
+ endif
+ # These tests require a C++ compiler and runtime with thread_local support.
+ ifneq ($(have-cxx-thread_local),yes)
+@@ -718,6 +725,8 @@ $(objpfx)tst-oddstacklimit.out: $(objpfx)tst-oddstacklimit $(objpfx)tst-basic1
  	$(evaluate-test)
  endif
  
@@ -3784,7 +3874,7 @@ index 5cb1bb2c3d..9ca6d01b8c 100644
  ifneq ($(filter %tests,$(MAKECMDGOALS)),)
  .NOTPARALLEL:
 diff --git a/nptl/allocatestack.c b/nptl/allocatestack.c
-index ce2e24af95..1a760e92e5 100644
+index ce2e24af95..e351ce9d99 100644
 --- a/nptl/allocatestack.c
 +++ b/nptl/allocatestack.c
 @@ -356,7 +356,7 @@ setup_stack_prot (char *mem, size_t size, char *guard, size_t guardsize,
@@ -3830,7 +3920,18 @@ index ce2e24af95..1a760e92e5 100644
  /* Returns a usable stack for a new thread either by allocating a
     new stack or reusing a cached stack of sufficient size.
     ATTR must be non-NULL and point to a valid pthread_attr.
-@@ -727,7 +754,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
+@@ -506,6 +533,10 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
+       /* Make sure the size of the stack is enough for the guard and
+ 	 eventually the thread descriptor.  */
+       guardsize = (attr->guardsize + pagesize_m1) & ~pagesize_m1;
++      if (guardsize < attr->guardsize || size + guardsize < guardsize)
++	/* Arithmetic overflow.  */
++	return EINVAL;
++      size += guardsize;
+       if (__builtin_expect (size < ((guardsize + __static_tls_size
+ 				     + MINIMAL_REST_STACK + pagesize_m1)
+ 				    & ~pagesize_m1),
+@@ -727,7 +758,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
  				  - offsetof (pthread_mutex_t,
  					      __data.__list.__next));
    pd->robust_head.list_op_pending = NULL;
@@ -3840,7 +3941,7 @@ index ce2e24af95..1a760e92e5 100644
  #endif
    pd->robust_head.list = &pd->robust_head;
 diff --git a/nptl/descr.h b/nptl/descr.h
-index c5ad0c8dba..c83b17b674 100644
+index c5ad0c8dba..82dab056e2 100644
 --- a/nptl/descr.h
 +++ b/nptl/descr.h
 @@ -169,7 +169,7 @@ struct pthread
@@ -3852,8 +3953,20 @@ index c5ad0c8dba..c83b17b674 100644
    void *robust_prev;
    struct robust_list_head robust_head;
  
+@@ -380,9 +380,9 @@ struct pthread
+   /* Machine-specific unwind info.  */
+   struct _Unwind_Exception exc;
+ 
+-  /* If nonzero pointer to area allocated for the stack and its
+-     size.  */
++  /* If nonzero, pointer to the area allocated for the stack and guard. */
+   void *stackblock;
++  /* Size of the stackblock area including the guard.  */
+   size_t stackblock_size;
+   /* Size of the included guard area.  */
+   size_t guardsize;
 diff --git a/nptl/nptl-init.c b/nptl/nptl-init.c
-index 29216077a2..869e926f17 100644
+index 29216077a2..e5c0bdfbeb 100644
 --- a/nptl/nptl-init.c
 +++ b/nptl/nptl-init.c
 @@ -297,7 +297,7 @@ __pthread_initialize_minimal_internal (void)
@@ -3865,6 +3978,16 @@ index 29216077a2..869e926f17 100644
      pd->robust_prev = &pd->robust_head;
  #endif
      pd->robust_head.list = &pd->robust_head;
+@@ -473,8 +473,5 @@ strong_alias (__pthread_initialize_minimal_internal,
+ size_t
+ __pthread_get_minstack (const pthread_attr_t *attr)
+ {
+-  struct pthread_attr *iattr = (struct pthread_attr *) attr;
+-
+-  return (GLRO(dl_pagesize) + __static_tls_size + PTHREAD_STACK_MIN
+-	  + iattr->guardsize);
++  return GLRO(dl_pagesize) + __static_tls_size + PTHREAD_STACK_MIN;
+ }
 diff --git a/nptl/pt-longjmp.c b/nptl/pt-longjmp.c
 index 2ef757e687..8f3c6b3a09 100644
 --- a/nptl/pt-longjmp.c
@@ -4029,6 +4152,25 @@ index 2f8ada34d6..791587218b 100644
  
    /* If the thread is detached free the TCB.  */
    if (IS_DETACHED (pd))
+diff --git a/nptl/pthread_getattr_np.c b/nptl/pthread_getattr_np.c
+index 06093b3d92..210a3f8a1f 100644
+--- a/nptl/pthread_getattr_np.c
++++ b/nptl/pthread_getattr_np.c
+@@ -57,9 +57,12 @@ pthread_getattr_np (pthread_t thread_id, pthread_attr_t *attr)
+   /* The sizes are subject to alignment.  */
+   if (__glibc_likely (thread->stackblock != NULL))
+     {
+-      iattr->stacksize = thread->stackblock_size;
++      /* The stack size reported to the user should not include the
++	 guard size.  */
++      iattr->stacksize = thread->stackblock_size - thread->guardsize;
+ #if _STACK_GROWS_DOWN
+-      iattr->stackaddr = (char *) thread->stackblock + iattr->stacksize;
++      iattr->stackaddr = (char *) thread->stackblock
++			 + thread->stackblock_size;
+ #else
+       iattr->stackaddr = (char *) thread->stackblock;
+ #endif
 diff --git a/nptl/pthread_mutex_init.c b/nptl/pthread_mutex_init.c
 index 6f2fc808ff..e1f911bf29 100644
 --- a/nptl/pthread_mutex_init.c
@@ -4130,6 +4272,454 @@ index 0000000000..f96806b7fe
 +     against libpthread, when the main program is linked against
 +     libpthread, should not crash.  */
 +  call_system ();
++
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/nptl/tst-minstack-cancel.c b/nptl/tst-minstack-cancel.c
+new file mode 100644
+index 0000000000..a306320e88
+--- /dev/null
++++ b/nptl/tst-minstack-cancel.c
+@@ -0,0 +1,48 @@
++/* Test cancellation with a minimal stack size.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* Note: This test is similar to tst-minstack-exit, but is separate to
++   avoid spurious test passes due to warm-up effects.  */
++
++#include <limits.h>
++#include <unistd.h>
++#include <support/check.h>
++#include <support/xthread.h>
++
++static void *
++threadfunc (void *closure)
++{
++  while (1)
++    pause ();
++  return NULL;
++}
++
++static int
++do_test (void)
++{
++  pthread_attr_t attr;
++  xpthread_attr_init (&attr);
++  xpthread_attr_setstacksize (&attr, PTHREAD_STACK_MIN);
++  pthread_t thr = xpthread_create (&attr, threadfunc, NULL);
++  xpthread_cancel (thr);
++  TEST_VERIFY (xpthread_join (thr) == PTHREAD_CANCELED);
++  xpthread_attr_destroy (&attr);
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/nptl/tst-minstack-exit.c b/nptl/tst-minstack-exit.c
+new file mode 100644
+index 0000000000..9c7e9a4dfe
+--- /dev/null
++++ b/nptl/tst-minstack-exit.c
+@@ -0,0 +1,46 @@
++/* Test that pthread_exit works with the minimum stack size.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* Note: This test is similar to tst-minstack-cancel, but is separate
++   to avoid spurious test passes due to warm-up effects.  */
++
++#include <limits.h>
++#include <unistd.h>
++#include <support/check.h>
++#include <support/xthread.h>
++
++static void *
++threadfunc (void *closure)
++{
++  pthread_exit (threadfunc);
++  return NULL;
++}
++
++static int
++do_test (void)
++{
++  pthread_attr_t attr;
++  xpthread_attr_init (&attr);
++  xpthread_attr_setstacksize (&attr, PTHREAD_STACK_MIN);
++  pthread_t thr = xpthread_create (&attr, threadfunc, NULL);
++  TEST_VERIFY (xpthread_join (thr) == threadfunc);
++  xpthread_attr_destroy (&attr);
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/nptl/tst-minstack-throw.cc b/nptl/tst-minstack-throw.cc
+new file mode 100644
+index 0000000000..b0a897b0c6
+--- /dev/null
++++ b/nptl/tst-minstack-throw.cc
+@@ -0,0 +1,87 @@
++/* Test that throwing C++ exceptions works with the minimum stack size.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdexcept>
++
++#include <limits.h>
++#include <string.h>
++#include <support/check.h>
++#include <support/xthread.h>
++
++/* Throw a std::runtime_exception.  */
++__attribute__ ((noinline, noclone, weak))
++void
++do_throw_exception ()
++{
++  throw std::runtime_error ("test exception");
++}
++
++/* Class with a destructor, to trigger unwind handling.  */
++struct class_with_destructor
++{
++  class_with_destructor ();
++  ~class_with_destructor ();
++};
++
++__attribute__ ((noinline, noclone, weak))
++class_with_destructor::class_with_destructor ()
++{
++}
++
++__attribute__ ((noinline, noclone, weak))
++class_with_destructor::~class_with_destructor ()
++{
++}
++
++__attribute__ ((noinline, noclone, weak))
++void
++function_with_destructed_object ()
++{
++  class_with_destructor obj;
++  do_throw_exception ();
++}
++
++static void *
++threadfunc (void *closure)
++{
++  try
++    {
++      function_with_destructed_object ();
++      FAIL_EXIT1 ("no exception thrown");
++    }
++  catch (std::exception &e)
++    {
++      TEST_COMPARE (strcmp (e.what (), "test exception"), 0);
++      return reinterpret_cast<void *> (threadfunc);
++    }
++  FAIL_EXIT1 ("no exception caught");
++}
++
++static int
++do_test (void)
++{
++  pthread_attr_t attr;
++  xpthread_attr_init (&attr);
++  xpthread_attr_setstacksize (&attr, PTHREAD_STACK_MIN);
++  pthread_t thr = xpthread_create (&attr, threadfunc, NULL);
++  TEST_VERIFY (xpthread_join (thr) == threadfunc);
++  xpthread_attr_destroy (&attr);
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/nptl/tst-thread-exit-clobber.cc b/nptl/tst-thread-exit-clobber.cc
+new file mode 100644
+index 0000000000..b9be25a65b
+--- /dev/null
++++ b/nptl/tst-thread-exit-clobber.cc
+@@ -0,0 +1,243 @@
++/* Test that pthread_exit does not clobber callee-saved registers.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <support/check.h>
++#include <support/xthread.h>
++
++/* This test attempts to check that callee-saved registers are
++   restored to their original values when destructors are run after
++   pthread_exit is called.  GCC PR 83641 causes this test to fail.
++
++   The constants have been chosen randomly and are magic values which
++   are used to detect whether registers have been clobbered.  The idea
++   is that these values are hidden behind a compiler barrier and only
++   present in .rodata initially, so that it is less likely that they
++   are in a register by accident.
++
++   The checker class can be stored in registers, and the magic values
++   are directly loaded into these registers.  The checker destructor
++   is eventually invoked by pthread_exit and calls one of the
++   check_magic functions to verify that the class contents (that is,
++   register value) is correct.
++
++   These tests are performed both for unsigned int and double values,
++   to cover different calling conventions.  */
++
++template <class T>
++struct values
++{
++  T v0;
++  T v1;
++  T v2;
++  T v3;
++  T v4;
++};
++
++static const values<unsigned int> magic_values =
++  {
++    0x57f7fc72,
++    0xe582daba,
++    0x5f6ac994,
++    0x35efddb7,
++    0x1fbf5a74,
++  };
++
++static const values<double> magic_values_double =
++  {
++    0.6764041905675465,
++    0.9533336788140494,
++    0.6091161359041452,
++    0.7668653957125336,
++    0.010374520235509666,
++  };
++
++/* Special index value which tells check_magic that no check should be
++   performed.  */
++enum { no_check = -1 };
++
++/* Check that VALUE is the magic value for INDEX, behind a compiler
++   barrier.  */
++__attribute__ ((noinline, noclone, weak))
++void
++check_magic (int index, unsigned int value)
++{
++  switch (index)
++    {
++    case 0:
++      TEST_COMPARE (value, magic_values.v0);
++      break;
++    case 1:
++      TEST_COMPARE (value, magic_values.v1);
++      break;
++    case 2:
++      TEST_COMPARE (value, magic_values.v2);
++      break;
++    case 3:
++      TEST_COMPARE (value, magic_values.v3);
++      break;
++    case 4:
++      TEST_COMPARE (value, magic_values.v4);
++      break;
++    case no_check:
++      break;
++    default:
++      FAIL_EXIT1 ("invalid magic value index %d", index);
++    }
++}
++
++/* Check that VALUE is the magic value for INDEX, behind a compiler
++   barrier.  Double variant.  */
++__attribute__ ((noinline, noclone, weak))
++void
++check_magic (int index, double value)
++{
++  switch (index)
++    {
++    case 0:
++      TEST_VERIFY (value == magic_values_double.v0);
++      break;
++    case 1:
++      TEST_VERIFY (value == magic_values_double.v1);
++      break;
++    case 2:
++      TEST_VERIFY (value == magic_values_double.v2);
++      break;
++    case 3:
++      TEST_VERIFY (value == magic_values_double.v3);
++      break;
++    case 4:
++      TEST_VERIFY (value == magic_values_double.v4);
++      break;
++    case no_check:
++      break;
++    default:
++      FAIL_EXIT1 ("invalid magic value index %d", index);
++    }
++}
++
++/* Store a magic value and check, via the destructor, that it has the
++   expected value.  */
++template <class T, int I>
++struct checker
++{
++  T value;
++
++  checker (T v)
++    : value (v)
++  {
++  }
++
++  ~checker ()
++  {
++    check_magic (I, value);
++  }
++};
++
++/* The functions call_pthread_exit_0, call_pthread_exit_1,
++   call_pthread_exit are used to call pthread_exit indirectly, with
++   the intent of clobbering the register values.  */
++
++__attribute__ ((noinline, noclone, weak))
++void
++call_pthread_exit_0 (const values<unsigned int> *pvalues)
++{
++  checker<unsigned int, no_check> c0 (pvalues->v0);
++  checker<unsigned int, no_check> c1 (pvalues->v1);
++  checker<unsigned int, no_check> c2 (pvalues->v2);
++  checker<unsigned int, no_check> c3 (pvalues->v3);
++  checker<unsigned int, no_check> c4 (pvalues->v4);
++
++  pthread_exit (NULL);
++}
++
++__attribute__ ((noinline, noclone, weak))
++void
++call_pthread_exit_1 (const values<double> *pvalues)
++{
++  checker<double, no_check> c0 (pvalues->v0);
++  checker<double, no_check> c1 (pvalues->v1);
++  checker<double, no_check> c2 (pvalues->v2);
++  checker<double, no_check> c3 (pvalues->v3);
++  checker<double, no_check> c4 (pvalues->v4);
++
++  values<unsigned int> other_values = { 0, };
++  call_pthread_exit_0 (&other_values);
++}
++
++__attribute__ ((noinline, noclone, weak))
++void
++call_pthread_exit ()
++{
++  values<double> other_values = { 0, };
++  call_pthread_exit_1 (&other_values);
++}
++
++/* Create on-stack objects and check that their values are restored by
++   pthread_exit.  If Nested is true, call pthread_exit indirectly via
++   call_pthread_exit.  */
++template <class T, bool Nested>
++__attribute__ ((noinline, noclone, weak))
++void *
++threadfunc (void *closure)
++{
++  const values<T> *pvalues = static_cast<const values<T> *> (closure);
++
++  checker<T, 0> c0 (pvalues->v0);
++  checker<T, 1> c1 (pvalues->v1);
++  checker<T, 2> c2 (pvalues->v2);
++  checker<T, 3> c3 (pvalues->v3);
++  checker<T, 4> c4 (pvalues->v4);
++
++  if (Nested)
++    call_pthread_exit ();
++  else
++    pthread_exit (NULL);
++
++  /* This should not be reached.  */
++  return const_cast<char *> ("");
++}
++
++static int
++do_test ()
++{
++  puts ("info: unsigned int, direct pthread_exit call");
++  pthread_t thr
++    = xpthread_create (NULL, &threadfunc<unsigned int, false>,
++                       const_cast<values<unsigned int> *> (&magic_values));
++  TEST_VERIFY (xpthread_join (thr) == NULL);
++
++  puts ("info: double, direct pthread_exit call");
++  thr = xpthread_create (NULL, &threadfunc<double, false>,
++                         const_cast<values<double> *> (&magic_values_double));
++  TEST_VERIFY (xpthread_join (thr) == NULL);
++
++  puts ("info: unsigned int, indirect pthread_exit call");
++  thr = xpthread_create (NULL, &threadfunc<unsigned int, true>,
++                       const_cast<values<unsigned int> *> (&magic_values));
++  TEST_VERIFY (xpthread_join (thr) == NULL);
++
++  puts ("info: double, indirect pthread_exit call");
++  thr = xpthread_create (NULL, &threadfunc<double, true>,
++                         const_cast<values<double> *> (&magic_values_double));
++  TEST_VERIFY (xpthread_join (thr) == NULL);
 +
 +  return 0;
 +}
@@ -10608,6 +11198,18 @@ index 06ea3dbd14..da3325f80c 100644
  
  static int
  wrap_res_query (int type, unsigned char *answer, int answer_length)
+diff --git a/scripts/backport-support.sh b/scripts/backport-support.sh
+index 2ece7ce575..4057e42d3c 100644
+--- a/scripts/backport-support.sh
++++ b/scripts/backport-support.sh
+@@ -1,6 +1,6 @@
+ #!/bin/bash
+ # Create a patch which backports the support/ subdirectory.
+-# Copyright (C) 2017 Free Software Foundation, Inc.
++# Copyright (C) 2017-2018 Free Software Foundation, Inc.
+ # This file is part of the GNU C Library.
+ 
+ # The GNU C Library is free software; you can redistribute it and/or
 diff --git a/scripts/check-local-headers.sh b/scripts/check-local-headers.sh
 index 7859f613b2..0cde6e8e92 100755
 --- a/scripts/check-local-headers.sh
@@ -11276,9 +11878,16 @@ index e28b0c5058..4320336c9a 100644
      }
  
 diff --git a/support/Makefile b/support/Makefile
-index 2ace3fa8cc..8458840cd8 100644
+index 2ace3fa8cc..1bda81e55e 100644
 --- a/support/Makefile
 +++ b/support/Makefile
+@@ -1,5 +1,5 @@
+ # Makefile for support library, used only at build and test time
+-# Copyright (C) 2016-2017 Free Software Foundation, Inc.
++# Copyright (C) 2016-2018 Free Software Foundation, Inc.
+ # This file is part of the GNU C Library.
+ 
+ # The GNU C Library is free software; you can redistribute it and/or
 @@ -32,15 +32,18 @@ libsupport-routines = \
    check_netent \
    delayed_exit \
@@ -11369,14 +11978,70 @@ index 2ace3fa8cc..8458840cd8 100644
  
  ifeq ($(run-built-tests),yes)
  tests-special = \
+diff --git a/support/capture_subprocess.h b/support/capture_subprocess.h
+index 43caf9bce4..b0886ba1d1 100644
+--- a/support/capture_subprocess.h
++++ b/support/capture_subprocess.h
+@@ -1,5 +1,5 @@
+ /* Capture output from a subprocess.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/check.c b/support/check.c
+index 592f2bc856..78f2b3cde1 100644
+--- a/support/check.c
++++ b/support/check.c
+@@ -1,5 +1,5 @@
+ /* Support code for reporting test results.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -18,6 +18,7 @@
+ 
+ #include <support/check.h>
+ 
++#include <errno.h>
+ #include <stdarg.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -26,9 +27,11 @@
+ static void
+ print_failure (const char *file, int line, const char *format, va_list ap)
+ {
++  int saved_errno = errno;
+   printf ("error: %s:%d: ", file, line);
+   vprintf (format, ap);
+   puts ("");
++  errno = saved_errno;
+ }
+ 
+ int
 diff --git a/support/check.h b/support/check.h
-index bdcd12952a..55a6f09f42 100644
+index bdcd12952a..2192f38941 100644
 --- a/support/check.h
 +++ b/support/check.h
-@@ -86,6 +86,67 @@ void support_test_verify_exit_impl (int status, const char *file, int line,
+@@ -1,5 +1,5 @@
+ /* Functionality for reporting test results.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -86,6 +86,61 @@ void support_test_verify_exit_impl (int status, const char *file, int line,
     does not support reporting failures from a DSO.  */
  void support_record_failure (void);
  
++/* Static assertion, under a common name for both C++ and C11.  */
++#ifdef __cplusplus
++# define support_static_assert static_assert
++#else
++# define support_static_assert _Static_assert
++#endif
++
 +/* Compare the two integers LEFT and RIGHT and report failure if they
 +   are different.  */
 +#define TEST_COMPARE(left, right)                                       \
@@ -11386,43 +12051,30 @@ index bdcd12952a..55a6f09f42 100644
 +    typedef __typeof__ (+ (right)) __right_type;                        \
 +    __left_type __left_value = (left);                                  \
 +    __right_type __right_value = (right);                               \
-+    /* Prevent use with floating-point and boolean types.  */           \
-+    _Static_assert ((__left_type) 1.0 == (__left_type) 1.5,             \
-+                    "left value has floating-point type");              \
-+    _Static_assert ((__right_type) 1.0 == (__right_type) 1.5,           \
-+                    "right value has floating-point type");             \
++    int __left_is_positive = __left_value > 0;                          \
++    int __right_is_positive = __right_value > 0;                        \
++    /* Prevent use with floating-point types.  */                       \
++    support_static_assert ((__left_type) 1.0 == (__left_type) 1.5,      \
++                           "left value has floating-point type");       \
++    support_static_assert ((__right_type) 1.0 == (__right_type) 1.5,    \
++                           "right value has floating-point type");      \
 +    /* Prevent accidental use with larger-than-long long types.  */     \
-+    _Static_assert (sizeof (__left_value) <= sizeof (long long),        \
-+                    "left value fits into long long");                  \
-+    _Static_assert (sizeof (__right_value) <= sizeof (long long),       \
++    support_static_assert (sizeof (__left_value) <= sizeof (long long), \
++                           "left value fits into long long");           \
++    support_static_assert (sizeof (__right_value) <= sizeof (long long), \
 +                    "right value fits into long long");                 \
-+    /* Make sure that integer conversions does not alter the sign.   */ \
-+    enum                                                                \
-+    {                                                                   \
-+      __left_is_unsigned = (__left_type) -1 > 0,                        \
-+      __right_is_unsigned = (__right_type) -1 > 0,                      \
-+      __unsigned_left_converts_to_wider = (__left_is_unsigned           \
-+                                           && (sizeof (__left_value)    \
-+                                               < sizeof (__right_value))), \
-+      __unsigned_right_converts_to_wider = (__right_is_unsigned         \
-+                                            && (sizeof (__right_value)  \
-+                                                < sizeof (__left_value))) \
-+    };                                                                  \
-+    _Static_assert (__left_is_unsigned == __right_is_unsigned           \
-+                    || __unsigned_left_converts_to_wider                \
-+                    || __unsigned_right_converts_to_wider,              \
-+                    "integer conversions may alter sign of operands");  \
 +    /* Compare the value.  */                                           \
-+    if (__left_value != __right_value)                                  \
++    if (__left_value != __right_value                                   \
++        || __left_is_positive != __right_is_positive)                   \
 +      /* Pass the sign for printing the correct value.  */              \
 +      support_test_compare_failure                                      \
 +        (__FILE__, __LINE__,                                            \
-+         #left, __left_value, __left_value < 0, sizeof (__left_type),   \
-+         #right, __right_value, __right_value < 0, sizeof (__right_type)); \
++         #left, __left_value, __left_is_positive, sizeof (__left_type), \
++         #right, __right_value, __right_is_positive, sizeof (__right_type)); \
 +  })
 +
-+/* Internal implementation of TEST_COMPARE.  LEFT_NEGATIVE and
-+   RIGHT_NEGATIVE are used to store the sign separately, so that both
++/* Internal implementation of TEST_COMPARE.  LEFT_POSITIVE and
++   RIGHT_POSITIVE are used to store the sign separately, so that both
 +   unsigned long long and long long arguments fit into LEFT_VALUE and
 +   RIGHT_VALUE, and the function can still print the original value.
 +   LEFT_SIZE and RIGHT_SIZE specify the size of the argument in bytes,
@@ -11430,11 +12082,11 @@ index bdcd12952a..55a6f09f42 100644
 +void support_test_compare_failure (const char *file, int line,
 +                                   const char *left_expr,
 +                                   long long left_value,
-+                                   int left_negative,
++                                   int left_positive,
 +                                   int left_size,
 +                                   const char *right_expr,
 +                                   long long right_value,
-+                                   int right_negative,
++                                   int right_positive,
 +                                   int right_size);
 +
 +
@@ -11442,9 +12094,16 @@ index bdcd12952a..55a6f09f42 100644
  int support_report_failure (int status)
    __attribute__ ((weak, warn_unused_result));
 diff --git a/support/check_addrinfo.c b/support/check_addrinfo.c
-index 55895ace3c..c47f105ce6 100644
+index 55895ace3c..91ad7c56bd 100644
 --- a/support/check_addrinfo.c
 +++ b/support/check_addrinfo.c
+@@ -1,5 +1,5 @@
+ /* Compare struct addrinfo values against a formatted string.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -20,6 +20,7 @@
  
  #include <stdio.h>
@@ -11454,9 +12113,16 @@ index 55895ace3c..c47f105ce6 100644
  #include <support/format_nss.h>
  #include <support/run_diff.h>
 diff --git a/support/check_dns_packet.c b/support/check_dns_packet.c
-index d2a31bed7b..6d14bd90c0 100644
+index d2a31bed7b..6c1277bd67 100644
 --- a/support/check_dns_packet.c
 +++ b/support/check_dns_packet.c
+@@ -1,5 +1,5 @@
+ /* Check that a DNS packet buffer has the expected contents.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -20,6 +20,7 @@
  
  #include <stdio.h>
@@ -11466,9 +12132,16 @@ index d2a31bed7b..6d14bd90c0 100644
  #include <support/format_nss.h>
  #include <support/run_diff.h>
 diff --git a/support/check_hostent.c b/support/check_hostent.c
-index 890d672d50..47fb8bc332 100644
+index 890d672d50..56384f9b03 100644
 --- a/support/check_hostent.c
 +++ b/support/check_hostent.c
+@@ -1,5 +1,5 @@
+ /* Compare struct hostent values against a formatted string.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -20,6 +20,7 @@
  
  #include <stdio.h>
@@ -11478,9 +12151,16 @@ index 890d672d50..47fb8bc332 100644
  #include <support/format_nss.h>
  #include <support/run_diff.h>
 diff --git a/support/check_netent.c b/support/check_netent.c
-index daa3083fd1..80b69309b4 100644
+index daa3083fd1..cbcbfb14e5 100644
 --- a/support/check_netent.c
 +++ b/support/check_netent.c
+@@ -1,5 +1,5 @@
+ /* Compare struct netent values against a formatted string.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -20,6 +20,7 @@
  
  #include <stdio.h>
@@ -11489,10 +12169,61 @@ index daa3083fd1..80b69309b4 100644
  #include <support/check.h>
  #include <support/format_nss.h>
  #include <support/run_diff.h>
+diff --git a/support/check_nss.h b/support/check_nss.h
+index 2893f2c295..6aa28fa24e 100644
+--- a/support/check_nss.h
++++ b/support/check_nss.h
+@@ -1,5 +1,5 @@
+ /* Test verification functions for NSS- and DNS-related data.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/delayed_exit.c b/support/delayed_exit.c
+index 67442f95df..2780d9a6fe 100644
+--- a/support/delayed_exit.c
++++ b/support/delayed_exit.c
+@@ -1,5 +1,5 @@
+ /* Time-triggered process termination.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/format_nss.h b/support/format_nss.h
+index fb4597c238..e55354e788 100644
+--- a/support/format_nss.h
++++ b/support/format_nss.h
+@@ -1,5 +1,5 @@
+ /* String formatting functions for NSS- and DNS-related data.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/ignore_stderr.c b/support/ignore_stderr.c
+index 7b77a2cd56..450333ad38 100644
+--- a/support/ignore_stderr.c
++++ b/support/ignore_stderr.c
+@@ -1,5 +1,5 @@
+ /* Avoid all the buffer overflow messages on stderr.
+-   Copyright (C) 2015-2017 Free Software Foundation, Inc.
++   Copyright (C) 2015-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/namespace.h b/support/namespace.h
-index 859c2fda3f..b5e2d1474a 100644
+index 859c2fda3f..3c3842a49b 100644
 --- a/support/namespace.h
 +++ b/support/namespace.h
+@@ -1,5 +1,5 @@
+ /* Entering namespaces for test case isolation.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -51,6 +51,11 @@ bool support_can_chroot (void);
     has sufficient privileges.  */
  bool support_enter_network_namespace (void);
@@ -11532,12 +12263,12 @@ index 859c2fda3f..b5e2d1474a 100644
  /* Create a chroot environment.  The returned data should be freed
 diff --git a/support/next_to_fault.c b/support/next_to_fault.c
 new file mode 100644
-index 0000000000..7c6b077898
+index 0000000000..1971bf7cd7
 --- /dev/null
 +++ b/support/next_to_fault.c
 @@ -0,0 +1,52 @@
 +/* Memory allocation next to an unmapped page.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -11590,12 +12321,12 @@ index 0000000000..7c6b077898
 +}
 diff --git a/support/next_to_fault.h b/support/next_to_fault.h
 new file mode 100644
-index 0000000000..dd71c28ac0
+index 0000000000..75759b586c
 --- /dev/null
 +++ b/support/next_to_fault.h
 @@ -0,0 +1,48 @@
 +/* Memory allocation next to an unmapped page.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -11642,14 +12373,421 @@ index 0000000000..dd71c28ac0
 +void support_next_to_fault_free (struct support_next_to_fault *);
 +
 +#endif /* SUPPORT_NEXT_TO_FAULT_H */
+diff --git a/support/oom_error.c b/support/oom_error.c
+index 7816978273..fd87fe2305 100644
+--- a/support/oom_error.c
++++ b/support/oom_error.c
+@@ -1,5 +1,5 @@
+ /* Reporting out-of-memory errors.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/resolv_test.c b/support/resolv_test.c
+index 1625dcf43a..3f2a09f36f 100644
+--- a/support/resolv_test.c
++++ b/support/resolv_test.c
+@@ -1,5 +1,5 @@
+ /* DNS test framework and libresolv redirection.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -43,15 +43,99 @@ enum
+     max_response_length = 65536
+   };
+ 
+-/* List of pointers to be freed.  The hash table implementation
+-   (struct hsearch_data) does not provide a way to deallocate all
+-   objects, so this approach is used to avoid memory leaks.  */
+-struct to_be_freed
++/* Used for locating domain names containing for the purpose of
++   forming compression references.  */
++struct compressed_name
+ {
+-  struct to_be_freed *next;
+-  void *ptr;
++  uint16_t offset;
++  unsigned char length;
++  unsigned char name[];         /* Without terminating NUL.  */
+ };
+ 
++static struct compressed_name *
++allocate_compressed_name (const unsigned char *encoded, unsigned int offset)
++{
++  /* Compute the length of the domain name.  */
++  size_t length;
++  {
++    const unsigned char *p;
++    for (p = encoded; *p != '\0';)
++      {
++        /* No compression references are allowed.  */
++        TEST_VERIFY (*p <= 63);
++        /* Skip over the label.  */
++        p += 1 + *p;
++      }
++    length = p - encoded;
++    ++length;                   /* For the terminating NUL byte.  */
++  }
++  TEST_VERIFY_EXIT (length <= 255);
++
++  struct compressed_name *result
++    = xmalloc (offsetof (struct compressed_name, name) + length);
++  result->offset = offset;
++  result->length = length;
++  memcpy (result->name, encoded, length);
++  return result;
++}
++
++/* Convert CH to lower case.  Only change letters in the ASCII
++   range.  */
++static inline unsigned char
++ascii_tolower (unsigned char ch)
++{
++  if ('A' <= ch && ch <= 'Z')
++    return ch - 'A' + 'a';
++  else
++    return ch;
++}
++
++/* Compare both names, for use with tsearch.  The order is arbitrary,
++   but the comparison is case-insenstive.  */
++static int
++compare_compressed_name (const void *left, const void *right)
++{
++  const struct compressed_name *crleft = left;
++  const struct compressed_name *crright = right;
++
++  if (crleft->length != crright->length)
++    /* The operands are converted to int before the subtraction.  */
++    return crleft->length - crright->length;
++
++  const unsigned char *nameleft = crleft->name;
++  const unsigned char *nameright = crright->name;
++
++  while (true)
++    {
++      int lenleft = *nameleft++;
++      int lenright = *nameright++;
++
++      /* Labels must not e compression references.  */
++      TEST_VERIFY (lenleft <= 63);
++      TEST_VERIFY (lenright <= 63);
++
++      if (lenleft != lenright)
++        return left - right;
++      if (lenleft == 0)
++        /* End of name reached without spotting a difference.  */
++        return 0;
++      /* Compare the label in a case-insenstive manner.  */
++      const unsigned char *endnameleft = nameleft + lenleft;
++      while (nameleft < endnameleft)
++        {
++          int l = *nameleft++;
++          int r = *nameright++;
++          if (l != r)
++            {
++              l = ascii_tolower (l);
++              r = ascii_tolower (r);
++              if (l != r)
++                return l - r;
++            }
++        }
++    }
++}
++
+ struct resolv_response_builder
+ {
+   const unsigned char *query_buffer;
+@@ -67,11 +151,8 @@ struct resolv_response_builder
+      written RDATA sub-structure.  0 if no RDATA is being written.  */
+   size_t current_rdata_offset;
+ 
+-  /* Hash table for locating targets for label compression.  */
+-  struct hsearch_data compression_offsets;
+-  /* List of pointers which need to be freed.  Used for domain names
+-     involved in label compression.  */
+-  struct to_be_freed *to_be_freed;
++  /* tsearch tree for locating targets for label compression.  */
++  void *compression_offsets;
+ 
+   /* Must be last.  Not zeroed for performance reasons.  */
+   unsigned char buffer[max_response_length];
+@@ -79,18 +160,6 @@ struct resolv_response_builder
+ 
+ /* Response builder. */
+ 
+-/* Add a pointer to the list of pointers to be freed when B is
+-   deallocated.  */
+-static void
+-response_push_pointer_to_free (struct resolv_response_builder *b, void *ptr)
+-{
+-  if (ptr == NULL)
+-    return;
+-  struct to_be_freed *e = xmalloc (sizeof (*e));
+-  *e = (struct to_be_freed) {b->to_be_freed, ptr};
+-  b->to_be_freed = e;
+-}
+-
+ void
+ resolv_response_init (struct resolv_response_builder *b,
+                       struct resolv_response_flags flags)
+@@ -194,120 +263,88 @@ void
+ resolv_response_add_name (struct resolv_response_builder *b,
+                           const char *const origname)
+ {
+-  /* Normalized name.  */
+-  char *name;
+-  /* Normalized name with case preserved.  */
+-  char *name_case;
+-  {
+-    size_t namelen = strlen (origname);
+-    /* Remove trailing dots.  FIXME: Handle trailing quoted dots.  */
+-    while (namelen > 0 && origname[namelen - 1] == '.')
+-      --namelen;
+-    name = xmalloc (namelen + 1);
+-    name_case = xmalloc (namelen + 1);
+-    /* Copy and convert to lowercase.  FIXME: This needs to normalize
+-       escaping as well.  */
+-    for (size_t i = 0; i < namelen; ++i)
+-      {
+-        char ch = origname[i];
+-        name_case[i] = ch;
+-        if ('A' <= ch && ch <= 'Z')
+-          ch = ch - 'A' + 'a';
+-        name[i] = ch;
+-      }
+-    name[namelen] = 0;
+-    name_case[namelen] = 0;
+-  }
+-  char *name_start = name;
+-  char *name_case_start = name_case;
++  unsigned char encoded_name[NS_MAXDNAME];
++  if (ns_name_pton (origname, encoded_name, sizeof (encoded_name)) < 0)
++    FAIL_EXIT1 ("ns_name_pton (\"%s\"): %m", origname);
+ 
+-  bool compression = false;
+-  while (*name)
++  /* Copy the encoded name into the output buffer, apply compression
++     where possible.  */
++  for (const unsigned char *name = encoded_name; ;)
+     {
+-      /* Search for a previous name we can reference.  */
+-      ENTRY new_entry =
++      if (*name == '\0')
+         {
+-          .key = name,
+-          .data = (void *) (uintptr_t) b->offset,
+-        };
++          /* We have reached the end of the name.  Add the terminating
++             NUL byte.  */
++          response_add_byte (b, '\0');
++          break;
++        }
+ 
+-      /* If the label can be a compression target because it is at a
+-         reachable offset, add it to the hash table.  */
+-      ACTION action;
+-      if (b->offset < (1 << 12))
+-        action = ENTER;
+-      else
+-        action = FIND;
++      /* Set to the compression target if compression is possible.  */
++      struct compressed_name *crname_target;
+ 
+-      /* Search for known compression offsets in the hash table.  */
+-      ENTRY *e;
+-      if (hsearch_r (new_entry, action, &e, &b->compression_offsets) == 0)
+-        {
+-          if (action == FIND && errno == ESRCH)
+-            /* Fall through.  */
+-            e = NULL;
+-          else
+-            FAIL_EXIT1 ("hsearch_r failure in name compression: %m");
+-        }
++      /* Compression references can only reach the beginning of the
++         packet.  */
++      enum { compression_limit = 1 << 12 };
++
++      {
++        /* The trailing part of the name to be looked up in the tree
++           with the compression targets.  */
++        struct compressed_name *crname
++          = allocate_compressed_name (name, b->offset);
++
++        if (b->offset < compression_limit)
++          {
++            /* Add the name to the tree, for future compression
++               references.  */
++            void **ptr = tsearch (crname, &b->compression_offsets,
++                                  compare_compressed_name);
++            if (ptr == NULL)
++              FAIL_EXIT1 ("tsearch out of memory");
++            crname_target = *ptr;
++
++            if (crname_target != crname)
++              /* The new name was not actually added to the tree.
++                 Deallocate it.  */
++              free (crname);
++            else
++              /* Signal that the tree did not yet contain the name,
++                 but keep the allocation because it is now part of the
++                 tree.  */
++              crname_target = NULL;
++          }
++        else
++          {
++            /* This name cannot be reached by a compression reference.
++               No need to add it to the tree for future reference.  */
++            void **ptr = tfind (crname, &b->compression_offsets,
++                                compare_compressed_name);
++            if (ptr != NULL)
++              crname_target = *ptr;
++            else
++              crname_target = NULL;
++            TEST_VERIFY (crname_target != crname);
++            /* Not added to the tree.  */
++            free (crname);
++          }
++      }
+ 
+-      /* The name is known.  Reference the previous location.  */
+-      if (e != NULL && e->data != new_entry.data)
++      if (crname_target != NULL)
+         {
+-          size_t old_offset = (uintptr_t) e->data;
++          /* The name is known.  Reference the previous location.  */
++          unsigned int old_offset = crname_target->offset;
++          TEST_VERIFY_EXIT (old_offset < compression_limit);
+           response_add_byte (b, 0xC0 | (old_offset >> 8));
+           response_add_byte (b, old_offset);
+-          compression = true;
+           break;
+         }
+-
+-      /* The name does not exist yet.  Write one label.  First, add
+-         room for the label length.  */
+-      size_t buffer_label_offset = b->offset;
+-      response_add_byte (b, 0);
+-
+-      /* Copy the label.  */
+-      while (true)
++      else
+         {
+-          char ch = *name_case;
+-          if (ch == '\0')
+-            break;
+-          ++name;
+-          ++name_case;
+-          if (ch == '.')
+-            break;
+-          /* FIXME: Handle escaping.  */
+-          response_add_byte (b, ch);
++          /* The name is new.  Add this label.  */
++          unsigned int len = 1 + *name;
++          resolv_response_add_data (b, name, len);
++          name += len;
+         }
+-
+-      /* Patch in the label length.  */
+-      size_t label_length = b->offset - buffer_label_offset - 1;
+-      if (label_length == 0)
+-        FAIL_EXIT1 ("empty label in name compression: %s", origname);
+-      if (label_length > 63)
+-        FAIL_EXIT1 ("label too long in name compression: %s", origname);
+-      b->buffer[buffer_label_offset] = label_length;
+-
+-      /* Continue with the tail of the name and the next label.  */
+-    }
+-
+-  if (compression)
+-    {
+-      /* If we found an immediate match for the name, we have not put
+-         it into the hash table, and can free it immediately.  */
+-      if (name == name_start)
+-        free (name_start);
+-      else
+-        response_push_pointer_to_free (b, name_start);
+-    }
+-  else
+-    {
+-      /* Terminate the sequence of labels.  With compression, this is
+-         implicit in the compression reference.  */
+-      response_add_byte (b, 0);
+-      response_push_pointer_to_free (b, name_start);
+     }
+-
+-  free (name_case_start);
+ }
+ 
+ void
+@@ -403,22 +440,13 @@ response_builder_allocate
+   memset (b, 0, offsetof (struct resolv_response_builder, buffer));
+   b->query_buffer = query_buffer;
+   b->query_length = query_length;
+-  TEST_VERIFY_EXIT (hcreate_r (10000, &b->compression_offsets) != 0);
+   return b;
+ }
+ 
+ static void
+ response_builder_free (struct resolv_response_builder *b)
+ {
+-  struct to_be_freed *current = b->to_be_freed;
+-  while (current != NULL)
+-    {
+-      struct to_be_freed *next = current->next;
+-      free (current->ptr);
+-      free (current);
+-      current = next;
+-    }
+-  hdestroy_r (&b->compression_offsets);
++  tdestroy (b->compression_offsets, free);
+   free (b);
+ }
+ 
+diff --git a/support/resolv_test.h b/support/resolv_test.h
+index b953dc1200..4c2e6c1b41 100644
+--- a/support/resolv_test.h
++++ b/support/resolv_test.h
+@@ -1,5 +1,5 @@
+ /* DNS test framework and libresolv redirection.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/run_diff.h b/support/run_diff.h
+index f65b5dd22c..6e949226fa 100644
+--- a/support/run_diff.h
++++ b/support/run_diff.h
+@@ -1,5 +1,5 @@
+ /* Invoke the system diff tool to compare two strings.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/set_fortify_handler.c b/support/set_fortify_handler.c
+index f434a8082a..c2dacbb179 100644
+--- a/support/set_fortify_handler.c
++++ b/support/set_fortify_handler.c
+@@ -1,5 +1,5 @@
+ /* Set signal handler for use in fortify tests.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/support-xfstat.c b/support/support-xfstat.c
 new file mode 100644
-index 0000000000..4c8ee9142b
+index 0000000000..f69253af09
 --- /dev/null
 +++ b/support/support-xfstat.c
 @@ -0,0 +1,28 @@
 +/* fstat64 with error checking.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -11676,10 +12814,28 @@ index 0000000000..4c8ee9142b
 +  if (fstat64 (fd, result) != 0)
 +    FAIL_EXIT1 ("fstat64 (%d): %m", fd);
 +}
+diff --git a/support/support-xstat.c b/support/support-xstat.c
+index 86a81ec601..fc10c6dcb7 100644
+--- a/support/support-xstat.c
++++ b/support/support-xstat.c
+@@ -1,5 +1,5 @@
+ /* stat64 with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/support.h b/support/support.h
-index 4b5f04c2cc..bbba803ba1 100644
+index 4b5f04c2cc..bc5827ed87 100644
 --- a/support/support.h
 +++ b/support/support.h
+@@ -1,5 +1,5 @@
+ /* Common extra functions.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -68,6 +68,7 @@ void *xrealloc (void *p, size_t n);
  char *xasprintf (const char *format, ...)
    __attribute__ ((format (printf, 1, 2), malloc));
@@ -11689,9 +12845,16 @@ index 4b5f04c2cc..bbba803ba1 100644
  __END_DECLS
  
 diff --git a/support/support_become_root.c b/support/support_become_root.c
-index 3fa0bd4ac0..933138f99f 100644
+index 3fa0bd4ac0..6947dbaa80 100644
 --- a/support/support_become_root.c
 +++ b/support/support_become_root.c
+@@ -1,5 +1,5 @@
+ /* Acquire root privileges.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -18,18 +18,80 @@
  
  #include <support/namespace.h>
@@ -11777,9 +12940,16 @@ index 3fa0bd4ac0..933138f99f 100644
    if (setuid (0) != 0)
      {
 diff --git a/support/support_can_chroot.c b/support/support_can_chroot.c
-index 0dfd2deb54..a462753f76 100644
+index 0dfd2deb54..8922576d19 100644
 --- a/support/support_can_chroot.c
 +++ b/support/support_can_chroot.c
+@@ -1,5 +1,5 @@
+ /* Return true if the process can perform a chroot operation.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -21,9 +21,9 @@
  #include <support/check.h>
  #include <support/namespace.h>
@@ -11791,10 +12961,39 @@ index 0dfd2deb54..a462753f76 100644
  
  static void
  callback (void *closure)
+diff --git a/support/support_capture_subprocess.c b/support/support_capture_subprocess.c
+index 030f124252..6d2029e13b 100644
+--- a/support/support_capture_subprocess.c
++++ b/support/support_capture_subprocess.c
+@@ -1,5 +1,5 @@
+ /* Capture output from a subprocess.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/support_capture_subprocess_check.c b/support/support_capture_subprocess_check.c
+index e1cf73b6a5..ff5ee89fb0 100644
+--- a/support/support_capture_subprocess_check.c
++++ b/support/support_capture_subprocess_check.c
+@@ -1,5 +1,5 @@
+ /* Verify capture output from a subprocess.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/support_chroot.c b/support/support_chroot.c
-index c0807b313a..693813f694 100644
+index c0807b313a..6356b1af6c 100644
 --- a/support/support_chroot.c
 +++ b/support/support_chroot.c
+@@ -1,5 +1,5 @@
+ /* Setup a chroot environment for use within tests.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -24,30 +24,38 @@
  #include <support/test-driver.h>
  #include <support/xunistd.h>
@@ -11858,12 +13057,12 @@ index c0807b313a..693813f694 100644
  }
 diff --git a/support/support_enter_mount_namespace.c b/support/support_enter_mount_namespace.c
 new file mode 100644
-index 0000000000..6140692075
+index 0000000000..ba68e990f2
 --- /dev/null
 +++ b/support/support_enter_mount_namespace.c
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,47 @@
 +/* Enter a mount namespace.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -11884,7 +13083,9 @@ index 0000000000..6140692075
 +
 +#include <sched.h>
 +#include <stdio.h>
-+#include <sys/mount.h>
++#ifdef CLONE_NEWNS
++# include <sys/mount.h>
++#endif /* CLONE_NEWNS */
 +
 +bool
 +support_enter_mount_namespace (void)
@@ -11907,10 +13108,39 @@ index 0000000000..6140692075
 +#endif /* CLONE_NEWNS */
 +  return false;
 +}
+diff --git a/support/support_enter_network_namespace.c b/support/support_enter_network_namespace.c
+index 28b0ee29cf..1d874df885 100644
+--- a/support/support_enter_network_namespace.c
++++ b/support/support_enter_network_namespace.c
+@@ -1,5 +1,5 @@
+ /* Enter a network namespace.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/support_format_address_family.c b/support/support_format_address_family.c
+index 5d42c42a45..2acb9afffd 100644
+--- a/support/support_format_address_family.c
++++ b/support/support_format_address_family.c
+@@ -1,5 +1,5 @@
+ /* Convert an address family to a string.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/support_format_addrinfo.c b/support/support_format_addrinfo.c
-index eedb030591..daf335f775 100644
+index eedb030591..c5e00e516a 100644
 --- a/support/support_format_addrinfo.c
 +++ b/support/support_format_addrinfo.c
+@@ -1,5 +1,5 @@
+ /* Convert struct addrinfo values to a string.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -21,6 +21,7 @@
  #include <arpa/inet.h>
  #include <errno.h>
@@ -11920,9 +13150,16 @@ index eedb030591..daf335f775 100644
  #include <support/xmemstream.h>
  
 diff --git a/support/support_format_dns_packet.c b/support/support_format_dns_packet.c
-index 2992c57971..e5ef1aa4b3 100644
+index 2992c57971..1170eafb0f 100644
 --- a/support/support_format_dns_packet.c
 +++ b/support/support_format_dns_packet.c
+@@ -1,5 +1,5 @@
+ /* Convert a DNS packet to a human-readable representation.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -20,6 +20,7 @@
  
  #include <arpa/inet.h>
@@ -11931,10 +13168,28 @@ index 2992c57971..e5ef1aa4b3 100644
  #include <support/check.h>
  #include <support/support.h>
  #include <support/xmemstream.h>
+diff --git a/support/support_format_herrno.c b/support/support_format_herrno.c
+index 493d6ae962..3d2dc8b27a 100644
+--- a/support/support_format_herrno.c
++++ b/support/support_format_herrno.c
+@@ -1,5 +1,5 @@
+ /* Convert a h_errno error code to a string.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/support_format_hostent.c b/support/support_format_hostent.c
-index 5b5f26082e..0aac17972b 100644
+index 5b5f26082e..a4a62afe0a 100644
 --- a/support/support_format_hostent.c
 +++ b/support/support_format_hostent.c
+@@ -1,5 +1,5 @@
+ /* Convert a struct hostent object to a string.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -19,7 +19,9 @@
  #include <support/format_nss.h>
  
@@ -11966,9 +13221,16 @@ index 5b5f26082e..0aac17972b 100644
  
    struct xmemstream mem;
 diff --git a/support/support_format_netent.c b/support/support_format_netent.c
-index 020f5720d9..be8f1720a2 100644
+index 020f5720d9..0d15e78440 100644
 --- a/support/support_format_netent.c
 +++ b/support/support_format_netent.c
+@@ -1,5 +1,5 @@
+ /* Convert a struct netent object to a string.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -20,6 +20,7 @@
  
  #include <arpa/inet.h>
@@ -11977,14 +13239,58 @@ index 020f5720d9..be8f1720a2 100644
  #include <support/support.h>
  #include <support/xmemstream.h>
  
+diff --git a/support/support_isolate_in_subprocess.c b/support/support_isolate_in_subprocess.c
+index cf48614383..25edc00385 100644
+--- a/support/support_isolate_in_subprocess.c
++++ b/support/support_isolate_in_subprocess.c
+@@ -1,5 +1,5 @@
+ /* Run a function in a subprocess.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/support_record_failure.c b/support/support_record_failure.c
+index 684055c746..356798f556 100644
+--- a/support/support_record_failure.c
++++ b/support/support_record_failure.c
+@@ -1,5 +1,5 @@
+ /* Global test failure counter.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/support_run_diff.c b/support/support_run_diff.c
+index f5155de727..f24f6c3281 100644
+--- a/support/support_run_diff.c
++++ b/support/support_run_diff.c
+@@ -1,5 +1,5 @@
+ /* Invoke the system diff tool to compare two strings.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/support_shared_allocate.c b/support/support_shared_allocate.c
+index 61d088e8cf..8ab43c4b38 100644
+--- a/support/support_shared_allocate.c
++++ b/support/support_shared_allocate.c
+@@ -1,5 +1,5 @@
+ /* Allocate a memory region shared across processes.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/support_test_compare_failure.c b/support/support_test_compare_failure.c
 new file mode 100644
-index 0000000000..894145b56d
+index 0000000000..8eb51c439d
 --- /dev/null
 +++ b/support/support_test_compare_failure.c
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,58 @@
 +/* Reporting a numeric comparison failure.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12001,18 +13307,19 @@ index 0000000000..894145b56d
 +   License along with the GNU C Library; if not, see
 +   <http://www.gnu.org/licenses/>.  */
 +
++#include <errno.h>
 +#include <stdio.h>
 +#include <support/check.h>
 +
 +static void
-+report (const char *which, const char *expr, long long value, int negative,
++report (const char *which, const char *expr, long long value, int positive,
 +        int size)
 +{
 +  printf ("  %s: ", which);
-+  if (negative)
-+    printf ("%lld", value);
-+  else
++  if (positive)
 +    printf ("%llu", (unsigned long long) value);
++  else
++    printf ("%lld", value);
 +  unsigned long long mask
 +    = (~0ULL) >> (8 * (sizeof (unsigned long long) - size));
 +  printf (" (0x%llx); from: %s\n", (unsigned long long) value & mask, expr);
@@ -12022,26 +13329,75 @@ index 0000000000..894145b56d
 +support_test_compare_failure (const char *file, int line,
 +                              const char *left_expr,
 +                              long long left_value,
-+                              int left_negative,
++                              int left_positive,
 +                              int left_size,
 +                              const char *right_expr,
 +                              long long right_value,
-+                              int right_negative,
++                              int right_positive,
 +                              int right_size)
 +{
++  int saved_errno = errno;
 +  support_record_failure ();
 +  if (left_size != right_size)
 +    printf ("%s:%d: numeric comparison failure (widths %d and %d)\n",
 +            file, line, left_size * 8, right_size * 8);
 +  else
 +    printf ("%s:%d: numeric comparison failure\n", file, line);
-+  report (" left", left_expr, left_value, left_negative, left_size);
-+  report ("right", right_expr, right_value, right_negative, right_size);
++  report (" left", left_expr, left_value, left_positive, left_size);
++  report ("right", right_expr, right_value, right_positive, right_size);
++  errno = saved_errno;
 +}
+diff --git a/support/support_test_main.c b/support/support_test_main.c
+index 3c411a467b..396385729b 100644
+--- a/support/support_test_main.c
++++ b/support/support_test_main.c
+@@ -1,5 +1,5 @@
+ /* Main worker function for the test driver.
+-   Copyright (C) 1998-2017 Free Software Foundation, Inc.
++   Copyright (C) 1998-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/support_test_verify_impl.c b/support/support_test_verify_impl.c
+index 55ab2111b3..5ff5555a6a 100644
+--- a/support/support_test_verify_impl.c
++++ b/support/support_test_verify_impl.c
+@@ -1,5 +1,5 @@
+ /* Implementation of the TEST_VERIFY and TEST_VERIFY_EXIT macros.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -18,14 +18,17 @@
+ 
+ #include <support/check.h>
+ 
++#include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ 
+ void
+ support_test_verify_impl (const char *file, int line, const char *expr)
+ {
++  int saved_errno = errno;
+   support_record_failure ();
+   printf ("error: %s:%d: not true: %s\n", file, line, expr);
++  errno = saved_errno;
+ }
+ 
+ void
 diff --git a/support/support_write_file_string.c b/support/support_write_file_string.c
-index 48e89597f3..48736530bf 100644
+index 48e89597f3..7505679401 100644
 --- a/support/support_write_file_string.c
 +++ b/support/support_write_file_string.c
+@@ -1,5 +1,5 @@
+ /* Write a string to a file.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -19,7 +19,7 @@
  #include <fcntl.h>
  #include <string.h>
@@ -12051,10 +13407,28 @@ index 48e89597f3..48736530bf 100644
  
  void
  support_write_file_string (const char *path, const char *contents)
+diff --git a/support/temp_file-internal.h b/support/temp_file-internal.h
+index fb6cceb065..4cee3c0c35 100644
+--- a/support/temp_file-internal.h
++++ b/support/temp_file-internal.h
+@@ -1,5 +1,5 @@
+ /* Internal weak declarations for temporary file handling.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/temp_file.c b/support/temp_file.c
-index fdb2477ab9..547263a3e4 100644
+index fdb2477ab9..0bbc7f9972 100644
 --- a/support/temp_file.c
 +++ b/support/temp_file.c
+@@ -1,5 +1,5 @@
+ /* Temporary file handling for tests.
+-   Copyright (C) 1998-2017 Free Software Foundation, Inc.
++   Copyright (C) 1998-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -86,6 +86,19 @@ create_temp_file (const char *base, char **filename)
    return fd;
  }
@@ -12076,9 +13450,16 @@ index fdb2477ab9..547263a3e4 100644
  
  void
 diff --git a/support/temp_file.h b/support/temp_file.h
-index 6fed8df1ea..3b8563e115 100644
+index 6fed8df1ea..c7795cc577 100644
 --- a/support/temp_file.h
 +++ b/support/temp_file.h
+@@ -1,5 +1,5 @@
+ /* Declarations for temporary file handling.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -32,6 +32,11 @@ void add_temp_file (const char *name);
     *FILENAME.  */
  int create_temp_file (const char *base, char **filename);
@@ -12091,14 +13472,92 @@ index 6fed8df1ea..3b8563e115 100644
  __END_DECLS
  
  #endif /* SUPPORT_TEMP_FILE_H */
+diff --git a/support/test-driver.c b/support/test-driver.c
+index 47c387c2b4..09c8783e4f 100644
+--- a/support/test-driver.c
++++ b/support/test-driver.c
+@@ -1,5 +1,5 @@
+ /* Main function for test programs.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/test-driver.h b/support/test-driver.h
+index a8fe9c3565..1708d68d60 100644
+--- a/support/test-driver.h
++++ b/support/test-driver.h
+@@ -1,5 +1,5 @@
+ /* Interfaces for the test driver.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/tst-support-namespace.c b/support/tst-support-namespace.c
+index dbe7cc07c8..e20423c4a3 100644
+--- a/support/tst-support-namespace.c
++++ b/support/tst-support-namespace.c
+@@ -1,5 +1,5 @@
+ /* Test entering namespaces.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/tst-support_capture_subprocess.c b/support/tst-support_capture_subprocess.c
+index 5672fba0f7..a685256091 100644
+--- a/support/tst-support_capture_subprocess.c
++++ b/support/tst-support_capture_subprocess.c
+@@ -1,5 +1,5 @@
+ /* Test capturing output from a subprocess.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/tst-support_format_dns_packet.c b/support/tst-support_format_dns_packet.c
+index 9c8589c09c..b1135eebc6 100644
+--- a/support/tst-support_format_dns_packet.c
++++ b/support/tst-support_format_dns_packet.c
+@@ -1,5 +1,5 @@
+ /* Tests for the support_format_dns_packet function.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/tst-support_record_failure-2.sh b/support/tst-support_record_failure-2.sh
+index 2c9372cc29..09cd96290a 100644
+--- a/support/tst-support_record_failure-2.sh
++++ b/support/tst-support_record_failure-2.sh
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ # Test failure recording (with and without --direct).
+-# Copyright (C) 2016-2017 Free Software Foundation, Inc.
++# Copyright (C) 2016-2018 Free Software Foundation, Inc.
+ # This file is part of the GNU C Library.
+ 
+ # The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/tst-support_record_failure.c b/support/tst-support_record_failure.c
+index e739e739c3..8757f2da02 100644
+--- a/support/tst-support_record_failure.c
++++ b/support/tst-support_record_failure.c
+@@ -1,5 +1,5 @@
+ /* Test support_record_failure state sharing.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/tst-test_compare.c b/support/tst-test_compare.c
 new file mode 100644
-index 0000000000..de138d4f8a
+index 0000000000..123ba1bc3c
 --- /dev/null
 +++ b/support/tst-test_compare.c
-@@ -0,0 +1,98 @@
+@@ -0,0 +1,116 @@
 +/* Basic test for the TEST_COMPARE macro.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12141,6 +13600,22 @@ index 0000000000..de138d4f8a
 +  unsigned long long int u63 : 63;
 +};
 +
++/* Functions which return signed sizes are common, so test that these
++   results can readily checked using TEST_COMPARE.  */
++
++static int
++return_ssize_t (void)
++{
++  return 4;
++}
++
++static int
++return_int (void)
++{
++  return 4;
++}
++
++
 +static int
 +do_test (void)
 +{
@@ -12152,6 +13627,8 @@ index 0000000000..de138d4f8a
 +    unsigned short u16 = 3;
 +    TEST_COMPARE (i8, u16);
 +  }
++  TEST_COMPARE (return_ssize_t (), sizeof (char[4]));
++  TEST_COMPARE (return_int (), sizeof (char[4]));
 +
 +  struct bitfield bitfield = { 0 };
 +  TEST_COMPARE (bitfield.i2, bitfield.i3);
@@ -12197,12 +13674,12 @@ index 0000000000..de138d4f8a
 +#include <support/test-driver.c>
 diff --git a/support/tst-xreadlink.c b/support/tst-xreadlink.c
 new file mode 100644
-index 0000000000..a4a22812c1
+index 0000000000..b142207228
 --- /dev/null
 +++ b/support/tst-xreadlink.c
 @@ -0,0 +1,72 @@
 +/* Test the xreadlink function.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12273,14 +13750,129 @@ index 0000000000..a4a22812c1
 +}
 +
 +#include <support/test-driver.c>
+diff --git a/support/write_message.c b/support/write_message.c
+index f03ed931d6..a3e2f90535 100644
+--- a/support/write_message.c
++++ b/support/write_message.c
+@@ -1,5 +1,5 @@
+ /* Write a message to standard output.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -18,12 +18,15 @@
+ 
+ #include <support/support.h>
+ 
++#include <errno.h>
+ #include <string.h>
+ #include <unistd.h>
+ 
+ void
+ write_message (const char *message)
+ {
++  int saved_errno = errno;
+   ssize_t unused __attribute__ ((unused));
+   unused = write (STDOUT_FILENO, message, strlen (message));
++  errno = saved_errno;
+ }
+diff --git a/support/xaccept.c b/support/xaccept.c
+index 7b25af3b05..fd65fc6c3a 100644
+--- a/support/xaccept.c
++++ b/support/xaccept.c
+@@ -1,5 +1,5 @@
+ /* accept with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xaccept4.c b/support/xaccept4.c
+index 67dd95e9fb..ada3c92267 100644
+--- a/support/xaccept4.c
++++ b/support/xaccept4.c
+@@ -1,5 +1,5 @@
+ /* accept4 with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xasprintf.c b/support/xasprintf.c
+index 5157680fa2..e593ec5e82 100644
+--- a/support/xasprintf.c
++++ b/support/xasprintf.c
+@@ -1,5 +1,5 @@
+ /* Error-checking wrapper for asprintf.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xbind.c b/support/xbind.c
+index cfc6dd8fa8..938e7c07d6 100644
+--- a/support/xbind.c
++++ b/support/xbind.c
+@@ -1,5 +1,5 @@
+ /* bind with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xcalloc.c b/support/xcalloc.c
+index 135f42dab2..403569041f 100644
+--- a/support/xcalloc.c
++++ b/support/xcalloc.c
+@@ -1,5 +1,5 @@
+ /* Error-checking wrapper for calloc.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xchroot.c b/support/xchroot.c
+index abcc299e00..d4759a1bd1 100644
+--- a/support/xchroot.c
++++ b/support/xchroot.c
+@@ -1,5 +1,5 @@
+ /* chroot with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xclose.c b/support/xclose.c
+index c931e08421..702bef6c6e 100644
+--- a/support/xclose.c
++++ b/support/xclose.c
+@@ -1,5 +1,5 @@
+ /* close with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xconnect.c b/support/xconnect.c
+index 0266dbc643..341805d80d 100644
+--- a/support/xconnect.c
++++ b/support/xconnect.c
+@@ -1,5 +1,5 @@
+ /* connect with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/xdlfcn.c b/support/xdlfcn.c
 new file mode 100644
-index 0000000000..05966c41ef
+index 0000000000..f34bb059c0
 --- /dev/null
 +++ b/support/xdlfcn.c
 @@ -0,0 +1,59 @@
 +/* Support functionality for using dlopen/dlclose/dlsym.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12340,12 +13932,12 @@ index 0000000000..05966c41ef
 +}
 diff --git a/support/xdlfcn.h b/support/xdlfcn.h
 new file mode 100644
-index 0000000000..9bdcb38d3e
+index 0000000000..5ab7494e70
 --- /dev/null
 +++ b/support/xdlfcn.h
 @@ -0,0 +1,34 @@
 +/* Support functionality for using dlopen/dlclose/dlsym.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12378,14 +13970,58 @@ index 0000000000..9bdcb38d3e
 +__END_DECLS
 +
 +#endif /* SUPPORT_DLOPEN_H */
+diff --git a/support/xdup2.c b/support/xdup2.c
+index dc08c94518..b8c4c223fb 100644
+--- a/support/xdup2.c
++++ b/support/xdup2.c
+@@ -1,5 +1,5 @@
+ /* dup2 with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xfclose.c b/support/xfclose.c
+index 2737f05044..39d46f042a 100644
+--- a/support/xfclose.c
++++ b/support/xfclose.c
+@@ -1,5 +1,5 @@
+ /* fclose with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xfopen.c b/support/xfopen.c
+index 14532a09f3..fb931cf22b 100644
+--- a/support/xfopen.c
++++ b/support/xfopen.c
+@@ -1,5 +1,5 @@
+ /* fopen with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xfork.c b/support/xfork.c
+index aa52ba62c5..dffa2a13d0 100644
+--- a/support/xfork.c
++++ b/support/xfork.c
+@@ -1,5 +1,5 @@
+ /* fork with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/xftruncate.c b/support/xftruncate.c
 new file mode 100644
-index 0000000000..9c4e9e3050
+index 0000000000..27c7e12ba2
 --- /dev/null
 +++ b/support/xftruncate.c
 @@ -0,0 +1,27 @@
 +/* ftruncate with error checking.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12411,14 +14047,36 @@ index 0000000000..9c4e9e3050
 +  if (ftruncate64 (fd, length) != 0)
 +    FAIL_EXIT1 ("ftruncate64 (%d, %lld): %m", fd, length);
 +}
+diff --git a/support/xgetsockname.c b/support/xgetsockname.c
+index c3bd884f8d..797194f79d 100644
+--- a/support/xgetsockname.c
++++ b/support/xgetsockname.c
+@@ -1,5 +1,5 @@
+ /* getsockname with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xlisten.c b/support/xlisten.c
+index 1953e5900a..aa70091adb 100644
+--- a/support/xlisten.c
++++ b/support/xlisten.c
+@@ -1,5 +1,5 @@
+ /* listen with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/xlseek.c b/support/xlseek.c
 new file mode 100644
-index 0000000000..0a75a9f2e6
+index 0000000000..2422939908
 --- /dev/null
 +++ b/support/xlseek.c
 @@ -0,0 +1,29 @@
 +/* lseek with error checking.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12446,14 +14104,509 @@ index 0000000000..0a75a9f2e6
 +    FAIL_EXIT1 ("lseek64 (%d, %lld, %d): %m", fd, offset, whence);
 +  return result;
 +}
+diff --git a/support/xmalloc.c b/support/xmalloc.c
+index 450f699789..78317e2b12 100644
+--- a/support/xmalloc.c
++++ b/support/xmalloc.c
+@@ -1,5 +1,5 @@
+ /* Error-checking wrapper for malloc.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xmemstream.c b/support/xmemstream.c
+index bce6dc9170..df5fbc489a 100644
+--- a/support/xmemstream.c
++++ b/support/xmemstream.c
+@@ -1,5 +1,5 @@
+ /* Error-checking wrappers for memstream functions.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xmemstream.h b/support/xmemstream.h
+index e5ba231e4d..2d4a577f29 100644
+--- a/support/xmemstream.h
++++ b/support/xmemstream.h
+@@ -1,5 +1,5 @@
+ /* Error-checking wrappers for memstream functions.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xmkdir.c b/support/xmkdir.c
+index ea17d49391..7e67f783de 100644
+--- a/support/xmkdir.c
++++ b/support/xmkdir.c
+@@ -1,5 +1,5 @@
+ /* mkdir with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xmmap.c b/support/xmmap.c
+index 435b1eb733..d580c07013 100644
+--- a/support/xmmap.c
++++ b/support/xmmap.c
+@@ -1,5 +1,5 @@
+ /* mmap with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xmprotect.c b/support/xmprotect.c
+index 9410251c32..e6870988e0 100644
+--- a/support/xmprotect.c
++++ b/support/xmprotect.c
+@@ -1,5 +1,5 @@
+ /* mprotect with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xmunmap.c b/support/xmunmap.c
+index 6ef5a4a468..e8e5bc2d59 100644
+--- a/support/xmunmap.c
++++ b/support/xmunmap.c
+@@ -1,5 +1,5 @@
+ /* munmap with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xopen.c b/support/xopen.c
+index 7f033a03a7..3d888e8862 100644
+--- a/support/xopen.c
++++ b/support/xopen.c
+@@ -1,5 +1,5 @@
+ /* open64 with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpipe.c b/support/xpipe.c
+index 89a64a55c1..b8529df620 100644
+--- a/support/xpipe.c
++++ b/support/xpipe.c
+@@ -1,5 +1,5 @@
+ /* pipe with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpoll.c b/support/xpoll.c
+index bec2521ffc..b24bf32fc5 100644
+--- a/support/xpoll.c
++++ b/support/xpoll.c
+@@ -1,5 +1,5 @@
+ /* poll with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_attr_destroy.c b/support/xpthread_attr_destroy.c
+index 664c809e9f..52aa2602fe 100644
+--- a/support/xpthread_attr_destroy.c
++++ b/support/xpthread_attr_destroy.c
+@@ -1,5 +1,5 @@
+ /* pthread_attr_destroy with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_attr_init.c b/support/xpthread_attr_init.c
+index 2e30ade9ab..c7aa903db2 100644
+--- a/support/xpthread_attr_init.c
++++ b/support/xpthread_attr_init.c
+@@ -1,5 +1,5 @@
+ /* pthread_attr_init with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_attr_setdetachstate.c b/support/xpthread_attr_setdetachstate.c
+index b544dbaa42..6e845acc97 100644
+--- a/support/xpthread_attr_setdetachstate.c
++++ b/support/xpthread_attr_setdetachstate.c
+@@ -1,5 +1,5 @@
+ /* pthread_attr_setdetachstate with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_attr_setguardsize.c b/support/xpthread_attr_setguardsize.c
+index 35fed5d9ec..964ec058c9 100644
+--- a/support/xpthread_attr_setguardsize.c
++++ b/support/xpthread_attr_setguardsize.c
+@@ -1,5 +1,5 @@
+ /* pthread_attr_setguardsize with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_attr_setstacksize.c b/support/xpthread_attr_setstacksize.c
+index 02d06310a9..c5517c0c66 100644
+--- a/support/xpthread_attr_setstacksize.c
++++ b/support/xpthread_attr_setstacksize.c
+@@ -1,5 +1,5 @@
+ /* pthread_attr_setstacksize with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_barrier_destroy.c b/support/xpthread_barrier_destroy.c
+index efc0719a63..1dae148b46 100644
+--- a/support/xpthread_barrier_destroy.c
++++ b/support/xpthread_barrier_destroy.c
+@@ -1,5 +1,5 @@
+ /* pthread_barrier_destroy with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_barrier_init.c b/support/xpthread_barrier_init.c
+index b32dad1315..4a2975ad12 100644
+--- a/support/xpthread_barrier_init.c
++++ b/support/xpthread_barrier_init.c
+@@ -1,5 +1,5 @@
+ /* pthread_barrier_init with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_barrier_wait.c b/support/xpthread_barrier_wait.c
+index 7cee44d0a3..61690c5e7c 100644
+--- a/support/xpthread_barrier_wait.c
++++ b/support/xpthread_barrier_wait.c
+@@ -1,5 +1,5 @@
+ /* pthread_barrier_wait with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_cancel.c b/support/xpthread_cancel.c
+index 3af16f9b54..26e864ea3e 100644
+--- a/support/xpthread_cancel.c
++++ b/support/xpthread_cancel.c
+@@ -1,5 +1,5 @@
+ /* pthread_cancel with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_check_return.c b/support/xpthread_check_return.c
+index 3094d82e9c..1658db4b62 100644
+--- a/support/xpthread_check_return.c
++++ b/support/xpthread_check_return.c
+@@ -1,5 +1,5 @@
+ /* Return value checking for pthread functions, exit variant.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_cond_wait.c b/support/xpthread_cond_wait.c
+index b0e9b2a232..08ec683b66 100644
+--- a/support/xpthread_cond_wait.c
++++ b/support/xpthread_cond_wait.c
+@@ -1,5 +1,5 @@
+ /* pthread_cond_wait with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_create.c b/support/xpthread_create.c
+index 98c63e54c3..24b8456db9 100644
+--- a/support/xpthread_create.c
++++ b/support/xpthread_create.c
+@@ -1,5 +1,5 @@
+ /* pthread_create with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_detach.c b/support/xpthread_detach.c
+index 2088af2f57..c65f2d7db1 100644
+--- a/support/xpthread_detach.c
++++ b/support/xpthread_detach.c
+@@ -1,5 +1,5 @@
+ /* pthread_detach with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_join.c b/support/xpthread_join.c
+index f23bb9a5ae..29acbd283a 100644
+--- a/support/xpthread_join.c
++++ b/support/xpthread_join.c
+@@ -1,5 +1,5 @@
+ /* pthread_join with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_mutex_consistent.c b/support/xpthread_mutex_consistent.c
+index 52364be365..d337163609 100644
+--- a/support/xpthread_mutex_consistent.c
++++ b/support/xpthread_mutex_consistent.c
+@@ -1,5 +1,5 @@
+ /* pthread_mutex_consistent with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_mutex_destroy.c b/support/xpthread_mutex_destroy.c
+index f11f8f0acd..d03f016629 100644
+--- a/support/xpthread_mutex_destroy.c
++++ b/support/xpthread_mutex_destroy.c
+@@ -1,5 +1,5 @@
+ /* pthread_mutex_destroy with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_mutex_init.c b/support/xpthread_mutex_init.c
+index 2d16d1b9d9..40855954a8 100644
+--- a/support/xpthread_mutex_init.c
++++ b/support/xpthread_mutex_init.c
+@@ -1,5 +1,5 @@
+ /* pthread_mutex_init with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_mutex_lock.c b/support/xpthread_mutex_lock.c
+index af727b45f3..4257960aaa 100644
+--- a/support/xpthread_mutex_lock.c
++++ b/support/xpthread_mutex_lock.c
+@@ -1,5 +1,5 @@
+ /* pthread_mutex_lock with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_mutex_unlock.c b/support/xpthread_mutex_unlock.c
+index 161b41edf6..5c385c6934 100644
+--- a/support/xpthread_mutex_unlock.c
++++ b/support/xpthread_mutex_unlock.c
+@@ -1,5 +1,5 @@
+ /* pthread_mutex_unlock with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_mutexattr_destroy.c b/support/xpthread_mutexattr_destroy.c
+index c699e32b41..f352a7ad93 100644
+--- a/support/xpthread_mutexattr_destroy.c
++++ b/support/xpthread_mutexattr_destroy.c
+@@ -1,5 +1,5 @@
+ /* pthread_mutexattr_destroy with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_mutexattr_init.c b/support/xpthread_mutexattr_init.c
+index fa93fab178..fe231581e3 100644
+--- a/support/xpthread_mutexattr_init.c
++++ b/support/xpthread_mutexattr_init.c
+@@ -1,5 +1,5 @@
+ /* pthread_mutexattr_init with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_mutexattr_setprotocol.c b/support/xpthread_mutexattr_setprotocol.c
+index 353f75e3d7..e2f544d38c 100644
+--- a/support/xpthread_mutexattr_setprotocol.c
++++ b/support/xpthread_mutexattr_setprotocol.c
+@@ -1,5 +1,5 @@
+ /* pthread_mutexattr_setprotocol with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_mutexattr_setpshared.c b/support/xpthread_mutexattr_setpshared.c
+index 242da1aeca..2380560d79 100644
+--- a/support/xpthread_mutexattr_setpshared.c
++++ b/support/xpthread_mutexattr_setpshared.c
+@@ -1,5 +1,5 @@
+ /* pthread_mutexattr_setpshared with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_mutexattr_setrobust.c b/support/xpthread_mutexattr_setrobust.c
+index d7d6fa8630..7886c72a77 100644
+--- a/support/xpthread_mutexattr_setrobust.c
++++ b/support/xpthread_mutexattr_setrobust.c
+@@ -1,5 +1,5 @@
+ /* pthread_mutexattr_setrobust with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_mutexattr_settype.c b/support/xpthread_mutexattr_settype.c
+index cf22170b56..91f790c9e5 100644
+--- a/support/xpthread_mutexattr_settype.c
++++ b/support/xpthread_mutexattr_settype.c
+@@ -1,5 +1,5 @@
+ /* pthread_mutexattr_settype with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_once.c b/support/xpthread_once.c
+index 70d58dbab2..b22c1ce3dd 100644
+--- a/support/xpthread_once.c
++++ b/support/xpthread_once.c
+@@ -1,5 +1,5 @@
+ /* pthread_once with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_rwlock_init.c b/support/xpthread_rwlock_init.c
+index 824288c90e..e6c38115d8 100644
+--- a/support/xpthread_rwlock_init.c
++++ b/support/xpthread_rwlock_init.c
+@@ -1,5 +1,5 @@
+ /* pthread_rwlock_init with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_rwlock_rdlock.c b/support/xpthread_rwlock_rdlock.c
+index 96330a5637..a88068fc86 100644
+--- a/support/xpthread_rwlock_rdlock.c
++++ b/support/xpthread_rwlock_rdlock.c
+@@ -1,5 +1,5 @@
+ /* pthread_rwlock_rdlock with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_rwlock_unlock.c b/support/xpthread_rwlock_unlock.c
+index eaa136b3ec..7eb282fd18 100644
+--- a/support/xpthread_rwlock_unlock.c
++++ b/support/xpthread_rwlock_unlock.c
+@@ -1,5 +1,5 @@
+ /* pthread_rwlock_unlock with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_rwlock_wrlock.c b/support/xpthread_rwlock_wrlock.c
+index 8d25d5b818..0de37146c3 100644
+--- a/support/xpthread_rwlock_wrlock.c
++++ b/support/xpthread_rwlock_wrlock.c
+@@ -1,5 +1,5 @@
+ /* pthread_rwlock_wrlock with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_rwlockattr_init.c b/support/xpthread_rwlockattr_init.c
+index 48baf247f3..96ac47d777 100644
+--- a/support/xpthread_rwlockattr_init.c
++++ b/support/xpthread_rwlockattr_init.c
+@@ -1,5 +1,5 @@
+ /* pthread_rwlockattr_init with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_rwlockattr_setkind_np.c b/support/xpthread_rwlockattr_setkind_np.c
+index 958aace9f6..34aa3df0a9 100644
+--- a/support/xpthread_rwlockattr_setkind_np.c
++++ b/support/xpthread_rwlockattr_setkind_np.c
+@@ -1,5 +1,5 @@
+ /* pthread_rwlockattr_setkind_np with error checking.
+-   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_sigmask.c b/support/xpthread_sigmask.c
+index 0ba9ca02dc..1fb91dcc20 100644
+--- a/support/xpthread_sigmask.c
++++ b/support/xpthread_sigmask.c
+@@ -1,5 +1,5 @@
+ /* pthread_sigmask with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_spin_lock.c b/support/xpthread_spin_lock.c
+index 6975215b17..4cadbf70f9 100644
+--- a/support/xpthread_spin_lock.c
++++ b/support/xpthread_spin_lock.c
+@@ -1,5 +1,5 @@
+ /* pthread_spin_lock with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xpthread_spin_unlock.c b/support/xpthread_spin_unlock.c
+index 4f19a44c48..194613993a 100644
+--- a/support/xpthread_spin_unlock.c
++++ b/support/xpthread_spin_unlock.c
+@@ -1,5 +1,5 @@
+ /* pthread_spin_unlock with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/xraise.c b/support/xraise.c
 new file mode 100644
-index 0000000000..9126c6c3ea
+index 0000000000..1901e741eb
 --- /dev/null
 +++ b/support/xraise.c
 @@ -0,0 +1,27 @@
 +/* Error-checking wrapper for raise.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12481,12 +14634,12 @@ index 0000000000..9126c6c3ea
 +}
 diff --git a/support/xreadlink.c b/support/xreadlink.c
 new file mode 100644
-index 0000000000..aec58a2aa6
+index 0000000000..c6386491db
 --- /dev/null
 +++ b/support/xreadlink.c
 @@ -0,0 +1,44 @@
 +/* Error-checking, allocating wrapper for readlink.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12529,14 +14682,58 @@ index 0000000000..aec58a2aa6
 +        FAIL_EXIT1 ("scratch_buffer_grow in xreadlink");
 +    }
 +}
+diff --git a/support/xrealloc.c b/support/xrealloc.c
+index 00c313880c..4d9987c9bb 100644
+--- a/support/xrealloc.c
++++ b/support/xrealloc.c
+@@ -1,5 +1,5 @@
+ /* Error-checking wrapper for realloc.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xrecvfrom.c b/support/xrecvfrom.c
+index 17809c4dd2..a1011a5062 100644
+--- a/support/xrecvfrom.c
++++ b/support/xrecvfrom.c
+@@ -1,5 +1,5 @@
+ /* recvfrom with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xsendto.c b/support/xsendto.c
+index 20bddf6965..f51530793e 100644
+--- a/support/xsendto.c
++++ b/support/xsendto.c
+@@ -1,5 +1,5 @@
+ /* sendto with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xsetsockopt.c b/support/xsetsockopt.c
+index 9931882e75..b7c07f21f9 100644
+--- a/support/xsetsockopt.c
++++ b/support/xsetsockopt.c
+@@ -1,5 +1,5 @@
+ /* setsockopt with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/xsigaction.c b/support/xsigaction.c
 new file mode 100644
-index 0000000000..b74c69afae
+index 0000000000..51657de2b7
 --- /dev/null
 +++ b/support/xsigaction.c
 @@ -0,0 +1,27 @@
 +/* Error-checking wrapper for sigaction.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12564,12 +14761,12 @@ index 0000000000..b74c69afae
 +}
 diff --git a/support/xsignal.c b/support/xsignal.c
 new file mode 100644
-index 0000000000..22a1dd74a7
+index 0000000000..e7369f0324
 --- /dev/null
 +++ b/support/xsignal.c
 @@ -0,0 +1,29 @@
 +/* Error-checking wrapper for signal.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12598,9 +14795,16 @@ index 0000000000..22a1dd74a7
 +  return result;
 +}
 diff --git a/support/xsignal.h b/support/xsignal.h
-index 3dc0d9d5ce..3087ed0082 100644
+index 3dc0d9d5ce..9ab8d1bfdd 100644
 --- a/support/xsignal.h
 +++ b/support/xsignal.h
+@@ -1,5 +1,5 @@
+ /* Support functionality for using signals.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -24,6 +24,14 @@
  
  __BEGIN_DECLS
@@ -12616,14 +14820,58 @@ index 3dc0d9d5ce..3087ed0082 100644
  /* The following functions call the corresponding libpthread functions
     and terminate the process on error.  */
  
+diff --git a/support/xsocket.c b/support/xsocket.c
+index c1deaee924..20282fb810 100644
+--- a/support/xsocket.c
++++ b/support/xsocket.c
+@@ -1,5 +1,5 @@
+ /* socket with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xsocket.h b/support/xsocket.h
+index d6724948d8..9673abdf54 100644
+--- a/support/xsocket.h
++++ b/support/xsocket.h
+@@ -1,5 +1,5 @@
+ /* Error-checking wrappers for socket functions.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xstdio.h b/support/xstdio.h
+index bcc2e863bf..e7d0274474 100644
+--- a/support/xstdio.h
++++ b/support/xstdio.h
+@@ -1,5 +1,5 @@
+ /* Error-checking wrappers for stdio functions.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xstrdup.c b/support/xstrdup.c
+index d6a8c04baf..89eee8584e 100644
+--- a/support/xstrdup.c
++++ b/support/xstrdup.c
+@@ -1,5 +1,5 @@
+ /* strdup with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/xstrndup.c b/support/xstrndup.c
 new file mode 100644
-index 0000000000..d59a283d25
+index 0000000000..e85fddd439
 --- /dev/null
 +++ b/support/xstrndup.c
 @@ -0,0 +1,30 @@
 +/* strndup with error checking.
-+   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12654,12 +14902,12 @@ index 0000000000..d59a283d25
 +}
 diff --git a/support/xsysconf.c b/support/xsysconf.c
 new file mode 100644
-index 0000000000..15ab1e26c4
+index 0000000000..afefc2d098
 --- /dev/null
 +++ b/support/xsysconf.c
 @@ -0,0 +1,36 @@
 +/* Error-checking wrapper for sysconf.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12694,10 +14942,28 @@ index 0000000000..15ab1e26c4
 +  errno = old_errno;
 +  return result;
 +}
+diff --git a/support/xthread.h b/support/xthread.h
+index 472763ebe8..79358e7c99 100644
+--- a/support/xthread.h
++++ b/support/xthread.h
+@@ -1,5 +1,5 @@
+ /* Support functionality for using threads.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/support/xunistd.h b/support/xunistd.h
-index c947bfd8fb..29da063c15 100644
+index c947bfd8fb..5fe5dae818 100644
 --- a/support/xunistd.h
 +++ b/support/xunistd.h
+@@ -1,5 +1,5 @@
+ /* POSIX-specific extra functions.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 @@ -36,8 +36,17 @@ void xpipe (int[2]);
  void xdup2 (int, int);
  int xopen (const char *path, int flags, mode_t);
@@ -12718,12 +14984,12 @@ index c947bfd8fb..29da063c15 100644
     process on other errors.  */
 diff --git a/support/xunlink.c b/support/xunlink.c
 new file mode 100644
-index 0000000000..f94ee118cf
+index 0000000000..2ff9296fca
 --- /dev/null
 +++ b/support/xunlink.c
 @@ -0,0 +1,27 @@
 +/* Error-checking wrapper for unlink.
-+   Copyright (C) 2017 Free Software Foundation, Inc.
++   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -12749,6 +15015,28 @@ index 0000000000..f94ee118cf
 +  if (unlink (path) != 0)
 +    FAIL_EXIT1 ("unlink (\"%s\"): %m", path);
 +}
+diff --git a/support/xwaitpid.c b/support/xwaitpid.c
+index 204795e4c0..1cb039ca17 100644
+--- a/support/xwaitpid.c
++++ b/support/xwaitpid.c
+@@ -1,5 +1,5 @@
+ /* waitpid with error checking.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+diff --git a/support/xwrite.c b/support/xwrite.c
+index 134e8ee4c1..bbaae9130a 100644
+--- a/support/xwrite.c
++++ b/support/xwrite.c
+@@ -1,5 +1,5 @@
+ /* write with error checking and retries.
+-   Copyright (C) 2016-2017 Free Software Foundation, Inc.
++   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
 diff --git a/sysdeps/aarch64/multiarch/Makefile b/sysdeps/aarch64/multiarch/Makefile
 index 78d52c717d..9aa1e79a80 100644
 --- a/sysdeps/aarch64/multiarch/Makefile
@@ -20369,6 +22657,19 @@ index 632ea7bc36..2b2b386ab3 100644
  # define PTHREAD_MUTEX_INITIALIZER \
    { { 0, 0, 0, 0, 0, __PTHREAD_SPINS, { 0, 0 } } }
  # ifdef __USE_GNU
+diff --git a/sysdeps/nptl/unwind-forcedunwind.c b/sysdeps/nptl/unwind-forcedunwind.c
+index 33a1975f5e..ace58b2468 100644
+--- a/sysdeps/nptl/unwind-forcedunwind.c
++++ b/sysdeps/nptl/unwind-forcedunwind.c
+@@ -49,7 +49,7 @@ pthread_cancel_init (void)
+       return;
+     }
+ 
+-  handle = __libc_dlopen (LIBGCC_S_SO);
++  handle = __libc_dlopen_mode (LIBGCC_S_SO, RTLD_NOW | __RTLD_DLOPEN);
+ 
+   if (handle == NULL
+       || (resume = __libc_dlsym (handle, "_Unwind_Resume")) == NULL
 diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
 index efa7118498..2c4b6d6793 100644
 --- a/sysdeps/posix/getaddrinfo.c
@@ -24158,7 +26459,7 @@ index c14c61aa58..a645572e44 100644
 +#undef USE_XSAVEC
 +#undef STATE_SAVE_ALIGNMENT
 diff --git a/sysdeps/x86_64/dl-trampoline.h b/sysdeps/x86_64/dl-trampoline.h
-index 8db24c16ac..9ddaafee17 100644
+index 8db24c16ac..5fdc391d08 100644
 --- a/sysdeps/x86_64/dl-trampoline.h
 +++ b/sysdeps/x86_64/dl-trampoline.h
 @@ -16,140 +16,47 @@
@@ -24495,6 +26796,25 @@ index 8db24c16ac..9ddaafee17 100644
  #if !defined PROF && defined _dl_runtime_profile
  # if (LR_VECTOR_OFFSET % VEC_SIZE) != 0
  #  error LR_VECTOR_OFFSET must be multples of VEC_SIZE
+@@ -551,8 +440,16 @@ _dl_runtime_profile:
+ # ifdef RESTORE_AVX
+ 	/* sizeof(La_x86_64_retval).  Need extra space for 2 SSE
+ 	   registers to detect if xmm0/xmm1 registers are changed
+-	   by audit module.  */
+-	sub $(LRV_SIZE + XMM_SIZE*2), %RSP_LP
++	   by audit module.  Since rsp is aligned to VEC_SIZE, we
++	   need to make sure that the address of La_x86_64_retval +
++	   LRV_VECTOR0_OFFSET is aligned to VEC_SIZE.  */
++#  define LRV_SPACE (LRV_SIZE + XMM_SIZE*2)
++#  define LRV_MISALIGNED ((LRV_SIZE + LRV_VECTOR0_OFFSET) & (VEC_SIZE - 1))
++#  if LRV_MISALIGNED == 0
++	sub $LRV_SPACE, %RSP_LP
++#  else
++	sub $(LRV_SPACE + VEC_SIZE - LRV_MISALIGNED), %RSP_LP
++#  endif
+ # else
+ 	sub $LRV_SIZE, %RSP_LP	# sizeof(La_x86_64_retval)
+ # endif
 diff --git a/sysdeps/x86_64/fpu/libm-test-ulps b/sysdeps/x86_64/fpu/libm-test-ulps
 index c347642044..e7ec433b7b 100644
 --- a/sysdeps/x86_64/fpu/libm-test-ulps
