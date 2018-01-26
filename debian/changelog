@@ -142,6 +142,34 @@ glibc (2.26.9000+20180105.a6d0afb5-0experimental0) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Fri, 05 Jan 2018 22:08:07 +0100
 
+glibc (2.26-6) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix build with binutils 2.30 on arm64.  Closes: #888477.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Fri, 26 Jan 2018 23:35:29 +0100
+
+glibc (2.26-5) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * debian/patches/any/local-cudacc-float128.diff: Disable _Float128 for icc
+    too.
+
+  [ Aurelien Jarno ]
+  * debian/control.in/libc: set the priority of the libc{0.1,0.3,0.6} packages
+    to optional following the changes on the ftp-master side (see bug#846982).
+  * debian/control.in/libc: build-depends on gcc-7 (>= 7.2.0-20) on amd64, i386
+    and x32 to avoid a missed optimization causing SSE registers to be pushed
+    on the stack.  Closes: #886447.
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - debian/patches/hurd-i386/git-mount_namespace.diff: upstreamed.
+  * debian/testsuite-xfail-debian.mk: update with new tests.
+  * debian/debhelper.in/libc.NEWS: note that the minimum required Linux kernel
+    is now 3.2 to avoid aborts in the middle of an upgrade.  Closes: #888183.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 23 Jan 2018 22:51:51 +0100
+
 glibc (2.26-4) unstable; urgency=medium
 
   [ Aurelien Jarno ]
