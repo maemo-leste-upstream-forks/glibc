@@ -1,10 +1,15 @@
 GIT update of https://sourceware.org/git/glibc.git/release/2.26/master from glibc-2.26
 
 diff --git a/ChangeLog b/ChangeLog
-index 8dbfc7eaff..d1a23a4f1b 100644
+index 8dbfc7eaff..9f65a5cca1 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,1201 @@
+@@ -1,3 +1,1206 @@
++2017-10-18  Renlin Li  <renlin.li@arm.com>
++
++	* sysdeps/aarch64/dl-machine.h (elf_machine_load_address): Use
++	_DYNAMIC symbol to calculate load address.
++
 +2018-01-19  H.J. Lu  <hongjiu.lu@intel.com>
 +
 +	[BZ #22715]
@@ -15037,6 +15042,56 @@ index 134e8ee4c1..bbaae9130a 100644
     This file is part of the GNU C Library.
  
     The GNU C Library is free software; you can redistribute it and/or
+diff --git a/sysdeps/aarch64/dl-machine.h b/sysdeps/aarch64/dl-machine.h
+index 60472036f5..3fb00e6e2d 100644
+--- a/sysdeps/aarch64/dl-machine.h
++++ b/sysdeps/aarch64/dl-machine.h
+@@ -51,40 +51,11 @@ elf_machine_load_address (void)
+   /* To figure out the load address we use the definition that for any symbol:
+      dynamic_addr(symbol) = static_addr(symbol) + load_addr
+ 
+-     The choice of symbol is arbitrary. The static address we obtain
+-     by constructing a non GOT reference to the symbol, the dynamic
+-     address of the symbol we compute using adrp/add to compute the
+-     symbol's address relative to the PC.
+-     This depends on 32/16bit relocations being resolved at link time
+-     and that the static address fits in the 32/16 bits.  */
+-
+-  ElfW(Addr) static_addr;
+-  ElfW(Addr) dynamic_addr;
+-
+-  asm ("					\n"
+-"	adrp	%1, _dl_start;			\n"
+-#ifdef __LP64__
+-"	add	%1, %1, #:lo12:_dl_start	\n"
+-#else
+-"	add	%w1, %w1, #:lo12:_dl_start	\n"
+-#endif
+-"	ldr	%w0, 1f				\n"
+-"	b	2f				\n"
+-"1:						\n"
+-#ifdef __LP64__
+-"	.word	_dl_start			\n"
+-#else
+-# ifdef __AARCH64EB__
+-"	.short  0                               \n"
+-# endif
+-"	.short  _dl_start                       \n"
+-# ifndef __AARCH64EB__
+-"	.short  0                               \n"
+-# endif
+-#endif
+-"2:						\n"
+-    : "=r" (static_addr),  "=r" (dynamic_addr));
+-  return dynamic_addr - static_addr;
++    _DYNAMIC sysmbol is used here as its link-time address stored in
++    the special unrelocated first GOT entry.  */
++
++    extern ElfW(Dyn) _DYNAMIC[] attribute_hidden;
++    return (ElfW(Addr)) &_DYNAMIC - elf_machine_dynamic ();
+ }
+ 
+ /* Set up the loaded object described by L so its unrelocated PLT
 diff --git a/sysdeps/aarch64/multiarch/Makefile b/sysdeps/aarch64/multiarch/Makefile
 index 78d52c717d..9aa1e79a80 100644
 --- a/sysdeps/aarch64/multiarch/Makefile
