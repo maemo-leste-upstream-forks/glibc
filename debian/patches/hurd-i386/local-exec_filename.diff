@@ -9,7 +9,7 @@ Keep compatibility with experimental implementation
 
 --- a/hurd/Makefile
 +++ b/hurd/Makefile
-@@ -32,8 +32,8 @@ user-interfaces		:= $(addprefix hurd/,\
+@@ -32,8 +32,8 @@
  				       auth auth_request auth_reply startup \
  				       process process_request \
  				       msg msg_reply msg_request \
@@ -22,9 +22,9 @@ Keep compatibility with experimental implementation
  				       )
 --- a/hurd/Versions
 +++ b/hurd/Versions
-@@ -140,6 +140,14 @@ libc {
-     _hurd_sigstate_unlock;
-     _hurd_sigstate_delete;
+@@ -124,6 +124,14 @@
+     # functions used in macros & inline functions
+     __errno_location;
    }
 +  GLIBC_2.21 {
 +    # "quasi-internal" functions
@@ -52,7 +52,7 @@ Keep compatibility with experimental implementation
  /* Overlay TASK, executing FILE with arguments ARGV and environment ENVP.
     If TASK == mach_task_self (), some ports are dealloc'd by the exec server.
     ARGV and ENVP are terminated by NULL pointers.
-@@ -39,6 +42,13 @@ _hurd_exec (task_t task, file_t file,
+@@ -39,6 +42,13 @@
    return _hurd_exec_paths (task, file, NULL, NULL, argv, envp);
  }
  
@@ -66,7 +66,7 @@ Keep compatibility with experimental implementation
  link_warning (_hurd_exec,
  	      "_hurd_exec is deprecated, use _hurd_exec_paths instead");
  
-@@ -393,6 +403,19 @@ _hurd_exec_paths (task_t task, file_t fi
+@@ -393,6 +403,19 @@
        /* Fall back for backwards compatibility.  This can just be removed
           when __file_exec goes away.  */
        if (err == MIG_BAD_ID)
@@ -86,7 +86,7 @@ Keep compatibility with experimental implementation
  	err = __file_exec (file, task, flags,
  			   args, argslen, env, envlen,
  			   dtable, MACH_MSG_TYPE_COPY_SEND, dtablesize,
-@@ -435,3 +458,12 @@ _hurd_exec_paths (task_t task, file_t fi
+@@ -435,3 +458,12 @@
    free (env);
    return err;
  }
@@ -109,7 +109,7 @@ Keep compatibility with experimental implementation
  #include <assert.h>
  #include <argz.h>
  #include "spawn_int.h"
-@@ -657,6 +658,18 @@ __spawni (pid_t *pid, const char *file,
+@@ -657,6 +658,18 @@
  	   dtable, MACH_MSG_TYPE_COPY_SEND, dtablesize,
  	   ports, MACH_MSG_TYPE_COPY_SEND, _hurd_nports,
  	   ints, INIT_INT_MAX,

@@ -5,16 +5,15 @@ TODO: _DEBIAN_ in versions however pose problem. Remove the _DEBIAN_ version
 once packages are rebuilt against 2.21.
 
 ---
- hurd/Versions |    8 ++++++++
- 1 files changed, 8 insertions(+)
+ hurd/Versions  |   16 ++++++++++++++++
+ hurd/hurdsig.c |   56 +++++++++++++++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 67 insertions(+), 5 deletions(-)
 
-Index: glibc-2.21/hurd/Versions
-===================================================================
---- glibc-2.21.orig/hurd/Versions
-+++ glibc-2.21/hurd/Versions
-@@ -124,6 +124,22 @@ libc {
-     # functions used in macros & inline functions
-     __errno_location;
+--- a/hurd/Versions
++++ b/hurd/Versions
+@@ -128,6 +128,22 @@
+     # "quasi-internal" functions
+     _hurd_exec_paths;
    }
 +  GLIBC_2.13_DEBIAN_19 {
 +    # functions used by libpthread and <hurd/signal.h>
@@ -35,10 +34,8 @@ Index: glibc-2.21/hurd/Versions
  
    HURD_CTHREADS_0.3 {
      # weak refs to libthreads functions that libc calls iff libthreads in use
-Index: glibc-2.21/hurd/hurdsig.c
-===================================================================
---- glibc-2.21.orig/hurd/hurdsig.c
-+++ glibc-2.21/hurd/hurdsig.c
+--- a/hurd/hurdsig.c
++++ b/hurd/hurdsig.c
 @@ -32,6 +32,8 @@
  #include "hurdmalloc.h"		/* XXX */
  #include "../locale/localeinfo.h"
@@ -48,7 +45,7 @@ Index: glibc-2.21/hurd/hurdsig.c
  const char *_hurdsig_getenv (const char *);
  
  struct mutex _hurd_siglock;
-@@ -128,7 +130,7 @@ _hurd_thread_sigstate (thread_t thread)
+@@ -128,7 +130,7 @@
   * corresponding thread is terminated (the kernel thread port must remain valid
   * until this function is called.) */
  void
@@ -57,7 +54,7 @@ Index: glibc-2.21/hurd/hurdsig.c
  {
    struct hurd_sigstate **ssp, *ss;
  
-@@ -145,14 +147,32 @@ _hurd_sigstate_delete (thread_t thread)
+@@ -145,14 +147,32 @@
    if (ss)
      free (ss);
  }
@@ -91,7 +88,7 @@ Index: glibc-2.21/hurd/hurdsig.c
  
  /* Check whether SS is a global receiver.  */
  static int
-@@ -164,30 +184,56 @@ sigstate_is_global_rcv (const struct hur
+@@ -164,30 +184,56 @@
  /* Lock/unlock a hurd_sigstate structure.  If the accessors below require
     it, the global sigstate will be locked as well.  */
  void
