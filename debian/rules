@@ -41,6 +41,7 @@ DEB_HOST_ARCH_OS      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_GNU_TYPE     ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_HOST_MULTIARCH    ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 DEB_BUILD_ARCH        ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)
+DEB_BUILD_ARCH_BITS   ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH_BITS)
 DEB_BUILD_GNU_TYPE    ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
 DEB_SOURCE_PACKAGE := $(strip $(shell egrep '^Source: ' debian/control | cut -f 2 -d ':'))
@@ -109,6 +110,12 @@ BUILD_CXX = $(DEB_BUILD_GNU_TYPE)-$(BASE_CXX)
 
 BUILD_CFLAGS = -O2 -g
 HOST_CFLAGS = -pipe -O2 -g $(call xx,extra_cflags)
+
+# 32-bit MIPS builders have a 2GB memory space. This is not enough to
+# build test-tgmath3.o with GCC, unless tweaking the garbage collector.
+ifeq ($(findstring mips,$(DEB_BUILD_ARCH))-$(DEB_BUILD_ARCH_BITS), mips-32)
+  CC += --param ggc-min-expand=10
+endif
 
 configure_target := $(DEB_HOST_GNU_TYPE)
 
