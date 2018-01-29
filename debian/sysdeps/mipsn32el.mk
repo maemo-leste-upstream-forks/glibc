@@ -1,5 +1,5 @@
 # configuration options for all flavours
-extra_cflags = -mno-plt
+extra_cflags = -mno-plt --param ggc-min-expand=10
 
 # main library
 libc_rtlddir = /lib32
