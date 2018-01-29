@@ -22,7 +22,7 @@ Keep compatibility with experimental implementation
  				       )
 --- a/hurd/Versions
 +++ b/hurd/Versions
-@@ -124,6 +124,14 @@
+@@ -124,6 +124,10 @@
      # functions used in macros & inline functions
      __errno_location;
    }
@@ -30,11 +30,7 @@ Keep compatibility with experimental implementation
 +    # "quasi-internal" functions
 +    _hurd_exec_file_name;
 +  }
-+  GLIBC_2.26 {
-+    # "quasi-internal" functions
-+    _hurd_exec_paths;
-+  }
-   GLIBC_2.27 {
+   GLIBC_2.26 {
      # "quasi-internal" functions
      _hurd_exec_paths;
 --- a/hurd/hurdexec.c
@@ -128,3 +124,15 @@ Keep compatibility with experimental implementation
  	   NULL, 0, NULL, 0);
  
  	/* Fallback for backwards compatibility.  This can just be removed
+Index: glibc-2.27/sysdeps/mach/hurd/i386/libc.abilist
+===================================================================
+--- glibc-2.27.orig/sysdeps/mach/hurd/i386/libc.abilist
++++ glibc-2.27/sysdeps/mach/hurd/i386/libc.abilist
+@@ -1990,6 +1992,7 @@ GLIBC_2.2.6 xprt_unregister F
+ GLIBC_2.21 GLIBC_2.21 A
+ GLIBC_2.21 __mach_host_self_ D 0x4
+ GLIBC_2.21 __pthread_get_cleanup_stack F
++GLIBC_2.21 _hurd_exec_file_name F
+ GLIBC_2.21 _hurd_sigstate_delete F
+ GLIBC_2.21 _hurd_sigstate_lock F
+ GLIBC_2.21 _hurd_sigstate_pending F

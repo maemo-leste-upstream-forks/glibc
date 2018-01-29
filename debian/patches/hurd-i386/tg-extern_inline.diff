@@ -21,8 +21,6 @@ only if __USE_EXTERN_INLINES is defined and _LIBC is defined and
 NOT_IN_libc is not defined.
 * hurd/hurd/signal.h (_hurd_self_sigstate, _hurd_critical_section_lock,
 _hurd_critical_section_unlock): Likewise.
-* hurd/hurd/threadvar.h (__hurd_threadvar_location_from_sp,
-* __hurd_threadvar_location): Likewise.
 * hurd/hurd/userlink.h (_hurd_userlink_link, _hurd_userlink_unlink,
 _hurd_userlink_clear): Likewise.
 
@@ -33,7 +31,6 @@ _hurd_userlink_clear): Likewise.
  hurd/hurd/fd.h                   | 26 ++++++++++++++++++++++++
  hurd/hurd/port.h                 | 43 ++++++++++++++++++++++++++++++++++++++++
  hurd/hurd/signal.h               | 16 +++++++++++++++
- hurd/hurd/threadvar.h            |  9 +++++++++
  hurd/hurd/userlink.h             | 20 +++++++++++++++++++
  mach/lock-intern.h               | 20 +++++++++++++++++++
  mach/mach/mig_support.h             |    3 +++
@@ -628,5 +625,21 @@ index 966f128..12f06b5 100644
  
  
  #endif /* machine-lock.h */
+--- a/hurd/Versions.origin	2018-01-29 21:01:19.000000000 +0000
++++ b/hurd/Versions	2018-01-29 21:01:23.000000000 +0000
+@@ -148,6 +148,13 @@
+     _hurd_sigstate_unlock;
+     _hurd_sigstate_delete;
+   }
++  GLIBC_2.27 {
++    # These always existed as inlines but the real functions were not exported.
++    _hurd_fd_error_signal; _hurd_fd_error;
++    __hurd_dfail; __hurd_sockfail;
++    _hurd_port_locked_set;
++    _hurd_userlink_link; _hurd_userlink_unlink; _hurd_userlink_clear;
++  }
+ 
+   HURD_CTHREADS_0.3 {
+     # weak refs to libthreads functions that libc calls iff libthreads in use
 -- 
 tg: (258b100..) t/extern_inline (depends on: t/faccessat)
