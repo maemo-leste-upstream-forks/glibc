@@ -1,5 +1,5 @@
 # configuration options for all flavours
-extra_cflags = -mno-plt --param ggc-min-expand=10
+extra_cflags = -mno-plt
 
 # main library
 libc_rtlddir = /lib32
@@ -12,7 +12,7 @@ GLIBC_PASSES += mips64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-mips64 libc6-dev-mips64
 libc6-mips64_shlib_dep = libc6-mips64 (>= $(shlib_dep_ver))
 mips64_configure_target = mips64-linux-gnuabi64
-mips64_extra_cflags = -mno-plt --param ggc-min-expand=10
+mips64_extra_cflags = -mno-plt
 mips64_CC = $(CC) -mabi=64
 mips64_CXX = $(CXX) -mabi=64
 mips64_rtlddir = /lib64
@@ -24,7 +24,7 @@ GLIBC_PASSES += mips32
 DEB_ARCH_MULTILIB_PACKAGES += libc6-mips32 libc6-dev-mips32
 libc6-mips32_shlib_dep = libc6-mips32 (>= $(shlib_dep_ver))
 mips32_configure_target = mips-linux-gnu
-mips32_extra_cflags = -mno-plt --param ggc-min-expand=10
+mips32_extra_cflags = -mno-plt
 mips32_CC = $(CC) -mabi=32
 mips32_CXX = $(CXX) -mabi=32
 mips32_rtlddir = /lib

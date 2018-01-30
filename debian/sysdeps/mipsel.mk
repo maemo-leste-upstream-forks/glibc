@@ -1,5 +1,5 @@
 # configuration options for all flavours
-extra_cflags = -mno-plt --param ggc-min-expand=10
+extra_cflags = -mno-plt
 
 # multilib flavours
 ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
