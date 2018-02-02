@@ -10,11 +10,12 @@ GIT_UPDATES_DIFF = debian/patches/git-updates.diff
 get-orig-source: $(DEB_ORIG)
 $(DEB_ORIG):
 	dh_testdir
+	git clone --bare $(GLIBC_GIT) $(GLIBC_CHECKOUT)
 	mkdir -p $(GLIBC_DIR)
-	git archive -v --remote=$(GLIBC_GIT) --format=tar $(GLIBC_TAG) | (tar -C $(GLIBC_DIR) -xf -)
+	(cd $(GLIBC_CHECKOUT) && git archive -v --format=tar $(GLIBC_TAG)) | tar -C $(GLIBC_DIR) -xf -
 	rm -fr $(GLIBC_DIR)/manual
 	tar --mode=go=rX,u+rw,a-s --owner=root --group=root --numeric-owner -Jcf $(DEB_ORIG) $(GLIBC_DIR)
-	rm -rf $(GLIBC_DIR)
+	rm -rf $(GLIBC_DIR) $(GLIBC_CHECKOUT)
 
 update-from-upstream:
 	dh_testdir
