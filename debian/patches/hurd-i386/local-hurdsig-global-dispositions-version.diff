@@ -5,15 +5,16 @@ TODO: _DEBIAN_ in versions however pose problem. Remove the _DEBIAN_ version
 once packages are rebuilt against 2.21.
 
 ---
- hurd/Versions  |   16 ++++++++++++++++
- hurd/hurdsig.c |   56 +++++++++++++++++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 67 insertions(+), 5 deletions(-)
+ hurd/Versions                       |   16 ++++++++++
+ hurd/hurdsig.c                      |   56 ++++++++++++++++++++++++++++++++----
+ sysdeps/mach/hurd/i386/libc.abilist |   11 +++++++
+ 3 files changed, 78 insertions(+), 5 deletions(-)
 
 --- a/hurd/Versions
 +++ b/hurd/Versions
-@@ -128,6 +128,22 @@
-     # "quasi-internal" functions
-     _hurd_exec_paths;
+@@ -137,6 +137,22 @@
+     __hurd_threadvar_location;
+     _hurd_userlink_link; _hurd_userlink_unlink; _hurd_userlink_clear;
    }
 +  GLIBC_2.13_DEBIAN_19 {
 +    # functions used by libpthread and <hurd/signal.h>
@@ -148,11 +149,9 @@ once packages are rebuilt against 2.21.
  
  /* Clear a pending signal and return the associated detailed
     signal information. SS must be locked, and must have signal SIGNO
-Index: glibc-2.27/sysdeps/mach/hurd/i386/libc.abilist
-===================================================================
---- glibc-2.27.orig/sysdeps/mach/hurd/i386/libc.abilist
-+++ glibc-2.27/sysdeps/mach/hurd/i386/libc.abilist
-@@ -32,6 +32,12 @@ GLIBC_2.11 mkstemps F
+--- a/sysdeps/mach/hurd/i386/libc.abilist
++++ b/sysdeps/mach/hurd/i386/libc.abilist
+@@ -32,6 +32,12 @@
  GLIBC_2.11 mkstemps64 F
  GLIBC_2.13 GLIBC_2.13 A
  GLIBC_2.13 __fentry__ F
@@ -165,7 +164,7 @@ Index: glibc-2.27/sysdeps/mach/hurd/i386/libc.abilist
  GLIBC_2.14 GLIBC_2.14 A
  GLIBC_2.14 syncfs F
  GLIBC_2.15 GLIBC_2.15 A
-@@ -1951,6 +1957,11 @@ GLIBC_2.2.6 xprt_unregister F
+@@ -1951,6 +1957,11 @@
  GLIBC_2.21 GLIBC_2.21 A
  GLIBC_2.21 __mach_host_self_ D 0x4
  GLIBC_2.21 __pthread_get_cleanup_stack F
