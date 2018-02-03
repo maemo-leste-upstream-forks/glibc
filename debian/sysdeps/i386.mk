@@ -1,5 +1,5 @@
 # configuration options for all flavours
-extra_config_options = --enable-multi-arch
+extra_config_options = --enable-multi-arch --enable-static-pie
 
 ifeq (,$(filter stage1 stage2, $(DEB_BUILD_PROFILES)))
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
