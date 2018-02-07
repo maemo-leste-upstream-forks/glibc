@@ -1,0 +1,101 @@
+GIT update of https://sourceware.org/git/glibc.git/release/2.27/master from glibc-2.27
+
+diff --git a/ChangeLog b/ChangeLog
+index f3fe2716b2..65ebfbcb52 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,10 @@
++2018-02-05  H.J. Lu  <hongjiu.lu@intel.com>
++
++	[BZ #22638]
++	* sysdeps/sparc/sparc32/start.S (_start): Check PIC instead of
++	SHARED.
++	* sysdeps/sparc/sparc64/start.S (_start): Likewise.
++
+ 2018-02-01  Dmitry V. Levin  <ldv@altlinux.org>
+ 
+ 	* version.h (RELEASE): Set to "stable".
+@@ -710,7 +717,9 @@
+ 2018-01-18  Arjun Shankar  <arjun@redhat.com>
+ 
+ 	[BZ #22343]
++	[BZ #22774]
+ 	CVE-2018-6485
++	CVE-2018-6551
+ 	* malloc/malloc.c (checked_request2size): call REQUEST_OUT_OF_RANGE
+ 	after padding.
+ 	(_int_memalign): check for integer overflow before calling
+diff --git a/NEWS b/NEWS
+index a71c1038a8..4bb08b1dbf 100644
+--- a/NEWS
++++ b/NEWS
+@@ -5,6 +5,14 @@ See the end for copying conditions.
+ Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
+ using `glibc' in the "product" field.
+ 
++Version 2.27.1
++
++The following bugs are resolved with this release:
++
++  [22638] sparc: static binaries are broken if glibc is built by gcc
++    configured with --enable-default-pie
++
++
+ Version 2.27
+ 
+ Major new features:
+@@ -262,6 +270,10 @@ Security related changes:
+   an object size near the value of SIZE_MAX, would return a pointer to a
+   buffer which is too small, instead of NULL.  Reported by Jakub Wilk.
+ 
++  CVE-2018-6551: The malloc function, when called with an object size near
++  the value of SIZE_MAX, would return a pointer to a buffer which is too
++  small, instead of NULL.
++
+ The following bugs are resolved with this release:
+ 
+   [866] glob: glob should match dangling symlinks
+diff --git a/sysdeps/sparc/sparc32/start.S b/sysdeps/sparc/sparc32/start.S
+index 1db7327fc6..46ba8b6afa 100644
+--- a/sysdeps/sparc/sparc32/start.S
++++ b/sysdeps/sparc/sparc32/start.S
+@@ -42,7 +42,7 @@
+ 	.global _start
+ 	.type _start,#function
+ _start:
+-#ifdef SHARED
++#ifdef PIC
+ 	SETUP_PIC_REG(l7)
+ #endif
+ 
+@@ -57,7 +57,7 @@ _start:
+ 	add	%sp, 23*4, %o2
+ 
+   /* Load the addresses of the user entry points.  */
+-#ifndef SHARED
++#ifndef PIC
+ 	sethi	%hi(main), %o0
+ 	sethi	%hi(__libc_csu_init), %o3
+ 	sethi	%hi(__libc_csu_fini), %o4
+diff --git a/sysdeps/sparc/sparc64/start.S b/sysdeps/sparc/sparc64/start.S
+index e1865f10cb..75ff5093dc 100644
+--- a/sysdeps/sparc/sparc64/start.S
++++ b/sysdeps/sparc/sparc64/start.S
+@@ -42,7 +42,7 @@
+ 	.global _start
+ 	.type _start,#function
+ _start:
+-#ifdef SHARED
++#ifdef PIC
+ 	SETUP_PIC_REG(l7)
+ #endif
+ 
+@@ -58,7 +58,7 @@ _start:
+ 	add	%sp, STACK_BIAS+23*8, %o2
+ 
+   /* Load the addresses of the user entry points.  */
+-#ifndef SHARED
++#ifndef PIC
+ 	sethi	%hi(main), %o0
+ 	sethi	%hi(__libc_csu_init), %o3
+ 	sethi	%hi(__libc_csu_fini), %o4
