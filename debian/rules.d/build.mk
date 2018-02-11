@@ -159,6 +159,17 @@ $(stamp)check_%: $(stamp)build_%
 	fi
 	touch $@
 
+# Make sure to use the just built iconvconfig for native builds. When
+# cross-compiling use the system iconvconfig. A cross-specific
+# build-dependency makes sure that the correct version is used, as
+# the format might change between upstream versions.
+ifeq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
+ICONVCONFIG = $(CURDIR)/$(DEB_BUILDDIRLIBC)/elf/ld.so --library-path $(CURDIR)/$(DEB_BUILDDIRLIBC) \
+	      $(CURDIR)/$(DEB_BUILDDIRLIBC)/iconv/iconvconfig
+else
+ICONVCONFIG = /usr/sbin/iconvconfig
+endif
+
 $(patsubst %,install_%,$(GLIBC_PASSES)) :: install_% : $(stamp)install_%
 $(stamp)install_%: $(stamp)build_%
 	@echo Installing $(curpass)
@@ -201,9 +212,9 @@ else
 
 	# Generate gconv-modules.cache
 	case $(curpass)-$(call xx,slibdir) in libc-* | *-/lib32 | *-/lib64 | *-/libo32 | *-/libx32) \
-	  /usr/sbin/iconvconfig --nostdlib --prefix=$(CURDIR)/debian/tmp-$(curpass) \
-				-o $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)/gconv/gconv-modules.cache \
-				$(call xx,libdir)/gconv \
+	  $(ICONVCONFIG) --nostdlib --prefix=$(CURDIR)/debian/tmp-$(curpass) \
+			 -o $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)/gconv/gconv-modules.cache \
+			 $(call xx,libdir)/gconv \
 	  ;; \
 	esac
 
