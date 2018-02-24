@@ -1,0 +1,40 @@
+commit 55c35d62a3a6ae0d90db40c6e4a2d94d05be71e3
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Feb 24 20:20:33 2018 +0100
+
+    Fix pthread_mutex_trylock return value
+    
+    * sysdeps/mach/hurd/pt-mutex-trylock.c (__pthread_mutex_trylock): Return
+    EBUSY on failure instead of -1.
+
+diff --git a/libpthread/sysdeps/mach/hurd/pt-mutex-trylock.c b/libpthread/sysdeps/mach/hurd/pt-mutex-trylock.c
+index 6680094..59244e8 100644
+--- a/libpthread/sysdeps/mach/hurd/pt-mutex-trylock.c
++++ b/libpthread/sysdeps/mach/hurd/pt-mutex-trylock.c
+@@ -32,6 +32,8 @@ int __pthread_mutex_trylock (pthread_mutex_t *mtxp)
+     {
+       case PT_MTX_NORMAL:
+         ret = lll_trylock (&mtxp->__lock);
++        if (ret)
++          ret = EBUSY;
+         break;
+ 
+       case PT_MTX_RECURSIVE:
+@@ -49,6 +51,8 @@ int __pthread_mutex_trylock (pthread_mutex_t *mtxp)
+             mtx_set_owner (mtxp, self, mtxp->__flags);
+             mtxp->__cnt = 1;
+           }
++        else
++          ret = EBUSY;
+ 
+         break;
+ 
+@@ -56,6 +60,8 @@ int __pthread_mutex_trylock (pthread_mutex_t *mtxp)
+         self = _pthread_self ();
+         if ((ret = lll_trylock (&mtxp->__lock)) == 0)
+           mtx_set_owner (mtxp, self, mtxp->__flags);
++        else
++          ret = EBUSY;
+         break;
+ 
+       case PT_MTX_NORMAL     | PTHREAD_MUTEX_ROBUST:
