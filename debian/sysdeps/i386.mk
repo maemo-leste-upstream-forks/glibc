@@ -56,8 +56,9 @@ ln -sf i386-linux-gnu/gnu debian/libc6-dev-amd64/usr/include/
 ln -sf i386-linux-gnu/fpu_control.h debian/libc6-dev-amd64/usr/include/
 
 mkdir -p debian/libc6-dev-amd64/usr/include/i386-linux-gnu/gnu
-cp -a debian/tmp-amd64/usr/include/gnu/stubs-64.h \
-        debian/libc6-dev-amd64/usr/include/i386-linux-gnu/gnu
+cp -a debian/tmp-amd64/usr/include/gnu/lib-names-64.h \
+	debian/tmp-amd64/usr/include/gnu/stubs-64.h \
+	debian/libc6-dev-amd64/usr/include/i386-linux-gnu/gnu
 
 mkdir -p debian/libc6-dev-amd64/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/i386-linux-gnu/sys` ; do \
@@ -81,7 +82,8 @@ x32_libdir = /usr/libx32
 define libc6-dev-x32_extra_pkg_install
 
 mkdir -p debian/libc6-dev-x32/usr/include/i386-linux-gnu/gnu
-cp -a debian/tmp-x32/usr/include/gnu/stubs-x32.h \
+cp -a debian/tmp-x32/usr/include/gnu/lib-names-x32.h \
+	debian/tmp-x32/usr/include/gnu/stubs-x32.h \
 	debian/libc6-dev-x32/usr/include/i386-linux-gnu/gnu
 
 endef

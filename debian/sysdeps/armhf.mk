@@ -32,7 +32,8 @@ ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
 #ln -sf arm-linux-gnueabihf/fpu_control.h debian/libc6-dev-armel/usr/include/
 #
 #mkdir -p debian/libc6-dev-armel/usr/include/arm-linux-gnueabihf/gnu
-#cp -a debian/tmp-armel/usr/include/gnu/stubs-soft.h \
+#cp -a debian/tmp-armel/usr/include/gnu/lib-names-soft.h \
+#	debian/tmp-armel/usr/include/gnu/stubs-soft.h \
 #	debian/libc6-dev-armel/usr/include/arm-linux-gnueabihf/gnu
 #
 #mkdir -p debian/libc6-dev-armel/usr/include/sys

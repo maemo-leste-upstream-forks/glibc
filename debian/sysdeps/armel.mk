@@ -21,7 +21,8 @@ ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
 #ln -sf arm-linux-gnueabi/fpu_control.h debian/libc6-dev-armhf/usr/include/
 #
 #mkdir -p debian/libc6-dev-armhf/usr/include/arm-linux-gnueabi/gnu
-#cp -a debian/tmp-armhf/usr/include/gnu/stubs-hard.h \
+#cp -a debian/tmp-armhf/usr/include/gnu/lib-names-hard.h \
+#	debian/tmp-armhf/usr/include/gnu/stubs-hard.h \
 #	debian/libc6-dev-armhf/usr/include/arm-linux-gnueabi/gnu
 #
 #mkdir -p debian/libc6-dev-armhf/usr/include/sys

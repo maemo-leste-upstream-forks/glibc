@@ -37,8 +37,9 @@ ln -sf mips64el-linux-gnuabi64/gnu debian/libc6-dev-mipsn32/usr/include/
 ln -sf mips64el-linux-gnuabi64/fpu_control.h debian/libc6-dev-mipsn32/usr/include/
 
 mkdir -p debian/libc6-dev-mipsn32/usr/include/mips64el-linux-gnuabi64/gnu
-cp -a debian/tmp-mipsn32/usr/include/gnu/stubs-n32_hard.h \
-        debian/libc6-dev-mipsn32/usr/include/mips64el-linux-gnuabi64/gnu
+cp -a debian/tmp-mipsn32/usr/include/gnu/lib-names-n32_hard.h \
+	debian/tmp-mipsn32/usr/include/gnu/stubs-n32_hard.h \
+	debian/libc6-dev-mipsn32/usr/include/mips64el-linux-gnuabi64/gnu
 
 mkdir -p debian/libc6-dev-mipsn32/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/mips64el-linux-gnuabi64/sys` ; do \
@@ -50,8 +51,9 @@ endef
 define libc6-dev-mips32_extra_pkg_install
 
 mkdir -p debian/libc6-dev-mips32/usr/include/mips64el-linux-gnuabi64/gnu
-cp -a debian/tmp-mips32/usr/include/gnu/stubs-o32_hard.h \
-        debian/libc6-dev-mips32/usr/include/mips64el-linux-gnuabi64/gnu
+cp -a debian/tmp-mips32/usr/include/gnu/lib-names-o32_hard.h \
+	debian/tmp-mips32/usr/include/gnu/stubs-o32_hard.h \
+	debian/libc6-dev-mips32/usr/include/mips64el-linux-gnuabi64/gnu
 
 endef
 

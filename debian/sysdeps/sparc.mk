@@ -26,12 +26,13 @@ ln -s sparc-linux-gnu/gnu debian/libc6-dev-sparc64/usr/include/
 ln -s sparc-linux-gnu/fpu_control.h debian/libc6-dev-sparc64/usr/include/
 
 mkdir -p debian/libc6-dev-sparc64/usr/include/sparc-linux-gnu/gnu
-cp -a debian/tmp-sparc64/usr/include/gnu/stubs-64.h \
-        debian/libc6-dev-sparc64/usr/include/sparc-linux-gnu/gnu
+cp -a debian/tmp-sparc64/usr/include/gnu/lib-names-64.h \
+	debian/tmp-sparc64/usr/include/gnu/stubs-64.h \
+	debian/libc6-dev-sparc64/usr/include/sparc-linux-gnu/gnu
 
 mkdir -p debian/libc6-dev-sparc64/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/sparc-linux-gnu/sys` ; do \
-        ln -s ../sparc-linux-gnu/sys/$$i debian/libc6-dev-sparc64/usr/include/sys/$$i ; \
+	ln -s ../sparc-linux-gnu/sys/$$i debian/libc6-dev-sparc64/usr/include/sys/$$i ; \
 done
 
 endef
