@@ -22,10 +22,6 @@ ifneq (,$(filter $(config-machine)-$(config-os), alpha-linux-gnu alphaev67-linux
 test-xfail-tst-backtrace5 = yes
 test-xfail-tst-backtrace6 = yes
 test-xfail-tst-cancel19 = yes
-test-xfail-check-localplt = yes
-test-xfail-test-double-ceil = yes
-test-xfail-test-double-finite-ceil = yes
-test-xfail-test-double-finite-floor = yes
 test-xfail-test-double-finite-fma = yes
 test-xfail-test-double-finite-llrint = yes
 test-xfail-test-double-finite-llround = yes
@@ -34,8 +30,6 @@ test-xfail-test-double-finite-lround = yes
 test-xfail-test-double-finite-remainder = yes
 test-xfail-test-double-finite-scalbln = yes
 test-xfail-test-double-finite-scalbn = yes
-test-xfail-test-double-finite-trunc = yes
-test-xfail-test-double-floor = yes
 test-xfail-test-double-fma = yes
 test-xfail-test-double-llrint = yes
 test-xfail-test-double-llround = yes
@@ -44,10 +38,8 @@ test-xfail-test-double-lround = yes
 test-xfail-test-double-remainder = yes
 test-xfail-test-double-scalbln = yes
 test-xfail-test-double-scalbn = yes
-test-xfail-test-double-trunc = yes
-test-xfail-test-float-ceil = yes
-test-xfail-test-float-finite-ceil = yes
-test-xfail-test-float-finite-floor = yes
+test-xfail-test-fenv-return = yes
+test-xfail-test-fexcept = yes
 test-xfail-test-float-finite-fma = yes
 test-xfail-test-float-finite-llrint = yes
 test-xfail-test-float-finite-llround = yes
@@ -55,8 +47,6 @@ test-xfail-test-float-finite-lrint = yes
 test-xfail-test-float-finite-lround = yes
 test-xfail-test-float-finite-scalbln = yes
 test-xfail-test-float-finite-scalbn = yes
-test-xfail-test-float-finite-trunc = yes
-test-xfail-test-float-floor = yes
 test-xfail-test-float-fma = yes
 test-xfail-test-float-llrint = yes
 test-xfail-test-float-llround = yes
@@ -64,9 +54,68 @@ test-xfail-test-float-lrint = yes
 test-xfail-test-float-lround = yes
 test-xfail-test-float-scalbln = yes
 test-xfail-test-float-scalbn = yes
-test-xfail-test-float-trunc = yes
-test-xfail-test-fenv-return = yes
-test-xfail-test-fexcept = yes
+test-xfail-test-float32-finite-fma = yes
+test-xfail-test-float32-finite-llrint = yes
+test-xfail-test-float32-finite-llround = yes
+test-xfail-test-float32-finite-lrint = yes
+test-xfail-test-float32-finite-lround = yes
+test-xfail-test-float32-finite-scalbln = yes
+test-xfail-test-float32-finite-scalbn = yes
+test-xfail-test-float32-fma = yes
+test-xfail-test-float32-llrint = yes
+test-xfail-test-float32-llround = yes
+test-xfail-test-float32-lrint = yes
+test-xfail-test-float32-lround = yes
+test-xfail-test-float32-scalbln = yes
+test-xfail-test-float32-scalbn = yes
+test-xfail-test-float32x-finite-fma = yes
+test-xfail-test-float32x-finite-llrint = yes
+test-xfail-test-float32x-finite-llround = yes
+test-xfail-test-float32x-finite-lrint = yes
+test-xfail-test-float32x-finite-lround = yes
+test-xfail-test-float32x-finite-remainder = yes
+test-xfail-test-float32x-finite-scalbln = yes
+test-xfail-test-float32x-finite-scalbn = yes
+test-xfail-test-float32x-fma = yes
+test-xfail-test-float32x-llrint = yes
+test-xfail-test-float32x-llround = yes
+test-xfail-test-float32x-lrint = yes
+test-xfail-test-float32x-lround = yes
+test-xfail-test-float32x-remainder = yes
+test-xfail-test-float32x-scalbln = yes
+test-xfail-test-float32x-scalbn = yes
+test-xfail-test-float64-finite-fma = yes
+test-xfail-test-float64-finite-llrint = yes
+test-xfail-test-float64-finite-llround = yes
+test-xfail-test-float64-finite-lrint = yes
+test-xfail-test-float64-finite-lround = yes
+test-xfail-test-float64-finite-remainder = yes
+test-xfail-test-float64-finite-scalbln = yes
+test-xfail-test-float64-finite-scalbn = yes
+test-xfail-test-float64-fma = yes
+test-xfail-test-float64-llrint = yes
+test-xfail-test-float64-llround = yes
+test-xfail-test-float64-lrint = yes
+test-xfail-test-float64-lround = yes
+test-xfail-test-float64-remainder = yes
+test-xfail-test-float64-scalbln = yes
+test-xfail-test-float64-scalbn = yes
+test-xfail-test-float64x-finite-llrint = yes
+test-xfail-test-float64x-finite-llround = yes
+test-xfail-test-float64x-finite-lrint = yes
+test-xfail-test-float64x-finite-lround = yes
+test-xfail-test-float64x-llrint = yes
+test-xfail-test-float64x-llround = yes
+test-xfail-test-float64x-lrint = yes
+test-xfail-test-float64x-lround = yes
+test-xfail-test-float128-finite-llrint = yes
+test-xfail-test-float128-finite-llround = yes
+test-xfail-test-float128-finite-lrint = yes
+test-xfail-test-float128-finite-lround = yes
+test-xfail-test-float128-llrint = yes
+test-xfail-test-float128-llround = yes
+test-xfail-test-float128-lrint = yes
+test-xfail-test-float128-lround = yes
 test-xfail-test-ldouble-finite-llrint = yes
 test-xfail-test-ldouble-finite-llround = yes
 test-xfail-test-ldouble-finite-lrint = yes
@@ -75,7 +124,6 @@ test-xfail-test-ldouble-llrint = yes
 test-xfail-test-ldouble-llround = yes
 test-xfail-test-ldouble-lrint = yes
 test-xfail-test-ldouble-lround = yes
-test-xfail-test-snan = yes
 test-xfail-tst-eintr1 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-prelink-cmp = yes
@@ -83,8 +131,14 @@ test-xfail-tst-signal3 = yes
 test-xfail-tst-timer4 = yes
 test-xfail-tst-waitid = yes
 test-xfail-tst-writev = yes
-test-xfail-XOPEN2K8/netdb.h/conform = yes
-test-xfail-XOPEN2K/netdb.h/conform = yes
+
+# There is not support for protection key on Alpha yet, and there is a
+# disagreement between kernel and glibc how to report that.
+test-xfail-tst-pkey = yes
+
+# In some conditions the kernel might not provide a heap, causing
+# some tests to fail. See bug#889817 for details.
+test-xfail-tst-malloc-usable-tunables = yes
 endif
 
 
@@ -115,6 +169,14 @@ test-xfail-tst-stack4 = yes
 
 # This can be removed once bug#750834 is fixed
 test-xfail-basic-test = yes
+
+# There is not support for protection key on ARM64 yet, and there is a
+# disagreement between kernel and glibc how to report that.
+test-xfail-tst-pkey = yes
+
+# In some conditions the kernel might not provide a heap, causing
+# some tests to fail. See bug#889817 for details.
+test-xfail-tst-malloc-usable-tunables = yes
 endif
 
 
@@ -122,15 +184,15 @@ endif
 # armel
 ######################################################################
 ifeq ($(config-machine)-$(config-os),arm-linux-gnueabi)
-test-xfail-test-misc = yes
 test-xfail-tst-backtrace6 = yes
 test-xfail-tst-makecontext = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-stack4 = yes
 test-xfail-tst-waitid = yes
 
-# This can be removed once bug#748616 is fixed
-test-xfail-basic-test = yes
+# There is not support for protection key on Alpha yet, and there is a
+# disagreement between kernel and glibc how to report that.
+test-xfail-tst-pkey = yes
 endif
 
 
@@ -144,6 +206,10 @@ test-xfail-tst-makecontext = yes
 test-xfail-tst-stack4 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
+
+# There is not support for protection key on Alpha yet, and there is a
+# disagreement between kernel and glibc how to report that.
+test-xfail-tst-pkey = yes
 endif
 
 
@@ -202,21 +268,9 @@ test-xfail-tst-pselect = yes
 test-xfail-tst-ptrguard1-static = yes
 test-xfail-tst-ptrguard1 = yes
 
-# We don't provide ABI reference yet
-test-xfail-check-abi-libcrypt = yes
-test-xfail-check-abi-libdl = yes
-test-xfail-check-abi-ld = yes
-test-xfail-check-abi-libc = yes
+# We don't provide ABI reference for these
 test-xfail-check-abi-libhurduser = yes
-test-xfail-check-abi-libpthread = yes
-test-xfail-check-abi-libBrokenLocale = yes
-test-xfail-check-abi-libutil = yes
 test-xfail-check-abi-libmachuser = yes
-test-xfail-check-abi-libm = yes
-test-xfail-check-abi-libnsl = yes
-test-xfail-check-abi-libanl = yes
-test-xfail-check-abi-libresolv = yes
-test-xfail-check-abi-librt = yes
 
 # Overzealous test
 test-xfail-tst-pathconf = yes
@@ -350,9 +404,6 @@ test-xfail-XPG4/termios.h/conform = yes
 test-xfail-tst-preadvwritev64 = yes
 test-xfail-tst-preadwrite64 = yes
 
-# fixed upstream
-test-xfail-POSIX/signal.h/conform = yes
-
 # happens on linux-i386 too
 test-xfail-annexc = yes
 test-xfail-tst-backtrace6 = yes
@@ -403,6 +454,36 @@ test-xfail-XPG42/termios.h/conform = yes
 test-xfail-tst-bug18665-tcp = yes
 test-xfail-tst-resolv-basic = yes
 test-xfail-tst-resolv-search = yes
+
+# new in 2.27
+test-xfail-tst-fexecve = yes
+test-xfail-tst-gmon-static = yes
+test-xfail-tst-gmon-static-gprof = yes
+test-xfail-tst-tls1-static-non-pie = yes
+test-xfail-tst-libc_dlvsym-static = yes
+test-xfail-tst-libc_dlvsym = yes
+test-xfail-tst-malloc-too-large = yes
+
+# Tests failing to build
+tests-unsupported += tst-copy_file_range
+tests-unsupported += tst-copy_file_range-compat
+
+test-xfail-POSIX/signal.h/conform = yes
+test-xfail-POSIX2008/signal.h/conform = yes
+test-xfail-UNIX98/signal.h/conform = yes
+test-xfail-XOPEN2K/signal.h/conform = yes
+test-xfail-XOPEN2K8/signal.h/conform = yes
+test-xfail-XPG42/signal.h/conform = yes
+
+test-xfail-POSIX2008/sys/wait.h/conform = yes
+test-xfail-UNIX98/sys/wait.h/conform = yes
+test-xfail-XOPEN2K/sys/wait.h/conform = yes
+test-xfail-XOPEN2K8/sys/wait.h/conform = yes
+test-xfail-XPG42/sys/wait.h/conform = yes
+
+test-xfail-UNIX98/ucontext.h/conform = yes
+test-xfail-XOPEN2K/ucontext.h/conform = yes
+test-xfail-XPG42/ucontext.h/conform = yes
 endif
 
 
@@ -763,11 +844,11 @@ test-xfail-bug-nexttoward = yes
 test-xfail-bug-regex20 = yes
 test-xfail-check-localplt = yes
 test-xfail-localedata/sort-test = yes
-test-xfail-test-double = yes
+test-xfail-test-float64 = yes
 test-xfail-test-fenv = yes
-test-xfail-test-float = yes
-test-xfail-test-idouble = yes
-test-xfail-test-ifloat = yes
+test-xfail-test-float32 = yes
+test-xfail-test-ifloat64 = yes
+test-xfail-test-ifloat32 = yes
 test-xfail-test-misc = yes
 test-xfail-tst-atomic-long = yes
 test-xfail-tst-atomic = yes
@@ -822,12 +903,18 @@ test-xfail-tst-mode-switch-3 = yes
 # before-rounding basis instead of an after-rounding basis.
 test-xfail-test-float-fma = yes
 test-xfail-test-float-finite-fma = yes
+test-xfail-test-float32-fma = yes
+test-xfail-test-float32-finite-fma = yes
 
 # Theses failures are due to a bug in the cvt.d.s instruction on some FPU
 # (at least Octeon 3 and XBurst). The qNaN payload is not preserved in
 # the conversion and a new qNaN is generated.
 test-xfail-tst-strfrom = yes
 test-xfail-tst-strfrom-locale = yes
+
+# There is not support for protection key on MIPS yet, and there is a
+# disagreement between kernel and glibc how to report that.
+test-xfail-tst-pkey = yes
 endif
 
 
@@ -836,9 +923,28 @@ endif
 ######################################################################
 ifneq (,$(filter $(config-machine)-$(config-os), mipsel-linux-gnu mips64el-linux-gnuabi64 mips64el-linux-gnuabin32))
 # These failures are due to a bug in the Loongson 3A FPU
-test-xfail-test-double-lround = yes
 test-xfail-test-double-finite-lround = yes
+test-xfail-test-double-lround = yes
+test-xfail-test-float32x-finite-lround = yes
+test-xfail-test-float32x-lround = yes
+test-xfail-test-float64-finite-lround = yes
+test-xfail-test-float64-lround = yes
 test-xfail-test-idouble-lround = yes
+test-xfail-test-ifloat32x-lround = yes
+test-xfail-test-ifloat64-lround = yes
+test-xfail-test-ildouble-lround = yes
+test-xfail-test-ldouble-finite-lround = yes
+test-xfail-test-ldouble-lround = yes
+endif
+
+
+######################################################################
+# 64-bit mips*
+######################################################################
+ifneq (,$(filter $(config-machine)-$(config-os), mips64-linux-gnuabi64 mips64el-linux-gnuabi64))
+# In some conditions the kernel might not provide a heap, causing
+# some tests to fail. See bug#889817 for details.
+test-xfail-tst-malloc-usable-tunables = yes
 endif
 
 
@@ -850,6 +956,10 @@ test-xfail-tst-cancel17 = yes
 test-xfail-tst-cancelx17 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
+
+# In some conditions the kernel might not provide a heap, causing
+# some tests to fail. See bug#889817 for details.
+test-xfail-tst-malloc-usable-tunables = yes
 endif
 
 
@@ -865,6 +975,10 @@ test-xfail-tst-waitid = yes
 # Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=6527
 test-xfail-tst-malloc-thread-exit = yes
 test-xfail-tst-malloc-thread-fail = yes
+
+# In some conditions the kernel might not provide a heap, causing
+# some tests to fail. See bug#889817 for details.
+test-xfail-tst-malloc-usable-tunables = yes
 endif
 
 
@@ -883,10 +997,10 @@ test-xfail-tst-malloc-thread-fail = yes
 
 # Failures due to a GCC bug, see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59412
 #                            and http://gcc.gnu.org/bugzilla/show_bug.cgi?id=64811
-test-xfail-test-double = yes
-test-xfail-test-float = yes
-test-xfail-test-idouble = yes
-test-xfail-test-ifloat = yes
+test-xfail-test-float32 = yes
+test-xfail-test-float64 = yes
+test-xfail-test-ifloat64 = yes
+test-xfail-test-ifloat32 = yes
 
 # Requires a recent CPU or a recent kernel for CPU feature detection
 test-xfail-tst-set_ppr = yes
@@ -903,11 +1017,11 @@ test-xfail-bug-nexttoward = yes
 test-xfail-check-localplt = yes
 test-xfail-iconv-test = yes
 test-xfail-isomac = yes
-test-xfail-test-double = yes
 test-xfail-test-fenv = yes
-test-xfail-test-float = yes
-test-xfail-test-idouble = yes
-test-xfail-test-ifloat = yes
+test-xfail-test-float32 = yes
+test-xfail-test-float64 = yes
+test-xfail-test-ifloat32 = yes
+test-xfail-test-ifloat64 = yes
 test-xfail-test-misc = yes
 test-xfail-tst-backtrace5 = yes
 test-xfail-tst-backtrace6 = yes
@@ -930,6 +1044,10 @@ test-xfail-tst-cancelx17 = yes
 test-xfail-tst-protected1a = yes
 test-xfail-tst-protected1b = yes
 test-xfail-tst-waitid = yes
+
+# In some conditions the kernel might not provide a heap, causing
+# some tests to fail. See bug#889817 for details.
+test-xfail-tst-malloc-usable-tunables = yes
 endif
 
 
@@ -976,6 +1094,10 @@ test-xfail-tst-protected1a = yes
 test-xfail-tst-protected1b = yes
 test-xfail-tst-realloc = yes
 test-xfail-tst-waitid = yes
+
+# In some conditions the kernel might not provide a heap, causing
+# some tests to fail. See bug#889817 for details.
+test-xfail-tst-malloc-usable-tunables = yes
 endif
 
 

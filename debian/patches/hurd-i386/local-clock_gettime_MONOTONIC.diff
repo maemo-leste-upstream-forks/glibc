@@ -10,10 +10,10 @@ former.
  sysdeps/mach/hurd/bits/posix_opt.h |    2 +-
  sysdeps/unix/clock_gettime.c       |    1 +
  2 files changed, 2 insertions(+), 1 deletion(-)
-Index: glibc-2.24/sysdeps/unix/clock_gettime.c
+Index: glibc-2.27/sysdeps/unix/clock_gettime.c
 ===================================================================
---- glibc-2.24.orig/sysdeps/unix/clock_gettime.c
-+++ glibc-2.24/sysdeps/unix/clock_gettime.c
+--- glibc-2.27.orig/sysdeps/unix/clock_gettime.c
++++ glibc-2.27/sysdeps/unix/clock_gettime.c
 @@ -101,6 +101,7 @@ __clock_gettime (clockid_t clock_id, str
  
  #ifndef HANDLED_REALTIME
@@ -21,11 +21,11 @@ Index: glibc-2.24/sysdeps/unix/clock_gettime.c
 +    case CLOCK_MONOTONIC:
        {
  	struct timeval tv;
- 	retval = gettimeofday (&tv, NULL);
-Index: glibc-2.24/sysdeps/posix/clock_getres.c
+ 	retval = __gettimeofday (&tv, NULL);
+Index: glibc-2.27/sysdeps/posix/clock_getres.c
 ===================================================================
---- glibc-2.24.orig/sysdeps/posix/clock_getres.c
-+++ glibc-2.24/sysdeps/posix/clock_getres.c
+--- glibc-2.27.orig/sysdeps/posix/clock_getres.c
++++ glibc-2.27/sysdeps/posix/clock_getres.c
 @@ -88,6 +88,7 @@ __clock_getres (clockid_t clock_id, stru
  
  #ifndef HANDLED_REALTIME
@@ -34,10 +34,10 @@ Index: glibc-2.24/sysdeps/posix/clock_getres.c
        retval = realtime_getres (res);
        break;
  #endif	/* handled REALTIME */
-Index: glibc-2.24/sysdeps/pthread/timer_create.c
+Index: glibc-2.27/sysdeps/pthread/timer_create.c
 ===================================================================
---- glibc-2.24.orig/sysdeps/pthread/timer_create.c
-+++ glibc-2.24/sysdeps/pthread/timer_create.c
+--- glibc-2.27.orig/sysdeps/pthread/timer_create.c
++++ glibc-2.27/sysdeps/pthread/timer_create.c
 @@ -48,7 +48,7 @@ timer_create (clockid_t clock_id, struct
        return -1;
      }
@@ -47,10 +47,10 @@ Index: glibc-2.24/sysdeps/pthread/timer_create.c
      {
        __set_errno (EINVAL);
        return -1;
-Index: glibc-2.24/sysdeps/mach/hurd/bits/posix_opt.h
+Index: glibc-2.27/sysdeps/mach/hurd/bits/posix_opt.h
 ===================================================================
---- glibc-2.24.orig/sysdeps/mach/hurd/bits/posix_opt.h
-+++ glibc-2.24/sysdeps/mach/hurd/bits/posix_opt.h
+--- glibc-2.27.orig/sysdeps/mach/hurd/bits/posix_opt.h
++++ glibc-2.27/sysdeps/mach/hurd/bits/posix_opt.h
 @@ -163,10 +163,10 @@
  #define _POSIX_THREAD_PROCESS_SHARED	-1
  

@@ -25,12 +25,13 @@ ln -s powerpc64-linux-gnu/gnu debian/libc6-dev-powerpc/usr/include/
 ln -s powerpc64-linux-gnu/fpu_control.h debian/libc6-dev-powerpc/usr/include/
 
 mkdir -p debian/libc6-dev-powerpc/usr/include/powerpc64-linux-gnu/gnu
-cp -a debian/tmp-powerpc/usr/include/gnu/stubs-32.h \
-        debian/libc6-dev-powerpc/usr/include/powerpc64-linux-gnu/gnu
+cp -a debian/tmp-powerpc/usr/include/gnu/lib-names-32.h \
+	debian/tmp-powerpc/usr/include/gnu/stubs-32.h \
+	debian/libc6-dev-powerpc/usr/include/powerpc64-linux-gnu/gnu
 
 mkdir -p debian/libc6-dev-powerpc/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/powerpc64-linux-gnu/sys` ; do \
-        ln -s ../powerpc64-linux-gnu/sys/$$i debian/libc6-dev-powerpc/usr/include/sys/$$i ; \
+	ln -s ../powerpc64-linux-gnu/sys/$$i debian/libc6-dev-powerpc/usr/include/sys/$$i ; \
 done
 
 endef

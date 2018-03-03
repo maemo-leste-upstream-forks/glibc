@@ -37,12 +37,13 @@ ln -sf mipsisa64r6el-linux-gnuabin32/gnu debian/libc6-dev-mips64/usr/include/
 ln -sf mipsisa64r6el-linux-gnuabin32/fpu_control.h debian/libc6-dev-mips64/usr/include/
 
 mkdir -p debian/libc6-dev-mips64/usr/include/mipsisa64r6el-linux-gnuabin32/gnu
-cp -a debian/tmp-mips64/usr/include/gnu/stubs-n64_hard_2008.h \
-        debian/libc6-dev-mips64/usr/include/mipsisa64r6el-linux-gnuabin32/gnu
+cp -a debian/tmp-mips64/usr/include/gnu/lib-names-n64_hard_2008.h \
+	debian/tmp-mips64/usr/include/gnu/stubs-n64_hard_2008.h \
+	debian/libc6-dev-mips64/usr/include/mipsisa64r6el-linux-gnuabin32/gnu
 
 mkdir -p debian/libc6-dev-mips64/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/mipsisa64r6el-linux-gnuabin32/sys` ; do \
-        ln -sf ../mipsisa64r6el-linux-gnuabin32/sys/$$i debian/libc6-dev-mips64/usr/include/sys/$$i ; \
+	ln -sf ../mipsisa64r6el-linux-gnuabin32/sys/$$i debian/libc6-dev-mips64/usr/include/sys/$$i ; \
 done
 
 endef
@@ -50,8 +51,9 @@ endef
 define libc6-dev-mips32_extra_pkg_install
 
 mkdir -p debian/libc6-dev-mips32/usr/include/mipsisa64r6el-linux-gnuabin32/gnu
-cp -a debian/tmp-mips32/usr/include/gnu/stubs-o32_hard_2008.h \
-        debian/libc6-dev-mips32/usr/include/mipsisa64r6el-linux-gnuabin32/gnu
+cp -a debian/tmp-mips32/usr/include/gnu/lib-names-o32_hard_2008.h \
+	debian/tmp-mips32/usr/include/gnu/stubs-o32_hard_2008.h \
+	debian/libc6-dev-mips32/usr/include/mipsisa64r6el-linux-gnuabin32/gnu
 
 endef
 

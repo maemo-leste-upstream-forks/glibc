@@ -14,7 +14,7 @@
 
 --- a/Makeconfig
 +++ b/Makeconfig
-@@ -185,6 +185,11 @@
+@@ -136,6 +136,11 @@
  endif
  inst_libdir = $(install_root)$(libdir)
  
@@ -26,7 +26,7 @@
  # Where to install the shared library.
  ifndef slibdir
  slibdir = $(exec_prefix)/lib
-@@ -505,6 +510,10 @@
+@@ -589,6 +594,10 @@
  default-rpath = $(libdir)
  endif
  
@@ -39,7 +39,7 @@
  link-extra-libs-static = $(link-extra-libs)
 --- a/elf/Makefile
 +++ b/elf/Makefile
-@@ -367,7 +367,7 @@
+@@ -507,7 +507,7 @@
  	$(make-target-directory)
  	echo "$(subst :, ,$(default-rpath) $(user-defined-trusted-dirs))"    \
  	| $(AWK) -f gen-trusted-dirs.awk > ${@:st=T};
@@ -47,4 +47,4 @@
 +	echo '#define DL_DST_LIB "$(shell echo $(slibdir) | sed 's,/,,')"' >> ${@:st=T}
  	$(move-if-change) ${@:st=T} ${@:st=h}
  	touch $@
- CPPFLAGS-dl-load.c = -I$(objpfx). -I$(csu-objpfx).
+ CPPFLAGS-dl-load.c += -I$(objpfx). -I$(csu-objpfx).
