@@ -128,15 +128,6 @@ configure_build := $(DEB_BUILD_GNU_TYPE)
 # Which build pass are we on?
 curpass = $(filter-out %_,$(subst _,_ ,$@))
 
-# Provide backward compatibility for the old DEB_STAGE and DEB_BUILD_PROFILE for now
-ifeq ($(DEB_STAGE),stage1)
-  DEB_BUILD_PROFILES+=stage1
-else
-ifeq ($(DEB_BUILD_PROFILE),bootstrap)
-  DEB_BUILD_PROFILES+=stage1
-endif
-endif
-
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
   DEB_ARCH_REGULAR_PACKAGES = $(libc)-dev
   DEB_INDEP_REGULAR_PACKAGES = 
