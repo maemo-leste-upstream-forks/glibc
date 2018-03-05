@@ -132,6 +132,9 @@ ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
   DEB_ARCH_REGULAR_PACKAGES = $(libc)-dev
   DEB_INDEP_REGULAR_PACKAGES = 
   DEB_UDEB_PACKAGES = 
+  ifeq ($(filter nocheck,$(DEB_BUILD_OPTIONS)),)
+    DEB_BUILD_OPTIONS+=nocheck
+  endif
 else
   DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg $(libc)-pic libc-bin libc-dev-bin multiarch-support
   DEB_INDEP_REGULAR_PACKAGES = glibc-doc glibc-source libc-l10n locales
