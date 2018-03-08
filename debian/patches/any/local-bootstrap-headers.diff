@@ -1,5 +1,9 @@
 Taken from EGLIBC, r1484 + r1525
 
+2018-03-09  Aurelien Jarno <aurelien@aurel32.net>
+
+	* Makefile (install-headers): Amend to install gnu/lib-names-$abi.h.
+
 2014-07-30  Helmut Grohne <helmut@subdivi.de>
 
 	* With the advent of multilib gnu/stubs.h became a meta-header that
@@ -39,7 +43,7 @@ Taken from EGLIBC, r1484 + r1525
 +   an empty stubs.h like this will do fine for GCC.  */
 --- a/Makefile
 +++ b/Makefile
-@@ -177,6 +177,13 @@
+@@ -177,6 +177,14 @@
  install-others-nosubdir: $(installed-stubs)
  endif
  
@@ -48,12 +52,13 @@ Taken from EGLIBC, r1484 + r1525
 +# tree.  Otherwise, install gnu/stubs.h later, after the rest of the
 +# build is done.
 +ifeq ($(install-bootstrap-headers),yes)
-+install-headers: $(inst_includedir)/gnu/stubs.h $(installed-stubs)
++install-headers: $(inst_includedir)/gnu/stubs.h $(installed-stubs) \
++		 $(inst_includedir)/$(lib-names-h-abi)
 +endif
  
  # Since stubs.h is never needed when building the library, we simplify the
  # hairy installation process by producing it in place only as the last part
-@@ -184,6 +191,14 @@
+@@ -184,6 +192,14 @@
  # iterates over all the subdirs; subdir_install in each subdir depends on
  # the subdir's stubs file.  Having more direct dependencies would result in
  # extra iterations over the list for subdirs and many recursive makes.
@@ -68,7 +73,7 @@ Taken from EGLIBC, r1484 + r1525
  $(installed-stubs): include/stubs-prologue.h subdir_install
  	$(make-target-directory)
  	@rm -f $(objpfx)stubs.h
-@@ -192,6 +207,7 @@
+@@ -192,6 +208,7 @@
  	then echo 'stubs.h unchanged'; \
  	else $(INSTALL_DATA) $(objpfx)stubs.h $@; fi
  	rm -f $(objpfx)stubs.h
