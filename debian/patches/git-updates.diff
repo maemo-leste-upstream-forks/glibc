@@ -1,10 +1,29 @@
 GIT update of https://sourceware.org/git/glibc.git/release/2.27/master from glibc-2.27
 
 diff --git a/ChangeLog b/ChangeLog
-index f3fe2716b2..727b2f92c3 100644
+index f3fe2716b28..3ae0ecd07a3 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,60 @@
+@@ -1,3 +1,79 @@
++2018-03-09  Aurelien Jarno  <aurelien@aurel32.net>
++
++	[BZ #22919]
++	* sysdeps/unix/sysv/linux/sparc/sparc32/setcontext.S (__startcontext):
++	Add nop before __startcontext, add explaining comments.
++
++2018-03-07  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++
++	[BZ #22926]
++	* sysdeps/powerpc/powerpc32/sysdep.h (ABORT_TRANSACTION_IMPL): Define
++	empty for __SPE__.
++	* sysdeps/powerpc/sysdep.h (ABORT_TRANSACTION): Likewise.
++	* sysdeps/unix/sysv/linux/powerpc/elision-lock.c (__lll_lock_elision):
++	Do not build hardware transactional code for __SPE__.
++	* sysdeps/unix/sysv/linux/powerpc/elision-trylock.c
++	(__lll_trylock_elision): Likewise.
++	* sysdeps/unix/sysv/linux/powerpc/elision-unlock.c
++	(__lll_unlock_elision): Likewise.
++
 +2018-02-19  Rical Jasan  <ricaljasan@pacific.net>
 +
 +	[BZ #6889]
@@ -65,7 +84,7 @@ index f3fe2716b2..727b2f92c3 100644
  2018-02-01  Dmitry V. Levin  <ldv@altlinux.org>
  
  	* version.h (RELEASE): Set to "stable".
-@@ -710,7 +767,9 @@
+@@ -710,7 +786,9 @@
  2018-01-18  Arjun Shankar  <arjun@redhat.com>
  
  	[BZ #22343]
@@ -76,7 +95,7 @@ index f3fe2716b2..727b2f92c3 100644
  	after padding.
  	(_int_memalign): check for integer overflow before calling
 diff --git a/NEWS b/NEWS
-index a71c1038a8..5571c592bf 100644
+index a71c1038a86..5571c592bf1 100644
 --- a/NEWS
 +++ b/NEWS
 @@ -5,6 +5,19 @@ See the end for copying conditions.
@@ -111,7 +130,7 @@ index a71c1038a8..5571c592bf 100644
  
    [866] glob: glob should match dangling symlinks
 diff --git a/posix/tst-glob_lstat_compat.c b/posix/tst-glob_lstat_compat.c
-index c46bc9e578..22cd1f02f9 100644
+index c46bc9e5783..22cd1f02f96 100644
 --- a/posix/tst-glob_lstat_compat.c
 +++ b/posix/tst-glob_lstat_compat.c
 @@ -35,7 +35,14 @@
@@ -129,8 +148,34 @@ index c46bc9e578..22cd1f02f9 100644
  
  /* Compat glob should not call gl_lstat since for some old binaries it
     might be unitialized (for instance GNUmake).  Check if it is indeed
+diff --git a/sysdeps/powerpc/powerpc32/sysdep.h b/sysdeps/powerpc/powerpc32/sysdep.h
+index 8e32a2a1312..5f1294ead30 100644
+--- a/sysdeps/powerpc/powerpc32/sysdep.h
++++ b/sysdeps/powerpc/powerpc32/sysdep.h
+@@ -90,7 +90,7 @@ GOT_LABEL:			;					      \
+   cfi_endproc;								      \
+   ASM_SIZE_DIRECTIVE(name)
+ 
+-#if ! IS_IN(rtld)
++#if !IS_IN(rtld) && !defined(__SPE__)
+ # define ABORT_TRANSACTION_IMPL \
+     cmpwi    2,0;		\
+     beq      1f;		\
+diff --git a/sysdeps/powerpc/sysdep.h b/sysdeps/powerpc/sysdep.h
+index 03db75fcb74..8a6d236caa4 100644
+--- a/sysdeps/powerpc/sysdep.h
++++ b/sysdeps/powerpc/sysdep.h
+@@ -174,7 +174,7 @@
+    we abort transaction just before syscalls.
+ 
+    [1] Documentation/powerpc/transactional_memory.txt [Syscalls]  */
+-#if !IS_IN(rtld)
++#if !IS_IN(rtld) && !defined(__SPE__)
+ # define ABORT_TRANSACTION \
+   ({ 						\
+     if (THREAD_GET_TM_CAPABLE ())		\
 diff --git a/sysdeps/sh/libm-test-ulps b/sysdeps/sh/libm-test-ulps
-index da4224c2d6..11c5f3216d 100644
+index da4224c2d63..11c5f3216db 100644
 --- a/sysdeps/sh/libm-test-ulps
 +++ b/sysdeps/sh/libm-test-ulps
 @@ -1,13 +1,31 @@
@@ -902,7 +947,7 @@ index da4224c2d6..11c5f3216d 100644
 +
  # end of automatic generation
 diff --git a/sysdeps/sparc/sparc32/start.S b/sysdeps/sparc/sparc32/start.S
-index 1db7327fc6..46ba8b6afa 100644
+index 1db7327fc61..46ba8b6afad 100644
 --- a/sysdeps/sparc/sparc32/start.S
 +++ b/sysdeps/sparc/sparc32/start.S
 @@ -42,7 +42,7 @@
@@ -924,7 +969,7 @@ index 1db7327fc6..46ba8b6afa 100644
  	sethi	%hi(__libc_csu_init), %o3
  	sethi	%hi(__libc_csu_fini), %o4
 diff --git a/sysdeps/sparc/sparc64/start.S b/sysdeps/sparc/sparc64/start.S
-index e1865f10cb..75ff5093dc 100644
+index e1865f10cb2..75ff5093dc0 100644
 --- a/sysdeps/sparc/sparc64/start.S
 +++ b/sysdeps/sparc/sparc64/start.S
 @@ -42,7 +42,7 @@
@@ -946,7 +991,7 @@ index e1865f10cb..75ff5093dc 100644
  	sethi	%hi(__libc_csu_init), %o3
  	sethi	%hi(__libc_csu_fini), %o4
 diff --git a/sysdeps/unix/sysv/linux/aarch64/sys/ptrace.h b/sysdeps/unix/sysv/linux/aarch64/sys/ptrace.h
-index 4be45b95ff..444edbb702 100644
+index 4be45b95ff8..444edbb7029 100644
 --- a/sysdeps/unix/sysv/linux/aarch64/sys/ptrace.h
 +++ b/sysdeps/unix/sysv/linux/aarch64/sys/ptrace.h
 @@ -78,18 +78,10 @@ enum __ptrace_request
@@ -969,7 +1014,7 @@ index 4be45b95ff..444edbb702 100644
    PTRACE_SETOPTIONS = 0x4200,
  #define PT_SETOPTIONS PTRACE_SETOPTIONS
 diff --git a/sysdeps/unix/sysv/linux/bits/mman-shared.h b/sysdeps/unix/sysv/linux/bits/mman-shared.h
-index 7715e680ca..d15ba95c9d 100644
+index 7715e680caa..d15ba95c9dc 100644
 --- a/sysdeps/unix/sysv/linux/bits/mman-shared.h
 +++ b/sysdeps/unix/sysv/linux/bits/mman-shared.h
 @@ -61,7 +61,7 @@ int pkey_set (int __key, unsigned int __access_rights) __THROW;
@@ -981,8 +1026,67 @@ index 7715e680ca..d15ba95c9d 100644
  
  /* Free an allocated protection key, which must have been allocated
     using pkey_alloc.  */
+diff --git a/sysdeps/unix/sysv/linux/powerpc/elision-lock.c b/sysdeps/unix/sysv/linux/powerpc/elision-lock.c
+index b7093feab92..98a23f0dd24 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/elision-lock.c
++++ b/sysdeps/unix/sysv/linux/powerpc/elision-lock.c
+@@ -45,6 +45,7 @@
+ int
+ __lll_lock_elision (int *lock, short *adapt_count, EXTRAARG int pshared)
+ {
++#ifndef __SPE__
+   /* adapt_count is accessed concurrently but is just a hint.  Thus,
+      use atomic accesses but relaxed MO is sufficient.  */
+   if (atomic_load_relaxed (adapt_count) > 0)
+@@ -82,5 +83,6 @@ __lll_lock_elision (int *lock, short *adapt_count, EXTRAARG int pshared)
+ 			  aconf.skip_lock_out_of_tbegin_retries);
+ 
+ use_lock:
++#endif
+   return LLL_LOCK ((*lock), pshared);
+ }
+diff --git a/sysdeps/unix/sysv/linux/powerpc/elision-trylock.c b/sysdeps/unix/sysv/linux/powerpc/elision-trylock.c
+index b74a8106483..fabb03b2c4a 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/elision-trylock.c
++++ b/sysdeps/unix/sysv/linux/powerpc/elision-trylock.c
+@@ -30,6 +30,7 @@
+ int
+ __lll_trylock_elision (int *futex, short *adapt_count)
+ {
++#ifndef __SPE__
+   /* Implement POSIX semantics by forbiding nesting elided trylocks.  */
+   __libc_tabort (_ABORT_NESTED_TRYLOCK);
+ 
+@@ -65,5 +66,6 @@ __lll_trylock_elision (int *futex, short *adapt_count)
+     }
+ 
+ use_lock:
++#endif
+   return lll_trylock (*futex);
+ }
+diff --git a/sysdeps/unix/sysv/linux/powerpc/elision-unlock.c b/sysdeps/unix/sysv/linux/powerpc/elision-unlock.c
+index dcfab199d79..14e0680ee9b 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/elision-unlock.c
++++ b/sysdeps/unix/sysv/linux/powerpc/elision-unlock.c
+@@ -23,6 +23,7 @@
+ int
+ __lll_unlock_elision (int *lock, short *adapt_count, int pshared)
+ {
++#ifndef __SPE__
+   /* When the lock was free we're in a transaction.  */
+   if (*lock == 0)
+     __libc_tend (0);
+@@ -39,5 +40,8 @@ __lll_unlock_elision (int *lock, short *adapt_count, int pshared)
+ 
+       lll_unlock ((*lock), pshared);
+     }
++#else
++  lll_unlock ((*lock), pshared);
++#endif
+   return 0;
+ }
 diff --git a/sysdeps/unix/sysv/linux/riscv/readelflib.c b/sysdeps/unix/sysv/linux/riscv/readelflib.c
-index 6e249ff82f..7e27e0c1d6 100644
+index 6e249ff82fa..7e27e0c1d64 100644
 --- a/sysdeps/unix/sysv/linux/riscv/readelflib.c
 +++ b/sysdeps/unix/sysv/linux/riscv/readelflib.c
 @@ -43,6 +43,7 @@ process_elf_file (const char *file_name, const char *lib, int *flag,
@@ -1002,8 +1106,32 @@ index 6e249ff82f..7e27e0c1d6 100644
      }
  
    /* RISC-V linkers encode the floating point ABI as part of the ELF headers.  */
+diff --git a/sysdeps/unix/sysv/linux/sparc/sparc32/setcontext.S b/sysdeps/unix/sysv/linux/sparc/sparc32/setcontext.S
+index 695f172c634..283aef1b304 100644
+--- a/sysdeps/unix/sysv/linux/sparc/sparc32/setcontext.S
++++ b/sysdeps/unix/sysv/linux/sparc/sparc32/setcontext.S
+@@ -95,6 +95,19 @@ END(__setcontext)
+ 
+ weak_alias (__setcontext, setcontext)
+ 
++/* We add an NOP here to separate between __setcontext/__startcontext. The
++   wanted behavior that happens is: when unwinding from a function called
++   inside a makecontext() context, FDE lookup will use '&__startcontext - 1',
++   then returns NULL for no FDE found, and immediately ends the unwind, in
++   a normal fashion.
++
++   If this NOP word does not exist, FDE lookup just repeatedly finds
++   __setcontext's FDE in an infinite loop, due to the convention of using
++   'address - 1' for FDE lookup. Modifiying/deleting the below
++   __startcontext's FDE has no help on this.  */
++
++	nop
++
+ /* This is the helper code which gets called if a function which is
+    registered with 'makecontext' returns.  In this case we have to
+    install the context listed in the uc_link element of the context
 diff --git a/time/time.h b/time/time.h
-index 49d30438f3..4b55e34402 100644
+index 49d30438f38..4b55e34402f 100644
 --- a/time/time.h
 +++ b/time/time.h
 @@ -68,7 +68,7 @@ typedef __pid_t pid_t;
