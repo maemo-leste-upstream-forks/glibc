@@ -119,14 +119,14 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
 +  mach_msg_type_number_t tssize = MACHINE_THREAD_STATE_COUNT;
 +  tcbhead_t *tcb;
 +
++  tcb = _dl_allocate_tls(NULL);
++  if (tcb == NULL)
++    return KERN_RESOURCE_SHORTAGE;
++
 +  if (error = __thread_get_state (thread, MACHINE_THREAD_STATE_FLAVOR,
 +			     (natural_t *) &ts, &tssize))
 +    return error;
 +  assert (tssize == MACHINE_THREAD_STATE_COUNT);
-+
-+  tcb = _dl_allocate_tls(NULL);
-+  if (!tcb)
-+    return KERN_RESOURCE_SHORTAGE;
 +
 +  _hurd_tls_new(thread, &ts, tcb);
 +
@@ -247,10 +247,10 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
 +      assert (d->phdrsz % sizeof (ElfW(Phdr)) == 0);
 +    }
 +
-+  /* We need to setup TLS before starting sigthread */
-+  extern void __pthread_initialize_minimal(void);
++  /* We need to setup TLS before starting the signal thread.  */
++  extern void __pthread_initialize_minimal (void);
 +  if (__pthread_initialize_minimal != NULL)
-+    __pthread_initialize_minimal();
++    __pthread_initialize_minimal ();
 +#endif
 +
    /* The user might have defined a value for this, to get more variables.
@@ -416,7 +416,7 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
  #endif
  #endif
 +#ifndef MACHINE_THREAD_STATE_FIX_NEW
-+#define MACHINE_THREAD_STATE_FIX_NEW(ts)
++# define MACHINE_THREAD_STATE_FIX_NEW(ts)
 +#endif
  
  /* These functions are of use in machine-dependent signal trampoline
