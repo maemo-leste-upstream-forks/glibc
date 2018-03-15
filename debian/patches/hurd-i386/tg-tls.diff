@@ -274,15 +274,6 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
  #ifndef __ASSEMBLER__
  
  /* Use i386-specific RPCs to arrange that %gs segment register prefix
-@@ -70,7 +70,7 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
- 
-   /* Get the first available selector.  */
-   int sel = -1;
--  error_t err = __i386_set_gdt (tcb->self, &sel, desc);
-+  kern_return_t err = __i386_set_gdt (tcb->self, &sel, desc);
-   if (err == MIG_BAD_ID)
-     {
-       /* Old kernel, use a per-thread LDT.  */
 @@ -139,9 +139,40 @@ _hurd_tls_init (tcbhead_t *tcb, int seco
  
  # include <mach/machine/thread_status.h>
@@ -301,7 +292,7 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
 +    return 0;
 +
 +  struct descriptor desc, *_desc = &desc;
-+  int err;
++  error_t err;
 +  unsigned int count = 1;
 +
 +  if (__builtin_expect (sel, 0x48) & 4) /* LDT selector */
@@ -333,8 +324,7 @@ glibc-2.8/debian/patches/hurd-i386/local-tls-support.diff 3151
  
 -  tcbhead_t *const tcb = THREAD_SELF;
    HURD_TLS_DESC_DECL (desc, tcb);
--  error_t err;
-+  kern_return_t err;
+   error_t err;
 +
 +  tcb->tcb = tcb;
 +  tcb->self = child;
