@@ -1,7 +1,7 @@
 From: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Subject: [PATCH] hurd: Fix O_DIRECTORY | O_NOFOLLOW
 
-Appending / to the path to be looked up makes us always follow a final
+Appending / to the path to be looked up would make us always follow a final
 symlink, even with O_NOTRANS (since the final resolution is after the
 '/').  In the O_DIRECTORY | O_NOFOLLOW case, we thus have to really open
 the node and stat it, which we already do anyway, and check for
@@ -23,7 +23,7 @@ index dbff009..bd720c2 100644
      flags |= O_NOTRANS;
  
 -  if (flags & O_DIRECTORY)
-+  if (flags & O_DIRECTORY && !(flags & O_NOFOLLOW))
++  if (flags & O_DIRECTORY && (flags & O_NOFOLLOW) == 0)
      {
        /* The caller wants to require that the file we look up is a directory.
  	 We can do this without an extra RPC by appending a trailing slash
