@@ -82,17 +82,22 @@
 'br\}
 .\"	If the F register is turned on, we'll generate
 .\"	index entries out stderr for the following things:
-.\"		TH	Title 
+.\"		TH	Title
 .\"		SH	Header
-.\"		Sh	Subsection 
+.\"		Sh	Subsection
 .\"		Ip	Item
 .\"		X<>	Xref  (embedded
 .\"	Of course, you have to process the output yourself
 .\"	in some meaningful fashion.
-.if \nF \{
+.ie \nF \{\
 .de IX
 .tm Index:\\$1\t\\n%\t"\\$2"
 ..
+.\}
+.el \{\
+.de IX
+..
+.\}
 .nr % 0
 .rr F
 .\}
@@ -193,10 +198,10 @@
 .SH "NAME"
 catchsegv \- Catch segmentation faults in programs
 .SH "SYNOPSIS"
-\fBcatchsegv\fR \fBprogram\fR [\fBargs\fR]
+\fBcatchsegv\fR \fIprogram\fR [\,\fIargs\fR\/]
 .SH "DESCRIPTION"
-Used to debug segmentation faults in programs. The output is the
-content of registers, plus a backtrace. Basically you call your
+Used to debug segmentation faults in programs.  The output is the
+content of registers, plus a backtrace.  Basically you call your
 program and its arguments as the arguments to catchsegv.
 .SH "AUTHOR"
 \fIcatchsegv\fR was written by Ulrich Drepper for the GNU C Library
