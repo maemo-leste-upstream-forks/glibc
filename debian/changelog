@@ -6,7 +6,14 @@ glibc (2.27-4) UNRELEASED; urgency=medium
     between SIGCHLD and timer_create.  Closes: Bug#894379.
 
   [ Aurelien Jarno ]
-  * debian/patches/git-updates.diff: update from upstream stable branch.
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix stack buffer overflow in realpath() (CVE-2018-11236).  Closes:
+      #899071.
+    - Fix buffer overflow in AVX-512-optimized implementation of mempcpy()
+      (CVE-2018-11237).  Closes: #899070.
+    - Fix crashes with binaries using vtable interposition.  Closes:
+      #861116.
+    - debian/patches/arm/unsubmitted-ldso-abi-check.diff: refresh, sigh.
   * debian/debhelper.in/libc.docs: do not try to install BUGS in the
     documentation, it has been removed upstream in version 2.27 as
     obsolete.  Closes: #902800.
