@@ -1,0 +1,17 @@
+2018-05-18  Palmer Dabbelt  <palmer@sifive.com>
+
+        PR 23125
+        * sysdeps/riscv/start.S (ENTRY_POINT): Mark ra as undefined so
+        backtraces can terminate if they reach this point.
+
+--- a/sysdeps/riscv/start.S
++++ b/sysdeps/riscv/start.S
+@@ -43,6 +43,8 @@
+    __libc_start_main wants this in a5.  */
+ 
+ ENTRY (ENTRY_POINT)
++	/* Mark ra as undefined in order to stop unwinding here!  */
++	cfi_undefined (ra)
+ 	call  .Lload_gp
+ 	mv    a5, a0  /* rtld_fini.  */
+ 	/* main may be in a shared library.  */
