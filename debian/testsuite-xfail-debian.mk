@@ -463,6 +463,8 @@ test-xfail-tst-tls1-static-non-pie = yes
 test-xfail-tst-libc_dlvsym-static = yes
 test-xfail-tst-libc_dlvsym = yes
 test-xfail-tst-malloc-too-large = yes
+test-xfail-tst-spawn4 = yes
+test-xfail-tst-spawn4-compat = yes
 
 # Tests failing to build
 tests-unsupported += tst-copy_file_range
