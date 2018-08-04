@@ -4,7 +4,6 @@ GLIBC_TAG = glibc-$(GLIBC_VERSION)
 GLIBC_CHECKOUT = glibc-checkout
 GLIBC_DIR = glibc-$(GLIBC_VERSION)
 DEB_ORIG = ../glibc_$(GLIBC_VERSION).orig.tar.xz
-DEB_ORIG_COMMIT = $(shell cat .git-commit 2>/dev/null || echo glibc-$(GLIBC_VERSION))
 GIT_UPDATES_DIFF = debian/patches/git-updates.diff
 
 get-orig-source: $(DEB_ORIG)
@@ -20,7 +19,7 @@ $(DEB_ORIG):
 update-from-upstream:
 	dh_testdir
 	git clone --bare $(GLIBC_GIT) $(GLIBC_CHECKOUT)
-	echo "GIT update of $(GLIBC_GIT)/$(GLIBC_BRANCH) from $(DEB_ORIG_COMMIT)" > $(GIT_UPDATES_DIFF)
+	echo "GIT update of $(GLIBC_GIT)/$(GLIBC_BRANCH) from $(GLIBC_TAG)" > $(GIT_UPDATES_DIFF)
 	echo "" >> $(GIT_UPDATES_DIFF)
 	(cd $(GLIBC_CHECKOUT) && git diff --no-renames $(GLIBC_TAG) $(GLIBC_BRANCH) -- . ':!manual') >> $(GIT_UPDATES_DIFF)
 	rm -rf $(GLIBC_CHECKOUT)
