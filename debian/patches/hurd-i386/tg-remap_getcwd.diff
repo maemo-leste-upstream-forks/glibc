@@ -18,7 +18,7 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
 --- a/sysdeps/mach/hurd/getcwd.c
 +++ b/sysdeps/mach/hurd/getcwd.c
-@@ -266,11 +266,6 @@ _hurd_canonicalize_directory_name_intern
+@@ -266,11 +266,6 @@
         So the root is our current directory.  */
      *--file_namep = '/';
  
@@ -30,10 +30,10 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
    memmove (file_name, file_namep, file_name + size - file_namep);
    cleanup ();
    return file_name;
-@@ -310,13 +305,6 @@ __getcwd (char *buf, size_t size)
+@@ -309,13 +304,6 @@
      __USEPORT (CWDIR,
- 	       _hurd_canonicalize_directory_name_internal (port,
- 							   buf, size));
+ 	       __hurd_canonicalize_directory_name_internal (port,
+ 							    buf, size));
 -  if (cwd && cwd[0] != '/')
 -    {
 -      /* `cwd' is an unknown root directory.  */

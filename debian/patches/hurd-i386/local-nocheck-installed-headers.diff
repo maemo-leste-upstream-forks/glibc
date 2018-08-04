@@ -1,15 +1,19 @@
 TODO: Will be fixed in glibc 2.28
 
+---
+ scripts/check-installed-headers.sh |    4 ++++
+ 1 file changed, 4 insertions(+)
+
 --- a/scripts/check-installed-headers.sh
 +++ b/scripts/check-installed-headers.sh
-@@ -83,6 +83,10 @@
-         # instead, plus an inclusion of that header.
+@@ -84,6 +84,10 @@
          (sys/elf.h)
              continue;;
-+
+ 
 +	# These are completely not following standards
 +        (hurd.h | hurd/* | faultexc_server.h | mach.h | mach_init.h | mach_error.h | mach-shortcuts.h | mach/* | device/* | lock-intern.h | spin-lock.h | machine-sp.h)
 +            continue;;
- 
-         # libio.h and _G_config.h are deprecation stubs containing #warnings
-         # to use stdio.h instead.
++
+ 	# sys/sysctl.h is unsupported for x32.
+ 	(sys/sysctl.h)
+             case "$is_x32" in
