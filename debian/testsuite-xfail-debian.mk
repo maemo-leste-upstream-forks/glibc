@@ -413,8 +413,8 @@ test-xfail-tst-malloc-stats-cancellation = yes
 # realloc() etc.
 test-xfail-tst-res_hconf_reorder = yes
 
-test-xfail-conform/ISO11/threads.h/conform = yes
-test-xfail-conform/ISO11/threads.h/linknamespace = yes
+test-xfail-ISO11/threads.h/conform = yes
+test-xfail-ISO11/threads.h/linknamespace = yes
 
 # TODO: should be easy to fix now
 test-xfail-check-localplt = yes
