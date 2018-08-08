@@ -401,8 +401,6 @@ test-xfail-test-bz22786 = yes
 tests-unsupported += tst-copy_file_range
 tests-unsupported += tst-copy_file_range-compat
 
-test-xfail-XPG42/signal.h/conform = yes
-
 # new in 2.28
 test-xfail-tst-fgetc-after-eof = yes
 test-xfail-tst-fgetwc-after-eof = yes
