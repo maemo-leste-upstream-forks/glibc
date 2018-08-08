@@ -409,11 +409,19 @@ test-xfail-tst-fgetwc-after-eof = yes
 test-xfail-test-as-const-jmp_buf-ssp = yes
 test-xfail-tst-malloc-stats-cancellation = yes
 
+# This redirects realloc with dlsym
+# Problem is: that creates a loop: realloc() calls dlsym() which calls
+# _dlerror_run calls libc_once(init) which calls pthread_key_create which calls
+# realloc() etc.
+test-xfail-tst-res_hconf_reorder = yes
+
 test-xfail-conform/ISO11/threads.h/conform = yes
 test-xfail-conform/ISO11/threads.h/linknamespace = yes
 
 # TODO: should be easy to fix now
 test-xfail-check-localplt = yes
+
+# TODO: ./login/tst-utmp.test-result misses fcntl64 :/
 
 endif
 
