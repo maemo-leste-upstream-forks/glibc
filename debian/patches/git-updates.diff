@@ -1,10 +1,26 @@
 GIT update of https://sourceware.org/git/glibc.git/release/2.27/master from glibc-2.27
 
 diff --git a/ChangeLog b/ChangeLog
-index f3fe2716b2..1c77ca2a6c 100644
+index f3fe2716b2..7fcb7d5981 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,503 @@
+@@ -1,3 +1,519 @@
++2018-07-29  H.J. Lu  <hongjiu.lu@intel.com>
++
++	[BZ #23459]
++	* sysdeps/x86/cpu-features.c (get_extended_indices): New
++	function.
++	(init_cpu_features): Call get_extended_indices for both Intel
++	and AMD CPUs.
++	* sysdeps/x86/cpu-features.h (COMMON_CPUID_INDEX_80000001):
++	Remove "for AMD" comment.
++
++2018-07-29  H.J. Lu  <hongjiu.lu@intel.com>
++
++	[BZ #23456]
++	* sysdeps/x86/cpu-features.h (index_cpu_LZCNT): Set to
++	COMMON_CPUID_INDEX_80000001.
++
 +2018-07-10  Florian Weimer  <fweimer@redhat.com>
 +
 +	[BZ #23036]
@@ -508,7 +524,7 @@ index f3fe2716b2..1c77ca2a6c 100644
  2018-02-01  Dmitry V. Levin  <ldv@altlinux.org>
  
  	* version.h (RELEASE): Set to "stable".
-@@ -710,7 +1210,9 @@
+@@ -710,7 +1226,9 @@
  2018-01-18  Arjun Shankar  <arjun@redhat.com>
  
  	[BZ #22343]
@@ -539,10 +555,10 @@ index 80f7f14879..858076d9d3 100644
  
  Copyright 2001 by Stephen L. Moshier <moshier@na-net.ornl.gov>
 diff --git a/NEWS b/NEWS
-index a71c1038a8..957035d2f3 100644
+index a71c1038a8..bc150b63f9 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,90 @@ See the end for copying conditions.
+@@ -5,6 +5,92 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
@@ -628,12 +644,14 @@ index a71c1038a8..957035d2f3 100644
 +  [23313] libio: Disable vtable validation in case of interposition
 +  [23349] Various glibc headers no longer compatible with <linux/time.h>
 +  [23363] stdio-common/tst-printf.c has non-free license
++  [23456] Wrong index_cpu_LZCNT
++  [23459] COMMON_CPUID_INDEX_80000001 isn't populated for Intel processors
 +
 +
  Version 2.27
  
  Major new features:
-@@ -262,6 +346,10 @@ Security related changes:
+@@ -262,6 +348,10 @@ Security related changes:
    an object size near the value of SIZE_MAX, would return a pointer to a
    buffer which is too small, instead of NULL.  Reported by Jakub Wilk.
  
@@ -19416,6 +19434,81 @@ index 60003422b3..6d4605b6ed 100644
  };
  
  
+diff --git a/sysdeps/x86/cpu-features.c b/sysdeps/x86/cpu-features.c
+index 0fc3674c4b..122372862c 100644
+--- a/sysdeps/x86/cpu-features.c
++++ b/sysdeps/x86/cpu-features.c
+@@ -30,6 +30,20 @@ extern void TUNABLE_CALLBACK (set_hwcaps) (tunable_val_t *)
+   attribute_hidden;
+ #endif
+ 
++static void
++get_extended_indices (struct cpu_features *cpu_features)
++{
++  unsigned int eax, ebx, ecx, edx;
++  __cpuid (0x80000000, eax, ebx, ecx, edx);
++  if (eax >= 0x80000001)
++    __cpuid (0x80000001,
++	     cpu_features->cpuid[COMMON_CPUID_INDEX_80000001].eax,
++	     cpu_features->cpuid[COMMON_CPUID_INDEX_80000001].ebx,
++	     cpu_features->cpuid[COMMON_CPUID_INDEX_80000001].ecx,
++	     cpu_features->cpuid[COMMON_CPUID_INDEX_80000001].edx);
++
++}
++
+ static void
+ get_common_indeces (struct cpu_features *cpu_features,
+ 		    unsigned int *family, unsigned int *model,
+@@ -205,6 +219,8 @@ init_cpu_features (struct cpu_features *cpu_features)
+       get_common_indeces (cpu_features, &family, &model, &extended_model,
+ 			  &stepping);
+ 
++      get_extended_indices (cpu_features);
++
+       if (family == 0x06)
+ 	{
+ 	  model += extended_model;
+@@ -324,16 +340,9 @@ init_cpu_features (struct cpu_features *cpu_features)
+       get_common_indeces (cpu_features, &family, &model, &extended_model,
+ 			  &stepping);
+ 
+-      ecx = cpu_features->cpuid[COMMON_CPUID_INDEX_1].ecx;
++      get_extended_indices (cpu_features);
+ 
+-      unsigned int eax;
+-      __cpuid (0x80000000, eax, ebx, ecx, edx);
+-      if (eax >= 0x80000001)
+-	__cpuid (0x80000001,
+-		 cpu_features->cpuid[COMMON_CPUID_INDEX_80000001].eax,
+-		 cpu_features->cpuid[COMMON_CPUID_INDEX_80000001].ebx,
+-		 cpu_features->cpuid[COMMON_CPUID_INDEX_80000001].ecx,
+-		 cpu_features->cpuid[COMMON_CPUID_INDEX_80000001].edx);
++      ecx = cpu_features->cpuid[COMMON_CPUID_INDEX_1].ecx;
+ 
+       if (HAS_ARCH_FEATURE (AVX_Usable))
+ 	{
+diff --git a/sysdeps/x86/cpu-features.h b/sysdeps/x86/cpu-features.h
+index c60c2e4eeb..4588c11095 100644
+--- a/sysdeps/x86/cpu-features.h
++++ b/sysdeps/x86/cpu-features.h
+@@ -106,7 +106,7 @@ enum
+   {
+     COMMON_CPUID_INDEX_1 = 0,
+     COMMON_CPUID_INDEX_7,
+-    COMMON_CPUID_INDEX_80000001,	/* for AMD */
++    COMMON_CPUID_INDEX_80000001,
+     /* Keep the following line at the end.  */
+     COMMON_CPUID_INDEX_MAX
+   };
+@@ -202,7 +202,7 @@ extern const struct cpu_features *__get_cpu_features (void)
+ # define index_cpu_HTT		COMMON_CPUID_INDEX_1
+ # define index_cpu_BMI1		COMMON_CPUID_INDEX_7
+ # define index_cpu_BMI2		COMMON_CPUID_INDEX_7
+-# define index_cpu_LZCNT	COMMON_CPUID_INDEX_1
++# define index_cpu_LZCNT	COMMON_CPUID_INDEX_80000001
+ # define index_cpu_MOVBE	COMMON_CPUID_INDEX_1
+ # define index_cpu_POPCNT	COMMON_CPUID_INDEX_1
+ # define index_cpu_IBT		COMMON_CPUID_INDEX_7
 diff --git a/sysdeps/x86_64/multiarch/memmove-avx512-no-vzeroupper.S b/sysdeps/x86_64/multiarch/memmove-avx512-no-vzeroupper.S
 index 23c0f7a9ed..effc3ac2de 100644
 --- a/sysdeps/x86_64/multiarch/memmove-avx512-no-vzeroupper.S
