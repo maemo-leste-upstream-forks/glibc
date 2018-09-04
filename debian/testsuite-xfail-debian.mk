@@ -15,12 +15,6 @@ test-xfail-tst-cancel24-static = yes
 # control, we'll just let it fail
 test-xfail-tst-create-detached = yes
 
-# glibc 2.28 requires libidn2 >= 2.0.5 which is not yet in Debian (see
-# bug#905448). In the meantime fail the corresponding tests.
-test-xfail-tst-resolv-ai_idn = yes
-test-xfail-tst-resolv-ai_idn-latin1 = yes
-
-
 ######################################################################
 # alpha (including optimized flavours)
 ######################################################################
