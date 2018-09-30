@@ -4,8 +4,8 @@ them to application at the risk of them complaining that they don't work
 (e.g. xterm using TIOCLSET).
 
 ---
- sysdeps/mach/hurd/bits/ioctls.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ sysdeps/mach/hurd/bits/ioctls.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
 --- a/sysdeps/mach/hurd/bits/ioctls.h
 +++ b/sysdeps/mach/hurd/bits/ioctls.h
@@ -33,7 +33,7 @@ them to application at the risk of them complaining that they don't work
  #define	TIOCGETP	_IOR('t', 8,struct sgttyb)/* get parameters -- gtty */
  #define	TIOCSETP	_IOW('t', 9,struct sgttyb)/* set parameters -- stty */
  #define	TIOCSETN	_IOW('t',10,struct sgttyb)/* as above, but no flushtty*/
-@@ -389,10 +393,12 @@ enum __ioctl_datum { IOC_8, IOC_16, IOC_
+@@ -389,6 +393,7 @@ enum __ioctl_datum { IOC_8, IOC_16, IOC_
  #define		PENDIN		0x20000000	/* tp->t_rawq needs reread */
  #define		DECCTQ		0x40000000	/* only ^Q starts after ^S */
  #define		NOFLSH		0x80000000	/* no output flush on signal */
@@ -41,19 +41,7 @@ them to application at the risk of them complaining that they don't work
  #define	TIOCLBIS	_IOW('t', 127, int)	/* bis local mode bits */
  #define	TIOCLBIC	_IOW('t', 126, int)	/* bic local mode bits */
  #define	TIOCLSET	_IOW('t', 125, int)	/* set entire local mode word */
- #define	TIOCLGET	_IOR('t', 124, int)	/* get local modes */
-+#endif
- #define		LCRTBS		(CRTBS>>16)
- #define		LPRTERA		(PRTERA>>16)
- #define		LCRTERA		(CRTERA>>16)
-@@ -408,12 +414,14 @@ enum __ioctl_datum { IOC_8, IOC_16, IOC_
- #define		LPENDIN		(PENDIN>>16)
- #define		LDECCTQ		(DECCTQ>>16)
- #define		LNOFLSH		(NOFLSH>>16)
-+#if 0
- #define	TIOCSLTC	_IOW('t',117,struct ltchars)/* set local special chars*/
- #define	TIOCGLTC	_IOR('t',116,struct ltchars)/* get local special chars*/
- #define OTIOCCONS	_IO('t', 98)	/* for hp300 -- sans int arg */
+@@ -414,6 +419,7 @@ enum __ioctl_datum { IOC_8, IOC_16, IOC_
  #define	OTTYDISC	0
  #define	NETLDISC	1
  #define	NTTYDISC	2
