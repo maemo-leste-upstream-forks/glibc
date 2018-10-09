@@ -1,0 +1,25 @@
+commit 6849ff19657e8f7e6a83e9aaae07eb45269dc7d4
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Oct 9 22:27:59 2018 +0200
+
+    hurd: set interrupt timeout to 1 minute
+    
+    Seeing a server not able to get interrupted for 3s is not so surprising when
+    e.g. a lot of writes are happening. 1 minute allows to actually notice the
+    issue and be able to debug it.
+    
+            * hurd/hurdsig.c (_hurd_interrupted_rpc_timeout): Set to 60000.
+
+diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
+index aa82f63413..48179b4197 100644
+--- a/hurd/hurdsig.c
++++ b/hurd/hurdsig.c
+@@ -57,7 +57,7 @@ unsigned long int __hurd_sigthread_stack_end;
+ struct hurd_sigstate *_hurd_sigstates;
+ 
+ /* Timeout for RPC's after interrupt_operation. */
+-mach_msg_timeout_t _hurd_interrupted_rpc_timeout = 3000;
++mach_msg_timeout_t _hurd_interrupted_rpc_timeout = 60000;
+ 
+ static void
+ default_sigaction (struct sigaction actions[NSIG])
