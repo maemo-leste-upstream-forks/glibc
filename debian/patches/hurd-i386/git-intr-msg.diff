@@ -1,0 +1,104 @@
+commit 32ad5b3328e0ce53ca27e185a89ca44c1d0acd0c
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Oct 9 23:40:09 2018 +0200
+
+    hurd: Fix race between calling RPC and handling a signal
+    
+            * sysdeps/mach/hurd/i386/intr-msg.h (INTR_MSG_TRAP): Make
+            _hurd_intr_rpc_msg_about_to global point to start of controlled
+            assembly snippet. Make it check canceled flag again.
+            * hurd/hurdsig.c (_hurdsig_abort_rpcs): Only mutate thread if it passed the
+            _hurd_intr_rpc_msg_about_to point.
+            * hurd/intr-msg.c (_hurd_intr_rpc_mach_msg): Remove comment on mutation
+            issue.
+
+diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
+index 48179b4197..d105615e42 100644
+--- a/hurd/hurdsig.c
++++ b/hurd/hurdsig.c
+@@ -292,6 +292,7 @@ _hurdsig_abort_rpcs (struct hurd_sigstate *ss, int signo, int sigthread,
+ 		     struct machine_thread_all_state *state, int *state_change,
+ 		     void (*reply) (void))
+ {
++  extern const void _hurd_intr_rpc_msg_about_to;
+   extern const void _hurd_intr_rpc_msg_in_trap;
+   mach_port_t rcv_port = MACH_PORT_NULL;
+   mach_port_t intr_port;
+@@ -307,7 +308,8 @@ _hurdsig_abort_rpcs (struct hurd_sigstate *ss, int signo, int sigthread,
+      receive completes immediately or aborts.  */
+   abort_thread (ss, state, reply);
+ 
+-  if (state->basic.PC < (natural_t) &_hurd_intr_rpc_msg_in_trap)
++  if (state->basic.PC >= (natural_t) &_hurd_intr_rpc_msg_about_to &&
++      state->basic.PC <  (natural_t) &_hurd_intr_rpc_msg_in_trap)
+     {
+       /* The thread is about to do the RPC, but hasn't yet entered
+ 	 mach_msg.  Mutate the thread's state so it knows not to try
+diff --git a/hurd/intr-msg.c b/hurd/intr-msg.c
+index 1f7724ee8b..c347d9020f 100644
+--- a/hurd/intr-msg.c
++++ b/hurd/intr-msg.c
+@@ -114,23 +114,9 @@ _hurd_intr_rpc_mach_msg (mach_msg_header_t *msg,
+ 
+  message:
+ 
+-  /* XXX
+-     At all points here (once SS->intr_port is set), the signal thread
+-     thinks we are "about to enter the syscall", and might mutate our
+-     return-value register.  This is bogus.
+-   */
+-
+-  if (ss->cancel)
+-    {
+-      /* We have been cancelled.  Don't do an RPC at all.  */
+-      ss->intr_port = MACH_PORT_NULL;
+-      ss->cancel = 0;
+-      return EINTR;
+-    }
+-
+   /* Note that the signal trampoline code might modify our OPTION!  */
+   err = INTR_MSG_TRAP (msg, option, send_size,
+-		       rcv_size, rcv_name, timeout, notify);
++		       rcv_size, rcv_name, timeout, notify, &ss->cancel);
+ 
+   switch (err)
+     {
+diff --git a/sysdeps/mach/hurd/i386/intr-msg.h b/sysdeps/mach/hurd/i386/intr-msg.h
+index 64f05f8c4e..baa9ba9171 100644
+--- a/sysdeps/mach/hurd/i386/intr-msg.h
++++ b/sysdeps/mach/hurd/i386/intr-msg.h
+@@ -20,21 +20,29 @@
+ /* Note that we must mark OPTION and TIMEOUT as outputs of this operation,
+    to indicate that the signal thread might mutate them as part
+    of sending us to a signal handler.  */
+-#define INTR_MSG_TRAP(msg, option, send_size, rcv_size, rcv_name, timeout, notify) \
++
++/* After _hurd_intr_rpc_msg_about_to we need to make a last check of cancel, in
++   case we got interrupted right before _hurd_intr_rpc_msg_about_to.  */
++#define INTR_MSG_TRAP(msg, option, send_size, rcv_size, rcv_name, timeout, notify, cancel_p) \
+ ({									      \
+   error_t err;								      \
+-  asm (".globl _hurd_intr_rpc_msg_do_trap\n" 				      \
+-       ".globl _hurd_intr_rpc_msg_in_trap\n"				      \
++  asm (".globl _hurd_intr_rpc_msg_about_to\n"				      \
+        ".globl _hurd_intr_rpc_msg_cx_sp\n"				      \
++       ".globl _hurd_intr_rpc_msg_do_trap\n" 				      \
++       ".globl _hurd_intr_rpc_msg_in_trap\n"				      \
+        ".globl _hurd_intr_rpc_msg_sp_restored\n"			      \
+-       "				movl %%esp, %%ecx\n"		      \
++       "_hurd_intr_rpc_msg_about_to:	cmpl $0, %4\n"			      \
++       "				jz _hurd_intr_rpc_msg_do\n"	      \
++       "				movl %5, %%eax\n"		      \
++       "				jmp _hurd_intr_rpc_msg_sp_restored\n" \
++       "_hurd_intr_rpc_msg_do:		movl %%esp, %%ecx\n"		      \
+        "				leal %3, %%esp\n"		      \
+        "_hurd_intr_rpc_msg_cx_sp:	movl $-25, %%eax\n"		      \
+        "_hurd_intr_rpc_msg_do_trap:	lcall $7, $0 # status in %0\n"	      \
+        "_hurd_intr_rpc_msg_in_trap:	movl %%ecx, %%esp\n"		      \
+        "_hurd_intr_rpc_msg_sp_restored:"				      \
+        : "=a" (err), "+m" (option), "+m" (timeout)			      \
+-       : "m" ((&msg)[-1])						      \
++       : "m" ((&msg)[-1]), "m" (*cancel_p), "i" (EINTR)			      \
+        : "ecx");							      \
+   err;									      \
+ })
