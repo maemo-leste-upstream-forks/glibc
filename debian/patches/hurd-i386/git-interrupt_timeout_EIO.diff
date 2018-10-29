@@ -2,14 +2,14 @@ commit 16d61b858ec0e802008d721e150e48d6083d3921
 Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Date:   Tue Oct 9 22:25:19 2018 +0200
 
-    hurd: Return EIO on non-responding interrupted servers
+    hurd: Return EIEIO on non-responding interrupted servers
     
     since we do not actually know whether the RPC was completed or not,
     which makes a huge difference for e.g. write(), so better really error
     out than letting caller think that the RPC did not happen.
     
             * hurd/intr-msg.c (_hurd_intr_rpc_mach_msg): When the server does not
-            answer to interrupt_operation, return EIO instead of EINTR.
+            answer to interrupt_operation, return EIEIO instead of EINTR.
 
 diff --git a/hurd/intr-msg.c b/hurd/intr-msg.c
 index 2f83ac6ce7..1f7724ee8b 100644
@@ -43,10 +43,10 @@ index 2f83ac6ce7..1f7724ee8b 100644
 -    interrupted:
 -      err = EINTR;
 +    dead:
-+      err = EIO;
++      err = EIEIO;
  
 -      /* The EINTR return indicates cancellation, so clear the flag.  */
-+      /* The EIO return indicates cancellation, so clear the flag.  */
++      /* The EIEIO return indicates cancellation, so clear the flag.  */
        ss->cancel = 0;
        break;
  
