@@ -210,6 +210,10 @@ test-xfail-tst-waitid = yes
 # There is not support for protection key on ARM yet, and there is a
 # disagreement between kernel and glibc how to report that.
 test-xfail-tst-pkey = yes
+
+# This test fails due to a kernel bug when building armhf on an ARM64
+# machine. See bug #904385.
+test-xfail-tst-signal6 = yes
 endif
 
 
