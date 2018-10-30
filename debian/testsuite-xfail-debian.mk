@@ -167,9 +167,6 @@ test-xfail-tst-backtrace6 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-stack4 = yes
 
-# This can be removed once bug#750834 is fixed
-test-xfail-basic-test = yes
-
 # There is not support for protection key on ARM64 yet, and there is a
 # disagreement between kernel and glibc how to report that.
 test-xfail-tst-pkey = yes
@@ -825,11 +822,6 @@ test-xfail-tst-thread-exit-clobber = yes
 # MIPS GCC does not use PT_GNU_STACK markers (this is a GCC issue)
 test-xfail-check-execstack = yes
 
-# These tests require at least a kernel 4.0
-test-xfail-tst-mode-switch-1 = yes
-test-xfail-tst-mode-switch-2 = yes
-test-xfail-tst-mode-switch-3 = yes
-
 # Theses failures are due to a bug in the cvt.s.d instruction on some FPU
 # (at least Octeon 3 and XBurst). The tininess detection is done on a
 # before-rounding basis instead of an after-rounding basis.
@@ -914,10 +906,6 @@ test-xfail-tst-backtrace6 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
 
-# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=6527
-test-xfail-tst-malloc-thread-exit = yes
-test-xfail-tst-malloc-thread-fail = yes
-
 # In some conditions the kernel might not provide a heap, causing
 # some tests to fail. See bug#889817 for details.
 test-xfail-tst-malloc-usable-tunables = yes
@@ -936,20 +924,6 @@ test-xfail-tst-backtrace5 = yes
 test-xfail-tst-backtrace6 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
-
-# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=6527
-test-xfail-tst-malloc-thread-exit = yes
-test-xfail-tst-malloc-thread-fail = yes
-
-# Failures due to a GCC bug, see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59412
-#                            and http://gcc.gnu.org/bugzilla/show_bug.cgi?id=64811
-test-xfail-test-float32 = yes
-test-xfail-test-float64 = yes
-test-xfail-test-ifloat64 = yes
-test-xfail-test-ifloat32 = yes
-
-# Requires a recent CPU or a recent kernel for CPU feature detection
-test-xfail-tst-set_ppr = yes
 
 # Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
 test-xfail-test-ildouble-fma = yes
