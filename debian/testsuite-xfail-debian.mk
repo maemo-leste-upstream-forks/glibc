@@ -898,6 +898,10 @@ test-xfail-tst-waitid = yes
 # In some conditions the kernel might not provide a heap, causing
 # some tests to fail. See bug#889817 for details.
 test-xfail-tst-malloc-usable-tunables = yes
+
+# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
+test-xfail-test-ildouble-fma = yes
+test-xfail-test-ldouble-fma = yes
 endif
 
 
@@ -917,6 +921,10 @@ test-xfail-tst-malloc-thread-fail = yes
 # In some conditions the kernel might not provide a heap, causing
 # some tests to fail. See bug#889817 for details.
 test-xfail-tst-malloc-usable-tunables = yes
+
+# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
+test-xfail-test-ildouble-fma = yes
+test-xfail-test-ldouble-fma = yes
 endif
 
 
@@ -942,6 +950,10 @@ test-xfail-test-ifloat32 = yes
 
 # Requires a recent CPU or a recent kernel for CPU feature detection
 test-xfail-tst-set_ppr = yes
+
+# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
+test-xfail-test-ildouble-fma = yes
+test-xfail-test-ldouble-fma = yes
 endif
 
 
