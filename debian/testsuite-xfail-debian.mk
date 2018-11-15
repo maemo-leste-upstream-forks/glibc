@@ -410,9 +410,6 @@ test-xfail-tst-res_hconf_reorder = yes
 
 test-xfail-ISO11/threads.h/conform = yes
 test-xfail-ISO11/threads.h/linknamespace = yes
-
-# TODO: ./login/tst-utmp.test-result misses fcntl64 :/
-
 endif
 
 
