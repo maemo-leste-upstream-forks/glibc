@@ -30,18 +30,18 @@ index 64e8764..a5892db 100644
  #define	LOCK_NB	4	/* Don't block when locking.  */
 diff --git a/sysdeps/mach/hurd/fcntl.c b/sysdeps/mach/hurd/fcntl.c
 index 70180fa..8a8308f 100644
---- a/sysdeps/mach/hurd/fcntl.c
-+++ b/sysdeps/mach/hurd/fcntl.c
+--- a/sysdeps/mach/hurd/f_setlk.c
++++ b/sysdeps/mach/hurd/f_setlk.c
 @@ -150,8 +150,8 @@ __libc_fcntl (int fd, int cmd, ...)
- 	  }
- 	switch (fl->l_type)
- 	  {
--	  case F_RDLCK: cmd |= LOCK_SH; break;
--	  case F_WRLCK: cmd |= LOCK_EX; break;
-+	  case F_RDLCK: cmd |= LOCK_SH | __LOCK_ATOMIC; break;
-+	  case F_WRLCK: cmd |= LOCK_EX | __LOCK_ATOMIC; break;
- 	  case F_UNLCK: cmd |= LOCK_UN; break;
- 	  default:
- 	    errno = EINVAL;
+ 
+   switch (type)
+     {
+-    case F_RDLCK: cmd = LOCK_SH; break;
+-    case F_WRLCK: cmd = LOCK_EX; break;
++    case F_RDLCK: cmd = LOCK_SH | __LOCK_ATOMIC; break;
++    case F_WRLCK: cmd = LOCK_EX | __LOCK_ATOMIC; break;
+     case F_UNLCK: cmd = LOCK_UN; break;
+     default:
+       errno = EINVAL;
 -- 
 tg: (9a079e2..) t/WRLCK-upgrade (depends on: baseline)
