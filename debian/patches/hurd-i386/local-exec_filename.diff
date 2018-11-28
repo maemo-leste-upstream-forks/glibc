@@ -1,11 +1,12 @@
 Keep compatibility with experimental implementation
 
 ---
- hurd/Makefile              |    4 ++--
- hurd/Versions              |    8 ++++++++
- hurd/hurdexec.c            |   32 ++++++++++++++++++++++++++++++++
- sysdeps/mach/hurd/spawni.c |   13 +++++++++++++
- 4 files changed, 55 insertions(+), 2 deletions(-)
+ hurd/Makefile                       |    4 ++--
+ hurd/Versions                       |    4 ++++
+ hurd/hurdexec.c                     |   32 ++++++++++++++++++++++++++++++++
+ sysdeps/mach/hurd/i386/libc.abilist |    1 +
+ sysdeps/mach/hurd/spawni.c          |   13 +++++++++++++
+ 5 files changed, 52 insertions(+), 2 deletions(-)
 
 --- a/hurd/Makefile
 +++ b/hurd/Makefile
@@ -22,7 +23,7 @@ Keep compatibility with experimental implementation
  				       )
 --- a/hurd/Versions
 +++ b/hurd/Versions
-@@ -124,6 +124,10 @@
+@@ -123,6 +123,10 @@
      # functions used in macros & inline functions
      __errno_location;
    }
@@ -82,10 +83,10 @@ Keep compatibility with experimental implementation
  	err = __file_exec (file, task, flags,
  			   args, argslen, env, envlen,
  			   dtable, MACH_MSG_TYPE_COPY_SEND, dtablesize,
-@@ -435,3 +458,12 @@
-   free (env);
+@@ -436,3 +459,12 @@
    return err;
  }
+ libc_hidden_def (_hurd_exec_paths)
 +#if SHLIB_COMPAT (libc, GLIBC_2_26, GLIBC_2_27)
 +compat_symbol (libc, _hurd_exec_paths, _hurd_exec_paths, GLIBC_2_26);
 +#endif
@@ -105,7 +106,7 @@ Keep compatibility with experimental implementation
  #include <assert.h>
  #include <argz.h>
  #include "spawn_int.h"
-@@ -657,6 +658,18 @@
+@@ -658,6 +659,18 @@
  	   dtable, MACH_MSG_TYPE_COPY_SEND, dtablesize,
  	   ports, MACH_MSG_TYPE_COPY_SEND, _hurd_nports,
  	   ints, INIT_INT_MAX,
@@ -124,12 +125,10 @@ Keep compatibility with experimental implementation
  	   NULL, 0, NULL, 0);
  
  	/* Fallback for backwards compatibility.  This can just be removed
-Index: glibc-2.27/sysdeps/mach/hurd/i386/libc.abilist
-===================================================================
---- glibc-2.27.orig/sysdeps/mach/hurd/i386/libc.abilist
-+++ glibc-2.27/sysdeps/mach/hurd/i386/libc.abilist
-@@ -1990,6 +1992,7 @@ GLIBC_2.2.6 xprt_unregister F
- GLIBC_2.21 GLIBC_2.21 A
+--- a/sysdeps/mach/hurd/i386/libc.abilist
++++ b/sysdeps/mach/hurd/i386/libc.abilist
+@@ -1978,6 +1978,7 @@
+ GLIBC_2.2.6 xprt_unregister F
  GLIBC_2.21 __mach_host_self_ D 0x4
  GLIBC_2.21 __pthread_get_cleanup_stack F
 +GLIBC_2.21 _hurd_exec_file_name F

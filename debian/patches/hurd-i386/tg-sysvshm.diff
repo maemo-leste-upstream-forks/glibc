@@ -17,22 +17,22 @@ Subject: [PATCH] Implement SysV shared memory for GNU/Hurd.
 
 ---
  hurd/Makefile                      |    1 
- hurd/sysvshm.c                     |   96 ++++++++++++++
+ hurd/sysvshm.c                     |   97 ++++++++++++++
  hurd/sysvshm.h                     |   47 +++++++
  sysdeps/mach/hurd/bits/posix_opt.h |    4 
  sysdeps/mach/hurd/ftok.c           |   43 ++++++
- sysdeps/mach/hurd/shmat.c          |   78 +++++++++++
+ sysdeps/mach/hurd/shmat.c          |   79 ++++++++++++
  sysdeps/mach/hurd/shmctl.c         |  132 ++++++++++++++++++++
  sysdeps/mach/hurd/shmdt.c          |   51 +++++++
  sysdeps/mach/hurd/shmget.c         |  242 +++++++++++++++++++++++++++++++++++++
- 9 files changed, 692 insertions(+), 2 deletions(-)
+ 9 files changed, 694 insertions(+), 2 deletions(-)
 
 --- a/hurd/Makefile
 +++ b/hurd/Makefile
-@@ -58,6 +58,7 @@ routines = hurdstartup hurdinit \
- 	   vpprintf \
+@@ -55,6 +55,7 @@
  	   ports-get ports-set hurdports hurdmsg \
  	   errno-loc \
+ 	   hurdlock \
 +	   sysvshm \
  	   $(sig) $(dtable) $(inlines) port-cleanup report-wait xattr
  sig	= hurdsig hurdfault siginfo hurd-raise preempt-sig \
@@ -87,7 +87,7 @@ Subject: [PATCH] Implement SysV shared memory for GNU/Hurd.
 +static struct sysvshm_attach *attach_list;
 +
 +/* A lock to protect the linked list of shared memory attachments.  */
-+static struct mutex sysvshm_lock = MUTEX_INITIALIZER;
++static unsigned int sysvshm_lock = LLL_INITIALIZER;
 +
 +
 +/* Adds a segment attachment.  */
@@ -760,5 +760,5 @@ Subject: [PATCH] Implement SysV shared memory for GNU/Hurd.
 +/* XPG4.2 shared memory is supported.  */
 +#define _XOPEN_SHM      1
  
- /* We do not have the POSIX threads interface.  */
- #define _POSIX_THREADS	-1
+ /* Tell we have POSIX threads.  */
+ #define _POSIX_THREADS	200809L

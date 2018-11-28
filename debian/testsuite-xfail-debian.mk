@@ -167,9 +167,6 @@ test-xfail-tst-backtrace6 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-stack4 = yes
 
-# This can be removed once bug#750834 is fixed
-test-xfail-basic-test = yes
-
 # There is not support for protection key on ARM64 yet, and there is a
 # disagreement between kernel and glibc how to report that.
 test-xfail-tst-pkey = yes
@@ -190,7 +187,7 @@ test-xfail-tst-mqueue5 = yes
 test-xfail-tst-stack4 = yes
 test-xfail-tst-waitid = yes
 
-# There is not support for protection key on Alpha yet, and there is a
+# There is not support for protection key on ARM yet, and there is a
 # disagreement between kernel and glibc how to report that.
 test-xfail-tst-pkey = yes
 endif
@@ -207,9 +204,13 @@ test-xfail-tst-stack4 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
 
-# There is not support for protection key on Alpha yet, and there is a
+# There is not support for protection key on ARM yet, and there is a
 # disagreement between kernel and glibc how to report that.
 test-xfail-tst-pkey = yes
+
+# This test fails due to a kernel bug when building armhf on an ARM64
+# machine. See bug #904385.
+test-xfail-tst-signal6 = yes
 endif
 
 
@@ -241,7 +242,7 @@ endif
 ######################################################################
 # hurd-i386 (including optimized flavours)
 ######################################################################
-ifeq ($(config-machine)-$(config-os),i686-gnu-gnu-gnu)
+ifeq ($(config-machine)-$(config-os),i686-gnu-gnu)
 # sysdeps/mach/hurd/dl-sysdep.c's open_file does not support the linker
 # creating files.
 test-xfail-tst-null-argv = yes
@@ -276,8 +277,6 @@ test-xfail-check-abi-libmachuser = yes
 test-xfail-tst-pathconf = yes
 
 # Need investigation
-test-xfail-check-execstack = yes
-test-xfail-check-localplt = yes
 test-xfail-tst-aio10 = yes
 test-xfail-tst-aio9 = yes
 test-xfail-tst-audit1 = yes
@@ -319,57 +318,10 @@ test-xfail-test-misc = yes
 test-xfail-tst-ptsname = yes
 test-xfail-tst-audit9 = yes
 
-test-xfail-POSIX2008/mqueue.h/conform = yes
-test-xfail-POSIX2008/pthread.h/conform = yes
-test-xfail-POSIX2008/sys/stat.h/conform = yes
-test-xfail-POSIX2008/sys/statvfs.h/conform = yes
-test-xfail-POSIX2008/sys/un.h/conform = yes
-test-xfail-POSIX2008/termios.h/conform = yes
-test-xfail-POSIX/fcntl.h/conform = yes
-test-xfail-POSIX/mqueue.h/conform = yes
-test-xfail-POSIX/sys/stat.h/conform = yes
-test-xfail-UNIX98/mqueue.h/conform = yes
-test-xfail-UNIX98/sys/stat.h/conform = yes
-test-xfail-UNIX98/termios.h/conform = yes
-test-xfail-XOPEN2K8/mqueue.h/conform = yes
-test-xfail-XOPEN2K8/pthread.h/conform = yes
-test-xfail-XOPEN2K8/sys/stat.h/conform = yes
-test-xfail-XOPEN2K/sys/stat.h/conform = yes
-
 # new in 2.22
 test-xfail-tst-audit3 = yes
 test-xfail-tst-prelink = yes
 test-xfail-tst-tls-atexit = yes
-
-test-xfail-POSIX2008/fcntl.h/conform = yes
-test-xfail-UNIX98/sys/ipc.h/conform = yes
-test-xfail-UNIX98/sys/msg.h/conform = yes
-test-xfail-UNIX98/sys/resource.h/conform = yes
-test-xfail-UNIX98/sys/shm.h/conform = yes
-test-xfail-UNIX98/sys/statvfs.h/conform = yes
-test-xfail-UNIX98/sys/un.h/conform = yes
-test-xfail-XOPEN2K8/arpa/inet.h/conform = yes
-test-xfail-XOPEN2K8/fcntl.h/conform = yes
-test-xfail-XOPEN2K8/netdb.h/conform = yes
-test-xfail-XOPEN2K8/netinet/in.h/conform = yes
-test-xfail-XOPEN2K8/sys/ipc.h/conform = yes
-test-xfail-XOPEN2K8/sys/msg.h/conform = yes
-test-xfail-XOPEN2K8/sys/resource.h/conform = yes
-test-xfail-XOPEN2K8/sys/shm.h/conform = yes
-test-xfail-XOPEN2K8/sys/statvfs.h/conform = yes
-test-xfail-XOPEN2K8/sys/un.h/conform = yes
-test-xfail-XOPEN2K/arpa/inet.h/conform = yes
-test-xfail-XOPEN2K/netdb.h/conform = yes
-test-xfail-XOPEN2K/netinet/in.h/conform = yes
-test-xfail-XOPEN2K/sys/ipc.h/conform = yes
-test-xfail-XOPEN2K/sys/msg.h/conform = yes
-test-xfail-XOPEN2K/sys/resource.h/conform = yes
-test-xfail-XOPEN2K/sys/shm.h/conform = yes
-test-xfail-XOPEN2K/sys/statvfs.h/conform = yes
-test-xfail-XOPEN2K/sys/un.h/conform = yes
-test-xfail-XPG4/sys/ipc.h/conform = yes
-test-xfail-XPG4/sys/msg.h/conform = yes
-test-xfail-XPG4/sys/shm.h/conform = yes
 
 # changed in 2.22, tests were run directly, now using threads
 # TODO: should be succeeding again with gnumach >= 2016-03-06
@@ -392,14 +344,6 @@ test-xfail-tst-spawn2 = yes
 test-xfail-tst-support_record_failure = yes
 test-xfail-tst-support_record_failure-2 = yes
 
-test-xfail-UNIX98/fcntl.h/conform = yes
-test-xfail-XOPEN2K/fcntl.h/conform = yes
-test-xfail-XOPEN2K/mqueue.h/conform = yes
-test-xfail-XOPEN2K/termios.h/conform = yes
-test-xfail-XOPEN2K8/termios.h/conform = yes
-test-xfail-XPG4/fcntl.h/conform = yes
-test-xfail-XPG4/sys/stat.h/conform = yes
-test-xfail-XPG4/termios.h/conform = yes
 # fails randomly
 test-xfail-tst-preadvwritev64 = yes
 test-xfail-tst-preadwrite64 = yes
@@ -431,25 +375,6 @@ test-xfail-tst-malloc-tcache-leak = yes
 test-xfail-tst-dynarray-fail-mem = yes
 test-xfail-test-errno = yes
 
-test-xfail-UNIX98/arpa/inet.h/conform = yes
-test-xfail-UNIX98/netdb.h/conform = yes
-test-xfail-UNIX98/netinet/in.h/conform = yes
-test-xfail-POSIX2008/arpa/inet.h/conform = yes
-test-xfail-POSIX2008/netdb.h/conform = yes
-test-xfail-POSIX2008/netinet/in.h/conform = yes
-test-xfail-XPG42/arpa/inet.h/conform = yes
-test-xfail-XPG42/fcntl.h/conform = yes
-test-xfail-XPG42/netdb.h/conform = yes
-test-xfail-XPG42/netinet/in.h/conform = yes
-test-xfail-XPG42/sys/ipc.h/conform = yes
-test-xfail-XPG42/sys/msg.h/conform = yes
-test-xfail-XPG42/sys/resource.h/conform = yes
-test-xfail-XPG42/sys/shm.h/conform = yes
-test-xfail-XPG42/sys/stat.h/conform = yes
-test-xfail-XPG42/sys/statvfs.h/conform = yes
-test-xfail-XPG42/sys/un.h/conform = yes
-test-xfail-XPG42/termios.h/conform = yes
-
 # will be fixed in hurd >= 20170926
 test-xfail-tst-bug18665-tcp = yes
 test-xfail-tst-resolv-basic = yes
@@ -465,27 +390,26 @@ test-xfail-tst-libc_dlvsym = yes
 test-xfail-tst-malloc-too-large = yes
 test-xfail-tst-spawn4 = yes
 test-xfail-tst-spawn4-compat = yes
+test-xfail-test-bz22786 = yes
 
 # Tests failing to build
 tests-unsupported += tst-copy_file_range
 tests-unsupported += tst-copy_file_range-compat
 
-test-xfail-POSIX/signal.h/conform = yes
-test-xfail-POSIX2008/signal.h/conform = yes
-test-xfail-UNIX98/signal.h/conform = yes
-test-xfail-XOPEN2K/signal.h/conform = yes
-test-xfail-XOPEN2K8/signal.h/conform = yes
-test-xfail-XPG42/signal.h/conform = yes
+# new in 2.28
+test-xfail-tst-fgetc-after-eof = yes
+test-xfail-tst-fgetwc-after-eof = yes
+test-xfail-test-as-const-jmp_buf-ssp = yes
+test-xfail-tst-malloc-stats-cancellation = yes
 
-test-xfail-POSIX2008/sys/wait.h/conform = yes
-test-xfail-UNIX98/sys/wait.h/conform = yes
-test-xfail-XOPEN2K/sys/wait.h/conform = yes
-test-xfail-XOPEN2K8/sys/wait.h/conform = yes
-test-xfail-XPG42/sys/wait.h/conform = yes
+# This redirects realloc with dlsym
+# Problem is: that creates a loop: realloc() calls dlsym() which calls
+# _dlerror_run calls libc_once(init) which calls pthread_key_create which calls
+# realloc() etc.
+test-xfail-tst-res_hconf_reorder = yes
 
-test-xfail-UNIX98/ucontext.h/conform = yes
-test-xfail-XOPEN2K/ucontext.h/conform = yes
-test-xfail-XPG42/ucontext.h/conform = yes
+test-xfail-ISO11/threads.h/conform = yes
+test-xfail-ISO11/threads.h/linknamespace = yes
 endif
 
 
@@ -895,11 +819,6 @@ test-xfail-tst-thread-exit-clobber = yes
 # MIPS GCC does not use PT_GNU_STACK markers (this is a GCC issue)
 test-xfail-check-execstack = yes
 
-# These tests require at least a kernel 4.0
-test-xfail-tst-mode-switch-1 = yes
-test-xfail-tst-mode-switch-2 = yes
-test-xfail-tst-mode-switch-3 = yes
-
 # Theses failures are due to a bug in the cvt.s.d instruction on some FPU
 # (at least Octeon 3 and XBurst). The tininess detection is done on a
 # before-rounding basis instead of an after-rounding basis.
@@ -907,6 +826,14 @@ test-xfail-test-float-fma = yes
 test-xfail-test-float-finite-fma = yes
 test-xfail-test-float32-fma = yes
 test-xfail-test-float32-finite-fma = yes
+test-xfail-test-float-double-add = yes
+test-xfail-test-float-double-sub = yes
+test-xfail-test-float-ldouble-add = yes
+test-xfail-test-float-ldouble-sub = yes
+test-xfail-test-float32-float32x-add = yes
+test-xfail-test-float32-float32x-sub = yes
+test-xfail-test-float32-float64-add = yes
+test-xfail-test-float32-float64-sub = yes
 
 # Theses failures are due to a bug in the cvt.d.s instruction on some FPU
 # (at least Octeon 3 and XBurst). The qNaN payload is not preserved in
@@ -962,6 +889,10 @@ test-xfail-tst-waitid = yes
 # In some conditions the kernel might not provide a heap, causing
 # some tests to fail. See bug#889817 for details.
 test-xfail-tst-malloc-usable-tunables = yes
+
+# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
+test-xfail-test-ildouble-fma = yes
+test-xfail-test-ldouble-fma = yes
 endif
 
 
@@ -974,13 +905,13 @@ test-xfail-tst-backtrace6 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
 
-# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=6527
-test-xfail-tst-malloc-thread-exit = yes
-test-xfail-tst-malloc-thread-fail = yes
-
 # In some conditions the kernel might not provide a heap, causing
 # some tests to fail. See bug#889817 for details.
 test-xfail-tst-malloc-usable-tunables = yes
+
+# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
+test-xfail-test-ildouble-fma = yes
+test-xfail-test-ldouble-fma = yes
 endif
 
 
@@ -993,19 +924,9 @@ test-xfail-tst-backtrace6 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
 
-# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=6527
-test-xfail-tst-malloc-thread-exit = yes
-test-xfail-tst-malloc-thread-fail = yes
-
-# Failures due to a GCC bug, see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59412
-#                            and http://gcc.gnu.org/bugzilla/show_bug.cgi?id=64811
-test-xfail-test-float32 = yes
-test-xfail-test-float64 = yes
-test-xfail-test-ifloat64 = yes
-test-xfail-test-ifloat32 = yes
-
-# Requires a recent CPU or a recent kernel for CPU feature detection
-test-xfail-tst-set_ppr = yes
+# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
+test-xfail-test-ildouble-fma = yes
+test-xfail-test-ldouble-fma = yes
 endif
 
 

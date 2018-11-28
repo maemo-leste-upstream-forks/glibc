@@ -28,24 +28,14 @@
 	constants.
 
 ---
- io/fcntl.h                                       |   17 -----------------
- sysdeps/unix/sysv/linux/alpha/bits/fcntl.h |   18 ++++++++++++++++++
- sysdeps/unix/sysv/linux/arm/bits/fcntl.h   |   18 ++++++++++++++++++
- sysdeps/unix/sysv/linux/hppa/bits/fcntl.h  |   18 ++++++++++++++++++
- sysdeps/unix/sysv/linux/ia64/bits/fcntl.h  |   18 ++++++++++++++++++
- sysdeps/unix/sysv/linux/m68k/bits/fcntl.h  |   18 ++++++++++++++++++
- sysdeps/unix/sysv/linux/mips/bits/fcntl.h  |   18 ++++++++++++++++++
- sysdeps/mach/hurd/bits/fcntl.h                   |   18 ++++++++++++++++++
- sysdeps/unix/sysv/linux/powerpc/bits/fcntl.h     |   18 ++++++++++++++++++
- sysdeps/unix/sysv/linux/s390/bits/fcntl.h        |   18 ++++++++++++++++++
- sysdeps/unix/sysv/linux/sh/bits/fcntl.h          |   18 ++++++++++++++++++
- sysdeps/unix/sysv/linux/sparc/bits/fcntl.h       |   18 ++++++++++++++++++
- sysdeps/unix/sysv/linux/x86/bits/fcntl.h         |   18 ++++++++++++++++++
- 14 files changed, 236 insertions(+), 17 deletions(-)
+ io/fcntl.h                                 |   27 ---------------------------
+ sysdeps/mach/hurd/bits/fcntl.h             |   22 ++++++++++++++++++++++
+ sysdeps/unix/sysv/linux/bits/fcntl-linux.h |   22 ++++++++++++++++++++++
+ 3 files changed, 44 insertions(+), 27 deletions(-)
 
 --- a/io/fcntl.h
 +++ b/io/fcntl.h
-@@ -123,29 +123,6 @@
+@@ -139,33 +139,6 @@
  # define SEEK_END	2	/* Seek from end of file.  */
  #endif	/* XPG */
  
@@ -67,6 +57,10 @@
 -#  define AT_NO_AUTOMOUNT	0x800	/* Suppress terminal automount
 -					   traversal.  */
 -#  define AT_EMPTY_PATH		0x1000	/* Allow empty relative pathname.  */
+-#  define AT_STATX_SYNC_TYPE	0x6000
+-#  define AT_STATX_SYNC_AS_STAT	0x0000
+-#  define AT_STATX_FORCE_SYNC	0x2000
+-#  define AT_STATX_DONT_SYNC	0x4000
 -# endif
 -# define AT_EACCESS		0x200	/* Test access permitted for
 -					   effective IDs, not real IDs.  */
@@ -77,7 +71,7 @@
  
 --- a/sysdeps/mach/hurd/bits/fcntl.h
 +++ b/sysdeps/mach/hurd/bits/fcntl.h
-@@ -219,3 +219,21 @@
+@@ -219,3 +219,25 @@
  # define POSIX_FADV_DONTNEED	4 /* Don't need these pages.  */
  # define POSIX_FADV_NOREUSE	5 /* Data will be accessed once.  */
  #endif
@@ -95,13 +89,17 @@
 +#  define AT_NO_AUTOMOUNT	0x800	/* Suppress terminal automount
 +					   traversal.  */
 +#  define AT_EMPTY_PATH		0x1000	/* Allow empty relative pathname.  */
++#  define AT_STATX_SYNC_TYPE	0x6000
++#  define AT_STATX_SYNC_AS_STAT	0x0000
++#  define AT_STATX_FORCE_SYNC	0x2000
++#  define AT_STATX_DONT_SYNC	0x4000
 +# endif
 +# define AT_EACCESS		0x200	/* Test access permitted for
 +					   effective IDs, not real IDs.  */
 +#endif
 --- a/sysdeps/unix/sysv/linux/bits/fcntl-linux.h
 +++ b/sysdeps/unix/sysv/linux/bits/fcntl-linux.h
-@@ -242,6 +242,24 @@
+@@ -359,6 +359,28 @@
  # define MAX_HANDLE_SZ	128
  #endif
  
@@ -118,6 +116,10 @@
 +#  define AT_NO_AUTOMOUNT	0x800	/* Suppress terminal automount
 +					   traversal.  */
 +#  define AT_EMPTY_PATH		0x1000	/* Allow empty relative pathname.  */
++#  define AT_STATX_SYNC_TYPE	0x6000
++#  define AT_STATX_SYNC_AS_STAT	0x0000
++#  define AT_STATX_FORCE_SYNC	0x2000
++#  define AT_STATX_DONT_SYNC	0x4000
 +# endif
 +# define AT_EACCESS		0x200	/* Test access permitted for
 +					   effective IDs, not real IDs.  */

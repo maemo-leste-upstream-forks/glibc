@@ -12,7 +12,7 @@ once packages are rebuilt against 2.21.
 
 --- a/hurd/Versions
 +++ b/hurd/Versions
-@@ -137,6 +137,22 @@
+@@ -136,6 +136,22 @@
      __hurd_threadvar_location;
      _hurd_userlink_link; _hurd_userlink_unlink; _hurd_userlink_clear;
    }
@@ -37,16 +37,16 @@ once packages are rebuilt against 2.21.
      # weak refs to libthreads functions that libc calls iff libthreads in use
 --- a/hurd/hurdsig.c
 +++ b/hurd/hurdsig.c
-@@ -32,6 +32,8 @@
- #include "hurdmalloc.h"		/* XXX */
- #include "../locale/localeinfo.h"
+@@ -35,6 +35,8 @@
+ 
+ #include <libc-diag.h>
  
 +#include <shlib-compat.h>
 +
  const char *_hurdsig_getenv (const char *);
  
  struct mutex _hurd_siglock;
-@@ -128,7 +130,7 @@
+@@ -132,7 +134,7 @@
   * corresponding thread is terminated (the kernel thread port must remain valid
   * until this function is called.) */
  void
@@ -55,7 +55,7 @@ once packages are rebuilt against 2.21.
  {
    struct hurd_sigstate **ssp, *ss;
  
-@@ -145,14 +147,32 @@
+@@ -149,14 +151,32 @@
    if (ss)
      free (ss);
  }
@@ -89,7 +89,7 @@ once packages are rebuilt against 2.21.
  
  /* Check whether SS is a global receiver.  */
  static int
-@@ -164,30 +184,56 @@
+@@ -168,30 +188,56 @@
  /* Lock/unlock a hurd_sigstate structure.  If the accessors below require
     it, the global sigstate will be locked as well.  */
  void
@@ -151,21 +151,20 @@ once packages are rebuilt against 2.21.
     signal information. SS must be locked, and must have signal SIGNO
 --- a/sysdeps/mach/hurd/i386/libc.abilist
 +++ b/sysdeps/mach/hurd/i386/libc.abilist
-@@ -32,6 +32,12 @@
+@@ -29,6 +29,11 @@
+ GLIBC_2.11 mkstemps F
  GLIBC_2.11 mkstemps64 F
- GLIBC_2.13 GLIBC_2.13 A
  GLIBC_2.13 __fentry__ F
-+GLIBC_2.13_DEBIAN_19 GLIBC_2.13_DEBIAN_19 A
 +GLIBC_2.13_DEBIAN_19 _hurd_sigstate_delete F
 +GLIBC_2.13_DEBIAN_19 _hurd_sigstate_lock F
 +GLIBC_2.13_DEBIAN_19 _hurd_sigstate_pending F
 +GLIBC_2.13_DEBIAN_19 _hurd_sigstate_set_global_rcv F
 +GLIBC_2.13_DEBIAN_19 _hurd_sigstate_unlock F
- GLIBC_2.14 GLIBC_2.14 A
  GLIBC_2.14 syncfs F
- GLIBC_2.15 GLIBC_2.15 A
-@@ -1951,6 +1957,11 @@
- GLIBC_2.21 GLIBC_2.21 A
+ GLIBC_2.15 __fdelt_chk F
+ GLIBC_2.15 __fdelt_warn F
+@@ -1940,6 +1946,11 @@
+ GLIBC_2.2.6 xprt_unregister F
  GLIBC_2.21 __mach_host_self_ D 0x4
  GLIBC_2.21 __pthread_get_cleanup_stack F
 +GLIBC_2.21 _hurd_sigstate_delete F

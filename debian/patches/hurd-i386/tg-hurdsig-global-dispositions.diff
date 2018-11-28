@@ -70,26 +70,26 @@ Another question is what the signal is that is being received
 during/around the time __proc_dostop executes.
 
 ---
- hurd/ctty-input.c                   |   18 +-
- hurd/ctty-output.c                  |   18 +-
- hurd/hurd/signal.h                  |   40 +++--
- hurd/hurdexec.c                     |   11 -
- hurd/hurdmsg.c                      |   27 ---
+ hurd/ctty-input.c                   |   16 +-
+ hurd/ctty-output.c                  |   16 +-
+ hurd/hurd/signal.h                  |   38 +++--
+ hurd/hurdexec.c                     |    9 -
+ hurd/hurdmsg.c                      |   24 ---
  hurd/hurdsig.c                      |  272 +++++++++++++++++++++++++++---------
- sysdeps/mach/hurd/fork.c            |    9 -
- sysdeps/mach/hurd/i386/sigreturn.c  |   13 -
- sysdeps/mach/hurd/i386/trampoline.c |    8 -
- sysdeps/mach/hurd/sigaction.c       |   18 +-
- sysdeps/mach/hurd/sigpending.c      |    9 -
- sysdeps/mach/hurd/sigprocmask.c     |   11 -
- sysdeps/mach/hurd/sigsuspend.c      |   19 +-
- sysdeps/mach/hurd/sigwait.c         |   23 +--
+ sysdeps/mach/hurd/fork.c            |   24 ++-
+ sysdeps/mach/hurd/i386/sigreturn.c  |   10 -
+ sysdeps/mach/hurd/i386/trampoline.c |    6 
+ sysdeps/mach/hurd/sigaction.c       |   16 +-
+ sysdeps/mach/hurd/sigpending.c      |    6 
+ sysdeps/mach/hurd/sigprocmask.c     |    8 -
+ sysdeps/mach/hurd/sigsuspend.c      |   15 +
+ sysdeps/mach/hurd/sigwait.c         |   21 +-
  sysdeps/mach/hurd/spawni.c          |   23 +--
- 15 files changed, 350 insertions(+), 169 deletions(-)
+ 15 files changed, 348 insertions(+), 156 deletions(-)
 
 --- a/hurd/ctty-input.c
 +++ b/hurd/ctty-input.c
-@@ -43,12 +43,15 @@ _hurd_ctty_input (io_t port, io_t ctty,
+@@ -43,12 +43,15 @@
  	  else
  	    {
  	      struct hurd_sigstate *ss = _hurd_self_sigstate ();
@@ -108,7 +108,7 @@ during/around the time __proc_dostop executes.
  
  	      if (err == EBACKGROUND)
  		{
-@@ -65,10 +68,11 @@ _hurd_ctty_input (io_t port, io_t ctty,
+@@ -65,10 +68,11 @@
  		     SIGTTIN or resumed after being stopped.  Now this is
  		     still a "system call", so check to see if we should
  		  restart it.  */
@@ -125,7 +125,7 @@ during/around the time __proc_dostop executes.
  	}
 --- a/hurd/ctty-output.c
 +++ b/hurd/ctty-output.c
-@@ -34,16 +34,19 @@ _hurd_ctty_output (io_t port, io_t ctty,
+@@ -34,16 +34,19 @@
  
        do
  	{
@@ -148,7 +148,7 @@ during/around the time __proc_dostop executes.
  
  	  if (err)
  	    return (*rpc) (port);
-@@ -70,10 +73,11 @@ _hurd_ctty_output (io_t port, io_t ctty,
+@@ -70,10 +73,11 @@
  		     SIGTTOU or resumed after being stopped.  Now this is
  		     still a "system call", so check to see if we should
  		  restart it.  */
@@ -165,7 +165,7 @@ during/around the time __proc_dostop executes.
  	  /* If the last RPC generated a SIGTTOU, loop to try it again.  */
 --- a/hurd/hurd/signal.h
 +++ b/hurd/hurd/signal.h
-@@ -68,7 +68,13 @@ struct hurd_sigstate
+@@ -73,7 +73,13 @@
  
      sigset_t blocked;		/* What signals are blocked.  */
      sigset_t pending;		/* Pending signals, possibly blocked.  */
@@ -174,12 +174,12 @@ during/around the time __proc_dostop executes.
 +       semantics: if sa_handler is SIG_IGN instead of SIG_DFL, this thread
 +       will receive global signals and use the process-wide action vector
 +       instead of this one.  */
-     struct sigaction actions[NSIG];
+     struct sigaction actions[_NSIG];
 +
      stack_t sigaltstack;
  
      /* Chain of thread-local signal preemptors; see <hurd/sigpreempt.h>.
-@@ -124,6 +130,26 @@ extern struct hurd_sigstate *_hurd_self_
+@@ -129,6 +135,26 @@
  	by different threads.  */
       __attribute__ ((__const__));
  
@@ -206,7 +206,7 @@ during/around the time __proc_dostop executes.
  #ifndef _HURD_SIGNAL_H_EXTERN_INLINE
  #define _HURD_SIGNAL_H_EXTERN_INLINE __extern_inline
  #endif
-@@ -148,12 +174,6 @@ extern thread_t _hurd_msgport_thread;
+@@ -154,12 +180,6 @@
  
  extern mach_port_t _hurd_msgport;
  
@@ -219,7 +219,7 @@ during/around the time __proc_dostop executes.
  /* Resource limit on core file size.  Enforced by hurdsig.c.  */
  extern int _hurd_core_limit;
  
-@@ -214,10 +234,10 @@ _hurd_critical_section_unlock (void *our
+@@ -222,10 +242,10 @@
        /* It was us who acquired the critical section lock.  Unlock it.  */
        struct hurd_sigstate *ss = (struct hurd_sigstate *) our_lock;
        sigset_t pending;
@@ -235,7 +235,7 @@ during/around the time __proc_dostop executes.
  	   delivered because we were in the critical section.
 --- a/hurd/hurdexec.c
 +++ b/hurd/hurdexec.c
-@@ -106,12 +106,13 @@ _hurd_exec (task_t task, file_t file,
+@@ -125,12 +125,13 @@
  
    __spin_lock (&ss->critical_section_lock);
  
@@ -252,7 +252,7 @@ during/around the time __proc_dostop executes.
        ints[INIT_SIGIGN] |= __sigmask (i);
  
    /* We hold the sigstate lock until the exec has failed so that no signal
-@@ -123,7 +124,7 @@ _hurd_exec (task_t task, file_t file,
+@@ -141,7 +142,7 @@
       critical section flag avoids anything we call trying to acquire the
       sigstate lock.  */
  
@@ -263,7 +263,7 @@ during/around the time __proc_dostop executes.
    __mutex_lock (&_hurd_dtable_lock);
 --- a/hurd/hurdmsg.c
 +++ b/hurd/hurdmsg.c
-@@ -121,17 +121,9 @@ get_int (int which, int *value)
+@@ -121,17 +121,9 @@
      case INIT_UMASK:
        *value = _hurd_umask;
        return 0;
@@ -282,7 +282,7 @@ during/around the time __proc_dostop executes.
  	__spin_lock (&ss->lock);
  	*value = ss->pending;
  	__spin_unlock (&ss->lock);
-@@ -139,7 +131,7 @@ get_int (int which, int *value)
+@@ -139,7 +131,7 @@
        }
      case INIT_SIGIGN:
        {
@@ -291,7 +291,7 @@ during/around the time __proc_dostop executes.
  	sigset_t ign;
  	int sig;
  	__spin_lock (&ss->lock);
-@@ -207,17 +199,9 @@ set_int (int which, int value)
+@@ -207,17 +199,9 @@
        return 0;
  
        /* These are pretty odd things to do.  But you asked for it.  */
@@ -310,7 +310,7 @@ during/around the time __proc_dostop executes.
  	__spin_lock (&ss->lock);
  	ss->pending = value;
  	__spin_unlock (&ss->lock);
-@@ -225,7 +209,7 @@ set_int (int which, int value)
+@@ -225,7 +209,7 @@
        }
      case INIT_SIGIGN:
        {
@@ -321,7 +321,7 @@ during/around the time __proc_dostop executes.
  	__spin_lock (&ss->lock);
 --- a/hurd/hurdsig.c
 +++ b/hurd/hurdsig.c
-@@ -43,9 +43,6 @@ mach_port_t _hurd_msgport;
+@@ -46,9 +46,6 @@
  /* Thread listening on it.  */
  thread_t _hurd_msgport_thread;
  
@@ -331,7 +331,7 @@ during/around the time __proc_dostop executes.
  /* These are set up by _hurdsig_init.  */
  unsigned long int __hurd_sigthread_stack_base;
  unsigned long int __hurd_sigthread_stack_end;
-@@ -56,6 +53,9 @@ __thread struct hurd_sigstate *_hurd_sig
+@@ -56,6 +53,9 @@
  /* Linked-list of per-thread signal state.  */
  struct hurd_sigstate *_hurd_sigstates;
  
@@ -341,7 +341,7 @@ during/around the time __proc_dostop executes.
  /* Timeout for RPC's after interrupt_operation. */
  mach_msg_timeout_t _hurd_interrupted_rpc_timeout = 3000;
  
-@@ -84,7 +84,7 @@ _hurd_thread_sigstate (thread_t thread)
+@@ -84,7 +84,7 @@
      {
        ss = malloc (sizeof (*ss));
        if (ss == NULL)
@@ -350,7 +350,7 @@ during/around the time __proc_dostop executes.
        ss->thread = thread;
        __spin_lock_init (&ss->lock);
  
-@@ -97,16 +97,19 @@ _hurd_thread_sigstate (thread_t thread)
+@@ -97,16 +97,19 @@
        ss->intr_port = MACH_PORT_NULL;
        ss->context = NULL;
  
@@ -378,7 +378,7 @@ during/around the time __proc_dostop executes.
  	  if (s)
  	    {
  	      __spin_lock (&s->lock);
-@@ -115,14 +118,108 @@ _hurd_thread_sigstate (thread_t thread)
+@@ -115,15 +118,109 @@
  	    }
  	  else
  	    default_sigaction (ss->actions);
@@ -393,6 +393,7 @@ during/around the time __proc_dostop executes.
    __mutex_unlock (&_hurd_siglock);
    return ss;
  }
+ libc_hidden_def (_hurd_thread_sigstate)
 +
 +/* Destroy a sigstate structure.  Called by libpthread just before the
 + * corresponding thread is terminated (the kernel thread port must remain valid
@@ -490,7 +491,7 @@ during/around the time __proc_dostop executes.
  
  /* Signal delivery itself is on this page.  */
  
-@@ -217,6 +314,8 @@ static void
+@@ -218,6 +315,8 @@
  abort_thread (struct hurd_sigstate *ss, struct machine_thread_all_state *state,
  	      void (*reply) (void))
  {
@@ -499,7 +500,7 @@ during/around the time __proc_dostop executes.
    if (!(state->set & THREAD_ABORTED))
      {
        error_t err = __thread_abort (ss->thread);
-@@ -357,7 +456,7 @@ _hurdsig_abort_rpcs (struct hurd_sigstat
+@@ -364,7 +463,7 @@
  	   call above will retry their RPCs unless we clear SS->intr_port.
  	   So we clear it for the thread taking a signal when SA_RESTART is
  	   clear, so that its call returns EINTR.  */
@@ -508,7 +509,7 @@ during/around the time __proc_dostop executes.
  	  ss->intr_port = MACH_PORT_NULL;
        }
  
-@@ -480,9 +579,11 @@ weak_alias (_hurdsig_preemptors, _hurdsi
+@@ -487,9 +586,11 @@
  		  sigmask (SIGSTOP) | sigmask (SIGTSTP))
  
  /* Actual delivery of a single signal.  Called with SS unlocked.  When
@@ -523,7 +524,7 @@ during/around the time __proc_dostop executes.
  post_signal (struct hurd_sigstate *ss,
  	     int signo, struct hurd_signal_detail *detail,
  	     int untraced, void (*reply) (void))
-@@ -535,8 +636,12 @@ post_signal (struct hurd_sigstate *ss,
+@@ -542,8 +643,12 @@
        assert_perror (err);
        for (i = 0; i < nthreads; ++i)
  	{
@@ -538,7 +539,7 @@ during/around the time __proc_dostop executes.
  	    {
  	      err = __thread_resume (threads[i]);
  	      assert_perror (err);
-@@ -549,9 +654,6 @@ post_signal (struct hurd_sigstate *ss,
+@@ -556,9 +661,6 @@
  		       (vm_address_t) threads,
  		       nthreads * sizeof *threads);
        _hurd_stopped = 0;
@@ -548,7 +549,7 @@ during/around the time __proc_dostop executes.
      }
  
    error_t err;
-@@ -567,13 +669,43 @@ post_signal (struct hurd_sigstate *ss,
+@@ -574,13 +676,43 @@
  	}
  
        /* This call is just to check for pending signals.  */
@@ -595,7 +596,7 @@ during/around the time __proc_dostop executes.
  
    /* Check for a preempted signal.  Preempted signals can arrive during
       critical sections.  */
-@@ -631,12 +763,12 @@ post_signal (struct hurd_sigstate *ss,
+@@ -638,12 +770,12 @@
  	    mark_pending ();
  	  else
  	    suspend ();
@@ -611,7 +612,7 @@ during/around the time __proc_dostop executes.
  
        if (handler == SIG_DFL)
  	/* Figure out the default action for this signal.  */
-@@ -730,7 +862,7 @@ post_signal (struct hurd_sigstate *ss,
+@@ -737,7 +869,7 @@
  
    /* Handle receipt of a blocked signal, or any signal while stopped.  */
    if (act != ignore &&		/* Signals ignored now are forgotten now.  */
@@ -620,7 +621,7 @@ during/around the time __proc_dostop executes.
        (signo != SIGKILL && _hurd_stopped))
      {
        mark_pending ();
-@@ -766,6 +898,7 @@ post_signal (struct hurd_sigstate *ss,
+@@ -773,6 +905,7 @@
  	 now's the time to set it going. */
        if (ss_suspended)
  	{
@@ -628,7 +629,7 @@ during/around the time __proc_dostop executes.
  	  err = __thread_resume (ss->thread);
  	  assert_perror (err);
  	  ss_suspended = 0;
-@@ -810,6 +943,8 @@ post_signal (struct hurd_sigstate *ss,
+@@ -817,6 +950,8 @@
  	struct sigcontext *scp, ocontext;
  	int wait_for_reply, state_changed;
  
@@ -637,7 +638,7 @@ during/around the time __proc_dostop executes.
  	/* Stop the thread and abort its pending RPC operations.  */
  	if (! ss_suspended)
  	  {
-@@ -946,23 +1081,25 @@ post_signal (struct hurd_sigstate *ss,
+@@ -953,23 +1088,25 @@
  	    }
  	}
  
@@ -667,7 +668,7 @@ during/around the time __proc_dostop executes.
  
  	/* Any sigsuspend call must return after the handler does.  */
  	wake_sigsuspend (ss);
-@@ -980,7 +1117,7 @@ post_signal (struct hurd_sigstate *ss,
+@@ -987,7 +1124,7 @@
        }
      }
  
@@ -676,7 +677,7 @@ during/around the time __proc_dostop executes.
  }
  
  /* Return the set of pending signals in SS which should be delivered. */
-@@ -995,7 +1132,7 @@ pending_signals (struct hurd_sigstate *s
+@@ -1002,7 +1139,7 @@
    if (_hurd_stopped || __spin_lock_locked (&ss->critical_section_lock))
      return 0;
  
@@ -685,7 +686,7 @@ during/around the time __proc_dostop executes.
  }
  
  /* Post the specified pending signals in SS and return 1.  If one of
-@@ -1007,12 +1144,15 @@ post_pending (struct hurd_sigstate *ss,
+@@ -1014,12 +1151,15 @@
    int signo;
    struct hurd_signal_detail detail;
  
@@ -704,7 +705,7 @@ during/around the time __proc_dostop executes.
  
  	/* Will reacquire the lock, except if the signal is traced.  */
  	if (! post_signal (ss, signo, &detail, 0, reply))
-@@ -1020,7 +1160,7 @@ post_pending (struct hurd_sigstate *ss,
+@@ -1027,7 +1167,7 @@
        }
  
    /* No more signals pending; SS->lock is still locked.  */
@@ -713,7 +714,7 @@ during/around the time __proc_dostop executes.
  
    return 1;
  }
-@@ -1038,14 +1178,14 @@ post_all_pending_signals (void (*reply)
+@@ -1045,14 +1185,14 @@
        __mutex_lock (&_hurd_siglock);
        for (ss = _hurd_sigstates; ss != NULL; ss = ss->next)
          {
@@ -730,7 +731,7 @@ during/around the time __proc_dostop executes.
  	}
        __mutex_unlock (&_hurd_siglock);
  
-@@ -1078,11 +1218,12 @@ _hurd_internal_post_signal (struct hurd_
+@@ -1085,11 +1225,12 @@
  	assert_perror (err);
      }
  
@@ -745,7 +746,7 @@ during/around the time __proc_dostop executes.
      {
        /* The signal has either been ignored or is now being handled.  We can
  	 consider it delivered and reply to the killer.  */
-@@ -1094,8 +1235,9 @@ _hurd_internal_post_signal (struct hurd_
+@@ -1101,8 +1242,9 @@
      }
    else
      {
@@ -757,7 +758,7 @@ during/around the time __proc_dostop executes.
        if (! post_all_pending_signals (reply))
  	return;
  
-@@ -1221,9 +1363,10 @@ _S_msg_sig_post (mach_port_t me,
+@@ -1228,9 +1370,10 @@
    d.code = sigcode;
    d.exc = 0;
  
@@ -771,7 +772,7 @@ during/around the time __proc_dostop executes.
  			      signo, &d, reply_port, reply_port_type,
  			      0); /* Stop if traced.  */
  
-@@ -1251,7 +1394,7 @@ _S_msg_sig_post_untraced (mach_port_t me
+@@ -1258,7 +1401,7 @@
  
    /* Post the signal to the designated signal-receiving thread.  This will
       reply when the signal can be considered delivered.  */
@@ -780,7 +781,7 @@ during/around the time __proc_dostop executes.
  			      signo, &d, reply_port, reply_port_type,
  			      1); /* Untraced flag. */
  
-@@ -1262,8 +1405,8 @@ extern void __mig_init (void *);
+@@ -1269,8 +1412,8 @@
  
  #include <mach/task_special_ports.h>
  
@@ -791,7 +792,7 @@ during/around the time __proc_dostop executes.
  
  void
  _hurdsig_init (const int *intarray, size_t intarraysize)
-@@ -1286,27 +1429,34 @@ _hurdsig_init (const int *intarray, size
+@@ -1293,27 +1436,34 @@
  				  MACH_MSG_TYPE_MAKE_SEND);
    assert_perror (err);
  
@@ -833,10 +834,10 @@ during/around the time __proc_dostop executes.
 -
    /* Start the signal thread listening on the message port.  */
  
- #pragma weak cthread_fork
+ #pragma weak __cthread_fork
 --- a/sysdeps/mach/hurd/fork.c
 +++ b/sysdeps/mach/hurd/fork.c
-@@ -465,6 +465,7 @@ __fork (void)
+@@ -444,6 +444,7 @@
  	  (err = __mach_port_insert_right (newtask, ss->thread,
  					   thread, MACH_MSG_TYPE_COPY_SEND)))
  	LOSE;
@@ -844,7 +845,7 @@ during/around the time __proc_dostop executes.
        if (thread_refs > 1 &&
  	  (err = __mach_port_mod_refs (newtask, ss->thread,
  				       MACH_PORT_RIGHT_SEND,
-@@ -625,10 +626,6 @@ __fork (void)
+@@ -608,10 +609,6 @@
        for (i = 0; i < _hurd_nports; ++i)
  	__spin_unlock (&_hurd_ports[i].lock);
  
@@ -855,7 +856,7 @@ during/around the time __proc_dostop executes.
        /* Claim our sigstate structure and unchain the rest: the
  	 threads existed in the parent task but don't exist in this
  	 task (the child process).  Delay freeing them until later
-@@ -648,6 +645,25 @@ __fork (void)
+@@ -631,6 +628,25 @@
        ss->next = NULL;
        _hurd_sigstates = ss;
        __mutex_unlock (&_hurd_siglock);
@@ -883,7 +884,7 @@ during/around the time __proc_dostop executes.
  	 refetch our pgrp; it is always inherited from the parent (so
 --- a/sysdeps/mach/hurd/i386/sigreturn.c
 +++ b/sysdeps/mach/hurd/i386/sigreturn.c
-@@ -38,7 +38,7 @@ __sigreturn (struct sigcontext *scp)
+@@ -38,7 +38,7 @@
      }
  
    ss = _hurd_self_sigstate ();
@@ -892,7 +893,7 @@ during/around the time __proc_dostop executes.
  
    /* Remove the link on the `active resources' chain added by
       _hurd_setup_sighandler.  Its purpose was to make sure
-@@ -50,19 +50,19 @@ __sigreturn (struct sigcontext *scp)
+@@ -50,19 +50,19 @@
    ss->intr_port = scp->sc_intr_port;
  
    /* Check for pending signals that were blocked by the old set.  */
@@ -915,7 +916,7 @@ during/around the time __proc_dostop executes.
        ss->context = NULL;
      }
  
-@@ -73,7 +73,7 @@ __sigreturn (struct sigcontext *scp)
+@@ -73,7 +73,7 @@
        abort ();
      }
    else
@@ -926,7 +927,7 @@ during/around the time __proc_dostop executes.
       reply port in use by the thread when interrupted.  */
 --- a/sysdeps/mach/hurd/i386/trampoline.c
 +++ b/sysdeps/mach/hurd/i386/trampoline.c
-@@ -75,7 +75,11 @@ _hurd_setup_sighandler (struct hurd_sigs
+@@ -74,7 +74,11 @@
       interrupted RPC frame.  */
    state->basic.esp = state->basic.uesp;
  
@@ -941,7 +942,7 @@ during/around the time __proc_dostop executes.
        sigsp = ss->sigaltstack.ss_sp + ss->sigaltstack.ss_size;
 --- a/sysdeps/mach/hurd/sigaction.c
 +++ b/sysdeps/mach/hurd/sigaction.c
-@@ -49,15 +49,15 @@ __sigaction (sig, act, oact)
+@@ -46,15 +46,15 @@
    ss = _hurd_self_sigstate ();
  
    __spin_lock (&ss->critical_section_lock);
@@ -961,7 +962,7 @@ during/around the time __proc_dostop executes.
  
        /* Inform the proc server whether or not it should send us SIGCHLD for
  	 stopped children.  We do this in a critical section so that no
-@@ -65,8 +65,8 @@ __sigaction (sig, act, oact)
+@@ -62,8 +62,8 @@
        __USEPORT (PROC,
  		 __proc_mod_stopchild (port, !(a.sa_flags & SA_NOCLDSTOP)));
  
@@ -972,7 +973,7 @@ during/around the time __proc_dostop executes.
      }
    else if (act != NULL && (a.sa_handler == SIG_IGN || a.sa_handler == SIG_DFL))
      /* We are changing to an action that might be to ignore SIG signals.
-@@ -75,11 +75,11 @@ __sigaction (sig, act, oact)
+@@ -72,11 +72,11 @@
         back and then SIG is unblocked, the signal pending now should not
         arrive.  So wake up the signal thread to check the new state and do
         the right thing.  */
@@ -988,7 +989,7 @@ during/around the time __proc_dostop executes.
    if (pending)
 --- a/sysdeps/mach/hurd/sigpending.c
 +++ b/sysdeps/mach/hurd/sigpending.c
-@@ -37,9 +37,9 @@ sigpending (set)
+@@ -36,9 +36,9 @@
      }
  
    ss = _hurd_self_sigstate ();
@@ -1003,7 +1004,7 @@ during/around the time __proc_dostop executes.
    return 0;
 --- a/sysdeps/mach/hurd/sigprocmask.c
 +++ b/sysdeps/mach/hurd/sigprocmask.c
-@@ -39,7 +39,7 @@ __sigprocmask (how, set, oset)
+@@ -36,7 +36,7 @@
  
    ss = _hurd_self_sigstate ();
  
@@ -1012,7 +1013,7 @@ during/around the time __proc_dostop executes.
  
    old = ss->blocked;
  
-@@ -60,7 +60,7 @@ __sigprocmask (how, set, oset)
+@@ -57,7 +57,7 @@
  	  break;
  
  	default:
@@ -1021,7 +1022,7 @@ during/around the time __proc_dostop executes.
  	  errno = EINVAL;
  	  return -1;
  	}
-@@ -68,9 +68,9 @@ __sigprocmask (how, set, oset)
+@@ -65,9 +65,9 @@
        ss->blocked &= ~_SIG_CANT_MASK;
      }
  
@@ -1035,7 +1036,7 @@ during/around the time __proc_dostop executes.
      *oset = old;
 --- a/sysdeps/mach/hurd/sigsuspend.c
 +++ b/sysdeps/mach/hurd/sigsuspend.c
-@@ -41,7 +41,7 @@ __sigsuspend (set)
+@@ -40,7 +40,7 @@
  
    ss = _hurd_self_sigstate ();
  
@@ -1044,7 +1045,7 @@ during/around the time __proc_dostop executes.
  
    oldmask = ss->blocked;
    if (set != NULL)
-@@ -49,11 +49,11 @@ __sigsuspend (set)
+@@ -48,11 +48,11 @@
      ss->blocked = newmask & ~_SIG_CANT_MASK;
  
    /* Notice if any pending signals just became unblocked.  */
@@ -1058,7 +1059,7 @@ during/around the time __proc_dostop executes.
  
    if (pending)
      /* Tell the signal thread to check for pending signals.  */
-@@ -64,10 +64,11 @@ __sigsuspend (set)
+@@ -63,10 +63,11 @@
  	      MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
    __mach_port_destroy (__mach_task_self (), wait);
  
@@ -1076,7 +1077,7 @@ during/around the time __proc_dostop executes.
      /* Tell the signal thread to check for pending signals.  */
 --- a/sysdeps/mach/hurd/sigwait.c
 +++ b/sysdeps/mach/hurd/sigwait.c
-@@ -27,7 +27,7 @@ int
+@@ -27,7 +27,7 @@
  __sigwait (const sigset_t *set, int *sig)
  {
    struct hurd_sigstate *ss;
@@ -1085,7 +1086,7 @@ during/around the time __proc_dostop executes.
    int signo = 0;
    struct hurd_signal_preemptor preemptor;
    jmp_buf buf;
-@@ -49,8 +49,8 @@ __sigwait (const sigset_t *set, int *sig
+@@ -49,8 +49,8 @@
        /* Make sure this is all kosher */
        assert (__sigismember (&mask, signo));
  
@@ -1096,7 +1097,7 @@ during/around the time __proc_dostop executes.
  
        return pe->handler;
      }
-@@ -71,10 +71,11 @@ __sigwait (const sigset_t *set, int *sig
+@@ -71,10 +71,11 @@
      __sigemptyset (&mask);
  
    ss = _hurd_self_sigstate ();
@@ -1110,7 +1111,7 @@ during/around the time __proc_dostop executes.
    if (! __sigisemptyset (&ready))
      {
        for (signo = 1; signo < NSIG; signo++)
-@@ -102,7 +103,11 @@ __sigwait (const sigset_t *set, int *sig
+@@ -102,7 +103,11 @@
        preemptor.next = ss->preemptors;
        ss->preemptors = &preemptor;
  
@@ -1123,7 +1124,7 @@ during/around the time __proc_dostop executes.
  
        /* Wait. */
        __mach_msg (&msg, MACH_RCV_MSG, 0, sizeof (msg), wait,
-@@ -113,7 +118,7 @@ __sigwait (const sigset_t *set, int *sig
+@@ -113,7 +118,7 @@
      {
        assert (signo);
  
@@ -1132,7 +1133,7 @@ during/around the time __proc_dostop executes.
  
        /* Delete our preemptor. */
        assert (ss->preemptors == &preemptor);
-@@ -122,7 +127,7 @@ __sigwait (const sigset_t *set, int *sig
+@@ -122,7 +127,7 @@
  
  
  all_done:
@@ -1143,7 +1144,7 @@ during/around the time __proc_dostop executes.
    *sig = signo;
 --- a/sysdeps/mach/hurd/spawni.c
 +++ b/sysdeps/mach/hurd/spawni.c
-@@ -237,26 +237,29 @@ __spawni (pid_t *pid, const char *file,
+@@ -241,26 +241,29 @@
  
    __spin_lock (&ss->critical_section_lock);
  

@@ -1,7 +1,5 @@
 # All lines beginning with `# DP:' are a description of the patch.
 # DP: Description: Rewrite collation rules to include iso14651_t1
-# DP:  es_ES: BZ664, by Pablo Saratxaga
-# DP:  da_DK fi_FI nb_NO: BZ672, by Denis Barbier
 # DP:  ar_SA cs_CZ et_EE hr_HR lt_LT pl_PL sl_SI tr_TR: not
 # DP:    submitted yet.
 # DP: Related bugs: BZ664 BZ672
@@ -29,101 +27,9 @@
 
 ---
  localedata/locales/ar_SA |  219 ----
- localedata/locales/da_DK |   27 
- localedata/locales/es_ES |   12 
  localedata/locales/sl_SI | 2076 -----------------------------------------------
- 4 files changed, 53 insertions(+), 2281 deletions(-)
+ 2 files changed, 25 insertions(+), 2270 deletions(-)
 
---- a/localedata/locales/da_DK
-+++ b/localedata/locales/da_DK
-@@ -84,34 +84,37 @@
- % <U00DC> and <U0170> are treated as <U0059> in Danish
- reorder-after <U0178>
- <U00DC> <y>;<U00DC>;<CAP>;IGNORE
--<U00FC> <y>;<U00DC>;<MIN>;IGNORE
- <U0170> <y>;<U0170>;<CAP>;IGNORE
-+reorder-after <U00FF>
-+<U00FC> <y>;<U00DC>;<MIN>;IGNORE
- <U0171> <y>;<U0170>;<MIN>;IGNORE
- 
- % <U00C6> is a separate letter in Danish
- reorder-after <U017B>
- <U00C6> <ae>;<BAS>;<CAP>;IGNORE
--<U00E6> <ae>;<BAS>;<MIN>;IGNORE
- <U01FC> <ae>;<ACA>;<CAP>;IGNORE
--<U01FD> <ae>;<ACA>;<MIN>;IGNORE
- <U00C4> <ae>;<REU>;<CAP>;IGNORE
--<U00E4> <ae>;<REU>;<MIN>;IGNORE
- <U01E2> <ae>;<MAC>;<CAP>;IGNORE
--<U01E3> <ae>;<MAC>;<MIN>;IGNORE
- % <U00D8> is a separate letter in Danish
- <U00D8> <o-stroke>;<BAS>;<CAP>;IGNORE
--<U00F8> <o-stroke>;<BAS>;<MIN>;IGNORE
- <U01FE> <o-stroke>;<ACA>;<CAP>;IGNORE
--<U01FF> <o-stroke>;<ACA>;<MIN>;IGNORE
- <U00D6> <o-stroke>;<REU>;<CAP>;IGNORE
--<U00F6> <o-stroke>;<REU>;<MIN>;IGNORE
- <U0150> <o-stroke>;<DAC>;<CAP>;IGNORE
--<U0151> <o-stroke>;<DAC>;<MIN>;IGNORE
- % <U00C5> is a separate letter in Danish
- <U00C5> <a-ring>;<BAS>;<CAP>;IGNORE
--<U00E5> <a-ring>;<BAS>;<MIN>;IGNORE
- <A-A>   <a-ring>;<A-A>;<CAP>;IGNORE
- <A-a>   <a-ring>;<A-A>;<CAP-MIN>;IGNORE
-+
-+reorder-after <U017C>
-+<U00E6> <ae>;<BAS>;<MIN>;IGNORE
-+<U01FD> <ae>;<ACA>;<MIN>;IGNORE
-+<U00E4> <ae>;<REU>;<MIN>;IGNORE
-+<U01E3> <ae>;<MAC>;<MIN>;IGNORE
-+<U00F8> <o-stroke>;<BAS>;<MIN>;IGNORE
-+<U01FF> <o-stroke>;<ACA>;<MIN>;IGNORE
-+<U00F6> <o-stroke>;<REU>;<MIN>;IGNORE
-+<U0151> <o-stroke>;<DAC>;<MIN>;IGNORE
-+<U00E5> <a-ring>;<BAS>;<MIN>;IGNORE
- <a-A>   <a-ring>;<A-A>;<MIN-CAP>;IGNORE
- <a-a>   <a-ring>;<A-A>;<MIN>;IGNORE
- 
-@@ -119,6 +122,7 @@
- %  removed from latest iso14651 tables.
- reorder-after <U0162>
- <U00DE> "<t><h>";"<LIG><LIG>";"<CAP><CAP>";IGNORE
-+reorder-after <U0163>
- <U00FE> "<t><h>";"<LIG><LIG>";"<MIN><MIN>";IGNORE
- 
- reorder-after <OBL>
-@@ -126,8 +130,9 @@
- 
- reorder-after <U0064>
- <U0110> <d>;<OBL>;<CAP>;IGNORE
--<U0111> <d>;<OBL>;<MIN>;IGNORE
- <U00D0> <d>;<ETH>;<CAP>;IGNORE
-+reorder-after <U0044>
-+<U0111> <d>;<OBL>;<MIN>;IGNORE
- <U00F0> <d>;<ETH>;<MIN>;IGNORE
- 
- reorder-end
---- a/localedata/locales/es_ES
-+++ b/localedata/locales/es_ES
-@@ -53,6 +53,18 @@
- LC_COLLATE
- % Copy the template from ISO/IEC 14651
- copy "iso14651_t1"
-+
-+collating-symbol  <ntilde>
-+
-+reorder-after <n>
-+<ntilde>
-+
-+reorder-after <U006E>
-+<U00F1> <ntilde>;<TIL>;<MIN>;IGNORE
-+reorder-after <U004E>
-+<U00D1> <ntilde>;<TIL>;<CAP>;IGNORE
-+
-+reorder-end
- END LC_COLLATE
- 
- LC_CTYPE
 --- a/localedata/locales/ar_SA
 +++ b/localedata/locales/ar_SA
 @@ -47,223 +47,8 @@
@@ -354,7 +260,7 @@
  
 --- a/localedata/locales/sl_SI
 +++ b/localedata/locales/sl_SI
-@@ -51,2067 +51,37 @@
+@@ -51,2067 +51,31 @@
  END LC_IDENTIFICATION
  
  LC_COLLATE
@@ -385,37 +291,33 @@
 -% According to Greek specifications,
 -% the steps 2. and 3. above are reversed
 -% for the Greek script
-+reorder-after <c>
++reorder-after <AFTER-C>
 +<ccaron>
  
 -% collating symbols
-+reorder-after <s>
++reorder-after <AFTER-S>
 +<scaron>
  
 -% The collating symbol naming is
 -% mostly taken from ISO 10646-1,
 -% for example the case and accent
 -% names are from this standard.
-+reorder-after <z>
++reorder-after <AFTER-Z>
 +<zcaron>
  
 -collating-symbol <CAPITAL>
 -collating-symbol <CAPITAL-SMALL>
 -collating-symbol <SMALL-CAPITAL>
 -collating-symbol <SMALL>
-+reorder-after <U0063>
-+<U010D> <ccaron>;<BAS>;<MIN>;IGNORE
-+reorder-after <U0043>
-+<U010C> <ccaron>;<BAS>;<CAP>;IGNORE
++<U010D> <ccaron>;<BASE>;<MIN>;IGNORE
++<U010C> <ccaron>;<BASE>;<CAP>;IGNORE
  
 -% <CAPITAL-SMALL> and <SMALL-CAPITAL>
 -% are for cases like Danish <U0041><U0061>
 -% and Spanish <U0043><U0068> being treated
 -% as one letter.
-+reorder-after <U0073>
-+<U0161> <scaron>;<BAS>;<MIN>;IGNORE
-+reorder-after <U0053>
-+<U0160> <scaron>;<BAS>;<CAP>;IGNORE
++<U0161> <scaron>;<BASE>;<MIN>;IGNORE
++<U0160> <scaron>;<BASE>;<CAP>;IGNORE
  
 -% The <a8> ...... <z8> collating
 -% symbols have defined weights as
@@ -426,10 +328,8 @@
 -% and by "replace-after" statements
 -% specifying the changed placement
 -% in an ordering of a character.
-+reorder-after <U007A>
-+<U017E> <zcaron>;<BAS>;<MIN>;IGNORE
-+reorder-after <U005A>
-+<U017D> <zcaron>;<BAS>;<CAP>;IGNORE
++<U017E> <zcaron>;<BASE>;<MIN>;IGNORE
++<U017D> <zcaron>;<BASE>;<CAP>;IGNORE
  
 -collating-symbol <a8>
 -collating-symbol <b8>

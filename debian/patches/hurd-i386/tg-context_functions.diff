@@ -20,9 +20,9 @@ stack to be used with makecontext).
 
 --- a/sysdeps/mach/hurd/i386/Makefile
 +++ b/sysdeps/mach/hurd/i386/Makefile
-@@ -14,3 +14,8 @@
- CPPFLAGS-divdi3.c = -Din_divdi3_c
- endif
+@@ -102,3 +102,8 @@
+ # callbacks whose parameters don't permit to get the context parameters.
+ check-execstack-xfail += ld.so libc.so libpthread.so
  endif
 +
 +ifeq ($(subdir),stdlib)
@@ -108,7 +108,7 @@ stack to be used with makecontext).
 +weak_alias (__getcontext, getcontext)
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/makecontext-helper.c
-@@ -0,0 +1,69 @@
+@@ -0,0 +1,71 @@
 +/* Helper for makecontext: handle threadvars.
 +   Copyright (C) 2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -133,6 +133,7 @@ stack to be used with makecontext).
 +#include <string.h>
 +#include <ucontext.h>
 +
++#if 0
 +
 +void
 +__makecontext_helper (ucontext_t *ucp)
@@ -178,6 +179,7 @@ stack to be used with makecontext).
 +      ucp->uc_stack.ss_size -= t_size;
 +    }
 +}
++#endif
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/makecontext.S
 @@ -0,0 +1,130 @@
@@ -210,7 +212,7 @@ stack to be used with makecontext).
 +	subl	$4, %esp
 +	cfi_adjust_cfa_offset (4)
 +	movl	%eax, (%esp)
-+	call	HIDDEN_JUMPTARGET (__makecontext_helper)
++	/* call	HIDDEN_JUMPTARGET (__makecontext_helper) */
 +	addl	$4, %esp
 +	cfi_adjust_cfa_offset (-4)
 +
