@@ -200,8 +200,8 @@ Index: glibc-2.28/sysdeps/mach/hurd/fcntl.c
 -	    break;
 -	  default:
 -	    cmd = 0;
-+	    result = __f_setlk (fd, fl->l_type, fl->l_whence,
-+				fl->l_start, fl->l_len, wait);
++	    return __f_setlk (fd, fl->l_type, fl->l_whence,
++			      fl->l_start, fl->l_len, wait);
  	    break;
 -	  }
 -	switch (fl->l_type)
@@ -244,8 +244,8 @@ Index: glibc-2.28/sysdeps/mach/hurd/fcntl.c
 +	    wait = 1;
 +	    /* FALLTHROUGH */
 +	  case F_SETLK:
-+	    result = __f_setlk (fd, fl->l_type, fl->l_whence,
-+				fl->l_start, fl->l_len, wait);
++	    return __f_setlk (fd, fl->l_type, fl->l_whence,
++			      fl->l_start, fl->l_len, wait);
 +	    break;
  	  default:
  	    errno = EINVAL;
