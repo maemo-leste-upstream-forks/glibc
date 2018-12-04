@@ -893,6 +893,10 @@ test-xfail-tst-malloc-usable-tunables = yes
 # Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
 test-xfail-test-ildouble-fma = yes
 test-xfail-test-ldouble-fma = yes
+
+# The glibc implementation of pkey_get and pkey_set are the stub
+# implementations.
+test-xfail-tst-pkey = yes
 endif
 
 
@@ -912,6 +916,10 @@ test-xfail-tst-malloc-usable-tunables = yes
 # Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
 test-xfail-test-ildouble-fma = yes
 test-xfail-test-ldouble-fma = yes
+
+# The glibc implementation of pkey_get and pkey_set are the stub
+# implementations.
+test-xfail-tst-pkey = yes
 endif
 
 
@@ -927,6 +935,10 @@ test-xfail-tst-waitid = yes
 # Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
 test-xfail-test-ildouble-fma = yes
 test-xfail-test-ldouble-fma = yes
+
+# The glibc implementation of pkey_get and pkey_set are the stub
+# implementations.
+test-xfail-tst-pkey = yes
 endif
 
 
@@ -955,6 +967,10 @@ test-xfail-tst-cancelx5 = yes
 test-xfail-tst-key1 = yes
 test-xfail-tst-key4 = yes
 test-xfail-tst-setcontext-fpscr = yes
+
+# The glibc implementation of pkey_get and pkey_set are the stub
+# implementations.
+test-xfail-tst-pkey = yes
 endif
 
 
