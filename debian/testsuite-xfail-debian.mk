@@ -1002,6 +1002,7 @@ test-xfail-tst-cond-except = yes
 test-xfail-tst-cond24 = yes
 test-xfail-tst-cond25 = yes
 test-xfail-tst-execstack = yes
+test-xfail-tst-execstack-needed = yes
 test-xfail-tst-malloc-usable-tunables = yes
 test-xfail-tst-resolv-res_init = yes
 test-xfail-tst-resolv-res_init-thread = yes
