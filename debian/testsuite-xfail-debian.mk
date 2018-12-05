@@ -1096,4 +1096,8 @@ test-xfail-tst-backtrace6 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-platform-1 = yes
 test-xfail-tst-waitid = yes
+
+# This looks like a kernel bug in the compat layer
+test-xfail-tst-preadvwritev2 = yes
+test-xfail-tst-preadvwritev64v2 = yes
 endif
