@@ -1085,6 +1085,7 @@ test-xfail-tst-protected1a = yes
 test-xfail-tst-protected1b = yes
 test-xfail-tst-realloc = yes
 test-xfail-tst-waitid = yes
+test-xfail-test-float64x-float128-mul=yes
 
 # In some conditions the kernel might not provide a heap, causing
 # some tests to fail. See bug#889817 for details.
