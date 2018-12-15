@@ -1,10 +1,111 @@
 GIT update of https://sourceware.org/git/glibc.git/release/2.28/master from glibc-2.28
 
 diff --git a/ChangeLog b/ChangeLog
-index 08b42bd2f5..bc62a59c2b 100644
+index 08b42bd2f5..81555f1675 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,379 @@
+@@ -1,3 +1,480 @@
++2018-10-30  Andreas Schwab  <schwab@suse.de>
++
++	[BZ #23125]
++	* sysdeps/riscv/start.S (ENTRY_POINT): Mark ra as undefined.
++	Don't use tail call.
++	* elf/tst-unwind-main.c: New file.
++	* elf/Makefile (tests): Add tst-unwind-main.
++	(CFLAGS-tst-unwind-main.c): Define.
++
++2018-12-15  Florian Weimer  <fweimer@redhat.com>
++
++	* support/blob_repeat.c (check_mul_overflow_size_t): New function.
++	(minimum_stride_size): Use it.
++	(support_blob_repeat_allocate): Likewise.
++
++2018-12-13  Andreas Schwab  <schwab@suse.de>
++
++	[BZ #23861]
++	* nptl/pthread_rwlock_common.c: Reindent.  Fix typos.
++	(__pthread_rwlock_rdlock_full): Update expected value for
++	__readers while waiting on PTHREAD_RWLOCK_RWAITING.
++	* nptl/tst-rwlock-pwn.c: New file.
++	* nptl/Makefile (tests): Add tst-rwlock-pwn.
++
++2018-12-12  Tulio Magno Quites Machado Filho  <tuliom@linux.ibm.com>
++
++	[BZ #23614]
++	* sysdeps/powerpc/powerpc64/addmul_1.S (FUNC): Add CFI offset for
++	registers saved in the stack frame.
++	* sysdeps/powerpc/powerpc64/lshift.S (__mpn_lshift): Likewise.
++	* sysdeps/powerpc/powerpc64/mul_1.S (__mpn_mul_1): Likewise.
++
++2018-12-07  DJ Delorie  <dj@redhat.com>
++
++	[BZ #23907]
++	* malloc/tst-tcfree3.c: New.
++	* malloc/Makefile: Add it.
++
++2018-12-07  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #23927]
++	CVE-2018-19591
++	* inet/tst-if_index-long.c: New file.
++	* inet/Makefile (tests): Add tst-if_index-long.
++
++2018-12-07  Florian Weimer  <fweimer@redhat.com>
++
++	* support/check.h (support_record_failure_is_failed): Declare.
++	* support/descriptors.h: New file.
++	* support/support_descriptors.c: Likewise.
++	* support/tst-support_descriptors.c: Likewise.
++	* support/support_record_failure.c
++	(support_record_failure_is_failed): New function.
++	* support/Makefile (libsupport-routines): Add support_descriptors.
++	(tests): Add tst-support_descriptors.
++
++2018-12-01  Florian Weimer  <fweimer@redhat.com>
++
++	* support/support_capture_subprocess.c
++	(support_capture_subprocess): Check that pipe descriptors have
++	expected values.  Close original pipe descriptors in subprocess.
++
++2018-11-28  Florian Weimer  <fweimer@redhat.com>
++
++	* support/support.h (support_quote_string): Do not use str
++	parameter name.
++
++2018-11-27  Florian Weimer  <fweimer@redhat.com>
++
++	* support/support.h (support_quote_string): Declare.
++	* support/support_quote_string.c: New file.
++	* support/tst-support_quote_string.c: Likewise.
++	* support/Makefile (libsupport-routines): Add
++	support_quote_string.
++	(tests): Add tst-support_quote_string.
++
++2018-12-10  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #23972]
++	* sysdeps/unix/sysv/linux/getdents64.c (handle_overflow): Check
++	offset instead of count for clarity.  Fix typo in comment.
++	(__old_getdents64): Keep track of previous offset.  Use it to call
++	handle_overflow.
++	* sysdeps/unix/sysv/linux/tst-readdir64-compat.c (do_test): Check
++	that d_off is never zero.
++
++2018-11-30  Tulio Magno Quites Machado Filho  <tuliom@linux.ibm.com>
++
++	[BZ #23690]
++	* elf/dl-runtime.c (_dl_profile_fixup): Guarantee memory
++	modification order when accessing reloc_result->addr.
++	* include/link.h (reloc_result): Add field init.
++	* nptl/Makefile (tests): Add tst-audit-threads.
++	(modules-names): Add tst-audit-threads-mod1 and
++	tst-audit-threads-mod2.
++	Add rules to build tst-audit-threads.
++	* nptl/tst-audit-threads-mod1.c: New file.
++	* nptl/tst-audit-threads-mod2.c: Likewise.
++	* nptl/tst-audit-threads.c: Likewise.
++	* nptl/tst-audit-threads.h: Likewise.
++
 +2018-11-26  Florian Weimer  <fweimer@redhat.com>
 +
 +	[BZ #23907]
@@ -385,10 +486,10 @@ index 08b42bd2f5..bc62a59c2b 100644
  
  	* version.h (RELEASE): Set to "stable".
 diff --git a/NEWS b/NEWS
-index 154ab22d7c..5290e21da9 100644
+index 154ab22d7c..05f7342fcb 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,34 @@ See the end for copying conditions.
+@@ -5,6 +5,36 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
@@ -407,12 +508,14 @@ index 154ab22d7c..5290e21da9 100644
 +  [23578] regex: Fix memory overread in re_compile_pattern
 +  [23579] libc: Errors misreported in preadv2
 +  [23606] Missing ENDBR32 in sysdeps/i386/start.S
++  [23614] powerpc: missing CFI register information in __mpn_* functions
 +  [23679] gethostid: Missing NULL check for gethostbyname_r result
 +  [23709] Fix CPU string flags for Haswell-type CPUs
 +  [23717] Fix stack overflow in stdlib/tst-setcontext9
 +  [23821] si_band in siginfo_t has wrong type long int on sparc64
 +  [23822] ia64 static libm.a is missing exp2f, log2f and powf symbols
 +  [23927] Linux if_nametoindex() does not close descriptor (CVE-2018-19591)
++  [23972] __old_getdents64 uses wrong d_off value on overflow
 +
 +Security related changes:
 +
@@ -467,6 +570,148 @@ index 33574faab6..96bf925333 100644
      }
  }
  
+diff --git a/elf/Makefile b/elf/Makefile
+index cd0771307f..43f625af05 100644
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -186,7 +186,8 @@ tests += restest1 preloadtest loadfail multiload origtest resolvfail \
+ 	 tst-tlsalign tst-tlsalign-extern tst-nodelete-opened \
+ 	 tst-nodelete2 tst-audit11 tst-audit12 tst-dlsym-error tst-noload \
+ 	 tst-latepthread tst-tls-manydynamic tst-nodelete-dlclose \
+-	 tst-debug1 tst-main1 tst-absolute-sym tst-absolute-zero tst-big-note
++	 tst-debug1 tst-main1 tst-absolute-sym tst-absolute-zero tst-big-note \
++	 tst-unwind-main
+ #	 reldep9
+ tests-internal += loadtest unload unload2 circleload1 \
+ 	 neededtest neededtest2 neededtest3 neededtest4 \
+@@ -1484,3 +1485,5 @@ tst-libc_dlvsym-static-ENV = \
+ $(objpfx)tst-libc_dlvsym-static.out: $(objpfx)tst-libc_dlvsym-dso.so
+ 
+ $(objpfx)tst-big-note: $(objpfx)tst-big-note-lib.so
++
++CFLAGS-tst-unwind-main.c += -funwind-tables
+diff --git a/elf/dl-runtime.c b/elf/dl-runtime.c
+index 63bbc89776..3d2f4a7a76 100644
+--- a/elf/dl-runtime.c
++++ b/elf/dl-runtime.c
+@@ -183,10 +183,36 @@ _dl_profile_fixup (
+   /* This is the address in the array where we store the result of previous
+      relocations.  */
+   struct reloc_result *reloc_result = &l->l_reloc_result[reloc_index];
+-  DL_FIXUP_VALUE_TYPE *resultp = &reloc_result->addr;
+ 
+-  DL_FIXUP_VALUE_TYPE value = *resultp;
+-  if (DL_FIXUP_VALUE_CODE_ADDR (value) == 0)
++ /* CONCURRENCY NOTES:
++
++  Multiple threads may be calling the same PLT sequence and with
++  LD_AUDIT enabled they will be calling into _dl_profile_fixup to
++  update the reloc_result with the result of the lazy resolution.
++  The reloc_result guard variable is reloc_init, and we use
++  acquire/release loads and store to it to ensure that the results of
++  the structure are consistent with the loaded value of the guard.
++  This does not fix all of the data races that occur when two or more
++  threads read reloc_result->reloc_init with a value of zero and read
++  and write to that reloc_result concurrently.  The expectation is
++  generally that while this is a data race it works because the
++  threads write the same values.  Until the data races are fixed
++  there is a potential for problems to arise from these data races.
++  The reloc result updates should happen in parallel but there should
++  be an atomic RMW which does the final update to the real result
++  entry (see bug 23790).
++
++  The following code uses reloc_result->init set to 0 to indicate if it is
++  the first time this object is being relocated, otherwise 1 which
++  indicates the object has already been relocated.
++
++  Reading/Writing from/to reloc_result->reloc_init must not happen
++  before previous writes to reloc_result complete as they could
++  end-up with an incomplete struct.  */
++  DL_FIXUP_VALUE_TYPE value;
++  unsigned int init = atomic_load_acquire (&reloc_result->init);
++
++  if (init == 0)
+     {
+       /* This is the first time we have to relocate this object.  */
+       const ElfW(Sym) *const symtab
+@@ -346,19 +372,31 @@ _dl_profile_fixup (
+ 
+       /* Store the result for later runs.  */
+       if (__glibc_likely (! GLRO(dl_bind_not)))
+-	*resultp = value;
++	{
++	  reloc_result->addr = value;
++	  /* Guarantee all previous writes complete before
++	     init is updated.  See CONCURRENCY NOTES earlier  */
++	  atomic_store_release (&reloc_result->init, 1);
++	}
++      init = 1;
+     }
++  else
++    value = reloc_result->addr;
+ 
+   /* By default we do not call the pltexit function.  */
+   long int framesize = -1;
+ 
++
+ #ifdef SHARED
+   /* Auditing checkpoint: report the PLT entering and allow the
+      auditors to change the value.  */
+-  if (DL_FIXUP_VALUE_CODE_ADDR (value) != 0 && GLRO(dl_naudit) > 0
++  if (GLRO(dl_naudit) > 0
+       /* Don't do anything if no auditor wants to intercept this call.  */
+       && (reloc_result->enterexit & LA_SYMB_NOPLTENTER) == 0)
+     {
++      /* Sanity check:  DL_FIXUP_VALUE_CODE_ADDR (value) should have been
++	 initialized earlier in this function or in another thread.  */
++      assert (DL_FIXUP_VALUE_CODE_ADDR (value) != 0);
+       ElfW(Sym) *defsym = ((ElfW(Sym) *) D_PTR (reloc_result->bound,
+ 						l_info[DT_SYMTAB])
+ 			   + reloc_result->boundndx);
+diff --git a/elf/tst-unwind-main.c b/elf/tst-unwind-main.c
+new file mode 100644
+index 0000000000..d1236032d7
+--- /dev/null
++++ b/elf/tst-unwind-main.c
+@@ -0,0 +1,38 @@
++/* Test unwinding through main.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <unwind.h>
++#include <unistd.h>
++#include <support/test-driver.h>
++
++static _Unwind_Reason_Code
++callback (struct _Unwind_Context *ctx, void *arg)
++{
++  return _URC_NO_REASON;
++}
++
++int
++main (void)
++{
++  /* Arrange for this test to be killed if _Unwind_Backtrace runs into an
++     endless loop.  We cannot use the test driver because the complete
++     call chain needs to be compiled with -funwind-tables so that
++     _Unwind_Backtrace is able to reach _start.  */
++  alarm (DEFAULT_TIMEOUT);
++  _Unwind_Backtrace (callback, 0);
++}
 diff --git a/grp/initgroups.c b/grp/initgroups.c
 index f056fbf5aa..93e7f5814d 100644
 --- a/grp/initgroups.c
@@ -493,6 +738,21 @@ index 6a63a1b8a1..c5a616da10 100644
      __pthread_getattr_np;
      __pthread_attr_getstack;
    }
+diff --git a/include/link.h b/include/link.h
+index 5924594548..83b1c34b7b 100644
+--- a/include/link.h
++++ b/include/link.h
+@@ -216,6 +216,10 @@ struct link_map
+       unsigned int boundndx;
+       uint32_t enterexit;
+       unsigned int flags;
++      /* CONCURRENCY NOTE: This is used to guard the concurrent initialization
++	 of the relocation result across multiple threads.  See the more
++	 detailed notes in elf/dl-runtime.c.  */
++      unsigned int init;
+     } *l_reloc_result;
+ 
+     /* Pointer to the version information if available.  */
 diff --git a/include/stdio.h b/include/stdio.h
 index 9162d4e247..7a5c09089f 100644
 --- a/include/stdio.h
@@ -507,6 +767,86 @@ index 9162d4e247..7a5c09089f 100644
  extern void __libc_fatal (const char *__message)
       __attribute__ ((__noreturn__));
  extern void __libc_message (enum __libc_message_action action,
+diff --git a/inet/Makefile b/inet/Makefile
+index 09f5ba78fc..7782913b4c 100644
+--- a/inet/Makefile
++++ b/inet/Makefile
+@@ -52,7 +52,7 @@ aux := check_pf check_native ifreq
+ tests := htontest test_ifindex tst-ntoa tst-ether_aton tst-network \
+ 	 tst-gethnm test-ifaddrs bug-if1 test-inet6_opt tst-ether_line \
+ 	 tst-getni1 tst-getni2 tst-inet6_rth tst-checks tst-checks-posix \
+-	 tst-sockaddr test-hnto-types
++	 tst-sockaddr test-hnto-types tst-if_index-long
+ 
+ # tst-deadline must be linked statically so that we can access
+ # internal functions.
+diff --git a/inet/tst-if_index-long.c b/inet/tst-if_index-long.c
+new file mode 100644
+index 0000000000..3dc74874e5
+--- /dev/null
++++ b/inet/tst-if_index-long.c
+@@ -0,0 +1,61 @@
++/* Check for descriptor leak in if_nametoindex with a long interface name.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* This test checks for a descriptor leak in case of a long interface
++   name (CVE-2018-19591, bug 23927).  */
++
++#include <errno.h>
++#include <net/if.h>
++#include <netdb.h>
++#include <string.h>
++#include <support/check.h>
++#include <support/descriptors.h>
++#include <support/support.h>
++
++static int
++do_test (void)
++{
++  struct support_descriptors *descrs = support_descriptors_list ();
++
++  /* Prepare a name which is just as long as required for trigging the
++     bug.  */
++  char name[IFNAMSIZ + 1];
++  memset (name, 'A', IFNAMSIZ);
++  name[IFNAMSIZ] = '\0';
++  TEST_COMPARE (strlen (name), IFNAMSIZ);
++  struct ifreq ifr;
++  TEST_COMPARE (strlen (name), sizeof (ifr.ifr_name));
++
++  /* Test directly via if_nametoindex.  */
++  TEST_COMPARE (if_nametoindex (name), 0);
++  TEST_COMPARE (errno, ENODEV);
++  support_descriptors_check (descrs);
++
++  /* Same test via getaddrinfo.  */
++  char *host = xasprintf ("fea0::%%%s", name);
++  struct addrinfo hints = { .ai_flags = AI_NUMERICHOST, };
++  struct addrinfo *ai;
++  TEST_COMPARE (getaddrinfo (host, NULL, &hints, &ai), EAI_NONAME);
++  support_descriptors_check (descrs);
++
++  support_descriptors_free (descrs);
++
++  return 0;
++}
++
++#include <support/test-driver.c>
 diff --git a/libio/tst-readline.c b/libio/tst-readline.c
 index 9322ef68da..63f5227760 100644
 --- a/libio/tst-readline.c
@@ -537,14 +877,14 @@ index 5ab14a31aa..5723ce7dcf 100644
           "marlunngorneq";/
           "pingasunngorneq";/
 diff --git a/malloc/Makefile b/malloc/Makefile
-index 7d54bad866..e6dfbfc14c 100644
+index 7d54bad866..388cf7e9ee 100644
 --- a/malloc/Makefile
 +++ b/malloc/Makefile
 @@ -38,6 +38,7 @@ tests := mallocbug tst-malloc tst-valloc tst-calloc tst-obstack \
  	 tst-malloc_info \
  	 tst-malloc-too-large \
  	 tst-malloc-stats-cancellation \
-+	 tst-tcfree1 tst-tcfree2 \
++	 tst-tcfree1 tst-tcfree2 tst-tcfree3 \
  
  tests-static := \
  	 tst-interpose-static-nothread \
@@ -777,6 +1117,68 @@ index 0000000000..17f06bacd4
 +
 +#define TEST_FUNCTION do_test
 +#define EXPECTED_SIGNAL SIGABRT
++#include <support/test-driver.c>
+diff --git a/malloc/tst-tcfree3.c b/malloc/tst-tcfree3.c
+new file mode 100644
+index 0000000000..016d30ddd8
+--- /dev/null
++++ b/malloc/tst-tcfree3.c
+@@ -0,0 +1,56 @@
++/* Test that malloc tcache catches double free.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <malloc.h>
++#include <string.h>
++
++/* Prevent GCC from optimizing away any malloc/free pairs.  */
++#pragma GCC optimize ("O0")
++
++static int
++do_test (void)
++{
++  /* Do two allocation of any size that fit in tcache, and one that
++     doesn't.  */
++  int ** volatile a = malloc (32);
++  int ** volatile b = malloc (32);
++  /* This is just under the mmap threshold.  */
++  int ** volatile c = malloc (127 * 1024);
++
++  /* The invalid "tcache bucket" we might dereference will likely end
++     up somewhere within this memory block, so make all the accidental
++     "next" pointers cause segfaults.  BZ #23907.  */
++  memset (c, 0xff, 127 * 1024);
++
++  free (a); // puts in tcache
++
++  /* A is now free and contains the key we use to detect in-tcache.
++     Copy the key to the other chunks.  */
++  memcpy (b, a, 32);
++  memcpy (c, a, 32);
++
++  /* This free tests the "are we in the tcache already" loop with a
++     VALID bin but "coincidental" matching key.  */
++  free (b); // should NOT abort
++  /* This free tests the "is it a valid tcache bin" test.  */
++  free (c); // should NOT abort
++
++  return 0;
++}
++
 +#include <support/test-driver.c>
 diff --git a/misc/Makefile b/misc/Makefile
 index b7be2bc19a..c9f81515ac 100644
@@ -1044,7 +1446,7 @@ index 8d3cc32b28..6a9de54c78 100644
    return do_test_with_offset (0);
  }
 diff --git a/nptl/Makefile b/nptl/Makefile
-index be8066524c..49b6faa330 100644
+index be8066524c..2d2db648f7 100644
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
 @@ -241,9 +241,9 @@ LDLIBS-tst-minstack-throw = -lstdc++
@@ -1060,11 +1462,49 @@ index be8066524c..49b6faa330 100644
  	tst-mutexpi9 \
  	tst-spin1 tst-spin2 tst-spin3 tst-spin4 \
  	tst-cond1 tst-cond2 tst-cond3 tst-cond4 tst-cond5 tst-cond6 tst-cond7 \
-@@ -709,6 +709,8 @@ endif
+@@ -318,7 +318,8 @@ tests = tst-attr1 tst-attr2 tst-attr3 tst-default-attr \
+ 	tst-minstack-throw \
+ 	tst-cnd-basic tst-mtx-trylock tst-cnd-broadcast \
+ 	tst-cnd-timedwait tst-thrd-detach tst-mtx-basic tst-thrd-sleep \
+-	tst-mtx-recursive tst-tss-basic tst-call-once tst-mtx-timedlock
++	tst-mtx-recursive tst-tss-basic tst-call-once tst-mtx-timedlock \
++	tst-rwlock-pwn
+ 
+ tests-internal := tst-rwlock19 tst-rwlock20 \
+ 		  tst-sem11 tst-sem12 tst-sem13 \
+@@ -382,7 +383,8 @@ tests += tst-cancelx2 tst-cancelx3 tst-cancelx4 tst-cancelx5 \
+ 	 tst-cleanupx0 tst-cleanupx1 tst-cleanupx2 tst-cleanupx3 tst-cleanupx4 \
+ 	 tst-oncex3 tst-oncex4
+ ifeq ($(build-shared),yes)
+-tests += tst-atfork2 tst-tls4 tst-_res1 tst-fini1 tst-compat-forwarder
++tests += tst-atfork2 tst-tls4 tst-_res1 tst-fini1 tst-compat-forwarder \
++	 tst-audit-threads
+ tests-internal += tst-tls3 tst-tls3-malloc tst-tls5 tst-stackguard1
+ tests-nolibpthread += tst-fini1
+ ifeq ($(have-z-execstack),yes)
+@@ -394,7 +396,8 @@ modules-names = tst-atfork2mod tst-tls3mod tst-tls4moda tst-tls4modb \
+ 		tst-tls5mod tst-tls5moda tst-tls5modb tst-tls5modc \
+ 		tst-tls5modd tst-tls5mode tst-tls5modf tst-stack4mod \
+ 		tst-_res1mod1 tst-_res1mod2 tst-execstack-mod tst-fini1mod \
+-		tst-join7mod tst-compat-forwarder-mod
++		tst-join7mod tst-compat-forwarder-mod tst-audit-threads-mod1 \
++		tst-audit-threads-mod2
+ extra-test-objs += $(addsuffix .os,$(strip $(modules-names))) \
+ 		   tst-cleanup4aux.o tst-cleanupx4aux.o
+ test-extras += tst-cleanup4aux tst-cleanupx4aux
+@@ -709,6 +712,16 @@ endif
  
  $(objpfx)tst-compat-forwarder: $(objpfx)tst-compat-forwarder-mod.so
  
 +tst-mutex10-ENV = GLIBC_TUNABLES=glibc.elision.enable=1
++
++# Protect against a build using -Wl,-z,now.
++LDFLAGS-tst-audit-threads-mod1.so = -Wl,-z,lazy
++LDFLAGS-tst-audit-threads-mod2.so = -Wl,-z,lazy
++LDFLAGS-tst-audit-threads = -Wl,-z,lazy
++$(objpfx)tst-audit-threads: $(objpfx)tst-audit-threads-mod2.so
++$(objpfx)tst-audit-threads.out: $(objpfx)tst-audit-threads-mod1.so
++tst-audit-threads-ENV = LD_AUDIT=$(objpfx)tst-audit-threads-mod1.so
 +
  # The tests here better do not run in parallel
  ifneq ($(filter %tests,$(MAKECMDGOALS)),)
@@ -1452,6 +1892,330 @@ index 9ea62943b7..68d04d5395 100644
        private = (robust
  		 ? PTHREAD_ROBUST_MUTEX_PSHARED (mutex)
  		 : PTHREAD_MUTEX_PSHARED (mutex));
+diff --git a/nptl/pthread_rwlock_common.c b/nptl/pthread_rwlock_common.c
+index a290d08332..9ce36d1026 100644
+--- a/nptl/pthread_rwlock_common.c
++++ b/nptl/pthread_rwlock_common.c
+@@ -314,8 +314,8 @@ __pthread_rwlock_rdlock_full (pthread_rwlock_t *rwlock,
+ 		 harmless because the flag is just about the state of
+ 		 __readers, and all threads set the flag under the same
+ 		 conditions.  */
+-	      while ((atomic_load_relaxed (&rwlock->__data.__readers)
+-		  & PTHREAD_RWLOCK_RWAITING) != 0)
++	      while (((r = atomic_load_relaxed (&rwlock->__data.__readers))
++		      & PTHREAD_RWLOCK_RWAITING) != 0)
+ 		{
+ 		  int private = __pthread_rwlock_get_private (rwlock);
+ 		  int err = futex_abstimed_wait (&rwlock->__data.__readers,
+diff --git a/nptl/tst-audit-threads-mod1.c b/nptl/tst-audit-threads-mod1.c
+new file mode 100644
+index 0000000000..615d5ee512
+--- /dev/null
++++ b/nptl/tst-audit-threads-mod1.c
+@@ -0,0 +1,74 @@
++/* Dummy audit library for test-audit-threads.
++
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <elf.h>
++#include <link.h>
++#include <stdio.h>
++#include <assert.h>
++#include <string.h>
++
++/* We must use a dummy LD_AUDIT module to force the dynamic loader to
++   *not* update the real PLT, and instead use a cached value for the
++   lazy resolution result.  It is the update of that cached value that
++   we are testing for correctness by doing this.  */
++
++/* Library to be audited.  */
++#define LIB "tst-audit-threads-mod2.so"
++/* CALLNUM is the number of retNum functions.  */
++#define CALLNUM 7999
++
++#define CONCATX(a, b) __CONCAT (a, b)
++
++static int previous = 0;
++
++unsigned int
++la_version (unsigned int ver)
++{
++  return 1;
++}
++
++unsigned int
++la_objopen (struct link_map *map, Lmid_t lmid, uintptr_t *cookie)
++{
++  return LA_FLG_BINDTO | LA_FLG_BINDFROM;
++}
++
++uintptr_t
++CONCATX(la_symbind, __ELF_NATIVE_CLASS) (ElfW(Sym) *sym,
++					unsigned int ndx,
++					uintptr_t *refcook,
++					uintptr_t *defcook,
++					unsigned int *flags,
++					const char *symname)
++{
++  const char * retnum = "retNum";
++  char * num = strstr (symname, retnum);
++  int n;
++  /* Validate if the symbols are getting called in the correct order.
++     This code is here to verify binutils does not optimize out the PLT
++     entries that require the symbol binding.  */
++  if (num != NULL)
++    {
++      n = atoi (num);
++      assert (n >= previous);
++      assert (n <= CALLNUM);
++      previous = n;
++    }
++  return sym->st_value;
++}
+diff --git a/nptl/tst-audit-threads-mod2.c b/nptl/tst-audit-threads-mod2.c
+new file mode 100644
+index 0000000000..f9817dd3dc
+--- /dev/null
++++ b/nptl/tst-audit-threads-mod2.c
+@@ -0,0 +1,22 @@
++/* Shared object with a huge number of functions for test-audit-threads.
++
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* Define all the retNumN functions in a library.  */
++#define definenum
++#include "tst-audit-threads.h"
+diff --git a/nptl/tst-audit-threads.c b/nptl/tst-audit-threads.c
+new file mode 100644
+index 0000000000..e4bf433bd8
+--- /dev/null
++++ b/nptl/tst-audit-threads.c
+@@ -0,0 +1,97 @@
++/* Test multi-threading using LD_AUDIT.
++
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* This test uses a dummy LD_AUDIT library (test-audit-threads-mod1) and a
++   library with a huge number of functions in order to validate lazy symbol
++   binding with an audit library.  We use one thread per CPU to test that
++   concurrent lazy resolution does not have any defects which would cause
++   the process to fail.  We use an LD_AUDIT library to force the testing of
++   the relocation resolution caching code in the dynamic loader i.e.
++   _dl_runtime_profile and _dl_profile_fixup.  */
++
++#include <support/xthread.h>
++#include <strings.h>
++#include <stdlib.h>
++#include <sys/sysinfo.h>
++
++static int do_test (void);
++
++/* This test usually takes less than 3s to run.  However, there are cases that
++   take up to 30s.  */
++#define TIMEOUT 60
++#define TEST_FUNCTION do_test ()
++#include "../test-skeleton.c"
++
++/* Declare the functions we are going to call.  */
++#define externnum
++#include "tst-audit-threads.h"
++#undef externnum
++
++int num_threads;
++pthread_barrier_t barrier;
++
++void
++sync_all (int num)
++{
++  pthread_barrier_wait (&barrier);
++}
++
++void
++call_all_ret_nums (void)
++{
++  /* Call each function one at a time from all threads.  */
++#define callnum
++#include "tst-audit-threads.h"
++#undef callnum
++}
++
++void *
++thread_main (void *unused)
++{
++  call_all_ret_nums ();
++  return NULL;
++}
++
++#define STR2(X) #X
++#define STR(X) STR2(X)
++
++static int
++do_test (void)
++{
++  int i;
++  pthread_t *threads;
++
++  num_threads = get_nprocs ();
++  if (num_threads <= 1)
++    num_threads = 2;
++
++  /* Used to synchronize all the threads after calling each retNumN.  */
++  xpthread_barrier_init (&barrier, NULL, num_threads);
++
++  threads = (pthread_t *) xcalloc (num_threads, sizeof(pthread_t));
++  for (i = 0; i < num_threads; i++)
++    threads[i] = xpthread_create(NULL, thread_main, NULL);
++
++  for (i = 0; i < num_threads; i++)
++    xpthread_join(threads[i]);
++
++  free (threads);
++
++  return 0;
++}
+diff --git a/nptl/tst-audit-threads.h b/nptl/tst-audit-threads.h
+new file mode 100644
+index 0000000000..1c9ecc08df
+--- /dev/null
++++ b/nptl/tst-audit-threads.h
+@@ -0,0 +1,92 @@
++/* Helper header for test-audit-threads.
++
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* We use this helper to create a large number of functions, all of
++   which will be resolved lazily and thus have their PLT updated.
++   This is done to provide enough functions that we can statistically
++   observe a thread vs. PLT resolution failure if one exists.  */
++
++#define CONCAT(a, b) a ## b
++#define NUM(x, y) CONCAT (x, y)
++
++#define FUNC10(x)	\
++  FUNC (NUM (x, 0));	\
++  FUNC (NUM (x, 1));	\
++  FUNC (NUM (x, 2));	\
++  FUNC (NUM (x, 3));	\
++  FUNC (NUM (x, 4));	\
++  FUNC (NUM (x, 5));	\
++  FUNC (NUM (x, 6));	\
++  FUNC (NUM (x, 7));	\
++  FUNC (NUM (x, 8));	\
++  FUNC (NUM (x, 9))
++
++#define FUNC100(x)	\
++  FUNC10 (NUM (x, 0));	\
++  FUNC10 (NUM (x, 1));	\
++  FUNC10 (NUM (x, 2));	\
++  FUNC10 (NUM (x, 3));	\
++  FUNC10 (NUM (x, 4));	\
++  FUNC10 (NUM (x, 5));	\
++  FUNC10 (NUM (x, 6));	\
++  FUNC10 (NUM (x, 7));	\
++  FUNC10 (NUM (x, 8));	\
++  FUNC10 (NUM (x, 9))
++
++#define FUNC1000(x)		\
++  FUNC100 (NUM (x, 0));		\
++  FUNC100 (NUM (x, 1));		\
++  FUNC100 (NUM (x, 2));		\
++  FUNC100 (NUM (x, 3));		\
++  FUNC100 (NUM (x, 4));		\
++  FUNC100 (NUM (x, 5));		\
++  FUNC100 (NUM (x, 6));		\
++  FUNC100 (NUM (x, 7));		\
++  FUNC100 (NUM (x, 8));		\
++  FUNC100 (NUM (x, 9))
++
++#define FUNC7000()	\
++  FUNC1000 (1);		\
++  FUNC1000 (2);		\
++  FUNC1000 (3);		\
++  FUNC1000 (4);		\
++  FUNC1000 (5);		\
++  FUNC1000 (6);		\
++  FUNC1000 (7);
++
++#ifdef FUNC
++# undef FUNC
++#endif
++
++#ifdef externnum
++# define FUNC(x) extern int CONCAT (retNum, x) (void)
++#endif
++
++#ifdef definenum
++# define FUNC(x) int CONCAT (retNum, x) (void) { return x; }
++#endif
++
++#ifdef callnum
++# define FUNC(x) CONCAT (retNum, x) (); sync_all (x)
++#endif
++
++/* A value of 7000 functions is chosen as an arbitrarily large
++   number of functions that will allow us enough attempts to
++   verify lazy resolution operation.  */
++FUNC7000 ();
 diff --git a/nptl/tst-mutex10.c b/nptl/tst-mutex10.c
 new file mode 100644
 index 0000000000..e1113ca60a
@@ -1566,6 +2330,99 @@ index 0000000000..e1113ca60a
 +}
 +#define CMDLINE_PROCESS cmdline_process
 +#define TIMEOUT 50
++#include <support/test-driver.c>
+diff --git a/nptl/tst-rwlock-pwn.c b/nptl/tst-rwlock-pwn.c
+new file mode 100644
+index 0000000000..c39dd70973
+--- /dev/null
++++ b/nptl/tst-rwlock-pwn.c
+@@ -0,0 +1,87 @@
++/* Test rwlock with PREFER_WRITER_NONRECURSIVE_NP (bug 23861).
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <pthread.h>
++#include <support/xthread.h>
++
++/* We choose 10 iterations because this happens to be able to trigger the
++   stall on contemporary hardware.  */
++#define LOOPS 10
++/* We need 3 threads to trigger bug 23861.  One thread as a writer, and
++   two reader threads.  The test verifies that the second-to-last reader
++   is able to notify the *last* reader that it should be done waiting.
++   If the second-to-last reader fails to notify the last reader or does
++   so incorrectly then the last reader may stall indefinitely.  */
++#define NTHREADS 3
++
++_Atomic int do_exit;
++pthread_rwlockattr_t mylock_attr;
++pthread_rwlock_t mylock;
++
++void *
++run_loop (void *a)
++{
++  while (!do_exit)
++    {
++      if (random () & 1)
++	{
++	  xpthread_rwlock_wrlock (&mylock);
++	  xpthread_rwlock_unlock (&mylock);
++	}
++      else
++	{
++	  xpthread_rwlock_rdlock (&mylock);
++	  xpthread_rwlock_unlock (&mylock);
++	}
++    }
++  return NULL;
++}
++
++int
++do_test (void)
++{
++  xpthread_rwlockattr_init (&mylock_attr);
++  xpthread_rwlockattr_setkind_np (&mylock_attr,
++				  PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP);
++  xpthread_rwlock_init (&mylock, &mylock_attr);
++
++  for (int n = 0; n < LOOPS; n++)
++    {
++      pthread_t tids[NTHREADS];
++      do_exit = 0;
++      for (int i = 0; i < NTHREADS; i++)
++	tids[i] = xpthread_create (NULL, run_loop, NULL);
++      /* Let the threads run for some time.  */
++      sleep (1);
++      printf ("Exiting...");
++      fflush (stdout);
++      do_exit = 1;
++      for (int i = 0; i < NTHREADS; i++)
++	xpthread_join (tids[i]);
++      printf ("done.\n");
++    }
++  pthread_rwlock_destroy (&mylock);
++  pthread_rwlockattr_destroy (&mylock_attr);
++  return 0;
++}
++
++#define TIMEOUT (DEFAULT_TIMEOUT + 3 * LOOPS)
 +#include <support/test-driver.c>
 diff --git a/nscd/initgrcache.c b/nscd/initgrcache.c
 index 2c74951f57..4764f14a45 100644
@@ -2610,7 +3467,7 @@ index 8d99716ff3..5861b01b73 100644
  
    do_test (0, 0, page_size - 1, 16, 0);
 diff --git a/support/Makefile b/support/Makefile
-index 652d2cdf69..50470fb749 100644
+index 652d2cdf69..550fdba0f7 100644
 --- a/support/Makefile
 +++ b/support/Makefile
 @@ -25,6 +25,7 @@ extra-libs-others = $(extra-libs)
@@ -2621,20 +3478,41 @@ index 652d2cdf69..50470fb749 100644
    check \
    check_addrinfo \
    check_dns_packet \
-@@ -154,6 +155,7 @@ endif
+@@ -43,6 +44,7 @@ libsupport-routines = \
+   support_capture_subprocess \
+   support_capture_subprocess_check \
+   support_chroot \
++  support_descriptors \
+   support_enter_mount_namespace \
+   support_enter_network_namespace \
+   support_format_address_family \
+@@ -54,6 +56,7 @@ libsupport-routines = \
+   support_isolate_in_subprocess \
+   support_openpty \
+   support_quote_blob \
++  support_quote_string \
+   support_record_failure \
+   support_run_diff \
+   support_shared_allocate \
+@@ -154,9 +157,12 @@ endif
  tests = \
    README-testing \
    tst-support-namespace \
 +  tst-support_blob_repeat \
    tst-support_capture_subprocess \
++  tst-support_descriptors \
    tst-support_format_dns_packet \
    tst-support_quote_blob \
++  tst-support_quote_string \
+   tst-support_record_failure \
+   tst-test_compare \
+   tst-test_compare_blob \
 diff --git a/support/blob_repeat.c b/support/blob_repeat.c
 new file mode 100644
-index 0000000000..16c1e448b9
+index 0000000000..718846d81d
 --- /dev/null
 +++ b/support/blob_repeat.c
-@@ -0,0 +1,282 @@
+@@ -0,0 +1,302 @@
 +/* Repeating a memory blob, with alias mapping optimization.
 +   Copyright (C) 2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -2670,6 +3548,26 @@ index 0000000000..16c1e448b9
 +/* Small allocations should use malloc directly instead of the mmap
 +   optimization because mappings carry a lot of overhead.  */
 +static const size_t maximum_small_size = 4 * 1024 * 1024;
++
++/* Set *RESULT to LEFT * RIGHT.  Return true if the multiplication
++   overflowed.  See <malloc/malloc-internal.h>.  */
++static inline bool
++check_mul_overflow_size_t (size_t left, size_t right, size_t *result)
++{
++#if __GNUC__ >= 5
++  return __builtin_mul_overflow (left, right, result);
++#else
++  /* size_t is unsigned so the behavior on overflow is defined.  */
++  *result = left * right;
++  size_t half_size_t = ((size_t) 1) << (8 * sizeof (size_t) / 2);
++  if (__glibc_unlikely ((left | right) >= half_size_t))
++    {
++      if (__glibc_unlikely (right != 0 && *result / right != left))
++        return true;
++    }
++  return false;
++#endif
++}
 +
 +/* Internal helper for fill.  */
 +static void
@@ -2755,8 +3653,8 @@ index 0000000000..16c1e448b9
 +     common multiple, it appears only once.  Therefore, shift one
 +     factor.  */
 +  size_t multiple;
-+  if (__builtin_mul_overflow (page_size >> common_zeros, element_size,
-+                              &multiple))
++  if (check_mul_overflow_size_t (page_size >> common_zeros, element_size,
++                                 &multiple))
 +    return 0;
 +  return multiple;
 +}
@@ -2892,7 +3790,7 @@ index 0000000000..16c1e448b9
 +                              size_t count)
 +{
 +  size_t total_size;
-+  if (__builtin_mul_overflow (element_size, count, &total_size))
++  if (check_mul_overflow_size_t (element_size, count, &total_size))
 +    {
 +      errno = EOVERFLOW;
 +      return (struct support_blob_repeat) { 0 };
@@ -2967,6 +3865,444 @@ index 0000000000..8e9d7ff5f1
 +void support_blob_repeat_free (struct support_blob_repeat *);
 +
 +#endif /* SUPPORT_BLOB_REPEAT_H */
+diff --git a/support/check.h b/support/check.h
+index b3a4645e92..10468b74d8 100644
+--- a/support/check.h
++++ b/support/check.h
+@@ -170,6 +170,10 @@ int support_report_failure (int status)
+ /* Internal function used to test the failure recording framework.  */
+ void support_record_failure_reset (void);
+ 
++/* Returns true or false depending on whether there have been test
++   failures or not.  */
++int support_record_failure_is_failed (void);
++
+ __END_DECLS
+ 
+ #endif /* SUPPORT_CHECK_H */
+diff --git a/support/descriptors.h b/support/descriptors.h
+new file mode 100644
+index 0000000000..8ec4cbbdfb
+--- /dev/null
++++ b/support/descriptors.h
+@@ -0,0 +1,47 @@
++/* Monitoring file descriptor usage.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef SUPPORT_DESCRIPTORS_H
++#define SUPPORT_DESCRIPTORS_H
++
++#include <stdio.h>
++
++/* Opaque pointer, for capturing file descriptor lists.  */
++struct support_descriptors;
++
++/* Record the currently open file descriptors and store them in the
++   returned list.  Terminate the process if the listing operation
++   fails.  */
++struct support_descriptors *support_descriptors_list (void);
++
++/* Deallocate the list of descriptors.  */
++void support_descriptors_free (struct support_descriptors *);
++
++/* Write the list of descriptors to STREAM, adding PREFIX to each
++   line.  */
++void support_descriptors_dump (struct support_descriptors *,
++                               const char *prefix, FILE *stream);
++
++/* Check for file descriptor leaks and other file descriptor changes:
++   Compare the current list of descriptors with the passed list.
++   Record a test failure if there are additional open descriptors,
++   descriptors have been closed, or if a change in file descriptor can
++   be detected.  */
++void support_descriptors_check (struct support_descriptors *);
++
++#endif /* SUPPORT_DESCRIPTORS_H */
+diff --git a/support/support.h b/support/support.h
+index b61fe0735c..4ea92e1c21 100644
+--- a/support/support.h
++++ b/support/support.h
+@@ -65,6 +65,11 @@ void support_write_file_string (const char *path, const char *contents);
+    the result).  */
+ char *support_quote_blob (const void *blob, size_t length);
+ 
++/* Quote the contents of the string, in such a way that the result
++   string can be included in a C literal (in single/double quotes,
++   without putting the quotes into the result).  */
++char *support_quote_string (const char *);
++
+ /* Error-checking wrapper functions which terminate the process on
+    error.  */
+ 
+diff --git a/support/support_capture_subprocess.c b/support/support_capture_subprocess.c
+index 6d2029e13b..93f6ea3102 100644
+--- a/support/support_capture_subprocess.c
++++ b/support/support_capture_subprocess.c
+@@ -59,8 +59,12 @@ support_capture_subprocess (void (*callback) (void *), void *closure)
+ 
+   int stdout_pipe[2];
+   xpipe (stdout_pipe);
++  TEST_VERIFY (stdout_pipe[0] > STDERR_FILENO);
++  TEST_VERIFY (stdout_pipe[1] > STDERR_FILENO);
+   int stderr_pipe[2];
+   xpipe (stderr_pipe);
++  TEST_VERIFY (stderr_pipe[0] > STDERR_FILENO);
++  TEST_VERIFY (stderr_pipe[1] > STDERR_FILENO);
+ 
+   TEST_VERIFY (fflush (stdout) == 0);
+   TEST_VERIFY (fflush (stderr) == 0);
+@@ -72,6 +76,8 @@ support_capture_subprocess (void (*callback) (void *), void *closure)
+       xclose (stderr_pipe[0]);
+       xdup2 (stdout_pipe[1], STDOUT_FILENO);
+       xdup2 (stderr_pipe[1], STDERR_FILENO);
++      xclose (stdout_pipe[1]);
++      xclose (stderr_pipe[1]);
+       callback (closure);
+       _exit (0);
+     }
+diff --git a/support/support_descriptors.c b/support/support_descriptors.c
+new file mode 100644
+index 0000000000..d66cf55080
+--- /dev/null
++++ b/support/support_descriptors.c
+@@ -0,0 +1,274 @@
++/* Monitoring file descriptor usage.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <dirent.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <support/check.h>
++#include <support/support.h>
++#include <sys/stat.h>
++#include <sys/sysmacros.h>
++#include <xunistd.h>
++
++struct procfs_descriptor
++{
++  int fd;
++  char *link_target;
++  dev_t dev;
++  ino64_t ino;
++};
++
++/* Used with qsort.  */
++static int
++descriptor_compare (const void *l, const void *r)
++{
++  const struct procfs_descriptor *left = l;
++  const struct procfs_descriptor *right = r;
++  /* Cannot overflow due to limited file descriptor range.  */
++  return left->fd - right->fd;
++}
++
++#define DYNARRAY_STRUCT descriptor_list
++#define DYNARRAY_ELEMENT struct procfs_descriptor
++#define DYNARRAY_PREFIX descriptor_list_
++#define DYNARRAY_ELEMENT_FREE(e) free ((e)->link_target)
++#define DYNARRAY_INITIAL_SIZE 0
++#include <malloc/dynarray-skeleton.c>
++
++struct support_descriptors
++{
++  struct descriptor_list list;
++};
++
++struct support_descriptors *
++support_descriptors_list (void)
++{
++  struct support_descriptors *result = xmalloc (sizeof (*result));
++  descriptor_list_init (&result->list);
++
++  DIR *fds = opendir ("/proc/self/fd");
++  if (fds == NULL)
++    FAIL_EXIT1 ("opendir (\"/proc/self/fd\"): %m");
++
++  while (true)
++    {
++      errno = 0;
++      struct dirent64 *e = readdir64 (fds);
++      if (e == NULL)
++        {
++          if (errno != 0)
++            FAIL_EXIT1 ("readdir: %m");
++          break;
++        }
++
++      if (e->d_name[0] == '.')
++        continue;
++
++      char *endptr;
++      long int fd = strtol (e->d_name, &endptr, 10);
++      if (*endptr != '\0' || fd < 0 || fd > INT_MAX)
++        FAIL_EXIT1 ("readdir: invalid file descriptor name: /proc/self/fd/%s",
++                    e->d_name);
++
++      /* Skip the descriptor which is used to enumerate the
++         descriptors.  */
++      if (fd == dirfd (fds))
++        continue;
++
++      char *target;
++      {
++        char *path = xasprintf ("/proc/self/fd/%ld", fd);
++        target = xreadlink (path);
++        free (path);
++      }
++      struct stat64 st;
++      if (fstat64 (fd, &st) != 0)
++        FAIL_EXIT1 ("readdir: fstat64 (%ld) failed: %m", fd);
++
++      struct procfs_descriptor *item = descriptor_list_emplace (&result->list);
++      if (item == NULL)
++        FAIL_EXIT1 ("descriptor_list_emplace: %m");
++      item->fd = fd;
++      item->link_target = target;
++      item->dev = st.st_dev;
++      item->ino = st.st_ino;
++    }
++
++  closedir (fds);
++
++  /* Perform a merge join between descrs and current.  This assumes
++     that the arrays are sorted by file descriptor.  */
++
++  qsort (descriptor_list_begin (&result->list),
++         descriptor_list_size (&result->list),
++         sizeof (struct procfs_descriptor), descriptor_compare);
++
++  return result;
++}
++
++void
++support_descriptors_free (struct support_descriptors *descrs)
++{
++  descriptor_list_free (&descrs->list);
++  free (descrs);
++}
++
++void
++support_descriptors_dump (struct support_descriptors *descrs,
++                          const char *prefix, FILE *fp)
++{
++  struct procfs_descriptor *end = descriptor_list_end (&descrs->list);
++  for (struct procfs_descriptor *d = descriptor_list_begin (&descrs->list);
++       d != end; ++d)
++    {
++      char *quoted = support_quote_string (d->link_target);
++      fprintf (fp, "%s%d: target=\"%s\" major=%lld minor=%lld ino=%lld\n",
++               prefix, d->fd, quoted,
++               (long long int) major (d->dev),
++               (long long int) minor (d->dev),
++               (long long int) d->ino);
++      free (quoted);
++    }
++}
++
++static void
++dump_mismatch (bool *first,
++               struct support_descriptors *descrs,
++               struct support_descriptors *current)
++{
++  if (*first)
++    *first = false;
++  else
++    return;
++
++  puts ("error: Differences found in descriptor set");
++  puts ("Reference descriptor set:");
++  support_descriptors_dump (descrs, "  ", stdout);
++  puts ("Current descriptor set:");
++  support_descriptors_dump (current, "  ", stdout);
++  puts ("Differences:");
++}
++
++static void
++report_closed_descriptor (bool *first,
++                          struct support_descriptors *descrs,
++                          struct support_descriptors *current,
++                          struct procfs_descriptor *left)
++{
++  support_record_failure ();
++  dump_mismatch (first, descrs, current);
++  printf ("error: descriptor %d was closed\n", left->fd);
++}
++
++static void
++report_opened_descriptor (bool *first,
++                          struct support_descriptors *descrs,
++                          struct support_descriptors *current,
++                          struct procfs_descriptor *right)
++{
++  support_record_failure ();
++  dump_mismatch (first, descrs, current);
++  char *quoted = support_quote_string (right->link_target);
++  printf ("error: descriptor %d was opened (\"%s\")\n", right->fd, quoted);
++  free (quoted);
++}
++
++void
++support_descriptors_check (struct support_descriptors *descrs)
++{
++  struct support_descriptors *current = support_descriptors_list ();
++
++  /* Perform a merge join between descrs and current.  This assumes
++     that the arrays are sorted by file descriptor.  */
++
++  struct procfs_descriptor *left = descriptor_list_begin (&descrs->list);
++  struct procfs_descriptor *left_end = descriptor_list_end (&descrs->list);
++  struct procfs_descriptor *right = descriptor_list_begin (&current->list);
++  struct procfs_descriptor *right_end = descriptor_list_end (&current->list);
++
++  bool first = true;
++  while (left != left_end && right != right_end)
++    {
++      if (left->fd == right->fd)
++        {
++          if (strcmp (left->link_target, right->link_target) != 0)
++            {
++              support_record_failure ();
++              char *left_quoted = support_quote_string (left->link_target);
++              char *right_quoted = support_quote_string (right->link_target);
++              dump_mismatch (&first, descrs, current);
++              printf ("error: descriptor %d changed from \"%s\" to \"%s\"\n",
++                      left->fd, left_quoted, right_quoted);
++              free (left_quoted);
++              free (right_quoted);
++            }
++          if (left->dev != right->dev)
++            {
++              support_record_failure ();
++              dump_mismatch (&first, descrs, current);
++              printf ("error: descriptor %d changed device"
++                      " from %lld:%lld to %lld:%lld\n",
++                      left->fd,
++                      (long long int) major (left->dev),
++                      (long long int) minor (left->dev),
++                      (long long int) major (right->dev),
++                      (long long int) minor (right->dev));
++            }
++          if (left->ino != right->ino)
++            {
++              support_record_failure ();
++              dump_mismatch (&first, descrs, current);
++              printf ("error: descriptor %d changed ino from %lld to %lld\n",
++                      left->fd,
++                      (long long int) left->ino, (long long int) right->ino);
++            }
++          ++left;
++          ++right;
++        }
++      else if (left->fd < right->fd)
++        {
++          /* Gap on the right.  */
++          report_closed_descriptor (&first, descrs, current, left);
++          ++left;
++        }
++      else
++        {
++          /* Gap on the left.  */
++          TEST_VERIFY_EXIT (left->fd > right->fd);
++          report_opened_descriptor (&first, descrs, current, right);
++          ++right;
++        }
++    }
++
++  while (left != left_end)
++    {
++      /* Closed descriptors (more descriptors on the left).  */
++      report_closed_descriptor (&first, descrs, current, left);
++      ++left;
++    }
++
++  while (right != right_end)
++    {
++      /* Opened descriptors (more descriptors on the right).  */
++      report_opened_descriptor (&first, descrs, current, right);
++      ++right;
++    }
++
++  support_descriptors_free (current);
++}
+diff --git a/support/support_quote_string.c b/support/support_quote_string.c
+new file mode 100644
+index 0000000000..d324371b13
+--- /dev/null
++++ b/support/support_quote_string.c
+@@ -0,0 +1,26 @@
++/* Quote a string so that it can be used in C literals.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <string.h>
++#include <support/support.h>
++
++char *
++support_quote_string (const char *str)
++{
++  return support_quote_blob (str, strlen (str));
++}
+diff --git a/support/support_record_failure.c b/support/support_record_failure.c
+index 356798f556..17ab1d80ef 100644
+--- a/support/support_record_failure.c
++++ b/support/support_record_failure.c
+@@ -104,3 +104,11 @@ support_record_failure_reset (void)
+   __atomic_store_n (&state->failed, 0, __ATOMIC_RELAXED);
+   __atomic_add_fetch (&state->counter, 0, __ATOMIC_RELAXED);
+ }
++
++int
++support_record_failure_is_failed (void)
++{
++  /* Relaxed MO is sufficient because we need (blocking) external
++     synchronization for reliable test error reporting anyway.  */
++  return __atomic_load_n (&state->failed, __ATOMIC_RELAXED);
++}
 diff --git a/support/support_test_main.c b/support/support_test_main.c
 index 23429779ac..fa3c2e06de 100644
 --- a/support/support_test_main.c
@@ -3113,6 +4449,276 @@ index 0000000000..1978c14488
 +            }
 +    }
 +  support_blob_repeat_free (&repeat);
++
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/support/tst-support_descriptors.c b/support/tst-support_descriptors.c
+new file mode 100644
+index 0000000000..5e9e824bc3
+--- /dev/null
++++ b/support/tst-support_descriptors.c
+@@ -0,0 +1,198 @@
++/* Tests for monitoring file descriptor usage.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <fcntl.h>
++#include <stdbool.h>
++#include <stdlib.h>
++#include <string.h>
++#include <support/capture_subprocess.h>
++#include <support/check.h>
++#include <support/descriptors.h>
++#include <support/support.h>
++#include <support/xunistd.h>
++
++/* This is the next free descriptor that the subprocess will pick.  */
++static int free_descriptor;
++
++static void
++subprocess_no_change (void *closure)
++{
++  struct support_descriptors *descrs = support_descriptors_list ();
++  int fd = xopen ("/dev/null", O_WRONLY, 0);
++  TEST_COMPARE (fd, free_descriptor);
++  xclose (fd);
++  support_descriptors_free (descrs);
++}
++
++static void
++subprocess_closed_descriptor (void *closure)
++{
++  int fd = xopen ("/dev/null", O_WRONLY, 0);
++  TEST_COMPARE (fd, free_descriptor);
++  struct support_descriptors *descrs = support_descriptors_list ();
++  xclose (fd);
++  support_descriptors_check (descrs); /* Will report failure.  */
++  puts ("EOT");
++  support_descriptors_free (descrs);
++}
++
++static void
++subprocess_opened_descriptor (void *closure)
++{
++  struct support_descriptors *descrs = support_descriptors_list ();
++  int fd = xopen ("/dev/null", O_WRONLY, 0);
++  TEST_COMPARE (fd, free_descriptor);
++  support_descriptors_check (descrs); /* Will report failure.  */
++  puts ("EOT");
++  support_descriptors_free (descrs);
++}
++
++static void
++subprocess_changed_descriptor (void *closure)
++{
++  int fd = xopen ("/dev/null", O_WRONLY, 0);
++  TEST_COMPARE (fd, free_descriptor);
++  struct support_descriptors *descrs = support_descriptors_list ();
++  xclose (fd);
++  TEST_COMPARE (xopen ("/dev", O_DIRECTORY | O_RDONLY, 0), fd);
++  support_descriptors_check (descrs); /* Will report failure.  */
++  puts ("EOT");
++  support_descriptors_free (descrs);
++}
++
++static void
++report_subprocess_output (const char *name,
++                          struct support_capture_subprocess *proc)
++{
++  printf ("info: BEGIN %s output\n"
++          "%s"
++          "info: END %s output\n",
++          name, proc->out.buffer, name);
++}
++
++/* Use an explicit flag to preserve failure status across
++   support_record_failure_reset calls.  */
++static bool good = true;
++
++static void
++test_run (void)
++{
++  struct support_capture_subprocess proc = support_capture_subprocess
++    (&subprocess_no_change, NULL);
++  support_capture_subprocess_check (&proc, "subprocess_no_change",
++                                    0, sc_allow_none);
++  support_capture_subprocess_free (&proc);
++
++  char *expected = xasprintf ("\nDifferences:\n"
++                              "error: descriptor %d was closed\n"
++                              "EOT\n",
++                              free_descriptor);
++  good = good && !support_record_failure_is_failed ();
++  proc = support_capture_subprocess (&subprocess_closed_descriptor, NULL);
++  good = good && support_record_failure_is_failed ();
++  support_record_failure_reset (); /* Discard the reported error.  */
++  report_subprocess_output ("subprocess_closed_descriptor", &proc);
++  TEST_VERIFY (strstr (proc.out.buffer, expected) != NULL);
++  support_capture_subprocess_check (&proc, "subprocess_closed_descriptor",
++                                    0, sc_allow_stdout);
++  support_capture_subprocess_free (&proc);
++  free (expected);
++
++  expected = xasprintf ("\nDifferences:\n"
++                        "error: descriptor %d was opened (\"/dev/null\")\n"
++                        "EOT\n",
++                        free_descriptor);
++  good = good && !support_record_failure_is_failed ();
++  proc = support_capture_subprocess (&subprocess_opened_descriptor, NULL);
++  good = good && support_record_failure_is_failed ();
++  support_record_failure_reset (); /* Discard the reported error.  */
++  report_subprocess_output ("subprocess_opened_descriptor", &proc);
++  TEST_VERIFY (strstr (proc.out.buffer, expected) != NULL);
++  support_capture_subprocess_check (&proc, "subprocess_opened_descriptor",
++                                    0, sc_allow_stdout);
++  support_capture_subprocess_free (&proc);
++  free (expected);
++
++  expected = xasprintf ("\nDifferences:\n"
++                        "error: descriptor %d changed from \"/dev/null\""
++                        " to \"/dev\"\n"
++                        "error: descriptor %d changed ino ",
++                        free_descriptor, free_descriptor);
++  good = good && !support_record_failure_is_failed ();
++  proc = support_capture_subprocess (&subprocess_changed_descriptor, NULL);
++  good = good && support_record_failure_is_failed ();
++  support_record_failure_reset (); /* Discard the reported error.  */
++  report_subprocess_output ("subprocess_changed_descriptor", &proc);
++  TEST_VERIFY (strstr (proc.out.buffer, expected) != NULL);
++  support_capture_subprocess_check (&proc, "subprocess_changed_descriptor",
++                                    0, sc_allow_stdout);
++  support_capture_subprocess_free (&proc);
++  free (expected);
++}
++
++static int
++do_test (void)
++{
++  puts ("info: initial descriptor set");
++  {
++    struct support_descriptors *descrs = support_descriptors_list ();
++    support_descriptors_dump (descrs, "info:  ", stdout);
++    support_descriptors_free (descrs);
++  }
++
++  free_descriptor = xopen ("/dev/null", O_WRONLY, 0);
++  puts ("info: descriptor set with additional free descriptor");
++  {
++    struct support_descriptors *descrs = support_descriptors_list ();
++    support_descriptors_dump (descrs, "info:  ", stdout);
++    support_descriptors_free (descrs);
++  }
++  TEST_VERIFY (free_descriptor >= 3);
++  xclose (free_descriptor);
++
++  /* Initial test run without a sentinel descriptor.  The presence of
++     such a descriptor exercises different conditions in the list
++     comparison in support_descriptors_check.  */
++  test_run ();
++
++  /* Allocate a sentinel descriptor at the end of the descriptor list,
++     after free_descriptor.  */
++  int sentinel_fd;
++  {
++    int fd = xopen ("/dev/full", O_WRONLY, 0);
++    TEST_COMPARE (fd, free_descriptor);
++    sentinel_fd = dup (fd);
++    TEST_VERIFY_EXIT (sentinel_fd > fd);
++    xclose (fd);
++  }
++  puts ("info: descriptor set with sentinel descriptor");
++  {
++    struct support_descriptors *descrs = support_descriptors_list ();
++    support_descriptors_dump (descrs, "info:  ", stdout);
++    support_descriptors_free (descrs);
++  }
++
++  /* Second test run with sentinel descriptor.  */
++  test_run ();
++
++  xclose (sentinel_fd);
++
++  return !good;
++}
++
++#include <support/test-driver.c>
+diff --git a/support/tst-support_quote_string.c b/support/tst-support_quote_string.c
+new file mode 100644
+index 0000000000..3c004759b7
+--- /dev/null
++++ b/support/tst-support_quote_string.c
+@@ -0,0 +1,60 @@
++/* Test the support_quote_string function.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <support/check.h>
++#include <support/support.h>
++#include <string.h>
++#include <stdlib.h>
++
++static int
++do_test (void)
++{
++  char *p = support_quote_string ("");
++  TEST_COMPARE (strlen (p), 0);
++  free (p);
++  p = support_quote_string ("X");
++  TEST_COMPARE (strlen (p), 1);
++  TEST_COMPARE (p[0], 'X');
++  free (p);
++
++  /* Check escaping of backslash-escaped characters, and lack of
++     escaping for other shell meta-characters.  */
++  p = support_quote_string ("$()*?`@[]{}~\'\"X");
++  TEST_COMPARE (strcmp (p, "$()*?`@[]{}~\\'\\\"X"), 0);
++  free (p);
++
++  /* Check lack of escaping for letters and digits.  */
++#define LETTERS_AND_DIGTS                       \
++  "abcdefghijklmnopqrstuvwxyz"                  \
++  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"                  \
++  "0123456789"
++  p = support_quote_string (LETTERS_AND_DIGTS "@");
++  TEST_COMPARE (strcmp (p, LETTERS_AND_DIGTS "@"), 0);
++  free (p);
++
++  /* Check escaping of control characters and other non-printable
++     characters.  */
++  p = support_quote_string ("\r\n\t\a\b\f\v\1\177\200\377@");
++  TEST_COMPARE (strcmp (p, "\\r\\n\\t\\a\\b\\f\\v\\001"
++                        "\\177\\200\\377@"), 0);
++  free (p);
 +
 +  return 0;
 +}
@@ -3477,6 +5083,59 @@ index a7368b2582..61d0e4cf61 100644
  }
  
  #endif /* dl-irel.h */
+diff --git a/sysdeps/powerpc/powerpc64/addmul_1.S b/sysdeps/powerpc/powerpc64/addmul_1.S
+index 48e3b1b290..e450d6a52c 100644
+--- a/sysdeps/powerpc/powerpc64/addmul_1.S
++++ b/sysdeps/powerpc/powerpc64/addmul_1.S
+@@ -34,16 +34,27 @@
+ #define N   r5
+ #define VL  r6
+ 
++#define R27SAVE  (-40)
++#define R28SAVE  (-32)
++#define R29SAVE  (-24)
++#define R30SAVE  (-16)
++#define R31SAVE  (-8)
++
+ ENTRY_TOCLESS (FUNC, 5)
+-	std	r31, -8(r1)
++	std	r31, R31SAVE(r1)
+ 	rldicl.	r0, N, 0, 62
+-	std	r30, -16(r1)
++	std	r30, R30SAVE(r1)
+ 	cmpdi	VL, r0, 2
+-	std	r29, -24(r1)
++	std	r29, R29SAVE(r1)
+ 	addi	N, N, 3
+-	std	r28, -32(r1)
++	std	r28, R28SAVE(r1)
+ 	srdi	N, N, 2
+-	std	r27, -40(r1)
++	std	r27, R27SAVE(r1)
++	cfi_offset(r31, R31SAVE)
++	cfi_offset(r30, R30SAVE)
++	cfi_offset(r29, R29SAVE)
++	cfi_offset(r28, R28SAVE)
++	cfi_offset(r27, R27SAVE)
+ 	mtctr	N
+ 	beq	cr0, L(b00)
+ 	blt	cr6, L(b01)
+@@ -199,10 +210,10 @@ L(end):	mulld	r0, r9, VL
+ 	addic	r11, r11, 1
+ #endif
+ 	addze	RP, r8
+-	ld	r31, -8(r1)
+-	ld	r30, -16(r1)
+-	ld	r29, -24(r1)
+-	ld	r28, -32(r1)
+-	ld	r27, -40(r1)
++	ld	r31, R31SAVE(r1)
++	ld	r30, R30SAVE(r1)
++	ld	r29, R29SAVE(r1)
++	ld	r28, R28SAVE(r1)
++	ld	r27, R27SAVE(r1)
+ 	blr
+ END(FUNC)
 diff --git a/sysdeps/powerpc/powerpc64/dl-irel.h b/sysdeps/powerpc/powerpc64/dl-irel.h
 index ab13c04358..2fd0ee8a86 100644
 --- a/sysdeps/powerpc/powerpc64/dl-irel.h
@@ -3490,6 +5149,70 @@ index ab13c04358..2fd0ee8a86 100644
  }
  
  #endif /* dl-irel.h */
+diff --git a/sysdeps/powerpc/powerpc64/lshift.S b/sysdeps/powerpc/powerpc64/lshift.S
+index 8b6396ee6c..855d6f2993 100644
+--- a/sysdeps/powerpc/powerpc64/lshift.S
++++ b/sysdeps/powerpc/powerpc64/lshift.S
+@@ -26,11 +26,15 @@
+ #define TNC      r0
+ #define U0      r30
+ #define U1      r31
++#define U0SAVE  (-16)
++#define U1SAVE  (-8)
+ #define RETVAL   r5
+ 
+ ENTRY_TOCLESS (__mpn_lshift, 5)
+-	std	U1, -8(r1)
+-	std	U0, -16(r1)
++	std	U1, U1SAVE(r1)
++	std	U0, U0SAVE(r1)
++	cfi_offset(U1, U1SAVE)
++	cfi_offset(U0, U0SAVE)
+ 	subfic	TNC, CNT, 64
+ 	sldi	r7, N, RP
+ 	add	UP, UP, r7
+@@ -170,8 +174,8 @@ L(cj3):	or	r10, r12, r7
+ L(cj2):	std	r10, -32(RP)
+ 	std	r8, -40(RP)
+ 
+-L(ret):	ld	U1, -8(r1)
+-	ld	U0, -16(r1)
++L(ret):	ld	U1, U1SAVE(r1)
++	ld	U0, U0SAVE(r1)
+ 	mr	RP, RETVAL
+ 	blr
+ END(__mpn_lshift)
+diff --git a/sysdeps/powerpc/powerpc64/mul_1.S b/sysdeps/powerpc/powerpc64/mul_1.S
+index 953ded8028..cade365258 100644
+--- a/sysdeps/powerpc/powerpc64/mul_1.S
++++ b/sysdeps/powerpc/powerpc64/mul_1.S
+@@ -24,9 +24,14 @@
+ #define N   r5
+ #define VL  r6
+ 
++#define R26SAVE  (-48)
++#define R27SAVE  (-40)
++
+ ENTRY_TOCLESS (__mpn_mul_1, 5)
+-	std	r27, -40(r1)
+-	std	r26, -48(r1)
++	std	r27, R27SAVE(r1)
++	std	r26, R26SAVE(r1)
++	cfi_offset(r27, R27SAVE)
++	cfi_offset(r26, R26SAVE)
+ 	li	r12, 0
+ 	ld	r26, 0(UP)
+ 
+@@ -129,7 +134,7 @@ L(end):	mulld	r0, r26, VL
+ 	std	r0, 0(RP)
+ 	std	r7, 8(RP)
+ L(ret):	addze	RP, r8
+-	ld	r27, -40(r1)
+-	ld	r26, -48(r1)
++	ld	r27, R27SAVE(r1)
++	ld	r26, R26SAVE(r1)
+ 	blr
+ END(__mpn_mul_1)
 diff --git a/sysdeps/riscv/rv64/rvd/libm-test-ulps b/sysdeps/riscv/rv64/rvd/libm-test-ulps
 index f8feadcd0d..61be2df60d 100644
 --- a/sysdeps/riscv/rv64/rvd/libm-test-ulps
@@ -3562,6 +5285,31 @@ index cdb7858fc8..ca587620cb 100644
  }
  
  #define libc_feholdexcept_setround  libc_feholdexcept_setround_riscv
+diff --git a/sysdeps/riscv/start.S b/sysdeps/riscv/start.S
+index 4635ddb5eb..2d6f06e630 100644
+--- a/sysdeps/riscv/start.S
++++ b/sysdeps/riscv/start.S
+@@ -43,6 +43,10 @@
+    __libc_start_main wants this in a5.  */
+ 
+ ENTRY (ENTRY_POINT)
++	/* Terminate call stack by noting ra is undefined.  Use a dummy
++	   .cfi_label to force starting the FDE.  */
++	.cfi_label .Ldummy
++	cfi_undefined (ra)
+ 	call  .Lload_gp
+ 	mv    a5, a0  /* rtld_fini.  */
+ 	/* main may be in a shared library.  */
+@@ -54,7 +58,8 @@ ENTRY (ENTRY_POINT)
+ 	lla   a4, __libc_csu_fini
+ 	mv    a6, sp  /* stack_end.  */
+ 
+-	tail  __libc_start_main@plt
++	call  __libc_start_main@plt
++	ebreak
+ END (ENTRY_POINT)
+ 
+ /* Dynamic links need the global pointer to be initialized prior to calling
 diff --git a/sysdeps/s390/dl-irel.h b/sysdeps/s390/dl-irel.h
 index d8ba7ba427..ecb24f0a9b 100644
 --- a/sysdeps/s390/dl-irel.h
@@ -3627,10 +5375,10 @@ index 33766d1813..43c4e009a4 100644
  	  } _sigpoll;
  
 diff --git a/sysdeps/unix/sysv/linux/getdents64.c b/sysdeps/unix/sysv/linux/getdents64.c
-index 3bde0cf4f0..bc140b5a7f 100644
+index 3bde0cf4f0..46eb5f4419 100644
 --- a/sysdeps/unix/sysv/linux/getdents64.c
 +++ b/sysdeps/unix/sysv/linux/getdents64.c
-@@ -33,41 +33,80 @@ strong_alias (__getdents64, __getdents)
+@@ -33,41 +33,90 @@ strong_alias (__getdents64, __getdents)
  # include <shlib-compat.h>
  
  # if SHLIB_COMPAT(libc, GLIBC_2_1, GLIBC_2_2)
@@ -3652,14 +5400,14 @@ index 3bde0cf4f0..bc140b5a7f 100644
 -};
 +  /* If this is the first entry in the buffer, we can report the
 +     error.  */
-+  if (count == 0)
++  if (offset == 0)
 +    {
 +      __set_errno (EOVERFLOW);
 +      return -1;
 +    }
 +
 +  /* Otherwise, seek to the overflowing entry, so that the next call
-+     will report the error, and return the data read so far..  */
++     will report the error, and return the data read so far.  */
 +  if (__lseek64 (fd, offset, SEEK_SET) != 0)
 +    return -1;
 +  return count;
@@ -3689,7 +5437,15 @@ index 3bde0cf4f0..bc140b5a7f 100644
 -	struct compat_linux_dirent k;
 -	struct dirent u;
 -      } *kbuf = (void *) buf;
--
++      /* This is the marker for the first entry.  Offset 0 is reserved
++	 for the first entry (see rewinddir).  Here, we use it as a
++	 marker for the first entry in the buffer.  We never actually
++	 seek to offset 0 because handle_overflow reports the error
++	 directly, so it does not matter that the offset is incorrect
++	 if entries have been read from the descriptor before (so that
++	 the descriptor is not actually at offset 0).  */
++      __off64_t previous_offset = 0;
+ 
 -      while ((char *) kbuf < buf + retval)
 +      char *p = buf;
 +      char *end = buf + retval;
@@ -3709,7 +5465,7 @@ index 3bde0cf4f0..bc140b5a7f 100644
 +
 +	  /* Check for ino_t overflow.  */
 +	  if (__glibc_unlikely (ino != source->d_ino))
-+	    return handle_overflow (fd, offset, p - buf);
++	    return handle_overflow (fd, previous_offset, p - buf);
 +
 +	  /* Convert to the target layout.  Use a separate struct and
 +	     memcpy to side-step aliasing issues.  */
@@ -3733,6 +5489,7 @@ index 3bde0cf4f0..bc140b5a7f 100644
  
 -	  kbuf = (void *) ((char *) kbuf + kbuf->k.d_reclen);
 +	  p += reclen;
++	  previous_offset = offset;
  	}
       }
    return retval;
@@ -4040,10 +5797,10 @@ index 5306d538e6..f88001c9c3 100644
  rt_sigprocmask
 diff --git a/sysdeps/unix/sysv/linux/tst-readdir64-compat.c b/sysdeps/unix/sysv/linux/tst-readdir64-compat.c
 new file mode 100644
-index 0000000000..43c4a8477c
+index 0000000000..cb78bc9be4
 --- /dev/null
 +++ b/sysdeps/unix/sysv/linux/tst-readdir64-compat.c
-@@ -0,0 +1,111 @@
+@@ -0,0 +1,115 @@
 +/* Test readdir64 compatibility symbol.
 +   Copyright (C) 2018 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -4133,6 +5890,10 @@ index 0000000000..43c4a8477c
 +        }
 +      else
 +        TEST_VERIFY_EXIT (entry_test != NULL);
++
++      /* d_off is never zero because it is the offset of the next
++         entry (not the current entry).  */
++      TEST_VERIFY (entry_reference->d_off > 0);
 +
 +      /* Check that the entries are the same.  */
 +      TEST_COMPARE_BLOB (entry_reference->d_name,
