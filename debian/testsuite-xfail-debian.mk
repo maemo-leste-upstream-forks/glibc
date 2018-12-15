@@ -1023,6 +1023,13 @@ test-xfail-tst-robust9 = yes
 test-xfail-tst-strfrom = yes
 test-xfail-tst-strfrom-locale = yes
 test-xfail-tst-tls12 = yes
+
+# Those tests fail due to a kernel bug. See:
+# http://lists.infradead.org/pipermail/linux-riscv/2018-December/002512.html
+test-xfail-test-fpucw = yes
+test-xfail-test-fpucw-ieee = yes
+test-xfail-test-fpucw-ieee-static = yes
+test-xfail-test-fpucw-static = yes
 endif
 
 
