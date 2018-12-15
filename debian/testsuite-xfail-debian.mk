@@ -1109,7 +1109,8 @@ test-xfail-tst-mqueue5 = yes
 test-xfail-tst-platform-1 = yes
 test-xfail-tst-waitid = yes
 
-# This looks like a kernel bug in the compat layer
+# This is a kernel bug in the compat layer. See:
+# https://patchwork.kernel.org/patch/10716699
 test-xfail-tst-preadvwritev2 = yes
 test-xfail-tst-preadvwritev64v2 = yes
 endif
