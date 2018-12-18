@@ -404,6 +404,8 @@ test-xfail-tst-fgetc-after-eof = yes
 test-xfail-tst-fgetwc-after-eof = yes
 test-xfail-test-as-const-jmp_buf-ssp = yes
 test-xfail-tst-malloc-stats-cancellation = yes
+test-xfail-tst-if_index-long = yes
+test-xfail-tst-support_descriptors = yes
 
 # This redirects realloc with dlsym
 # Problem is: that creates a loop: realloc() calls dlsym() which calls
