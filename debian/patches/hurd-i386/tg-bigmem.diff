@@ -1,7 +1,9 @@
 From: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Subject: [PATCH] Allow the kernel to start earlier than VM_MAX_ADDRESS
 
-A bit hackish.
+VM_MAX_ADDRESS shouldn't be hardcoded in libc, the kernel should be able to
+decide about it dynamically. This fixes glibc into supporting that. It's however
+a bit hackish.
 
 ---
  sysdeps/mach/hurd/dl-sysdep.c |   26 ++++++++++++++++++++------

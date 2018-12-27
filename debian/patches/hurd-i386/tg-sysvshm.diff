@@ -15,6 +15,34 @@ Subject: [PATCH] Implement SysV shared memory for GNU/Hurd.
         * sysdeps/mach/hurd/shmdt.c: New file.
         * sysdeps/mach/hurd/bits/posix_opt.h: Define _XOPEN_SHM to 1.
 
+TODO:
+“
+> +  char filename[sizeof (SHM_DIR) - 1 + SHM_NAMEMAX];
+> +  struct stat statbuf;
+> +
+> +  sprintf (filename, SHM_DIR SHM_NAMEPRI, id);
+> +  /* SysV requires read access for IPC_STAT.  */
+> +  fd = __open (filename, O_NORW);
+> +  if (fd < 0)
+> +    {
+> +      if (errno == ENOENT)
+> +     errno = EINVAL;
+> +      return -1;
+> +    }
+
+Since this is repeated in more than one function, put it into an
+internal subroutine.  Then we have only one place doing the
+name-generation logic.
+”
+
+“
+> +    case IPC_RMID:
+> +      res = __unlink (filename);
+> +      /* FIXME: Check error (mapping ENOENT to EINVAL).  */
+
+Fix it.
+”
+
 ---
  hurd/Makefile                      |    1 
  hurd/sysvshm.c                     |   97 ++++++++++++++
@@ -235,8 +263,9 @@ Subject: [PATCH] Implement SysV shared memory for GNU/Hurd.
 +}
 --- /dev/null
 +++ b/sysdeps/mach/hurd/shmat.c
-@@ -0,0 +1,79 @@
-+/* Copyright (C) 2005 Free Software Foundation, Inc.
+@@ -0,0 +1,82 @@
++/* SysV shmat for Hurd.
++   Copyright (C) 2005-2015 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -250,9 +279,8 @@ Subject: [PATCH] Implement SysV shared memory for GNU/Hurd.
 +   Lesser General Public License for more details.
 +
 +   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, write to the Free
-+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+   02111-1307 USA.  */
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
 +
 +#include <errno.h>
 +#include <utime.h>
@@ -293,7 +321,9 @@ Subject: [PATCH] Implement SysV shared memory for GNU/Hurd.
 +  res = __fstat (fd, &statbuf);
 +  if (res < 0)
 +    {
++      err = errno;
 +      __close (fd);
++      errno = err;
 +      return (void *) -1;
 +    }
 +
@@ -308,6 +338,7 @@ Subject: [PATCH] Implement SysV shared memory for GNU/Hurd.
 +  if (err)
 +    {
 +      __munmap (addr, statbuf.st_size);
++      errno = err;
 +      return (void *) -1;
 +    }
 +
