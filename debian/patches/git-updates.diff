@@ -1,10 +1,36 @@
 GIT update of https://sourceware.org/git/glibc.git/release/2.28/master from glibc-2.28
 
 diff --git a/ChangeLog b/ChangeLog
-index 08b42bd2f5..81555f1675 100644
+index 08b42bd2f5..c7a04d8717 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,480 @@
+@@ -1,3 +1,506 @@
++2018-12-28  Aurelien Jarno  <aurelien@aurel32.net>
++
++	* sysdeps/alpha/fpu/libm-test-ulps: Regenerated.
++
++2018-12-18  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++	    James Clarke  <jrtc27@jrtc27.com>
++
++	[BZ #23967]
++	* sysdeps/unix/sysv/linux/kernel_sigaction.h (HAS_SA_RESTORER):
++	Define if SA_RESTORER is defined.
++	(kernel_sigaction): Define sa_restorer if HAS_SA_RESTORER is defined.
++	(SET_SA_RESTORER, RESET_SA_RESTORER): Define iff the macro are not
++	already defined.
++	* sysdeps/unix/sysv/linux/m68k/kernel_sigaction.h (SA_RESTORER,
++	kernel_sigaction, SET_SA_RESTORER, RESET_SA_RESTORER): Remove
++	definitions.
++	(HAS_SA_RESTORER): Define.
++	* sysdeps/unix/sysv/linux/sparc/kernel_sigaction.h (SA_RESTORER,
++	SET_SA_RESTORER, RESET_SA_RESTORER): Remove definition.
++	(HAS_SA_RESTORER): Define.
++	* sysdeps/unix/sysv/linux/nios2/kernel_sigaction.h: Include generic
++	kernel_sigaction after define SET_SA_RESTORER and RESET_SA_RESTORER.
++	* sysdeps/unix/sysv/linux/powerpc/kernel_sigaction.h: Likewise.
++	* sysdeps/unix/sysv/linux/s390/kernel_sigaction.h: Likewise.
++	* sysdeps/unix/sysv/linux/x86_64/sigaction.c: Likewise.
++
 +2018-10-30  Andreas Schwab  <schwab@suse.de>
 +
 +	[BZ #23125]
@@ -4737,6 +4763,50 @@ index 5889ee187b..bef71ed0f3 100644
  }
  
  #endif
+diff --git a/sysdeps/alpha/fpu/libm-test-ulps b/sysdeps/alpha/fpu/libm-test-ulps
+index 12a6127ddf..3fc18d57d7 100644
+--- a/sysdeps/alpha/fpu/libm-test-ulps
++++ b/sysdeps/alpha/fpu/libm-test-ulps
+@@ -1006,7 +1006,9 @@ ildouble: 2
+ ldouble: 2
+ 
+ Function: "cos":
++double: 1
+ float: 1
++idouble: 1
+ ifloat: 1
+ ildouble: 1
+ ldouble: 1
+@@ -1932,7 +1934,9 @@ ildouble: 1
+ ldouble: 1
+ 
+ Function: "pow":
++double: 1
+ float: 1
++idouble: 1
+ ifloat: 1
+ ildouble: 2
+ ldouble: 2
+@@ -1962,7 +1966,9 @@ ildouble: 2
+ ldouble: 2
+ 
+ Function: "sin":
++double: 1
+ float: 1
++idouble: 1
+ ifloat: 1
+ ildouble: 1
+ ldouble: 1
+@@ -1992,7 +1998,9 @@ ildouble: 3
+ ldouble: 3
+ 
+ Function: "sincos":
++double: 1
+ float: 1
++idouble: 1
+ ifloat: 1
+ ildouble: 1
+ ldouble: 1
 diff --git a/sysdeps/arm/dl-irel.h b/sysdeps/arm/dl-irel.h
 index a7b6456075..be6eb7743e 100644
 --- a/sysdeps/arm/dl-irel.h
@@ -5541,6 +5611,71 @@ index e3d08982d9..782fc5e175 100644
    if (__ioctl (fd, SIOCGIFINDEX, &ifr) < 0)
      {
        int saved_errno = errno;
+diff --git a/sysdeps/unix/sysv/linux/kernel_sigaction.h b/sysdeps/unix/sysv/linux/kernel_sigaction.h
+index 2dbec08099..1c36146d46 100644
+--- a/sysdeps/unix/sysv/linux/kernel_sigaction.h
++++ b/sysdeps/unix/sysv/linux/kernel_sigaction.h
+@@ -1,19 +1,27 @@
+ #ifndef _KERNEL_SIGACTION_H
+ # define _KERNEL_SIGACTION_H
+ 
++#ifdef SA_RESTORER
++# define HAS_SA_RESTORER 1
++#endif
++
+ /* This is the sigaction structure from the Linux 3.2 kernel.  */
+ struct kernel_sigaction
+ {
+   __sighandler_t k_sa_handler;
+   unsigned long sa_flags;
+-#ifdef SA_RESTORER
++#ifdef HAS_SA_RESTORER
+   void (*sa_restorer) (void);
+ #endif
++  /* glibc sigset is larger than kernel expected one, however sigaction
++     passes the kernel expected size on rt_sigaction syscall.  */
+   sigset_t sa_mask;
+ };
+ 
+-#ifndef SA_RESTORER
++#ifndef SET_SA_RESTORER
+ # define SET_SA_RESTORER(kact, act)
++#endif
++#ifndef RESET_SA_RESTORER
+ # define RESET_SA_RESTORER(act, kact)
+ #endif
+ 
+diff --git a/sysdeps/unix/sysv/linux/m68k/kernel_sigaction.h b/sysdeps/unix/sysv/linux/m68k/kernel_sigaction.h
+index 54972feb13..464b351d6d 100644
+--- a/sysdeps/unix/sysv/linux/m68k/kernel_sigaction.h
++++ b/sysdeps/unix/sysv/linux/m68k/kernel_sigaction.h
+@@ -1,22 +1,4 @@
+-#ifndef _KERNEL_SIGACTION_H
+-# define _KERNEL_SIGACTION_H
+-
+-#include <signal.h>
+-
+-#define SA_RESTORER 0x04000000
+-
+-/* This is the sigaction structure from the Linux 3.2 kernel.  */
+-struct kernel_sigaction
+-{
+-  __sighandler_t k_sa_handler;
+-  sigset_t sa_mask;
+-  unsigned long sa_flags;
+-  void (*sa_restorer) (void);
+-};
+-
+-#define SET_SA_RESTORER(kact, act)			\
+-  (kact)->sa_restorer = (act)->sa_restorer
+-#define RESET_SA_RESTORER(act, kact)			\
+-  (act)->sa_restorer = (kact)->sa_restorer
+-
+-#endif
++/* m68k does not define SA_RESTORER, but does have sa_restorer member
++   on kernel sigaction struct.  */
++#define HAS_SA_RESTORER 1
++#include <sysdeps/unix/sysv/linux/kernel_sigaction.h>
 diff --git a/sysdeps/unix/sysv/linux/netlink_assert_response.c b/sysdeps/unix/sysv/linux/netlink_assert_response.c
 index f31ccb52ff..6afc3a17ce 100644
 --- a/sysdeps/unix/sysv/linux/netlink_assert_response.c
@@ -5560,6 +5695,21 @@ index f31ccb52ff..6afc3a17ce 100644
                          error_code, fd, family);
            __libc_fatal (message);
          }
+diff --git a/sysdeps/unix/sysv/linux/nios2/kernel_sigaction.h b/sysdeps/unix/sysv/linux/nios2/kernel_sigaction.h
+index 4ada322104..89f9bcedfd 100644
+--- a/sysdeps/unix/sysv/linux/nios2/kernel_sigaction.h
++++ b/sysdeps/unix/sysv/linux/nios2/kernel_sigaction.h
+@@ -1,8 +1,9 @@
+ /* NIOS2 uses the generic Linux UAPI but defines SA_RESTORER.  */
+ #define SA_RESTORER 0x04000000
+-#include <sysdeps/unix/sysv/linux/kernel_sigaction.h>
+ 
+ #define SET_SA_RESTORER(kact, act)             \
+   (kact)->sa_restorer = (act)->sa_restorer
+ #define RESET_SA_RESTORER(act, kact)           \
+   (act)->sa_restorer = (kact)->sa_restorer
++
++#include <sysdeps/unix/sysv/linux/kernel_sigaction.h>
 diff --git a/sysdeps/unix/sysv/linux/powerpc/force-elision.h b/sysdeps/unix/sysv/linux/powerpc/force-elision.h
 index fe5d6ceade..d8f5a4b1c7 100644
 --- a/sysdeps/unix/sysv/linux/powerpc/force-elision.h
@@ -5614,6 +5764,22 @@ index fe5d6ceade..d8f5a4b1c7 100644
 +	  s;								\
 +	}								\
      }
+diff --git a/sysdeps/unix/sysv/linux/powerpc/kernel_sigaction.h b/sysdeps/unix/sysv/linux/powerpc/kernel_sigaction.h
+index aef3d5a3b3..bac03ee45d 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/kernel_sigaction.h
++++ b/sysdeps/unix/sysv/linux/powerpc/kernel_sigaction.h
+@@ -1,9 +1,10 @@
+ /* powerpc kernel sigaction is similar to generic Linux UAPI one,
+    but the architecture also defines SA_RESTORER.  */
+ #define SA_RESTORER 0x04000000
+-#include <sysdeps/unix/sysv/linux/kernel_sigaction.h>
+ 
+ #define SET_SA_RESTORER(kact, act)             \
+   (kact)->sa_restorer = (act)->sa_restorer
+ #define RESET_SA_RESTORER(act, kact)           \
+   (act)->sa_restorer = (kact)->sa_restorer
++
++#include <sysdeps/unix/sysv/linux/kernel_sigaction.h>
 diff --git a/sysdeps/unix/sysv/linux/preadv2.c b/sysdeps/unix/sysv/linux/preadv2.c
 index c8bf0764ef..bb08cbc5fd 100644
 --- a/sysdeps/unix/sysv/linux/preadv2.c
@@ -5720,6 +5886,21 @@ index d8a1b9972f..71f32367dd 100644
 +	  s;								\
 +	}								\
      }
+diff --git a/sysdeps/unix/sysv/linux/sh/kernel_sigaction.h b/sysdeps/unix/sysv/linux/sh/kernel_sigaction.h
+index 7ebcd08d62..c8dc77a02b 100644
+--- a/sysdeps/unix/sysv/linux/sh/kernel_sigaction.h
++++ b/sysdeps/unix/sysv/linux/sh/kernel_sigaction.h
+@@ -1,8 +1,9 @@
+ /* SH uses the generic Linux UAPI but defines SA_RESTORER.  */
+ #define SA_RESTORER 0x04000000
+-#include <sysdeps/unix/sysv/linux/kernel_sigaction.h>
+ 
+ #define SET_SA_RESTORER(kact, act)             \
+   (kact)->sa_restorer = (act)->sa_restorer
+ #define RESET_SA_RESTORER(act, kact)           \
+   (act)->sa_restorer = (kact)->sa_restorer
++
++#include <sysdeps/unix/sysv/linux/kernel_sigaction.h>
 diff --git a/sysdeps/unix/sysv/linux/sparc/bits/siginfo-arch.h b/sysdeps/unix/sysv/linux/sparc/bits/siginfo-arch.h
 index 9f79715ebe..4dd35237f6 100644
 --- a/sysdeps/unix/sysv/linux/sparc/bits/siginfo-arch.h
@@ -5738,6 +5919,22 @@ index 9f79715ebe..4dd35237f6 100644
  
  #define __SI_SIGFAULT_ADDL \
    int _si_trapno;
+diff --git a/sysdeps/unix/sysv/linux/sparc/kernel_sigaction.h b/sysdeps/unix/sysv/linux/sparc/kernel_sigaction.h
+index bee7e9cd03..eb4a522453 100644
+--- a/sysdeps/unix/sysv/linux/sparc/kernel_sigaction.h
++++ b/sysdeps/unix/sysv/linux/sparc/kernel_sigaction.h
+@@ -1,10 +1,5 @@
+ /* SPARC 'struct __new_sigaction' is similar to generic Linux UAPI with
+    a sa_restorer field, even though function is passed as an argument
+    to rt_sigaction syscall.  */
+-#define SA_RESTORER 0x04000000
++#define HAS_SA_RESTORER 1
+ #include <sysdeps/unix/sysv/linux/kernel_sigaction.h>
+-
+-#define SET_SA_RESTORER(kact, act)             \
+-  (kact)->sa_restorer = NULL
+-#define RESET_SA_RESTORER(act, kact)           \
+-  (act)->sa_restorer = (kact)->sa_restorer
 diff --git a/sysdeps/unix/sysv/linux/sparc/sparc64/Makefile b/sysdeps/unix/sysv/linux/sparc/sparc64/Makefile
 index 715af3df7b..218c246f16 100644
 --- a/sysdeps/unix/sysv/linux/sparc/sparc64/Makefile
@@ -5970,6 +6167,27 @@ index dd659c908f..61282d6678 100644
 +	  s;								\
 +	}								\
      }
+diff --git a/sysdeps/unix/sysv/linux/x86_64/sigaction.c b/sysdeps/unix/sysv/linux/x86_64/sigaction.c
+index 4e6d9cc32e..9aa2c7f860 100644
+--- a/sysdeps/unix/sysv/linux/x86_64/sigaction.c
++++ b/sysdeps/unix/sysv/linux/x86_64/sigaction.c
+@@ -18,7 +18,6 @@
+ 
+ #include <signal.h>
+ #define SA_RESTORER 0x04000000
+-#include <kernel_sigaction.h>
+ 
+ extern void restore_rt (void) asm ("__restore_rt") attribute_hidden;
+ 
+@@ -29,6 +28,8 @@ extern void restore_rt (void) asm ("__restore_rt") attribute_hidden;
+ #define RESET_SA_RESTORER(act, kact) 			\
+   (act)->sa_restorer = (kact)->sa_restorer
+ 
++#include <kernel_sigaction.h>
++
+ #include <sysdeps/unix/sysv/linux/sigaction.c>
+ 
+ /* NOTE: Please think twice before making any changes to the bits of
 diff --git a/sysdeps/x86/cpu-features.c b/sysdeps/x86/cpu-features.c
 index ea0b64fdb9..4695ac80d4 100644
 --- a/sysdeps/x86/cpu-features.c
