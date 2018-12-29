@@ -1033,6 +1033,13 @@ test-xfail-test-fpucw = yes
 test-xfail-test-fpucw-ieee = yes
 test-xfail-test-fpucw-ieee-static = yes
 test-xfail-test-fpucw-static = yes
+
+# Those tests sometimes fail in a QEMU VM, but not on a HiFive Unleashed board
+test-xfail-test-at_quick_exit-race = yes
+test-xfail-test-on_exit-race = yes
+test-xfail-tst-cond16 = yes
+test-xfail-tst-malloc-thread-fail = yes
+test-xfail-tst-stack4 = yes
 endif
 
 
