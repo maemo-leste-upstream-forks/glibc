@@ -1,6 +1,3 @@
-# build with gcc-7 as gcc-8 triggers issues in the testsuite
-DEB_GCC_VERSION = -7
-
 # configuration options for all flavours
 extra_config_options = --enable-multi-arch
 
