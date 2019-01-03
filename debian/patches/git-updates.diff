@@ -1,10 +1,36 @@
 GIT update of https://sourceware.org/git/glibc.git/release/2.28/master from glibc-2.28
 
 diff --git a/ChangeLog b/ChangeLog
-index 08b42bd2f5..c7a04d8717 100644
+index 08b42bd2f5..54b37a6ccf 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,506 @@
+@@ -1,3 +1,532 @@
++2019-01-02  Aurelien Jarno  <aurelien@aurel32.net>
++
++	[BZ #24034]
++	* sysdeps/unix/sysv/linux/arm/atomic-machine.h
++	(__arm_assisted_compare_and_exchange_val_32_acq): Use uint32_t rather
++	than __typeof (...) for the a_ptr variable.
++
++2018-12-31  H.J. Lu  <hongjiu.lu@intel.com>
++
++	[BZ #24022]
++	* sysdeps/unix/sysv/linux/riscv/flush-icache.c: Check if
++	<asm/syscalls.h> exists with __has_include__ before including it.
++
++2019-01-02  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #24018]
++	* intl/dcigettext.c (DCIGETTEXT): Do not return NULL on asprintf
++	failure.
++
++2018-12-31  Florian Weimer  <fw@deneb.enyo.de>
++
++	[BZ #24027]
++	* malloc/malloc.c (_int_realloc): Always call memcpy for the
++	copying operation.  (ncopies had the wrong type, resulting in an
++	integer wraparound and too few elements being copied.)
++
 +2018-12-28  Aurelien Jarno  <aurelien@aurel32.net>
 +
 +	* sysdeps/alpha/fpu/libm-test-ulps: Regenerated.
@@ -512,10 +538,10 @@ index 08b42bd2f5..c7a04d8717 100644
  
  	* version.h (RELEASE): Set to "stable".
 diff --git a/NEWS b/NEWS
-index 154ab22d7c..05f7342fcb 100644
+index 154ab22d7c..13b8795e6e 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,36 @@ See the end for copying conditions.
+@@ -5,6 +5,40 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
@@ -542,6 +568,10 @@ index 154ab22d7c..05f7342fcb 100644
 +  [23822] ia64 static libm.a is missing exp2f, log2f and powf symbols
 +  [23927] Linux if_nametoindex() does not close descriptor (CVE-2018-19591)
 +  [23972] __old_getdents64 uses wrong d_off value on overflow
++  [24018] gettext may return NULL
++  [24022] riscv may lack <asm/syscalls.h>
++  [24027] malloc: Integer overflow in realloc
++  [24034] tst-cancel21-static fails with SIGBUS on pre-ARMv7 when using GCC 8
 +
 +Security related changes:
 +
@@ -873,6 +903,19 @@ index 0000000000..3dc74874e5
 +}
 +
 +#include <support/test-driver.c>
+diff --git a/intl/dcigettext.c b/intl/dcigettext.c
+index 2a50369948..25f47c5bd3 100644
+--- a/intl/dcigettext.c
++++ b/intl/dcigettext.c
+@@ -631,7 +631,7 @@ DCIGETTEXT (const char *domainname, const char *msgid1, const char *msgid2,
+ 	  int ret = __asprintf (&xdirname, "%s/%s", cwd, dirname);
+ 	  free (cwd);
+ 	  if (ret < 0)
+-	      return NULL;
++	    goto return_untranslated;
+ 	  dirname = xdirname;
+ 	}
+ #ifndef IN_LIBGLOCALE
 diff --git a/libio/tst-readline.c b/libio/tst-readline.c
 index 9322ef68da..63f5227760 100644
 --- a/libio/tst-readline.c
@@ -915,7 +958,7 @@ index 7d54bad866..388cf7e9ee 100644
  tests-static := \
  	 tst-interpose-static-nothread \
 diff --git a/malloc/malloc.c b/malloc/malloc.c
-index e247c77b7d..dad0e73735 100644
+index e247c77b7d..27cf6137c2 100644
 --- a/malloc/malloc.c
 +++ b/malloc/malloc.c
 @@ -2888,6 +2888,8 @@ mremap_chunk (mchunkptr p, size_t new_size)
@@ -1042,6 +1085,63 @@ index e247c77b7d..dad0e73735 100644
  	  unlink(av, p, bck, fwd);
  	}
  
+@@ -4498,11 +4544,6 @@ _int_realloc(mstate av, mchunkptr oldp, INTERNAL_SIZE_T oldsize,
+   mchunkptr        bck;             /* misc temp for linking */
+   mchunkptr        fwd;             /* misc temp for linking */
+ 
+-  unsigned long    copysize;        /* bytes to copy */
+-  unsigned int     ncopies;         /* INTERNAL_SIZE_T words to copy */
+-  INTERNAL_SIZE_T* s;               /* copy source */
+-  INTERNAL_SIZE_T* d;               /* copy destination */
+-
+   /* oldmem size */
+   if (__builtin_expect (chunksize_nomask (oldp) <= 2 * SIZE_SZ, 0)
+       || __builtin_expect (oldsize >= av->system_mem, 0))
+@@ -4570,43 +4611,7 @@ _int_realloc(mstate av, mchunkptr oldp, INTERNAL_SIZE_T oldsize,
+             }
+           else
+             {
+-              /*
+-                 Unroll copy of <= 36 bytes (72 if 8byte sizes)
+-                 We know that contents have an odd number of
+-                 INTERNAL_SIZE_T-sized words; minimally 3.
+-               */
+-
+-              copysize = oldsize - SIZE_SZ;
+-              s = (INTERNAL_SIZE_T *) (chunk2mem (oldp));
+-              d = (INTERNAL_SIZE_T *) (newmem);
+-              ncopies = copysize / sizeof (INTERNAL_SIZE_T);
+-              assert (ncopies >= 3);
+-
+-              if (ncopies > 9)
+-                memcpy (d, s, copysize);
+-
+-              else
+-                {
+-                  *(d + 0) = *(s + 0);
+-                  *(d + 1) = *(s + 1);
+-                  *(d + 2) = *(s + 2);
+-                  if (ncopies > 4)
+-                    {
+-                      *(d + 3) = *(s + 3);
+-                      *(d + 4) = *(s + 4);
+-                      if (ncopies > 6)
+-                        {
+-                          *(d + 5) = *(s + 5);
+-                          *(d + 6) = *(s + 6);
+-                          if (ncopies > 8)
+-                            {
+-                              *(d + 7) = *(s + 7);
+-                              *(d + 8) = *(s + 8);
+-                            }
+-                        }
+-                    }
+-                }
+-
++	      memcpy (newmem, chunk2mem (oldp), oldsize - SIZE_SZ);
+               _int_free (av, oldp, 1);
+               check_inuse_chunk (av, newp);
+               return chunk2mem (newp);
 diff --git a/malloc/tst-tcfree1.c b/malloc/tst-tcfree1.c
 new file mode 100644
 index 0000000000..bc29375ce7
@@ -5431,6 +5531,52 @@ index f71cc39c7e..773aaea0e9 100644
  endif
  
  ifeq ($(subdir),nis)
+diff --git a/sysdeps/unix/sysv/linux/arm/atomic-machine.h b/sysdeps/unix/sysv/linux/arm/atomic-machine.h
+index ad165274d8..a5d244e65e 100644
+--- a/sysdeps/unix/sysv/linux/arm/atomic-machine.h
++++ b/sysdeps/unix/sysv/linux/arm/atomic-machine.h
+@@ -49,16 +49,23 @@
+    declarations of A_OLDVAL et al because when NEWVAL or OLDVAL is of the
+    form *PTR and PTR has a 'volatile ... *' type, then __typeof (*PTR) has
+    a 'volatile ...' type and this triggers -Wvolatile-register-var to
+-   complain about 'register volatile ... asm ("reg")'.  */
++   complain about 'register volatile ... asm ("reg")'.
++
++   We use the same union trick in the declaration of A_PTR because when
++   MEM is of the from *PTR and PTR has a 'const ... *' type, then __typeof
++   (*PTR) has a 'const ...' type and this enables the compiler to substitute
++   the variable with its initializer in asm statements, which may cause the
++   corresponding operand to appear in a different register.  */
+ #ifdef __thumb2__
+ /* Thumb-2 has ldrex/strex.  However it does not have barrier instructions,
+    so we still need to use the kernel helper.  */
+ # define __arm_assisted_compare_and_exchange_val_32_acq(mem, newval, oldval) \
+-  ({ union { __typeof (oldval) a; uint32_t v; } oldval_arg = { .a = (oldval) };\
++  ({ union { __typeof (mem) a; uint32_t v; } mem_arg = { .a = (mem) };       \
++     union { __typeof (oldval) a; uint32_t v; } oldval_arg = { .a = (oldval) };\
+      union { __typeof (newval) a; uint32_t v; } newval_arg = { .a = (newval) };\
+      register uint32_t a_oldval asm ("r0");				      \
+      register uint32_t a_newval asm ("r1") = newval_arg.v;		      \
+-     register __typeof (mem) a_ptr asm ("r2") = (mem);			      \
++     register uint32_t a_ptr asm ("r2") = mem_arg.v;			      \
+      register uint32_t a_tmp asm ("r3");				      \
+      register uint32_t a_oldval2 asm ("r4") = oldval_arg.v;		      \
+      __asm__ __volatile__						      \
+@@ -79,11 +86,12 @@
+      (__typeof (oldval)) a_tmp; })
+ #else
+ # define __arm_assisted_compare_and_exchange_val_32_acq(mem, newval, oldval) \
+-  ({ union { __typeof (oldval) a; uint32_t v; } oldval_arg = { .a = (oldval) };\
++  ({ union { __typeof (mem) a; uint32_t v; } mem_arg = { .a = (mem) };       \
++     union { __typeof (oldval) a; uint32_t v; } oldval_arg = { .a = (oldval) };\
+      union { __typeof (newval) a; uint32_t v; } newval_arg = { .a = (newval) };\
+      register uint32_t a_oldval asm ("r0");				      \
+      register uint32_t a_newval asm ("r1") = newval_arg.v;		      \
+-     register __typeof (mem) a_ptr asm ("r2") = (mem);			      \
++     register uint32_t a_ptr asm ("r2") = mem_arg.v;			      \
+      register uint32_t a_tmp asm ("r3");				      \
+      register uint32_t a_oldval2 asm ("r4") = oldval_arg.v;		      \
+      __asm__ __volatile__						      \
 diff --git a/sysdeps/unix/sysv/linux/bits/types/siginfo_t.h b/sysdeps/unix/sysv/linux/bits/types/siginfo_t.h
 index 33766d1813..43c4e009a4 100644
 --- a/sysdeps/unix/sysv/linux/bits/types/siginfo_t.h
@@ -5832,6 +5978,23 @@ index 42da321149..17ea905aa6 100644
      return result;
  #endif
    /* Trying to emulate the pwritev2 syscall flags is troublesome:
+diff --git a/sysdeps/unix/sysv/linux/riscv/flush-icache.c b/sysdeps/unix/sysv/linux/riscv/flush-icache.c
+index d612ef4c6c..0b2042620b 100644
+--- a/sysdeps/unix/sysv/linux/riscv/flush-icache.c
++++ b/sysdeps/unix/sysv/linux/riscv/flush-icache.c
+@@ -21,7 +21,11 @@
+ #include <stdlib.h>
+ #include <atomic.h>
+ #include <sys/cachectl.h>
+-#include <asm/syscalls.h>
++#if __has_include__ (<asm/syscalls.h>)
++# include <asm/syscalls.h>
++#else
++# include <asm/unistd.h>
++#endif
+ 
+ typedef int (*func_type) (void *, void *, unsigned long int);
+ 
 diff --git a/sysdeps/unix/sysv/linux/s390/force-elision.h b/sysdeps/unix/sysv/linux/s390/force-elision.h
 index d8a1b9972f..71f32367dd 100644
 --- a/sysdeps/unix/sysv/linux/s390/force-elision.h
