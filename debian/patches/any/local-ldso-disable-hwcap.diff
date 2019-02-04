@@ -24,7 +24,7 @@
 
  #include <dl-procinfo.h>
  #include <dl-hwcaps.h>
-@@ -44,6 +46,7 @@
+@@ -43,6 +46,7 @@
    size_t cnt = platform != NULL;
    size_t n, m;
    size_t total;
@@ -32,10 +32,11 @@
    struct r_strlenpair *result;
    struct r_strlenpair *rp;
    char *cp;
-@@ -113,8 +116,22 @@
+@@ -124,8 +128,24 @@
    /* For TLS enabled builds always add 'tls'.  */
    ++cnt;
  
++#ifdef NEED_LD_SO_NOHWCAP
 +  if (__access_noerrno ("/etc/ld.so.nohwcap", F_OK) == 0)
 +    {
 +      /* If hwcap is disabled, we only have the base directory to search.  */
@@ -49,6 +50,7 @@
 +      *sz = 1;
 +      return result;
 +    }
++#endif
 +
    /* Create temporary data structure to generate result table.  */
 -  struct r_strlenpair temp[cnt];
@@ -56,14 +58,16 @@
    m = 0;
  #ifdef NEED_DL_SYSINFO_DSO
    if (dsocaps != NULL)
-@@ -199,8 +216,11 @@
+@@ -210,8 +230,13 @@
    *sz = 1 << cnt;
    result = (struct r_strlenpair *) malloc (*sz * sizeof (*result) + total);
    if (result == NULL)
 -    _dl_signal_error (ENOMEM, NULL, NULL,
 -		      N_("cannot create capability list"));
 +    {
++#ifdef NEED_LD_SO_NOHWCAP
 +    no_memory:
++#endif
 +      _dl_signal_error (ENOMEM, NULL, NULL,
 +		     	N_("cannot create capability list"));
 +    }
@@ -82,7 +86,7 @@
  
  #ifndef _DL_PLATFORMS_COUNT
  # define _DL_PLATFORMS_COUNT 0
-@@ -248,6 +250,7 @@
+@@ -246,6 +249,7 @@
    if (cache_new != (void *) -1)
      {
        uint64_t platform;
@@ -90,17 +94,19 @@
  
        /* This is where the strings start.  */
        cache_data = (const char *) cache_new;
-@@ -261,6 +264,9 @@
+@@ -259,6 +263,11 @@
  
        uint64_t hwcap_mask = GET_HWCAP_MASK();
  
++#ifdef NEED_LD_SO_NOHWCAP
 +      if (__access_noerrno ("/etc/ld.so.nohwcap", F_OK) == 0)
 +	disable_hwcap = 1;
++#endif
 +
  #define _DL_HWCAP_TLS_MASK (1LL << 63)
        uint64_t hwcap_exclude = ~((GLRO(dl_hwcap) & hwcap_mask)
  				 | _DL_HWCAP_PLATFORM | _DL_HWCAP_TLS_MASK);
-@@ -271,6 +277,8 @@
+@@ -269,6 +278,8 @@
  	continue;							      \
        if (GLRO(dl_osversion) && lib->osversion > GLRO(dl_osversion))	      \
  	continue;							      \
@@ -109,3 +115,24 @@
        if (_DL_PLATFORMS_COUNT						      \
  	  && (lib->hwcap & _DL_HWCAP_PLATFORM) != 0			      \
  	  && (lib->hwcap & _DL_HWCAP_PLATFORM) != platform)		      \
+--- a/sysdeps/alpha/ldsodefs.h
++++ b/sysdeps/alpha/ldsodefs.h
+@@ -37,6 +37,8 @@ struct La_alpha_retval;
+ 				      struct La_alpha_retval *,		\
+ 				      const char *);
+
++#define NEED_LD_SO_NOHWCAP
++
+ #include_next <ldsodefs.h>
+
+ #endif
+--- a/sysdeps/i386/ldsodefs.h
++++ b/sysdeps/i386/ldsodefs.h
+@@ -0,0 +1,7 @@
++#ifndef __LDSODEFS_H
++
++#define NEED_LD_SO_NOHWCAP
++
++#include_next <ldsodefs.h>
++
++#endif
