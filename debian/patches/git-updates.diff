@@ -1,10 +1,43 @@
 GIT update of https://sourceware.org/git/glibc.git/release/2.28/master from glibc-2.28
 
 diff --git a/ChangeLog b/ChangeLog
-index 08b42bd2f5..cb119f36ac 100644
+index 08b42bd2f5..06de839fbe 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,717 @@
+@@ -1,3 +1,750 @@
++2019-01-31  Carlos O'Donell  <carlos@redhat.com>
++	    Torvald Riegel  <triegel@redhat.com>
++	    Rik Prohaska  <prohaska7@gmail.com>
++
++	[BZ# 23844]
++	* nptl/Makefile (tests): Add tst-rwlock-tryrdlock-stall, and
++	tst-rwlock-trywrlock-stall.
++	* nptl/pthread_rwlock_tryrdlock.c (__pthread_rwlock_tryrdlock):
++	Wake waiters if PTHREAD_RWLOCK_FUTEX_USED is set.
++	* nptl/pthread_rwlock_trywrlock.c (__pthread_rwlock_trywrlock):
++	Set __wrphase_fute to 1 only if we started the write phase.
++	* nptl/tst-rwlock-tryrdlock-stall.c: New file.
++	* nptl/tst-rwlock-trywrlock-stall.c: New file.
++	* support/Makefile (libsupport-routines): Add xpthread_rwlock_destroy.
++	* support/xpthread_rwlock_destroy.c: New file.
++	* support/xthread.h: Declare xpthread_rwlock_destroy.
++
++2019-02-08  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #24161]
++	* sysdeps/nptl/fork.h (__run_fork_handlers): Add multiple_threads
++	argument.
++	* nptl/register-atfork.c (__run_fork_handlers): Only perform
++	locking if the new do_locking argument is true.
++	* sysdeps/nptl/fork.c (__libc_fork): Pass multiple_threads to
++	__run_fork_handlers.
++
++2019-02-07  Stefan Liebler  <stli@linux.ibm.com>
++
++	[BZ #24180]
++	* nptl/pthread_mutex_trylock.c (__pthread_mutex_trylock):
++	Add compiler barriers and comments.
++
 +2019-02-04  Florian Weimer  <fweimer@redhat.com>
 +
 +	[BZ #20018]
@@ -740,10 +773,10 @@ index 608ffe648c..f5e81bdf5d 100644
  # We might want to compile with some stack-protection flag.
  ifneq ($(stack-protector),)
 diff --git a/NEWS b/NEWS
-index 154ab22d7c..5aa15afb9d 100644
+index 154ab22d7c..d794e5bf09 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,63 @@ See the end for copying conditions.
+@@ -5,6 +5,65 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
@@ -770,6 +803,7 @@ index 154ab22d7c..5aa15afb9d 100644
 +  [23717] Fix stack overflow in stdlib/tst-setcontext9
 +  [23821] si_band in siginfo_t has wrong type long int on sparc64
 +  [23822] ia64 static libm.a is missing exp2f, log2f and powf symbols
++  [23844] pthread_rwlock_trywrlock results in hang
 +  [23927] Linux if_nametoindex() does not close descriptor (CVE-2018-19591)
 +  [23972] __old_getdents64 uses wrong d_off value on overflow
 +  [24018] gettext may return NULL
@@ -779,6 +813,7 @@ index 154ab22d7c..5aa15afb9d 100644
 +  [24034] tst-cancel21-static fails with SIGBUS on pre-ARMv7 when using GCC 8
 +  [24097] Can't use 64-bit register for size_t in assembly codes for x32 (CVE-2019-6488)
 +  [24155] x32 memcmp can treat positive length as 0 (if sign bit in RDX is set) (CVE-2019-7309)
++  [24161] __run_fork_handlers self-deadlocks in malloc/tst-mallocfork2
 +
 +Security related changes:
 +
@@ -807,7 +842,7 @@ index 154ab22d7c..5aa15afb9d 100644
  Version 2.28
  
  Major new features:
-@@ -422,6 +479,8 @@ The following bugs are resolved with this release:
+@@ -422,6 +481,8 @@ The following bugs are resolved with this release:
    [23459] libc: COMMON_CPUID_INDEX_80000001 isn't populated for Intel
      processors
    [23467] dynamic-link: x86/CET: A property note parser bug
@@ -1869,7 +1904,7 @@ index 8d3cc32b28..6a9de54c78 100644
    return do_test_with_offset (0);
  }
 diff --git a/nptl/Makefile b/nptl/Makefile
-index be8066524c..2d2db648f7 100644
+index be8066524c..b1003cf56b 100644
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
 @@ -241,9 +241,9 @@ LDLIBS-tst-minstack-throw = -lstdc++
@@ -1885,17 +1920,18 @@ index be8066524c..2d2db648f7 100644
  	tst-mutexpi9 \
  	tst-spin1 tst-spin2 tst-spin3 tst-spin4 \
  	tst-cond1 tst-cond2 tst-cond3 tst-cond4 tst-cond5 tst-cond6 tst-cond7 \
-@@ -318,7 +318,8 @@ tests = tst-attr1 tst-attr2 tst-attr3 tst-default-attr \
+@@ -318,7 +318,9 @@ tests = tst-attr1 tst-attr2 tst-attr3 tst-default-attr \
  	tst-minstack-throw \
  	tst-cnd-basic tst-mtx-trylock tst-cnd-broadcast \
  	tst-cnd-timedwait tst-thrd-detach tst-mtx-basic tst-thrd-sleep \
 -	tst-mtx-recursive tst-tss-basic tst-call-once tst-mtx-timedlock
 +	tst-mtx-recursive tst-tss-basic tst-call-once tst-mtx-timedlock \
-+	tst-rwlock-pwn
++	tst-rwlock-pwn \
++	tst-rwlock-tryrdlock-stall tst-rwlock-trywrlock-stall
  
  tests-internal := tst-rwlock19 tst-rwlock20 \
  		  tst-sem11 tst-sem12 tst-sem13 \
-@@ -382,7 +383,8 @@ tests += tst-cancelx2 tst-cancelx3 tst-cancelx4 tst-cancelx5 \
+@@ -382,7 +384,8 @@ tests += tst-cancelx2 tst-cancelx3 tst-cancelx4 tst-cancelx5 \
  	 tst-cleanupx0 tst-cleanupx1 tst-cleanupx2 tst-cleanupx3 tst-cleanupx4 \
  	 tst-oncex3 tst-oncex4
  ifeq ($(build-shared),yes)
@@ -1905,7 +1941,7 @@ index be8066524c..2d2db648f7 100644
  tests-internal += tst-tls3 tst-tls3-malloc tst-tls5 tst-stackguard1
  tests-nolibpthread += tst-fini1
  ifeq ($(have-z-execstack),yes)
-@@ -394,7 +396,8 @@ modules-names = tst-atfork2mod tst-tls3mod tst-tls4moda tst-tls4modb \
+@@ -394,7 +397,8 @@ modules-names = tst-atfork2mod tst-tls3mod tst-tls4moda tst-tls4modb \
  		tst-tls5mod tst-tls5moda tst-tls5modb tst-tls5modc \
  		tst-tls5modd tst-tls5mode tst-tls5modf tst-stack4mod \
  		tst-_res1mod1 tst-_res1mod2 tst-execstack-mod tst-fini1mod \
@@ -1915,7 +1951,7 @@ index be8066524c..2d2db648f7 100644
  extra-test-objs += $(addsuffix .os,$(strip $(modules-names))) \
  		   tst-cleanup4aux.o tst-cleanupx4aux.o
  test-extras += tst-cleanup4aux tst-cleanupx4aux
-@@ -709,6 +712,16 @@ endif
+@@ -709,6 +713,16 @@ endif
  
  $(objpfx)tst-compat-forwarder: $(objpfx)tst-compat-forwarder-mod.so
  
@@ -2227,7 +2263,7 @@ index 28237b0e58..888c12fe28 100644
  	oldval = mutex->__data.__lock;
  
 diff --git a/nptl/pthread_mutex_trylock.c b/nptl/pthread_mutex_trylock.c
-index 7de61f4f68..fa90c1d1e6 100644
+index 7de61f4f68..8e01113b0f 100644
 --- a/nptl/pthread_mutex_trylock.c
 +++ b/nptl/pthread_mutex_trylock.c
 @@ -36,6 +36,8 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
@@ -2239,7 +2275,79 @@ index 7de61f4f68..fa90c1d1e6 100644
    switch (__builtin_expect (PTHREAD_MUTEX_TYPE_ELISION (mutex),
  			    PTHREAD_MUTEX_TIMED_NP))
      {
-@@ -199,8 +201,14 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+@@ -92,6 +94,9 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+     case PTHREAD_MUTEX_ROBUST_ADAPTIVE_NP:
+       THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending,
+ 		     &mutex->__data.__list.__next);
++      /* We need to set op_pending before starting the operation.  Also
++	 see comments at ENQUEUE_MUTEX.  */
++      __asm ("" ::: "memory");
+ 
+       oldval = mutex->__data.__lock;
+       do
+@@ -117,7 +122,12 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+ 	      /* But it is inconsistent unless marked otherwise.  */
+ 	      mutex->__data.__owner = PTHREAD_MUTEX_INCONSISTENT;
+ 
++	      /* We must not enqueue the mutex before we have acquired it.
++		 Also see comments at ENQUEUE_MUTEX.  */
++	      __asm ("" ::: "memory");
+ 	      ENQUEUE_MUTEX (mutex);
++	      /* We need to clear op_pending after we enqueue the mutex.  */
++	      __asm ("" ::: "memory");
+ 	      THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
+ 
+ 	      /* Note that we deliberately exist here.  If we fall
+@@ -133,6 +143,8 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+ 	      int kind = PTHREAD_MUTEX_TYPE (mutex);
+ 	      if (kind == PTHREAD_MUTEX_ROBUST_ERRORCHECK_NP)
+ 		{
++		  /* We do not need to ensure ordering wrt another memory
++		     access.  Also see comments at ENQUEUE_MUTEX. */
+ 		  THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending,
+ 				 NULL);
+ 		  return EDEADLK;
+@@ -140,6 +152,8 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+ 
+ 	      if (kind == PTHREAD_MUTEX_ROBUST_RECURSIVE_NP)
+ 		{
++		  /* We do not need to ensure ordering wrt another memory
++		     access.  */
+ 		  THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending,
+ 				 NULL);
+ 
+@@ -158,6 +172,9 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+ 							id, 0);
+ 	  if (oldval != 0 && (oldval & FUTEX_OWNER_DIED) == 0)
+ 	    {
++	      /* We haven't acquired the lock as it is already acquired by
++		 another owner.  We do not need to ensure ordering wrt another
++		 memory access.  */
+ 	      THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
+ 
+ 	      return EBUSY;
+@@ -171,13 +188,20 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+ 	      if (oldval == id)
+ 		lll_unlock (mutex->__data.__lock,
+ 			    PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
++	      /* FIXME This violates the mutex destruction requirements.  See
++		 __pthread_mutex_unlock_full.  */
+ 	      THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
+ 	      return ENOTRECOVERABLE;
+ 	    }
+ 	}
+       while ((oldval & FUTEX_OWNER_DIED) != 0);
+ 
++      /* We must not enqueue the mutex before we have acquired it.
++	 Also see comments at ENQUEUE_MUTEX.  */
++      __asm ("" ::: "memory");
+       ENQUEUE_MUTEX (mutex);
++      /* We need to clear op_pending after we enqueue the mutex.  */
++      __asm ("" ::: "memory");
+       THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
+ 
+       mutex->__data.__owner = id;
+@@ -199,14 +223,25 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
      case PTHREAD_MUTEX_PI_ROBUST_NORMAL_NP:
      case PTHREAD_MUTEX_PI_ROBUST_ADAPTIVE_NP:
        {
@@ -2255,8 +2363,94 @@ index 7de61f4f68..fa90c1d1e6 100644
 +	}
  
  	if (robust)
- 	  /* Note: robust PI futexes are signaled by setting bit 0.  */
-@@ -325,7 +333,10 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+-	  /* Note: robust PI futexes are signaled by setting bit 0.  */
+-	  THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending,
+-			 (void *) (((uintptr_t) &mutex->__data.__list.__next)
+-				   | 1));
++	  {
++	    /* Note: robust PI futexes are signaled by setting bit 0.  */
++	    THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending,
++			   (void *) (((uintptr_t) &mutex->__data.__list.__next)
++				     | 1));
++	    /* We need to set op_pending before starting the operation.  Also
++	       see comments at ENQUEUE_MUTEX.  */
++	    __asm ("" ::: "memory");
++	  }
+ 
+ 	oldval = mutex->__data.__lock;
+ 
+@@ -215,12 +250,16 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+ 	  {
+ 	    if (kind == PTHREAD_MUTEX_ERRORCHECK_NP)
+ 	      {
++		/* We do not need to ensure ordering wrt another memory
++		   access.  */
+ 		THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
+ 		return EDEADLK;
+ 	      }
+ 
+ 	    if (kind == PTHREAD_MUTEX_RECURSIVE_NP)
+ 	      {
++		/* We do not need to ensure ordering wrt another memory
++		   access.  */
+ 		THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
+ 
+ 		/* Just bump the counter.  */
+@@ -242,6 +281,9 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+ 	  {
+ 	    if ((oldval & FUTEX_OWNER_DIED) == 0)
+ 	      {
++		/* We haven't acquired the lock as it is already acquired by
++		   another owner.  We do not need to ensure ordering wrt another
++		   memory access.  */
+ 		THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
+ 
+ 		return EBUSY;
+@@ -262,6 +304,9 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+ 	    if (INTERNAL_SYSCALL_ERROR_P (e, __err)
+ 		&& INTERNAL_SYSCALL_ERRNO (e, __err) == EWOULDBLOCK)
+ 	      {
++		/* The kernel has not yet finished the mutex owner death.
++		   We do not need to ensure ordering wrt another memory
++		   access.  */
+ 		THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
+ 
+ 		return EBUSY;
+@@ -279,7 +324,12 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+ 	    /* But it is inconsistent unless marked otherwise.  */
+ 	    mutex->__data.__owner = PTHREAD_MUTEX_INCONSISTENT;
+ 
++	    /* We must not enqueue the mutex before we have acquired it.
++	       Also see comments at ENQUEUE_MUTEX.  */
++	    __asm ("" ::: "memory");
+ 	    ENQUEUE_MUTEX (mutex);
++	    /* We need to clear op_pending after we enqueue the mutex.  */
++	    __asm ("" ::: "memory");
+ 	    THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
+ 
+ 	    /* Note that we deliberately exit here.  If we fall
+@@ -302,13 +352,20 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
+ 						  PTHREAD_ROBUST_MUTEX_PSHARED (mutex)),
+ 			      0, 0);
+ 
++	    /* To the kernel, this will be visible after the kernel has
++	       acquired the mutex in the syscall.  */
+ 	    THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
+ 	    return ENOTRECOVERABLE;
+ 	  }
+ 
+ 	if (robust)
+ 	  {
++	    /* We must not enqueue the mutex before we have acquired it.
++	       Also see comments at ENQUEUE_MUTEX.  */
++	    __asm ("" ::: "memory");
+ 	    ENQUEUE_MUTEX_PI (mutex);
++	    /* We need to clear op_pending after we enqueue the mutex.  */
++	    __asm ("" ::: "memory");
+ 	    THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
+ 	  }
+ 
+@@ -325,7 +382,10 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
      case PTHREAD_MUTEX_PP_NORMAL_NP:
      case PTHREAD_MUTEX_PP_ADAPTIVE_NP:
        {
@@ -2330,6 +2524,94 @@ index a290d08332..9ce36d1026 100644
  		{
  		  int private = __pthread_rwlock_get_private (rwlock);
  		  int err = futex_abstimed_wait (&rwlock->__data.__readers,
+diff --git a/nptl/pthread_rwlock_tryrdlock.c b/nptl/pthread_rwlock_tryrdlock.c
+index 4aec1fc15a..31a88d33a6 100644
+--- a/nptl/pthread_rwlock_tryrdlock.c
++++ b/nptl/pthread_rwlock_tryrdlock.c
+@@ -94,15 +94,22 @@ __pthread_rwlock_tryrdlock (pthread_rwlock_t *rwlock)
+       /* Same as in __pthread_rwlock_rdlock_full:
+ 	 We started the read phase, so we are also responsible for
+ 	 updating the write-phase futex.  Relaxed MO is sufficient.
+-	 Note that there can be no other reader that we have to wake
+-	 because all other readers will see the read phase started by us
+-	 (or they will try to start it themselves); if a writer started
+-	 the read phase, we cannot have started it.  Furthermore, we
+-	 cannot discard a PTHREAD_RWLOCK_FUTEX_USED flag because we will
+-	 overwrite the value set by the most recent writer (or the readers
+-	 before it in case of explicit hand-over) and we know that there
+-	 are no waiting readers.  */
+-      atomic_store_relaxed (&rwlock->__data.__wrphase_futex, 0);
++	 We have to do the same steps as a writer would when handing over the
++	 read phase to use because other readers cannot distinguish between
++	 us and the writer.
++	 Note that __pthread_rwlock_tryrdlock callers will not have to be
++	 woken up because they will either see the read phase started by us
++	 or they will try to start it themselves; however, callers of
++	 __pthread_rwlock_rdlock_full just increase the reader count and then
++	 check what state the lock is in, so they cannot distinguish between
++	 us and a writer that acquired and released the lock in the
++	 meantime.  */
++      if ((atomic_exchange_relaxed (&rwlock->__data.__wrphase_futex, 0)
++	  & PTHREAD_RWLOCK_FUTEX_USED) != 0)
++	{
++	  int private = __pthread_rwlock_get_private (rwlock);
++	  futex_wake (&rwlock->__data.__wrphase_futex, INT_MAX, private);
++	}
+     }
+ 
+   return 0;
+diff --git a/nptl/pthread_rwlock_trywrlock.c b/nptl/pthread_rwlock_trywrlock.c
+index 5a73eba756..f2e3443466 100644
+--- a/nptl/pthread_rwlock_trywrlock.c
++++ b/nptl/pthread_rwlock_trywrlock.c
+@@ -46,8 +46,15 @@ __pthread_rwlock_trywrlock (pthread_rwlock_t *rwlock)
+ 	  &rwlock->__data.__readers, &r,
+ 	  r | PTHREAD_RWLOCK_WRPHASE | PTHREAD_RWLOCK_WRLOCKED))
+ 	{
++	  /* We have become the primary writer and we cannot have shared
++	     the PTHREAD_RWLOCK_FUTEX_USED flag with someone else, so we
++	     can simply enable blocking (see full wrlock code).  */
+ 	  atomic_store_relaxed (&rwlock->__data.__writers_futex, 1);
+-	  atomic_store_relaxed (&rwlock->__data.__wrphase_futex, 1);
++	  /* If we started a write phase, we need to enable readers to
++	     wait.  If we did not, we must not change it because other threads
++	     may have set the PTHREAD_RWLOCK_FUTEX_USED in the meantime.  */
++	  if ((r & PTHREAD_RWLOCK_WRPHASE) == 0)
++	    atomic_store_relaxed (&rwlock->__data.__wrphase_futex, 1);
+ 	  atomic_store_relaxed (&rwlock->__data.__cur_writer,
+ 	      THREAD_GETMEM (THREAD_SELF, tid));
+ 	  return 0;
+diff --git a/nptl/register-atfork.c b/nptl/register-atfork.c
+index 5ff1c1be8c..9edb7d4bbb 100644
+--- a/nptl/register-atfork.c
++++ b/nptl/register-atfork.c
+@@ -107,13 +107,14 @@ __unregister_atfork (void *dso_handle)
+ }
+ 
+ void
+-__run_fork_handlers (enum __run_fork_handler_type who)
++__run_fork_handlers (enum __run_fork_handler_type who, _Bool do_locking)
+ {
+   struct fork_handler *runp;
+ 
+   if (who == atfork_run_prepare)
+     {
+-      lll_lock (atfork_lock, LLL_PRIVATE);
++      if (do_locking)
++	lll_lock (atfork_lock, LLL_PRIVATE);
+       size_t sl = fork_handler_list_size (&fork_handlers);
+       for (size_t i = sl; i > 0; i--)
+ 	{
+@@ -133,7 +134,8 @@ __run_fork_handlers (enum __run_fork_handler_type who)
+ 	  else if (who == atfork_run_parent && runp->parent_handler)
+ 	    runp->parent_handler ();
+ 	}
+-      lll_unlock (atfork_lock, LLL_PRIVATE);
++      if (do_locking)
++	lll_unlock (atfork_lock, LLL_PRIVATE);
+     }
+ }
+ 
 diff --git a/nptl/tst-audit-threads-mod1.c b/nptl/tst-audit-threads-mod1.c
 new file mode 100644
 index 0000000000..615d5ee512
@@ -2846,6 +3128,481 @@ index 0000000000..c39dd70973
 +}
 +
 +#define TIMEOUT (DEFAULT_TIMEOUT + 3 * LOOPS)
++#include <support/test-driver.c>
+diff --git a/nptl/tst-rwlock-tryrdlock-stall.c b/nptl/tst-rwlock-tryrdlock-stall.c
+new file mode 100644
+index 0000000000..5e476da2b8
+--- /dev/null
++++ b/nptl/tst-rwlock-tryrdlock-stall.c
+@@ -0,0 +1,355 @@
++/* Bug 23844: Test for pthread_rwlock_tryrdlock stalls.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* For a full analysis see comment:
++   https://sourceware.org/bugzilla/show_bug.cgi?id=23844#c14
++
++   Provided here for reference:
++
++   --- Analysis of pthread_rwlock_tryrdlock() stall ---
++   A read lock begins to execute.
++
++   In __pthread_rwlock_rdlock_full:
++
++   We can attempt a read lock, but find that the lock is
++   in a write phase (PTHREAD_RWLOCK_WRPHASE, or WP-bit
++   is set), and the lock is held by a primary writer
++   (PTHREAD_RWLOCK_WRLOCKED is set). In this case we must
++   wait for explicit hand over from the writer to us or
++   one of the other waiters. The read lock threads are
++   about to execute:
++
++   341   r = (atomic_fetch_add_acquire (&rwlock->__data.__readers,
++   342                                  (1 << PTHREAD_RWLOCK_READER_SHIFT))
++   343        + (1 << PTHREAD_RWLOCK_READER_SHIFT));
++
++   An unlock beings to execute.
++
++   Then in __pthread_rwlock_wrunlock:
++
++   547   unsigned int r = atomic_load_relaxed (&rwlock->__data.__readers);
++   ...
++   549   while (!atomic_compare_exchange_weak_release
++   550          (&rwlock->__data.__readers, &r,
++   551           ((r ^ PTHREAD_RWLOCK_WRLOCKED)
++   552            ^ ((r >> PTHREAD_RWLOCK_READER_SHIFT) == 0 ? 0
++   553               : PTHREAD_RWLOCK_WRPHASE))))
++   554     {
++   ...
++   556     }
++
++   We clear PTHREAD_RWLOCK_WRLOCKED, and if there are
++   no readers so we leave the lock in PTHRAD_RWLOCK_WRPHASE.
++
++   Back in the read lock.
++
++   The read lock adjusts __readres as above.
++
++   383   while ((r & PTHREAD_RWLOCK_WRPHASE) != 0
++   384          && (r & PTHREAD_RWLOCK_WRLOCKED) == 0)
++   385     {
++   ...
++   390       if (atomic_compare_exchange_weak_acquire (&rwlock->__data.__readers, &r,
++   391                                                 r ^ PTHREAD_RWLOCK_WRPHASE))
++   392         {
++
++   And then attemps to start the read phase.
++
++   Assume there happens to be a tryrdlock at this point, noting
++   that PTHREAD_RWLOCK_WRLOCKED is clear, and PTHREAD_RWLOCK_WRPHASE
++   is 1. So the try lock attemps to start the read phase.
++
++   In __pthread_rwlock_tryrdlock:
++
++    44       if ((r & PTHREAD_RWLOCK_WRPHASE) == 0)
++    45         {
++   ...
++    49           if (((r & PTHREAD_RWLOCK_WRLOCKED) != 0)
++    50               && (rwlock->__data.__flags
++    51                   == PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP))
++    52             return EBUSY;
++    53           rnew = r + (1 << PTHREAD_RWLOCK_READER_SHIFT);
++    54         }
++   ...
++    89   while (!atomic_compare_exchange_weak_acquire (&rwlock->__data.__readers,
++    90       &r, rnew));
++
++   And succeeds.
++
++   Back in the write unlock:
++
++   557   if ((r >> PTHREAD_RWLOCK_READER_SHIFT) != 0)
++   558     {
++   ...
++   563       if ((atomic_exchange_relaxed (&rwlock->__data.__wrphase_futex, 0)
++   564            & PTHREAD_RWLOCK_FUTEX_USED) != 0)
++   565         futex_wake (&rwlock->__data.__wrphase_futex, INT_MAX, private);
++   566     }
++
++   We note that PTHREAD_RWLOCK_FUTEX_USED is non-zero
++   and don't wake anyone. This is OK because we handed
++   over to the trylock. It will be the trylock's responsibility
++   to wake any waiters.
++
++   Back in the read lock:
++
++   The read lock fails to install PTHRAD_REWLOCK_WRPHASE as 0 because
++   the __readers value was adjusted by the trylock, and so it falls through
++   to waiting on the lock for explicit handover from either a new writer
++   or a new reader.
++
++   448           int err = futex_abstimed_wait (&rwlock->__data.__wrphase_futex,
++   449                                          1 | PTHREAD_RWLOCK_FUTEX_USED,
++   450                                          abstime, private);
++
++   We use PTHREAD_RWLOCK_FUTEX_USED to indicate the futex
++   is in use.
++
++   At this point we have readers waiting on the read lock
++   to unlock. The wrlock is done. The trylock is finishing
++   the installation of the read phase.
++
++    92   if ((r & PTHREAD_RWLOCK_WRPHASE) != 0)
++    93     {
++   ...
++   105       atomic_store_relaxed (&rwlock->__data.__wrphase_futex, 0);
++   106     }
++
++   The trylock does note that we were the one that
++   installed the read phase, but the comments are not
++   correct, the execution ordering above shows that
++   readers might indeed be waiting, and they are.
++
++   The atomic_store_relaxed throws away PTHREAD_RWLOCK_FUTEX_USED,
++   and the waiting reader is never worken becuase as noted
++   above it is conditional on the futex being used.
++
++   The solution is for the trylock thread to inspect
++   PTHREAD_RWLOCK_FUTEX_USED and wake the waiting readers.
++
++   --- Analysis of pthread_rwlock_trywrlock() stall ---
++
++   A write lock begins to execute, takes the write lock,
++   and then releases the lock...
++
++   In pthread_rwlock_wrunlock():
++
++   547   unsigned int r = atomic_load_relaxed (&rwlock->__data.__readers);
++   ...
++   549   while (!atomic_compare_exchange_weak_release
++   550          (&rwlock->__data.__readers, &r,
++   551           ((r ^ PTHREAD_RWLOCK_WRLOCKED)
++   552            ^ ((r >> PTHREAD_RWLOCK_READER_SHIFT) == 0 ? 0
++   553               : PTHREAD_RWLOCK_WRPHASE))))
++   554     {
++   ...
++   556     }
++
++   ... leaving it in the write phase with zero readers
++   (the case where we leave the write phase in place
++   during a write unlock).
++
++   A write trylock begins to execute.
++
++   In __pthread_rwlock_trywrlock:
++
++    40   while (((r & PTHREAD_RWLOCK_WRLOCKED) == 0)
++    41       && (((r >> PTHREAD_RWLOCK_READER_SHIFT) == 0)
++    42           || (prefer_writer && ((r & PTHREAD_RWLOCK_WRPHASE) != 0))))
++    43     {
++
++   The lock is not locked.
++
++   There are no readers.
++
++    45       if (atomic_compare_exchange_weak_acquire (
++    46           &rwlock->__data.__readers, &r,
++    47           r | PTHREAD_RWLOCK_WRPHASE | PTHREAD_RWLOCK_WRLOCKED))
++
++   We atomically install the write phase and we take the
++   exclusive write lock.
++
++    48         {
++    49           atomic_store_relaxed (&rwlock->__data.__writers_futex, 1);
++
++   We get this far.
++
++   A reader lock begins to execute.
++
++   In pthread_rwlock_rdlock:
++
++   437   for (;;)
++   438     {
++   439       while (((wpf = atomic_load_relaxed (&rwlock->__data.__wrphase_futex))
++   440               | PTHREAD_RWLOCK_FUTEX_USED) == (1 | PTHREAD_RWLOCK_FUTEX_USED))
++   441         {
++   442           int private = __pthread_rwlock_get_private (rwlock);
++   443           if (((wpf & PTHREAD_RWLOCK_FUTEX_USED) == 0)
++   444               && (!atomic_compare_exchange_weak_relaxed
++   445                   (&rwlock->__data.__wrphase_futex,
++   446                    &wpf, wpf | PTHREAD_RWLOCK_FUTEX_USED)))
++   447             continue;
++   448           int err = futex_abstimed_wait (&rwlock->__data.__wrphase_futex,
++   449                                          1 | PTHREAD_RWLOCK_FUTEX_USED,
++   450                                          abstime, private);
++
++   We are in a write phase, so the while() on line 439 is true.
++
++   The value of wpf does not have PTHREAD_RWLOCK_FUTEX_USED set
++   since this is the first reader to lock.
++
++   The atomic operation sets wpf with PTHREAD_RELOCK_FUTEX_USED
++   on the expectation that this reader will be woken during
++   the handoff.
++
++   Back in pthread_rwlock_trywrlock:
++
++    50           atomic_store_relaxed (&rwlock->__data.__wrphase_futex, 1);
++    51           atomic_store_relaxed (&rwlock->__data.__cur_writer,
++    52               THREAD_GETMEM (THREAD_SELF, tid));
++    53           return 0;
++    54         }
++   ...
++    57     }
++
++   We write 1 to __wrphase_futex discarding PTHREAD_RWLOCK_FUTEX_USED,
++   and so in the unlock we will not awaken the waiting reader.
++
++   The solution to this is to realize that if we did not start the write
++   phase we need not write 1 or any other value to __wrphase_futex.
++   This ensures that any readers (which saw __wrphase_futex != 0) can
++   set PTHREAD_RWLOCK_FUTEX_USED and this can be used at unlock to
++   wake them.
++
++   If we installed the write phase then all other readers are looping
++   here:
++
++   In __pthread_rwlock_rdlock_full:
++
++   437   for (;;)
++   438     {
++   439       while (((wpf = atomic_load_relaxed (&rwlock->__data.__wrphase_futex))
++   440               | PTHREAD_RWLOCK_FUTEX_USED) == (1 | PTHREAD_RWLOCK_FUTEX_USED))
++   441         {
++   ...
++   508     }
++
++   waiting for the write phase to be installed or removed before they
++   can begin waiting on __wrphase_futex (part of the algorithm), or
++   taking a concurrent read lock, and thus we can safely write 1 to
++   __wrphase_futex.
++
++   If we did not install the write phase then the readers may already
++   be waiting on the futex, the original writer wrote 1 to __wrphase_futex
++   as part of starting the write phase, and we cannot also write 1
++   without loosing the PTHREAD_RWLOCK_FUTEX_USED bit.
++
++   ---
++
++   Summary for the pthread_rwlock_tryrdlock() stall:
++
++   The stall is caused by pthread_rwlock_tryrdlock failing to check
++   that PTHREAD_RWLOCK_FUTEX_USED is set in the __wrphase_futex futex
++   and then waking the futex.
++
++   The fix for bug 23844 ensures that waiters on __wrphase_futex are
++   correctly woken.  Before the fix the test stalls as readers can
++   wait forever on __wrphase_futex.  */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <pthread.h>
++#include <support/xthread.h>
++#include <errno.h>
++
++/* We need only one lock to reproduce the issue. We will need multiple
++   threads to get the exact case where we have a read, try, and unlock
++   all interleaving to produce the case where the readers are waiting
++   and the try fails to wake them.  */
++pthread_rwlock_t onelock;
++
++/* The number of threads is arbitrary but empirically chosen to have
++   enough threads that we see the condition where waiting readers are
++   not woken by a successful tryrdlock.  */
++#define NTHREADS 32
++
++_Atomic int do_exit;
++
++void *
++run_loop (void *arg)
++{
++  int i = 0, ret;
++  while (!do_exit)
++    {
++      /* Arbitrarily choose if we are the writer or reader.  Choose a
++	 high enough ratio of readers to writers to make it likely
++	 that readers block (and eventually are susceptable to
++	 stalling).
++
++         If we are a writer, take the write lock, and then unlock.
++	 If we are a reader, try the lock, then lock, then unlock.  */
++      if ((i % 8) != 0)
++	xpthread_rwlock_wrlock (&onelock);
++      else
++	{
++	  if ((ret = pthread_rwlock_tryrdlock (&onelock)) != 0)
++	    {
++	      if (ret == EBUSY)
++		xpthread_rwlock_rdlock (&onelock);
++	      else
++		exit (EXIT_FAILURE);
++	    }
++	}
++      /* Thread does some work and then unlocks.  */
++      xpthread_rwlock_unlock (&onelock);
++      i++;
++    }
++  return NULL;
++}
++
++int
++do_test (void)
++{
++  int i;
++  pthread_t tids[NTHREADS];
++  xpthread_rwlock_init (&onelock, NULL);
++  for (i = 0; i < NTHREADS; i++)
++    tids[i] = xpthread_create (NULL, run_loop, NULL);
++  /* Run for some amount of time.  Empirically speaking exercising
++     the stall via pthread_rwlock_tryrdlock is much harder, and on
++     a 3.5GHz 4 core x86_64 VM system it takes somewhere around
++     20-200s to stall, approaching 100% stall past 200s.  We can't
++     wait that long for a regression test so we just test for 20s,
++     and expect the stall to happen with a 5-10% chance (enough for
++     developers to see).  */
++  sleep (20);
++  /* Then exit.  */
++  printf ("INFO: Exiting...\n");
++  do_exit = 1;
++  /* If any readers stalled then we will timeout waiting for them.  */
++  for (i = 0; i < NTHREADS; i++)
++    xpthread_join (tids[i]);
++  printf ("INFO: Done.\n");
++  xpthread_rwlock_destroy (&onelock);
++  printf ("PASS: No pthread_rwlock_tryrdlock stalls detected.\n");
++  return 0;
++}
++
++#define TIMEOUT 30
++#include <support/test-driver.c>
+diff --git a/nptl/tst-rwlock-trywrlock-stall.c b/nptl/tst-rwlock-trywrlock-stall.c
+new file mode 100644
+index 0000000000..14d27cbcbc
+--- /dev/null
++++ b/nptl/tst-rwlock-trywrlock-stall.c
+@@ -0,0 +1,108 @@
++/* Bug 23844: Test for pthread_rwlock_trywrlock stalls.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* For a full analysis see comments in tst-rwlock-tryrdlock-stall.c.
++
++   Summary for the pthread_rwlock_trywrlock() stall:
++
++   The stall is caused by pthread_rwlock_trywrlock setting
++   __wrphase_futex futex to 1 and loosing the
++   PTHREAD_RWLOCK_FUTEX_USED bit.
++
++   The fix for bug 23844 ensures that waiters on __wrphase_futex are
++   correctly woken.  Before the fix the test stalls as readers can
++   wait forever on  __wrphase_futex.  */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <pthread.h>
++#include <support/xthread.h>
++#include <errno.h>
++
++/* We need only one lock to reproduce the issue. We will need multiple
++   threads to get the exact case where we have a read, try, and unlock
++   all interleaving to produce the case where the readers are waiting
++   and the try clears the PTHREAD_RWLOCK_FUTEX_USED bit and a
++   subsequent unlock fails to wake them.  */
++pthread_rwlock_t onelock;
++
++/* The number of threads is arbitrary but empirically chosen to have
++   enough threads that we see the condition where waiting readers are
++   not woken by a successful unlock.  */
++#define NTHREADS 32
++
++_Atomic int do_exit;
++
++void *
++run_loop (void *arg)
++{
++  int i = 0, ret;
++  while (!do_exit)
++    {
++      /* Arbitrarily choose if we are the writer or reader.  Choose a
++	 high enough ratio of readers to writers to make it likely
++	 that readers block (and eventually are susceptable to
++	 stalling).
++
++         If we are a writer, take the write lock, and then unlock.
++	 If we are a reader, try the lock, then lock, then unlock.  */
++      if ((i % 8) != 0)
++	{
++	  if ((ret = pthread_rwlock_trywrlock (&onelock)) != 0)
++	    {
++	      if (ret == EBUSY)
++		xpthread_rwlock_wrlock (&onelock);
++	      else
++		exit (EXIT_FAILURE);
++	    }
++	}
++      else
++	xpthread_rwlock_rdlock (&onelock);
++      /* Thread does some work and then unlocks.  */
++      xpthread_rwlock_unlock (&onelock);
++      i++;
++    }
++  return NULL;
++}
++
++int
++do_test (void)
++{
++  int i;
++  pthread_t tids[NTHREADS];
++  xpthread_rwlock_init (&onelock, NULL);
++  for (i = 0; i < NTHREADS; i++)
++    tids[i] = xpthread_create (NULL, run_loop, NULL);
++  /* Run for some amount of time.  The pthread_rwlock_tryrwlock stall
++     is very easy to trigger and happens in seconds under the test
++     conditions.  */
++  sleep (10);
++  /* Then exit.  */
++  printf ("INFO: Exiting...\n");
++  do_exit = 1;
++  /* If any readers stalled then we will timeout waiting for them.  */
++  for (i = 0; i < NTHREADS; i++)
++    xpthread_join (tids[i]);
++  printf ("INFO: Done.\n");
++  xpthread_rwlock_destroy (&onelock);
++  printf ("PASS: No pthread_rwlock_tryrwlock stalls detected.\n");
++  return 0;
++}
++
 +#include <support/test-driver.c>
 diff --git a/nscd/Makefile b/nscd/Makefile
 index b713a84c49..eb23c01a39 100644
@@ -4910,7 +5667,7 @@ index 8d99716ff3..5861b01b73 100644
  
    do_test (0, 0, page_size - 1, 16, 0);
 diff --git a/support/Makefile b/support/Makefile
-index 652d2cdf69..550fdba0f7 100644
+index 652d2cdf69..b43fa524a7 100644
 --- a/support/Makefile
 +++ b/support/Makefile
 @@ -25,6 +25,7 @@ extra-libs-others = $(extra-libs)
@@ -4937,7 +5694,15 @@ index 652d2cdf69..550fdba0f7 100644
    support_record_failure \
    support_run_diff \
    support_shared_allocate \
-@@ -154,9 +157,12 @@ endif
+@@ -120,6 +123,7 @@ libsupport-routines = \
+   xpthread_mutexattr_settype \
+   xpthread_once \
+   xpthread_rwlock_init \
++  xpthread_rwlock_destroy \
+   xpthread_rwlock_rdlock \
+   xpthread_rwlock_unlock \
+   xpthread_rwlock_wrlock \
+@@ -154,9 +158,12 @@ endif
  tests = \
    README-testing \
    tst-support-namespace \
@@ -6167,6 +6932,50 @@ index 0000000000..3c004759b7
 +}
 +
 +#include <support/test-driver.c>
+diff --git a/support/xpthread_rwlock_destroy.c b/support/xpthread_rwlock_destroy.c
+new file mode 100644
+index 0000000000..6d6e953569
+--- /dev/null
++++ b/support/xpthread_rwlock_destroy.c
+@@ -0,0 +1,26 @@
++/* pthread_rwlock_destroy with error checking.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <support/xthread.h>
++
++void
++xpthread_rwlock_destroy (pthread_rwlock_t *rwlock)
++{
++  xpthread_check_return ("pthread_rwlock_destroy",
++                         pthread_rwlock_destroy (rwlock));
++}
+diff --git a/support/xthread.h b/support/xthread.h
+index 623f5ad0ac..1af7728087 100644
+--- a/support/xthread.h
++++ b/support/xthread.h
+@@ -84,6 +84,7 @@ void xpthread_rwlockattr_setkind_np (pthread_rwlockattr_t *attr, int pref);
+ void xpthread_rwlock_wrlock (pthread_rwlock_t *rwlock);
+ void xpthread_rwlock_rdlock (pthread_rwlock_t *rwlock);
+ void xpthread_rwlock_unlock (pthread_rwlock_t *rwlock);
++void xpthread_rwlock_destroy (pthread_rwlock_t *rwlock);
+ 
+ __END_DECLS
+ 
 diff --git a/sysdeps/aarch64/dl-irel.h b/sysdeps/aarch64/dl-irel.h
 index 5889ee187b..bef71ed0f3 100644
 --- a/sysdeps/aarch64/dl-irel.h
@@ -6572,6 +7381,56 @@ index 1e2092a05d..05c94e7a71 100644
    int __kind;
    __PTHREAD_COMPAT_PADDING_MID
  #if __PTHREAD_MUTEX_NUSERS_AFTER_KIND
+diff --git a/sysdeps/nptl/fork.c b/sysdeps/nptl/fork.c
+index ec56a827eb..1a9429b579 100644
+--- a/sysdeps/nptl/fork.c
++++ b/sysdeps/nptl/fork.c
+@@ -55,7 +55,7 @@ __libc_fork (void)
+      but our current fork implementation is not.  */
+   bool multiple_threads = THREAD_GETMEM (THREAD_SELF, header.multiple_threads);
+ 
+-  __run_fork_handlers (atfork_run_prepare);
++  __run_fork_handlers (atfork_run_prepare, multiple_threads);
+ 
+   /* If we are not running multiple threads, we do not have to
+      preserve lock state.  If fork runs from a signal handler, only
+@@ -134,7 +134,7 @@ __libc_fork (void)
+       __rtld_lock_initialize (GL(dl_load_lock));
+ 
+       /* Run the handlers registered for the child.  */
+-      __run_fork_handlers (atfork_run_child);
++      __run_fork_handlers (atfork_run_child, multiple_threads);
+     }
+   else
+     {
+@@ -149,7 +149,7 @@ __libc_fork (void)
+ 	}
+ 
+       /* Run the handlers registered for the parent.  */
+-      __run_fork_handlers (atfork_run_parent);
++      __run_fork_handlers (atfork_run_parent, multiple_threads);
+     }
+ 
+   return pid;
+diff --git a/sysdeps/nptl/fork.h b/sysdeps/nptl/fork.h
+index 6eab61c121..bef2b7a8a6 100644
+--- a/sysdeps/nptl/fork.h
++++ b/sysdeps/nptl/fork.h
+@@ -52,9 +52,11 @@ enum __run_fork_handler_type
+    - atfork_run_child: run all the CHILD_HANDLER and unlocks the internal
+ 		       lock.
+    - atfork_run_parent: run all the PARENT_HANDLER and unlocks the internal
+-			lock.  */
+-extern void __run_fork_handlers (enum __run_fork_handler_type who)
+-  attribute_hidden;
++			lock.
++
++   Perform locking only if DO_LOCKING.  */
++extern void __run_fork_handlers (enum __run_fork_handler_type who,
++				 _Bool do_locking) attribute_hidden;
+ 
+ /* C library side function to register new fork handlers.  */
+ extern int __register_atfork (void (*__prepare) (void),
 diff --git a/sysdeps/nptl/futex-internal.h b/sysdeps/nptl/futex-internal.h
 index 1a5624789d..6fd27f0df6 100644
 --- a/sysdeps/nptl/futex-internal.h
