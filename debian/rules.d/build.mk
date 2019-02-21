@@ -329,7 +329,7 @@ $(stamp)build_locales-all: $(stamp)/build_libc
 	$(MAKE) -C $(DEB_BUILDDIRLIBC) $(NJOBS) \
 		objdir=$(DEB_BUILDDIRLIBC) \
 		install_root=$(CURDIR)/build-tree/locales-all \
-		localedata/install-locales LOCALEDEF="$(LOCALEDEF)"
+		localedata/install-locale-files LOCALEDEF="$(LOCALEDEF)"
 	rdfind -outputname /dev/null -makesymlinks true -removeidentinode false \
 		$(CURDIR)/build-tree/locales-all/usr/lib/locale
 	symlinks -r -s -c $(CURDIR)/build-tree/locales-all/usr/lib/locale
