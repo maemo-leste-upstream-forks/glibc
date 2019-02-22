@@ -289,27 +289,16 @@ test-xfail-tst-audit2 = yes
 test-xfail-tst-audit8 = yes
 test-xfail-tst-backtrace4 = yes
 test-xfail-tst-backtrace5 = yes
-test-xfail-tst-chk2 = yes
-test-xfail-tst-chk3 = yes
-test-xfail-tst-chk5 = yes
-test-xfail-tst-chk6 = yes
 test-xfail-tst-fdopendir2 = yes
 test-xfail-tst-fdopendir = yes
-test-xfail-tst-futimesat = yes
 test-xfail-tst-getconf = yes
 test-xfail-tst-grantpt = yes
-test-xfail-tst-lfschk2 = yes
-test-xfail-tst-lfschk3 = yes
-test-xfail-tst-lfschk5 = yes
-test-xfail-tst-lfschk6 = yes
 test-xfail-tst-longjmp_chk2 = yes
 test-xfail-tst-mallocfork2 = yes
 test-xfail-tst-sprofil = yes
 test-xfail-tst-stackguard1-static = yes
 test-xfail-tst-stackguard1 = yes
 test-xfail-tst-strtod-round = yes
-test-xfail-tst-sysconf = yes
-test-xfail-tst-vfork3-mem = yes
 test-xfail-tst-timer4 = yes
 test-xfail-tst-timer5 = yes
 
@@ -372,8 +361,6 @@ test-xfail-tst-vfork3 = yes
 test-xfail-tst-wcstod-round = yes
 test-xfail-tst-env-setuid = yes
 test-xfail-tst-env-setuid-tunables = yes
-test-xfail-tst-glob-tilde = yes
-test-xfail-tst-glob-tilde-mem = yes
 
 # new in 2.26
 test-xfail-tst-malloc-usable-static-tunables = yes
@@ -381,11 +368,6 @@ test-xfail-tst-malloc-usable-static = yes
 test-xfail-tst-malloc-tcache-leak = yes
 test-xfail-tst-dynarray-fail-mem = yes
 test-xfail-test-errno = yes
-
-# will be fixed in hurd >= 20170926
-test-xfail-tst-bug18665-tcp = yes
-test-xfail-tst-resolv-basic = yes
-test-xfail-tst-resolv-search = yes
 
 # new in 2.27
 test-xfail-tst-fexecve = yes
@@ -397,11 +379,10 @@ test-xfail-tst-libc_dlvsym = yes
 test-xfail-tst-malloc-too-large = yes
 test-xfail-tst-spawn4 = yes
 test-xfail-tst-spawn4-compat = yes
-test-xfail-test-bz22786 = yes
 
 # Tests failing to build
-tests-unsupported += tst-copy_file_range
-tests-unsupported += tst-copy_file_range-compat
+test-xfail-tst-copy_file_range = yes
+test-xfail-tst-copy_file_range-compat = yes
 
 # new in 2.28
 test-xfail-tst-fgetc-after-eof = yes
