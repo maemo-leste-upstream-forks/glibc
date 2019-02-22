@@ -261,15 +261,6 @@ ifeq ($(config-machine)-$(config-os),i686-gnu-gnu)
 # creating files.
 test-xfail-tst-null-argv = yes
 
-# Tests failing to build
-tests-unsupported += test-as-const-signal-defines
-tests-unsupported += tst-cputimer1
-tests-unsupported += tst-cputimer2
-tests-unsupported += tst-cputimer3
-tests-unsupported += tst-timer4
-tests-unsupported += tst-timer5
-tests-unsupported += tst-malloc-backtrace
-
 # bounding memory allocation is not supported yet
 tests-unsupported += tst-malloc-thread-fail
 tests-unsupported += tst-dynarray-fail
@@ -319,6 +310,8 @@ test-xfail-tst-stackguard1 = yes
 test-xfail-tst-strtod-round = yes
 test-xfail-tst-sysconf = yes
 test-xfail-tst-vfork3-mem = yes
+test-xfail-tst-timer4 = yes
+test-xfail-tst-timer5 = yes
 
 # This generates GiBs of data instead of sparse files, putting build box on its knees
 tests-unsupported += test-lfs
