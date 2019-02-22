@@ -1,0 +1,46 @@
+TODO:
+make the Makefile part newns-support-specific
+make the main Makefile put tests-container in unsupported tests when newns is not supported.
+
+Index: glibc-2.29/nss/tst-nss-test3.c
+===================================================================
+--- glibc-2.29.orig/nss/tst-nss-test3.c
++++ glibc-2.29/nss/tst-nss-test3.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
++#include <sched.h>
+ #include <nss.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -107,12 +108,15 @@ do_test (void)
+   int i;
+   struct group *g = NULL;
+ 
++#ifndef CLONE_NEWNS
++  __nss_configure_lookup ("group", "test1");
++#else
+ /* Previously we used __nss_configure_lookup to isolate the test
+    from the host environment and to get it to lookup from our new
+    test1 NSS service module, but now this test is run in a different
+    root filesystem via the test-container support and we directly
+    configure the use of the test1 NSS service.  */
+-  __nss_configure_lookup ("group", "test1");
++#endif
+ 
+   setgrent ();
+ 
+Index: glibc-2.29/nss/Makefile
+===================================================================
+--- glibc-2.29.orig/nss/Makefile
++++ glibc-2.29/nss/Makefile
+@@ -59,7 +59,7 @@ tests			= test-netdb test-digits-dots ts
+ 			  tst-nss-test5
+ xtests			= bug-erange
+ 
+-tests-container = \
++tests += \
+ 			  tst-nss-test3
+ 
+ # Tests which need libdl
