@@ -1,10 +1,30 @@
 GIT update of https://sourceware.org/git/glibc.git/release/2.28/master from glibc-2.28
 
 diff --git a/ChangeLog b/ChangeLog
-index 08b42bd2f5..0087fd9d50 100644
+index 08b42bd2f5..42fe0aeb1e 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,764 @@
+@@ -1,3 +1,784 @@
++2018-09-21  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++
++	* NEWS: Add note about new TLE support on powerpc64le.
++	* sysdeps/powerpc/nptl/tcb-offsets.sym (TM_CAPABLE): Remove.
++	* sysdeps/powerpc/nptl/tls.h (tcbhead_t): Rename tm_capable to
++	__ununsed1.
++	(TLS_INIT_TP, TLS_DEFINE_INIT_TP): Remove tm_capable setup.
++	(THREAD_GET_TM_CAPABLE, THREAD_SET_TM_CAPABLE): Remove macros.
++	* sysdeps/powerpc/powerpc32/sysdep.h,
++	sysdeps/powerpc/powerpc64/sysdep.h (ABORT_TRANSACTION_IMPL,
++	ABORT_TRANSACTION): Remove macros.
++	* sysdeps/powerpc/sysdep.h (ABORT_TRANSACTION): Likewise.
++	* sysdeps/unix/sysv/linux/powerpc/elision-conf.c (elision_init): Set
++	__pthread_force_elision iff PPC_FEATURE2_HTM_NOSC is set.
++	* sysdeps/unix/sysv/linux/powerpc/powerpc32/sysdep.h,
++	sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h
++	sysdeps/unix/sysv/linux/powerpc/syscall.S (ABORT_TRANSACTION): Remove
++	usage.
++	* sysdeps/unix/sysv/linux/powerpc/not-errno.h: Remove file.
++
 +2019-01-13  Jim Wilson  <jimw@sifive.com>
 +
 +	[BZ #24040]
@@ -787,14 +807,25 @@ index 608ffe648c..f5e81bdf5d 100644
  # We might want to compile with some stack-protection flag.
  ifneq ($(stack-protector),)
 diff --git a/NEWS b/NEWS
-index 154ab22d7c..2d5a514dfd 100644
+index 154ab22d7c..60b15116d6 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,66 @@ See the end for copying conditions.
+@@ -5,6 +5,77 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
 +Version 2.28.1
++
++Deprecated and removed features, and other changes affecting compatibility:
++
++* For powercp64le ABI, Transactional Lock Elision is now enabled iff kernel
++  indicates that it will abort the transaction prior to entering the kernel
++  (PPC_FEATURE2_HTM_NOSC on hwcap2).  On older kernels the transaction is
++  suspended, and this caused some undefined side-effects issues by aborting
++  transactions manually.  Glibc avoided it by abort transactions manually on
++  each syscall, but it lead to performance issues on newer kernels where the
++  HTM state is saved and restore lazily (the state being saved even when the
++  process actually does not use HTM).
 +
 +The following bugs are resolved with this release:
 +
@@ -857,7 +888,7 @@ index 154ab22d7c..2d5a514dfd 100644
  Version 2.28
  
  Major new features:
-@@ -422,6 +482,8 @@ The following bugs are resolved with this release:
+@@ -422,6 +493,8 @@ The following bugs are resolved with this release:
    [23459] libc: COMMON_CPUID_INDEX_80000001 isn't populated for Intel
      processors
    [23467] dynamic-link: x86/CET: A property note parser bug
@@ -7505,6 +7536,63 @@ index 553833d1f2..c91b281e31 100644
  	{
  	  if (req->ai_family == AF_UNSPEC || req->ai_family == AF_INET)
  	    at->family = AF_INET;
+diff --git a/sysdeps/powerpc/nptl/tcb-offsets.sym b/sysdeps/powerpc/nptl/tcb-offsets.sym
+index e5bb2b376d..4c01615ad0 100644
+--- a/sysdeps/powerpc/nptl/tcb-offsets.sym
++++ b/sysdeps/powerpc/nptl/tcb-offsets.sym
+@@ -21,7 +21,6 @@ DSO_SLOT2			(offsetof (tcbhead_t, dso_slot2) - TLS_TCB_OFFSET - sizeof (tcbhead_
+ #ifdef __powerpc64__
+ TCB_AT_PLATFORM			(offsetof (tcbhead_t, at_platform) - TLS_TCB_OFFSET - sizeof(tcbhead_t))
+ #endif
+-TM_CAPABLE			(offsetof (tcbhead_t, tm_capable) - TLS_TCB_OFFSET - sizeof (tcbhead_t))
+ #ifndef __powerpc64__
+ TCB_AT_PLATFORM			(offsetof (tcbhead_t, at_platform) - TLS_TCB_OFFSET - sizeof(tcbhead_t))
+ PADDING				(offsetof (tcbhead_t, padding) - TLS_TCB_OFFSET - sizeof(tcbhead_t))
+diff --git a/sysdeps/powerpc/nptl/tls.h b/sysdeps/powerpc/nptl/tls.h
+index f88fed5ecf..8317ca7cfa 100644
+--- a/sysdeps/powerpc/nptl/tls.h
++++ b/sysdeps/powerpc/nptl/tls.h
+@@ -67,8 +67,7 @@ typedef struct
+   uint32_t padding;
+   uint32_t at_platform;
+ #endif
+-  /* Indicate if HTM capable (ISA 2.07).  */
+-  uint32_t tm_capable;
++  uint32_t __unused;
+   /* Reservation for AT_PLATFORM data - powerpc64.  */
+ #ifdef __powerpc64__
+   uint32_t at_platform;
+@@ -142,7 +141,6 @@ register void *__thread_register __asm__ ("r13");
+ # define TLS_INIT_TP(tcbp) \
+   ({ 									      \
+     __thread_register = (void *) (tcbp) + TLS_TCB_OFFSET;		      \
+-    THREAD_SET_TM_CAPABLE (__tcb_hwcap & PPC_FEATURE2_HAS_HTM ? 1 : 0);	      \
+     THREAD_SET_HWCAP (__tcb_hwcap);					      \
+     THREAD_SET_AT_PLATFORM (__tcb_platform);				      \
+     NULL;								      \
+@@ -151,8 +149,6 @@ register void *__thread_register __asm__ ("r13");
+ /* Value passed to 'clone' for initialization of the thread register.  */
+ # define TLS_DEFINE_INIT_TP(tp, pd) \
+     void *tp = (void *) (pd) + TLS_TCB_OFFSET + TLS_PRE_TCB_SIZE;	      \
+-    (((tcbhead_t *) ((char *) tp - TLS_TCB_OFFSET))[-1].tm_capable) =	      \
+-      THREAD_GET_TM_CAPABLE ();						      \
+     (((tcbhead_t *) ((char *) tp - TLS_TCB_OFFSET))[-1].hwcap) =	      \
+       THREAD_GET_HWCAP ();						      \
+     (((tcbhead_t *) ((char *) tp - TLS_TCB_OFFSET))[-1].at_platform) =	      \
+@@ -210,13 +206,6 @@ register void *__thread_register __asm__ ("r13");
+ 		     + TLS_PRE_TCB_SIZE))[-1].pointer_guard		      \
+      = THREAD_GET_POINTER_GUARD())
+ 
+-/* tm_capable field in TCB head.  */
+-# define THREAD_GET_TM_CAPABLE() \
+-    (((tcbhead_t *) ((char *) __thread_register				      \
+-		     - TLS_TCB_OFFSET))[-1].tm_capable)
+-# define THREAD_SET_TM_CAPABLE(value) \
+-    (THREAD_GET_TM_CAPABLE () = (value))
+-
+ /* hwcap field in TCB head.  */
+ # define THREAD_GET_HWCAP() \
+     (((tcbhead_t *) ((char *) __thread_register				      \
 diff --git a/sysdeps/powerpc/powerpc32/dl-irel.h b/sysdeps/powerpc/powerpc32/dl-irel.h
 index a7368b2582..61d0e4cf61 100644
 --- a/sysdeps/powerpc/powerpc32/dl-irel.h
@@ -7518,6 +7606,35 @@ index a7368b2582..61d0e4cf61 100644
  }
  
  #endif /* dl-irel.h */
+diff --git a/sysdeps/powerpc/powerpc32/sysdep.h b/sysdeps/powerpc/powerpc32/sysdep.h
+index 5f1294ead3..93097c5459 100644
+--- a/sysdeps/powerpc/powerpc32/sysdep.h
++++ b/sysdeps/powerpc/powerpc32/sysdep.h
+@@ -90,24 +90,7 @@ GOT_LABEL:			;					      \
+   cfi_endproc;								      \
+   ASM_SIZE_DIRECTIVE(name)
+ 
+-#if !IS_IN(rtld) && !defined(__SPE__)
+-# define ABORT_TRANSACTION_IMPL \
+-    cmpwi    2,0;		\
+-    beq      1f;		\
+-    lwz      0,TM_CAPABLE(2);	\
+-    cmpwi    0,0;		\
+-    beq	     1f;		\
+-    li       11,_ABORT_SYSCALL;	\
+-    tabort.  11;		\
+-    .align 4;			\
+-1:
+-#else
+-# define ABORT_TRANSACTION_IMPL
+-#endif
+-#define ABORT_TRANSACTION ABORT_TRANSACTION_IMPL
+-
+ #define DO_CALL(syscall)						      \
+-    ABORT_TRANSACTION							      \
+     li 0,syscall;							      \
+     sc
+ 
 diff --git a/sysdeps/powerpc/powerpc64/addmul_1.S b/sysdeps/powerpc/powerpc64/addmul_1.S
 index 48e3b1b290..e450d6a52c 100644
 --- a/sysdeps/powerpc/powerpc64/addmul_1.S
@@ -7648,6 +7765,71 @@ index 953ded8028..cade365258 100644
 +	ld	r26, R26SAVE(r1)
  	blr
  END(__mpn_mul_1)
+diff --git a/sysdeps/powerpc/powerpc64/sysdep.h b/sysdeps/powerpc/powerpc64/sysdep.h
+index 2df1d9b6e6..50e64f9ce2 100644
+--- a/sysdeps/powerpc/powerpc64/sysdep.h
++++ b/sysdeps/powerpc/powerpc64/sysdep.h
+@@ -263,24 +263,7 @@ LT_LABELSUFFIX(name,_name_end): ; \
+   TRACEBACK_MASK(name,mask);	\
+   END_2(name)
+ 
+-#if !IS_IN(rtld)
+-# define ABORT_TRANSACTION_IMPL \
+-    cmpdi    13,0;		\
+-    beq      1f;		\
+-    lwz      0,TM_CAPABLE(13);	\
+-    cmpwi    0,0;		\
+-    beq	     1f;		\
+-    li       11,_ABORT_SYSCALL;	\
+-    tabort.  11;		\
+-    .p2align 4;			\
+-1:
+-#else
+-# define ABORT_TRANSACTION_IMPL
+-#endif
+-#define ABORT_TRANSACTION ABORT_TRANSACTION_IMPL
+-
+ #define DO_CALL(syscall) \
+-    ABORT_TRANSACTION \
+     li 0,syscall; \
+     sc
+ 
+diff --git a/sysdeps/powerpc/sysdep.h b/sysdeps/powerpc/sysdep.h
+index 8a6d236caa..c8bf25e870 100644
+--- a/sysdeps/powerpc/sysdep.h
++++ b/sysdeps/powerpc/sysdep.h
+@@ -21,8 +21,6 @@
+  */
+ #define _SYSDEPS_SYSDEP_H 1
+ #include <bits/hwcap.h>
+-#include <tls.h>
+-#include <htm.h>
+ 
+ #define PPC_FEATURE_970 (PPC_FEATURE_POWER4 + PPC_FEATURE_HAS_ALTIVEC)
+ 
+@@ -166,22 +164,4 @@
+ #define ALIGNARG(log2) log2
+ #define ASM_SIZE_DIRECTIVE(name) .size name,.-name
+ 
+-#else
+-
+-/* Linux kernel powerpc documentation [1] states issuing a syscall inside a
+-   transaction is not recommended and may lead to undefined behavior.  It
+-   also states syscalls do not abort transactions.  To avoid such traps,
+-   we abort transaction just before syscalls.
+-
+-   [1] Documentation/powerpc/transactional_memory.txt [Syscalls]  */
+-#if !IS_IN(rtld) && !defined(__SPE__)
+-# define ABORT_TRANSACTION \
+-  ({ 						\
+-    if (THREAD_GET_TM_CAPABLE ())		\
+-      __libc_tabort (_ABORT_SYSCALL);	\
+-  })
+-#else
+-# define ABORT_TRANSACTION
+-#endif
+-
+ #endif	/* __ASSEMBLER__ */
 diff --git a/sysdeps/riscv/rv64/rvd/libm-test-ulps b/sysdeps/riscv/rv64/rvd/libm-test-ulps
 index f8feadcd0d..61be2df60d 100644
 --- a/sysdeps/riscv/rv64/rvd/libm-test-ulps
@@ -8121,6 +8303,37 @@ index 4ada322104..89f9bcedfd 100644
    (act)->sa_restorer = (kact)->sa_restorer
 +
 +#include <sysdeps/unix/sysv/linux/kernel_sigaction.h>
+diff --git a/sysdeps/unix/sysv/linux/powerpc/elision-conf.c b/sysdeps/unix/sysv/linux/powerpc/elision-conf.c
+index 906882a65e..fc82bd1ad8 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/elision-conf.c
++++ b/sysdeps/unix/sysv/linux/powerpc/elision-conf.c
+@@ -127,6 +127,26 @@ elision_init (int argc __attribute__ ((unused)),
+ 	       TUNABLE_CALLBACK (set_elision_skip_trylock_internal_abort));
+ #endif
+ 
++  /* Linux from 3.9 through 4.2 do not abort HTM transaction on syscalls,
++     instead it suspends the transaction and resumes it when returning to
++     usercode.  The side-effects of the syscall will always remain visible,
++     even if the transaction is aborted.  This is an issue when a transaction
++     is used along with futex syscall, on pthread_cond_wait for instance,
++     where futex might succeed but the transaction is rolled back leading
++     the condition variable object in an inconsistent state.
++
++     Glibc used to prevent it by always aborting a transaction before issuing
++     a syscall.  Linux 4.2 also decided to abort active transaction in
++     syscalls which makes the glibc workaround superflours.  Worse, glibc
++     transaction abortions leads to a performance issues on recent kernels.
++
++     So Lock Elision is just enabled when it has been explict set (either
++     by tunables of by a configure switch) and if kernel aborts HTM
++     transactions on syscalls (PPC_FEATURE2_HTM_NOSC)  */
++
++  __pthread_force_elision = (__pthread_force_elision
++			     && GLRO (dl_hwcap2) & PPC_FEATURE2_HTM_NOSC);
++
+   if (!__pthread_force_elision)
+     __elision_aconf.try_tbegin = 0; /* Disable elision on rwlocks.  */
+ }
 diff --git a/sysdeps/unix/sysv/linux/powerpc/force-elision.h b/sysdeps/unix/sysv/linux/powerpc/force-elision.h
 index fe5d6ceade..d8f5a4b1c7 100644
 --- a/sysdeps/unix/sysv/linux/powerpc/force-elision.h
@@ -8191,6 +8404,78 @@ index aef3d5a3b3..bac03ee45d 100644
    (act)->sa_restorer = (kact)->sa_restorer
 +
 +#include <sysdeps/unix/sysv/linux/kernel_sigaction.h>
+diff --git a/sysdeps/unix/sysv/linux/powerpc/not-errno.h b/sysdeps/unix/sysv/linux/powerpc/not-errno.h
+deleted file mode 100644
+index 27da21bdf1..0000000000
+--- a/sysdeps/unix/sysv/linux/powerpc/not-errno.h
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/* Syscall wrapper that do not set errno.  Linux powerpc version.
+-   Copyright (C) 2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/* __access_noerrno is used during process initialization in elf/dl-tunables.c
+-   before the TCB is initialized, prohibiting the usage of
+-   ABORT_TRANSACTION.  */
+-#undef ABORT_TRANSACTION
+-#define ABORT_TRANSACTION
+-
+-#include "sysdeps/unix/sysv/linux/not-errno.h"
+-
+-/* Recover ABORT_TRANSACTION's previous value, in order to not affect
+-   other syscalls.  */
+-#undef ABORT_TRANSACTION
+-#define ABORT_TRANSACTION ABORT_TRANSACTION_IMPL
+diff --git a/sysdeps/unix/sysv/linux/powerpc/powerpc32/sysdep.h b/sysdeps/unix/sysv/linux/powerpc/powerpc32/sysdep.h
+index f7277d59e1..ec5c5250f8 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/powerpc32/sysdep.h
++++ b/sysdeps/unix/sysv/linux/powerpc/powerpc32/sysdep.h
+@@ -109,7 +109,6 @@
+     register long int r11 __asm__ ("r11");				\
+     register long int r12 __asm__ ("r12");				\
+     LOADARGS_##nr(name, args);						\
+-    ABORT_TRANSACTION;							\
+     __asm__ __volatile__						\
+       ("sc   \n\t"							\
+        "mfcr %0"							\
+diff --git a/sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h b/sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h
+index 0956cf04a7..1f17f7bd5f 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h
++++ b/sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h
+@@ -131,7 +131,6 @@
+     register long int r7  __asm__ ("r7");				\
+     register long int r8  __asm__ ("r8");				\
+     LOADARGS_##nr (name, ##args);					\
+-    ABORT_TRANSACTION;							\
+     __asm__ __volatile__						\
+       ("sc\n\t"								\
+        "mfcr  %0\n\t"							\
+diff --git a/sysdeps/unix/sysv/linux/powerpc/syscall.S b/sysdeps/unix/sysv/linux/powerpc/syscall.S
+index 2da91721be..bbab613aca 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/syscall.S
++++ b/sysdeps/unix/sysv/linux/powerpc/syscall.S
+@@ -18,7 +18,6 @@
+ #include <sysdep.h>
+ 
+ ENTRY (syscall)
+-	ABORT_TRANSACTION
+ 	mr   r0,r3
+ 	mr   r3,r4
+ 	mr   r4,r5
 diff --git a/sysdeps/unix/sysv/linux/preadv2.c b/sysdeps/unix/sysv/linux/preadv2.c
 index c8bf0764ef..bb08cbc5fd 100644
 --- a/sysdeps/unix/sysv/linux/preadv2.c
