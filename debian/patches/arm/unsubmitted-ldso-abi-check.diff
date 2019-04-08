@@ -222,10 +222,10 @@
  	if (ph->p_type == PT_NOTE && ph->p_filesz >= 32 && ph->p_align >= 4)
  	  {
  	    ElfW(Addr) size = ph->p_filesz;
-@@ -1751,6 +1955,21 @@
+@@ -1751,6 +1955,20 @@
+ 
+ 	    break;
  	  }
-       free (abi_note_malloced);
-     }
 +      if (-1 != fd)
 +	{
 +	  int error = arch_specific_checks(fd, name, ehdr);
@@ -239,8 +239,7 @@
 +	      goto call_lose;
 +	    }
 +	}
-+
-+    }
++      }
+       free (abi_note_malloced);
+     }
  
-   return fd;
- }
