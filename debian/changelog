@@ -53,16 +53,42 @@ glibc (2.29-0experimental0) UNRELEASED; urgency=medium
 
  -- Adam Conrad <adconrad@0c3.net>  Wed, 20 Feb 2019 01:22:52 -0700
 
-glibc (2.28-8) UNRELEASED; urgency=medium
+glibc (2.28-10) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix infinite loop in pldd.  Closes: #913929.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Wed, 01 May 2019 19:24:19 +0200
+
+glibc (2.28-9) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix heap-based buffer over-read in regular-expression matching
+      (CVE-2019-9169).  Closes: #924612.
+    - Add entry for the new Japanese era to the ja_JP locale.  Closes:
+      #927914.
+
+  [ Adam Conrad ]
+  * debian/patches/arm/unsubmitted-ldso-abi-check.diff: Fix rtld segv in
+    dl_open() introduced via merge with upstream at 2.28 (LP: #1821677)
+
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 25 Apr 2019 21:12:03 +0200
+
+glibc (2.28-8) unstable; urgency=medium
 
   [ Aurelien Jarno ]
   * debian/patches/git-updates.diff: update from upstream stable branch.
+  * Update Danish debconf translation, by Joe Hansen.  Closes: #923055.
 
   [ Samuel Thibault ]
   * debian/patches/hurd-i386/libpthread_sigs.diff: Enable patch to restore
     per-thread signal distribution, lost on upgrading to 2.28. Fixes go.
+  * debian/patches/hurd-i386/git-renameat2.diff: New patch, fixes renameat2,
+    now used by coreutils.
 
- -- Aurelien Jarno <aurel32@debian.org>  Mon, 18 Feb 2019 08:16:13 +0100
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 27 Feb 2019 21:56:01 -0800
 
 glibc (2.28-7) unstable; urgency=medium
 
