@@ -933,38 +933,6 @@ endif
 
 
 ######################################################################
-# powerpcspe
-######################################################################
-ifeq ($(config-machine)-$(config-os),powerpc-linux-gnuspe)
-test-xfail-annexc = yes
-test-xfail-bug-nextafter = yes
-test-xfail-bug-nexttoward = yes
-test-xfail-check-localplt = yes
-test-xfail-iconv-test = yes
-test-xfail-isomac = yes
-test-xfail-test-fenv = yes
-test-xfail-test-float32 = yes
-test-xfail-test-float64 = yes
-test-xfail-test-ifloat32 = yes
-test-xfail-test-ifloat64 = yes
-test-xfail-test-misc = yes
-test-xfail-tst-backtrace5 = yes
-test-xfail-tst-backtrace6 = yes
-test-xfail-tst-cancel4 = yes
-test-xfail-tst-cancel5 = yes
-test-xfail-tst-cancelx4 = yes
-test-xfail-tst-cancelx5 = yes
-test-xfail-tst-key1 = yes
-test-xfail-tst-key4 = yes
-test-xfail-tst-setcontext-fpscr = yes
-
-# The glibc implementation of pkey_get and pkey_set are the stub
-# implementations.
-test-xfail-tst-pkey = yes
-endif
-
-
-######################################################################
 # riscv64
 # ######################################################################
 ifeq ($(config-machine)-$(config-os),riscv64-linux-gnu)
