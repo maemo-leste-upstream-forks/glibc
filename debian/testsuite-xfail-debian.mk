@@ -211,17 +211,15 @@ test-xfail-tst-pkey = yes
 # This test fails due to a kernel bug when building armhf on an ARM64
 # machine. See bug #904385.
 test-xfail-tst-signal6 = yes
-
-# This test has regressed with recent kernels
-test-xfail-tst-thread-exit-clobber = yes
-
-# These (new in 2.29) tests appear to fail when building armhf on aarch64
 test-xfail-tst-minsigstksz-1 = yes
 test-xfail-tst-minsigstksz-2 = yes
 test-xfail-tst-minsigstksz-3 = yes
 test-xfail-tst-minsigstksz-3a = yes
 test-xfail-tst-minsigstksz-4 = yes
 test-xfail-tst-xsigstack = yes
+
+# This test has regressed with recent kernels
+test-xfail-tst-thread-exit-clobber = yes
 endif
 
 
