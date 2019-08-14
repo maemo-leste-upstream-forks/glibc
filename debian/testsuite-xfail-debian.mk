@@ -146,10 +146,6 @@ endif
 # amd64
 ######################################################################
 ifeq ($(config-machine)-$(config-os),x86_64-linux-gnu)
-test-xfail-tst-backtrace6 = yes
-test-xfail-tst-mqueue5 = yes
-test-xfail-tst-waitid = yes
-
 # This test fails intermittently on amd64. It could be a kernel issue.
 # see https://sourceware.org/bugzilla/show_bug.cgi?id=19004
 test-xfail-tst-robust8 = yes
@@ -160,13 +156,6 @@ endif
 # arm64
 ######################################################################
 ifeq ($(config-machine)-$(config-os),aarch64-linux-gnu)
-test-xfail-test-fenv = yes
-test-xfail-test-fenv-tls = yes
-test-xfail-tst-backtrace5 = yes
-test-xfail-tst-backtrace6 = yes
-test-xfail-tst-mqueue5 = yes
-test-xfail-tst-stack4 = yes
-
 # There is not support for protection key on ARM64 yet, and there is a
 # disagreement between kernel and glibc how to report that.
 test-xfail-tst-pkey = yes
@@ -181,12 +170,6 @@ endif
 # armel
 ######################################################################
 ifeq ($(config-machine)-$(config-os),arm-linux-gnueabi)
-test-xfail-tst-backtrace6 = yes
-test-xfail-tst-makecontext = yes
-test-xfail-tst-mqueue5 = yes
-test-xfail-tst-stack4 = yes
-test-xfail-tst-waitid = yes
-
 # There is not support for protection key on ARM yet, and there is a
 # disagreement between kernel and glibc how to report that.
 test-xfail-tst-pkey = yes
@@ -197,13 +180,6 @@ endif
 # armhf
 ######################################################################
 ifeq ($(config-machine)-$(config-os),arm-linux-gnueabihf)
-test-xfail-test-fenv = yes
-test-xfail-tst-backtrace6 = yes
-test-xfail-tst-makecontext = yes
-test-xfail-tst-stack4 = yes
-test-xfail-tst-mqueue5 = yes
-test-xfail-tst-waitid = yes
-
 # There is not support for protection key on ARM yet, and there is a
 # disagreement between kernel and glibc how to report that.
 test-xfail-tst-pkey = yes
@@ -405,10 +381,6 @@ endif
 # i386 (including optimized flavours)
 ######################################################################
 ifeq ($(config-machine)-$(config-os),i686-linux-gnu)
-test-xfail-tst-backtrace6 = yes
-test-xfail-tst-mqueue5 = yes
-test-xfail-tst-waitid = yes
-
 # Probably a GCC bug: https://sourceware.org/ml/libc-alpha/2015-11/msg00533.html
 test-xfail-tst-cleanupx4 = yes
 endif
@@ -768,31 +740,6 @@ test-xfail-tst-atomic-long = yes
 test-xfail-tst-atomic = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-mqueue6 = yes
-test-xfail-tst-mutexpi2 = yes
-test-xfail-tst-mutexpi4 = yes
-test-xfail-tst-mutexpi5a = yes
-test-xfail-tst-mutexpi5 = yes
-test-xfail-tst-mutexpi6 = yes
-test-xfail-tst-mutexpi7a = yes
-test-xfail-tst-mutexpi7 = yes
-test-xfail-tst-mutexpi9 = yes
-test-xfail-tst-robust1 = yes
-test-xfail-tst-robust2 = yes
-test-xfail-tst-robust3 = yes
-test-xfail-tst-robust4 = yes
-test-xfail-tst-robust5 = yes
-test-xfail-tst-robust6 = yes
-test-xfail-tst-robust7 = yes
-test-xfail-tst-robust8 = yes
-test-xfail-tst-robust9 = yes
-test-xfail-tst-robustpi1 = yes
-test-xfail-tst-robustpi2 = yes
-test-xfail-tst-robustpi3 = yes
-test-xfail-tst-robustpi4 = yes
-test-xfail-tst-robustpi5 = yes
-test-xfail-tst-robustpi6 = yes
-test-xfail-tst-robustpi7 = yes
-test-xfail-tst-robustpi8 = yes
 test-xfail-tst-rxspencer = yes
 endif
 
@@ -802,7 +749,6 @@ endif
 ######################################################################
 ifneq (,$(filter $(config-machine)-$(config-os), mips-linux-gnu mipsel-linux-gnu mips64-linux-gnuabi64 mips64el-linux-gnuabi64 mips64-linux-gnuabin32 mips64el-linux-gnuabin32))
 test-xfail-tst-stack4 = yes
-test-xfail-tst-thread-exit-clobber = yes
 
 # MIPS GCC does not use PT_GNU_STACK markers (this is a GCC issue)
 test-xfail-check-execstack = yes
@@ -856,7 +802,17 @@ endif
 
 
 ######################################################################
-# 64-bit mips*
+# O32 mips*
+######################################################################
+ifneq (,$(filter $(config-machine)-$(config-os), mips64-linux-gnu mips64el-linux-gnu))
+# In some conditions the kernel might not provide a heap, causing
+# some tests to fail. See bug#889817 for details.
+test-xfail-tst-thread-exit-clobber = yes
+endif
+
+
+######################################################################
+# N64 mips*
 ######################################################################
 ifneq (,$(filter $(config-machine)-$(config-os), mips64-linux-gnuabi64 mips64el-linux-gnuabi64))
 # In some conditions the kernel might not provide a heap, causing
@@ -869,18 +825,9 @@ endif
 # ppc64el
 ######################################################################
 ifeq ($(config-machine)-$(config-os),powerpc64le-linux-gnu)
-test-xfail-tst-cancel17 = yes
-test-xfail-tst-cancelx17 = yes
-test-xfail-tst-mqueue5 = yes
-test-xfail-tst-waitid = yes
-
 # In some conditions the kernel might not provide a heap, causing
 # some tests to fail. See bug#889817 for details.
 test-xfail-tst-malloc-usable-tunables = yes
-
-# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
-test-xfail-test-ildouble-fma = yes
-test-xfail-test-ldouble-fma = yes
 
 # The glibc implementation of pkey_get and pkey_set are the stub
 # implementations.
@@ -901,10 +848,6 @@ test-xfail-tst-waitid = yes
 # some tests to fail. See bug#889817 for details.
 test-xfail-tst-malloc-usable-tunables = yes
 
-# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
-test-xfail-test-ildouble-fma = yes
-test-xfail-test-ldouble-fma = yes
-
 # The glibc implementation of pkey_get and pkey_set are the stub
 # implementations.
 test-xfail-tst-pkey = yes
@@ -920,10 +863,6 @@ test-xfail-tst-backtrace6 = yes
 test-xfail-tst-mqueue5 = yes
 test-xfail-tst-waitid = yes
 
-# Known failure not a regression, see https://sourceware.org/bugzilla/show_bug.cgi?id=23584
-test-xfail-test-ildouble-fma = yes
-test-xfail-test-ldouble-fma = yes
-
 # The glibc implementation of pkey_get and pkey_set are the stub
 # implementations.
 test-xfail-tst-pkey = yes
@@ -932,7 +871,7 @@ endif
 
 ######################################################################
 # riscv64
-# ######################################################################
+######################################################################
 ifeq ($(config-machine)-$(config-os),riscv64-linux-gnu)
 test-xfail-test-double-isgreater = yes
 test-xfail-test-double-isgreaterequal = yes
@@ -964,15 +903,6 @@ test-xfail-tst-resolv-res_init = yes
 test-xfail-tst-resolv-res_init-thread = yes
 test-xfail-tst-resolv-threads = yes
 test-xfail-tst-robust-fork = yes
-test-xfail-tst-robust1 = yes
-test-xfail-tst-robust2 = yes
-test-xfail-tst-robust3 = yes
-test-xfail-tst-robust4 = yes
-test-xfail-tst-robust5 = yes
-test-xfail-tst-robust6 = yes
-test-xfail-tst-robust7 = yes
-test-xfail-tst-robust8 = yes
-test-xfail-tst-robust9 = yes
 test-xfail-tst-strfrom = yes
 test-xfail-tst-strfrom-locale = yes
 test-xfail-tst-tls12 = yes
@@ -998,11 +928,8 @@ endif
 # s390x
 ######################################################################
 ifeq ($(config-machine)-$(config-os),s390x-linux-gnu)
-test-xfail-tst-cancel17 = yes
-test-xfail-tst-cancelx17 = yes
 test-xfail-tst-protected1a = yes
 test-xfail-tst-protected1b = yes
-test-xfail-tst-waitid = yes
 
 # In some conditions the kernel might not provide a heap, causing
 # some tests to fail. See bug#889817 for details.
@@ -1065,8 +992,5 @@ endif
 # x32
 ######################################################################
 ifeq ($(config-machine)-$(config-os),x86_64-linux-gnux32)
-test-xfail-tst-backtrace6 = yes
-test-xfail-tst-mqueue5 = yes
 test-xfail-tst-platform-1 = yes
-test-xfail-tst-waitid = yes
 endif
