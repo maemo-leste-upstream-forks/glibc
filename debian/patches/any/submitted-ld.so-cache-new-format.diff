@@ -1,0 +1,59 @@
+2018-09-16  Josh Triplett  <josh@joshtriplett.org>
+
+        * elf/ldconfig.c: Default to the new format for ld.so.cache. glibc has
+        supported this format for 18+ years.
+        * elf/dl-cache.c (_dl_load_cache_lookup): Reorder conditionals to look
+        for the new format first.
+
+--- a/elf/dl-cache.c
++++ b/elf/dl-cache.c
+@@ -203,7 +203,14 @@ _dl_load_cache_lookup (const char *name)
+ 	 - the old format with the new format in it
+ 	 - only the new format
+ 	 The following checks if the cache contains any of these formats.  */
+-      if (file != MAP_FAILED && cachesize > sizeof *cache
++      if (file != MAP_FAILED && cachesize > sizeof *cache_new
++	       && memcmp (file, CACHEMAGIC_VERSION_NEW,
++			  sizeof CACHEMAGIC_VERSION_NEW - 1) == 0)
++	{
++	  cache_new = file;
++	  cache = file;
++	}
++      else if (file != MAP_FAILED && cachesize > sizeof *cache
+ 	  && memcmp (file, CACHEMAGIC, sizeof CACHEMAGIC - 1) == 0
+ 	  /* Check for corruption, avoiding overflow.  */
+ 	  && ((cachesize - sizeof *cache) / sizeof (struct file_entry)
+@@ -223,13 +230,6 @@ _dl_load_cache_lookup (const char *name)
+ 			 sizeof CACHEMAGIC_VERSION_NEW - 1) != 0)
+ 	    cache_new = (void *) -1;
+ 	}
+-      else if (file != MAP_FAILED && cachesize > sizeof *cache_new
+-	       && memcmp (file, CACHEMAGIC_VERSION_NEW,
+-			  sizeof CACHEMAGIC_VERSION_NEW - 1) == 0)
+-	{
+-	  cache_new = file;
+-	  cache = file;
+-	}
+       else
+ 	{
+ 	  if (file != MAP_FAILED)
+--- a/elf/ldconfig.c
++++ b/elf/ldconfig.c
+@@ -95,7 +95,7 @@ int opt_verbose;
+
+ /* Format to support.  */
+ /* 0: only libc5/glibc2; 1: both; 2: only glibc 2.2.  */
+-int opt_format = 1;
++int opt_format = 2;
+
+ /* Build cache.  */
+ static int opt_build_cache = 1;
+@@ -148,7 +148,7 @@ static const struct argp_option options[] =
+   { NULL, 'f', N_("CONF"), 0, N_("Use CONF as configuration file"), 0},
+   { NULL, 'n', NULL, 0, N_("Only process directories specified on the command line.  Don't build cache."), 0},
+   { NULL, 'l', NULL, 0, N_("Manually link individual libraries."), 0},
+-  { "format", 'c', N_("FORMAT"), 0, N_("Format to use: new, old or compat (default)"), 0},
++  { "format", 'c', N_("FORMAT"), 0, N_("Format to use: new (default), old, or compat"), 0},
+   { "ignore-aux-cache", 'i', NULL, 0, N_("Ignore auxiliary cache file"), 0},
+   { NULL, 0, NULL, 0, NULL, 0 }
+ };
