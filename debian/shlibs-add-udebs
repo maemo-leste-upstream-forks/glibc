@@ -40,6 +40,10 @@ expr_libc2="libutil$W libcrypt$W librt$W libpthread$W libmvec$W"
 expr_libc3="libnss_dns$W libnss_files$W"
 expr_hurd="libmachuser$W libhurduser$W"
 
+# Remove udeb entries wrongly added by dh_makeshlibs (see bugs #934889
+# and #934891)
+sed -i -e '/^udeb:/d' $shlibs_file
+
 for expr in $expr_libc1 $expr_libc2 $expr_libc3 $expr_hurd; do
 	add_udeb_line "$expr" $package-udeb
 done
