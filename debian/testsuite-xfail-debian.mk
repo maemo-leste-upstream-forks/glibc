@@ -873,31 +873,9 @@ endif
 # riscv64
 ######################################################################
 ifeq ($(config-machine)-$(config-os),riscv64-linux-gnu)
-test-xfail-test-double-isgreater = yes
-test-xfail-test-double-isgreaterequal = yes
-test-xfail-test-double-isless = yes
-test-xfail-test-double-islessequal = yes
-test-xfail-test-float-isgreater = yes
-test-xfail-test-float-isgreaterequal = yes
-test-xfail-test-float-isless = yes
-test-xfail-test-float-islessequal = yes
-test-xfail-test-float32-isgreater = yes
-test-xfail-test-float32-isgreaterequal = yes
-test-xfail-test-float32-isless = yes
-test-xfail-test-float32-islessequal = yes
-test-xfail-test-float32x-isgreater = yes
-test-xfail-test-float32x-isgreaterequal = yes
-test-xfail-test-float32x-isless = yes
-test-xfail-test-float32x-islessequal = yes
-test-xfail-test-float64-isgreater = yes
-test-xfail-test-float64-isgreaterequal = yes
-test-xfail-test-float64-isless = yes
-test-xfail-test-float64-islessequal = yes
 test-xfail-tst-cond-except = yes
 test-xfail-tst-cond24 = yes
 test-xfail-tst-cond25 = yes
-test-xfail-tst-execstack = yes
-test-xfail-tst-execstack-needed = yes
 test-xfail-tst-malloc-usable-tunables = yes
 test-xfail-tst-resolv-res_init = yes
 test-xfail-tst-resolv-res_init-thread = yes
