@@ -8,10 +8,6 @@ debug-packages = $(filter %-dbg,$(DEB_ARCH_REGULAR_PACKAGES))
 non-debug-packages = $(filter-out %-dbg,$(DEB_ARCH_REGULAR_PACKAGES))
 $(patsubst %,$(stamp)binaryinst_%,$(debug-packages)):: $(patsubst %,$(stamp)binaryinst_%,$(non-debug-packages))
 
-# Make sure the deb packages are built after the udeb packages, since
-# dh_makeshlibs probes for the udeb libraries to create the shlibs file.
-$(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES)):: $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES))
-
 ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 DH_STRIP_DEBUG_PACKAGE=--dbg-package=$(libc)-dbg
 endif
@@ -80,6 +76,8 @@ endif
 		-o -regex '.*/libc-.*so' \) \
 		-exec chmod a+x '{}' ';'
 	dh_makeshlibs -Xgconv/ -p$(curpass) -V "$(call xx,shlib_dep)"
+	# Add relevant udeb: lines in shlibs files
+	sh ./debian/shlibs-add-udebs $(curpass)
 
 	dh_installdeb -p$(curpass)
 	dh_shlibdeps -p$(curpass)
