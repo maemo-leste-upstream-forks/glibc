@@ -224,6 +224,12 @@ test-xfail-tst-stack4 = yes
 # The following tests sometimes fail due to timeouts.
 test-xfail-tst-barrier5 = yes
 test-xfail-tst-cond25 = yes
+
+# The following tests fail as xsigstack.c does not allocate stack
+# with executable permission
+# See https://sourceware.org/bugzilla/show_bug.cgi?id=24914
+test-xfail-tst-minsigstksz-1 = yes
+test-xfail-tst-xsigstack = yes
 endif
 
 
