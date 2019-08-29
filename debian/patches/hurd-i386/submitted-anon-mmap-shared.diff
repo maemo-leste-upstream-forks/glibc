@@ -2,10 +2,6 @@ Optimizing anonymous maps brings bugs, and does not optimize much anyway.
 
 https://sourceware.org/bugzilla/show_bug.cgi?id=19903
 
-Do not enable yet, exec's servercopy function calls mmap(size = 0) and expects
-it not to fail (while POSIX expects it to fail). On enabling it, Break
-hurd (<< 1:0.9.git20170910-1) to express that.
-
 --- a/sysdeps/mach/hurd/mmap.c
 +++ b/sysdeps/mach/hurd/mmap.c
 @@ -44,29 +44,6 @@ __mmap (__ptr_t addr, size_t len, int pr
