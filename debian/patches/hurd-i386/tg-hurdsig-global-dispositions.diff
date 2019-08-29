@@ -98,9 +98,9 @@ during/around the time __proc_dostop executes.
 +
 +	      _hurd_sigstate_lock (ss);
 +	      actions = _hurd_sigstate_actions (ss);
- 	      if (__sigismember (&ss->blocked, SIGTTIN) ||
--		  ss->actions[SIGTTIN].sa_handler == SIG_IGN)
-+		  actions[SIGTTIN].sa_handler == SIG_IGN)
+ 	      if (__sigismember (&ss->blocked, SIGTTIN)
+-		  || ss->actions[SIGTTIN].sa_handler == SIG_IGN)
++		  || actions[SIGTTIN].sa_handler == SIG_IGN)
  		/* We are blocking or ignoring SIGTTIN.  Just fail.  */
  		err = EIO;
 -	      __spin_unlock (&ss->lock);
@@ -137,9 +137,9 @@ during/around the time __proc_dostop executes.
 -	  __spin_lock (&ss->lock);
 +	  _hurd_sigstate_lock (ss);
 +	  actions = _hurd_sigstate_actions (ss);
- 	  if (__sigismember (&ss->blocked, SIGTTOU) ||
--	      ss->actions[SIGTTOU].sa_handler == SIG_IGN)
-+	      actions[SIGTTOU].sa_handler == SIG_IGN)
+ 	  if (__sigismember (&ss->blocked, SIGTTOU)
+-	      || ss->actions[SIGTTOU].sa_handler == SIG_IGN)
++	      || actions[SIGTTOU].sa_handler == SIG_IGN)
  	    err = EIO;
  	  else
  	    err = 0;
@@ -510,7 +510,7 @@ during/around the time __proc_dostop executes.
        }
  
 @@ -487,9 +586,11 @@
- 		  sigmask (SIGSTOP) | sigmask (SIGTSTP))
+ 		  | sigmask (SIGSTOP) | sigmask (SIGTSTP))
  
  /* Actual delivery of a single signal.  Called with SS unlocked.  When
 -   the signal is delivered, return 1 with SS locked.  If the signal is
@@ -528,8 +528,8 @@ during/around the time __proc_dostop executes.
        assert_perror (err);
        for (i = 0; i < nthreads; ++i)
  	{
--	  if (threads[i] != _hurd_msgport_thread &&
--	      (act != handle || threads[i] != ss->thread))
+-	  if (threads[i] != _hurd_msgport_thread
+-	      && (act != handle || threads[i] != ss->thread))
 +	  if (act == handle && threads[i] == ss->thread)
 +	    {
 +	      /* The thread that will run the handler is kept suspended.  */
@@ -615,10 +615,10 @@ during/around the time __proc_dostop executes.
 @@ -737,7 +869,7 @@
  
    /* Handle receipt of a blocked signal, or any signal while stopped.  */
-   if (act != ignore &&		/* Signals ignored now are forgotten now.  */
--      __sigismember (&ss->blocked, signo) ||
-+      __sigismember (&blocked, signo) ||
-       (signo != SIGKILL && _hurd_stopped))
+   if (act != ignore		/* Signals ignored now are forgotten now.  */
+-      && __sigismember (&ss->blocked, signo)
++      && __sigismember (&blocked, signo)
+       || (signo != SIGKILL && _hurd_stopped))
      {
        mark_pending ();
 @@ -773,6 +905,7 @@
@@ -838,13 +838,13 @@ during/around the time __proc_dostop executes.
 --- a/sysdeps/mach/hurd/fork.c
 +++ b/sysdeps/mach/hurd/fork.c
 @@ -444,6 +444,7 @@
- 	  (err = __mach_port_insert_right (newtask, ss->thread,
- 					   thread, MACH_MSG_TYPE_COPY_SEND)))
+ 					      thread,
+ 					      MACH_MSG_TYPE_COPY_SEND)))
  	LOSE;
 +      /* XXX consumed? (_hurd_sigthread is no more) */
-       if (thread_refs > 1 &&
- 	  (err = __mach_port_mod_refs (newtask, ss->thread,
- 				       MACH_PORT_RIGHT_SEND,
+       if (thread_refs > 1
+ 	  && (err = __mach_port_mod_refs (newtask, ss->thread,
+ 					  MACH_PORT_RIGHT_SEND,
 @@ -608,10 +609,6 @@
        for (i = 0; i < _hurd_nports; ++i)
  	__spin_unlock (&_hurd_ports[i].lock);
@@ -931,13 +931,13 @@ during/around the time __proc_dostop executes.
       interrupted RPC frame.  */
    state->basic.esp = state->basic.uesp;
  
--  if ((ss->actions[signo].sa_flags & SA_ONSTACK) &&
+-  if ((ss->actions[signo].sa_flags & SA_ONSTACK)
 +  /* XXX what if handler != action->handler (for instance, if a signal
 +   * preemptor took over) ? */
 +  action = & _hurd_sigstate_actions (ss) [signo];
 +
-+  if ((action->sa_flags & SA_ONSTACK) &&
-       !(ss->sigaltstack.ss_flags & (SS_DISABLE|SS_ONSTACK)))
++  if ((action->sa_flags & SA_ONSTACK)
+       && !(ss->sigaltstack.ss_flags & (SS_DISABLE|SS_ONSTACK)))
      {
        sigsp = ss->sigaltstack.ss_sp + ss->sigaltstack.ss_size;
 --- a/sysdeps/mach/hurd/sigaction.c
@@ -954,8 +954,8 @@ during/around the time __proc_dostop executes.
 -    ss->actions[sig] = a;
 +    _hurd_sigstate_actions (ss) [sig] = a;
  
-   if (act != NULL && sig == SIGCHLD &&
-       (a.sa_flags & SA_NOCLDSTOP) != (old.sa_flags & SA_NOCLDSTOP))
+   if (act != NULL && sig == SIGCHLD
+       && (a.sa_flags & SA_NOCLDSTOP) != (old.sa_flags & SA_NOCLDSTOP))
      {
 -      __spin_unlock (&ss->lock);
 +      _hurd_sigstate_unlock (ss);

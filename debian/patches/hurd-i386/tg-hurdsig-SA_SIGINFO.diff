@@ -41,9 +41,9 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  
 -#define HURD_PREEMPT_SIGNAL_P(preemptor, signo, sigcode) \
 +#define HURD_PREEMPT_SIGNAL_P(preemptor, signo, address) \
-   (((preemptor)->signals & sigmask (signo)) && \
--   (sigcode) >= (preemptor)->first && (sigcode) <= (preemptor)->last)
-+   (address) >= (preemptor)->first && (address) <= (preemptor)->last)
+   (((preemptor)->signals & sigmask (signo)) \
+-   && (sigcode) >= (preemptor)->first && (sigcode) <= (preemptor)->last)
++   && (address) >= (preemptor)->first && (address) <= (preemptor)->last)
  
  
  /* Signal preemptors applying to all threads; locked by _hurd_siglock.  */
@@ -519,8 +519,8 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
 +    /* A signal preemptor took over, use legacy semantic.  */
 +    action = &legacy_sigaction;
  
-   if ((action->sa_flags & SA_ONSTACK) &&
-       !(ss->sigaltstack.ss_flags & (SS_DISABLE|SS_ONSTACK)))
+   if ((action->sa_flags & SA_ONSTACK)
+       && !(ss->sigaltstack.ss_flags & (SS_DISABLE|SS_ONSTACK)))
 @@ -138,15 +219,9 @@
  	  = &stackframe->link.thread.next;
        ss->active_resources = &stackframe->link;

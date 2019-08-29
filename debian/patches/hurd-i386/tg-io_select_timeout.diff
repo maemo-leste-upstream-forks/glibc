@@ -93,8 +93,8 @@ TODO: see XXX
  	  return -1;
  	}
  
--      to = (timeout->tv_sec * 1000 +
--            (timeout->tv_nsec + 999999) / 1000000);
+-      to = (timeout->tv_sec * 1000
+-            + (timeout->tv_nsec + 999999) / 1000000);
 +      err = __gettimeofday(&now, NULL);
 +      if (err)
 +	return -1;
@@ -209,10 +209,10 @@ TODO: see XXX
  	    { MACH_MSG_TYPE_INTEGER_T, sizeof (integer_t) * 8, 1, 1, 0, 0 }
  	  };
  #endif
--	  if (msg.head.msgh_id == IO_SELECT_REPLY_MSGID &&
-+	  if (msg.head.msgh_id == reply_msgid &&
- 	      msg.head.msgh_size >= sizeof msg.error &&
- 	      !(msg.head.msgh_bits & MACH_MSGH_BITS_COMPLEX) &&
+-	  if (msg.head.msgh_id == IO_SELECT_REPLY_MSGID
++	  if (msg.head.msgh_id == reply_msgid
+ 	      && msg.head.msgh_size >= sizeof msg.error
+ 	      && !(msg.head.msgh_bits & MACH_MSGH_BITS_COMPLEX)
  #ifdef MACH_MSG_TYPE_BIT
 @@ -362,12 +396,13 @@ _hurd_select (int nfds,
  		  err = EINTR;
@@ -220,12 +220,12 @@ TODO: see XXX
  		}
 +	      /* Keep in mind msg.success.result can be 0 if a timeout
 +		 occurred.  */
- 	      if (msg.error.err ||
--		  msg.head.msgh_size != sizeof msg.success ||
+ 	      if (msg.error.err
+-		  || msg.head.msgh_size != sizeof msg.success
  #ifdef MACH_MSG_TYPE_BIT
- 		  msg.success.result_type.word != inttype.word ||
+ 		  || msg.success.result_type.word != inttype.word
  #endif
--		  (msg.success.result & SELECT_ALL) == 0)
+-		  || (msg.success.result & SELECT_ALL) == 0)
 +		  msg.head.msgh_size != sizeof msg.success)
  		{
  		  /* Error or bogus reply.  Simulate readiness.  */
