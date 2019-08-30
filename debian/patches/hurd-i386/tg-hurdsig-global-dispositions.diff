@@ -885,6 +885,15 @@ during/around the time __proc_dostop executes.
 --- a/sysdeps/mach/hurd/i386/sigreturn.c
 +++ b/sysdeps/mach/hurd/i386/sigreturn.c
 @@ -38,7 +38,7 @@
+ __sigreturn2 (int *usp)
+ {
+   struct hurd_sigstate *ss = _hurd_self_sigstate ();
+-  __spin_unlock (&ss->lock);
++  _hurd_sigstate_unlock (ss);
+ 
+   sp = usp;
+ #define A(line) asm volatile (#line)
+@@ -38,7 +38,7 @@
      }
  
    ss = _hurd_self_sigstate ();
@@ -916,15 +925,6 @@ during/around the time __proc_dostop executes.
        ss->context = NULL;
      }
  
-@@ -73,7 +73,7 @@
-       abort ();
-     }
-   else
--    __spin_unlock (&ss->lock);
-+    _hurd_sigstate_unlock (ss);
- 
-   /* Destroy the MiG reply port used by the signal handler, and restore the
-      reply port in use by the thread when interrupted.  */
 --- a/sysdeps/mach/hurd/i386/trampoline.c
 +++ b/sysdeps/mach/hurd/i386/trampoline.c
 @@ -74,7 +74,11 @@

@@ -24,7 +24,7 @@ index 83c0246..204bd47 100644
 +__sigreturn2 (int *usp)
 +{
 +  struct hurd_sigstate *ss = _hurd_self_sigstate ();
-+  _hurd_sigstate_unlock (ss);
++  __spin_unlock (&ss->lock);
 +
 +  sp = usp;
 +#define A(line) asm volatile (#line)
@@ -61,7 +61,7 @@ index 83c0246..204bd47 100644
 -      abort ();
 -    }
 -  else
--    _hurd_sigstate_unlock (ss);
+-    __spin_unlock (&ss->lock);
 +    ss->sigaltstack.ss_flags &= ~SS_ONSTACK;
  
    /* Destroy the MiG reply port used by the signal handler, and restore the
