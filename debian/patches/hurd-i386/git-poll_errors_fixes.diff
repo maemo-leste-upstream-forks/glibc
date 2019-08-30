@@ -191,7 +191,7 @@ index 70780dd..dcda71b 100644
  	    _hurd_port_free (&d[i].cell->port, &d[i].ulink, d[i].io_port);
 @@ -404,9 +433,10 @@ _hurd_select (int nfds,
  #endif
- 		  msg.head.msgh_size != sizeof msg.success)
+ 		  || msg.head.msgh_size != sizeof msg.success)
  		{
 -		  /* Error or bogus reply.  Simulate readiness.  */
 +		  /* Error or bogus reply.  */
