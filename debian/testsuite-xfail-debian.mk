@@ -372,6 +372,9 @@ test-xfail-tst-malloc-stats-cancellation = yes
 test-xfail-tst-if_index-long = yes
 test-xfail-tst-support_descriptors = yes
 
+# new in 2.30
+test-xfail-tst-nss-files-hosts-long = yes
+
 # This redirects realloc with dlsym
 # Problem is: that creates a loop: realloc() calls dlsym() which calls
 # _dlerror_run calls libc_once(init) which calls pthread_key_create which calls
