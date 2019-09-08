@@ -195,19 +195,6 @@ ifeq ($(config-machine)-$(config-os),arm-linux-gnueabihf)
 # There is not support for protection key on ARM yet, and there is a
 # disagreement between kernel and glibc how to report that.
 test-xfail-tst-pkey = yes
-
-# This test fails due to a kernel bug when building armhf on an ARM64
-# machine. See bug #904385.
-test-xfail-tst-signal6 = yes
-test-xfail-tst-minsigstksz-1 = yes
-test-xfail-tst-minsigstksz-2 = yes
-test-xfail-tst-minsigstksz-3 = yes
-test-xfail-tst-minsigstksz-3a = yes
-test-xfail-tst-minsigstksz-4 = yes
-test-xfail-tst-xsigstack = yes
-
-# This test has regressed with recent kernels
-test-xfail-tst-thread-exit-clobber = yes
 endif
 
 
