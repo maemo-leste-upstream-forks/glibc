@@ -1,6 +1,4 @@
 # configuration options for all flavours
-CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)-8
-CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)-8
 libc = libc6.1
 
 ifeq (,$(filter stage1 stage2, $(DEB_BUILD_PROFILES)))

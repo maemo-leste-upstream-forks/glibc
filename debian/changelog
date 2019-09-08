@@ -38,6 +38,30 @@ glibc (2.30-0experimental0) UNRELEASED; urgency=medium
 
  -- Adam Conrad <adconrad@0c3.net>  Thu, 29 Aug 2019 01:58:14 -0600
 
+glibc (2.29-1) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix math tests on alpha.
+  * debian/sysdeps/alpha.mk, debian/control.in/main: do not force build with
+    gcc-8.
+  * debian/testsuite-xfail-debian.mk: XFAIL narrowing add/sub tests, they
+    have always failed since they have been introduced.
+  * debian/control.in/libc: add a Breaks: iraf-fitsutil (<< 2018.07.06-4) to
+    libc0.1/0.3/6/6.1. See bug#939523.
+  * debian/testsuite-xfail-debian.mk: drop XFAILs related to the wrong value
+    of (MIN)SIGSTKSZ for 32-bit processes on arm64, now that (old-)stable
+    kernels are fixed.
+
+  [ Samuel Thibault ]
+  * debian/patches/hurd-i386/submitted-anon-mmap-shared.diff: Enable, now that
+    hurd 2017 is behind.
+  * control: Break old version of hurd package accordingly.
+  * debian/patches/hurd-i386/local-exec_filename.diff: Fix glibc 2.26
+    _hurd_exec_paths symbol visibility.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 08 Sep 2019 22:34:02 +0200
+
 glibc (2.29-0experimental1) experimental; urgency=medium
 
   [ Aurelien Jarno ]
@@ -141,16 +165,6 @@ glibc (2.29-0experimental0) experimental; urgency=medium
     new format for ld.so.cache.  Closes: #908946.
 
  -- Aurelien Jarno <aurel32@debian.org>  Fri, 16 Aug 2019 12:42:42 +0200
-
-glibc (2.28-11) UNRELEASED; urgency=medium
-
-  * debian/patches/hurd-i386/submitted-anon-mmap-shared.diff: Enable, now that
-    hurd 2017 is behind.
-  * control: Break old version of hurd package accordingly.
-  * debian/patches/hurd-i386/local-exec_filename.diff: Fix glibc 2.26
-    _hurd_exec_paths symbol visibility.
-
- -- Samuel Thibault <sthibault@debian.org>  Fri, 30 Aug 2019 01:30:00 +0200
 
 glibc (2.28-10) unstable; urgency=medium
 
