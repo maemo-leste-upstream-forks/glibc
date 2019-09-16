@@ -1,0 +1,16 @@
+Description: Use install_root for test destination override, not DESTDIR
+Author: Adam Conrad <adconrad@ubuntu.com>
+Forwarded: no
+Last-Update: 2019-09-16
+
+--- glibc-2.30.orig/Makefile
++++ glibc-2.30/Makefile
+@@ -418,7 +418,7 @@ ifeq ($(run-built-tests),yes)
+ 	    $(test-wrapper) cp $$dso $(objpfx)testroot.pristine$$dso ;\
+ 	  done
+ endif
+-	$(MAKE) install DESTDIR=$(objpfx)testroot.pristine \
++	$(MAKE) install install_root=$(objpfx)testroot.pristine \
+ 	  subdirs='$(sorted-subdirs)'
+ 	touch $(objpfx)testroot.pristine/install.stamp
+
