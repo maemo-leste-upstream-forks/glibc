@@ -94,6 +94,7 @@ $(stamp)configure_%: $(stamp)config_sub_guess $(stamp)patch $(KERNEL_HEADER_DIR)
 		$(if $(filter $(pt_chown),yes),--enable-pt_chown) \
 		$(if $(filter $(threads),no),--disable-nscd) \
 		$(if $(filter $(call xx,mvec),no),--disable-mathvec) \
+		$(if $(filter $(call xx,crypt),no),--disable-crypt) \
 		$(call xx,with_headers) $(call xx,extra_config_options)
 	touch $@
 

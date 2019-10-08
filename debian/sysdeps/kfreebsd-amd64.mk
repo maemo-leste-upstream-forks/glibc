@@ -11,6 +11,7 @@ i386_add-ons = $(libc_add-ons)
 i386_configure_target = i686-kfreebsd-gnu
 i386_CC = $(CC) -m32 -march=pentium4 -mtune=generic
 i386_CXX = $(CXX) -m32 -march=pentium4 -mtune=generic
+i386_crypt = yes
 i386_slibdir = /lib32
 i386_libdir = /usr/lib32
 
