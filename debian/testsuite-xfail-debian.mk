@@ -388,7 +388,6 @@ test-xfail-ISO11/threads.h/linknamespace = yes
 # actually never succeded
 #test-xfail-tst-getcwd-abspath = yes
 #test-xfail-tst-create_format1 = yes
-#test-xfail-tst-pselect = yes
 
 # assumes that all st_mode flags (32bit) can exist in stx_mode flags (16bit)
 #test-xfail-tst-statx = yes
