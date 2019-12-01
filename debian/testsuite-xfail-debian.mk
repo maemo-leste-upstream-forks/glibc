@@ -309,9 +309,9 @@ test-xfail-tst-tls-atexit = yes
 # new in 2.23
 test-xfail-tst-audit11 = yes
 test-xfail-tst-audit12 = yes
-test-xfail-tst-get-cpu-features = yes
 
-# probably needs some gnumach support for SSE2 mxcsr state restoration
+# need get_cpu_features
+test-xfail-tst-get-cpu-features = yes
 test-xfail-test-fenv-sse-2 = yes
 
 # new in 2.24
