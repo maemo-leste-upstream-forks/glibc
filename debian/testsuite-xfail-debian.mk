@@ -333,7 +333,6 @@ test-xfail-tst-secure-getenv = yes
 
 # new in 2.25
 test-xfail-tst-posix_fallocate64 = yes
-test-xfail-test-fesetexcept-traps = yes
 test-xfail-tst-posix_fadvise = yes
 test-xfail-tst-posix_fadvise64 = yes
 test-xfail-tst-vfork3 = yes
@@ -366,7 +365,6 @@ test-xfail-tst-copy_file_range-compat = yes
 # new in 2.28
 test-xfail-tst-fgetc-after-eof = yes
 test-xfail-tst-fgetwc-after-eof = yes
-test-xfail-test-as-const-jmp_buf-ssp = yes
 test-xfail-tst-malloc-stats-cancellation = yes
 test-xfail-tst-if_index-long = yes
 test-xfail-tst-support_descriptors = yes
@@ -382,6 +380,25 @@ test-xfail-tst-res_hconf_reorder = yes
 
 test-xfail-ISO11/threads.h/conform = yes
 test-xfail-ISO11/threads.h/linknamespace = yes
+
+# new in 2.31
+#test-xfail-tst-auditmany = yes
+#test-xfail-tst-dlopenfail = yes
+
+# actually never succeded
+#test-xfail-tst-getcwd-abspath = yes
+#test-xfail-tst-create_format1 = yes
+#test-xfail-tst-pselect = yes
+
+# assumes that all st_mode flags (32bit) can exist in stx_mode flags (16bit)
+#test-xfail-tst-statx = yes
+
+# wants /proc/self/fd
+#test-xfail-tst-updwtmpx = yes
+
+# wants pthread_barrierattr_setpshared
+#test-xfail-tst-pututxline-cache = yes
+#test-xfail-tst-pututxline-lockfail = yes
 endif
 
 
