@@ -288,6 +288,14 @@ tests-unsupported += test-lfs
 #test-xfail-test-lfs = yes
 test-xfail-tst-tzset = yes
 
+# TODO: should be succeeding again with gnumach >= 2019-12-01
+test-xfail-test-fpucw = yes
+test-xfail-test-fpucw-ieee = yes
+test-xfail-test-fpucw-ieee-static = yes
+test-xfail-test-fpucw-static = yes
+test-xfail-test-fenv-x87 = yes
+test-xfail-tst-wcstod-round = yes
+
 # new in 2.21
 test-xfail-test-misc = yes
 test-xfail-tst-ptsname = yes
@@ -298,20 +306,13 @@ test-xfail-tst-audit3 = yes
 test-xfail-tst-prelink = yes
 test-xfail-tst-tls-atexit = yes
 
-# changed in 2.22, tests were run directly, now using threads
-# TODO: should be succeeding again with gnumach >= 2016-03-06
-test-xfail-test-fpucw = yes
-test-xfail-test-fpucw-ieee = yes
-test-xfail-test-fpucw-ieee-static = yes
-test-xfail-test-fpucw-static = yes
-test-xfail-test-static = yes
-
 # new in 2.23
-test-xfail-test-fenv-sse-2 = yes
-test-xfail-test-fenv-x87 = yes
 test-xfail-tst-audit11 = yes
 test-xfail-tst-audit12 = yes
 test-xfail-tst-get-cpu-features = yes
+
+# probably needs some gnumach support for SSE2 mxcsr state restoration
+test-xfail-test-fenv-sse-2 = yes
 
 # new in 2.24
 test-xfail-tst-execvpe5 = yes
@@ -336,7 +337,6 @@ test-xfail-tst-posix_fallocate64 = yes
 test-xfail-tst-posix_fadvise = yes
 test-xfail-tst-posix_fadvise64 = yes
 test-xfail-tst-vfork3 = yes
-test-xfail-tst-wcstod-round = yes
 test-xfail-tst-env-setuid = yes
 test-xfail-tst-env-setuid-tunables = yes
 
@@ -366,6 +366,8 @@ test-xfail-tst-copy_file_range-compat = yes
 test-xfail-tst-fgetc-after-eof = yes
 test-xfail-tst-fgetwc-after-eof = yes
 test-xfail-tst-malloc-stats-cancellation = yes
+
+# want /proc/self/fd
 test-xfail-tst-if_index-long = yes
 test-xfail-tst-support_descriptors = yes
 
