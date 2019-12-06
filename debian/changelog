@@ -44,6 +44,60 @@ glibc (2.30-0experimental0) UNRELEASED; urgency=medium
 
  -- Adam Conrad <adconrad@0c3.net>  Thu, 29 Aug 2019 01:58:14 -0600
 
+glibc (2.29-5) unstable; urgency=medium
+
+  * Upload to unstable.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Fri, 06 Dec 2019 21:33:17 +0100
+
+glibc (2.29-4) experimental; urgency=medium
+
+  [ Aurelien Jarno ]
+  * Upload to experimental.
+  * debian/control.in/libc: make libc depends on libcrypt1, libc-dev depends
+    on libcrypt1-dev and libc-udeb depends on libcrypt1-udeb.  Closes:
+    #941853.
+  * debian/rules, debian/rules.d/build.mk, debian/rules.d/debhelper.mk,
+    debian/sysdeps/amd64.mk: disable libcrypt by passing --disable-crypt
+    except for bi/triarch builds.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 25 Nov 2019 22:36:50 +0100
+
+glibc (2.29-3) unstable; urgency=medium
+
+  [ Svante Signell ]
+  * patches/hurd-i386/git-rlock.diff: New patch to add support for record
+    locking.
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/tg-locarchive.diff,tg-WRLCK-upgrade.diff: Remove, now
+    useless.
+  * control: Bump hurd-dev dependency to get record locking RPC.
+  * libc0.3.symbols.hurd-i386: Update accordingly.
+  * patches/arm/unsubmitted-ldso-abi-check.diff: Remove obsolete patch.
+    Closes: #943798.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 31 Oct 2019 23:31:12 +0100
+
+glibc (2.29-2) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/control.in/main: drop the <!nocheck> profile from the
+    python3:native build-depends.  Closes: #939871.
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix getegid, geteuid and getppid on alpha with < 5.1 kernels.
+      Closes: #939898.
+
+  [ Sven Joachim ]
+  * debian/script.in/nsscheck.sh: Do not restart services of different
+    architecture than libc.  Closes: #700472.
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/submitted-anon-mmap-shared.diff: Re-disable, actually
+    makes some tests fail.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Fri, 20 Sep 2019 21:39:03 +0200
+
 glibc (2.29-1) unstable; urgency=medium
 
   [ Aurelien Jarno ]
@@ -658,7 +712,7 @@ glibc (2.27-3) unstable; urgency=medium
 glibc (2.27-2) unstable; urgency=medium
 
   [ Samuel Thibault ]
-  * debian/patches/hurd-i386/git-UTIME.diff: New patch.
+  * debian/patches/hurd-i386/git-UTIME.diff: New patch.  Closes: #762677.
   * debian/control: Bump hurd build dep accordingly.
   * debian/libc0.3.symbols.hurd-i386: Update accordingly.
 

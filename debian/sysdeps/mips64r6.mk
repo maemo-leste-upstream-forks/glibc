@@ -14,6 +14,7 @@ libc6-mipsn32_shlib_dep = libc6-mipsn32 (>= $(shlib_dep_ver))
 mipsn32_configure_target = mipsisa64r6-linux-gnuabin32
 mipsn32_CC = $(CC) -mabi=n32
 mipsn32_CXX = $(CXX) -mabi=n32
+mipsn32_crypt = yes
 mipsn32_rtlddir = /lib32
 mipsn32_slibdir = /lib32
 mipsn32_libdir = /usr/lib32
@@ -25,6 +26,7 @@ libc6-mips32_shlib_dep = libc6-mips32 (>= $(shlib_dep_ver))
 mips32_configure_target = mipsisa32r6-linux-gnu
 mips32_CC = $(CC) -mabi=32
 mips32_CXX = $(CXX) -mabi=32
+mips32_crypt = yes
 mips32_rtlddir = /lib
 mips32_slibdir = /libo32
 mips32_libdir = /usr/libo32
