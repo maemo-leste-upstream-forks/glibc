@@ -7,10 +7,11 @@ ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
 # build 64-bit (ppc64) alternative library
 GLIBC_PASSES += ppc64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-ppc64 libc6-dev-ppc64
+libc6-ppc64_shlib_dep = libc6-ppc64 (>= $(shlib_dep_ver))
 ppc64_configure_target = powerpc64-linux-gnu
 ppc64_CC = $(CC) -m64
 ppc64_CXX = $(CXX) -m64
-libc6-ppc64_shlib_dep = libc6-ppc64 (>= $(shlib_dep_ver))
+ppc64_crypt = yes
 ppc64_rtlddir = /lib64
 ppc64_slibdir = /lib64
 ppc64_libdir = /usr/lib64
