@@ -155,8 +155,10 @@ endif
 
 	# Generate common substvars files.
 	: > tmp.substvars
-ifeq ($(filter stage2,$(DEB_BUILD_PROFILES)),)
+ifeq ($(filter stage1 stage2,$(DEB_BUILD_PROFILES)),)
 	echo 'libgcc:Depends=libgcc1 [!hppa !m68k], libgcc2 [m68k], libgcc4 [hppa]' >> tmp.substvars
+	echo 'libcrypt:Depends=libcrypt1' >> tmp.substvars
+	echo 'libcrypt-dev:Depends=libcrypt1-dev' >> tmp.substvars
 endif
 	for pkg in $(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES) $(DEB_UDEB_PACKAGES); do \
 	  cp tmp.substvars debian/$$pkg.substvars; \

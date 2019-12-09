@@ -1,6 +1,12 @@
 glibc (2.29-6) UNRELEASED; urgency=medium
 
   * debian/shlibs-add-udebs: drop libcrypt.
+  * Fix rebootstrap and cross-toolchain-base (Closes: #946396):
+    - debian/control.in/libc: replace libcrypt1 by ${libcrypt:Depends} and
+      libcrypt1-dev by ${libcrypt-dev:Depends}.
+    - debian/rules.d/debhelper.mk: add libcrypt:Depends=libcrypt1 and
+      libcrypt-dev:Depends=libcrypt1-dev to substvars unless build with stage1
+      or stage2 profiles.
 
  -- Aurelien Jarno <aurel32@debian.org>  Mon, 09 Dec 2019 00:13:59 +0100
 
