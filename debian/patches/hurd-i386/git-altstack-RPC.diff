@@ -1,0 +1,56 @@
+commit e46efff89550a8e693a3362976f85070762c5cb8
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Wed Dec 11 00:23:00 2019 +0100
+
+    hurd: Fix using altstack while in an RPC call to be aborted
+    
+    * sysdeps/mach/hurd/i386/trampoline.c (_hurd_setup_sighandler): Always check
+    for interrupted code being with esp pointing at mach_msg arguments, even
+    when using an altstack. If we need to abort the RPC we will need
+    this.
+
+diff --git a/sysdeps/mach/hurd/i386/trampoline.c b/sysdeps/mach/hurd/i386/trampoline.c
+index a6928a607b..0c5d5a194c 100644
+--- a/sysdeps/mach/hurd/i386/trampoline.c
++++ b/sysdeps/mach/hurd/i386/trampoline.c
+@@ -74,12 +74,6 @@ _hurd_setup_sighandler (struct hurd_sigstate *ss, __sighandler_t handler,
+      interrupted RPC frame.  */
+   state->basic.esp = state->basic.uesp;
+ 
+-  if ((ss->actions[signo].sa_flags & SA_ONSTACK)
+-      && !(ss->sigaltstack.ss_flags & (SS_DISABLE|SS_ONSTACK)))
+-    {
+-      sigsp = ss->sigaltstack.ss_sp + ss->sigaltstack.ss_size;
+-      ss->sigaltstack.ss_flags |= SS_ONSTACK;
+-    }
+   /* This code has intimate knowledge of the special mach_msg system call
+      done in intr-msg.c; that code does (see intr-msg.h):
+ 					movl %esp, %ecx
+@@ -91,13 +85,20 @@ _hurd_setup_sighandler (struct hurd_sigstate *ss, __sighandler_t handler,
+      We must check for the window during which %esp points at the
+      mach_msg arguments.  The space below until %ecx is used by
+      the _hurd_intr_rpc_mach_msg frame, and must not be clobbered.  */
+-  else if (state->basic.eip >= (int) &_hurd_intr_rpc_msg_cx_sp
+-	   && state->basic.eip < (int) &_hurd_intr_rpc_msg_sp_restored)
+-    /* The SP now points at the mach_msg args, but there is more stack
+-       space used below it.  The real SP is saved in %ecx; we must push the
+-       new frame below there, and restore that value as the SP on
+-       sigreturn.  */
+-    sigsp = (char *) (state->basic.uesp = state->basic.ecx);
++  if (state->basic.eip >= (int) &_hurd_intr_rpc_msg_cx_sp
++      && state->basic.eip < (int) &_hurd_intr_rpc_msg_sp_restored)
++  /* The SP now points at the mach_msg args, but there is more stack
++     space used below it.  The real SP is saved in %ecx; we must push the
++     new frame below there (if not on the altstack), and restore that value as
++     the SP on sigreturn.  */
++    state->basic.uesp = state->basic.ecx;
++
++  if ((ss->actions[signo].sa_flags & SA_ONSTACK)
++      && !(ss->sigaltstack.ss_flags & (SS_DISABLE|SS_ONSTACK)))
++    {
++      sigsp = ss->sigaltstack.ss_sp + ss->sigaltstack.ss_size;
++      ss->sigaltstack.ss_flags |= SS_ONSTACK;
++    }
+   else
+     sigsp = (char *) state->basic.uesp;
+ 
