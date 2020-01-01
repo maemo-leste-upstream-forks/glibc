@@ -506,8 +506,8 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
      {
        /* We have a previous sigcontext that sigreturn was about
 @@ -74,9 +151,13 @@
-      interrupted RPC frame.  */
-   state->basic.esp = state->basic.uesp;
+      the SP on sigreturn.  */
+     state->basic.uesp = state->basic.ecx;
  
 -  /* XXX what if handler != action->handler (for instance, if a signal
 -   * preemptor took over) ? */
