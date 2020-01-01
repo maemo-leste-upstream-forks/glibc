@@ -388,18 +388,20 @@ test-xfail-ISO11/threads.h/linknamespace = yes
 #test-xfail-tst-dlopenfail = yes
 
 # actually never succeded
-#test-xfail-tst-getcwd-abspath = yes
 #test-xfail-tst-create_format1 = yes
+#test-xfail-tst-getcwd-abspath = yes
+# Assumes that self-locks are exclusive
+#test-xfail-tst-lockf = yes
 
 # assumes that all st_mode flags (32bit) can exist in stx_mode flags (16bit)
 #test-xfail-tst-statx = yes
 
-# wants /proc/self/fd
-#test-xfail-tst-updwtmpx = yes
-
 # wants pthread_barrierattr_setpshared
 #test-xfail-tst-pututxline-cache = yes
 #test-xfail-tst-pututxline-lockfail = yes
+
+# wants /proc/self/fd
+#test-xfail-tst-updwtmpx = yes
 endif
 
 
