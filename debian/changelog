@@ -65,6 +65,32 @@ glibc (2.30-0experimental0) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Fri, 06 Dec 2019 23:18:04 +0100
 
+glibc (2.29-7) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/git-altstack-RPC.diff: Fix restoring from altstack while
+    blocked in an RPC.
+  * patches/hurd-i386/git-getrandom.diff: Add support for getrandom &
+    getentropy.
+
+  [ Aurelien Jarno ]
+  * debian/rules.d/debhelper.mk: change dependency from libcrypt1-dev to
+    libcrypt-dev.  Closes: #947778.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 30 Dec 2019 19:12:42 +0100
+
+glibc (2.29-6) unstable; urgency=medium
+
+  * debian/shlibs-add-udebs: drop libcrypt.
+  * Fix rebootstrap and cross-toolchain-base (Closes: #946396):
+    - debian/control.in/libc: replace libcrypt1 by ${libcrypt:Depends} and
+      libcrypt1-dev by ${libcrypt-dev:Depends}.
+    - debian/rules.d/debhelper.mk: add libcrypt:Depends=libcrypt1 and
+      libcrypt-dev:Depends=libcrypt1-dev to substvars unless build with stage1
+      or stage2 profiles.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 10 Dec 2019 00:06:38 +0100
+
 glibc (2.29-5) unstable; urgency=medium
 
   * Upload to unstable.
