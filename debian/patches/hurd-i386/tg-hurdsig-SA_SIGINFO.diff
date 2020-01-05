@@ -33,20 +33,6 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  
  /* Make the thread described by SS take the signal described by SIGNO and
     DETAIL.  If the process is traced, this will in fact stop with a SIGNO
---- a/hurd/hurd/sigpreempt.h
-+++ b/hurd/hurd/sigpreempt.h
-@@ -50,9 +50,9 @@ struct hurd_signal_preemptor
-     struct hurd_signal_preemptor *next;	/* List structure.  */
-   };
- 
--#define HURD_PREEMPT_SIGNAL_P(preemptor, signo, sigcode) \
-+#define HURD_PREEMPT_SIGNAL_P(preemptor, signo, address) \
-   (((preemptor)->signals & sigmask (signo)) && \
--   (sigcode) >= (preemptor)->first && (sigcode) <= (preemptor)->last)
-+   (address) >= (preemptor)->first && (address) <= (preemptor)->last)
- 
- 
- /* Signal preemptors applying to all threads; locked by _hurd_siglock.  */
 --- a/hurd/hurdfault.c
 +++ b/hurd/hurdfault.c
 @@ -70,7 +70,7 @@ _hurdsig_fault_catch_exception_raise (ma
@@ -80,6 +66,24 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  	      {
  		if (pe->preemptor)
  		  {
+@@ -1366,7 +1366,7 @@ _S_msg_sig_post (mach_port_t me,
+   if (err = signal_allowed (signo, refport))
+     return err;
+ 
+-  d.code = sigcode;
++  d.code = d.exc_subcode = sigcode;
+   d.exc = 0;
+ 
+   /* Post the signal to a global receiver thread (or mark it pending in
+@@ -1395,7 +1395,7 @@ _S_msg_sig_post_untraced (mach_port_t me,
+   if (err = signal_allowed (signo, refport))
+     return err;
+ 
+-  d.code = sigcode;
++  d.code = d.exc_subcode = sigcode;
+   d.exc = 0;
+ 
+   /* Post the signal to the designated signal-receiving thread.  This will
 --- /dev/null
 +++ b/sysdeps/mach/hurd/bits/sigaction.h
 @@ -0,0 +1,86 @@
