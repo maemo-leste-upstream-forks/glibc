@@ -1,10 +1,174 @@
 GIT update of https://sourceware.org/git/glibc.git/release/2.29/master from glibc-2.29
 
 diff --git a/ChangeLog b/ChangeLog
-index 59dab18463..74f7923696 100644
+index 59dab18463..596604df09 100644
 --- a/ChangeLog
 +++ b/ChangeLog
-@@ -1,3 +1,327 @@
+@@ -1,3 +1,491 @@
++2019-07-24  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #24532]
++	Linux: Use in-tree copy of SO_ constants for !__USE_MISC.
++	* sysdeps/unix/sysv/linux/Makefile [$(subdir) == socket]
++	(sysdep_headers): Add bits/socket-constants.h.
++	(tests-special): Add tst-socket-consts.out.
++	(tst-socket-consts.out): New target.
++	* sysdeps/unix/sysv/linux/bits/socket.h: Remove macro tracking
++	around <asm/unistd.h>.
++	[__USE_MISC]: Include <bits/types/time_t.h> before <asm/socket.h>.
++	[!__USE_MISC]: Include <sys/socket-constants.h> instead of
++	<asm/socket.h>.
++	* sysdeps/unix/sysv/linux/bits/tst-socket-consts.py: New file.
++	* sysdeps/unix/sysv/linux/bits/socket-constants.h: Likewise.
++	* sysdeps/unix/sysv/linux/alpha/bits/socket-constants.h: Likewise.
++	* sysdeps/unix/sysv/linux/hppa/bits/socket-constants.h: Likewise.
++	* sysdeps/unix/sysv/linux/mips/bits/socket-constants.h: Likewise.
++	* sysdeps/unix/sysv/linux/powerpc/bits/socket-constants.h:
++	Likewise.
++	* sysdeps/unix/sysv/linux/sparc/bits/socket-constants.h: Likewise.
++
++2019-08-15  Florian Weimer  <fweimer@redhat.com>
++
++	* malloc/Makefile (tests): Only add tst-mxfast for
++	$(have-tunables).
++	* malloc/tst-mxfast.c: Fix copyright year.
++	(do_test): Fix GNU style issues.  Use TEST_COMPARE instead of
++	assert for checks.
++
++2019-08-09  DJ Delorie  <dj@redhat.com>
++
++	* elf/dl-tunables.list: Add glibc.malloc.mxfast.
++	* manual/tunables.texi: Document it.
++	* malloc/malloc.c (do_set_mxfast): New.
++	(__libc_mallopt): Call it.
++	* malloc/arena.c: Add mxfast tunable.
++	* malloc/tst-mxfast.c: New.
++	* malloc/Makefile: Add it.
++
++2019-08-08  Niklas Hambüchen  <mail@nh2.me>
++	    Carlos O'Donell  <carlos@redhat.com>
++
++	[BZ #24026]
++	* malloc/malloc.c (__malloc_info): Account for top chunk.
++
++2019-08-01  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #24867]
++	* malloc/malloc.c (__malloc_info): Remove unwanted leading
++	whitespace.
++
++2019-05-17  Wilco Dijkstra  <wdijkstr@arm.com>
++
++	* malloc/malloc.c (MAX_TCACHE_COUNT): Increase to UINT16_MAX.
++	(tcache_put): Remove redundant assert.
++	(tcache_get): Remove redundant asserts.
++	(__libc_malloc): Check tcache count is not zero.
++	* manual/tunables.texi (glibc.malloc.tcache_count): Update maximum.
++
++2019-02-04  Joseph Myers  <joseph@codesourcery.com>
++
++	* malloc/malloc.c (tcache_get): Compare tcache->counts[tc_idx]
++	with 0, not tcache->entries[tc_idx].
++
++2019-02-06  Stefan Liebler  <stli@linux.ibm.com>
++
++	[BZ #23403]
++	* nptl/allocatestack.c (allocate_stack): Align pointer pd for
++	TLS_TCB_AT_TP tls variant.
++	* nptl/tst-tls1.c: Migrate to support/test-driver.c.
++	Add alignment checks.
++	* support/Makefile (libsupport-routines): Add xposix_memalign and
++	xpthread_setstack.
++	* support/support.h: Add xposix_memalign.
++	* support/xthread.h: Add xpthread_attr_setstack.
++	* support/xposix_memalign.c: New File.
++	* support/xpthread_attr_setstack.c: Likewise.
++
++2019-06-18  Florian Weimer  <fweimer@redhat.com>
++
++	[BZ #24323]
++	* include/elf.h (DT_1_SUPPORTED_MASK): Include DF_1_PIE.
++	* elf/dl-load.c (_dl_map_object_from_fd): Check for DF_1_PIE and
++	fail when called from dlopen.
++	* elf/Makefile [have-fpie && build-shared] (tests): Add
++	tst-dlopen-pie.
++	(tst-dlopen-pie): Link with -ldl.
++	(tst-dlopen-pie.out): Add run-time dependency on tst-pie1.
++	* elf/tst-dlopen-pie.c (do_test): New file.
++
++2019-07-10  DJ Delorie  <dj@redhat.com>
++	    Sergei Trofimovich <slyfox@inbox.ru>
++
++	[BZ #24696]
++	[BZ #24695]
++	* nss/nss_db/db-open.c (internal_endent): Protect against NULL
++	mappings.
++	* nss/tst-nss-db-endgrent.c: New.
++	* nss/tst-nss-db-endgrent.root: New.
++	* nss/tst-nss-db-endpwent.c: New.
++	* nss/tst-nss-db-endpwent.root: New.
++	* nss/Makefile: Add new tests.
++	* support/links-dso-program-c.c: Add selinux dependency.
++	* support/links-dso-program.cc: Add selinux dependency.
++	* support/Makefile: Build those with -lselinux if enabled.
++
++2019-05-14  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++
++	* support/Makefile (CFLAGS-support_paths.c): Add -DBINDIR_PATH.
++	* support/support.h (support_bindir_prefix): New variable.
++	* support/support_paths.c [BINDIR_PATH] (support_bindir_prefix):
++
++	* config.make.in (bindir): New variable.
++
++2019-07-01  H.J. Lu  <hongjiu.lu@intel.com>
++
++	[BZ #24259]
++	* elf/dl-open.c (dl_open_worker): Call _dl_open_check after
++	relocation.
++	* sysdeps/x86/Makefile (tests): Add tst-cet-legacy-5a,
++	tst-cet-legacy-5b, tst-cet-legacy-6a and tst-cet-legacy-6b.
++	(modules-names): Add tst-cet-legacy-mod-5a, tst-cet-legacy-mod-5b,
++	tst-cet-legacy-mod-5c, tst-cet-legacy-mod-6a, tst-cet-legacy-mod-6b
++	and tst-cet-legacy-mod-6c.
++	(CFLAGS-tst-cet-legacy-5a.c): New.
++	(CFLAGS-tst-cet-legacy-5b.c): Likewise.
++	(CFLAGS-tst-cet-legacy-mod-5a.c): Likewise.
++	(CFLAGS-tst-cet-legacy-mod-5b.c): Likewise.
++	(CFLAGS-tst-cet-legacy-mod-5c.c): Likewise.
++	(CFLAGS-tst-cet-legacy-6a.c): Likewise.
++	(CFLAGS-tst-cet-legacy-6b.c): Likewise.
++	(CFLAGS-tst-cet-legacy-mod-6a.c): Likewise.
++	(CFLAGS-tst-cet-legacy-mod-6b.c): Likewise.
++	(CFLAGS-tst-cet-legacy-mod-6c.c): Likewise.
++	($(objpfx)tst-cet-legacy-5a): Likewise.
++	($(objpfx)tst-cet-legacy-5a.out): Likewise.
++	($(objpfx)tst-cet-legacy-mod-5a.so): Likewise.
++	($(objpfx)tst-cet-legacy-mod-5b.so): Likewise.
++	($(objpfx)tst-cet-legacy-5b): Likewise.
++	($(objpfx)tst-cet-legacy-5b.out): Likewise.
++	(tst-cet-legacy-5b-ENV): Likewise.
++	($(objpfx)tst-cet-legacy-6a): Likewise.
++	($(objpfx)tst-cet-legacy-6a.out): Likewise.
++	($(objpfx)tst-cet-legacy-mod-6a.so): Likewise.
++	($(objpfx)tst-cet-legacy-mod-6b.so): Likewise.
++	($(objpfx)tst-cet-legacy-6b): Likewise.
++	($(objpfx)tst-cet-legacy-6b.out): Likewise.
++	(tst-cet-legacy-6b-ENV): Likewise.
++	* sysdeps/x86/tst-cet-legacy-5.c: New file.
++	* sysdeps/x86/tst-cet-legacy-5a.c: Likewise.
++	* sysdeps/x86/tst-cet-legacy-5b.c: Likewise.
++	* sysdeps/x86/tst-cet-legacy-6.c: Likewise.
++	* sysdeps/x86/tst-cet-legacy-6a.c: Likewise.
++	* sysdeps/x86/tst-cet-legacy-6b.c: Likewise.
++	* sysdeps/x86/tst-cet-legacy-mod-5.c: Likewise.
++	* sysdeps/x86/tst-cet-legacy-mod-5a.c: Likewise.
++	* sysdeps/x86/tst-cet-legacy-mod-5b.c: Likewise.
++	* sysdeps/x86/tst-cet-legacy-mod-5c.c: Likewise.
++	* sysdeps/x86/tst-cet-legacy-mod-6.c: Likewise.
++	* sysdeps/x86/tst-cet-legacy-mod-6a.c: Likewise.
++	* sysdeps/x86/tst-cet-legacy-mod-6b.c: Likewise.
++	* sysdeps/x86/tst-cet-legacy-mod-6c.c: Likewise.
++
 +2019-09-20  Joseph Myers  <joseph@codesourcery.com>
 +
 +	* sysdeps/unix/sysv/linux/riscv/vfork.S: Do not include
@@ -333,10 +497,10 @@ index 59dab18463..74f7923696 100644
  
  	* version.h (RELEASE): Set to "stable".
 diff --git a/NEWS b/NEWS
-index 912a9bdc0f..5dc41ff3eb 100644
+index 912a9bdc0f..2df50c1da4 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -4,6 +4,52 @@ See the end for copying conditions.
+@@ -4,6 +4,62 @@ See the end for copying conditions.
  
  Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
@@ -371,6 +535,10 @@ index 912a9bdc0f..5dc41ff3eb 100644
 +  [24744] io: Remove the copy_file_range emulation
 +  [24986] alpha: new getegid, geteuid and getppid syscalls used
 +    unconditionally
++  [25203] libio: Disable vtable validation for pre-2.1 interposed handles
++  [25204] Ignore LD_PREFER_MAP_32BIT_EXEC for SUID programs
++  [25225] ld.so fails to link on x86 if GCC defaults to -fcf-protection
++  [25232] No const correctness for strchr et al. for Clang++
 +
 +Security related changes:
 +
@@ -385,6 +553,12 @@ index 912a9bdc0f..5dc41ff3eb 100644
 +  CVE-2019-9169: Attempted case-insensitive regular-expression match
 +  via proceed_next_node in posix/regexec.c leads to heap-based buffer
 +  over-read.  Reported by Hongxu Chen.
++
++  CVE-2019-19126: ld.so failed to ignore the LD_PREFER_MAP_32BIT_EXEC
++  environment variable during program execution after a security
++  transition, allowing local attackers to restrict the possible mapping
++  addresses for loaded libraries and thus bypass ASLR for a setuid
++  program.  Reported by Marcin Kościelnicki.
 +
  
  Version 2.29
@@ -412,6 +586,68 @@ index 1562f2ce6d..16afa6acaa 100644
  tests-special += $(objpfx)check-installed-headers-cxx.out
  libof-check-installed-headers-cxx := testsuite
  $(objpfx)check-installed-headers-cxx.out: \
+diff --git a/configure b/configure
+index 101dfddf37..6a2df7c2be 100755
+--- a/configure
++++ b/configure
+@@ -3777,11 +3777,32 @@ else
+ fi
+ 
+ 
++cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++
++int
++main ()
++{
++
++#ifndef __CET__
++#error no CET compiler support
++#endif
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_compile "$LINENO"; then :
++  libc_cv_compiler_default_cet=yes
++else
++  libc_cv_compiler_default_cet=no
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++
+ # Check whether --enable-cet was given.
+ if test "${enable_cet+set}" = set; then :
+   enableval=$enable_cet; enable_cet=$enableval
+ else
+-  enable_cet=no
++  enable_cet=$libc_cv_compiler_default_cet
+ fi
+ 
+ 
+diff --git a/configure.ac b/configure.ac
+index 46a74687a6..f483afdc2e 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -472,11 +472,18 @@ AC_ARG_ENABLE([mathvec],
+ 	      [build_mathvec=$enableval],
+ 	      [build_mathvec=notset])
+ 
++AC_TRY_COMPILE([], [
++#ifndef __CET__
++# error no CET compiler support
++#endif],
++	       [libc_cv_compiler_default_cet=yes],
++	       [libc_cv_compiler_default_cet=no])
++
+ AC_ARG_ENABLE([cet],
+ 	      AC_HELP_STRING([--enable-cet],
+ 			     [enable Intel Control-flow Enforcement Technology (CET), x86 only]),
+ 	      [enable_cet=$enableval],
+-	      [enable_cet=no])
++	      [enable_cet=$libc_cv_compiler_default_cet])
+ 
+ # We keep the original values in `$config_*' and never modify them, so we
+ # can write them unchanged into config.make.  Everything else uses
 diff --git a/dlfcn/dlerror.c b/dlfcn/dlerror.c
 index 27376582d0..ca42c126c1 100644
 --- a/dlfcn/dlerror.c
@@ -462,7 +698,7 @@ index 27376582d0..ca42c126c1 100644
  
  struct dlfcn_hook *_dlfcn_hook __attribute__((nocommon));
 diff --git a/elf/Makefile b/elf/Makefile
-index 9cf5cd8dfd..e7457e809f 100644
+index 9cf5cd8dfd..fa86ce2b8f 100644
 --- a/elf/Makefile
 +++ b/elf/Makefile
 @@ -194,6 +194,7 @@ tests-internal += loadtest unload unload2 circleload1 \
@@ -473,6 +709,93 @@ index 9cf5cd8dfd..e7457e809f 100644
  ifeq ($(build-hardcoded-path-in-tests),yes)
  tests += tst-dlopen-aout
  tst-dlopen-aout-no-pie = yes
+@@ -304,7 +305,7 @@ test-xfail-tst-protected1b = yes
+ endif
+ ifeq (yesyes,$(have-fpie)$(build-shared))
+ modules-names += tst-piemod1
+-tests += tst-pie1 tst-pie2
++tests += tst-pie1 tst-pie2 tst-dlopen-pie
+ tests-pie += tst-pie1 tst-pie2
+ ifeq (yes,$(have-protected-data))
+ tests += vismain
+@@ -1065,6 +1066,8 @@ CFLAGS-tst-pie2.c += $(pie-ccflag)
+ 
+ $(objpfx)tst-piemod1.so: $(libsupport)
+ $(objpfx)tst-pie1: $(objpfx)tst-piemod1.so
++$(objpfx)tst-dlopen-pie: $(libdl)
++$(objpfx)tst-dlopen-pie.out: $(objpfx)tst-pie1
+ 
+ ifeq (yes,$(build-shared))
+ # NB: Please keep cet-built-dso in sysdeps/x86/Makefile in sync with
+diff --git a/elf/dl-load.c b/elf/dl-load.c
+index f972524421..88bd04e687 100644
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -1173,6 +1173,10 @@ _dl_map_object_from_fd (const char *name, const char *origname, int fd,
+ 	goto call_lose;
+       }
+ 
++    /* dlopen of an executable is not valid because it is not possible
++       to perform proper relocations, handle static TLS, or run the
++       ELF constructors.  For PIE, the check needs the dynamic
++       section, so there is another check below.  */
+     if (__glibc_unlikely (type != ET_DYN)
+ 	&& __glibc_unlikely ((mode & __RTLD_OPENEXEC) == 0))
+       {
+@@ -1209,9 +1213,11 @@ _dl_map_object_from_fd (const char *name, const char *origname, int fd,
+   elf_get_dynamic_info (l, NULL);
+ 
+   /* Make sure we are not dlopen'ing an object that has the
+-     DF_1_NOOPEN flag set.  */
+-  if (__glibc_unlikely (l->l_flags_1 & DF_1_NOOPEN)
+-      && (mode & __RTLD_DLOPEN))
++     DF_1_NOOPEN flag set, or a PIE object.  */
++  if ((__glibc_unlikely (l->l_flags_1 & DF_1_NOOPEN)
++       && (mode & __RTLD_DLOPEN))
++      || (__glibc_unlikely (l->l_flags_1 & DF_1_PIE)
++	  && __glibc_unlikely ((mode & __RTLD_OPENEXEC) == 0)))
+     {
+       /* We are not supposed to load this object.  Free all resources.  */
+       _dl_unmap_segments (l);
+@@ -1222,7 +1228,11 @@ _dl_map_object_from_fd (const char *name, const char *origname, int fd,
+       if (l->l_phdr_allocated)
+ 	free ((void *) l->l_phdr);
+ 
+-      errstring = N_("shared object cannot be dlopen()ed");
++      if (l->l_flags_1 & DF_1_PIE)
++	errstring
++	  = N_("cannot dynamically load position-independent executable");
++      else
++	errstring = N_("shared object cannot be dlopen()ed");
+       goto call_lose;
+     }
+ 
+diff --git a/elf/dl-open.c b/elf/dl-open.c
+index 12a4f8b853..e18ee398cb 100644
+--- a/elf/dl-open.c
++++ b/elf/dl-open.c
+@@ -292,8 +292,6 @@ dl_open_worker (void *a)
+   _dl_debug_state ();
+   LIBC_PROBE (map_complete, 3, args->nsid, r, new);
+ 
+-  _dl_open_check (new);
+-
+   /* Print scope information.  */
+   if (__glibc_unlikely (GLRO(dl_debug_mask) & DL_DEBUG_SCOPES))
+     _dl_show_scope (new, 0);
+@@ -366,6 +364,12 @@ dl_open_worker (void *a)
+ 	_dl_relocate_object (l, l->l_scope, reloc_mode, 0);
+     }
+ 
++  /* NB: Workaround for [BZ #20839] which doesn't remove the NODELETE
++     object when _dl_open_check throws an exception.  Move it after
++     relocation to avoid leaving the NODELETE object mapped without
++     relocation.  */
++  _dl_open_check (new);
++
+   /* If the file is not loaded now as a dependency, add the search
+      list of the newly loaded object to the scope.  */
+   bool any_tls = false;
 diff --git a/elf/dl-sysdep.c b/elf/dl-sysdep.c
 index 5f6c679a3f..5d19b100b2 100644
 --- a/elf/dl-sysdep.c
@@ -495,6 +818,22 @@ index 5f6c679a3f..5d19b100b2 100644
  
        if (idx < sizeof (auxvars) / sizeof (auxvars[0])
  	  && auxvars[idx].form != unknown)
+diff --git a/elf/dl-tunables.list b/elf/dl-tunables.list
+index 1fc2d8886b..525c3767b5 100644
+--- a/elf/dl-tunables.list
++++ b/elf/dl-tunables.list
+@@ -85,6 +85,11 @@ glibc {
+     tcache_unsorted_limit {
+       type: SIZE_T
+     }
++    mxfast {
++      type: SIZE_T
++      minval: 0
++      security_level: SXID_IGNORE
++    }
+   }
+   cpu {
+     hwcap_mask {
 diff --git a/elf/elf.h b/elf/elf.h
 index 47a514a389..38567f4893 100644
 --- a/elf/elf.h
@@ -895,6 +1234,61 @@ index f3fac4e487..69629bd5d2 100644
  
    free (auxv);
    close (memfd);
+diff --git a/elf/tst-dlopen-pie.c b/elf/tst-dlopen-pie.c
+new file mode 100644
+index 0000000000..6a41c731cb
+--- /dev/null
++++ b/elf/tst-dlopen-pie.c
+@@ -0,0 +1,49 @@
++/* dlopen test for PIE objects.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* This test attempts to open the (otherwise unrelated) PIE test
++   program elf/tst-pie1 and expects the attempt to fail.  */
++
++#include <dlfcn.h>
++#include <stddef.h>
++#include <string.h>
++#include <support/check.h>
++#include <support/support.h>
++
++static void
++test_mode (int mode)
++{
++  char *pie_path = xasprintf ("%s/elf/tst-pie1", support_objdir_root);
++  if (dlopen (pie_path, mode) != NULL)
++    FAIL_EXIT1 ("dlopen succeeded unexpectedly (%d)", mode);
++  const char *message = dlerror ();
++  const char *expected
++    = "cannot dynamically load position-independent executable";
++  if (strstr (message, expected) == NULL)
++    FAIL_EXIT1 ("unexpected error message (mode %d): %s", mode, message);
++}
++
++static int
++do_test (void)
++{
++  test_mode (RTLD_LAZY);
++  test_mode (RTLD_NOW);
++  return 0;
++}
++
++#include <support/test-driver.c>
 diff --git a/elf/tst-pldd.c b/elf/tst-pldd.c
 new file mode 100644
 index 0000000000..ed19cedd05
@@ -1019,6 +1413,19 @@ index 0000000000..ed19cedd05
 +}
 +
 +#include <support/test-driver.c>
+diff --git a/include/elf.h b/include/elf.h
+index ab76aafb1e..14ed67ff67 100644
+--- a/include/elf.h
++++ b/include/elf.h
+@@ -23,7 +23,7 @@
+ # endif
+ # define DT_1_SUPPORTED_MASK \
+    (DF_1_NOW | DF_1_NODELETE | DF_1_INITFIRST | DF_1_NOOPEN \
+-    | DF_1_ORIGIN | DF_1_NODEFLIB)
++    | DF_1_ORIGIN | DF_1_NODEFLIB | DF_1_PIE)
+ 
+ #endif /* !_ISOMAC */
+ #endif /* elf.h */
 diff --git a/include/stap-probe.h b/include/stap-probe.h
 index c53dd86592..8c26292edd 100644
 --- a/include/stap-probe.h
@@ -2036,6 +2443,22 @@ index 2a0d9b81df..11a15549e8 100644
      }
  
  #ifdef _IO_MTSAFE_IO
+diff --git a/libio/oldstdfiles.c b/libio/oldstdfiles.c
+index 524e260b7e..5d6a87d88a 100644
+--- a/libio/oldstdfiles.c
++++ b/libio/oldstdfiles.c
+@@ -87,6 +87,11 @@ _IO_check_libio (void)
+ 	stdout->_vtable_offset = stderr->_vtable_offset =
+ 	((int) sizeof (struct _IO_FILE)
+ 	 - (int) sizeof (struct _IO_FILE_complete));
++
++      if (_IO_stdin_.vtable != &_IO_old_file_jumps
++	  || _IO_stdout_.vtable != &_IO_old_file_jumps
++	  || _IO_stderr_.vtable != &_IO_old_file_jumps)
++	IO_set_accept_foreign_vtables (&_IO_vtable_check);
+     }
+ }
+ 
 diff --git a/libio/tst-bz24228.c b/libio/tst-bz24228.c
 new file mode 100644
 index 0000000000..6a74500d47
@@ -2174,20 +2597,110 @@ index 1fd2fee44b..c64aaaff55 100644
  	"+:6:1873//01//01:1912//07//29:<U660E><U6CBB>:%EC%Ey<U5E74>";/
  	"+:1:0001//01//01:1872//12//31:<U897F><U66A6>:%EC%Ey<U5E74>";/
  	"+:1:-0001//12//31:-*:<U7D00><U5143><U524D>:%EC%Ey<U5E74>"
+diff --git a/malloc/Makefile b/malloc/Makefile
+index ab2eed09c6..b4409aa670 100644
+--- a/malloc/Makefile
++++ b/malloc/Makefile
+@@ -54,7 +54,7 @@ tests-internal += \
+ 	 tst-dynarray-at-fail \
+ 
+ ifneq (no,$(have-tunables))
+-tests += tst-malloc-usable-tunables
++tests += tst-malloc-usable-tunables tst-mxfast
+ tests-static += tst-malloc-usable-static-tunables
+ endif
+ 
+@@ -196,6 +196,8 @@ tst-malloc-usable-static-ENV = $(tst-malloc-usable-ENV)
+ tst-malloc-usable-tunables-ENV = GLIBC_TUNABLES=glibc.malloc.check=3
+ tst-malloc-usable-static-tunables-ENV = $(tst-malloc-usable-tunables-ENV)
+ 
++tst-mxfast-ENV = GLIBC_TUNABLES=glibc.malloc.tcache_count=0:glibc.malloc.mxfast=0
++
+ ifeq ($(experimental-malloc),yes)
+ CPPFLAGS-malloc.c += -DUSE_TCACHE=1
+ else
+diff --git a/malloc/arena.c b/malloc/arena.c
+index efca2bcf68..d19a28710f 100644
+--- a/malloc/arena.c
++++ b/malloc/arena.c
+@@ -237,6 +237,7 @@ TUNABLE_CALLBACK_FNDECL (set_tcache_max, size_t)
+ TUNABLE_CALLBACK_FNDECL (set_tcache_count, size_t)
+ TUNABLE_CALLBACK_FNDECL (set_tcache_unsorted_limit, size_t)
+ #endif
++TUNABLE_CALLBACK_FNDECL (set_mxfast, size_t)
+ #else
+ /* Initialization routine. */
+ #include <string.h>
+@@ -324,6 +325,7 @@ ptmalloc_init (void)
+   TUNABLE_GET (tcache_unsorted_limit, size_t,
+ 	       TUNABLE_CALLBACK (set_tcache_unsorted_limit));
+ # endif
++  TUNABLE_GET (mxfast, size_t, TUNABLE_CALLBACK (set_mxfast));
+ #else
+   const char *s = NULL;
+   if (__glibc_likely (_environ != NULL))
 diff --git a/malloc/malloc.c b/malloc/malloc.c
-index feaf7ee0bf..0abd653be2 100644
+index feaf7ee0bf..9ce0941b9a 100644
 --- a/malloc/malloc.c
 +++ b/malloc/malloc.c
-@@ -2919,6 +2919,8 @@ typedef struct tcache_perthread_struct
+@@ -321,6 +321,10 @@ __malloc_assert (const char *assertion, const char *file, unsigned int line,
+ /* This is another arbitrary limit, which tunables can change.  Each
+    tcache bin will hold at most this number of chunks.  */
+ # define TCACHE_FILL_COUNT 7
++
++/* Maximum chunks in tcache bins for tunables.  This value must fit the range
++   of tcache->counts[] entries, else they may overflow.  */
++# define MAX_TCACHE_COUNT UINT16_MAX
+ #endif
+ 
+ 
+@@ -1631,7 +1635,7 @@ static INTERNAL_SIZE_T global_max_fast;
+ 
+ #define set_max_fast(s) \
+   global_max_fast = (((s) == 0)						      \
+-                     ? SMALLBIN_WIDTH : ((s + SIZE_SZ) & ~MALLOC_ALIGN_MASK))
++                     ? MIN_CHUNK_SIZE / 2 : ((s + SIZE_SZ) & ~MALLOC_ALIGN_MASK))
+ 
+ static inline INTERNAL_SIZE_T
+ get_max_fast (void)
+@@ -2915,7 +2919,7 @@ typedef struct tcache_entry
+    time), this is for performance reasons.  */
+ typedef struct tcache_perthread_struct
+ {
+-  char counts[TCACHE_MAX_BINS];
++  uint16_t counts[TCACHE_MAX_BINS];
    tcache_entry *entries[TCACHE_MAX_BINS];
  } tcache_perthread_struct;
  
-+#define MAX_TCACHE_COUNT 127	/* Maximum value of counts[] entries.  */
-+
- static __thread bool tcache_shutting_down = false;
- static __thread tcache_perthread_struct *tcache = NULL;
+@@ -2928,7 +2932,6 @@ static __always_inline void
+ tcache_put (mchunkptr chunk, size_t tc_idx)
+ {
+   tcache_entry *e = (tcache_entry *) chunk2mem (chunk);
+-  assert (tc_idx < TCACHE_MAX_BINS);
  
-@@ -3876,10 +3878,14 @@ _int_malloc (mstate av, size_t bytes)
+   /* Mark this chunk as "in the tcache" so the test in _int_free will
+      detect a double free.  */
+@@ -2945,8 +2948,6 @@ static __always_inline void *
+ tcache_get (size_t tc_idx)
+ {
+   tcache_entry *e = tcache->entries[tc_idx];
+-  assert (tc_idx < TCACHE_MAX_BINS);
+-  assert (tcache->entries[tc_idx] > 0);
+   tcache->entries[tc_idx] = e->next;
+   --(tcache->counts[tc_idx]);
+   e->key = NULL;
+@@ -3051,9 +3052,8 @@ __libc_malloc (size_t bytes)
+ 
+   DIAG_PUSH_NEEDS_COMMENT;
+   if (tc_idx < mp_.tcache_bins
+-      /*&& tc_idx < TCACHE_MAX_BINS*/ /* to appease gcc */
+       && tcache
+-      && tcache->entries[tc_idx] != NULL)
++      && tcache->counts[tc_idx] > 0)
+     {
+       return tcache_get (tc_idx);
+     }
+@@ -3876,10 +3876,14 @@ _int_malloc (mstate av, size_t bytes)
                          {
                            victim->fd_nextsize = fwd;
                            victim->bk_nextsize = fwd->bk_nextsize;
@@ -2202,7 +2715,7 @@ index feaf7ee0bf..0abd653be2 100644
                      }
                  }
                else
-@@ -5120,8 +5126,11 @@ static inline int
+@@ -5120,8 +5124,11 @@ static inline int
  __always_inline
  do_set_tcache_count (size_t value)
  {
@@ -2215,6 +2728,63 @@ index feaf7ee0bf..0abd653be2 100644
 +    }
    return 1;
  }
+ 
+@@ -5135,6 +5142,19 @@ do_set_tcache_unsorted_limit (size_t value)
+ }
+ #endif
+ 
++static inline int
++__always_inline
++do_set_mxfast (size_t value)
++{
++  if (value >= 0 && value <= MAX_FAST_SIZE)
++    {
++      LIBC_PROBE (memory_mallopt_mxfast, 2, value, get_max_fast ());
++      set_max_fast (value);
++      return 1;
++    }
++  return 0;
++}
++
+ int
+ __libc_mallopt (int param_number, int value)
+ {
+@@ -5154,13 +5174,7 @@ __libc_mallopt (int param_number, int value)
+   switch (param_number)
+     {
+     case M_MXFAST:
+-      if (value >= 0 && value <= MAX_FAST_SIZE)
+-        {
+-          LIBC_PROBE (memory_mallopt_mxfast, 2, value, get_max_fast ());
+-          set_max_fast (value);
+-        }
+-      else
+-        res = 0;
++      do_set_mxfast (value);
+       break;
+ 
+     case M_TRIM_THRESHOLD:
+@@ -5426,6 +5440,12 @@ __malloc_info (int options, FILE *fp)
+ 
+       __libc_lock_lock (ar_ptr->mutex);
+ 
++      /* Account for top chunk.  The top-most available chunk is
++	 treated specially and is never in any bin. See "initial_top"
++	 comments.  */
++      avail = chunksize (ar_ptr->top);
++      nblocks = 1;  /* Top always exists.  */
++
+       for (size_t i = 0; i < NFASTBINS; ++i)
+ 	{
+ 	  mchunkptr p = fastbin (ar_ptr, i);
+@@ -5511,7 +5531,7 @@ __malloc_info (int options, FILE *fp)
+ 
+       for (size_t i = 0; i < nsizes; ++i)
+ 	if (sizes[i].count != 0 && i != NFASTBINS)
+-	  fprintf (fp, "							      \
++	  fprintf (fp, "\
+   <size from=\"%zu\" to=\"%zu\" total=\"%zu\" count=\"%zu\"/>\n",
+ 		   sizes[i].from, sizes[i].to, sizes[i].total, sizes[i].count);
  
 diff --git a/malloc/mtrace.c b/malloc/mtrace.c
 index a2facf65ea..2fda262508 100644
@@ -2473,6 +3043,62 @@ index a6a9140a3d..e7997518cb 100644
  
    save = errno;
  
+diff --git a/malloc/tst-mxfast.c b/malloc/tst-mxfast.c
+new file mode 100644
+index 0000000000..7a7750bc71
+--- /dev/null
++++ b/malloc/tst-mxfast.c
+@@ -0,0 +1,50 @@
++/* Test that glibc.malloc.mxfast tunable works.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* This test verifies that setting the glibc.malloc.mxfast tunable to
++   zero results in free'd blocks being returned to the small bins, not
++   the fast bins.  */
++
++#include <malloc.h>
++#include <support/check.h>
++
++int
++do_test (void)
++{
++  struct mallinfo m;
++  char *volatile p1;
++  char *volatile p2;
++
++  /* Arbitrary value; must be in default fastbin range.  */
++  p1 = malloc (3);
++  /* Something large so that p1 isn't a "top block" */
++  p2 = malloc (512);
++  free (p1);
++
++  m = mallinfo ();
++
++  /* This will fail if there are any blocks in the fastbins.  */
++  TEST_COMPARE (m.smblks, 0);
++
++  /* To keep gcc happy.  */
++  free (p2);
++
++  return 0;
++}
++
++#include <support/test-driver.c>
 diff --git a/nptl/Makefile b/nptl/Makefile
 index 340282c6cb..0e316edfac 100644
 --- a/nptl/Makefile
@@ -2487,6 +3113,21 @@ index 340282c6cb..0e316edfac 100644
  
  tests-internal := tst-rwlock19 tst-rwlock20 \
  		  tst-sem11 tst-sem12 tst-sem13 \
+diff --git a/nptl/allocatestack.c b/nptl/allocatestack.c
+index 670cb8ffe6..590350647b 100644
+--- a/nptl/allocatestack.c
++++ b/nptl/allocatestack.c
+@@ -572,7 +572,9 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
+ 
+ 	  /* Place the thread descriptor at the end of the stack.  */
+ #if TLS_TCB_AT_TP
+-	  pd = (struct pthread *) ((char *) mem + size) - 1;
++	  pd = (struct pthread *) ((((uintptr_t) mem + size)
++				    - TLS_TCB_SIZE)
++				   & ~__static_tls_align_m1);
+ #elif TLS_DTV_AT_TP
+ 	  pd = (struct pthread *) ((((uintptr_t) mem + size
+ 				    - __static_tls_size)
 diff --git a/nptl/pthread_join_common.c b/nptl/pthread_join_common.c
 index ecb78ffba5..366feb376b 100644
 --- a/nptl/pthread_join_common.c
@@ -3247,6 +3888,330 @@ index 0000000000..14d27cbcbc
 +}
 +
 +#include <support/test-driver.c>
+diff --git a/nptl/tst-tls1.c b/nptl/tst-tls1.c
+index 00489e23e9..1a915224a7 100644
+--- a/nptl/tst-tls1.c
++++ b/nptl/tst-tls1.c
+@@ -19,12 +19,16 @@
+ #include <pthread.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+-
++#include <stdint.h>
++#include <inttypes.h>
++#include <support/support.h>
++#include <support/check.h>
++#include <support/xthread.h>
+ 
+ struct test_s
+ {
+-  int a;
+-  int b;
++  __attribute__ ((aligned(0x20))) int a;
++  __attribute__ ((aligned(0x200))) int b;
+ };
+ 
+ #define INIT_A 1
+@@ -36,15 +40,34 @@ __thread struct test_s s __attribute__ ((tls_model ("initial-exec"))) =
+   .b = INIT_B
+ };
+ 
++/* Use noinline in combination with not static to ensure that the
++   alignment check is really done.  Otherwise it was optimized out!  */
++__attribute__ ((noinline)) void
++check_alignment (const char *thr_name, const char *ptr_name,
++		 int *ptr, int alignment)
++{
++  uintptr_t offset_aligment = ((uintptr_t) ptr) & (alignment - 1);
++  if (offset_aligment)
++    {
++      FAIL_EXIT1 ("%s (%p) is not 0x%x-byte aligned in %s thread\n",
++		  ptr_name, ptr, alignment, thr_name);
++    }
++}
++
++static void
++check_s (const char *thr_name)
++{
++  if (s.a != INIT_A || s.b != INIT_B)
++    FAIL_EXIT1 ("initial value of s in %s thread wrong\n", thr_name);
++
++  check_alignment (thr_name, "s.a", &s.a, 0x20);
++  check_alignment (thr_name, "s.b", &s.b, 0x200);
++}
+ 
+ static void *
+ tf (void *arg)
+ {
+-  if (s.a != INIT_A || s.b != INIT_B)
+-    {
+-      puts ("initial value of s in child thread wrong");
+-      exit (1);
+-    }
++  check_s ("child");
+ 
+   ++s.a;
+ 
+@@ -55,25 +78,14 @@ tf (void *arg)
+ int
+ do_test (void)
+ {
+-  if (s.a != INIT_A || s.b != INIT_B)
+-    {
+-      puts ("initial value of s in main thread wrong");
+-      exit (1);
+-    }
++  check_s ("main");
+ 
+   pthread_attr_t a;
+ 
+-  if (pthread_attr_init (&a) != 0)
+-    {
+-      puts ("attr_init failed");
+-      exit (1);
+-    }
++  xpthread_attr_init (&a);
+ 
+-  if (pthread_attr_setstacksize (&a, 1 * 1024 * 1024) != 0)
+-    {
+-      puts ("attr_setstacksize failed");
+-      return 1;
+-    }
++#define STACK_SIZE (1 * 1024 * 1024)
++  xpthread_attr_setstacksize (&a, STACK_SIZE);
+ 
+ #define N 10
+   int i;
+@@ -83,29 +95,25 @@ do_test (void)
+       pthread_t th[M];
+       int j;
+       for (j = 0; j < M; ++j, ++s.a)
+-	if (pthread_create (&th[j], &a, tf, NULL) != 0)
+-	  {
+-	    puts ("pthread_create failed");
+-	    exit (1);
+-	  }
++	th[j] = xpthread_create (&a, tf, NULL);
+ 
+       for (j = 0; j < M; ++j)
+-	if (pthread_join (th[j], NULL) != 0)
+-	  {
+-	    puts ("pthread_join failed");
+-	    exit (1);
+-	  }
++	xpthread_join (th[j]);
+     }
+ 
+-  if (pthread_attr_destroy (&a) != 0)
+-    {
+-      puts ("attr_destroy failed");
+-      exit (1);
+-    }
++  /* Also check the alignment of the tls variables if a misaligned stack is
++     specified.  */
++  pthread_t th;
++  void *thr_stack = NULL;
++  thr_stack = xposix_memalign (0x200, STACK_SIZE + 1);
++  xpthread_attr_setstack (&a, thr_stack + 1, STACK_SIZE);
++  th = xpthread_create (&a, tf, NULL);
++  xpthread_join (th);
++  free (thr_stack);
++
++  xpthread_attr_destroy (&a);
+ 
+   return 0;
+ }
+ 
+-
+-#define TEST_FUNCTION do_test ()
+-#include "../test-skeleton.c"
++#include <support/test-driver.c>
+diff --git a/nss/Makefile b/nss/Makefile
+index 0fa28f0c5e..680f8734b9 100644
+--- a/nss/Makefile
++++ b/nss/Makefile
+@@ -60,7 +60,9 @@ tests			= test-netdb test-digits-dots tst-nss-getpwent bug17079 \
+ xtests			= bug-erange
+ 
+ tests-container = \
+-			  tst-nss-test3
++			  tst-nss-test3 \
++			  tst-nss-db-endpwent \
++			  tst-nss-db-endgrent
+ 
+ # Tests which need libdl
+ ifeq (yes,$(build-shared))
+diff --git a/nss/nss_db/db-open.c b/nss/nss_db/db-open.c
+index 8a83d6b930..3fa11e9ab0 100644
+--- a/nss/nss_db/db-open.c
++++ b/nss/nss_db/db-open.c
+@@ -63,5 +63,9 @@ internal_setent (const char *file, struct nss_db_map *mapping)
+ void
+ internal_endent (struct nss_db_map *mapping)
+ {
+-  munmap (mapping->header, mapping->len);
++  if (mapping->header != NULL)
++    {
++      munmap (mapping->header, mapping->len);
++      mapping->header = NULL;
++    }
+ }
+diff --git a/nss/tst-nss-db-endgrent.c b/nss/tst-nss-db-endgrent.c
+new file mode 100644
+index 0000000000..367cc6c901
+--- /dev/null
++++ b/nss/tst-nss-db-endgrent.c
+@@ -0,0 +1,54 @@
++/* Test for endgrent changing errno for BZ #24696
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdlib.h>
++#include <sys/types.h>
++#include <grp.h>
++#include <unistd.h>
++#include <errno.h>
++
++#include <support/check.h>
++#include <support/support.h>
++
++/* The following test verifies that if the db NSS Service is initialized
++   with no database (getgrent), that a subsequent closure (endgrent) does
++   not set errno. In the case of the db service it is not an error to close
++   the service and so it should not set errno.  */
++
++static int
++do_test (void)
++{
++  /* Just make sure it's not there, although usually it won't be.  */
++  unlink ("/var/db/group.db");
++
++  /* This, in conjunction with the testroot's nsswitch.conf, causes
++     the nss_db module to be "connected" and initialized - but the
++     testroot has no group.db, so no mapping will be created.  */
++  getgrent ();
++
++  errno = 0;
++
++  /* Before the fix, this would call munmap (NULL) and set errno.  */
++  endgrent ();
++
++  if (errno != 0)
++    FAIL_EXIT1 ("endgrent set errno to %d\n", errno);
++
++  return 0;
++}
++#include <support/test-driver.c>
+diff --git a/nss/tst-nss-db-endgrent.root/etc/nsswitch.conf b/nss/tst-nss-db-endgrent.root/etc/nsswitch.conf
+new file mode 100644
+index 0000000000..21471df94f
+--- /dev/null
++++ b/nss/tst-nss-db-endgrent.root/etc/nsswitch.conf
+@@ -0,0 +1 @@
++group : db files
+diff --git a/nss/tst-nss-db-endpwent.c b/nss/tst-nss-db-endpwent.c
+new file mode 100644
+index 0000000000..cb85410b7c
+--- /dev/null
++++ b/nss/tst-nss-db-endpwent.c
+@@ -0,0 +1,66 @@
++/* Test for endpwent->getpwent crash for BZ #24695
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdlib.h>
++#include <string.h>
++#include <sys/types.h>
++#include <pwd.h>
++
++#include <support/support.h>
++#include <support/check.h>
++
++/* It is entirely allowed to start with a getpwent call without
++   resetting the state of the service via a call to setpwent.
++   You can also call getpwent more times than you have entries in
++   the service, and it should not fail.  This test iteratates the
++   database once, gets to the end, and then attempts a second
++   iteration to look for crashes.  */
++
++static void
++try_it (void)
++{
++  struct passwd *pw;
++
++  /* setpwent is intentionally omitted here.  The first call to
++     getpwent detects that it's first and initializes.  The second
++     time try_it is called, this "first call" was not detected before
++     the fix, and getpwent would crash.  */
++
++  while ((pw = getpwent ()) != NULL)
++    ;
++
++  /* We only care if this segfaults or not.  */
++  endpwent ();
++}
++
++static int
++do_test (void)
++{
++  char *cmd;
++
++  cmd = xasprintf ("%s/makedb -o /var/db/passwd.db /var/db/passwd.in",
++		   support_bindir_prefix);
++  system (cmd);
++  free (cmd);
++
++  try_it ();
++  try_it ();
++
++  return 0;
++}
++#include <support/test-driver.c>
+diff --git a/nss/tst-nss-db-endpwent.root/etc/nsswitch.conf b/nss/tst-nss-db-endpwent.root/etc/nsswitch.conf
+new file mode 100644
+index 0000000000..593ffc564a
+--- /dev/null
++++ b/nss/tst-nss-db-endpwent.root/etc/nsswitch.conf
+@@ -0,0 +1 @@
++passwd: db
+diff --git a/nss/tst-nss-db-endpwent.root/var/db/passwd.in b/nss/tst-nss-db-endpwent.root/var/db/passwd.in
+new file mode 100644
+index 0000000000..98f39126ef
+--- /dev/null
++++ b/nss/tst-nss-db-endpwent.root/var/db/passwd.in
+@@ -0,0 +1,4 @@
++.root root:x:0:0:root:/root:/bin/bash
++=0 root:x:0:0:root:/root:/bin/bash
++.bin bin:x:1:1:bin:/bin:/sbin/nologin
++=1 bin:x:1:1:bin:/bin:/sbin/nologin
 diff --git a/posix/bits/types.h b/posix/bits/types.h
 index 27e065c3be..0de6c59bb4 100644
 --- a/posix/bits/types.h
@@ -4122,6 +5087,20 @@ index b5011baafa..f43c613f5a 100644
  two_way_long_needle (const unsigned char *haystack, size_t haystack_len,
  		     const unsigned char *needle, size_t needle_len)
  {
+diff --git a/string/string.h b/string/string.h
+index c38eea971f..608ed496b9 100644
+--- a/string/string.h
++++ b/string/string.h
+@@ -33,7 +33,8 @@ __BEGIN_DECLS
+ #include <stddef.h>
+ 
+ /* Tell the caller that we provide correct C++ prototypes.  */
+-#if defined __cplusplus && __GNUC_PREREQ (4, 4)
++#if defined __cplusplus && (__GNUC_PREREQ (4, 4) \
++			    || __glibc_clang_prereq (3, 5))
+ # define __CORRECT_ISO_CPP_STRING_H_PROTO
+ #endif
+ 
 diff --git a/string/strstr.c b/string/strstr.c
 index 64e478b9e7..408cce8ed5 100644
 --- a/string/strstr.c
@@ -4322,7 +5301,7 @@ index 64e478b9e7..408cce8ed5 100644
 -
 -#undef LONG_NEEDLE_THRESHOLD
 diff --git a/support/Makefile b/support/Makefile
-index 432cf2fe6c..8d61de6c57 100644
+index 432cf2fe6c..a9b5eb4b05 100644
 --- a/support/Makefile
 +++ b/support/Makefile
 @@ -63,6 +63,7 @@ libsupport-routines = \
@@ -4333,7 +5312,20 @@ index 432cf2fe6c..8d61de6c57 100644
    support_test_compare_blob \
    support_test_compare_failure \
    support_test_compare_string \
-@@ -129,6 +130,7 @@ libsupport-routines = \
+@@ -99,10 +100,12 @@ libsupport-routines = \
+   xopen \
+   xpipe \
+   xpoll \
++  xposix_memalign \
+   xpthread_attr_destroy \
+   xpthread_attr_init \
+   xpthread_attr_setdetachstate \
+   xpthread_attr_setguardsize \
++  xpthread_attr_setstack \
+   xpthread_attr_setstacksize \
+   xpthread_barrier_destroy \
+   xpthread_barrier_init \
+@@ -129,6 +132,7 @@ libsupport-routines = \
    xpthread_mutexattr_settype \
    xpthread_once \
    xpthread_rwlock_init \
@@ -4341,7 +5333,7 @@ index 432cf2fe6c..8d61de6c57 100644
    xpthread_rwlock_rdlock \
    xpthread_rwlock_unlock \
    xpthread_rwlock_wrlock \
-@@ -147,6 +149,9 @@ libsupport-routines = \
+@@ -147,6 +151,9 @@ libsupport-routines = \
    xsignal \
    xsigstack \
    xsocket \
@@ -4351,7 +5343,29 @@ index 432cf2fe6c..8d61de6c57 100644
    xstrdup \
    xstrndup \
    xsymlink \
-@@ -222,4 +227,6 @@ endif
+@@ -167,7 +174,8 @@ CFLAGS-support_paths.c = \
+ 		-DOBJDIR_PATH=\"`cd $(objpfx)/..; pwd`\" \
+ 		-DOBJDIR_ELF_LDSO_PATH=\"`cd $(objpfx)/..; pwd`/elf/$(rtld-installed-name)\" \
+ 		-DINSTDIR_PATH=\"$(prefix)\" \
+-		-DLIBDIR_PATH=\"$(libdir)\"
++		-DLIBDIR_PATH=\"$(libdir)\" \
++		-DBINDIR_PATH=\"$(bindir)\"
+ 
+ ifeq (,$(CXX))
+ LINKS_DSO_PROGRAM = links-dso-program-c
+@@ -176,6 +184,11 @@ LINKS_DSO_PROGRAM = links-dso-program
+ LDLIBS-links-dso-program = -lstdc++ -lgcc -lgcc_s $(libunwind)
+ endif
+ 
++ifeq (yes,$(have-selinux))
++LDLIBS-$(LINKS_DSO_PROGRAM) += -lselinux
++endif
++
++
+ LDLIBS-test-container = $(libsupport)
+ 
+ others += test-container
+@@ -222,4 +235,6 @@ endif
  
  $(objpfx)tst-support_format_dns_packet: $(common-objpfx)resolv/libresolv.so
  
@@ -4375,6 +5389,70 @@ index 2dce42e3a3..2832cfc635 100644
  /* Deallocate the subprocess data captured by
     support_capture_subprocess.  */
  void support_capture_subprocess_free (struct support_capture_subprocess *);
+diff --git a/support/links-dso-program-c.c b/support/links-dso-program-c.c
+index d28a28a0d0..5fcbab2c17 100644
+--- a/support/links-dso-program-c.c
++++ b/support/links-dso-program-c.c
+@@ -1,9 +1,26 @@
+ #include <stdio.h>
+ 
++/* makedb needs selinux dso's.  */
++#ifdef HAVE_SELINUX
++# include <selinux/selinux.h>
++#endif
++
++/* The purpose of this file is to indicate to the build system which
++   shared objects need to be copied into the testroot, such as gcc or
++   selinux support libraries.  This program is never executed, only
++   scanned for dependencies on shared objects, so the code below may
++   seem weird - it's written to survive gcc optimization and force
++   such dependencies.
++*/
++
+ int
+ main (int argc, char **argv)
+ {
+   /* Complexity to keep gcc from optimizing this away.  */
+   printf ("This is a test %s.\n", argc > 1 ? argv[1] : "null");
++#ifdef HAVE_SELINUX
++  /* This exists to force libselinux.so to be required.  */
++  printf ("selinux %d\n", is_selinux_enabled ());
++#endif
+   return 0;
+ }
+diff --git a/support/links-dso-program.cc b/support/links-dso-program.cc
+index dba6976c06..4bc2411086 100644
+--- a/support/links-dso-program.cc
++++ b/support/links-dso-program.cc
+@@ -1,11 +1,28 @@
+ #include <iostream>
+ 
++/* makedb needs selinux dso's.  */
++#ifdef HAVE_SELINUX
++# include <selinux/selinux.h>
++#endif
++
+ using namespace std;
+ 
++/* The purpose of this file is to indicate to the build system which
++   shared objects need to be copied into the testroot, such as gcc or
++   selinux support libraries.  This program is never executed, only
++   scanned for dependencies on shared objects, so the code below may
++   seem weird - it's written to survive gcc optimization and force
++   such dependencies.
++*/
++
+ int
+ main (int argc, char **argv)
+ {
+   /* Complexity to keep gcc from optimizing this away.  */
+   cout << (argc > 1 ? argv[1] : "null");
++#ifdef HAVE_SELINUX
++  /* This exists to force libselinux.so to be required.  */
++  cout << "selinux " << is_selinux_enabled ();
++#endif
+   return 0;
+ }
 diff --git a/support/subprocess.h b/support/subprocess.h
 new file mode 100644
 index 0000000000..c031878d94
@@ -4430,6 +5508,27 @@ index 0000000000..c031878d94
 +int support_process_terminate (struct support_subprocess *proc);
 +
 +#endif
+diff --git a/support/support.h b/support/support.h
+index 119495e5a9..b162491be6 100644
+--- a/support/support.h
++++ b/support/support.h
+@@ -86,6 +86,7 @@ int support_descriptor_supports_holes (int fd);
+ void *xmalloc (size_t) __attribute__ ((malloc));
+ void *xcalloc (size_t n, size_t s) __attribute__ ((malloc));
+ void *xrealloc (void *p, size_t n);
++void *xposix_memalign (size_t alignment, size_t n);
+ char *xasprintf (const char *format, ...)
+   __attribute__ ((format (printf, 1, 2), malloc));
+ char *xstrdup (const char *);
+@@ -104,6 +105,8 @@ extern const char support_objdir_elf_ldso[];
+ extern const char support_install_prefix[];
+ /* Corresponds to the install's lib/ or lib64/ directory.  */
+ extern const char support_libdir_prefix[];
++/* Corresponds to the install's bin/ directory.  */
++extern const char support_bindir_prefix[];
+ 
+ extern ssize_t support_copy_file_range (int, off64_t *, int, off64_t *,
+ 					size_t, unsigned int);
 diff --git a/support/support_capture_subprocess.c b/support/support_capture_subprocess.c
 index 167514faf1..948ce5a0c6 100644
 --- a/support/support_capture_subprocess.c
@@ -4546,6 +5645,21 @@ index 167514faf1..948ce5a0c6 100644
    return result;
  }
  
+diff --git a/support/support_paths.c b/support/support_paths.c
+index 937e6e1012..75634aab9a 100644
+--- a/support/support_paths.c
++++ b/support/support_paths.c
+@@ -57,3 +57,10 @@ const char support_libdir_prefix[] = LIBDIR_PATH;
+ #else
+ # error please -DLIBDIR_PATH=something in the Makefile
+ #endif
++
++#ifdef BINDIR_PATH
++/* Corresponds to the install's bin/ directory.  */
++const char support_bindir_prefix[] = BINDIR_PATH;
++#else
++# error please -DBINDIR_PATH=something in the Makefile
++#endif
 diff --git a/support/support_subprocess.c b/support/support_subprocess.c
 new file mode 100644
 index 0000000000..0c8cc6af30
@@ -4945,6 +6059,47 @@ index d8ba42ea8b..ab363e41ac 100644
 +  { "restart", no_argument, &restart, 1 },
 +#define TEST_FUNCTION_ARGV do_test
  #include <support/test-driver.c>
+diff --git a/support/xposix_memalign.c b/support/xposix_memalign.c
+new file mode 100644
+index 0000000000..5501a0846a
+--- /dev/null
++++ b/support/xposix_memalign.c
+@@ -0,0 +1,35 @@
++/* Error-checking wrapper for posix_memalign.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <support/support.h>
++#include <stdlib.h>
++#include <errno.h>
++
++void *
++xposix_memalign (size_t alignment, size_t n)
++{
++  void *p = NULL;
++
++  int ret = posix_memalign (&p, alignment, n);
++  if (ret)
++    {
++      errno = ret;
++      oom_error ("posix_memalign", n);
++    }
++  return p;
++}
 diff --git a/support/xposix_spawn.c b/support/xposix_spawn.c
 new file mode 100644
 index 0000000000..e846017632
@@ -5054,6 +6209,38 @@ index 0000000000..a43b6490be
 +    FAIL_EXIT1 ("posix_spawn_file_actions_adddup2 failed: %m\n");
 +  return status;
 +}
+diff --git a/support/xpthread_attr_setstack.c b/support/xpthread_attr_setstack.c
+new file mode 100644
+index 0000000000..c3772e240b
+--- /dev/null
++++ b/support/xpthread_attr_setstack.c
+@@ -0,0 +1,26 @@
++/* pthread_attr_setstack with error checking.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <support/xthread.h>
++
++void
++xpthread_attr_setstack (pthread_attr_t *attr, void *stackaddr, size_t stacksize)
++{
++  xpthread_check_return ("pthread_attr_setstack",
++			 pthread_attr_setstack (attr, stackaddr, stacksize));
++}
 diff --git a/support/xpthread_rwlock_destroy.c b/support/xpthread_rwlock_destroy.c
 new file mode 100644
 index 0000000000..6d6e953569
@@ -5127,10 +6314,19 @@ index 0000000000..bbf89132e4
 +
 +#endif
 diff --git a/support/xthread.h b/support/xthread.h
-index 47c23235f3..9fe1f68b3b 100644
+index 47c23235f3..5204f78ed2 100644
 --- a/support/xthread.h
 +++ b/support/xthread.h
-@@ -84,6 +84,7 @@ void xpthread_rwlockattr_setkind_np (pthread_rwlockattr_t *attr, int pref);
+@@ -68,6 +68,8 @@ void xpthread_attr_destroy (pthread_attr_t *attr);
+ void xpthread_attr_init (pthread_attr_t *attr);
+ void xpthread_attr_setdetachstate (pthread_attr_t *attr,
+ 				   int detachstate);
++void xpthread_attr_setstack (pthread_attr_t *attr, void *stackaddr,
++			     size_t stacksize);
+ void xpthread_attr_setstacksize (pthread_attr_t *attr,
+ 				 size_t stacksize);
+ void xpthread_attr_setguardsize (pthread_attr_t *attr,
+@@ -84,6 +86,7 @@ void xpthread_rwlockattr_setkind_np (pthread_rwlockattr_t *attr, int pref);
  void xpthread_rwlock_wrlock (pthread_rwlock_t *rwlock);
  void xpthread_rwlock_rdlock (pthread_rwlock_t *rwlock);
  void xpthread_rwlock_unlock (pthread_rwlock_t *rwlock);
@@ -5713,6 +6909,78 @@ index 4d291181bd..0000000000
 -PSEUDO_END (__getppid)
 -
 -weak_alias (__getppid, getppid)
+diff --git a/sysdeps/unix/sysv/linux/Makefile b/sysdeps/unix/sysv/linux/Makefile
+index 5f8c2c7c7d..48514ccaf5 100644
+--- a/sysdeps/unix/sysv/linux/Makefile
++++ b/sysdeps/unix/sysv/linux/Makefile
+@@ -142,11 +142,21 @@ endif
+ ifeq ($(subdir),socket)
+ sysdep_headers += net/if_ppp.h net/ppp-comp.h \
+ 		  net/ppp_defs.h net/if_arp.h net/route.h net/ethernet.h \
+-		  net/if_slip.h net/if_packet.h net/if_shaper.h
++		  net/if_slip.h net/if_packet.h net/if_shaper.h \
++		  bits/socket-constants.h
+ sysdep_routines += cmsg_nxthdr
+ CFLAGS-recvmmsg.c = -fexceptions -fasynchronous-unwind-tables
+ CFLAGS-sendmmsg.c = -fexceptions -fasynchronous-unwind-tables
+-endif
++
++tests-special += $(objpfx)tst-socket-consts.out
++$(objpfx)tst-socket-consts.out: ../sysdeps/unix/sysv/linux/tst-socket-consts.py
++	PYTHONPATH=../scripts \
++	$(PYTHON) ../sysdeps/unix/sysv/linux/tst-socket-consts.py \
++		   --cc="$(CC) $(patsubst -DMODULE_NAME=%, \
++					  -DMODULE_NAME=testsuite, \
++					  $(CPPFLAGS)) -D_ISOMAC" \
++	< /dev/null > $@ 2>&1; $(evaluate-test)
++endif # $(subdir) == socket
+ 
+ ifeq ($(subdir),sunrpc)
+ sysdep_headers += nfs/nfs.h
+diff --git a/sysdeps/unix/sysv/linux/alpha/bits/socket-constants.h b/sysdeps/unix/sysv/linux/alpha/bits/socket-constants.h
+new file mode 100644
+index 0000000000..571196756e
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/alpha/bits/socket-constants.h
+@@ -0,0 +1,38 @@
++/* Socket constants which vary among Linux architectures.  Version for alpha.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef _SYS_SOCKET_H
++# error "Never include <bits/socket-constants.h> directly; use <sys/socket.h> instead."
++#endif
++
++#define SOL_SOCKET 65535
++#define SO_ACCEPTCONN 4116
++#define SO_BROADCAST 32
++#define SO_DONTROUTE 16
++#define SO_ERROR 4103
++#define SO_KEEPALIVE 8
++#define SO_LINGER 128
++#define SO_OOBINLINE 256
++#define SO_RCVBUF 4098
++#define SO_RCVLOWAT 4112
++#define SO_RCVTIMEO 4114
++#define SO_REUSEADDR 4
++#define SO_SNDBUF 4097
++#define SO_SNDLOWAT 4113
++#define SO_SNDTIMEO 4115
++#define SO_TYPE 4104
 diff --git a/sysdeps/unix/sysv/linux/alpha/getegid.S b/sysdeps/unix/sysv/linux/alpha/getegid.S
 new file mode 100644
 index 0000000000..167009d17a
@@ -5874,6 +7142,159 @@ index 2d2d355844..4220adff37 100644
  #endif
  
  #undef __ASSUME_CLONE_DEFAULT
+diff --git a/sysdeps/unix/sysv/linux/bits/socket-constants.h b/sysdeps/unix/sysv/linux/bits/socket-constants.h
+new file mode 100644
+index 0000000000..b231342102
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/bits/socket-constants.h
+@@ -0,0 +1,38 @@
++/* Socket constants which vary among Linux architectures.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef _SYS_SOCKET_H
++# error "Never include <bits/socket-constants.h> directly; use <sys/socket.h> instead."
++#endif
++
++#define SOL_SOCKET 1
++#define SO_ACCEPTCONN 30
++#define SO_BROADCAST 6
++#define SO_DONTROUTE 5
++#define SO_ERROR 4
++#define SO_KEEPALIVE 9
++#define SO_LINGER 13
++#define SO_OOBINLINE 10
++#define SO_RCVBUF 8
++#define SO_RCVLOWAT 18
++#define SO_RCVTIMEO 20
++#define SO_REUSEADDR 2
++#define SO_SNDBUF 7
++#define SO_SNDLOWAT 19
++#define SO_SNDTIMEO 21
++#define SO_TYPE 3
+diff --git a/sysdeps/unix/sysv/linux/bits/socket.h b/sysdeps/unix/sysv/linux/bits/socket.h
+index 99af01d2a4..082f8b9031 100644
+--- a/sysdeps/unix/sysv/linux/bits/socket.h
++++ b/sysdeps/unix/sysv/linux/bits/socket.h
+@@ -349,98 +349,12 @@ struct ucred
+ };
+ #endif
+ 
+-/* Ugly workaround for unclean kernel headers.  */
+-#ifndef __USE_MISC
+-# ifndef FIOGETOWN
+-#  define __SYS_SOCKET_H_undef_FIOGETOWN
+-# endif
+-# ifndef FIOSETOWN
+-#  define __SYS_SOCKET_H_undef_FIOSETOWN
+-# endif
+-# ifndef SIOCATMARK
+-#  define __SYS_SOCKET_H_undef_SIOCATMARK
+-# endif
+-# ifndef SIOCGPGRP
+-#  define __SYS_SOCKET_H_undef_SIOCGPGRP
+-# endif
+-# ifndef SIOCGSTAMP
+-#  define __SYS_SOCKET_H_undef_SIOCGSTAMP
+-# endif
+-# ifndef SIOCGSTAMPNS
+-#  define __SYS_SOCKET_H_undef_SIOCGSTAMPNS
+-# endif
+-# ifndef SIOCSPGRP
+-#  define __SYS_SOCKET_H_undef_SIOCSPGRP
+-# endif
+-#endif
+-#ifndef IOCSIZE_MASK
+-# define __SYS_SOCKET_H_undef_IOCSIZE_MASK
+-#endif
+-#ifndef IOCSIZE_SHIFT
+-# define __SYS_SOCKET_H_undef_IOCSIZE_SHIFT
+-#endif
+-#ifndef IOC_IN
+-# define __SYS_SOCKET_H_undef_IOC_IN
+-#endif
+-#ifndef IOC_INOUT
+-# define __SYS_SOCKET_H_undef_IOC_INOUT
+-#endif
+-#ifndef IOC_OUT
+-# define __SYS_SOCKET_H_undef_IOC_OUT
+-#endif
+-
+-/* Get socket manipulation related informations from kernel headers.  */
+-#include <asm/socket.h>
+-
+-#ifndef __USE_MISC
+-# ifdef __SYS_SOCKET_H_undef_FIOGETOWN
+-#  undef __SYS_SOCKET_H_undef_FIOGETOWN
+-#  undef FIOGETOWN
+-# endif
+-# ifdef __SYS_SOCKET_H_undef_FIOSETOWN
+-#  undef __SYS_SOCKET_H_undef_FIOSETOWN
+-#  undef FIOSETOWN
+-# endif
+-# ifdef __SYS_SOCKET_H_undef_SIOCATMARK
+-#  undef __SYS_SOCKET_H_undef_SIOCATMARK
+-#  undef SIOCATMARK
+-# endif
+-# ifdef __SYS_SOCKET_H_undef_SIOCGPGRP
+-#  undef __SYS_SOCKET_H_undef_SIOCGPGRP
+-#  undef SIOCGPGRP
+-# endif
+-# ifdef __SYS_SOCKET_H_undef_SIOCGSTAMP
+-#  undef __SYS_SOCKET_H_undef_SIOCGSTAMP
+-#  undef SIOCGSTAMP
+-# endif
+-# ifdef __SYS_SOCKET_H_undef_SIOCGSTAMPNS
+-#  undef __SYS_SOCKET_H_undef_SIOCGSTAMPNS
+-#  undef SIOCGSTAMPNS
+-# endif
+-# ifdef __SYS_SOCKET_H_undef_SIOCSPGRP
+-#  undef __SYS_SOCKET_H_undef_SIOCSPGRP
+-#  undef SIOCSPGRP
+-# endif
+-#endif
+-#ifdef __SYS_SOCKET_H_undef_IOCSIZE_MASK
+-# undef __SYS_SOCKET_H_undef_IOCSIZE_MASK
+-# undef IOCSIZE_MASK
+-#endif
+-#ifdef __SYS_SOCKET_H_undef_IOCSIZE_SHIFT
+-# undef __SYS_SOCKET_H_undef_IOCSIZE_SHIFT
+-# undef IOCSIZE_SHIFT
+-#endif
+-#ifdef __SYS_SOCKET_H_undef_IOC_IN
+-# undef __SYS_SOCKET_H_undef_IOC_IN
+-# undef IOC_IN
+-#endif
+-#ifdef __SYS_SOCKET_H_undef_IOC_INOUT
+-# undef __SYS_SOCKET_H_undef_IOC_INOUT
+-# undef IOC_INOUT
+-#endif
+-#ifdef __SYS_SOCKET_H_undef_IOC_OUT
+-# undef __SYS_SOCKET_H_undef_IOC_OUT
+-# undef IOC_OUT
++#ifdef __USE_MISC
++# include <bits/types/time_t.h>
++# include <asm/socket.h>
++#else
++# define SO_DEBUG 1
++# include <bits/socket-constants.h>
+ #endif
+ 
+ /* Structure used to manipulate the SO_LINGER option.  */
 diff --git a/sysdeps/unix/sysv/linux/copy_file_range.c b/sysdeps/unix/sysv/linux/copy_file_range.c
 index 70961007a5..e950db3bf5 100644
 --- a/sysdeps/unix/sysv/linux/copy_file_range.c
@@ -5911,6 +7332,50 @@ index 70961007a5..e950db3bf5 100644
 +  return -1;
  #endif
  }
+diff --git a/sysdeps/unix/sysv/linux/hppa/bits/socket-constants.h b/sysdeps/unix/sysv/linux/hppa/bits/socket-constants.h
+new file mode 100644
+index 0000000000..0b652b81be
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/hppa/bits/socket-constants.h
+@@ -0,0 +1,38 @@
++/* Socket constants which vary among Linux architectures.  Version for hppa.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef _SYS_SOCKET_H
++# error "Never include <bits/socket-constants.h> directly; use <sys/socket.h> instead."
++#endif
++
++#define SOL_SOCKET 65535
++#define SO_ACCEPTCONN 16412
++#define SO_BROADCAST 32
++#define SO_DONTROUTE 16
++#define SO_ERROR 4103
++#define SO_KEEPALIVE 8
++#define SO_LINGER 128
++#define SO_OOBINLINE 256
++#define SO_RCVBUF 4098
++#define SO_RCVLOWAT 4100
++#define SO_RCVTIMEO 4102
++#define SO_REUSEADDR 4
++#define SO_SNDBUF 4097
++#define SO_SNDLOWAT 4099
++#define SO_SNDTIMEO 4101
++#define SO_TYPE 4104
 diff --git a/sysdeps/unix/sysv/linux/i386/dl-procinfo.h b/sysdeps/unix/sysv/linux/i386/dl-procinfo.h
 index 22b43431bc..0585cdaa9c 100644
 --- a/sysdeps/unix/sysv/linux/i386/dl-procinfo.h
@@ -5957,6 +7422,174 @@ index 8df19400af..a787409295 100644
  /* Support for statx was added in kernel 4.12.  */
  #if __LINUX_KERNEL_VERSION < 0X040C00
  # undef __ASSUME_STATX
+diff --git a/sysdeps/unix/sysv/linux/mips/Makefile b/sysdeps/unix/sysv/linux/mips/Makefile
+index 8217f42e75..03044e7365 100644
+--- a/sysdeps/unix/sysv/linux/mips/Makefile
++++ b/sysdeps/unix/sysv/linux/mips/Makefile
+@@ -63,14 +63,25 @@ sysdep-dl-routines += dl-static
+ 
+ sysdep_routines += dl-vdso
+ endif
+-
+-# Supporting non-executable stacks on MIPS requires changes to both
+-# the Linux kernel and glibc.  See
+-# <https://sourceware.org/ml/libc-alpha/2016-01/msg00567.html> and
+-# <https://sourceware.org/ml/libc-alpha/2016-01/msg00719.html>.
++# If the compiler doesn't use GNU.stack note,
++# this test is expected to fail.
++ifneq ($(mips-has-gnustack),yes)
+ test-xfail-check-execstack = yes
+ endif
++endif
+ 
+ ifeq ($(subdir),stdlib)
+ gen-as-const-headers += ucontext_i.sym
+ endif
++
++ifeq ($(mips-force-execstack),yes)
++CFLAGS-.o += -Wa,-execstack
++CFLAGS-.os += -Wa,-execstack
++CFLAGS-.op += -Wa,-execstack
++CFLAGS-.oS += -Wa,-execstack
++
++ASFLAGS-.o += -Wa,-execstack
++ASFLAGS-.os += -Wa,-execstack
++ASFLAGS-.op += -Wa,-execstack
++ASFLAGS-.oS += -Wa,-execstack
++endif
+diff --git a/sysdeps/unix/sysv/linux/mips/bits/socket-constants.h b/sysdeps/unix/sysv/linux/mips/bits/socket-constants.h
+new file mode 100644
+index 0000000000..2c504499cb
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/mips/bits/socket-constants.h
+@@ -0,0 +1,38 @@
++/* Socket constants which vary among Linux architectures.  Version for MIPS.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef _SYS_SOCKET_H
++# error "Never include <bits/socket-constants.h> directly; use <sys/socket.h> instead."
++#endif
++
++#define SOL_SOCKET 65535
++#define SO_ACCEPTCONN 4105
++#define SO_BROADCAST 32
++#define SO_DONTROUTE 16
++#define SO_ERROR 4103
++#define SO_KEEPALIVE 8
++#define SO_LINGER 128
++#define SO_OOBINLINE 256
++#define SO_RCVBUF 4098
++#define SO_RCVLOWAT 4100
++#define SO_RCVTIMEO 4102
++#define SO_REUSEADDR 4
++#define SO_SNDBUF 4097
++#define SO_SNDLOWAT 4099
++#define SO_SNDTIMEO 4101
++#define SO_TYPE 4104
+diff --git a/sysdeps/unix/sysv/linux/mips/configure b/sysdeps/unix/sysv/linux/mips/configure
+index 1ee7f41a36..25f98e0c7b 100644
+--- a/sysdeps/unix/sysv/linux/mips/configure
++++ b/sysdeps/unix/sysv/linux/mips/configure
+@@ -475,3 +475,44 @@ if test -z "$arch_minimum_kernel"; then
+     arch_minimum_kernel=4.5.0
+   fi
+ fi
++
++# Check if we are supposed to run on kernels older than 4.8.0. If so,
++# force executable stack to avoid potential runtime problems with fpu
++# emulation.
++# NOTE: The check below assumes that in absence of user-provided minumum_kernel
++# we will default to arch_minimum_kernel which is currently less than 4.8.0 for
++# all known configurations. If this changes, the check must be updated.
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the compiler must use executable stack" >&5
++$as_echo_n "checking whether the compiler must use executable stack... " >&6; }
++if ${libc_cv_mips_force_execstack+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  libc_cv_mips_force_execstack=no
++  if test $libc_mips_float = hard; then
++    if test -n "$minimum_kernel"; then
++
++       min_version=$((`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 65536 + \2 \* 256 + \3/'`))
++
++       if test $min_version -lt 264192; then
++         libc_cv_mips_force_execstack=yes
++       fi
++    else
++      libc_cv_mips_force_execstack=yes
++    fi
++  fi
++fi
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_mips_force_execstack" >&5
++$as_echo "$libc_cv_mips_force_execstack" >&6; }
++
++libc_mips_has_gnustack=$libc_cv_as_noexecstack
++
++if test $libc_cv_mips_force_execstack = yes; then
++  libc_mips_has_gnustack=no
++  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: forcing executable stack for pre-4.8.0 Linux kernels" >&5
++$as_echo "$as_me: WARNING: forcing executable stack for pre-4.8.0 Linux kernels" >&2;}
++fi
++
++config_vars="$config_vars
++mips-force-execstack = ${libc_cv_mips_force_execstack}"
++config_vars="$config_vars
++mips-has-gnustack = ${libc_mips_has_gnustack}"
+diff --git a/sysdeps/unix/sysv/linux/mips/configure.ac b/sysdeps/unix/sysv/linux/mips/configure.ac
+index 9147aa4582..3db1b32b08 100644
+--- a/sysdeps/unix/sysv/linux/mips/configure.ac
++++ b/sysdeps/unix/sysv/linux/mips/configure.ac
+@@ -134,3 +134,35 @@ if test -z "$arch_minimum_kernel"; then
+     arch_minimum_kernel=4.5.0
+   fi
+ fi
++
++# Check if we are supposed to run on kernels older than 4.8.0. If so,
++# force executable stack to avoid potential runtime problems with fpu
++# emulation.
++# NOTE: The check below assumes that in absence of user-provided minumum_kernel
++# we will default to arch_minimum_kernel which is currently less than 4.8.0 for
++# all known configurations. If this changes, the check must be updated.
++AC_CACHE_CHECK([whether the compiler must use executable stack],
++        libc_cv_mips_force_execstack, [dnl
++libc_cv_mips_force_execstack=no
++  if test $libc_mips_float = hard; then
++    if test -n "$minimum_kernel"; then
++       changequote(,)
++       min_version=$((`echo "$minimum_kernel.0.0.0" | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1 \* 65536 + \2 \* 256 + \3/'`))
++       changequote([,])
++       if test $min_version -lt 264192; then
++         libc_cv_mips_force_execstack=yes
++       fi
++    else
++      libc_cv_mips_force_execstack=yes
++    fi
++  fi])
++
++libc_mips_has_gnustack=$libc_cv_as_noexecstack
++
++if test $libc_cv_mips_force_execstack = yes; then
++  libc_mips_has_gnustack=no
++  AC_MSG_WARN([forcing executable stack for pre-4.8.0 Linux kernels])
++fi
++
++LIBC_CONFIG_VAR([mips-force-execstack],[${libc_cv_mips_force_execstack}])
++LIBC_CONFIG_VAR([mips-has-gnustack],[${libc_mips_has_gnustack}])
 diff --git a/sysdeps/unix/sysv/linux/mips/mmap_info.h b/sysdeps/unix/sysv/linux/mips/mmap_info.h
 new file mode 100644
 index 0000000000..07c9e3a044
@@ -6000,6 +7633,50 @@ index cb56540119..671db2b654 100644
  
  #define MMAP_OFF_MASK (MMAP_OFF_HIGH_MASK | MMAP_OFF_LOW_MASK)
  
+diff --git a/sysdeps/unix/sysv/linux/powerpc/bits/socket-constants.h b/sysdeps/unix/sysv/linux/powerpc/bits/socket-constants.h
+new file mode 100644
+index 0000000000..6d4301b1fd
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/powerpc/bits/socket-constants.h
+@@ -0,0 +1,38 @@
++/* Socket constants which vary among Linux architectures.  Version for POWER.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef _SYS_SOCKET_H
++# error "Never include <bits/socket-constants.h> directly; use <sys/socket.h> instead."
++#endif
++
++#define SOL_SOCKET 1
++#define SO_ACCEPTCONN 30
++#define SO_BROADCAST 6
++#define SO_DONTROUTE 5
++#define SO_ERROR 4
++#define SO_KEEPALIVE 9
++#define SO_LINGER 13
++#define SO_OOBINLINE 10
++#define SO_RCVBUF 8
++#define SO_RCVLOWAT 16
++#define SO_RCVTIMEO 18
++#define SO_REUSEADDR 2
++#define SO_SNDBUF 7
++#define SO_SNDLOWAT 17
++#define SO_SNDTIMEO 19
++#define SO_TYPE 3
 diff --git a/sysdeps/unix/sysv/linux/riscv/vfork.S b/sysdeps/unix/sysv/linux/riscv/vfork.S
 index 67373f181b..dc173d6b47 100644
 --- a/sysdeps/unix/sysv/linux/riscv/vfork.S
@@ -6045,6 +7722,612 @@ index 767df721b8..22cdc8049c 100644
  #endif
  
  /* sh does not support the statx system call.  */
+diff --git a/sysdeps/unix/sysv/linux/sparc/bits/socket-constants.h b/sysdeps/unix/sysv/linux/sparc/bits/socket-constants.h
+new file mode 100644
+index 0000000000..a663e11210
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/sparc/bits/socket-constants.h
+@@ -0,0 +1,38 @@
++/* Socket constants which vary among Linux architectures.  Version for SPARC.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef _SYS_SOCKET_H
++# error "Never include <bits/socket-constants.h> directly; use <sys/socket.h> instead."
++#endif
++
++#define SOL_SOCKET 65535
++#define SO_ACCEPTCONN 32768
++#define SO_BROADCAST 32
++#define SO_DONTROUTE 16
++#define SO_ERROR 4103
++#define SO_KEEPALIVE 8
++#define SO_LINGER 128
++#define SO_OOBINLINE 256
++#define SO_RCVBUF 4098
++#define SO_RCVLOWAT 2048
++#define SO_RCVTIMEO 8192
++#define SO_REUSEADDR 4
++#define SO_SNDBUF 4097
++#define SO_SNDLOWAT 4096
++#define SO_SNDTIMEO 16384
++#define SO_TYPE 4104
+diff --git a/sysdeps/unix/sysv/linux/test-errno-linux.c b/sysdeps/unix/sysv/linux/test-errno-linux.c
+index cb979d44bd..aaa9eadc0a 100644
+--- a/sysdeps/unix/sysv/linux/test-errno-linux.c
++++ b/sysdeps/unix/sysv/linux/test-errno-linux.c
+@@ -160,8 +160,9 @@ do_test (void)
+   fails |= test_wrp (EINVAL, poll, &pollfd, -1, 0);
+   /* quotactl returns ENOSYS for kernels not configured with
+      CONFIG_QUOTA, and may return EPERM if called within certain types
+-     of containers.  */
+-  fails |= test_wrp2 (LIST (ENODEV, ENOSYS, EPERM),
++     of containers.  Linux 5.4 added additional argument validation
++     and can return EINVAL.  */
++  fails |= test_wrp2 (LIST (ENODEV, ENOSYS, EPERM, EINVAL),
+ 		      quotactl, Q_GETINFO, NULL, -1, (caddr_t) &dqblk);
+   fails |= test_wrp (EINVAL, sched_getparam, -1, &sch_param);
+   fails |= test_wrp (EINVAL, sched_getscheduler, -1);
+diff --git a/sysdeps/unix/sysv/linux/tst-socket-consts.py b/sysdeps/unix/sysv/linux/tst-socket-consts.py
+new file mode 100644
+index 0000000000..ca2634110c
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/tst-socket-consts.py
+@@ -0,0 +1,65 @@
++#!/usr/bin/python3
++# Test that glibc's sys/socket.h SO_* constants match the kernel's.
++# Copyright (C) 2018-2019 Free Software Foundation, Inc.
++# This file is part of the GNU C Library.
++#
++# The GNU C Library is free software; you can redistribute it and/or
++# modify it under the terms of the GNU Lesser General Public
++# License as published by the Free Software Foundation; either
++# version 2.1 of the License, or (at your option) any later version.
++#
++# The GNU C Library is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# Lesser General Public License for more details.
++#
++# You should have received a copy of the GNU Lesser General Public
++# License along with the GNU C Library; if not, see
++# <http://www.gnu.org/licenses/>.
++
++import argparse
++import sys
++
++import glibcextract
++
++def main():
++    """The main entry point."""
++    parser = argparse.ArgumentParser(
++        description="Test that glibc's sys/socket.h constants "
++        "match the kernel's.")
++    parser.add_argument('--cc', metavar='CC',
++                        help='C compiler (including options) to use')
++    args = parser.parse_args()
++
++    def check(define):
++        return glibcextract.compare_macro_consts(
++            source_1=define + '#include <sys/socket.h>\n',
++            # Some constants in <asm/socket.h> may depend on the size
++            # of pid_t or time_t.
++            source_2='#include <sys/types.h>\n'
++            '#include <asm/socket.h>\n',
++            cc=args.cc,
++            # We cannot compare all macros because some macros cannot
++            # be expanded as constants, and glibcextract currently is
++            # not able to isolate errors.
++            macro_re='SOL?_.*',
++            # <sys/socket.h> and <asm/socket.h> are not a good match.
++            # Most socket-related constants are not defined in any
++            # UAPI header.  Check only the intersection of the macros
++            # in both headers.  Regular tests ensure that expected
++            # macros for _GNU_SOURCE are present, and the conformance
++            # tests cover most of the other modes.
++            allow_extra_1=True,
++            allow_extra_2=True)
++    # _GNU_SOURCE is defined by include/libc-symbols.h, which is
++    # included by the --cc command.  Defining _ISOMAC does not prevent
++    # that.
++    status = max(
++        check(''),
++        check('#undef _GNU_SOURCE\n'),
++        check('#undef _GNU_SOURCE\n'
++              '#define _POSIX_SOURCE 1\n'))
++    sys.exit(status)
++
++if __name__ == '__main__':
++    main()
+diff --git a/sysdeps/unix/sysv/linux/x86_64/64/dl-librecon.h b/sysdeps/unix/sysv/linux/x86_64/64/dl-librecon.h
+index 975cbe2950..df2cdfdb6b 100644
+--- a/sysdeps/unix/sysv/linux/x86_64/64/dl-librecon.h
++++ b/sysdeps/unix/sysv/linux/x86_64/64/dl-librecon.h
+@@ -31,7 +31,8 @@
+    environment variable, LD_PREFER_MAP_32BIT_EXEC.  */
+ #define EXTRA_LD_ENVVARS \
+   case 21:								  \
+-    if (memcmp (envline, "PREFER_MAP_32BIT_EXEC", 21) == 0)		  \
++    if (!__libc_enable_secure						  \
++	&& memcmp (envline, "PREFER_MAP_32BIT_EXEC", 21) == 0)		  \
+       GLRO(dl_x86_cpu_features).feature[index_arch_Prefer_MAP_32BIT_EXEC] \
+ 	|= bit_arch_Prefer_MAP_32BIT_EXEC;				  \
+     break;
+diff --git a/sysdeps/x86/Makefile b/sysdeps/x86/Makefile
+index 7ec46ca100..95182a508c 100644
+--- a/sysdeps/x86/Makefile
++++ b/sysdeps/x86/Makefile
+@@ -19,13 +19,18 @@ ifeq ($(subdir),elf)
+ sysdep-dl-routines += dl-cet
+ 
+ tests += tst-cet-legacy-1 tst-cet-legacy-1a tst-cet-legacy-2 \
+-	 tst-cet-legacy-2a tst-cet-legacy-3 tst-cet-legacy-4
++	 tst-cet-legacy-2a tst-cet-legacy-3 tst-cet-legacy-4 \
++	 tst-cet-legacy-5a tst-cet-legacy-6a
+ tst-cet-legacy-1a-ARGS = -- $(host-test-program-cmd)
+ ifneq (no,$(have-tunables))
+-tests += tst-cet-legacy-4a tst-cet-legacy-4b tst-cet-legacy-4c
++tests += tst-cet-legacy-4a tst-cet-legacy-4b tst-cet-legacy-4c \
++	 tst-cet-legacy-5b tst-cet-legacy-6b
+ endif
+ modules-names += tst-cet-legacy-mod-1 tst-cet-legacy-mod-2 \
+-		 tst-cet-legacy-mod-4
++		 tst-cet-legacy-mod-4 tst-cet-legacy-mod-5a \
++		 tst-cet-legacy-mod-5b tst-cet-legacy-mod-5c \
++		 tst-cet-legacy-mod-6a tst-cet-legacy-mod-6b \
++		 tst-cet-legacy-mod-6c
+ 
+ CFLAGS-tst-cet-legacy-2.c += -fcf-protection=branch
+ CFLAGS-tst-cet-legacy-2a.c += -fcf-protection
+@@ -36,6 +41,16 @@ CFLAGS-tst-cet-legacy-4.c += -fcf-protection=branch
+ CFLAGS-tst-cet-legacy-4a.c += -fcf-protection
+ CFLAGS-tst-cet-legacy-4b.c += -fcf-protection
+ CFLAGS-tst-cet-legacy-mod-4.c += -fcf-protection=none
++CFLAGS-tst-cet-legacy-5a.c += -fcf-protection
++CFLAGS-tst-cet-legacy-5b.c += -fcf-protection
++CFLAGS-tst-cet-legacy-mod-5a.c += -fcf-protection=none
++CFLAGS-tst-cet-legacy-mod-5b.c += -fcf-protection
++CFLAGS-tst-cet-legacy-mod-5c.c += -fcf-protection
++CFLAGS-tst-cet-legacy-6a.c += -fcf-protection
++CFLAGS-tst-cet-legacy-6b.c += -fcf-protection
++CFLAGS-tst-cet-legacy-mod-6a.c += -fcf-protection=none
++CFLAGS-tst-cet-legacy-mod-6b.c += -fcf-protection
++CFLAGS-tst-cet-legacy-mod-6c.c += -fcf-protection
+ 
+ $(objpfx)tst-cet-legacy-1: $(objpfx)tst-cet-legacy-mod-1.so \
+ 		       $(objpfx)tst-cet-legacy-mod-2.so
+@@ -47,6 +62,17 @@ $(objpfx)tst-cet-legacy-2a: $(objpfx)tst-cet-legacy-mod-2.so $(libdl)
+ $(objpfx)tst-cet-legacy-2a.out: $(objpfx)tst-cet-legacy-mod-1.so
+ $(objpfx)tst-cet-legacy-4: $(libdl)
+ $(objpfx)tst-cet-legacy-4.out: $(objpfx)tst-cet-legacy-mod-4.so
++$(objpfx)tst-cet-legacy-5a: $(libdl)
++$(objpfx)tst-cet-legacy-5a.out: $(objpfx)tst-cet-legacy-mod-5a.so \
++				$(objpfx)tst-cet-legacy-mod-5b.so
++$(objpfx)tst-cet-legacy-mod-5a.so: $(objpfx)tst-cet-legacy-mod-5c.so
++$(objpfx)tst-cet-legacy-mod-5b.so: $(objpfx)tst-cet-legacy-mod-5c.so
++$(objpfx)tst-cet-legacy-6a: $(libdl)
++$(objpfx)tst-cet-legacy-6a.out: $(objpfx)tst-cet-legacy-mod-6a.so \
++				$(objpfx)tst-cet-legacy-mod-6b.so
++$(objpfx)tst-cet-legacy-mod-6a.so: $(objpfx)tst-cet-legacy-mod-6c.so
++$(objpfx)tst-cet-legacy-mod-6b.so: $(objpfx)tst-cet-legacy-mod-6c.so
++LDFLAGS-tst-cet-legacy-mod-6c.so = -Wl,--enable-new-dtags,-z,nodelete
+ ifneq (no,$(have-tunables))
+ $(objpfx)tst-cet-legacy-4a: $(libdl)
+ $(objpfx)tst-cet-legacy-4a.out: $(objpfx)tst-cet-legacy-mod-4.so
+@@ -57,6 +83,14 @@ tst-cet-legacy-4b-ENV = GLIBC_TUNABLES=glibc.cpu.x86_shstk=on
+ $(objpfx)tst-cet-legacy-4c: $(libdl)
+ $(objpfx)tst-cet-legacy-4c.out: $(objpfx)tst-cet-legacy-mod-4.so
+ tst-cet-legacy-4c-ENV = GLIBC_TUNABLES=glibc.cpu.x86_shstk=off
++$(objpfx)tst-cet-legacy-5b: $(libdl)
++$(objpfx)tst-cet-legacy-5b.out: $(objpfx)tst-cet-legacy-mod-5a.so \
++				$(objpfx)tst-cet-legacy-mod-5b.so
++tst-cet-legacy-5b-ENV = GLIBC_TUNABLES=glibc.cpu.hwcaps=-IBT,-SHSTK
++$(objpfx)tst-cet-legacy-6b: $(libdl)
++$(objpfx)tst-cet-legacy-6b.out: $(objpfx)tst-cet-legacy-mod-6a.so \
++				$(objpfx)tst-cet-legacy-mod-6b.so
++tst-cet-legacy-6b-ENV = GLIBC_TUNABLES=glibc.cpu.hwcaps=-IBT,-SHSTK
+ endif
+ endif
+ 
+diff --git a/sysdeps/x86/tst-cet-legacy-5.c b/sysdeps/x86/tst-cet-legacy-5.c
+new file mode 100644
+index 0000000000..fbf640f664
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-5.c
+@@ -0,0 +1,76 @@
++/* Check compatibility of CET-enabled executable with dlopened legacy
++   shared object.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <dlfcn.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <stdbool.h>
++#include <string.h>
++
++static void
++do_test_1 (const char *modname, bool fail)
++{
++  int (*fp) (void);
++  void *h;
++
++  h = dlopen (modname, RTLD_LAZY);
++  if (h == NULL)
++    {
++      if (fail)
++	{
++	  const char *err = dlerror ();
++	  if (strstr (err, "shadow stack isn't enabled") == NULL)
++	    {
++	      printf ("incorrect dlopen '%s' error: %s\n", modname,
++		      dlerror ());
++	      exit (1);
++	    }
++
++	  return;
++	}
++
++      printf ("cannot open '%s': %s\n", modname, dlerror ());
++      exit (1);
++    }
++
++  fp = dlsym (h, "test");
++  if (fp == NULL)
++    {
++      printf ("cannot get symbol 'test': %s\n", dlerror ());
++      exit (1);
++    }
++
++  if (fp () != 0)
++    {
++      puts ("test () != 0");
++      exit (1);
++    }
++
++  dlclose (h);
++}
++
++static int
++do_test (void)
++{
++  do_test_1 ("tst-cet-legacy-mod-5a.so", true);
++  do_test_1 ("tst-cet-legacy-mod-5b.so", false);
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/sysdeps/x86/tst-cet-legacy-5a.c b/sysdeps/x86/tst-cet-legacy-5a.c
+new file mode 100644
+index 0000000000..fc5a609dff
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-5a.c
+@@ -0,0 +1 @@
++#include "tst-cet-legacy-5.c"
+diff --git a/sysdeps/x86/tst-cet-legacy-5b.c b/sysdeps/x86/tst-cet-legacy-5b.c
+new file mode 100644
+index 0000000000..fc5a609dff
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-5b.c
+@@ -0,0 +1 @@
++#include "tst-cet-legacy-5.c"
+diff --git a/sysdeps/x86/tst-cet-legacy-6.c b/sysdeps/x86/tst-cet-legacy-6.c
+new file mode 100644
+index 0000000000..9151225264
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-6.c
+@@ -0,0 +1,76 @@
++/* Check compatibility of CET-enabled executable with dlopened legacy
++   shared object.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <dlfcn.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <stdbool.h>
++#include <string.h>
++
++static void
++do_test_1 (const char *modname, bool fail)
++{
++  int (*fp) (void);
++  void *h;
++
++  h = dlopen (modname, RTLD_LAZY);
++  if (h == NULL)
++    {
++      if (fail)
++	{
++	  const char *err = dlerror ();
++	  if (strstr (err, "shadow stack isn't enabled") == NULL)
++	    {
++	      printf ("incorrect dlopen '%s' error: %s\n", modname,
++		      dlerror ());
++	      exit (1);
++	    }
++
++	  return;
++	}
++
++      printf ("cannot open '%s': %s\n", modname, dlerror ());
++      exit (1);
++    }
++
++  fp = dlsym (h, "test");
++  if (fp == NULL)
++    {
++      printf ("cannot get symbol 'test': %s\n", dlerror ());
++      exit (1);
++    }
++
++  if (fp () != 0)
++    {
++      puts ("test () != 0");
++      exit (1);
++    }
++
++  dlclose (h);
++}
++
++static int
++do_test (void)
++{
++  do_test_1 ("tst-cet-legacy-mod-6a.so", true);
++  do_test_1 ("tst-cet-legacy-mod-6b.so", false);
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/sysdeps/x86/tst-cet-legacy-6a.c b/sysdeps/x86/tst-cet-legacy-6a.c
+new file mode 100644
+index 0000000000..2d1546d36b
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-6a.c
+@@ -0,0 +1 @@
++#include "tst-cet-legacy-6.c"
+diff --git a/sysdeps/x86/tst-cet-legacy-6b.c b/sysdeps/x86/tst-cet-legacy-6b.c
+new file mode 100644
+index 0000000000..2d1546d36b
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-6b.c
+@@ -0,0 +1 @@
++#include "tst-cet-legacy-6.c"
+diff --git a/sysdeps/x86/tst-cet-legacy-mod-5.c b/sysdeps/x86/tst-cet-legacy-mod-5.c
+new file mode 100644
+index 0000000000..3c1071c2ef
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-mod-5.c
+@@ -0,0 +1,31 @@
++/* Check compatibility of CET-enabled executable with dlopened legacy
++   shared object.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <error.h>
++#include <stdio.h>
++#include <stdlib.h>
++
++extern void foo (void);
++
++int
++test (void)
++{
++  foo ();
++  return 0;
++}
+diff --git a/sysdeps/x86/tst-cet-legacy-mod-5a.c b/sysdeps/x86/tst-cet-legacy-mod-5a.c
+new file mode 100644
+index 0000000000..daa43e4e8d
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-mod-5a.c
+@@ -0,0 +1 @@
++#include "tst-cet-legacy-mod-5.c"
+diff --git a/sysdeps/x86/tst-cet-legacy-mod-5b.c b/sysdeps/x86/tst-cet-legacy-mod-5b.c
+new file mode 100644
+index 0000000000..daa43e4e8d
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-mod-5b.c
+@@ -0,0 +1 @@
++#include "tst-cet-legacy-mod-5.c"
+diff --git a/sysdeps/x86/tst-cet-legacy-mod-5c.c b/sysdeps/x86/tst-cet-legacy-mod-5c.c
+new file mode 100644
+index 0000000000..e529a42ac0
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-mod-5c.c
+@@ -0,0 +1,36 @@
++/* Check compatibility of CET-enabled executable with dlopened legacy
++   shared object.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdlib.h>
++
++static int called = 0;
++
++static void
++__attribute__ ((constructor))
++init (void)
++{
++  called = 1;
++}
++
++void
++foo (void)
++{
++  if (!called)
++    abort ();
++}
+diff --git a/sysdeps/x86/tst-cet-legacy-mod-6.c b/sysdeps/x86/tst-cet-legacy-mod-6.c
+new file mode 100644
+index 0000000000..3c1071c2ef
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-mod-6.c
+@@ -0,0 +1,31 @@
++/* Check compatibility of CET-enabled executable with dlopened legacy
++   shared object.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <error.h>
++#include <stdio.h>
++#include <stdlib.h>
++
++extern void foo (void);
++
++int
++test (void)
++{
++  foo ();
++  return 0;
++}
+diff --git a/sysdeps/x86/tst-cet-legacy-mod-6a.c b/sysdeps/x86/tst-cet-legacy-mod-6a.c
+new file mode 100644
+index 0000000000..c89b8fe8ff
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-mod-6a.c
+@@ -0,0 +1 @@
++#include "tst-cet-legacy-mod-6.c"
+diff --git a/sysdeps/x86/tst-cet-legacy-mod-6b.c b/sysdeps/x86/tst-cet-legacy-mod-6b.c
+new file mode 100644
+index 0000000000..c89b8fe8ff
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-mod-6b.c
+@@ -0,0 +1 @@
++#include "tst-cet-legacy-mod-6.c"
+diff --git a/sysdeps/x86/tst-cet-legacy-mod-6c.c b/sysdeps/x86/tst-cet-legacy-mod-6c.c
+new file mode 100644
+index 0000000000..e529a42ac0
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-mod-6c.c
+@@ -0,0 +1,36 @@
++/* Check compatibility of CET-enabled executable with dlopened legacy
++   shared object.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdlib.h>
++
++static int called = 0;
++
++static void
++__attribute__ ((constructor))
++init (void)
++{
++  called = 1;
++}
++
++void
++foo (void)
++{
++  if (!called)
++    abort ();
++}
+diff --git a/sysdeps/x86/tst-cet-legacy-mod-6d.c b/sysdeps/x86/tst-cet-legacy-mod-6d.c
+new file mode 100644
+index 0000000000..eb233a1d10
+--- /dev/null
++++ b/sysdeps/x86/tst-cet-legacy-mod-6d.c
+@@ -0,0 +1 @@
++#include "tst-cet-legacy-mod-6c.c"
 diff --git a/sysdeps/x86_64/memcmp.S b/sysdeps/x86_64/memcmp.S
 index 1fc487caa5..1322bb3b92 100644
 --- a/sysdeps/x86_64/memcmp.S
