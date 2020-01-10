@@ -7,6 +7,10 @@ glibc (2.29-9) UNRELEASED; urgency=medium
   [ Aurelien Jarno ]
   * debian/sysdeps/{amd64,x32}.mk: do not optimize for pentium4.  Closes:
     #948396.
+  * debian/patches/any/local-revert-24323.diff: revert upstream change
+    preventing dlopening PIE executable, The patch is correct, but breaks
+    the autopkgtest for wcc and prevents the migration of glibc to testing.
+    Revert it temporarily until wcc is fixed. See #948613.
 
  -- Samuel Thibault <sthibault@debian.org>  Sun, 05 Jan 2020 15:38:41 +0000
 
