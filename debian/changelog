@@ -67,6 +67,45 @@ glibc (2.30-0experimental0) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Fri, 06 Dec 2019 23:18:04 +0100
 
+glibc (2.29-10) unstable; urgency=medium
+
+  * debian/debhelper.in/libc.{preinst,postrm}: Remove fallback to dpkg
+    --print-architecture for pre-multiarch systems.
+  * debian/debhelper.in/libc.preinst: fallback to text output in case
+    perl debconf is used and perl is not usable.  Closes: #946599, #950389.
+  * debian/patches/git-updates.diff: update from upstream stable branch.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 04 Feb 2020 20:37:26 +0100
+
+glibc (2.29-9) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/local-fix-nss.diff: Refresh.
+  * patches/hurd-i386/tg-hurdsig-SA_SIGINFO.diff: Fix setitimer.
+
+  [ Aurelien Jarno ]
+  * debian/sysdeps/{amd64,x32}.mk: do not optimize i386 pass for pentium4.
+    Closes: #948396.
+  * debian/patches/any/local-revert-24323.diff: revert upstream change
+    preventing dlopening PIE executable, The patch is correct, but breaks
+    the autopkgtest for wcc and prevents the migration of glibc to testing.
+    Revert it temporarily until wcc is fixed. See #948613.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Fri, 10 Jan 2020 23:21:25 +0100
+
+glibc (2.29-8) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * patches/hurd-i386/posix_openpt.diff: Add posix_openpt support.
+  * patches/hurd-i386/git-errno_location.diff: Fix pthread link of protobuf.
+
+  [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fixes ASLR bypass for setuid programs (CVE-2019-19126).  Closes: #945250.
+    - debian/patches/any/git-socket-constants.diff: upstreamed.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 05 Jan 2020 13:03:42 +0100
+
 glibc (2.29-7) unstable; urgency=medium
 
   [ Samuel Thibault ]

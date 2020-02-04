@@ -1,0 +1,84 @@
+https://sourceware.org/ml/libc-alpha/2019-12/msg00799.html
+
+to commit after 2.31 is released
+
+diff --git a/sysdeps/unix/bsd/getpt.c b/sysdeps/unix/bsd/getpt.c
+index 46207f4e62..0eff0b54a3 100644
+--- a/sysdeps/unix/bsd/getpt.c
++++ b/sysdeps/unix/bsd/getpt.c
+@@ -41,7 +41,7 @@ const char __libc_ptyname2[] attribute_hidden = PTYNAME2;
+ 
+ /* Open a master pseudo terminal and return its file descriptor.  */
+ int
+-__getpt (void)
++__bsd_openpt (int oflag)
+ {
+   char buf[sizeof (_PATH_PTY) + 2];
+   const char *p, *q;
+@@ -61,7 +61,7 @@ __getpt (void)
+ 
+ 	  s[1] = *q;
+ 
+-	  fd = __open (buf, O_RDWR);
++	  fd = __open (buf, oflag);
+ 	  if (fd != -1)
+ 	    return fd;
+ 
+@@ -74,18 +74,20 @@ __getpt (void)
+   return -1;
+ }
+ 
+-#undef __getpt
++#ifndef HAVE_GETPT
++int
++__getpt (void)
++{
++  return __bsd_openpt (O_RDWR);
++}
+ weak_alias (__getpt, getpt)
++#endif
+ 
+ #ifndef HAVE_POSIX_OPENPT
+-/* We cannot define posix_openpt in general for BSD systems.  */
+ int
+ __posix_openpt (int oflag)
+ {
+-  __set_errno (ENOSYS);
+-  return -1;
++  return __bsd_openpt (oflag);
+ }
+ weak_alias (__posix_openpt, posix_openpt)
+-
+-stub_warning (posix_openpt)
+ #endif
+diff --git a/sysdeps/unix/sysv/linux/getpt.c b/sysdeps/unix/sysv/linux/getpt.c
+index cdde8377f5..1cb99d5185 100644
+--- a/sysdeps/unix/sysv/linux/getpt.c
++++ b/sysdeps/unix/sysv/linux/getpt.c
+@@ -31,7 +31,7 @@
+ #define _PATH_DEVPTS _PATH_DEV "pts"
+ 
+ /* Prototype for function that opens BSD-style master pseudo-terminals.  */
+-extern int __bsd_getpt (void) attribute_hidden;
++extern int __bsd_openpt (int oflag) attribute_hidden;
+ 
+ /* Open a master pseudo terminal and return its file descriptor.  */
+ int
+@@ -88,14 +88,15 @@ __getpt (void)
+ {
+   int fd = __posix_openpt (O_RDWR);
+   if (fd == -1)
+-    fd = __bsd_getpt ();
++    fd = __bsd_openpt (O_RDWR);
+   return fd;
+ }
++weak_alias (__getpt, getpt)
+ 
+ 
+ #define PTYNAME1 "pqrstuvwxyzabcde";
+ #define PTYNAME2 "0123456789abcdef";
+ 
+-#define __getpt __bsd_getpt
++#define HAVE_GETPT
+ #define HAVE_POSIX_OPENPT
+ #include <sysdeps/unix/bsd/getpt.c>

@@ -92,9 +92,11 @@ check_dir () {
 
 if [ "$type" != abort-upgrade ]
 then
-    # Load debconf module if available
-    if [ -f /usr/share/debconf/confmodule ] ; then
+    # Load debconf module if available and usable
+    if [ -f /usr/share/debconf/confmodule ] && \
+       ( [ "$DEBCONF_USE_CDEBCONF" ] || perl -e "" 2>/dev/null ) ; then
         . /usr/share/debconf/confmodule
+        USE_DEBCONF=1
     fi
 
     # See if LD_LIBRARY_PATH contains the traditional /lib, but not the
@@ -143,7 +145,7 @@ then
 
         # sanity checking for the appropriate kernel on each architecture.
         kernel_ver=`uname -r`
-        case ${DPKG_MAINTSCRIPT_ARCH:-$(dpkg --print-architecture)} in
+        case ${DPKG_MAINTSCRIPT_ARCH} in
             *)
                 # The GNU libc requires a >= 3.2 kernel, found in wheezy
                 kernel_ver_min=3.2
@@ -153,7 +155,7 @@ then
 
         if linux_compare_versions "$kernel_ver" lt $kernel_ver_min
         then
-            if [ -f /usr/share/debconf/confmodule ]
+            if [ "$USE_DEBCONF" ]
             then
                 db_version 2.0
                 db_fset glibc/kernel-too-old seen false
@@ -173,7 +175,7 @@ then
 
         if linux_compare_versions "$kernel_ver" lt $kernel_ver_rec
         then
-            if [ -f /usr/share/debconf/confmodule ]
+            if [ "$USE_DEBCONF" ]
             then
                 db_version 2.0
                 db_fset glibc/kernel-not-supported seen false
@@ -196,7 +198,7 @@ then
         kernel_ver_min=8.3
         if kfreebsd_compare_versions "$kernel_ver" lt $kernel_ver_min
         then
-            if [ -f /usr/share/debconf/confmodule ]
+            if [ "$USE_DEBCONF" ]
             then
                 db_version 2.0
                 db_version 2.0
@@ -271,7 +273,7 @@ then
 	# NSS authentication trouble guard
 	if dpkg --compare-versions "$preversion" lt GLIBC_VERSION; then
 	    if pidof xscreensaver xlockmore >/dev/null; then
-		if [ -f /usr/share/debconf/confmodule ] ; then
+		if [ "$USE_DEBCONF" ] ; then
 		    db_version 2.0
 		    db_reset glibc/disable-screensaver
 		    db_input critical glibc/disable-screensaver || true
@@ -301,7 +303,7 @@ then
 	    # NSS services check:
 	    __NSS_CHECK__
 	    if [ -n "$services" ]; then 
-		if [ -f /usr/share/debconf/confmodule ] ; then
+		if [ "$USE_DEBCONF" ] ; then
 	            db_version 2.0
 		    db_reset glibc/upgrade
 		    db_subst glibc/upgrade services $services
