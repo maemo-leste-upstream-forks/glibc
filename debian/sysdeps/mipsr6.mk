@@ -1,6 +1,3 @@
-# configuration options for all flavours
-CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)$(DEB_GCC_VERSION) -no-pie
-
 # multilib flavours
 ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
 
