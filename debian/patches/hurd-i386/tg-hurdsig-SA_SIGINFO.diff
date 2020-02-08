@@ -7,21 +7,20 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
 
 ---
  hurd/hurd/signal.h                       |    5 +
- hurd/hurd/sigpreempt.h                   |    4 
  hurd/hurdfault.c                         |    2 
  hurd/hurdinit.c                          |    2 
- hurd/hurdsig.c                           |    2 
- sysdeps/mach/hurd/bits/sigaction.h       |   81 +++++++++++++++++++
+ hurd/hurdsig.c                           |    6 -
+ sysdeps/mach/hurd/bits/sigaction.h       |   86 +++++++++++++++++++++
  sysdeps/mach/hurd/i386/bits/sigcontext.h |    4 
- sysdeps/mach/hurd/i386/exc2signal.c      |  123 ++++++++++++++++++------------
- sysdeps/mach/hurd/i386/trampoline.c      |  126 ++++++++++++++++++++++++++++---
+ sysdeps/mach/hurd/i386/exc2signal.c      |  123 +++++++++++++++++++-----------
+ sysdeps/mach/hurd/i386/trampoline.c      |  125 ++++++++++++++++++++++++++++---
  sysdeps/mach/hurd/kill.c                 |    2 
  sysdeps/mach/hurd/setitimer.c            |    2 
- 11 files changed, 289 insertions(+), 64 deletions(-)
+ 10 files changed, 293 insertions(+), 64 deletions(-)
 
 --- a/hurd/hurd/signal.h
 +++ b/hurd/hurd/signal.h
-@@ -285,6 +285,11 @@
+@@ -290,6 +290,11 @@
  extern void _hurd_exception2signal (struct hurd_signal_detail *detail,
  				    int *signo);
  
@@ -46,7 +45,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  
 --- a/hurd/hurdinit.c
 +++ b/hurd/hurdinit.c
-@@ -175,7 +175,7 @@
+@@ -177,7 +177,7 @@
      /* This process is "traced", meaning it should stop on signals or exec.
         We are all set up now to handle signals.  Stop ourselves, to inform
         our parent (presumably a debugger) that the exec has completed.  */
@@ -57,7 +56,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  #include <shlib-compat.h>
 --- a/hurd/hurdsig.c
 +++ b/hurd/hurdsig.c
-@@ -767,7 +767,7 @@
+@@ -730,7 +730,7 @@
        {				/* PE cannot be null.  */
  	do
  	  {
@@ -66,7 +65,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  	      {
  		if (pe->preemptor)
  		  {
-@@ -1366,7 +1366,7 @@ _S_msg_sig_post (mach_port_t me,
+@@ -1374,7 +1374,7 @@
    if (err = signal_allowed (signo, refport))
      return err;
  
@@ -75,7 +74,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
    d.exc = 0;
  
    /* Post the signal to a global receiver thread (or mark it pending in
-@@ -1395,7 +1395,7 @@ _S_msg_sig_post_untraced (mach_port_t me,
+@@ -1403,7 +1403,7 @@
    if (err = signal_allowed (signo, refport))
      return err;
  
@@ -462,13 +461,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  struct sigcontext *
  _hurd_setup_sighandler (struct hurd_sigstate *ss, __sighandler_t handler,
  			int signo, struct hurd_signal_detail *detail,
-@@ -37,20 +90,44 @@
-   void firewall (void);
-   extern const void _hurd_intr_rpc_msg_cx_sp;
-   extern const void _hurd_intr_rpc_msg_sp_restored;
-+  const struct sigaction *action;
-   void *volatile sigsp;
-   struct sigcontext *scp;
+@@ -43,15 +96,38 @@
    struct
      {
        int signo;
@@ -509,7 +502,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
    if (ss->context)
      {
        /* We have a previous sigcontext that sigreturn was about
-@@ -74,9 +151,13 @@
+@@ -94,9 +170,13 @@
       the SP on sigreturn.  */
      state->basic.uesp = state->basic.ecx;
  
@@ -525,7 +518,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  
    if ((action->sa_flags & SA_ONSTACK)
        && !(ss->sigaltstack.ss_flags & (SS_DISABLE|SS_ONSTACK)))
-@@ -138,15 +219,9 @@
+@@ -140,15 +220,9 @@
  	  = &stackframe->link.thread.next;
        ss->active_resources = &stackframe->link;
  
@@ -542,7 +535,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
        scp->sc_onstack = ss->sigaltstack.ss_flags & SS_ONSTACK ? 1 : 0;
  
        /* struct sigcontext is laid out so that starting at sc_gs mimics a
-@@ -160,6 +235,35 @@
+@@ -162,6 +236,35 @@
  			      &state->fpu, &scp->sc_i386_float_state,
  			      sizeof (state->fpu));
  
@@ -591,7 +584,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  		 frobnication of the task.  */
 --- a/sysdeps/mach/hurd/setitimer.c
 +++ b/sysdeps/mach/hurd/setitimer.c
-@@ -103,7 +103,7 @@
+@@ -105,7 +105,7 @@
  	  __msg_sig_post_request (_hurd_msgport,
  				  _hurd_itimer_port,
  				  MACH_MSG_TYPE_MAKE_SEND_ONCE,

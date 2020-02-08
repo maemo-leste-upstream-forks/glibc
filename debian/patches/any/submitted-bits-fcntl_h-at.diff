@@ -28,14 +28,14 @@
 	constants.
 
 ---
- io/fcntl.h                                 |   27 ---------------------------
- sysdeps/mach/hurd/bits/fcntl.h             |   22 ++++++++++++++++++++++
- sysdeps/unix/sysv/linux/bits/fcntl-linux.h |   22 ++++++++++++++++++++++
- 3 files changed, 44 insertions(+), 27 deletions(-)
+ io/fcntl.h                                 |   28 ----------------------------
+ sysdeps/mach/hurd/bits/fcntl.h             |   23 +++++++++++++++++++++++
+ sysdeps/unix/sysv/linux/bits/fcntl-linux.h |   23 +++++++++++++++++++++++
+ 3 files changed, 46 insertions(+), 28 deletions(-)
 
 --- a/io/fcntl.h
 +++ b/io/fcntl.h
-@@ -139,33 +139,6 @@
+@@ -139,34 +139,6 @@
  # define SEEK_END	2	/* Seek from end of file.  */
  #endif	/* XPG */
  
@@ -61,6 +61,7 @@
 -#  define AT_STATX_SYNC_AS_STAT	0x0000
 -#  define AT_STATX_FORCE_SYNC	0x2000
 -#  define AT_STATX_DONT_SYNC	0x4000
+-#  define AT_RECURSIVE		0x8000	/* Apply to the entire subtree.  */
 -# endif
 -# define AT_EACCESS		0x200	/* Test access permitted for
 -					   effective IDs, not real IDs.  */
@@ -71,7 +72,7 @@
  
 --- a/sysdeps/mach/hurd/bits/fcntl.h
 +++ b/sysdeps/mach/hurd/bits/fcntl.h
-@@ -219,3 +219,25 @@
+@@ -228,3 +228,26 @@
  # define POSIX_FADV_DONTNEED	4 /* Don't need these pages.  */
  # define POSIX_FADV_NOREUSE	5 /* Data will be accessed once.  */
  #endif
@@ -93,13 +94,14 @@
 +#  define AT_STATX_SYNC_AS_STAT	0x0000
 +#  define AT_STATX_FORCE_SYNC	0x2000
 +#  define AT_STATX_DONT_SYNC	0x4000
++#  define AT_RECURSIVE		0x8000	/* Apply to the entire subtree.  */
 +# endif
 +# define AT_EACCESS		0x200	/* Test access permitted for
 +					   effective IDs, not real IDs.  */
 +#endif
 --- a/sysdeps/unix/sysv/linux/bits/fcntl-linux.h
 +++ b/sysdeps/unix/sysv/linux/bits/fcntl-linux.h
-@@ -359,6 +359,28 @@
+@@ -366,6 +366,29 @@
  # define MAX_HANDLE_SZ	128
  #endif
  
@@ -120,6 +122,7 @@
 +#  define AT_STATX_SYNC_AS_STAT	0x0000
 +#  define AT_STATX_FORCE_SYNC	0x2000
 +#  define AT_STATX_DONT_SYNC	0x4000
++#  define AT_RECURSIVE		0x8000	/* Apply to the entire subtree.  */
 +# endif
 +# define AT_EACCESS		0x200	/* Test access permitted for
 +					   effective IDs, not real IDs.  */
