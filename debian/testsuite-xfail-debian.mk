@@ -383,6 +383,13 @@ test-xfail-tst-res_hconf_reorder = yes
 test-xfail-ISO11/threads.h/conform = yes
 test-xfail-ISO11/threads.h/linknamespace = yes
 
+# wants pthread_barrierattr_setpshared
+test-xfail-tst-pututxline-cache = yes
+test-xfail-tst-pututxline-lockfail = yes
+
+# wants /proc/self/fd
+test-xfail-tst-updwtmpx = yes
+
 # new in 2.31
 #test-xfail-tst-auditmany = yes
 #test-xfail-tst-dlopenfail = yes
@@ -396,12 +403,6 @@ test-xfail-ISO11/threads.h/linknamespace = yes
 # assumes that all st_mode flags (32bit) can exist in stx_mode flags (16bit)
 #test-xfail-tst-statx = yes
 
-# wants pthread_barrierattr_setpshared
-#test-xfail-tst-pututxline-cache = yes
-#test-xfail-tst-pututxline-lockfail = yes
-
-# wants /proc/self/fd
-#test-xfail-tst-updwtmpx = yes
 endif
 
 
