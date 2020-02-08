@@ -10,30 +10,19 @@ former.
  sysdeps/mach/hurd/bits/posix_opt.h |    2 +-
  sysdeps/unix/clock_gettime.c       |    1 +
  2 files changed, 2 insertions(+), 1 deletion(-)
-Index: glibc-2.27/sysdeps/unix/clock_gettime.c
+Index: glibc-2.27/sysdeps/mach/clock_gettime.c
 ===================================================================
---- glibc-2.27.orig/sysdeps/unix/clock_gettime.c
-+++ glibc-2.27/sysdeps/unix/clock_gettime.c
-@@ -101,6 +101,7 @@ __clock_gettime (clockid_t clock_id, str
- 
- #ifndef HANDLED_REALTIME
-     case CLOCK_REALTIME:
-+    case CLOCK_MONOTONIC:
-       {
- 	struct timeval tv;
- 	retval = __gettimeofday (&tv, NULL);
-Index: glibc-2.27/sysdeps/posix/clock_getres.c
-===================================================================
---- glibc-2.27.orig/sysdeps/posix/clock_getres.c
-+++ glibc-2.27/sysdeps/posix/clock_getres.c
-@@ -88,6 +88,7 @@ __clock_getres (clockid_t clock_id, stru
- 
- #ifndef HANDLED_REALTIME
-     case CLOCK_REALTIME:
-+    case CLOCK_MONOTONIC:
-       retval = realtime_getres (res);
-       break;
- #endif	/* handled REALTIME */
+--- glibc-2.27.orig/sysdeps/mach/clock_gettime.c
++++ glibc-2.27/sysdeps/mach/clock_gettime.c
+@@ -48,7 +48,7 @@ timer_create (clockid_t clock_id, struct
+ int
+ __clock_gettime (clockid_t clock_id, struct timespec *ts)
+ {
+-  if (clock_id != CLOCK_REALTIME)
++  if (clock_id != CLOCK_REALTIME && clock_id != CLOCK_MONOTONIC)
+     {
+       errno = EINVAL;
+       return -1;
 Index: glibc-2.27/sysdeps/pthread/timer_create.c
 ===================================================================
 --- glibc-2.27.orig/sysdeps/pthread/timer_create.c
