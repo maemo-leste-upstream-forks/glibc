@@ -1,0 +1,21 @@
+commit 29bc8736d1fdb80d2416b3920080dad58b32bf44
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Feb 9 23:02:13 2020 +0000
+
+    htl: Fix barrier_wait with one thread
+
+diff --git a/sysdeps/htl/pt-barrier-wait.c b/sysdeps/htl/pt-barrier-wait.c
+index 47ec440b26..146605abd8 100644
+--- a/sysdeps/htl/pt-barrier-wait.c
++++ b/sysdeps/htl/pt-barrier-wait.c
+@@ -29,7 +29,9 @@ pthread_barrier_wait (pthread_barrier_t *barrier)
+     {
+       barrier->__pending = barrier->__count;
+ 
+-      if (barrier->__count > 1)
++      if (barrier->__count == 1)
++	__pthread_spin_unlock (&barrier->__lock);
++      else
+ 	{
+ 	  struct __pthread *wakeup;
+ 	  unsigned n = 0;
