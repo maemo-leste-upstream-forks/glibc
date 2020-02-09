@@ -1,0 +1,36 @@
+commit 19a64d9f6eda12cd4b802aac470c645d208a1216
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Feb 9 17:01:06 2020 +0100
+
+    htl: Fix calling pthread_exit in the child of a fork
+    
+    We need to reset the threads counter, otherwise pthread_exit() would not
+    call exit(0).
+
+diff --git a/sysdeps/mach/hurd/htl/pt-sysdep.c b/sysdeps/mach/hurd/htl/pt-sysdep.c
+index e306cc81dc..32a290c4ee 100644
+--- a/sysdeps/mach/hurd/htl/pt-sysdep.c
++++ b/sysdeps/mach/hurd/htl/pt-sysdep.c
+@@ -35,6 +35,13 @@ static void *init_routine (void);
+    want to change it yet.  */
+ void *(*_cthread_init_routine) (void) = &init_routine;
+ 
++static void
++reset_pthread_total (void)
++{
++  /* Only current thread remains */
++  __pthread_total = 1;
++}
++
+ /* This function is called from the Hurd-specific startup code.  It
+    should return a new stack pointer for the main thread.  The caller
+    will switch to this new stack before doing anything serious.  */
+@@ -78,6 +85,8 @@ _init_routine (void *stack)
+      when we return from here) shouldn't be seen as a user thread.  */
+   __pthread_total--;
+ 
++  __pthread_atfork (NULL, NULL, reset_pthread_total);
++
+   /* Make MiG code thread aware.  */
+   __mig_init (thread->stackaddr);
+ 
