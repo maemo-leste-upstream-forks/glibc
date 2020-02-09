@@ -1,0 +1,22 @@
+commit 900778283ac3cfbd274abc55840b5cdae9b7745f
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Feb 9 16:54:58 2020 +0000
+
+    htl: make pthread_spin_lock really spin
+    
+    __spin_lock would actually use gsync_wait to block, which is not what
+    pthread_spin_lock is about.
+
+diff --git a/sysdeps/mach/htl/bits/spin-lock-inline.h b/sysdeps/mach/htl/bits/spin-lock-inline.h
+index 771292f08f..556bdd4c28 100644
+--- a/sysdeps/mach/htl/bits/spin-lock-inline.h
++++ b/sysdeps/mach/htl/bits/spin-lock-inline.h
+@@ -67,7 +67,7 @@ __PT_SPIN_INLINE int __pthread_spin_lock (__pthread_spinlock_t *__lock);
+ __PT_SPIN_INLINE int
+ __pthread_spin_lock (__pthread_spinlock_t *__lock)
+ {
+-  __spin_lock ((__spin_lock_t *) __lock);
++  __spin_lock_solid ((__spin_lock_t *) __lock);
+   return 0;
+ }
+ 
