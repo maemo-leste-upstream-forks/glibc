@@ -1,0 +1,15 @@
+This is only a quickfix for 2.30, 2.31 will link files differently.
+
+Index: glibc-2.30/sysdeps/mach/hurd/htl/pt-sysdep.c
+===================================================================
+--- glibc-2.30.orig/sysdeps/mach/hurd/htl/pt-sysdep.c
++++ glibc-2.30/sysdeps/mach/hurd/htl/pt-sysdep.c
+@@ -86,7 +86,7 @@ _init_routine (void *stack)
+      when we return from here) shouldn't be seen as a user thread.  */
+   __pthread_total--;
+ 
+-  __pthread_atfork (NULL, NULL, reset_pthread_total);
++  __register_atfork (NULL, NULL, reset_pthread_total, __dso_handle);
+ 
+   /* Make MiG code thread aware.  */
+   __mig_init (thread->stackaddr);
