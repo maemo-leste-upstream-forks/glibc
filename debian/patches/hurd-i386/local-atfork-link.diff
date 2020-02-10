@@ -4,6 +4,14 @@ Index: glibc-2.30/sysdeps/mach/hurd/htl/pt-sysdep.c
 ===================================================================
 --- glibc-2.30.orig/sysdeps/mach/hurd/htl/pt-sysdep.c
 +++ glibc-2.30/sysdeps/mach/hurd/htl/pt-sysdep.c
+@@ -25,6 +25,7 @@ _init_routine (void *stack)
+ 
+ #include <pt-internal.h>
+ #include <pthreadP.h>
++#include <dso_handle.h>
+ 
+ __thread struct __pthread *___pthread_self;
+ 
 @@ -86,7 +86,7 @@ _init_routine (void *stack)
       when we return from here) shouldn't be seen as a user thread.  */
    __pthread_total--;
