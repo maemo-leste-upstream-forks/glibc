@@ -18,9 +18,11 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  sysdeps/mach/hurd/setitimer.c            |    2 
  10 files changed, 293 insertions(+), 64 deletions(-)
 
---- a/hurd/hurd/signal.h
-+++ b/hurd/hurd/signal.h
-@@ -290,6 +290,11 @@
+Index: glibc-2.31/hurd/hurd/signal.h
+===================================================================
+--- glibc-2.31.orig/hurd/hurd/signal.h
++++ glibc-2.31/hurd/hurd/signal.h
+@@ -290,6 +290,11 @@ extern int _hurd_raise_signal (struct hu
  extern void _hurd_exception2signal (struct hurd_signal_detail *detail,
  				    int *signo);
  
@@ -32,9 +34,11 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  
  /* Make the thread described by SS take the signal described by SIGNO and
     DETAIL.  If the process is traced, this will in fact stop with a SIGNO
---- a/hurd/hurdfault.c
-+++ b/hurd/hurdfault.c
-@@ -70,7 +70,7 @@
+Index: glibc-2.31/hurd/hurdfault.c
+===================================================================
+--- glibc-2.31.orig/hurd/hurdfault.c
++++ glibc-2.31/hurd/hurdfault.c
+@@ -70,7 +70,7 @@ _hurdsig_fault_catch_exception_raise (ma
       codes into a signal number and subcode.  */
    _hurd_exception2signal (&d, &signo);
  
@@ -43,9 +47,11 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
      ? 0 : EGREGIOUS;
  }
  
---- a/hurd/hurdinit.c
-+++ b/hurd/hurdinit.c
-@@ -177,7 +177,7 @@
+Index: glibc-2.31/hurd/hurdinit.c
+===================================================================
+--- glibc-2.31.orig/hurd/hurdinit.c
++++ glibc-2.31/hurd/hurdinit.c
+@@ -177,7 +177,7 @@ _hurd_new_proc_init (char **argv,
      /* This process is "traced", meaning it should stop on signals or exec.
         We are all set up now to handle signals.  Stop ourselves, to inform
         our parent (presumably a debugger) that the exec has completed.  */
@@ -54,9 +60,11 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  }
  
  #include <shlib-compat.h>
---- a/hurd/hurdsig.c
-+++ b/hurd/hurdsig.c
-@@ -730,7 +730,7 @@
+Index: glibc-2.31/hurd/hurdsig.c
+===================================================================
+--- glibc-2.31.orig/hurd/hurdsig.c
++++ glibc-2.31/hurd/hurdsig.c
+@@ -730,7 +730,7 @@ post_signal (struct hurd_sigstate *ss,
        {				/* PE cannot be null.  */
  	do
  	  {
@@ -65,7 +73,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  	      {
  		if (pe->preemptor)
  		  {
-@@ -1374,7 +1374,7 @@
+@@ -1374,7 +1374,7 @@ _S_msg_sig_post (mach_port_t me,
    if (err = signal_allowed (signo, refport))
      return err;
  
@@ -74,7 +82,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
    d.exc = 0;
  
    /* Post the signal to a global receiver thread (or mark it pending in
-@@ -1403,7 +1403,7 @@
+@@ -1403,7 +1403,7 @@ _S_msg_sig_post_untraced (mach_port_t me
    if (err = signal_allowed (signo, refport))
      return err;
  
@@ -83,8 +91,10 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
    d.exc = 0;
  
    /* Post the signal to the designated signal-receiving thread.  This will
+Index: glibc-2.31/sysdeps/mach/hurd/bits/sigaction.h
+===================================================================
 --- /dev/null
-+++ b/sysdeps/mach/hurd/bits/sigaction.h
++++ glibc-2.31/sysdeps/mach/hurd/bits/sigaction.h
 @@ -0,0 +1,86 @@
 +/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -172,9 +182,11 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
 +#define	SIG_SETMASK	3	/* Set the set of blocked signals.  */
 +
 +#endif
---- a/sysdeps/mach/hurd/i386/bits/sigcontext.h
-+++ b/sysdeps/mach/hurd/i386/bits/sigcontext.h
-@@ -97,6 +97,10 @@
+Index: glibc-2.31/sysdeps/mach/hurd/i386/bits/sigcontext.h
+===================================================================
+--- glibc-2.31.orig/sysdeps/mach/hurd/i386/bits/sigcontext.h
++++ glibc-2.31/sysdeps/mach/hurd/i386/bits/sigcontext.h
+@@ -97,6 +97,10 @@ struct sigcontext
  #define sc_ps	sc_efl
  
  
@@ -185,8 +197,10 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  /* Codes for SIGFPE.  */
  #define FPE_INTOVF_TRAP		0x1 /* integer overflow */
  #define FPE_INTDIV_FAULT	0x2 /* integer divide by zero */
---- a/sysdeps/mach/hurd/i386/exc2signal.c
-+++ b/sysdeps/mach/hurd/i386/exc2signal.c
+Index: glibc-2.31/sysdeps/mach/hurd/i386/exc2signal.c
+===================================================================
+--- glibc-2.31.orig/sysdeps/mach/hurd/i386/exc2signal.c
++++ glibc-2.31/sysdeps/mach/hurd/i386/exc2signal.c
 @@ -23,8 +23,8 @@
  /* Translate the Mach exception codes, as received in an `exception_raise' RPC,
     into a signal number and signal subcode.  */
@@ -198,7 +212,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  {
    detail->error = 0;
  
-@@ -36,44 +36,62 @@
+@@ -36,44 +36,62 @@ _hurd_exception2signal (struct hurd_sign
        break;
  
      case EXC_BAD_ACCESS:
@@ -279,7 +293,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  	  detail->code = 0;
  	  break;
  
-@@ -82,51 +100,43 @@
+@@ -82,51 +100,43 @@ _hurd_exception2signal (struct hurd_sign
  	     Give an error code corresponding to the first bit set.  */
  	  if (detail->exc_subcode & FPS_IE)
  	    {
@@ -342,7 +356,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  	  break;
  	}
        break;
-@@ -143,7 +153,7 @@
+@@ -143,7 +153,7 @@ _hurd_exception2signal (struct hurd_sign
        if (detail->exc_code == EXC_I386_BOUND)
  	{
  	  *signo = SIGFPE;
@@ -351,7 +365,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  	}
        else
  	{
-@@ -154,13 +164,34 @@
+@@ -154,13 +164,34 @@ _hurd_exception2signal (struct hurd_sign
  
      case EXC_BREAKPOINT:
        *signo = SIGTRAP;
@@ -392,8 +406,10 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
 +  exception2signal (detail, signo, 0);
 +}
 +
---- a/sysdeps/mach/hurd/i386/trampoline.c
-+++ b/sysdeps/mach/hurd/i386/trampoline.c
+Index: glibc-2.31/sysdeps/mach/hurd/i386/trampoline.c
+===================================================================
+--- glibc-2.31.orig/sysdeps/mach/hurd/i386/trampoline.c
++++ glibc-2.31/sysdeps/mach/hurd/i386/trampoline.c
 @@ -19,13 +19,66 @@
  #include <hurd/signal.h>
  #include <hurd/userlink.h>
@@ -461,7 +477,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  struct sigcontext *
  _hurd_setup_sighandler (struct hurd_sigstate *ss, __sighandler_t handler,
  			int signo, struct hurd_signal_detail *detail,
-@@ -43,15 +96,38 @@
+@@ -43,15 +96,38 @@ _hurd_setup_sighandler (struct hurd_sigs
    struct
      {
        int signo;
@@ -502,7 +518,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
    if (ss->context)
      {
        /* We have a previous sigcontext that sigreturn was about
-@@ -94,9 +170,13 @@
+@@ -94,9 +170,13 @@ _hurd_setup_sighandler (struct hurd_sigs
       the SP on sigreturn.  */
      state->basic.uesp = state->basic.ecx;
  
@@ -518,7 +534,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  
    if ((action->sa_flags & SA_ONSTACK)
        && !(ss->sigaltstack.ss_flags & (SS_DISABLE|SS_ONSTACK)))
-@@ -140,15 +220,9 @@
+@@ -140,15 +220,9 @@ _hurd_setup_sighandler (struct hurd_sigs
  	  = &stackframe->link.thread.next;
        ss->active_resources = &stackframe->link;
  
@@ -535,7 +551,7 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
        scp->sc_onstack = ss->sigaltstack.ss_flags & SS_ONSTACK ? 1 : 0;
  
        /* struct sigcontext is laid out so that starting at sc_gs mimics a
-@@ -162,6 +236,35 @@
+@@ -162,6 +236,35 @@ _hurd_setup_sighandler (struct hurd_sigs
  			      &state->fpu, &scp->sc_i386_float_state,
  			      sizeof (state->fpu));
  
@@ -571,9 +587,11 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
        _hurdsig_end_catch_fault ();
  
        if (! ok)
---- a/sysdeps/mach/hurd/kill.c
-+++ b/sysdeps/mach/hurd/kill.c
-@@ -64,7 +64,7 @@
+Index: glibc-2.31/sysdeps/mach/hurd/kill.c
+===================================================================
+--- glibc-2.31.orig/sysdeps/mach/hurd/kill.c
++++ glibc-2.31/sysdeps/mach/hurd/kill.c
+@@ -64,7 +64,7 @@ __kill (pid_t pid, int sig)
  	    {
  	      if (msgport != MACH_PORT_NULL)
  		/* Send a signal message to his message port.  */
@@ -582,9 +600,11 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  
  	      /* The process has no message port.  Perhaps try direct
  		 frobnication of the task.  */
---- a/sysdeps/mach/hurd/setitimer.c
-+++ b/sysdeps/mach/hurd/setitimer.c
-@@ -105,7 +105,7 @@
+Index: glibc-2.31/sysdeps/mach/hurd/setitimer.c
+===================================================================
+--- glibc-2.31.orig/sysdeps/mach/hurd/setitimer.c
++++ glibc-2.31/sysdeps/mach/hurd/setitimer.c
+@@ -105,7 +105,7 @@ timer_thread (void)
  	  __msg_sig_post_request (_hurd_msgport,
  				  _hurd_itimer_port,
  				  MACH_MSG_TYPE_MAKE_SEND_ONCE,
@@ -593,3 +613,21 @@ Subject: [PATCH] implement SA_SIGINFO signal handlers.
  	  break;
  
  	case MACH_RCV_INTERRUPTED:
+Index: glibc-2.31/sysdeps/mach/hurd/i386/sigcontextinfo.h
+===================================================================
+--- glibc-2.31.orig/sysdeps/mach/hurd/i386/sigcontextinfo.h
++++ glibc-2.31/sysdeps/mach/hurd/i386/sigcontextinfo.h
+@@ -18,11 +18,10 @@
+ #ifndef _SIGCONTEXTINFO_H
+ #define _SIGCONTEXTINFO_H
+ 
+-#define SIGCONTEXT struct sigcontext
+ static inline uintptr_t
+-sigcontext_get_pc (struct sigcontext ctx)
++sigcontext_get_pc (struct ucontext_t *ctx)
+ {
+-  return ctx.sc_eip;
++  return ctx->uc_mcontext.gregs[REG_EIP];
+ }
+ 
+ #endif
