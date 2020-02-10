@@ -397,6 +397,7 @@ test-xfail-tst-updwtmpx = yes
 # actually never succeded
 #test-xfail-tst-create_format1 = yes
 #test-xfail-tst-getcwd-abspath = yes
+test-xfail-test-fesetexcept-traps = yes
 # Assumes that self-locks are exclusive
 #test-xfail-tst-lockf = yes
 
