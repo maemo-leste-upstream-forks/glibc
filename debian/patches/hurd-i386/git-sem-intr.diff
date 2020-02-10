@@ -1,0 +1,162 @@
+commit b2cdf72e5c496153050551f0ce704e9ef08ffeac
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon Feb 10 00:52:50 2020 +0000
+
+    htl: Make sem_wait/sem_timedwait interruptible
+
+diff --git a/htl/Makefile b/htl/Makefile
+index 1b33748934..39294c64d1 100644
+--- a/htl/Makefile
++++ b/htl/Makefile
+@@ -108,6 +108,8 @@ libpthread-routines := pt-attr pt-attr-destroy pt-attr-getdetachstate	    \
+ 									    \
+ 	pt-block							    \
+ 	pt-timedblock							    \
++	pt-block-intr							    \
++	pt-timedblock-intr						    \
+ 	pt-wakeup							    \
+ 	pt-docancel							    \
+ 	pt-sysdep							    \
+diff --git a/htl/pt-internal.h b/htl/pt-internal.h
+index 8ffe1bd970..918c207c3e 100644
+--- a/htl/pt-internal.h
++++ b/htl/pt-internal.h
+@@ -270,6 +270,14 @@ extern error_t __pthread_timedblock (struct __pthread *__restrict thread,
+ 				     const struct timespec *__restrict abstime,
+ 				     clockid_t clock_id);
+ 
++/* Block THREAD with interrupts.  */
++extern error_t __pthread_block_intr (struct __pthread *thread);
++
++/* Block THREAD until *ABSTIME is reached, with interrupts.  */
++extern error_t __pthread_timedblock_intr (struct __pthread *__restrict thread,
++					  const struct timespec *__restrict abstime,
++					  clockid_t clock_id);
++
+ /* Wakeup THREAD.  */
+ extern void __pthread_wakeup (struct __pthread *thread);
+ 
+diff --git a/sysdeps/htl/sem-timedwait.c b/sysdeps/htl/sem-timedwait.c
+index 656da41184..a61acfd43f 100644
+--- a/sysdeps/htl/sem-timedwait.c
++++ b/sysdeps/htl/sem-timedwait.c
+@@ -30,6 +30,7 @@ __sem_timedwait_internal (sem_t *restrict sem,
+   error_t err;
+   int drain;
+   struct __pthread *self;
++  clockid_t clock_id = CLOCK_REALTIME;
+ 
+   __pthread_spin_lock (&sem->__lock);
+   if (sem->__value > 0)
+@@ -54,12 +55,9 @@ __sem_timedwait_internal (sem_t *restrict sem,
+ 
+   /* Block the thread.  */
+   if (timeout != NULL)
+-    err = __pthread_timedblock (self, timeout, CLOCK_REALTIME);
++    err = __pthread_timedblock_intr (self, timeout, clock_id);
+   else
+-    {
+-      err = 0;
+-      __pthread_block (self);
+-    }
++    err = __pthread_block_intr (self);
+ 
+   __pthread_spin_lock (&sem->__lock);
+   if (self->prevp == NULL)
+@@ -82,7 +80,7 @@ __sem_timedwait_internal (sem_t *restrict sem,
+ 
+   if (err)
+     {
+-      assert (err == ETIMEDOUT);
++      assert (err == ETIMEDOUT || err == EINTR);
+       errno = err;
+       return -1;
+     }
+diff --git a/sysdeps/mach/htl/pt-block-intr.c b/sysdeps/mach/htl/pt-block-intr.c
+new file mode 100644
+index 0000000000..f15beb3a0f
+--- /dev/null
++++ b/sysdeps/mach/htl/pt-block-intr.c
+@@ -0,0 +1,6 @@
++#include <pt-internal.h>
++#define RETTYPE error_t
++#define RETURN(val) return val
++#define __pthread_block __pthread_block_intr
++#define MSG_OPTIONS MACH_RCV_INTERRUPT
++#include "pt-block.c"
+diff --git a/sysdeps/mach/htl/pt-block.c b/sysdeps/mach/htl/pt-block.c
+index e1500dce33..28bae157d1 100644
+--- a/sysdeps/mach/htl/pt-block.c
++++ b/sysdeps/mach/htl/pt-block.c
+@@ -24,15 +24,30 @@
+ 
+ #include <pt-internal.h>
+ 
++#ifndef MSG_OPTIONS
++# define MSG_OPTIONS 0
++#endif
++
++#ifndef RETTYPE
++# define RETTYPE void
++#endif
++
++#ifndef RETURN
++# define RETURN(val)
++#endif
++
+ /* Block THREAD.  */
+-void
++RETTYPE
+ __pthread_block (struct __pthread *thread)
+ {
+   mach_msg_header_t msg;
+   error_t err;
+ 
+-  err = __mach_msg (&msg, MACH_RCV_MSG, 0, sizeof msg,
++  err = __mach_msg (&msg, MACH_RCV_MSG | MSG_OPTIONS, 0, sizeof msg,
+ 		    thread->wakeupmsg.msgh_remote_port,
+ 		    MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
++  if ((MSG_OPTIONS & MACH_RCV_INTERRUPT) && err == MACH_RCV_INTERRUPTED)
++    RETURN(EINTR);
+   assert_perror (err);
++  RETURN(0);
+ }
+diff --git a/sysdeps/mach/htl/pt-timedblock-intr.c b/sysdeps/mach/htl/pt-timedblock-intr.c
+new file mode 100644
+index 0000000000..70e132716b
+--- /dev/null
++++ b/sysdeps/mach/htl/pt-timedblock-intr.c
+@@ -0,0 +1,3 @@
++#define __pthread_timedblock __pthread_timedblock_intr
++#define MSG_OPTIONS MACH_RCV_INTERRUPT
++#include "pt-timedblock.c"
+diff --git a/sysdeps/mach/htl/pt-timedblock.c b/sysdeps/mach/htl/pt-timedblock.c
+index 63af869c90..ead070e397 100644
+--- a/sysdeps/mach/htl/pt-timedblock.c
++++ b/sysdeps/mach/htl/pt-timedblock.c
+@@ -26,6 +26,10 @@
+ 
+ #include <pt-internal.h>
+ 
++#ifndef MSG_OPTIONS
++# define MSG_OPTIONS 0
++#endif
++
+ /* Block THREAD.  */
+ error_t
+ __pthread_timedblock (struct __pthread *thread,
+@@ -54,11 +58,13 @@ __pthread_timedblock (struct __pthread *thread,
+     /* Need to do a carry.  */
+     timeout -= (now.tv_nsec - abstime->tv_nsec + 999999) / 1000000;
+ 
+-  err = __mach_msg (&msg, MACH_RCV_MSG | MACH_RCV_TIMEOUT, 0,
++  err = __mach_msg (&msg, MACH_RCV_MSG | MACH_RCV_TIMEOUT | MSG_OPTIONS, 0,
+ 		    sizeof msg, thread->wakeupmsg.msgh_remote_port,
+ 		    timeout, MACH_PORT_NULL);
+   if (err == EMACH_RCV_TIMED_OUT)
+     return ETIMEDOUT;
++  if ((MSG_OPTIONS & MACH_RCV_INTERRUPT) && err == MACH_RCV_INTERRUPTED)
++    return EINTR;
+ 
+   assert_perror (err);
+   return 0;
