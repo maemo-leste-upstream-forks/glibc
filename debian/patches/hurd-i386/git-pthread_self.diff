@@ -1,0 +1,31 @@
+commit ca843defbcbd2dc95b9342189e5dc430e9bcb743
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Feb 15 14:31:50 2020 +0000
+
+    htl: Only check pthread_self coherency when DEBUG is set
+    
+    htl has been widely tested for a long time now with this coherency
+    checked successfully.
+
+diff --git a/sysdeps/mach/hurd/htl/pt-sysdep.h b/sysdeps/mach/hurd/htl/pt-sysdep.h
+index c837415a9a..484d024bb0 100644
+--- a/sysdeps/mach/hurd/htl/pt-sysdep.h
++++ b/sysdeps/mach/hurd/htl/pt-sysdep.h
+@@ -32,6 +32,7 @@
+   mach_msg_header_t wakeupmsg;
+ 
+ extern __thread struct __pthread *___pthread_self;
++#ifdef DEBUG
+ #define _pthread_self()                                            \
+ 	({                                                         \
+ 	  struct __pthread *thread;                                \
+@@ -46,6 +47,9 @@ extern __thread struct __pthread *___pthread_self;
+                      ok; }));                                      \
+           thread;                                                  \
+          })
++#else
++#define _pthread_self() ___pthread_self
++#endif
+ 
+ extern inline void
+ __attribute__ ((__always_inline__))
