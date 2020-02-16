@@ -1,12 +1,15 @@
-commit 8f923e75945a6e829d5640ac412b5e9555e5ef9c
-Author: Fangrui Song <maskray@google.com>
-Date:   Tue Feb 4 22:09:22 2020 -0800
+From 624b3a0c9e4f2f421227bb3f331723dfe807f157 Mon Sep 17 00:00:00 2001
+From: Fangrui Song <maskray@google.com>
+Date: Tue, 4 Feb 2020 21:55:44 -0800
+Subject: [PATCH] Improve IFUNC check [BZ #25506]
 
-    Improve IFUNC check
-    
-    GNU ld's RISCV port does not support IFUNC. ld -no-pie produces no
-    relocation and the test passed incorrectly. Be more rigid by testing
-    IRELATIVE explicitly.
+GNU ld does not support IFUNC but does not produces a relocation.
+The test passed incorrectly. Be more rigid by testing IRELATIVE
+explicitly.
+---
+ configure    | 2 +-
+ configure.ac | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
 --- a/configure
 +++ b/configure
@@ -15,7 +18,7 @@ Date:   Tue Feb 4 22:09:22 2020 -0800
    # Do a link to see if the backend supports IFUNC relocs.
    $READELF -r conftest 1>&5
 -  LC_ALL=C $READELF -r conftest | grep 'no relocations' >/dev/null || {
-+  LC_ALL=C $READELF -Wr conftest | grep -q IRELATIVE && {
++  LC_ALL=C $READELF -Wr conftest | grep -q 'IRELATIVE\|R_SPARC_JMP_IREL' && {
      libc_cv_ld_gnu_indirect_function=yes
    }
  fi
@@ -26,7 +29,7 @@ Date:   Tue Feb 4 22:09:22 2020 -0800
    # Do a link to see if the backend supports IFUNC relocs.
    $READELF -r conftest 1>&AS_MESSAGE_LOG_FD
 -  LC_ALL=C $READELF -r conftest | grep 'no relocations' >/dev/null || {
-+  LC_ALL=C $READELF -Wr conftest | grep -q IRELATIVE && {
++  LC_ALL=C $READELF -Wr conftest | grep -q 'IRELATIVE\|R_SPARC_JMP_IREL' && {
      libc_cv_ld_gnu_indirect_function=yes
    }
  fi
