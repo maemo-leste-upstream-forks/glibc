@@ -160,13 +160,6 @@ then
         # Skip if systemd is the active PID 1, since systemd doesn't
         # need a reexec for a clean shutdown
         TELINIT=no
-    elif [ -x "`which initctl`" ]; then
-        UPSTART=$(initctl version 2>/dev/null | awk '/upstart/ {print $3}' | tr -d ')')
-        if dpkg --compare-versions "$UPSTART" lt-nl 1.6.1; then
-            # This is an old upstart that can't re-exec statefully:
-            TELINIT=no
-            touch /var/run/init.upgraded
-        fi
     fi
     if [ "$TELINIT" = "yes" ]; then
         telinit u 2>/dev/null || true ; sleep 1

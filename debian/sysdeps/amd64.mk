@@ -15,7 +15,6 @@ libc6-i386_shlib_dep = libc6-i386 (>= $(shlib_dep_ver))
 i386_configure_target = i686-linux-gnu
 i386_CC = $(CC) -m32
 i386_CXX = $(CXX) -m32
-i386_crypt = yes
 i386_slibdir = /lib32
 i386_libdir = /usr/lib32
 
@@ -51,7 +50,6 @@ x32_configure_target = x86_64-linux-gnux32
 x32_CC = $(CC) -mx32
 x32_CXX = $(CXX) -mx32
 x32_mvec = yes
-x32_crypt = yes
 x32_rtlddir = /libx32
 x32_slibdir = /libx32
 x32_libdir = /usr/libx32

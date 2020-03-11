@@ -14,7 +14,6 @@ libc6-powerpc_shlib_dep = libc6-powerpc (>= $(shlib_dep_ver))
 powerpc_configure_target = powerpc-linux-gnu
 powerpc_CC = $(CC) -m32
 powerpc_CXX = $(CXX) -m32
-powerpc_crypt = yes
 powerpc_slibdir = /lib32
 powerpc_libdir = /usr/lib32
 

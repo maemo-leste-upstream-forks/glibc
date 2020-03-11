@@ -56,7 +56,7 @@ glibc (2.31-0experimental0) UNRELEASED; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Sat, 08 Feb 2020 13:52:09 +0100
 
-glibc (2.30-0experimental3) UNRELEASED; urgency=medium
+glibc (2.30-1) unstable; urgency=medium
 
   [ Samuel Thibault ]
   * testsuite-xfail-debian.mk: Update non-regressions.
@@ -78,13 +78,20 @@ glibc (2.30-0experimental3) UNRELEASED; urgency=medium
   [ Aurelien Jarno ]
   * debian/patches/any/local-revert-24323.diff: drop, obsolete.
   * debian/control.in/libc: add a Breaks: against wcc (<< 0.0.2+dfsg-3).
-  * debian/patches/any/submitted-stt-gnu-ifunc-detection.patch: update to
-    version 2 of the patch to fix the wrong detection on sparc.
   * debian/patches/git-updates.diff: update from upstream stable branch:
     - Fix argument passing for inlined syscalls on mips* and riscv64.
       Closes: #951237.
+    - Fix stack corruption in trigonometric functions when passing a
+      pseudo-zero argument on x86 (CVE-2020-10029).  Closes: #953108.
+    - debian/patches/any/submitted-stt-gnu-ifunc-detection.patch: upstreamed.
+  * debian/sysdeps/*.mk: stop building libcrypt for multilib packages.
+    Closes: #951880.
+  * debian/debhelper.in/libc.postinst: drop upstart support.
+  * debian/patches/any/local-revert-glibc_has_include.diff: partial revert
+    of upstream commit bfa864e1645e until gcc stops providing fix-includes.
+    Closes: #953083.
 
- -- Samuel Thibault <sthibault@debian.org>  Sat, 08 Feb 2020 03:08:56 +0100
+ -- Aurelien Jarno <aurel32@debian.org>  Wed, 11 Mar 2020 22:02:51 +0100
 
 glibc (2.30-0experimental2) experimental; urgency=medium
 
