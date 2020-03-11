@@ -220,10 +220,10 @@ index cdb9e14881..bc2f4aae69 100644
  
  	* version.h (RELEASE): Set to "stable".
 diff --git a/NEWS b/NEWS
-index ee9ed4de5a..555d3b9a09 100644
+index ee9ed4de5a..0c4a78c3d5 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -4,6 +4,39 @@ See the end for copying conditions.
+@@ -4,6 +4,44 @@ See the end for copying conditions.
  
  Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
@@ -237,6 +237,10 @@ index ee9ed4de5a..555d3b9a09 100644
 +  transition, allowing local attackers to restrict the possible mapping
 +  addresses for loaded libraries and thus bypass ASLR for a setuid
 +  program.  Reported by Marcin Kościelnicki.
++
++CVE-2020-10029: Trigonometric functions on x86 targets suffered from stack
++  corruption when they were passed a pseudo-zero argument.  Reported by Guido
++  Vranken / ForAllSecure Mayhem.
 +
 +The following bugs are resolved with this release:
 +
@@ -258,6 +262,7 @@ index ee9ed4de5a..555d3b9a09 100644
 +  [25225] ld.so fails to link on x86 if GCC defaults to -fcf-protection
 +  [25232] No const correctness for strchr et al. for Clang++
 +  [25401] Remove incorrect alloc_size attribute from pvalloc
++  [25487] sinl() stack corruption from crafted input (CVE-2020-10029)
 +  [25523] MIPS/Linux inline syscall template is miscompiled
 +
  
@@ -394,7 +399,7 @@ index 4c36ca19ce..854b342164 100644
 +#define _HAVE_UT_TV	1
 +#define _HAVE_UT_HOST	1
 diff --git a/configure b/configure
-index c773c487b5..6d26b8246f 100755
+index c773c487b5..83ae6899c5 100755
 --- a/configure
 +++ b/configure
 @@ -3777,11 +3777,32 @@ else
@@ -431,8 +436,17 @@ index c773c487b5..6d26b8246f 100755
  fi
  
  
+@@ -4014,7 +4035,7 @@ if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS \
+ 	    -o conftest conftest.S 1>&5 2>&5; then
+   # Do a link to see if the backend supports IFUNC relocs.
+   $READELF -r conftest 1>&5
+-  LC_ALL=C $READELF -r conftest | grep 'no relocations' >/dev/null || {
++  LC_ALL=C $READELF -Wr conftest | grep -q 'IRELATIVE\|R_SPARC_JMP_IREL' && {
+     libc_cv_ld_gnu_indirect_function=yes
+   }
+ fi
 diff --git a/configure.ac b/configure.ac
-index 598ba6c4ae..7436485419 100644
+index 598ba6c4ae..51b85359ee 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -472,11 +472,18 @@ AC_ARG_ENABLE([mathvec],
@@ -455,6 +469,15 @@ index 598ba6c4ae..7436485419 100644
  
  # We keep the original values in `$config_*' and never modify them, so we
  # can write them unchanged into config.make.  Everything else uses
+@@ -641,7 +648,7 @@ if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS \
+ 	    -o conftest conftest.S 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD; then
+   # Do a link to see if the backend supports IFUNC relocs.
+   $READELF -r conftest 1>&AS_MESSAGE_LOG_FD
+-  LC_ALL=C $READELF -r conftest | grep 'no relocations' >/dev/null || {
++  LC_ALL=C $READELF -Wr conftest | grep -q 'IRELATIVE\|R_SPARC_JMP_IREL' && {
+     libc_cv_ld_gnu_indirect_function=yes
+   }
+ fi
 diff --git a/elf/dl-tunables.list b/elf/dl-tunables.list
 index 1fc2d8886b..525c3767b5 100644
 --- a/elf/dl-tunables.list
@@ -2386,6 +2409,118 @@ index 70d8282bdc..f62c6c594c 100644
  
  /* Underlying allocation function; successive calls should return
     contiguous pieces of memory.  */
+diff --git a/malloc/tst-mallocfork2.c b/malloc/tst-mallocfork2.c
+index 30e7abe6fd..c21e4d779a 100644
+--- a/malloc/tst-mallocfork2.c
++++ b/malloc/tst-mallocfork2.c
+@@ -62,6 +62,9 @@ static volatile sig_atomic_t sigusr1_received;
+    progress.  Checked by liveness_signal_handler.  */
+ static volatile sig_atomic_t progress_indicator = 1;
+ 
++/* Set to 1 if an error occurs in the signal handler.  */
++static volatile sig_atomic_t error_indicator = 0;
++
+ static void
+ sigusr1_handler (int signo)
+ {
+@@ -72,7 +75,8 @@ sigusr1_handler (int signo)
+   if (pid == -1)
+     {
+       write_message ("error: fork\n");
+-      abort ();
++      error_indicator = 1;
++      return;
+     }
+   if (pid == 0)
+     _exit (0);
+@@ -81,12 +85,14 @@ sigusr1_handler (int signo)
+   if (ret < 0)
+     {
+       write_message ("error: waitpid\n");
+-      abort ();
++      error_indicator = 1;
++      return;
+     }
+   if (status != 0)
+     {
+       write_message ("error: unexpected exit status from subprocess\n");
+-      abort ();
++      error_indicator = 1;
++      return;
+     }
+ }
+ 
+@@ -122,9 +128,25 @@ signal_sender (int signo, bool sleep)
+     }
+ }
+ 
++/* Children processes.  */
++static pid_t sigusr1_sender_pids[5] = { 0 };
++static pid_t sigusr2_sender_pid = 0;
++
++static void
++kill_children (void)
++{
++  for (size_t i = 0; i < array_length (sigusr1_sender_pids); ++i)
++    if (sigusr1_sender_pids[i] > 0)
++      kill (sigusr1_sender_pids[i], SIGKILL);
++  if (sigusr2_sender_pid > 0)
++    kill (sigusr2_sender_pid, SIGKILL);
++}
++
+ static int
+ do_test (void)
+ {
++  atexit (kill_children);
++
+   /* shared->barrier is intialized along with sigusr1_sender_pids
+      below.  */
+   shared = support_shared_allocate (sizeof (*shared));
+@@ -148,14 +170,13 @@ do_test (void)
+       return 1;
+     }
+ 
+-  pid_t sigusr2_sender_pid = xfork ();
++  sigusr2_sender_pid = xfork ();
+   if (sigusr2_sender_pid == 0)
+     signal_sender (SIGUSR2, true);
+ 
+   /* Send SIGUSR1 signals from several processes.  Hopefully, one
+      signal will hit one of the ciritical functions.  Use a barrier to
+      avoid sending signals while not running fork/free/malloc.  */
+-  pid_t sigusr1_sender_pids[5];
+   {
+     pthread_barrierattr_t attr;
+     xpthread_barrierattr_init (&attr);
+@@ -166,7 +187,7 @@ do_test (void)
+   }
+   for (size_t i = 0; i < array_length (sigusr1_sender_pids); ++i)
+     {
+-      sigusr1_sender_pids[i] = fork ();
++      sigusr1_sender_pids[i] = xfork ();
+       if (sigusr1_sender_pids[i] == 0)
+         signal_sender (SIGUSR1, false);
+     }
+@@ -211,7 +232,7 @@ do_test (void)
+         ++malloc_signals;
+       xpthread_barrier_wait (&shared->barrier);
+ 
+-      if (objects[slot] == NULL)
++      if (objects[slot] == NULL || error_indicator != 0)
+         {
+           printf ("error: malloc: %m\n");
+           for (size_t i = 0; i < array_length (sigusr1_sender_pids); ++i)
+@@ -225,10 +246,6 @@ do_test (void)
+   for (int slot = 0; slot < malloc_objects; ++slot)
+     free (objects[slot]);
+ 
+-  for (size_t i = 0; i < array_length (sigusr1_sender_pids); ++i)
+-    kill (sigusr1_sender_pids[i], SIGKILL);
+-  kill (sigusr2_sender_pid, SIGKILL);
+-
+   printf ("info: signals received during fork: %u\n", fork_signals);
+   printf ("info: signals received during free: %u\n", free_signals);
+   printf ("info: signals received during malloc: %u\n", malloc_signals);
 diff --git a/malloc/tst-mxfast.c b/malloc/tst-mxfast.c
 new file mode 100644
 index 0000000000..7a7750bc71
@@ -3062,6 +3197,90 @@ index d0c4dea001..2c61a7ae91 100644
  ifloat: 1
  
  Function: "exp10_upward":
+diff --git a/sysdeps/ieee754/ldbl-96/Makefile b/sysdeps/ieee754/ldbl-96/Makefile
+index b103254214..4142695ec8 100644
+--- a/sysdeps/ieee754/ldbl-96/Makefile
++++ b/sysdeps/ieee754/ldbl-96/Makefile
+@@ -17,5 +17,8 @@
+ # <http://www.gnu.org/licenses/>.
+ 
+ ifeq ($(subdir),math)
+-tests += test-canonical-ldbl-96 test-totalorderl-ldbl-96
++tests += test-canonical-ldbl-96 test-totalorderl-ldbl-96 test-sinl-pseudo
++ifeq ($(have-ssp),yes)
++CFLAGS-test-sinl-pseudo.c += -fstack-protector-all
+ endif
++endif # $(subdir) == math
+diff --git a/sysdeps/ieee754/ldbl-96/e_rem_pio2l.c b/sysdeps/ieee754/ldbl-96/e_rem_pio2l.c
+index 805de22d73..1aeccb47d7 100644
+--- a/sysdeps/ieee754/ldbl-96/e_rem_pio2l.c
++++ b/sysdeps/ieee754/ldbl-96/e_rem_pio2l.c
+@@ -210,6 +210,18 @@ __ieee754_rem_pio2l (long double x, long double *y)
+       return 0;
+     }
+ 
++  if ((i0 & 0x80000000) == 0)
++    {
++      /* Pseudo-zero and unnormal representations are not valid
++	 representations of long double.  We need to avoid stack
++	 corruption in __kernel_rem_pio2, which expects input in a
++	 particular normal form, but those representations do not need
++	 to be consistently handled like any particular floating-point
++	 value.  */
++      y[1] = y[0] = __builtin_nanl ("");
++      return 0;
++    }
++
+   /* Split the 64 bits of the mantissa into three 24-bit integers
+      stored in a double array.  */
+   exp = j0 - 23;
+diff --git a/sysdeps/ieee754/ldbl-96/test-sinl-pseudo.c b/sysdeps/ieee754/ldbl-96/test-sinl-pseudo.c
+new file mode 100644
+index 0000000000..f59b97769d
+--- /dev/null
++++ b/sysdeps/ieee754/ldbl-96/test-sinl-pseudo.c
+@@ -0,0 +1,41 @@
++/* Test sinl for pseudo-zeros and unnormals for ldbl-96 (bug 25487).
++   Copyright (C) 2020 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <math.h>
++#include <math_ldbl.h>
++#include <stdint.h>
++
++static int
++do_test (void)
++{
++  for (int i = 0; i < 64; i++)
++    {
++      uint64_t sig = i == 63 ? 0 : 1ULL << i;
++      long double ld;
++      SET_LDOUBLE_WORDS (ld, 0x4141,
++			 sig >> 32, sig & 0xffffffffULL);
++      /* The requirement is that no stack overflow occurs when the
++	 pseudo-zero or unnormal goes through range reduction.  */
++      volatile long double ldr;
++      ldr = sinl (ld);
++      (void) ldr;
++    }
++  return 0;
++}
++
++#include <support/test-driver.c>
 diff --git a/sysdeps/s390/dl-procinfo.c b/sysdeps/s390/dl-procinfo.c
 index 44c9901800..1307ec41de 100644
 --- a/sysdeps/s390/dl-procinfo.c
