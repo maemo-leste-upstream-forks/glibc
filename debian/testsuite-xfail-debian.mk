@@ -317,8 +317,6 @@ test-xfail-test-fenv-sse-2 = yes
 # new in 2.24
 test-xfail-tst-execvpe5 = yes
 test-xfail-tst-spawn2 = yes
-test-xfail-tst-support_record_failure = yes
-test-xfail-tst-support_record_failure-2 = yes
 
 # fails randomly
 test-xfail-tst-preadvwritev64 = yes
