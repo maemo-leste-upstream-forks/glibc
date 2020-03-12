@@ -253,6 +253,7 @@ endif
 	  mv debian/tmp-$(curpass)/usr/include/fpu_control.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
 	  mv debian/tmp-$(curpass)/usr/include/a.out.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
 	  mv debian/tmp-$(curpass)/usr/include/ieee754.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
+	  rm -rf debian/tmp-$(curpass)/usr/include/finclude ; \
 	fi
 
 ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
