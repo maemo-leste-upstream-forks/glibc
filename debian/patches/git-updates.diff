@@ -220,10 +220,10 @@ index cdb9e14881..bc2f4aae69 100644
  
  	* version.h (RELEASE): Set to "stable".
 diff --git a/NEWS b/NEWS
-index ee9ed4de5a..0c4a78c3d5 100644
+index ee9ed4de5a..d966688a56 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -4,6 +4,44 @@ See the end for copying conditions.
+@@ -4,6 +4,47 @@ See the end for copying conditions.
  
  Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
@@ -241,6 +241,9 @@ index ee9ed4de5a..0c4a78c3d5 100644
 +CVE-2020-10029: Trigonometric functions on x86 targets suffered from stack
 +  corruption when they were passed a pseudo-zero argument.  Reported by Guido
 +  Vranken / ForAllSecure Mayhem.
++
++CVE-2020-1752: A use-after-free vulnerability in the glob function when
++  expanding ~user has been fixed.
 +
 +The following bugs are resolved with this release:
 +
@@ -478,6 +481,29 @@ index 598ba6c4ae..51b85359ee 100644
      libc_cv_ld_gnu_indirect_function=yes
    }
  fi
+diff --git a/debug/tst-backtrace5.c b/debug/tst-backtrace5.c
+index 5a5ce8bc79..aed5ee4c94 100644
+--- a/debug/tst-backtrace5.c
++++ b/debug/tst-backtrace5.c
+@@ -89,6 +89,18 @@ handle_signal (int signum)
+       }
+   /* Symbol names are not available for static functions, so we do not
+      check do_test.  */
++
++  /* Check that backtrace does not return more than what fits in the array
++     (bug 25423).  */
++  for (int j = 0; j < NUM_FUNCTIONS; j++)
++    {
++      n = backtrace (addresses, j);
++      if (n > j)
++	{
++	  FAIL ();
++	  return;
++	}
++    }
+ }
+ 
+ NO_INLINE int
 diff --git a/elf/dl-tunables.list b/elf/dl-tunables.list
 index 1fc2d8886b..525c3767b5 100644
 --- a/elf/dl-tunables.list
@@ -2650,6 +2676,55 @@ index f1bd994a10..b1695376dc 100644
  #if (!defined _Noreturn \
       && (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) < 201112 \
       &&  !__GNUC_PREREQ (4,7))
+diff --git a/posix/glob.c b/posix/glob.c
+index e73e35c510..c6cbd0eb43 100644
+--- a/posix/glob.c
++++ b/posix/glob.c
+@@ -827,31 +827,32 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
+ 	      {
+ 		size_t home_len = strlen (p->pw_dir);
+ 		size_t rest_len = end_name == NULL ? 0 : strlen (end_name);
+-		char *d;
++		char *d, *newp;
++		bool use_alloca = glob_use_alloca (alloca_used,
++						   home_len + rest_len + 1);
+ 
+-		if (__glibc_unlikely (malloc_dirname))
+-		  free (dirname);
+-		malloc_dirname = 0;
+-
+-		if (glob_use_alloca (alloca_used, home_len + rest_len + 1))
+-		  dirname = alloca_account (home_len + rest_len + 1,
+-					    alloca_used);
++		if (use_alloca)
++		  newp = alloca_account (home_len + rest_len + 1, alloca_used);
+ 		else
+ 		  {
+-		    dirname = malloc (home_len + rest_len + 1);
+-		    if (dirname == NULL)
++		    newp = malloc (home_len + rest_len + 1);
++		    if (newp == NULL)
+ 		      {
+ 			scratch_buffer_free (&pwtmpbuf);
+ 			retval = GLOB_NOSPACE;
+ 			goto out;
+ 		      }
+-		    malloc_dirname = 1;
+ 		  }
+-		d = mempcpy (dirname, p->pw_dir, home_len);
++		d = mempcpy (newp, p->pw_dir, home_len);
+ 		if (end_name != NULL)
+ 		  d = mempcpy (d, end_name, rest_len);
+ 		*d = '\0';
+ 
++		if (__glibc_unlikely (malloc_dirname))
++		  free (dirname);
++		dirname = newp;
++		malloc_dirname = !use_alloca;
++
+ 		dirlen = home_len + rest_len;
+ 		dirname_modified = 1;
+ 	      }
 diff --git a/string/string.h b/string/string.h
 index c38eea971f..608ed496b9 100644
 --- a/string/string.h
@@ -3281,6 +3356,32 @@ index 0000000000..f59b97769d
 +}
 +
 +#include <support/test-driver.c>
+diff --git a/sysdeps/powerpc/powerpc32/backtrace.c b/sysdeps/powerpc/powerpc32/backtrace.c
+index 857a8aad7b..dc187a8f20 100644
+--- a/sysdeps/powerpc/powerpc32/backtrace.c
++++ b/sysdeps/powerpc/powerpc32/backtrace.c
+@@ -114,6 +114,8 @@ __backtrace (void **array, int size)
+         }
+       if (gregset)
+ 	{
++	  if (count + 1 == size)
++	    break;
+ 	  array[++count] = (void*)((*gregset)[PT_NIP]);
+ 	  current = (void*)((*gregset)[PT_R1]);
+ 	}
+diff --git a/sysdeps/powerpc/powerpc64/backtrace.c b/sysdeps/powerpc/powerpc64/backtrace.c
+index 7a167838d9..ce038a139f 100644
+--- a/sysdeps/powerpc/powerpc64/backtrace.c
++++ b/sysdeps/powerpc/powerpc64/backtrace.c
+@@ -87,6 +87,8 @@ __backtrace (void **array, int size)
+       if (is_sigtramp_address (current->return_address))
+         {
+ 	  struct signal_frame_64 *sigframe = (struct signal_frame_64*) current;
++	  if (count + 1 == size)
++	    break;
+           array[++count] = (void*) sigframe->uc.uc_mcontext.gp_regs[PT_NIP];
+ 	  current = (void*) sigframe->uc.uc_mcontext.gp_regs[PT_R1];
+ 	}
 diff --git a/sysdeps/s390/dl-procinfo.c b/sysdeps/s390/dl-procinfo.c
 index 44c9901800..1307ec41de 100644
 --- a/sysdeps/s390/dl-procinfo.c
