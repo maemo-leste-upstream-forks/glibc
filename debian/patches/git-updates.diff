@@ -220,10 +220,10 @@ index cdb9e14881..bc2f4aae69 100644
  
  	* version.h (RELEASE): Set to "stable".
 diff --git a/NEWS b/NEWS
-index ee9ed4de5a..d966688a56 100644
+index ee9ed4de5a..3cc88716b9 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -4,6 +4,47 @@ See the end for copying conditions.
+@@ -4,6 +4,53 @@ See the end for copying conditions.
  
  Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
@@ -242,11 +242,15 @@ index ee9ed4de5a..d966688a56 100644
 +  corruption when they were passed a pseudo-zero argument.  Reported by Guido
 +  Vranken / ForAllSecure Mayhem.
 +
++CVE-2020-1751: A defect in the PowerPC backtrace function could cause an
++  out-of-bounds write when executed in a signal frame context.
++
 +CVE-2020-1752: A use-after-free vulnerability in the glob function when
 +  expanding ~user has been fixed.
 +
 +The following bugs are resolved with this release:
 +
++  [20543] Please move from .gnu.linkonce to comdat
 +  [23518] login: Remove utmp backend jump tables
 +  [24682] localedata: zh_CN first weekday should be Monday per GB/T
 +    7408-2005
@@ -267,6 +271,8 @@ index ee9ed4de5a..d966688a56 100644
 +  [25401] Remove incorrect alloc_size attribute from pvalloc
 +  [25487] sinl() stack corruption from crafted input (CVE-2020-10029)
 +  [25523] MIPS/Linux inline syscall template is miscompiled
++  [25635] arm: Wrong sysdep order selection for soft-fp
++  [25715] system() returns wrong errors when posix_spawn fails
 +
  
  Version 2.30
@@ -2725,6 +2731,143 @@ index e73e35c510..c6cbd0eb43 100644
  		dirlen = home_len + rest_len;
  		dirname_modified = 1;
  	      }
+diff --git a/stdlib/tst-system.c b/stdlib/tst-system.c
+index 06afbf24c7..09a5c05cab 100644
+--- a/stdlib/tst-system.c
++++ b/stdlib/tst-system.c
+@@ -17,14 +17,128 @@
+    <http://www.gnu.org/licenses/>.  */
+ 
+ #include <stdlib.h>
++#include <unistd.h>
++#include <string.h>
++#include <signal.h>
++#include <paths.h>
+ 
++#include <support/capture_subprocess.h>
++#include <support/check.h>
++#include <support/temp_file.h>
++#include <support/support.h>
++
++static char *tmpdir;
++static long int namemax;
++
++static void
++do_prepare (int argc, char *argv[])
++{
++  tmpdir = support_create_temp_directory ("tst-system-");
++  /* Include the last '/0'.  */
++  namemax = pathconf (tmpdir, _PC_NAME_MAX) + 1;
++  TEST_VERIFY_EXIT (namemax != -1);
++}
++#define PREPARE do_prepare
++
++struct args
++{
++  const char *command;
++  int exit_status;
++  int term_sig;
++  const char *path;
++};
++
++static void
++call_system (void *closure)
++{
++  struct args *args = (struct args *) closure;
++  int ret;
++
++  if (args->path != NULL)
++    TEST_COMPARE (setenv ("PATH", args->path, 1), 0);
++  ret = system (args->command);
++  if (args->term_sig == 0)
++    {
++      /* Expect regular termination.  */
++      TEST_VERIFY (WIFEXITED (ret) != 0);
++      TEST_COMPARE (WEXITSTATUS (ret), args->exit_status);
++    }
++  else
++    {
++      /* status_or_signal < 0.  Expect termination by signal.  */
++      TEST_VERIFY (WIFSIGNALED (ret) != 0);
++      TEST_COMPARE (WTERMSIG (ret), args->term_sig);
++    }
++}
+ 
+ static int
+ do_test (void)
+ {
+-  return system (":");
+-}
++  TEST_VERIFY (system (NULL) != 0);
+ 
++  {
++    char cmd[namemax];
++    memset (cmd, 'a', sizeof(cmd));
++    cmd[sizeof(cmd) - 1] = '\0';
++
++    struct support_capture_subprocess result;
++    result = support_capture_subprocess (call_system,
++					 &(struct args) {
++					   cmd, 127, 0, tmpdir
++					 });
++    support_capture_subprocess_check (&result, "system", 0, sc_allow_stderr);
++
++    char *returnerr = xasprintf ("%s: 1: %s: not found\n",
++				 basename(_PATH_BSHELL), cmd);
++    TEST_COMPARE_STRING (result.err.buffer, returnerr);
++    free (returnerr);
++  }
++
++  {
++    char cmd[namemax + 1];
++    memset (cmd, 'a', sizeof(cmd));
++    cmd[sizeof(cmd) - 1] = '\0';
++
++    struct support_capture_subprocess result;
++    result = support_capture_subprocess (call_system,
++					 &(struct args) {
++					   cmd, 127, 0, tmpdir
++					 });
++    support_capture_subprocess_check (&result, "system", 0, sc_allow_stderr);
++
++    char *returnerr = xasprintf ("%s: 1: %s: File name too long\n",
++				 basename(_PATH_BSHELL), cmd);
++    TEST_COMPARE_STRING (result.err.buffer, returnerr);
++    free (returnerr);
++  }
++
++  {
++    struct support_capture_subprocess result;
++    result = support_capture_subprocess (call_system,
++					 &(struct args) {
++					   "kill -USR1 $$", 0, SIGUSR1
++					 });
++    support_capture_subprocess_check (&result, "system", 0, sc_allow_none);
++  }
++
++  {
++    struct support_capture_subprocess result;
++    result = support_capture_subprocess (call_system,
++					 &(struct args) { "echo ...", 0 });
++    support_capture_subprocess_check (&result, "system", 0, sc_allow_stdout);
++    TEST_COMPARE_STRING (result.out.buffer, "...\n");
++  }
++
++  {
++    struct support_capture_subprocess result;
++    result = support_capture_subprocess (call_system,
++					 &(struct args) { "exit 1", 1 });
++    support_capture_subprocess_check (&result, "system", 0, sc_allow_none);
++  }
++
++  TEST_COMPARE (system (":"), 0);
++
++  return 0;
++}
+ 
+-#define TEST_FUNCTION do_test ()
+-#include "../test-skeleton.c"
++#include <support/test-driver.c>
 diff --git a/string/string.h b/string/string.h
 index c38eea971f..608ed496b9 100644
 --- a/string/string.h
@@ -2829,6 +2972,20 @@ index 0f77dd2ed0..89c4527a81 100644
  ildouble: 6
  ldouble: 6
  
+diff --git a/sysdeps/arm/be/nofpu/Implies b/sysdeps/arm/be/nofpu/Implies
+new file mode 100644
+index 0000000000..c90dd7fd5c
+--- /dev/null
++++ b/sysdeps/arm/be/nofpu/Implies
+@@ -0,0 +1 @@
++arm/nofpu
+diff --git a/sysdeps/arm/le/nofpu/Implies b/sysdeps/arm/le/nofpu/Implies
+new file mode 100644
+index 0000000000..c90dd7fd5c
+--- /dev/null
++++ b/sysdeps/arm/le/nofpu/Implies
+@@ -0,0 +1 @@
++arm/nofpu
 diff --git a/sysdeps/generic/not-cancel.h b/sysdeps/generic/not-cancel.h
 index f3d862651e..724c3e5e71 100644
 --- a/sysdeps/generic/not-cancel.h
@@ -3272,6 +3429,29 @@ index d0c4dea001..2c61a7ae91 100644
  ifloat: 1
  
  Function: "exp10_upward":
+diff --git a/sysdeps/i386/sysdep.h b/sysdeps/i386/sysdep.h
+index 749b55b077..eee6d586c1 100644
+--- a/sysdeps/i386/sysdep.h
++++ b/sysdeps/i386/sysdep.h
+@@ -61,7 +61,7 @@ lose: SYSCALL_PIC_SETUP							      \
+ 
+ # define SETUP_PIC_REG(reg) \
+   .ifndef GET_PC_THUNK(reg);						      \
+-  .section .gnu.linkonce.t.GET_PC_THUNK(reg),"ax",@progbits;		      \
++  .section .text.GET_PC_THUNK(reg),"axG",@progbits,GET_PC_THUNK(reg),comdat;  \
+   .globl GET_PC_THUNK(reg);						      \
+   .hidden GET_PC_THUNK(reg);						      \
+   .p2align 4;								      \
+@@ -97,7 +97,8 @@ GET_PC_THUNK(reg):							      \
+ 
+ # define SETUP_PIC_REG_STR(reg)						\
+   ".ifndef " GET_PC_THUNK_STR (reg) "\n"				\
+-  ".section .gnu.linkonce.t." GET_PC_THUNK_STR (reg) ",\"ax\",@progbits\n" \
++  ".section .text." GET_PC_THUNK_STR (reg) ",\"axG\",@progbits,"	\
++    GET_PC_THUNK_STR (reg) ",comdat\n"					\
+   ".globl " GET_PC_THUNK_STR (reg) "\n"					\
+   ".hidden " GET_PC_THUNK_STR (reg) "\n"				\
+   ".p2align 4\n"							\
 diff --git a/sysdeps/ieee754/ldbl-96/Makefile b/sysdeps/ieee754/ldbl-96/Makefile
 index b103254214..4142695ec8 100644
 --- a/sysdeps/ieee754/ldbl-96/Makefile
@@ -3356,6 +3536,51 @@ index 0000000000..f59b97769d
 +}
 +
 +#include <support/test-driver.c>
+diff --git a/sysdeps/posix/system.c b/sysdeps/posix/system.c
+index a08d328b23..863d7c016f 100644
+--- a/sysdeps/posix/system.c
++++ b/sysdeps/posix/system.c
+@@ -97,7 +97,8 @@ cancel_handler (void *arg)
+ static int
+ do_system (const char *line)
+ {
+-  int status;
++  int status = -1;
++  int ret;
+   pid_t pid;
+   struct sigaction sa;
+ #ifndef _LIBC_REENTRANT
+@@ -140,14 +141,14 @@ do_system (const char *line)
+   __posix_spawnattr_setflags (&spawn_attr,
+ 			      POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETSIGMASK);
+ 
+-  status = __posix_spawn (&pid, SHELL_PATH, 0, &spawn_attr,
+-			  (char *const[]){ (char*) SHELL_NAME,
+-					   (char*) "-c",
+-					   (char *) line, NULL },
+-			  __environ);
++  ret = __posix_spawn (&pid, SHELL_PATH, 0, &spawn_attr,
++		       (char *const[]){ (char *) SHELL_NAME,
++					(char *) "-c",
++					(char *) line, NULL },
++		       __environ);
+   __posix_spawnattr_destroy (&spawn_attr);
+ 
+-  if (status == 0)
++  if (ret == 0)
+     {
+       /* Cancellation results in cleanup handlers running as exceptions in
+ 	 the block where they were installed, so it is safe to reference
+@@ -182,6 +183,9 @@ do_system (const char *line)
+     }
+   DO_UNLOCK ();
+ 
++  if (ret != 0)
++    __set_errno (ret);
++
+   return status;
+ }
+ 
 diff --git a/sysdeps/powerpc/powerpc32/backtrace.c b/sysdeps/powerpc/powerpc32/backtrace.c
 index 857a8aad7b..dc187a8f20 100644
 --- a/sysdeps/powerpc/powerpc32/backtrace.c
@@ -5208,6 +5433,169 @@ index ea3e860a2d..737d9dca05 100644
    struct __exit_status ut_exit;	/* Exit status of a process marked
  				   as DEAD_PROCESS.  */
  
+diff --git a/sysdeps/unix/sysv/linux/sparc/Makefile b/sysdeps/unix/sysv/linux/sparc/Makefile
+index fb3ee5b8a1..7b91ff1824 100644
+--- a/sysdeps/unix/sysv/linux/sparc/Makefile
++++ b/sysdeps/unix/sysv/linux/sparc/Makefile
+@@ -15,8 +15,12 @@ ifeq ($(subdir),sysvipc)
+ sysdep_routines += getshmlba
+ endif
+ 
++ifeq ($(subdir),signal)
++sysdep_routines += sigreturn_stub
++endif
++
+ ifeq ($(subdir),nptl)
+ # pull in __syscall_error routine
+-libpthread-routines += sysdep
+-libpthread-shared-only-routines += sysdep
++libpthread-routines += sysdep sigreturn_stub
++libpthread-shared-only-routines += sysdep sigreturn_stub
+ endif
+diff --git a/sysdeps/unix/sysv/linux/sparc/sparc32/sigaction.c b/sysdeps/unix/sysv/linux/sparc/sparc32/sigaction.c
+index de7ef6f151..f36e924af4 100644
+--- a/sysdeps/unix/sysv/linux/sparc/sparc32/sigaction.c
++++ b/sysdeps/unix/sysv/linux/sparc/sparc32/sigaction.c
+@@ -24,8 +24,8 @@
+ #include <kernel_sigaction.h>
+ #include <sysdep.h>
+ 
+-static void __rt_sigreturn_stub (void);
+-static void __sigreturn_stub (void);
++void __rt_sigreturn_stub (void);
++void __sigreturn_stub (void);
+ 
+ #define STUB(act, sigsetsize) \
+   (act) ? ((unsigned long)((act->sa_flags & SA_SIGINFO)	\
+@@ -35,25 +35,3 @@ static void __sigreturn_stub (void);
+   (sigsetsize)
+ 
+ #include <sysdeps/unix/sysv/linux/sigaction.c>
+-
+-static
+-inhibit_stack_protector
+-void
+-__rt_sigreturn_stub (void)
+-{
+-  __asm__ ("mov %0, %%g1\n\t"
+-	   "ta	0x10\n\t"
+-	   : /* no outputs */
+-	   : "i" (__NR_rt_sigreturn));
+-}
+-
+-static
+-inhibit_stack_protector
+-void
+-__sigreturn_stub (void)
+-{
+-  __asm__ ("mov %0, %%g1\n\t"
+-	   "ta	0x10\n\t"
+-	   : /* no outputs */
+-	   : "i" (__NR_sigreturn));
+-}
+diff --git a/sysdeps/unix/sysv/linux/sparc/sparc32/sigreturn_stub.S b/sysdeps/unix/sysv/linux/sparc/sparc32/sigreturn_stub.S
+new file mode 100644
+index 0000000000..727cc94737
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/sparc/sparc32/sigreturn_stub.S
+@@ -0,0 +1,34 @@
++/* Sigreturn stub function used on sa_restore field.
++   Copyright (C) 2020 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <sysdep.h>
++
++/* These functions must not change the register window or the stack
++   pointer [1].
++
++   [1] https://lkml.org/lkml/2016/5/27/465  */
++
++ENTRY (__rt_sigreturn_stub)
++	mov	__NR_rt_sigreturn, %g1
++	ta	0x10
++END (__rt_sigreturn_stub)
++
++ENTRY (__sigreturn_stub)
++	mov	__NR_sigreturn, %g1
++	ta	0x10
++END (__sigreturn_stub)
+diff --git a/sysdeps/unix/sysv/linux/sparc/sparc64/sigaction.c b/sysdeps/unix/sysv/linux/sparc/sparc64/sigaction.c
+index 3b8be43c07..4772ec2553 100644
+--- a/sysdeps/unix/sysv/linux/sparc/sparc64/sigaction.c
++++ b/sysdeps/unix/sysv/linux/sparc/sparc64/sigaction.c
+@@ -22,21 +22,11 @@
+ #include <syscall.h>
+ #include <sysdep.h>
+ 
+-static void __rt_sigreturn_stub (void);
++/* Defined on sigreturn_stub.S.  */
++void __rt_sigreturn_stub (void);
+ 
+ #define STUB(act, sigsetsize) \
+   (((unsigned long) &__rt_sigreturn_stub) - 8),	\
+   (sigsetsize)
+ 
+ #include <sysdeps/unix/sysv/linux/sigaction.c>
+-
+-static
+-inhibit_stack_protector
+-void
+-__rt_sigreturn_stub (void)
+-{
+-  __asm__ ("mov %0, %%g1\n\t"
+-	   "ta	0x6d\n\t"
+-	   : /* no outputs */
+-	   : "i" (__NR_rt_sigreturn));
+-}
+diff --git a/sysdeps/unix/sysv/linux/sparc/sparc64/sigreturn_stub.S b/sysdeps/unix/sysv/linux/sparc/sparc64/sigreturn_stub.S
+new file mode 100644
+index 0000000000..add4766831
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/sparc/sparc64/sigreturn_stub.S
+@@ -0,0 +1,29 @@
++/* Sigreturn stub function used on sa_restore field.
++   Copyright (C) 2020 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <sysdep.h>
++
++/* This function must not change the register window or the stack
++   pointer [1].
++
++   [1] https://lkml.org/lkml/2016/5/27/465  */
++
++ENTRY (__rt_sigreturn_stub)
++	mov	__NR_rt_sigreturn, %g1
++	ta	0x6d
++END (__rt_sigreturn_stub)
 diff --git a/sysdeps/unix/sysv/linux/test-errno-linux.c b/sysdeps/unix/sysv/linux/test-errno-linux.c
 index cb979d44bd..aaa9eadc0a 100644
 --- a/sysdeps/unix/sysv/linux/test-errno-linux.c
