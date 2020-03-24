@@ -61,8 +61,8 @@ check_dir () {
         # if they aren't, they'll be ignored. Check e_ident, e_type (which
         # will just be ET_DYN), and e_machine. If a match is found, there
         # is a risk of breakage.
-        libbytes=`head -c 20 $lib | od -c`
-        if test "$ldbytes" != "$libbytes" ; then 
+        libmagic=`od -An -tx1 -N20 -w20 $lib`
+        if test "RTLD_MAGIC" != "$libmagic" ; then
           continue
         fi
 
@@ -223,15 +223,6 @@ if [ "$type" = upgrade ]
 then
     # Try to detect copies of the libc library in the various places
     # the dynamic linker uses.
-    ldfile=$(readlink -m RTLD_SO)
-    if test -f "$file"; then
-        ldbytes=$(head -c 20 RTLD_SO | od -c)
-    else
-        # If the symlink to the dynamic linker is dangling or missing, set
-        # ldbytes to an empty string, the test below will fail and all the
-        # libraries found will be ignored.
-        ldbytes=""
-    fi
     libcfiles=$(dpkg-query -L ${DPKG_MAINTSCRIPT_PACKAGE}:${DPKG_MAINTSCRIPT_ARCH} 2>/dev/null)
 
     dirs="SLIBDIR /lib /lib/tls /lib32 /lib64 /usr/local/lib /usr/local/lib32 /usr/local/lib64"

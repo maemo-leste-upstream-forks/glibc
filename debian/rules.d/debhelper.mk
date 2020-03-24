@@ -213,6 +213,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	rtlddir=$(call xx,rtlddir) ; \
 	curpass=$(curpass) ; \
 	rtld_so=`LANG=C LC_ALL=C readelf -l debian/tmp-$$curpass/usr/bin/iconv | grep "interpreter" | sed -e 's/.*interpreter: \(.*\)]/\1/g'`; \
+	rtld_magic=`od -An -tx1 -N20 -w20 $$rtld_so` ; \
 	case "$$curpass:$$slibdir" in \
 	  libc:*) \
 	    templates="libc libc-dev libc-pic libc-udeb" \
@@ -242,6 +243,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	    sed -e "s#LIBDIR#$$libdir#g" -i $$t; \
 	    sed -e "s#FLAVOR#$$curpass#g" -i $$t; \
 	    sed -e "s#RTLD_SO#$$rtld_so#g" -i $$t ; \
+	    sed -e "s#RTLD_MAGIC#$$rtld_magic#g" -i $$t ; \
 	    sed -e "s#MULTIARCHDIR#$$DEB_HOST_MULTIARCH#g" -i $$t ; \
 	    $(if $(filter $(call xx,mvec),no),sed -e "/libmvec/d" -e "/libm-\*\.a/d" -i $$t ;) \
 	    $(if $(filter $(call xx,crypt),no),sed -e "/libcrypt/d" -i $$t ;) \
