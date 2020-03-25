@@ -1,0 +1,21 @@
+diff --git a/stdlib/tst-system.c b/stdlib/tst-system.c
+index c8c18113494..759ab953373 100644
+--- a/stdlib/tst-system.c
++++ b/stdlib/tst-system.c
+@@ -76,6 +76,8 @@ do_test (void)
+ {
+   TEST_VERIFY (system (NULL) != 0);
+ 
++/* Disabled at it depends on the running shell */
++#if 0
+   {
+     char cmd[namemax];
+     memset (cmd, 'a', sizeof(cmd));
+@@ -111,6 +113,7 @@ do_test (void)
+     TEST_COMPARE_STRING (result.err.buffer, returnerr);
+     free (returnerr);
+   }
++#endif
+ 
+   {
+     struct support_capture_subprocess result;
