@@ -27,7 +27,11 @@ $(stamp)mkincludedir:
 
 	# System headers
 	for path in hurd mach mach_debug device cthreads.h; do \
-	    ln -s $(HURD_HEADERS)/$$path debian/include ; \
+	    if [ -e "$(HURD_HEADERS)/$(DEB_HOST_MULTIARCH)/$$path" ]; then \
+	        ln -s $(HURD_HEADERS)/$(DEB_HOST_MULTIARCH)/$$path debian/include/$$path ; \
+	    elif [ -e "$(HURD_HEADERS)/$$path" ]; then \
+	        ln -s $(HURD_HEADERS)/$$path debian/include/$$path ; \
+	    fi ; \
 	done
 
 	# To make configure happy if libc0.3-dev is not installed.
