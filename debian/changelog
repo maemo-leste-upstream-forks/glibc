@@ -3,8 +3,15 @@ glibc (2.30-5) UNRELEASED; urgency=medium
   [ Samuel Thibault ]
   * debian/patches/hurd-i386/git-trunc-times.diff: New patch to fix updating
     mtime/ctime on O_TRUNC.  Closes: #955270.
+  * debian/control: Drop dependency on libihash-dev, not used any more by htl.
   * debian/sysdeps/hurd.mk: Try to symlink mach/hurd headers from multiarch
     directory when they are there.
+
+  [ Aurelien Jarno ]
+  * debian/rules: Add -fdebug-prefix-map= to CFLAGS to improve
+    reproducibility.
+  * debian/control.in/libc: Make libcX-dev declare a Breaks against python3.7
+    (<< 3.7.7-1+b1) and python3.8 (<< 3.8.2-1+b1) due to #955474.
 
  -- Samuel Thibault <sthibault@debian.org>  Sun, 29 Mar 2020 19:45:17 +0200
 
