@@ -16,20 +16,12 @@ i386_libdir = /usr/lib32
 
 define libc0.1-dev-i386_extra_pkg_install
 
-mkdir -p debian/libc0.1-dev-i386/usr/include
-ln -s x86_64-kfreebsd-gnu/bits debian/libc0.1-dev-i386/usr/include/
-ln -s x86_64-kfreebsd-gnu/gnu debian/libc0.1-dev-i386/usr/include/
-ln -s x86_64-kfreebsd-gnu/fpu_control.h debian/libc0.1-dev-i386/usr/include/
+$(call generic_multilib_extra_pkg_install,libc0.1-dev-i386)
 
 mkdir -p debian/libc0.1-dev-i386/usr/include/x86_64-kfreebsd-gnu/gnu
 cp -a debian/tmp-i386/usr/include/gnu/lib-names-32.h \
 	debian/tmp-i386/usr/include/gnu/stubs-32.h \
 	debian/libc0.1-dev-i386/usr/include/x86_64-kfreebsd-gnu/gnu
-
-mkdir -p debian/libc0.1-dev-i386/usr/include/sys
-for i in `ls debian/tmp-libc/usr/include/x86_64-kfreebsd-gnu/sys` ; do \
-	ln -s ../x86_64-kfreebsd-gnu/sys/$$i debian/libc0.1-dev-i386/usr/include/sys/$$i ; \
-done
 
 cp -a debian/tmp-i386/usr/include/sys/vm86.h \
         debian/libc0.1-dev-i386/usr/include/sys

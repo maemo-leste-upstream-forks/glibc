@@ -2,6 +2,16 @@
 # PASS_VAR, we need to call all variables as $(call xx,VAR)
 # This little bit of magic makes it possible:
 xx=$(if $($(curpass)_$(1)),$($(curpass)_$(1)),$($(1)))
+define generic_multilib_extra_pkg_install
+set -e; \
+mkdir -p debian/$(1)/usr/include/sys; \
+ln -sf $(DEB_HOST_MULTIARCH)/bits debian/$(1)/usr/include/; \
+ln -sf $(DEB_HOST_MULTIARCH)/gnu debian/$(1)/usr/include/; \
+ln -sf $(DEB_HOST_MULTIARCH)/fpu_control.h debian/$(1)/usr/include/; \
+for i in `ls debian/tmp-libc/usr/include/$(DEB_HOST_MULTIARCH)/sys`; do \
+	ln -sf ../$(DEB_HOST_MULTIARCH)/sys/$$i debian/$(1)/usr/include/sys/$$i; \
+done
+endef
 
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
     libc_extra_config_options = $(extra_config_options) --disable-sanity-checks \

@@ -15,20 +15,12 @@ ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
 #
 #define libc6-dev-armhf_extra_pkg_install
 #
-#mkdir -p debian/libc6-dev-armhf/usr/include
-#ln -sf arm-linux-gnueabi/bits debian/libc6-dev-armhf/usr/include/
-#ln -sf arm-linux-gnueabi/gnu debian/libc6-dev-armhf/usr/include/
-#ln -sf arm-linux-gnueabi/fpu_control.h debian/libc6-dev-armhf/usr/include/
+#$(call generic_multilib_extra_pkg_install,libc6-dev-armhf)
 #
 #mkdir -p debian/libc6-dev-armhf/usr/include/arm-linux-gnueabi/gnu
 #cp -a debian/tmp-armhf/usr/include/gnu/lib-names-hard.h \
 #	debian/tmp-armhf/usr/include/gnu/stubs-hard.h \
 #	debian/libc6-dev-armhf/usr/include/arm-linux-gnueabi/gnu
-#
-#mkdir -p debian/libc6-dev-armhf/usr/include/sys
-#for i in `ls debian/tmp-libc/usr/include/arm-linux-gnueabi/sys` ; do \
-#	ln -sf ../arm-linux-gnueabi/sys/$$i debian/libc6-dev-armhf/usr/include/sys/$$i ; \
-#done
 #
 #endef
 #
