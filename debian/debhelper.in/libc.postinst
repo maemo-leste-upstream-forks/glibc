@@ -14,15 +14,6 @@ checkpkgver () {
     fi
 }
 
-if [ "$type" = "configure" ]
-then
-    # We don't use a registry anymore, remove the old file
-    rm -f "$DPKG_ROOT/etc/ld.so.hwcappkgs"
- 
-    # /etc/ld.so.nohwcap code:
-    __NOHWCAP__
-fi
-
 if [ "$type" = configure -a -z "$DPKG_ROOT" ]
 then
     # Load debconf module if available
