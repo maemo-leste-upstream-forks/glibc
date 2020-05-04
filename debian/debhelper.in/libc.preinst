@@ -19,7 +19,7 @@ kfreebsd_compare_versions () {
     test $verA -$2 $verB
 }
 
-if [ "$type" != abort-upgrade ]
+if [ "$type" != abort-upgrade -a -z "$DPKG_ROOT" ]
 then
     # Load debconf module if available and usable
     if [ -f /usr/share/debconf/confmodule ] && \
@@ -148,7 +148,7 @@ then
     fi
 fi
 
-if [ "$type" = upgrade ]
+if [ "$type" = upgrade -a -z "$DPKG_ROOT" ]
 then
     if [ -n "$preversion" ] && [ -x "$(which ischroot)" ] && ! ischroot; then
 	# NSS authentication trouble guard
@@ -246,8 +246,8 @@ if [ -n "$preversion" ]; then
        # unconditionally wipe ld.so.cache on major version upgrades; this
        # makes those upgrades a bit slower, but is less error-prone than
        # hoping we notice every time the cache format is changed upstream
-       rm -f /etc/ld.so.cache
-       rm -f /var/cache/ldconfig/aux-cache
+       rm -f "$DPKG_ROOT/etc/ld.so.cache"
+       rm -f "$DPKG_ROOT/var/cache/ldconfig/aux-cache"
     fi
 fi
 
