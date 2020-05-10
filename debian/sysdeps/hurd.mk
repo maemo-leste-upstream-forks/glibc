@@ -42,12 +42,6 @@ $(stamp)mkincludedir:
 # Also to make configure happy.
 export CPPFLAGS = -isystem $(shell pwd)/debian/include
 
-# Glibc should really do this for us.
-define libc_extra_install
-mkdir -p debian/tmp-$(curpass)/lib
-ln -s ld.so.1 debian/tmp-$(curpass)/lib/ld.so
-endef
-
 # Do not care about kernel versions for now.
 define kernel_check
 true

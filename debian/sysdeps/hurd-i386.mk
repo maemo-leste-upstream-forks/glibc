@@ -14,6 +14,12 @@ cp -af debian/tmp-xen/$(libdir)/*.a \
 endef
 endif
 
+# Glibc should really do this for us.
+define libc_extra_install
+mkdir -p debian/tmp-$(curpass)/lib
+ln -s ld.so.1 debian/tmp-$(curpass)/lib/ld.so
+endef
+
 # FIXME: We are having runtime issues with ifunc...
 # e.g. calling memset from a statically-linked program
 #
