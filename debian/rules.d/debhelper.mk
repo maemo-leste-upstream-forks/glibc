@@ -12,24 +12,6 @@ ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 DH_STRIP_DEBUG_PACKAGE=--dbg-package=$(libc)-dbg
 endif
 
-# This installs the dynamic loader symlink for the udeb package, with the
-# multiarch part stripped from the destination as the libraries are currently
-# installed in /lib. This can be removed and replaced by an entry in
-# debhelper.in/libc-udeb.install once it is possible to use multiarch path in
-# udeb packages. On the debian-installer side, this requires getting rid of
-# mklibs first, which in turns require to have the dynamic loader symlink for
-# the udeb package. This is ugly but needed for breaking the loop...
-define $(libc)-udeb_extra_pkg_install
-rtld_so_path=`LANG=C LC_ALL=C readelf -l debian/tmp-libc/usr/bin/iconv | grep "interpreter" | sed -e 's/.*interpreter: \(.*\)]/\1/g'` ; \
-if ! test -L debian/$(libc)-udeb/$$rtld_so_path ; then \
-    rtld_so_dir=`dirname $$rtld_so_path` ; \
-    rtld_so_name=`basename $$rtld_so_path` ; \
-    rtld_so_dest=`readlink debian/tmp-libc/lib/$$rtld_so_name | sed -e "s,$(DEB_HOST_MULTIARCH)/,,"` ; \
-    mkdir -p debian/$(libc)-udeb/$$rtld_so_dir ; \
-    ln -s $$rtld_so_dest debian/$(libc)-udeb/$$rtld_so_path ; \
-fi
-endef
-
 $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES)):: $(patsubst %,$(stamp)install_%,$(GLIBC_PASSES)) debhelper
 	@echo Running debhelper for $(curpass)
 	dh_testroot
