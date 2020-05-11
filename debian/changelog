@@ -70,6 +70,118 @@ glibc (2.31-0experimental0) experimental; urgency=medium
 
  -- Aurelien Jarno <aurel32@debian.org>  Thu, 12 Mar 2020 07:10:01 +0100
 
+glibc (2.30-8) unstable; urgency=medium
+
+  * sysdeps/hurd.mk: Move ld.so link creation to hurd-i386.mk since it is
+    32bit-specific.
+  * sysdeps/hurd-i386.mk: Move i386-specific mach headers to multiarch
+    directory, so they get accessible from the "machine" symlink of the
+    gnumach-dev package.
+  * patches/hurd-i386/git-ss_init.diff: Add missing ss initialization. Fixes
+    Xorg startup error, and possibly a lot other bugs with threads.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 11 May 2020 02:04:03 +0200
+
+glibc (2.30-7) unstable; urgency=medium
+
+  * debian/debhelper.in/libc.postinst: re-add /etc/ld.so.nohwcapc code.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 05 May 2020 20:12:38 +0200
+
+glibc (2.30-6) unstable; urgency=medium
+
+  * debian/sysdeps/s390x.mk: do not set libc_rtlddir, it is set to the
+    default.
+  * debian/rules.d/debhelper.mk: only create the dynamic linker in the udeb
+    if it doesn't already exist.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 05 May 2020 12:32:42 +0200
+
+glibc (2.30-5) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * debian/patches/hurd-i386/git-trunc-times.diff: New patch to fix updating
+    mtime/ctime on O_TRUNC.  Closes: #955270.
+  * debian/control: Drop dependency on libihash-dev, not used any more by htl.
+  * debian/sysdeps/hurd.mk: Try to symlink mach/hurd headers from multiarch
+    directory when they are there.
+
+  [ Aurelien Jarno ]
+  * debian/rules: Add -fdebug-prefix-map= to CFLAGS to improve
+    reproducibility.
+  * debian/control.in/libc: Make libcX-dev declare a Breaks against python3.7
+    (<< 3.7.7-1+b1) and python3.8 (<< 3.8.2-1+b1) due to #955474.
+  * debian/rules.d/debhelper.mk: install the dynamic loader symlink in the
+    udeb package.
+  * debian/control: conflict against libgcc-X-dev versions that might need the
+    __glibc_has_include macro.
+  * debian/patches/any/local-revert-glibc_has_include.diff: drop patch,
+    obsolete.
+  * debian/control.in/libc: add a Provides: libc6-dbgsym to the libc6-dbg
+    package.  Closes: #953654.
+  * debian/control.in/libc: qualify the libselinux-dev build-depends with
+    <!stage2>.
+  * debian/debhelper.in/libc.postinst: drop the code removing
+    /etc/ld.so.hwcappkgs, it's not needed anymore since Squeeze.
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fixes data race in setting function descriptor during lazy binding on
+      hppa. Closes: #941174.
+    - debian/patches/any/local-tst-system-disable-shell-tests.diff: obsolete.
+
+  [ Helmut Grohne ]
+  * Refactor generation of multilib include symlinks. (Closes: #958674).
+  * Initial, minimal support for DPKG_ROOT. (Closes: #910685).
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 04 May 2020 23:39:18 +0200
+
+glibc (2.30-4) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/debhelper.in/libc.preinst, debian/rules.d/debhelper.mk: there
+    is no easy way to check if a file belongs to a package with usrmerge.
+    Just drop all safety checks...  Closes: #954915.
+  * debian/patches/any/local-tst-system-disable-shell-tests.diff: disable
+    tests that rely on a particular shell until a fix is found upstream.
+
+  [ John Paul Adrian Glaubitz ]
+  * debian/testsuite-xfail-debian.mk: mark nptl/tst-cond8-static and
+    nptl/tst-mutex{,pi}8-static as XFAIL on sparc64.  Closes: #953869.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Wed, 25 Mar 2020 13:56:56 +0100
+
+glibc (2.30-3) unstable; urgency=medium
+
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix a defect in the PowerPC backtrace function that could cause an
+      out-of-bounds write when executed in a signal frame context
+      (CVE-2020-1751).
+    - Fix use-after-free vulnerability in the glob function when expanding
+      ~user (CVE-2020-1752).  Closes: #953788.
+  * debian/debhelper.in/libc.preinst, debian/rules.d/debhelper.mk: determine
+    ld.so ELF magic at build time instead of at run time to avoid using
+    "readlink -m".  Closes: #954374.
+  * debian/rules.d/build.mk: unset LANGUAGE when running the testsuite.
+  * debian/testsuite-xfail-debian.mk: ignore signal/tst-minsigstksz-1 and
+    signal/tst-minsigstksz-2 on i386, they fail on i386 with an AVX-512 CPUs
+    due to a kernel bug.  Closes: #954715.
+  * debian/control.in/libc, debian/rules.d/debhelper.mk: Make libcX-dev
+    declare a Breaks against libcX-dev-${DEB_HOST_ARCH}-cross
+    (<< ${CURRENT_UPSTREAM_VERSION}~).  Closes: #954393.
+  * debian/control.in/libc, debian/control.in/main: drop Conflicts, Breaks and
+    Replaces against package version older than the one available in
+    oldstable.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 24 Mar 2020 23:31:35 +0100
+
+glibc (2.30-2) unstable; urgency=medium
+
+  * debian/rules.d/debhelper.mk: depends on libgcc-sN instead of libgccN.
+    Closes: #953657.
+  * debian/rules.d/build.mk: do not install <finclude/math-vector-fortran.h>
+    for now as it is not multiarch safe.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 12 Mar 2020 23:47:03 +0100
+
 glibc (2.30-1) unstable; urgency=medium
 
   [ Samuel Thibault ]
@@ -426,7 +538,7 @@ glibc (2.29-0experimental0) experimental; urgency=medium
   * Fix ld.so link on mips{64,n32}r6{,el}.  Closes: #933513.
 
   [ Sven Mueller ]
-  * debian/rules: honor noudeb build profile.
+  * debian/rules: honor noudeb build profile.  Closes: #930734.
 
   [ Josh Triplett ]
   * debian/patches/any/submitted-ld.so-cache-new-format.diff: default to the

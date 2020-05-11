@@ -28,20 +28,12 @@ mips32_libdir = /usr/libo32
 
 define libc6-dev-mips64_extra_pkg_install
 
-mkdir -p debian/libc6-dev-mips64/usr/include
-ln -sf mips64-linux-gnuabin32/bits debian/libc6-dev-mips64/usr/include/
-ln -sf mips64-linux-gnuabin32/gnu debian/libc6-dev-mips64/usr/include/
-ln -sf mips64-linux-gnuabin32/fpu_control.h debian/libc6-dev-mips64/usr/include/
+$(call generic_multilib_extra_pkg_install,libc6-dev-mips64)
 
 mkdir -p debian/libc6-dev-mips64/usr/include/mips64-linux-gnuabin32/gnu
 cp -a debian/tmp-mips64/usr/include/gnu/lib-names-n64_hard.h \
 	debian/tmp-mips64/usr/include/gnu/stubs-n64_hard.h \
 	debian/libc6-dev-mips64/usr/include/mips64-linux-gnuabin32/gnu
-
-mkdir -p debian/libc6-dev-mips64/usr/include/sys
-for i in `ls debian/tmp-libc/usr/include/mips64-linux-gnuabin32/sys` ; do \
-	ln -sf ../mips64-linux-gnuabin32/sys/$$i debian/libc6-dev-mips64/usr/include/sys/$$i ; \
-done
 
 endef
 

@@ -2,6 +2,16 @@
 # PASS_VAR, we need to call all variables as $(call xx,VAR)
 # This little bit of magic makes it possible:
 xx=$(if $($(curpass)_$(1)),$($(curpass)_$(1)),$($(1)))
+define generic_multilib_extra_pkg_install
+set -e; \
+mkdir -p debian/$(1)/usr/include/sys; \
+ln -sf $(DEB_HOST_MULTIARCH)/bits debian/$(1)/usr/include/; \
+ln -sf $(DEB_HOST_MULTIARCH)/gnu debian/$(1)/usr/include/; \
+ln -sf $(DEB_HOST_MULTIARCH)/fpu_control.h debian/$(1)/usr/include/; \
+for i in `ls debian/tmp-libc/usr/include/$(DEB_HOST_MULTIARCH)/sys`; do \
+	ln -sf ../$(DEB_HOST_MULTIARCH)/sys/$$i debian/$(1)/usr/include/sys/$$i; \
+done
+endef
 
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
     libc_extra_config_options = $(extra_config_options) --disable-sanity-checks \
@@ -125,7 +135,7 @@ $(stamp)check_%: $(stamp)build_%
 	  echo "Testsuite disabled for $(curpass), skipping tests."; \
 	else \
 	  find $(DEB_BUILDDIR) -name '*.out' -delete ; \
-	  LD_PRELOAD="" LANG="" TIMEOUTFACTOR="$(TIMEOUTFACTOR)" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) check || true ; \
+	  LD_PRELOAD="" LANG="" LANGUAGE="" TIMEOUTFACTOR="$(TIMEOUTFACTOR)" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) check || true ; \
 	  if ! test -f $(DEB_BUILDDIR)/tests.sum ; then \
 	    echo "+---------------------------------------------------------------------+" ; \
 	    echo "|                     Testsuite failed to build.                      |" ; \
@@ -253,6 +263,7 @@ endif
 	  mv debian/tmp-$(curpass)/usr/include/fpu_control.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
 	  mv debian/tmp-$(curpass)/usr/include/a.out.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
 	  mv debian/tmp-$(curpass)/usr/include/ieee754.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
+	  rm -rf debian/tmp-$(curpass)/usr/include/finclude ; \
 	fi
 
 ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)

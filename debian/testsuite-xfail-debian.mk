@@ -412,6 +412,11 @@ endif
 ifeq ($(config-machine)-$(config-os),i686-linux-gnu)
 # Probably a GCC bug: https://sourceware.org/ml/libc-alpha/2015-11/msg00533.html
 test-xfail-tst-cleanupx4 = yes
+
+# These failures happen on CPUs supporting AVX-512 due to a kernel bug:
+# https://bugzilla.kernel.org/show_bug.cgi?id=153531
+test-xfail-tst-minsigstksz-1 = yes
+test-xfail-tst-minsigstksz-2 = yes
 endif
 
 
@@ -983,6 +988,9 @@ test-xfail-XOPEN2K/setjmp.h/conform = yes
 test-xfail-XOPEN2K8/pthread.h/conform = yes
 test-xfail-XOPEN2K8/setjmp.h/conform = yes
 test-xfail-XPG4/setjmp.h/conform = yes
+test-xfail-tst-cond8-static = yes
+test-xfail-tst-mutex8-static = yes
+test-xfail-tst-mutexpi8-static = yes
 test-xfail-tst-protected1a = yes
 test-xfail-tst-protected1b = yes
 test-xfail-tst-realloc = yes

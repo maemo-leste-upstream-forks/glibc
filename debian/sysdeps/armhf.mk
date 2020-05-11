@@ -26,20 +26,12 @@ ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
 #
 #define libc6-dev-armel_extra_pkg_install
 #
-#mkdir -p debian/libc6-dev-armel/usr/include
-#ln -sf arm-linux-gnueabihf/bits debian/libc6-dev-armel/usr/include/
-#ln -sf arm-linux-gnueabihf/gnu debian/libc6-dev-armel/usr/include/
-#ln -sf arm-linux-gnueabihf/fpu_control.h debian/libc6-dev-armel/usr/include/
+#$(call generic_multilib_extra_pkg_install,libc6-dev-armel)
 #
 #mkdir -p debian/libc6-dev-armel/usr/include/arm-linux-gnueabihf/gnu
 #cp -a debian/tmp-armel/usr/include/gnu/lib-names-soft.h \
 #	debian/tmp-armel/usr/include/gnu/stubs-soft.h \
 #	debian/libc6-dev-armel/usr/include/arm-linux-gnueabihf/gnu
-#
-#mkdir -p debian/libc6-dev-armel/usr/include/sys
-#for i in `ls debian/tmp-libc/usr/include/arm-linux-gnueabihf/sys` ; do \
-#	ln -sf ../arm-linux-gnueabihf/sys/$$i debian/libc6-dev-armel/usr/include/sys/$$i ; \
-#done
 #
 #endef
 #

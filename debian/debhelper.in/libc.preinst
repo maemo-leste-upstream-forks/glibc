@@ -19,78 +19,7 @@ kfreebsd_compare_versions () {
     test $verA -$2 $verB
 }
 
-# Sanity check.
-# If there are versions of glibc outside of the normal installation
-# location (/lib, /lib64, etc.) then things may break very badly
-# as soon as ld.so is replaced by a new version.  This check is not
-# foolproof, but it's pretty accurate.  This script ignores libraries
-# with different sonames, and libraries incompatible with the 
-# to-be-installed ld.so.
-check_dir () {
-    msg=$1
-    dir=$2
-
-    # Follow symlinks
-    dir=$(readlink -e $dir || true)
-
-    # Ignore inexistent directories
-    if ! test -d "$dir" ; then
-        return
-    fi
-  
-    # Detect possible candidates
-    files=$(ls $dir | egrep '^(ld|lib(d|c|m|pthread|rt|dl))-2.*.so' 2>/dev/null || true)
-    if test -z "$files" ; then
-        return
-    fi
-  
-    for file in $files ; do
-        lib=$dir/$file
-
-        # Skip if it is a symlink (as installed by lsb-core)
-        if test -L "$lib" ; then
-            continue
-        fi
-
-        # Skip if it is the currently dynamic loader
-        if test "$lib" = "$ldfile" ; then
-            continue
-        fi
-
-        # See if the found libraries are compatible with the system ld.so;
-        # if they aren't, they'll be ignored. Check e_ident, e_type (which
-        # will just be ET_DYN), and e_machine. If a match is found, there
-        # is a risk of breakage.
-        libbytes=`head -c 20 $lib | od -c`
-        if test "$ldbytes" != "$libbytes" ; then 
-          continue
-        fi
-
-        # Binaries owned packages are considered to do the right thing
-        # First try a quick lookup which should catch all cases on a 
-        # normal system
-        if echo $libcfiles | grep -q "[ ^]$lib[ $]" ; then 
-            continue
-        fi
-
-        # Slower lookup to confirm
-        if dpkg-query -S "$lib" >/dev/null 2>&1 ; then
-            continue
-        fi
-
-        # Output an error message and exit
-        echo
-        echo "A copy of the C library was found $msg:"
-        echo "  '$lib'"
-        echo "It is not safe to upgrade the C library in this situation;"
-        echo "please remove that copy of the C library or get it out of"
-        echo "'$dir' and try again."
-        echo
-        exit 1
-    done
-}
-
-if [ "$type" != abort-upgrade ]
+if [ "$type" != abort-upgrade -a -z "$DPKG_ROOT" ]
 then
     # Load debconf module if available and usable
     if [ -f /usr/share/debconf/confmodule ] && \
@@ -219,56 +148,8 @@ then
     fi
 fi
 
-if [ "$type" = upgrade ]
+if [ "$type" = upgrade -a -z "$DPKG_ROOT" ]
 then
-    # Try to detect copies of the libc library in the various places
-    # the dynamic linker uses.
-    ldfile=$(readlink -m RTLD_SO)
-    if test -f "$file"; then
-        ldbytes=$(head -c 20 RTLD_SO | od -c)
-    else
-        # If the symlink to the dynamic linker is dangling or missing, set
-        # ldbytes to an empty string, the test below will fail and all the
-        # libraries found will be ignored.
-        ldbytes=""
-    fi
-    libcfiles=$(dpkg-query -L ${DPKG_MAINTSCRIPT_PACKAGE}:${DPKG_MAINTSCRIPT_ARCH} 2>/dev/null)
-
-    dirs="SLIBDIR /lib /lib/tls /lib32 /lib64 /usr/local/lib /usr/local/lib32 /usr/local/lib64"
-    for dir in $dirs ; do
-        check_dir "in an unexpected directory" $dir
-    done
-
-    if test -n "$LD_LIBRARY_PATH"; then
-        dirs=$(echo $LD_LIBRARY_PATH | sed 's/:/ /g')
-        for dir in $dirs ; do
-            check_dir "via LD_LIBRARY_PATH" $dir
-        done
-    fi
-
-    if test -e /etc/ld.so.conf; then
-        dirs=$(echo $(cat /etc/ld.so.conf))
-        if test -n "$dirs" ; then
-            for dir in $dirs ; do
-                check_dir "via /etc/ld.so.conf" $dir
-            done
-        fi
-    fi
-
-    if [ -e /lib/tls/i686/cmov/libc.so.6 ] || [ -e /lib/i686/cmov/libc.so.6 ] ; then
-        status_i686=$(dpkg -s libc6-i686 2>/dev/null | grep ^Status: | sed -e 's/^Status: \(.*\) \(.*\) \(.*\)/\3/g')
-        status_xen=$(dpkg -s libc6-xen 2>/dev/null | grep ^Status: | sed -e 's/^Status: \(.*\) \(.*\) \(.*\)/\3/g')
-        if ([ -z "$status_i686" ] || [ "$status_i686" = "not-installed" ] || [ "$status_i686" = "config-files" ]) && \
-             ([ -z "$status_xen" ] || [ "$status_xen" = "not-installed" ] || [ "$status_xen" = "config-files" ]); then
-            echo
-            echo "A non-dpkg owned copy of the libc6-i686 package was found."
-            echo "It is not safe to upgrade the C library in this situation;"
-            echo "please remove that copy of the C library and try again."
-            echo
-            exit 1
-        fi
-    fi
-
     if [ -n "$preversion" ] && [ -x "$(which ischroot)" ] && ! ischroot; then
 	# NSS authentication trouble guard
 	if dpkg --compare-versions "$preversion" lt GLIBC_VERSION; then
@@ -365,8 +246,8 @@ if [ -n "$preversion" ]; then
        # unconditionally wipe ld.so.cache on major version upgrades; this
        # makes those upgrades a bit slower, but is less error-prone than
        # hoping we notice every time the cache format is changed upstream
-       rm -f /etc/ld.so.cache
-       rm -f /var/cache/ldconfig/aux-cache
+       rm -f "$DPKG_ROOT/etc/ld.so.cache"
+       rm -f "$DPKG_ROOT/var/cache/ldconfig/aux-cache"
     fi
 fi
 

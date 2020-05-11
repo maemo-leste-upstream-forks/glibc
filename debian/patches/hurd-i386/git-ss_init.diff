@@ -1,0 +1,34 @@
+commit 61416e19218605a54e94edd9740bbe9d2785af6d
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon May 11 01:30:29 2020 +0200
+
+    hurd: Add missing sigstate members initialization
+    
+    * hurd/hurdsig.c (_hurd_thread_sigstate): Initialize
+      critical_section_lock, active_resources, cancel, and cancel_hook fields.
+
+diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
+index 1e42246ee6..a2741bb7c8 100644
+--- a/hurd/hurdsig.c
++++ b/hurd/hurdsig.c
+@@ -85,8 +85,9 @@ _hurd_thread_sigstate (thread_t thread)
+       ss = malloc (sizeof (*ss));
+       if (ss == NULL)
+ 	__libc_fatal ("hurd: Can't allocate sigstate\n");
+-      ss->thread = thread;
++      __spin_lock_init (&ss->critical_section_lock);
+       __spin_lock_init (&ss->lock);
++      ss->thread = thread;
+ 
+       /* Initialize default state.  */
+       __sigemptyset (&ss->blocked);
+@@ -97,6 +98,9 @@ _hurd_thread_sigstate (thread_t thread)
+       ss->suspended = MACH_PORT_NULL;
+       ss->intr_port = MACH_PORT_NULL;
+       ss->context = NULL;
++      ss->active_resources = NULL;
++      ss->cancel = 0;
++      ss->cancel_hook = NULL;
+ 
+       if (thread == MACH_PORT_NULL)
+ 	{

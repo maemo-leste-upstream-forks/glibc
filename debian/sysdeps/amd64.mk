@@ -20,20 +20,12 @@ i386_libdir = /usr/lib32
 
 define libc6-dev-i386_extra_pkg_install
 
-mkdir -p debian/libc6-dev-i386/usr/include
-ln -sf x86_64-linux-gnu/bits debian/libc6-dev-i386/usr/include/
-ln -sf x86_64-linux-gnu/gnu debian/libc6-dev-i386/usr/include/
-ln -sf x86_64-linux-gnu/fpu_control.h debian/libc6-dev-i386/usr/include/
+$(call generic_multilib_extra_pkg_install,libc6-dev-i386)
 
 mkdir -p debian/libc6-dev-i386/usr/include/x86_64-linux-gnu/gnu
 cp -a debian/tmp-i386/usr/include/gnu/lib-names-32.h \
 	debian/tmp-i386/usr/include/gnu/stubs-32.h \
 	debian/libc6-dev-i386/usr/include/x86_64-linux-gnu/gnu
-
-mkdir -p debian/libc6-dev-i386/usr/include/sys
-for i in `ls debian/tmp-libc/usr/include/x86_64-linux-gnu/sys` ; do \
-        ln -sf ../x86_64-linux-gnu/sys/$$i debian/libc6-dev-i386/usr/include/sys/$$i ; \
-done
 
 endef
 

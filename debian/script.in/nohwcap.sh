@@ -18,5 +18,5 @@
     # one, we could remove /etc/ld.so.nohwcap. Otherwise, it will be removed
     # when all optimized packages are upgraded or removed.
     if [ "$all_upgraded" = yes ] ; then
-        rm -f /etc/ld.so.nohwcap
+        rm -f "$DPKG_ROOT/etc/ld.so.nohwcap"
     fi

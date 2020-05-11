@@ -22,20 +22,12 @@ amd64_libdir = /usr/lib64
 
 define libc6-dev-amd64_extra_pkg_install
 
-mkdir -p debian/libc6-dev-amd64/usr/include
-ln -s x86_64-linux-gnux32/bits debian/libc6-dev-amd64/usr/include/
-ln -s x86_64-linux-gnux32/gnu debian/libc6-dev-amd64/usr/include/
-ln -s x86_64-linux-gnux32/fpu_control.h debian/libc6-dev-amd64/usr/include/
+$(call generic_multilib_extra_pkg_install,libc6-dev-amd64)
 
 mkdir -p debian/libc6-dev-amd64/usr/include/x86_64-linux-gnux32/gnu
 cp -a debian/tmp-amd64/usr/include/gnu/lib-names-64.h \
 	debian/tmp-amd64/usr/include/gnu/stubs-64.h \
 	debian/libc6-dev-amd64/usr/include/x86_64-linux-gnux32/gnu
-
-mkdir -p debian/libc6-dev-amd64/usr/include/sys
-for i in `ls debian/tmp-libc/usr/include/x86_64-linux-gnux32/sys`; do \
-	ln -s ../x86_64-linux-gnux32/sys/$$i debian/libc6-dev-amd64/usr/include/sys/$$i ; \
-done
 
 endef
 

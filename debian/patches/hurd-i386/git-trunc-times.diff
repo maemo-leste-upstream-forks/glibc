@@ -1,0 +1,35 @@
+Committed for glibc 2.32
+
+commit e095db0bc6c53a0b7ac3d915c5feb7678049dc33
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Mar 29 19:42:55 2020 +0200
+
+    hurd: Make O_TRUNC update mtime/ctime
+    
+    * hurd/lookup-retry.c (__hurd_file_name_lookup_retry): Call
+    __file_utimens after __file_set_size.
+
+diff --git a/hurd/lookup-retry.c b/hurd/lookup-retry.c
+index c90eda808d..6d8b05e4e6 100644
+--- a/hurd/lookup-retry.c
++++ b/hurd/lookup-retry.c
+@@ -178,8 +178,17 @@ __hurd_file_name_lookup_retry (error_t (*use_init_port)
+ 	      /* We got a successful translation.  Now apply any open-time
+ 		 action flags we were passed.  */
+ 
+-	      if (!err && (flags & O_TRUNC)) /* Asked to truncate the file.  */
+-		err = __file_set_size (*result, 0);
++	      if (!err && (flags & O_TRUNC))
++		{
++		  /* Asked to truncate the file.  */
++		  err = __file_set_size (*result, 0);
++		  if (!err)
++		    {
++		      struct timespec atime = { 0, UTIME_OMIT };
++		      struct timespec mtime = { 0, UTIME_NOW };
++		      __file_utimens (*result, atime, mtime);
++		    }
++		}
+ 
+ 	      if (err)
+ 		__mach_port_deallocate (__mach_task_self (), *result);

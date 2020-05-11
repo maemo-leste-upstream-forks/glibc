@@ -12,6 +12,24 @@ ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 DH_STRIP_DEBUG_PACKAGE=--dbg-package=$(libc)-dbg
 endif
 
+# This installs the dynamic loader symlink for the udeb package, with the
+# multiarch part stripped from the destination as the libraries are currently
+# installed in /lib. This can be removed and replaced by an entry in
+# debhelper.in/libc-udeb.install once it is possible to use multiarch path in
+# udeb packages. On the debian-installer side, this requires getting rid of
+# mklibs first, which in turns require to have the dynamic loader symlink for
+# the udeb package. This is ugly but needed for breaking the loop...
+define $(libc)-udeb_extra_pkg_install
+rtld_so_path=`LANG=C LC_ALL=C readelf -l debian/tmp-libc/usr/bin/iconv | grep "interpreter" | sed -e 's/.*interpreter: \(.*\)]/\1/g'` ; \
+if ! test -L debian/$(libc)-udeb/$$rtld_so_path ; then \
+    rtld_so_dir=`dirname $$rtld_so_path` ; \
+    rtld_so_name=`basename $$rtld_so_path` ; \
+    rtld_so_dest=`readlink debian/tmp-libc/lib/$$rtld_so_name | sed -e "s,$(DEB_HOST_MULTIARCH)/,,"` ; \
+    mkdir -p debian/$(libc)-udeb/$$rtld_so_dir ; \
+    ln -s $$rtld_so_dest debian/$(libc)-udeb/$$rtld_so_path ; \
+fi
+endef
+
 $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES)):: $(patsubst %,$(stamp)install_%,$(GLIBC_PASSES)) debhelper
 	@echo Running debhelper for $(curpass)
 	dh_testroot
@@ -156,9 +174,10 @@ endif
 	# Generate common substvars files.
 	: > tmp.substvars
 ifeq ($(filter stage1 stage2,$(DEB_BUILD_PROFILES)),)
-	echo 'libgcc:Depends=libgcc1 [!hppa !m68k], libgcc2 [m68k], libgcc4 [hppa]' >> tmp.substvars
+	echo 'libgcc:Depends=libgcc-s1 [!hppa !m68k], libgcc-s2 [m68k], libgcc-s4 [hppa]' >> tmp.substvars
 	echo 'libcrypt:Depends=libcrypt1' >> tmp.substvars
 	echo 'libcrypt-dev:Depends=libcrypt-dev' >> tmp.substvars
+	echo 'libc-dev:Breaks=$(libc)-dev-$(DEB_HOST_ARCH)-cross (<< $(GLIBC_VERSION)~)' >> tmp.substvars
 endif
 	for pkg in $(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES) $(DEB_UDEB_PACKAGES); do \
 	  cp tmp.substvars debian/$$pkg.substvars; \
