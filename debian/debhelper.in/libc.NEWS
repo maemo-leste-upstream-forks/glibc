@@ -1,3 +1,26 @@
+glibc (2.31-0experimental2) experimental; urgency=medium
+
+  Starting with glibc 2.31, the DNS stub resolver does not blindly trust the
+  AD (authenticated data) flag, indicating a DNSSEC validation:
+
+  - By default the name servers and the network path to them are treated as
+    untrusted. In this mode, the AD flag is not set in queries, and it is
+    automatically cleared in responses, indicating a lack of DNSSEC
+    validation.
+
+  - A new trust-ad option, set via the options directive in /etc/resolv.conf
+    (or if RES_TRUSTAD is set in _res.options), indicates that the name
+    server is trusted. In this mode, the AD bit, as provided by the name
+    server, is made available to the applications.
+
+  Therefore if you trust your name servers, for example because you use a
+  locally running validating resolver (e.g. unbound, systemd-resolved or
+  dnsmasq), you might want to add the following line to /etc/resolv.conf:
+
+    options trust-ad
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 17 May 2020 15:59:38 +0200
+
 glibc (2.26-5) unstable; urgency=medium
 
   Starting with version 2.26-1, the glibc requires a 3.2 or later Linux
