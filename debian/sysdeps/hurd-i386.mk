@@ -23,6 +23,14 @@ mv debian/tmp-$(curpass)/usr/include/mach/i386 debian/tmp-$(curpass)/usr/include
 ln -s ../$(DEB_HOST_MULTIARCH)/mach/i386 debian/tmp-$(curpass)/usr/include/mach/i386
 endef
 
+# gcc is currently still hardcording i586 in debian/rules2
+# and i586 suffers from gcc-10's bug:
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95169
+# Thus forcing i686 here until gcc-10 gets fixed into hardcoding i686.
+# (and the use of cmov will bring better performance :) )
+CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)$(DEB_GCC_VERSION) -march=i686
+CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)$(DEB_GCC_VERSION) -march=i686
+
 # FIXME: We are having runtime issues with ifunc...
 # e.g. calling memset from a statically-linked program
 #
