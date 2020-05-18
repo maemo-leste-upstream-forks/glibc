@@ -277,7 +277,6 @@ test-xfail-tst-mallocfork2 = yes
 test-xfail-tst-sprofil = yes
 test-xfail-tst-stackguard1-static = yes
 test-xfail-tst-stackguard1 = yes
-test-xfail-tst-strtod-round = yes
 test-xfail-tst-timer4 = yes
 test-xfail-tst-timer5 = yes
 
@@ -288,16 +287,7 @@ tests-unsupported += test-lfs
 #test-xfail-test-lfs = yes
 test-xfail-tst-tzset = yes
 
-# TODO: should be succeeding again with gnumach >= 2019-12-01
-test-xfail-test-fpucw = yes
-test-xfail-test-fpucw-ieee = yes
-test-xfail-test-fpucw-ieee-static = yes
-test-xfail-test-fpucw-static = yes
-test-xfail-test-fenv-x87 = yes
-test-xfail-tst-wcstod-round = yes
-
 # new in 2.21
-test-xfail-test-misc = yes
 test-xfail-tst-ptsname = yes
 test-xfail-tst-audit9 = yes
 
