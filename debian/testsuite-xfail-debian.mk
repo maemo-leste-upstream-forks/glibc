@@ -375,10 +375,17 @@ test-xfail-tst-pututxline-lockfail = yes
 
 # wants /proc/self/fd
 test-xfail-tst-updwtmpx = yes
+test-xfail-tst-lchmod = yes
 
 # new in 2.31
 test-xfail-tst-auditmany = yes
 test-xfail-tst-dlopenfail = yes
+
+# new in 2.32
+test-xfail-tst-audit14 = yes
+test-xfail-tst-audit15 = yes
+test-xfail-tst-audit16 = yes
+test-xfail-tst-safe-linking = yes
 
 # actually never succeded
 test-xfail-tst-create_format1 = yes
