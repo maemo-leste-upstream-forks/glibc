@@ -2,6 +2,25 @@ https://sourceware.org/ml/libc-alpha/2019-12/msg00799.html
 
 to commit after 2.31 is released
 
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+    Rearrange bsd_getpt vs bsd_openpt and implement posix_openpt on BSD
+    
+    * sysdeps/unix/bsd/getpt.c (__getpt): Add oflag parameter, pass
+    it to the _open call and rename to...
+    (__bsd_openpt): ... new function.
+    [!HAVE_GETPT] (__getpt): Reimplement on top of __bsd_openpt.
+    (__posix_openpt): Replace stub with implementation on top of __bsd_openpt.
+    (posix_openpt): Remove stub warning.
+    
+    * sysdeps/unix/sysv/linux/getpt.c (__bsd_getpt): Replace prototype with
+    __bsd_openpt prototype.
+    (__getpt): Use __bsd_openpt instead of __bsd_getpt (as fallback when
+    _posix_openpt fails).
+    (getpt): Add alias
+    (__getpt): Do not define.
+    (HAVE_GETPT): Define.
+
 diff --git a/sysdeps/unix/bsd/getpt.c b/sysdeps/unix/bsd/getpt.c
 index 46207f4e62..0eff0b54a3 100644
 --- a/sysdeps/unix/bsd/getpt.c
