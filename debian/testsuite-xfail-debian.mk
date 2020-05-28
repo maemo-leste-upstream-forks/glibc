@@ -249,9 +249,22 @@ test-xfail-test-multiarch = yes
 
 # Need actual porting
 test-xfail-exe = yes
-test-xfail-tst-pselect = yes
+
+# TODO: support THREAD_SET_STACK_GUARD THREAD_COPY_STACK_GUARD STACK_CHK_GUARD
+test-xfail-tst-stackguard1-static = yes
+test-xfail-tst-stackguard1 = yes
+
+# TODO: support THREAD_SET_POINTER_GUARD THREAD_COPY_POINTER_GUARD POINTER_GUARD POINTER_CHK_GUARD
 test-xfail-tst-ptrguard1-static = yes
 test-xfail-tst-ptrguard1 = yes
+
+# TODO: in _hurd_port2fd store the flags in a new field in the hurd_fd
+# structure, and in __fdopendir pass over the O_NOATIME flag to the
+# __file_name_lookup_under call.
+test-xfail-tst-fdopendir = yes
+
+# being fixed in hurd
+test-xfail-tst-getconf = yes
 
 # We don't provide ABI reference for these
 test-xfail-check-abi-libhurduser = yes
@@ -268,15 +281,9 @@ test-xfail-tst-audit2 = yes
 test-xfail-tst-audit8 = yes
 test-xfail-tst-backtrace4 = yes
 test-xfail-tst-backtrace5 = yes
-test-xfail-tst-fdopendir2 = yes
-test-xfail-tst-fdopendir = yes
-test-xfail-tst-getconf = yes
-test-xfail-tst-grantpt = yes
 test-xfail-tst-longjmp_chk2 = yes
 test-xfail-tst-mallocfork2 = yes
 test-xfail-tst-sprofil = yes
-test-xfail-tst-stackguard1-static = yes
-test-xfail-tst-stackguard1 = yes
 test-xfail-tst-timer4 = yes
 test-xfail-tst-timer5 = yes
 
@@ -386,6 +393,9 @@ test-xfail-tst-audit14 = yes
 test-xfail-tst-audit15 = yes
 test-xfail-tst-audit16 = yes
 test-xfail-tst-safe-linking = yes
+# fixed in 2.32
+test-xfail-tst-fdopendir2 = yes
+test-xfail-tst-grantpt = yes
 
 # actually never succeded
 test-xfail-tst-create_format1 = yes
