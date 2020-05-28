@@ -273,12 +273,30 @@ test-xfail-check-abi-libmachuser = yes
 # Overzealous test
 test-xfail-tst-pathconf = yes
 
-# Need investigation
+# aio_suspend and lio_listio emulations use pthread_cond_wait, and thus can't be interrupted by a signal
 test-xfail-tst-aio10 = yes
 test-xfail-tst-aio9 = yes
+
+# Needs LD_AUDIT support
 test-xfail-tst-audit1 = yes
 test-xfail-tst-audit2 = yes
+test-xfail-tst-audit3 = yes
 test-xfail-tst-audit8 = yes
+test-xfail-tst-audit9 = yes
+test-xfail-tst-audit11 = yes
+test-xfail-tst-audit12 = yes
+test-xfail-tst-audit14 = yes
+test-xfail-tst-audit15 = yes
+test-xfail-tst-audit16 = yes
+test-xfail-tst-auditmany = yes
+
+# yes, ptsname_r works on the PTS slave side too
+test-xfail-tst-ptsname = yes
+
+# We always put LD_ORIGIN_PATH in the environment
+test-xfail-tst-execvpe5 = yes
+
+# Need investigation
 test-xfail-tst-backtrace4 = yes
 test-xfail-tst-backtrace5 = yes
 test-xfail-tst-longjmp_chk2 = yes
@@ -294,25 +312,15 @@ tests-unsupported += test-lfs
 #test-xfail-test-lfs = yes
 test-xfail-tst-tzset = yes
 
-# new in 2.21
-test-xfail-tst-ptsname = yes
-test-xfail-tst-audit9 = yes
-
 # new in 2.22
-test-xfail-tst-audit3 = yes
 test-xfail-tst-prelink = yes
 test-xfail-tst-tls-atexit = yes
-
-# new in 2.23
-test-xfail-tst-audit11 = yes
-test-xfail-tst-audit12 = yes
 
 # need get_cpu_features
 test-xfail-tst-get-cpu-features = yes
 test-xfail-test-fenv-sse-2 = yes
 
 # new in 2.24
-test-xfail-tst-execvpe5 = yes
 test-xfail-tst-spawn2 = yes
 
 # fails randomly
@@ -343,7 +351,6 @@ test-xfail-tst-dynarray-fail-mem = yes
 test-xfail-test-errno = yes
 
 # new in 2.27
-test-xfail-tst-fexecve = yes
 test-xfail-tst-gmon-static = yes
 test-xfail-tst-gmon-static-gprof = yes
 test-xfail-tst-tls1-static-non-pie = yes
@@ -352,10 +359,6 @@ test-xfail-tst-libc_dlvsym = yes
 test-xfail-tst-malloc-too-large = yes
 test-xfail-tst-spawn4 = yes
 test-xfail-tst-spawn4-compat = yes
-
-# Tests failing to build
-test-xfail-tst-copy_file_range = yes
-test-xfail-tst-copy_file_range-compat = yes
 
 # new in 2.28
 test-xfail-tst-malloc-stats-cancellation = yes
@@ -373,9 +376,6 @@ test-xfail-tst-nss-files-hosts-long = yes
 # realloc() etc.
 test-xfail-tst-res_hconf_reorder = yes
 
-test-xfail-ISO11/threads.h/conform = yes
-test-xfail-ISO11/threads.h/linknamespace = yes
-
 # wants pthread_barrierattr_setpshared
 test-xfail-tst-pututxline-cache = yes
 test-xfail-tst-pututxline-lockfail = yes
@@ -385,17 +385,15 @@ test-xfail-tst-updwtmpx = yes
 test-xfail-tst-lchmod = yes
 
 # new in 2.31
-test-xfail-tst-auditmany = yes
 test-xfail-tst-dlopenfail = yes
 
 # new in 2.32
-test-xfail-tst-audit14 = yes
-test-xfail-tst-audit15 = yes
-test-xfail-tst-audit16 = yes
 test-xfail-tst-safe-linking = yes
 # fixed in 2.32
 test-xfail-tst-fdopendir2 = yes
 test-xfail-tst-grantpt = yes
+test-xfail-ISO11/threads.h/conform = yes
+test-xfail-ISO11/threads.h/linknamespace = yes
 
 # actually never succeded
 test-xfail-tst-create_format1 = yes

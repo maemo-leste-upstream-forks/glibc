@@ -1,0 +1,40 @@
+commit 6544999083437dabdadcec18185a1b2169b9637a
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu May 28 23:28:07 2020 +0000
+
+    hurd: Fix fexecve
+    
+    * sysdeps/mach/hurd/fexecve.c (fexecve): Re-lookup fd with O_EXEC before
+    calling _hurd_exec_paths.
+
+diff --git a/sysdeps/mach/hurd/fexecve.c b/sysdeps/mach/hurd/fexecve.c
+index 2b24e46fbf..c6a00ebf1e 100644
+--- a/sysdeps/mach/hurd/fexecve.c
++++ b/sysdeps/mach/hurd/fexecve.c
+@@ -25,10 +25,23 @@
+ int
+ fexecve (int fd, char *const argv[], char *const envp[])
+ {
+-  error_t err = HURD_DPORT_USE (fd, _hurd_exec_paths (__mach_task_self (),
+-						      port, NULL, NULL,
+-						      argv, envp));
++  file_t file;
++  error_t err;
++  enum retry_type doretry;
++  char retryname[1024];
++
++  err = HURD_DPORT_USE (fd,
++      __dir_lookup (port, "", O_EXEC, 0, &doretry, retryname, &file));
++
++  if (! err && (doretry != FS_RETRY_NORMAL || retryname[0] != '\0'))
++    err = EGRATUITOUS;
++  if (err)
++    return __hurd_fail(err);
++
++  err = _hurd_exec_paths (__mach_task_self (), file, NULL, NULL, argv, envp);
+   if (! err)
+     err = EGRATUITOUS;
++
++  __mach_port_deallocate (__mach_task_self (), file);
+   return __hurd_fail (err);
+ }
