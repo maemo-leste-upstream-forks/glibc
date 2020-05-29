@@ -296,9 +296,12 @@ test-xfail-tst-ptsname = yes
 # We always put LD_ORIGIN_PATH in the environment
 test-xfail-tst-execvpe5 = yes
 
-# Need investigation
+# being fixed in libgcc_s
 test-xfail-tst-backtrace4 = yes
 test-xfail-tst-backtrace5 = yes
+test-xfail-tst-backtrace6 = yes
+
+# Need investigation
 test-xfail-tst-longjmp_chk2 = yes
 test-xfail-tst-mallocfork2 = yes
 test-xfail-tst-sprofil = yes
@@ -329,7 +332,6 @@ test-xfail-tst-preadwrite64 = yes
 
 # happens on linux-i386 too
 test-xfail-annexc = yes
-test-xfail-tst-backtrace6 = yes
 test-xfail-tst-waitid = yes
 
 # seems fixed in 2.24-3?
