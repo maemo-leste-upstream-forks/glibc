@@ -1,0 +1,160 @@
+commit faae4b2bdd692d929037c80c3315f716f02f3b00
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Feb 9 19:19:25 2020 +0000
+
+    htl: make pthread_cond_destroy return EBUSY on waiters
+
+diff --git a/sysdeps/htl/pt-cond-destroy.c b/sysdeps/htl/pt-cond-destroy.c
+index 62cc77b0d2..b28e7e1ada 100644
+--- a/sysdeps/htl/pt-cond-destroy.c
++++ b/sysdeps/htl/pt-cond-destroy.c
+@@ -22,7 +22,14 @@
+ int
+ __pthread_cond_destroy (pthread_cond_t *cond)
+ {
+-  return 0;
++  int ret = 0;
++
++  __pthread_spin_lock (&cond->__lock);
++  if (cond->__queue)
++    ret = EBUSY;
++  __pthread_spin_unlock (&cond->__lock);
++
++  return ret;
+ }
+ 
+ strong_alias (__pthread_cond_destroy, pthread_cond_destroy);
+
+commit 8081702460726304af496be52234385094392a6f
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon Jun 1 17:27:48 2020 +0000
+
+    htl: Make pthread_cond_destroy wait for threads to be woken
+    
+    This allows to reuse the storage after calling pthread_cond_destroy.
+    
+    * sysdeps/htl/bits/types/struct___pthread_cond.h (__pthread_cond):
+    Replace unused struct __pthread_condimpl *__impl field with unsigned int
+    __wrefs.
+    (__PTHREAD_COND_INITIALIZER): Update accordingly.
+    * sysdeps/htl/pt-cond-timedwait.c (__pthread_cond_timedwait_internal):
+    Register as waiter in __wrefs field. On unregistering, wake any pending
+    pthread_cond_destroy.
+    * sysdeps/htl/pt-cond-destroy.c (__pthread_cond_destroy): Register wake
+    request in __wrefs.
+    * nptl/Makefile (tests): Move tst-cond20 tst-cond21 to...
+    * sysdeps/pthread/Makefile (tests): ... here.
+    * nptl/tst-cond20.c nptl/tst-cond21.c: Move to...
+    * sysdeps/pthread/tst-cond20.c sysdeps/pthread/tst-cond21.c: ... here.
+
+diff --git a/sysdeps/htl/bits/types/struct___pthread_cond.h b/sysdeps/htl/bits/types/struct___pthread_cond.h
+index 150a37c4c9..c040b171ac 100644
+--- a/sysdeps/htl/bits/types/struct___pthread_cond.h
++++ b/sysdeps/htl/bits/types/struct___pthread_cond.h
+@@ -27,12 +27,12 @@ struct __pthread_cond
+   __pthread_spinlock_t __lock;
+   struct __pthread *__queue;
+   struct __pthread_condattr *__attr;
+-  struct __pthread_condimpl *__impl;
++  unsigned int __wrefs;
+   void *__data;
+ };
+ 
+ /* Initializer for a condition variable.  */
+ #define __PTHREAD_COND_INITIALIZER \
+-  { __PTHREAD_SPIN_LOCK_INITIALIZER, NULL, NULL, NULL, NULL }
++  { __PTHREAD_SPIN_LOCK_INITIALIZER, NULL, NULL, 0, NULL }
+ 
+ #endif /* bits/types/struct___pthread_cond.h */
+diff --git a/sysdeps/htl/pt-cond-destroy.c b/sysdeps/htl/pt-cond-destroy.c
+index 0664f3f6cc..722516a8e2 100644
+--- a/sysdeps/htl/pt-cond-destroy.c
++++ b/sysdeps/htl/pt-cond-destroy.c
+@@ -22,14 +22,26 @@
+ int
+ __pthread_cond_destroy (pthread_cond_t *cond)
+ {
+-  int ret = 0;
++  /* Set the wake request flag. */
++  unsigned int wrefs = atomic_fetch_or_acquire (&cond->__wrefs, 1);
+ 
+   __pthread_spin_lock (&cond->__lock);
+   if (cond->__queue)
+-    ret = EBUSY;
++    {
++      __pthread_spin_unlock (&cond->__lock);
++      return EBUSY;
++    }
+   __pthread_spin_unlock (&cond->__lock);
+ 
+-  return ret;
++  while (wrefs >> 1 != 0)
++    {
++      gsync_wait (__mach_task_self (), (vm_offset_t) &cond->__wrefs, wrefs,
++		  0, 0, 0);
++      wrefs = atomic_load_acquire (&cond->__wrefs);
++    }
++  /* The memory the condvar occupies can now be reused.  */
++
++  return 0;
+ }
+ 
+ strong_alias (__pthread_cond_destroy, pthread_cond_destroy);
+diff --git a/sysdeps/htl/pt-cond-timedwait.c b/sysdeps/htl/pt-cond-timedwait.c
+index a0ced9a074..c05944d16d 100644
+--- a/sysdeps/htl/pt-cond-timedwait.c
++++ b/sysdeps/htl/pt-cond-timedwait.c
+@@ -144,6 +144,10 @@ __pthread_cond_timedwait_internal (pthread_cond_t *cond,
+   /* Release MUTEX before blocking.  */
+   __pthread_mutex_unlock (mutex);
+ 
++  /* Increase the waiter reference count.  Relaxed MO is sufficient because
++     we only need to synchronize when decrementing the reference count.  */
++  atomic_fetch_add_relaxed (&cond->__wrefs, 2);
++
+   /* Block the thread.  */
+   if (abstime != NULL)
+     err = __pthread_timedblock (self, abstime, clock_id);
+@@ -178,6 +182,13 @@ __pthread_cond_timedwait_internal (pthread_cond_t *cond,
+     }
+   __pthread_spin_unlock (&cond->__lock);
+ 
++  /* If destruction is pending (i.e., the wake-request flag is nonzero) and we
++     are the last waiter (prior value of __wrefs was 1 << 1), then wake any
++     threads waiting in pthread_cond_destroy.  Release MO to synchronize with
++     these threads.  Don't bother clearing the wake-up request flag.  */
++  if ((atomic_fetch_add_release (&cond->__wrefs, -2)) == 3)
++    __gsync_wake (__mach_task_self (), (vm_offset_t) &cond->__wrefs, 0, 0);
++
+   if (drain)
+     __pthread_block (self);
+ 
+diff --git a/sysdeps/mach/hurd/htl/pt-hurd-cond-timedwait.c b/sysdeps/mach/hurd/htl/pt-hurd-cond-timedwait.c
+index 939ed568ba..4f63955d04 100644
+--- a/sysdeps/mach/hurd/htl/pt-hurd-cond-timedwait.c
++++ b/sysdeps/mach/hurd/htl/pt-hurd-cond-timedwait.c
+@@ -111,6 +111,10 @@ __pthread_hurd_cond_timedwait_internal (pthread_cond_t *cond,
+       /* Release MUTEX before blocking.  */
+       __pthread_mutex_unlock (mutex);
+ 
++  /* Increase the waiter reference count.  Relaxed MO is sufficient because
++     we only need to synchronize when decrementing the reference count.  */
++  atomic_fetch_add_relaxed (&cond->__wrefs, 2);
++
+       /* Block the thread.  */
+       if (abstime != NULL)
+ 	err = __pthread_timedblock (self, abstime, clock_id);
+@@ -144,6 +148,13 @@ __pthread_hurd_cond_timedwait_internal (pthread_cond_t *cond,
+ 	__pthread_block (self);
+     }
+ 
++  /* If destruction is pending (i.e., the wake-request flag is nonzero) and we
++     are the last waiter (prior value of __wrefs was 1 << 1), then wake any
++     threads waiting in pthread_cond_destroy.  Release MO to synchronize with
++     these threads.  Don't bother clearing the wake-up request flag.  */
++  if ((atomic_fetch_add_release (&cond->__wrefs, -2)) == 3)
++    __gsync_wake (__mach_task_self (), (vm_offset_t) &cond->__wrefs, 0, 0);
++
+   /* Clear the hook, now that we are done blocking.  */
+   ss->cancel_hook = NULL;
+   /* Check the cancellation flag; we might have unblocked due to
