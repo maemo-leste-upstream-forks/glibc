@@ -90,7 +90,7 @@ index 0664f3f6cc..722516a8e2 100644
 -  return ret;
 +  while (wrefs >> 1 != 0)
 +    {
-+      gsync_wait (__mach_task_self (), (vm_offset_t) &cond->__wrefs, wrefs,
++      __gsync_wait (__mach_task_self (), (vm_offset_t) &cond->__wrefs, wrefs,
 +		  0, 0, 0);
 +      wrefs = atomic_load_acquire (&cond->__wrefs);
 +    }
