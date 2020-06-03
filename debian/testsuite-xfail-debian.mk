@@ -400,7 +400,7 @@ test-xfail-tst-udp-error = yes
 test-xfail-test-fesetexcept-traps = yes
 test-xfail-tst-support_capture_subprocess = yes
 
-# Assumes that self-locks are exclusive
+# Child seems to be inheriting the lockf from the parent?
 test-xfail-tst-lockf = yes
 
 # assumes that all st_mode flags (32bit) can exist in stx_mode flags (16bit)
