@@ -263,9 +263,6 @@ test-xfail-tst-ptrguard1 = yes
 # __file_name_lookup_under call.
 test-xfail-tst-fdopendir = yes
 
-# being fixed in hurd
-test-xfail-tst-getconf = yes
-
 # We don't provide ABI reference for these
 test-xfail-check-abi-libhurduser = yes
 test-xfail-check-abi-libmachuser = yes
