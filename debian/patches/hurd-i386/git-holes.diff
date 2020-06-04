@@ -1,0 +1,34 @@
+commit 3f6e4fc4542b5b881906bf2f83eb4b8359b0dcd4
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Jun 4 20:52:19 2020 +0200
+
+    support: Fix detecting hole support on >2KB-block filesystems
+    
+    When detecting hole support, we write at 16MiB, and filesystems will
+    typically need two levels of data to record that. On filesystems with
+    8KB block, the two indirection blocks will require a total of 16KB
+    overhead, thus 32 512-byte sectors.
+    
+    Spotted on GNU/Hurd with a 4KB blocks filesystem, but also happens on Linux
+    with 4KB or 8KB blocks filesystems.
+    
+    * support/support_descriptor_supports_holes.c
+    (support_descriptor_supports_holes): Set block_headroom to 32.
+
+diff --git a/support/support_descriptor_supports_holes.c b/support/support_descriptor_supports_holes.c
+index fc2aa76f10..d3d5d3a938 100644
+--- a/support/support_descriptor_supports_holes.c
++++ b/support/support_descriptor_supports_holes.c
+@@ -34,8 +34,10 @@ support_descriptor_supports_holes (int fd)
+       write_offset = 16 * 1024 * 1024,
+ 
+       /* Our write may add this number of additional blocks (see
+-         block_limit below).  */
+-      block_headroom = 8,
++         block_limit below): writing at offset 16M can require two data block
++         indirections, each of which can be as large as 8KB on ext2, thus 32
++         512B sectors.  */
++      block_headroom = 32,
+     };
+ 
+   struct stat64 st;
