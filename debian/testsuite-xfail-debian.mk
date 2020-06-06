@@ -292,7 +292,6 @@ test-xfail-tst-backtrace6 = yes
 
 # Need investigation
 test-xfail-tst-longjmp_chk2 = yes
-test-xfail-tst-mallocfork2 = yes
 test-xfail-tst-sprofil = yes
 test-xfail-tst-timer4 = yes
 test-xfail-tst-timer5 = yes
@@ -369,6 +368,7 @@ test-xfail-tst-res_hconf_reorder = yes
 # wants pthread_barrierattr_setpshared
 test-xfail-tst-pututxline-cache = yes
 test-xfail-tst-pututxline-lockfail = yes
+test-xfail-tst-mallocfork2 = yes
 
 # wants /proc/self/fd
 test-xfail-tst-updwtmpx = yes
