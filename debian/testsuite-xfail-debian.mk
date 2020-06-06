@@ -250,10 +250,6 @@ test-xfail-test-multiarch = yes
 # Need actual porting
 test-xfail-exe = yes
 
-# TODO: support THREAD_SET_STACK_GUARD THREAD_COPY_STACK_GUARD STACK_CHK_GUARD
-test-xfail-tst-stackguard1-static = yes
-test-xfail-tst-stackguard1 = yes
-
 # TODO: support THREAD_SET_POINTER_GUARD THREAD_COPY_POINTER_GUARD POINTER_GUARD POINTER_CHK_GUARD
 test-xfail-tst-ptrguard1-static = yes
 test-xfail-tst-ptrguard1 = yes
@@ -392,6 +388,8 @@ test-xfail-tst-fdopendir2 = yes
 test-xfail-tst-grantpt = yes
 test-xfail-ISO11/threads.h/conform = yes
 test-xfail-ISO11/threads.h/linknamespace = yes
+test-xfail-tst-stackguard1-static = yes
+test-xfail-tst-stackguard1 = yes
 
 # actually never succeded
 test-xfail-tst-create_format1 = yes
