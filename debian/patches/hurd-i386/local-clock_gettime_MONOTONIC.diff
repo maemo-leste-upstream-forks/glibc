@@ -54,3 +54,15 @@ Index: glibc-2.27/sysdeps/mach/hurd/bits/posix_opt.h
  
  /* Advisory information interfaces could be available in future.  */
  #define _POSIX_ADVISORY_INFO	0
+Index: glibc-upstream/sysdeps/posix/clock_getres.c
+===================================================================
+--- glibc-upstream.orig/sysdeps/posix/clock_getres.c
++++ glibc-upstream/sysdeps/posix/clock_getres.c
+@@ -52,6 +52,7 @@ __clock_getres (clockid_t clock_id, stru
+   switch (clock_id)
+     {
+     case CLOCK_REALTIME:
++    case CLOCK_MONOTONIC:
+       retval = realtime_getres (res);
+       break;
+ 
