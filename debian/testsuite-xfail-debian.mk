@@ -292,7 +292,12 @@ test-xfail-tst-backtrace6 = yes
 
 # Need investigation
 test-xfail-tst-longjmp_chk2 = yes
+
+# Crashes on dividing by a profiling period 0 (not initialized)
 test-xfail-tst-sprofil = yes
+
+# Missing RT signals.
+# And without rt_sigqueueinfo thread_expire_timer can't pass the si_code = SI_TIMER
 test-xfail-tst-timer4 = yes
 test-xfail-tst-timer5 = yes
 
