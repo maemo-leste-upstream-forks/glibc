@@ -250,10 +250,6 @@ test-xfail-test-multiarch = yes
 # Need actual porting
 test-xfail-exe = yes
 
-# TODO: support THREAD_SET_POINTER_GUARD THREAD_COPY_POINTER_GUARD POINTER_GUARD POINTER_CHK_GUARD
-test-xfail-tst-ptrguard1-static = yes
-test-xfail-tst-ptrguard1 = yes
-
 # TODO: in _hurd_port2fd store the flags in a new field in the hurd_fd
 # structure, and in __fdopendir pass over the O_NOATIME flag to the
 # __file_name_lookup_under call.
@@ -390,6 +386,8 @@ test-xfail-ISO11/threads.h/conform = yes
 test-xfail-ISO11/threads.h/linknamespace = yes
 test-xfail-tst-stackguard1-static = yes
 test-xfail-tst-stackguard1 = yes
+test-xfail-tst-ptrguard1-static = yes
+test-xfail-tst-ptrguard1 = yes
 
 # actually never succeded
 test-xfail-tst-create_format1 = yes
