@@ -1,0 +1,275 @@
+commit 02937d825a71636c13b3f4229e5d6c9e54e327d5
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Jun 6 20:21:22 2020 +0200
+
+    hurd: fix clearing SS_ONSTACK when longjmp-ing from sighandler
+    
+    * sysdeps/i386/htl/Makefile: New file.
+    * sysdeps/i386/htl/tcb-offsets.sym: New file.
+    * sysdeps/mach/hurd/i386/Makefile [setjmp] (gen-as-const-headers): Add
+    signal-defines.sym.
+    * sysdeps/mach/hurd/i386/____longjmp_chk.S: Include tcb-offsets.h.
+    (____longjmp_chk): Harmonize with i386's __longjmp. Clear SS_ONSTACK
+    when jumping off the alternate stack.
+    * sysdeps/mach/hurd/i386/__longjmp.S: New file.
+
+diff --git a/sysdeps/i386/htl/Makefile b/sysdeps/i386/htl/Makefile
+new file mode 100644
+index 0000000000..8573ce6990
+--- /dev/null
++++ b/sysdeps/i386/htl/Makefile
+@@ -0,0 +1,20 @@
++# Copyright (C) 2020 Free Software Foundation, Inc.
++# This file is part of the GNU C Library.
++
++# The GNU C Library is free software; you can redistribute it and/or
++# modify it under the terms of the GNU Lesser General Public
++# License as published by the Free Software Foundation; either
++# version 2.1 of the License, or (at your option) any later version.
++
++# The GNU C Library is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# Lesser General Public License for more details.
++
++# You should have received a copy of the GNU Lesser General Public
++# License along with the GNU C Library; if not, see
++# <https://www.gnu.org/licenses/>.
++
++ifeq ($(subdir),csu)
++gen-as-const-headers += tcb-offsets.sym
++endif
+diff --git a/sysdeps/i386/htl/tcb-offsets.sym b/sysdeps/i386/htl/tcb-offsets.sym
+new file mode 100644
+index 0000000000..7b7c719369
+--- /dev/null
++++ b/sysdeps/i386/htl/tcb-offsets.sym
+@@ -0,0 +1,8 @@
++#include <sysdep.h>
++#include <tls.h>
++#include <kernel-features.h>
++
++MULTIPLE_THREADS_OFFSET offsetof (tcbhead_t, multiple_threads)
++SYSINFO_OFFSET          offsetof (tcbhead_t, sysinfo)
++POINTER_GUARD           offsetof (tcbhead_t, pointer_guard)
++SIGSTATE_OFFSET         offsetof (tcbhead_t, _hurd_sigstate)
+diff --git a/sysdeps/mach/hurd/i386/Makefile b/sysdeps/mach/hurd/i386/Makefile
+index 068f7d0419..495b927b82 100644
+--- a/sysdeps/mach/hurd/i386/Makefile
++++ b/sysdeps/mach/hurd/i386/Makefile
+@@ -7,6 +7,10 @@ ifeq ($(subdir),debug)
+ gen-as-const-headers += signal-defines.sym
+ endif
+ 
++ifeq ($(subdir),setjmp)
++gen-as-const-headers += signal-defines.sym
++endif
++
+ ifeq ($(subdir),csu)
+ ifeq (yes,$(build-shared))
+ sysdep_routines += divdi3
+diff --git a/sysdeps/mach/hurd/i386/____longjmp_chk.S b/sysdeps/mach/hurd/i386/____longjmp_chk.S
+index 819e5dc875..4d3a331728 100644
+--- a/sysdeps/mach/hurd/i386/____longjmp_chk.S
++++ b/sysdeps/mach/hurd/i386/____longjmp_chk.S
+@@ -17,6 +17,7 @@
+ 
+ #include <sysdep.h>
+ #include <jmpbuf-offsets.h>
++#include <tcb-offsets.h>
+ #include <asm-syntax.h>
+ 
+ #include <signal-defines.h>
+@@ -47,65 +48,70 @@ longjmp_msg:
+ 
+ 	.text
+ ENTRY (____longjmp_chk)
+-	movl	4(%esp), %ecx	/* User's jmp_buf in %ecx.  */
++	movl	4(%esp), %eax	/* User's jmp_buf in %eax.  */
+ 
+ 	/* Save the return address now.  */
+-	movl	(JB_PC*4)(%ecx), %edx
++	movl	(JB_PC*4)(%eax), %edx
+ 	/* Get the stack pointer.  */
+-	movl	(JB_SP*4)(%ecx), %edi
+-	cfi_undefined(%edi)
++	movl	(JB_SP*4)(%eax), %ecx
++	cfi_undefined(%ecx)
+ #ifdef PTR_DEMANGLE
+ 	PTR_DEMANGLE (%edx)
+-	PTR_DEMANGLE (%edi)
++	PTR_DEMANGLE (%ecx)
+ #endif
+ 
+-	cmpl	%edi, %esp
++	movl	%gs:SIGSTATE_OFFSET,%edi
++
++	testl	$SS_ONSTACK, (HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_FLAGS__OFFSET)(%edi)
++	jnz	.Lonstack
++
++	/* We were on the main stack */
++
++	cmpl	%ecx, %esp
+ 	/* Jumping to a higher-address frame is always allowed.  */
+ 	jbe	.Lok
+ 
+-	/* Passing here, we're either about to do something invalid, or we're
+-	executing on an alternative signal stack.  */
++	/* Otherwise it's not allowed.  */
++	CALL_FAIL
+ 
+-	/* TODO: need locking?  */
+-	/* struct hurd_sigstate * _hurd_self_sigstate (void) */
+-	call	HIDDEN_JUMPTARGET(_hurd_self_sigstate)
+-	/* TODO: %eax and %eax->sigaltstack are always valid?  */
++.Lonstack:
++	/* We were on the alternate stack, can't really easily check anything
++	   since longjmp may get us out of the alternate stack.  */
+ 
+-	testl	$SS_ONSTACK, (HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_FLAGS__OFFSET)(%eax)
+-	/* Fail if SS_ONSTACK is not set.  */
+-	jz	.Lfail
++	cmpl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SP__OFFSET)(%edi), %ecx
++	jb	.Loks		/* We jump below the alternate stack, switch.  */
+ 
+-	movl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SP__OFFSET)(%eax), %ebx
+-	addl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SIZE__OFFSET)(%eax), %ebx
+-	subl	%edi, %ebx
+-	cmpl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SIZE__OFFSET)(%eax), %ebx
+-	/* TODO: comment this calculation.  */
+-	jae	.Lok
++	movl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SP__OFFSET)(%edi), %ebx
++	addl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SIZE__OFFSET)(%edi), %ebx
++	cmpl	%ebx, %ecx
++	jb	.Lok		/* We jump inside the alternate stack, do not switch.  */
+ 
+-.Lfail:	CALL_FAIL
++	/* We jump above the alternate stack, switch.  */
++
++.Loks:	/* We jump out of the alternate stack, clear SS_ONSTACK flag.  */
++	andl	$~(SS_ONSTACK), (HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_FLAGS__OFFSET)(%edi)
+ 
+ .Lok:	/* We add unwind information for the target here.  */
+-	cfi_def_cfa(%ecx, 0)
++	cfi_def_cfa(%eax, 0)
+ 	cfi_register(%eip, %edx)
+-	cfi_register(%esp, %edi)
++	cfi_register(%esp, %ecx)
+ 	cfi_offset(%ebx, JB_BX*4)
+ 	cfi_offset(%esi, JB_SI*4)
+ 	cfi_offset(%edi, JB_DI*4)
+ 	cfi_offset(%ebp, JB_BP*4)
+-
+-	movl	8(%esp), %eax	/* Second argument is return value.  */
+-	movl	%edi, %esp
+-
+ 	/* Restore registers.  */
+-	movl	(JB_BX*4)(%ecx), %ebx
+-	movl	(JB_SI*4)(%ecx), %esi
+-	movl	(JB_DI*4)(%ecx), %edi
+-	movl	(JB_BP*4)(%ecx), %ebp
++	movl	(JB_BX*4)(%eax), %ebx
++	movl	(JB_SI*4)(%eax), %esi
++	movl	(JB_DI*4)(%eax), %edi
++	movl	(JB_BP*4)(%eax), %ebp
+ 	cfi_restore(%ebx)
+ 	cfi_restore(%esi)
+ 	cfi_restore(%edi)
+ 	cfi_restore(%ebp)
+ 
++	movl	8(%esp), %eax	/* Second argument is return value.  */
++	movl	%ecx, %esp
++
+ 	/* Jump to saved PC.  */
+ 	jmp	*%edx
+ END (____longjmp_chk)
+diff --git a/sysdeps/mach/hurd/i386/__longjmp.S b/sysdeps/mach/hurd/i386/__longjmp.S
+new file mode 100644
+index 0000000000..d123c214c9
+--- /dev/null
++++ b/sysdeps/mach/hurd/i386/__longjmp.S
+@@ -0,0 +1,84 @@
++/* Copyright (C) 2001-2020 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <sysdep.h>
++#include <jmpbuf-offsets.h>
++#include <tcb-offsets.h>
++#include <asm-syntax.h>
++
++#include <signal-defines.h>
++/* #include <signal.h> */
++#define SS_ONSTACK 1
++
++	.text
++ENTRY (__longjmp)
++	movl 4(%esp), %eax	/* User's jmp_buf in %eax.  */
++
++	/* Save the return address now.  */
++	movl (JB_PC*4)(%eax), %edx
++	/* Get the stack pointer.  */
++	movl (JB_SP*4)(%eax), %ecx
++	cfi_undefined(%ecx)
++#ifdef PTR_DEMANGLE
++	PTR_DEMANGLE (%edx)
++	PTR_DEMANGLE (%ecx)
++#endif
++
++	movl	%gs:SIGSTATE_OFFSET,%edi
++
++	testl	$SS_ONSTACK, (HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_FLAGS__OFFSET)(%edi)
++	jz	.Lok
++
++	/* We were on the alternate stack.  */
++
++	cmpl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SP__OFFSET)(%edi), %ecx
++	jb	.Loks		/* We jump below the alternate stack, switch.  */
++
++	movl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SP__OFFSET)(%edi), %ebx
++	addl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SIZE__OFFSET)(%edi), %ebx
++	cmpl	%ebx, %ecx
++	jb	.Lok		/* We jump inside the alternate stack, do not switch.  */
++
++	/* We jump above the alternate stack, switch.  */
++
++.Loks:	/* We jump out of the alternate stack, clear SS_ONSTACK flag.  */
++	andl	$~(SS_ONSTACK), (HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_FLAGS__OFFSET)(%edi)
++
++.Lok:	/* We add unwind information for the target here.  */
++	cfi_def_cfa(%eax, 0)
++	cfi_register(%eip, %edx)
++	cfi_register(%esp, %ecx)
++	cfi_offset(%ebx, JB_BX*4)
++	cfi_offset(%esi, JB_SI*4)
++	cfi_offset(%edi, JB_DI*4)
++	cfi_offset(%ebp, JB_BP*4)
++	/* Restore registers.  */
++	movl (JB_BX*4)(%eax), %ebx
++	movl (JB_SI*4)(%eax), %esi
++	movl (JB_DI*4)(%eax), %edi
++	movl (JB_BP*4)(%eax), %ebp
++	cfi_restore(%ebx)
++	cfi_restore(%esi)
++	cfi_restore(%edi)
++	cfi_restore(%ebp)
++
++	movl	8(%esp), %eax	/* Second argument is return value.  */
++	movl	%ecx, %esp
++
++	/* Jump to saved PC.  */
++	jmp *%edx
++END (__longjmp)

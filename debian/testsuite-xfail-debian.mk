@@ -290,9 +290,6 @@ test-xfail-tst-backtrace4 = yes
 test-xfail-tst-backtrace5 = yes
 test-xfail-tst-backtrace6 = yes
 
-# Need investigation
-test-xfail-tst-longjmp_chk2 = yes
-
 # Crashes on dividing by a profiling period 0 (not initialized)
 test-xfail-tst-sprofil = yes
 
