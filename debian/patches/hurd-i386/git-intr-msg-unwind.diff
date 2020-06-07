@@ -1,0 +1,26 @@
+commit 337a7b74faed2c8daf8c91cbb3038dc4984f3207
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Jun 7 17:51:21 2020 +0000
+
+    hurd: Fix unwinding over interruptible RPC
+    
+    * sysdeps/mach/hurd/i386/intr-msg.h (INTR_MSG_TRAP): Set CFA register to
+    %ecx while %esp is altered.
+
+diff --git a/sysdeps/mach/hurd/i386/intr-msg.h b/sysdeps/mach/hurd/i386/intr-msg.h
+index 54420fed01..70e6cc6592 100644
+--- a/sysdeps/mach/hurd/i386/intr-msg.h
++++ b/sysdeps/mach/hurd/i386/intr-msg.h
+@@ -37,10 +37,12 @@
+        "				movl %6, %%eax\n"		      \
+        "				jmp _hurd_intr_rpc_msg_sp_restored\n" \
+        "_hurd_intr_rpc_msg_do:		movl %%esp, %%ecx\n"		      \
++       "				.cfi_def_cfa_register %%ecx\n"	      \
+        "				leal %4, %%esp\n"		      \
+        "_hurd_intr_rpc_msg_cx_sp:	movl $-25, %%eax\n"		      \
+        "_hurd_intr_rpc_msg_do_trap:	lcall $7, $0 # status in %0\n"	      \
+        "_hurd_intr_rpc_msg_in_trap:	movl %%ecx, %%esp\n"		      \
++       "				.cfi_def_cfa_register %%esp\n"	      \
+        "_hurd_intr_rpc_msg_sp_restored:"				      \
+        : "=a" (err), "+m" (option), "+m" (timeout), "=m" (*intr_port_p)	      \
+        : "m" ((&msg)[-1]), "m" (*cancel_p), "i" (EINTR)			      \
