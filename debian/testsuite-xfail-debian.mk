@@ -255,10 +255,6 @@ test-xfail-exe = yes
 # __file_name_lookup_under call.
 test-xfail-tst-fdopendir = yes
 
-# We don't provide ABI reference for these
-test-xfail-check-abi-libhurduser = yes
-test-xfail-check-abi-libmachuser = yes
-
 # Overzealous test
 test-xfail-tst-pathconf = yes
 
