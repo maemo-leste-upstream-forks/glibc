@@ -1,0 +1,36 @@
+commit 05039737d306b4c065ff65d4f90042f3ec8f6ddf
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Jun 7 02:57:04 2020 +0200
+
+    htl: fix register-atfork ordering
+    
+    * htl/register-atfork.c (__register_atfork): Add new hooks at the end of
+    the list instead of the beginning.
+
+diff --git a/htl/register-atfork.c b/htl/register-atfork.c
+index 256b1148ac..4581ac5bba 100644
+--- a/htl/register-atfork.c
++++ b/htl/register-atfork.c
+@@ -109,15 +109,15 @@ __register_atfork (void (*prepare) (void),
+   new->parent = parent;
+   new->child = child;
+   new->dso_handle = dso_handle;
+-  new->prev = NULL;
++  new->next = NULL;
+ 
+   __libc_lock_lock (atfork_lock);
+-  new->next = fork_handlers;
+-  if (fork_handlers != NULL)
+-    fork_handlers->prev = new;
+-  fork_handlers = new;
+-  if (fork_last_handler == NULL)
+-    fork_last_handler = new;
++  new->prev = fork_last_handler;
++  if (fork_last_handler != NULL)
++    fork_last_handler->next = new;
++  if (fork_handlers == NULL)
++    fork_handlers = new;
++  fork_last_handler = new;
+   __libc_lock_unlock (atfork_lock);
+ 
+   return 0;
