@@ -392,7 +392,6 @@ test-xfail-tst-create_format1 = yes
 test-xfail-tst-getcwd-abspath = yes
 test-xfail-tst-udp-error = yes
 test-xfail-test-fesetexcept-traps = yes
-test-xfail-tst-support_capture_subprocess = yes
 
 # Child seems to be inheriting the lockf from the parent?
 test-xfail-tst-lockf = yes
