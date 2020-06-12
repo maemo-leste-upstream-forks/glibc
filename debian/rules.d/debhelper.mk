@@ -107,6 +107,7 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): debhelper $(patsubst %,
 	dh_installdirs -p$(curpass)
 	dh_install -p$(curpass)
 	dh_strip -p$(curpass)
+	dh_link -p$(curpass)
 	
 	# when you want to install extra packages, use extra_pkg_install.
 	$(call xx,extra_pkg_install)
