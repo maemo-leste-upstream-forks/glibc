@@ -347,9 +347,6 @@ test-xfail-tst-libc_dlvsym = yes
 test-xfail-tst-spawn4 = yes
 test-xfail-tst-spawn4-compat = yes
 
-# new in 2.28
-test-xfail-tst-malloc-stats-cancellation = yes
-
 # want /proc/self/fd
 test-xfail-tst-if_index-long = yes
 test-xfail-tst-support_descriptors = yes
@@ -386,6 +383,7 @@ test-xfail-tst-stackguard1-static = yes
 test-xfail-tst-stackguard1 = yes
 test-xfail-tst-ptrguard1-static = yes
 test-xfail-tst-ptrguard1 = yes
+test-xfail-tst-malloc-stats-cancellation = yes
 
 # actually never succeded
 test-xfail-tst-create_format1 = yes
