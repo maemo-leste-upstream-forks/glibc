@@ -318,7 +318,6 @@ test-xfail-tst-preadwrite64 = yes
 
 # happens on linux-i386 too
 test-xfail-annexc = yes
-test-xfail-tst-waitid = yes
 
 # seems fixed in 2.24-3?
 test-xfail-tst-secure-getenv = yes
@@ -384,6 +383,7 @@ test-xfail-tst-stackguard1 = yes
 test-xfail-tst-ptrguard1-static = yes
 test-xfail-tst-ptrguard1 = yes
 test-xfail-tst-malloc-stats-cancellation = yes
+test-xfail-tst-waitid = yes
 
 # actually never succeded
 test-xfail-tst-create_format1 = yes
