@@ -373,6 +373,10 @@ test-xfail-tst-dlopenfail = yes
 
 # new in 2.32
 test-xfail-tst-safe-linking = yes
+# Assumes some linuxish strings
+test-xfail-tst-strerror = yes
+# We always have several threads
+test-xfail-tst-single_threaded-pthread = yes
 # fixed in 2.32
 test-xfail-tst-fdopendir2 = yes
 test-xfail-tst-grantpt = yes
