@@ -1,0 +1,1202 @@
+commit ffb17e7ba3a5ba9632cee97330b325072fbe41dd
+Author: Szabolcs Nagy <szabolcs.nagy@arm.com>
+Date:   Wed Jun 10 13:40:40 2020 +0100
+
+    rtld: Avoid using up static TLS surplus for optimizations [BZ #25051]
+    
+    On some targets static TLS surplus area can be used opportunistically
+    for dynamically loaded modules such that the TLS access then becomes
+    faster (TLSDESC and powerpc TLS optimization). However we don't want
+    all surplus TLS to be used for this optimization because dynamically
+    loaded modules with initial-exec model TLS can only use surplus TLS.
+    
+    The new contract for surplus static TLS use is:
+    
+    - libc.so can have up to 192 bytes of IE TLS,
+    - other system libraries together can have up to 144 bytes of IE TLS.
+    - Some "optional" static TLS is available for opportunistic use.
+    
+    The optional TLS is now tunable: rtld.optional_static_tls, so users
+    can directly affect the allocated static TLS size. (Note that module
+    unloading with dlclose does not reclaim static TLS. After the optional
+    TLS runs out, TLS access is no longer optimized to use static TLS.)
+    
+    The default setting of rtld.optional_static_tls is 512 so the surplus
+    TLS is 3*192 + 4*144 + 512 = 1664 by default, the same as before.
+    
+    Fixes BZ #25051.
+    
+    Tested on aarch64-linux-gnu and x86_64-linux-gnu.
+    
+    Reviewed-by: Carlos O'Donell <carlos@redhat.com>
+
+commit 17796419b5fd694348cceb65c3f77601faae082c
+Author: Szabolcs Nagy <szabolcs.nagy@arm.com>
+Date:   Tue Jul 7 10:49:11 2020 +0100
+
+    rtld: Account static TLS surplus for audit modules
+    
+    The new static TLS surplus size computation is
+    
+      surplus_tls = 192 * (nns-1) + 144 * nns + 512
+    
+    where nns is controlled via the rtld.nns tunable. This commit
+    accounts audit modules too so nns = rtld.nns + audit modules.
+    
+    rtld.nns should only include the namespaces required by the
+    application, namespaces for audit modules are accounted on top
+    of that so audit modules don't use up the static TLS that is
+    reserved for the application. This allows loading many audit
+    modules without tuning rtld.nns or using up static TLS, and it
+    fixes
+    
+    FAIL: elf/tst-auditmany
+    
+    Note that DL_NNS is currently a hard upper limit for nns, and
+    if rtld.nns + audit modules go over the limit that's a fatal
+    error. By default rtld.nns is 4 which allows 12 audit modules.
+    
+    Counting the audit modules is based on existing audit string
+    parsing code, we cannot use GLRO(dl_naudit) before the modules
+    are actually loaded.
+
+commit 0c7b002fac12dcb2f53ba83ee56bb3b5d2439447
+Author: Szabolcs Nagy <szabolcs.nagy@arm.com>
+Date:   Tue Jun 9 09:57:28 2020 +0100
+
+    rtld: Add rtld.nns tunable for the number of supported namespaces
+    
+    TLS_STATIC_SURPLUS is 1664 bytes currently which is not enough to
+    support DL_NNS (== 16) number of dynamic link namespaces, if we
+    assume 192 bytes of TLS are reserved for libc use and 144 bytes
+    are reserved for other system libraries that use IE TLS.
+    
+    A new tunable is introduced to control the number of supported
+    namespaces and to adjust the surplus static TLS size as follows:
+    
+    surplus_tls = 192 * (rtld.nns-1) + 144 * rtld.nns + 512
+    
+    The default is rtld.nns == 4 and then the surplus TLS size is the
+    same as before, so the behaviour is unchanged by default. If an
+    application creates more namespaces than the rtld.nns setting
+    allows, then it is not guaranteed to work, but the limit is not
+    checked. So existing usage will continue to work, but in the
+    future if an application creates more than 4 dynamic link
+    namespaces then the tunable will need to be set.
+    
+    In this patch DL_NNS is a fixed value and provides a maximum to
+    the rtld.nns setting.
+    
+    Static linking used fixed 2048 bytes surplus TLS, this is changed
+    so the same contract is used as for dynamic linking.  With static
+    linking DL_NNS == 1 so rtld.nns tunable is forced to 1, so by
+    default the surplus TLS is reduced to 144 + 512 = 656 bytes. This
+    change is not expected to cause problems.
+    
+    Tested on aarch64-linux-gnu and x86_64-linux-gnu.
+    
+    Reviewed-by: Carlos O'Donell <carlos@redhat.com>
+
+commit 4c6e0415ef206a595c62d5d37e3b9a821782c533
+Author: Florian Weimer <fweimer@redhat.com>
+Date:   Fri Apr 3 13:17:48 2020 +0200
+
+    elf: Simplify handling of lists of audit strings
+    
+    All list elements are colon-separated strings, and there is a hard
+    upper limit for the number of audit modules, so it is possible to
+    pre-allocate a fixed-size array of strings to which the LD_AUDIT
+    environment variable and --audit arguments are added.
+    
+    Also eliminate the global variables for the audit list because
+    the list is only needed briefly during startup.
+    
+    There is a slight behavior change: All duplicate LD_AUDIT environment
+    variables are now processed, not just the last one as before.  However,
+    such environment vectors are invalid anyway.
+    
+    Reviewed-by: Carlos O'Donell <carlos@redhat.com>
+
+--- a/elf/rtld.c
++++ b/elf/rtld.c
+@@ -45,6 +45,7 @@
+ #include <stap-probe.h>
+ #include <stackinfo.h>
+ #include <not-cancel.h>
++#include <array_length.h>
+ 
+ #include <assert.h>
+ 
+@@ -109,8 +110,53 @@
+ /* Print the various times we collected.  */
+ static void print_statistics (const hp_timing_t *total_timep);
+ 
+-/* Add audit objects.  */
+-static void process_dl_audit (char *str);
++/* Length limits for names and paths, to protect the dynamic linker,
++   particularly when __libc_enable_secure is active.  */
++#ifdef NAME_MAX
++# define SECURE_NAME_LIMIT NAME_MAX
++#else
++# define SECURE_NAME_LIMIT 255
++#endif
++#ifdef PATH_MAX
++# define SECURE_PATH_LIMIT PATH_MAX
++#else
++# define SECURE_PATH_LIMIT 1024
++#endif
++
++/* Strings containing colon-separated lists of audit modules.  */
++struct audit_list
++{
++  /* Array of strings containing colon-separated path lists.  Each
++     audit module needs its own namespace, so pre-allocate the largest
++     possible list.  */
++  const char *audit_strings[DL_NNS];
++
++  /* Number of entries added to audit_strings.  */
++  size_t length;
++
++  /* Index into the audit_strings array (for the iteration phase).  */
++  size_t current_index;
++
++  /* Tail of audit_strings[current_index] which still needs
++     processing.  */
++  const char *current_tail;
++
++  /* Scratch buffer for returning a name which is part of the strings
++     in audit_strings.  */
++  char fname[SECURE_NAME_LIMIT];
++};
++
++/* Creates an empty audit list.  */
++static void audit_list_init (struct audit_list *);
++
++/* Add a string to the end of the audit list, for later parsing.  Must
++   not be called after audit_list_next.  */
++static void audit_list_add_string (struct audit_list *, const char *);
++
++/* Extract the next audit module from the audit list.  Only modules
++   for which dso_name_valid_for_suid is true are returned.  Must be
++   called after all the audit_list_add_string calls.  */
++static const char *audit_list_next (struct audit_list *);
+ 
+ /* This is a list of all the modes the dynamic loader can be in.  */
+ enum mode { normal, list, verify, trace };
+@@ -118,7 +164,7 @@
+ /* Process all environments variables the dynamic linker must recognize.
+    Since all of them start with `LD_' we are a bit smarter while finding
+    all the entries.  */
+-static void process_envvars (enum mode *modep);
++static void process_envvars (enum mode *modep, struct audit_list *);
+ 
+ #ifdef DL_ARGV_NOT_RELRO
+ int _dl_argc attribute_hidden;
+@@ -146,19 +192,6 @@
+ strong_alias (__pointer_chk_guard_local, __pointer_chk_guard)
+ #endif
+ 
+-/* Length limits for names and paths, to protect the dynamic linker,
+-   particularly when __libc_enable_secure is active.  */
+-#ifdef NAME_MAX
+-# define SECURE_NAME_LIMIT NAME_MAX
+-#else
+-# define SECURE_NAME_LIMIT 255
+-#endif
+-#ifdef PATH_MAX
+-# define SECURE_PATH_LIMIT PATH_MAX
+-#else
+-# define SECURE_PATH_LIMIT 1024
+-#endif
+-
+ /* Check that AT_SECURE=0, or that the passed name does not contain
+    directories and is not overly long.  Reject empty names
+    unconditionally.  */
+@@ -176,89 +209,92 @@
+   return *p != '\0';
+ }
+ 
+-/* LD_AUDIT variable contents.  Must be processed before the
+-   audit_list below.  */
+-const char *audit_list_string;
+-
+-/* Cyclic list of auditing DSOs.  audit_list->next is the first
+-   element.  */
+-static struct audit_list
++static void
++audit_list_init (struct audit_list *list)
+ {
+-  const char *name;
+-  struct audit_list *next;
+-} *audit_list;
++  list->length = 0;
++  list->current_index = 0;
++  list->current_tail = NULL;
++}
+ 
+-/* Iterator for audit_list_string followed by audit_list.  */
+-struct audit_list_iter
++static void
++audit_list_add_string (struct audit_list *list, const char *string)
+ {
+-  /* Tail of audit_list_string still needing processing, or NULL.  */
+-  const char *audit_list_tail;
++  /* Empty strings do not load anything.  */
++  if (*string == '\0')
++    return;
+ 
+-  /* The list element returned in the previous iteration.  NULL before
+-     the first element.  */
+-  struct audit_list *previous;
++  if (list->length == array_length (list->audit_strings))
++    _dl_fatal_printf ("Fatal glibc error: Too many audit modules requested\n");
+ 
+-  /* Scratch buffer for returning a name which is part of
+-     audit_list_string.  */
+-  char fname[SECURE_NAME_LIMIT];
+-};
++  list->audit_strings[list->length++] = string;
+ 
+-/* Initialize an audit list iterator.  */
+-static void
+-audit_list_iter_init (struct audit_list_iter *iter)
+-{
+-  iter->audit_list_tail = audit_list_string;
+-  iter->previous = NULL;
++  /* Initialize processing of the first string for
++     audit_list_next.  */
++  if (list->length == 1)
++    list->current_tail = string;
+ }
+ 
+-/* Iterate through both audit_list_string and audit_list.  */
+ static const char *
+-audit_list_iter_next (struct audit_list_iter *iter)
++audit_list_next (struct audit_list *list)
+ {
+-  if (iter->audit_list_tail != NULL)
++  if (list->current_tail == NULL)
++    return NULL;
++
++  while (true)
+     {
+-      /* First iterate over audit_list_string.  */
+-      while (*iter->audit_list_tail != '\0')
++      /* Advance to the next string in audit_strings if the current
++	 string has been exhausted.  */
++      while (*list->current_tail == '\0')
+ 	{
+-	  /* Split audit list at colon.  */
+-	  size_t len = strcspn (iter->audit_list_tail, ":");
+-	  if (len > 0 && len < sizeof (iter->fname))
++	  ++list->current_index;
++	  if (list->current_index == list->length)
+ 	    {
+-	      memcpy (iter->fname, iter->audit_list_tail, len);
+-	      iter->fname[len] = '\0';
++	      list->current_tail = NULL;
++	      return NULL;
+ 	    }
+-	  else
+-	    /* Do not return this name to the caller.  */
+-	    iter->fname[0] = '\0';
++	  list->current_tail = list->audit_strings[list->current_index];
++	}
+ 
+-	  /* Skip over the substring and the following delimiter.  */
+-	  iter->audit_list_tail += len;
+-	  if (*iter->audit_list_tail == ':')
+-	    ++iter->audit_list_tail;
+-
+-	  /* If the name is valid, return it.  */
+-	  if (dso_name_valid_for_suid (iter->fname))
+-	    return iter->fname;
+-	  /* Otherwise, wrap around and try the next name.  */
+-	}
+-      /* Fall through to the procesing of audit_list.  */
+-    }
+-
+-  if (iter->previous == NULL)
+-    {
+-      if (audit_list == NULL)
+-	/* No pre-parsed audit list.  */
+-	return NULL;
+-      /* Start of audit list.  The first list element is at
+-	 audit_list->next (cyclic list).  */
+-      iter->previous = audit_list->next;
+-      return iter->previous->name;
++      /* Split the in-string audit list at the next colon colon.  */
++      size_t len = strcspn (list->current_tail, ":");
++      if (len > 0 && len < sizeof (list->fname))
++	{
++	  memcpy (list->fname, list->current_tail, len);
++	  list->fname[len] = '\0';
++	}
++      else
++	/* Mark the name as unusable for dso_name_valid_for_suid.  */
++	list->fname[0] = '\0';
++
++      /* Skip over the substring and the following delimiter.  */
++      list->current_tail += len;
++      if (*list->current_tail == ':')
++	++list->current_tail;
++
++      /* If the name is valid, return it.  */
++      if (dso_name_valid_for_suid (list->fname))
++	return list->fname;
++
++      /* Otherwise wrap around to find the next list element. .  */
+     }
+-  if (iter->previous == audit_list)
+-    /* Cyclic list wrap-around.  */
+-    return NULL;
+-  iter->previous = iter->previous->next;
+-  return iter->previous->name;
++}
++
++/* Count audit modules before they are loaded so GLRO(dl_naudit)
++   is not yet usable.  */
++static size_t
++audit_list_count (struct audit_list *list)
++{
++  /* Restore the audit_list iterator state at the end.  */
++  const char *saved_tail = list->current_tail;
++  size_t naudit = 0;
++
++  assert (list->current_index == 0);
++  while (audit_list_next (list) != NULL)
++    naudit++;
++  list->current_tail = saved_tail;
++  list->current_index = 0;
++  return naudit;
+ }
+ 
+ #ifndef HAVE_INLINED_SYSCALLS
+@@ -695,7 +731,7 @@
+ static bool tls_init_tp_called;
+ 
+ static void *
+-init_tls (void)
++init_tls (size_t naudit)
+ {
+   /* Number of elements in the static TLS block.  */
+   GL(dl_tls_static_nelem) = GL(dl_tls_max_dtv_idx);
+@@ -737,6 +773,9 @@
+       }
+   assert (i == GL(dl_tls_max_dtv_idx));
+ 
++  /* Calculate the size of the static TLS surplus.  */
++  _dl_tls_static_surplus_init (naudit);
++
+   /* Compute the TLS offsets for the various blocks.  */
+   _dl_determine_tlsoffset ();
+ 
+@@ -1059,15 +1098,13 @@
+ 
+ /* Load all audit modules.  */
+ static void
+-load_audit_modules (struct link_map *main_map)
++load_audit_modules (struct link_map *main_map, struct audit_list *audit_list)
+ {
+   struct audit_ifaces *last_audit = NULL;
+-  struct audit_list_iter al_iter;
+-  audit_list_iter_init (&al_iter);
+ 
+   while (true)
+     {
+-      const char *name = audit_list_iter_next (&al_iter);
++      const char *name = audit_list_next (audit_list);
+       if (name == NULL)
+ 	break;
+       load_audit_module (name, &last_audit);
+@@ -1099,6 +1136,9 @@
+   bool rtld_is_main = false;
+   void *tcbp = NULL;
+ 
++  struct audit_list audit_list;
++  audit_list_init (&audit_list);
++
+   GL(dl_init_static_tls) = &_dl_nothread_init_static_tls;
+ 
+ #if defined SHARED && defined _LIBC_REENTRANT \
+@@ -1112,7 +1152,7 @@
+   GL(dl_make_stack_executable_hook) = &_dl_make_stack_executable;
+ 
+   /* Process the environment variable which control the behaviour.  */
+-  process_envvars (&mode);
++  process_envvars (&mode, &audit_list);
+ 
+ #ifndef HAVE_INLINED_SYSCALLS
+   /* Set up a flag which tells we are just starting.  */
+@@ -1186,7 +1226,7 @@
+ 	  }
+ 	else if (! strcmp (_dl_argv[1], "--audit") && _dl_argc > 2)
+ 	  {
+-	    process_dl_audit (_dl_argv[2]);
++	    audit_list_add_string (&audit_list, _dl_argv[2]);
+ 
+ 	    _dl_skip_args += 2;
+ 	    _dl_argc -= 2;
+@@ -1618,12 +1658,13 @@
+ 
+   /* If we have auditing DSOs to load, do it now.  */
+   bool need_security_init = true;
+-  if (__glibc_unlikely (audit_list != NULL)
+-      || __glibc_unlikely (audit_list_string != NULL))
++  if (audit_list.length > 0)
+     {
++      size_t naudit = audit_list_count (&audit_list);
++
+       /* Since we start using the auditing DSOs right away we need to
+ 	 initialize the data structures now.  */
+-      tcbp = init_tls ();
++      tcbp = init_tls (naudit);
+ 
+       /* Initialize security features.  We need to do it this early
+ 	 since otherwise the constructors of the audit libraries will
+@@ -1632,7 +1673,11 @@
+       security_init ();
+       need_security_init = false;
+ 
+-      load_audit_modules (main_map);
++      load_audit_modules (main_map, &audit_list);
++
++      /* The count based on audit strings may overestimate the number
++	 of audit modules that got loaded, but not underestimate.  */
++      assert (GLRO(dl_naudit) <= naudit);
+     }
+ 
+   /* Keep track of the currently loaded modules to count how many
+@@ -1876,7 +1921,7 @@
+      multiple threads (from a non-TLS-using libpthread).  */
+   bool was_tls_init_tp_called = tls_init_tp_called;
+   if (tcbp == NULL)
+-    tcbp = init_tls ();
++    tcbp = init_tls (0);
+ 
+   if (__glibc_likely (need_security_init))
+     /* Initialize security features.  But only if we have not done it
+@@ -2497,30 +2542,6 @@
+     }
+ }
+ 
+-static void
+-process_dl_audit (char *str)
+-{
+-  /* The parameter is a colon separated list of DSO names.  */
+-  char *p;
+-
+-  while ((p = (strsep) (&str, ":")) != NULL)
+-    if (dso_name_valid_for_suid (p))
+-      {
+-	/* This is using the local malloc, not the system malloc.  The
+-	   memory can never be freed.  */
+-	struct audit_list *newp = malloc (sizeof (*newp));
+-	newp->name = p;
+-
+-	if (audit_list == NULL)
+-	  audit_list = newp->next = newp;
+-	else
+-	  {
+-	    newp->next = audit_list->next;
+-	    audit_list = audit_list->next = newp;
+-	  }
+-      }
+-}
+-
+ /* Process all environments variables the dynamic linker must recognize.
+    Since all of them start with `LD_' we are a bit smarter while finding
+    all the entries.  */
+@@ -2528,7 +2549,7 @@
+ 
+ 
+ static void
+-process_envvars (enum mode *modep)
++process_envvars (enum mode *modep, struct audit_list *audit_list)
+ {
+   char **runp = _environ;
+   char *envline;
+@@ -2568,7 +2589,7 @@
+ 	      break;
+ 	    }
+ 	  if (memcmp (envline, "AUDIT", 5) == 0)
+-	    audit_list_string = &envline[6];
++	    audit_list_add_string (audit_list, &envline[6]);
+ 	  break;
+ 
+ 	case 7:
+--- a/csu/libc-tls.c
++++ b/csu/libc-tls.c
+@@ -46,13 +46,19 @@
+ struct dtv_slotinfo_list *_dl_tls_dtv_slotinfo_list;
+ /* Number of modules in the static TLS block.  */
+ size_t _dl_tls_static_nelem;
+-/* Size of the static TLS block.  Giving this initialized value
+-   preallocates some surplus bytes in the static TLS area.  */
+-size_t _dl_tls_static_size = 2048;
++/* Size of the static TLS block.  */
++size_t _dl_tls_static_size;
+ /* Size actually allocated in the static TLS block.  */
+ size_t _dl_tls_static_used;
+ /* Alignment requirement of the static TLS block.  */
+ size_t _dl_tls_static_align;
++/* Size of surplus space in the static TLS area for dynamically
++   loaded modules with IE-model TLS or for TLSDESC optimization.
++   See comments in elf/dl-tls.c where it is initialized.  */
++size_t _dl_tls_static_surplus;
++/* Remaining amount of static TLS that may be used for optimizing
++   dynamic TLS access (e.g. with TLSDESC).  */
++size_t _dl_tls_static_optional;
+ 
+ /* Generation counter for the dtv.  */
+ size_t _dl_tls_generation;
+@@ -81,10 +87,8 @@
+ static void
+ init_static_tls (size_t memsz, size_t align)
+ {
+-  /* That is the size of the TLS memory for this object.  The initialized
+-     value of _dl_tls_static_size is provided by dl-open.c to request some
+-     surplus that permits dynamic loading of modules with IE-model TLS.  */
+-  GL(dl_tls_static_size) = roundup (memsz + GL(dl_tls_static_size),
++  /* That is the size of the TLS memory for this object.  */
++  GL(dl_tls_static_size) = roundup (memsz + GLRO(dl_tls_static_surplus),
+ 				    TLS_TCB_ALIGN);
+ #if TLS_TCB_AT_TP
+   GL(dl_tls_static_size) += TLS_TCB_SIZE;
+@@ -125,25 +129,24 @@
+ 	  break;
+ 	}
+ 
++  /* Calculate the size of the static TLS surplus, with 0 auditors.  */
++  _dl_tls_static_surplus_init (0);
++
+   /* We have to set up the TCB block which also (possibly) contains
+      'errno'.  Therefore we avoid 'malloc' which might touch 'errno'.
+      Instead we use 'sbrk' which would only uses 'errno' if it fails.
+      In this case we are right away out of memory and the user gets
+-     what she/he deserves.
+-
+-     The initialized value of _dl_tls_static_size is provided by dl-open.c
+-     to request some surplus that permits dynamic loading of modules with
+-     IE-model TLS.  */
++     what she/he deserves.  */
+ #if TLS_TCB_AT_TP
+   /* Align the TCB offset to the maximum alignment, as
+      _dl_allocate_tls_storage (in elf/dl-tls.c) does using __libc_memalign
+      and dl_tls_static_align.  */
+-  tcb_offset = roundup (memsz + GL(dl_tls_static_size), max_align);
++  tcb_offset = roundup (memsz + GLRO(dl_tls_static_surplus), max_align);
+   tlsblock = __sbrk (tcb_offset + TLS_INIT_TCB_SIZE + max_align);
+ #elif TLS_DTV_AT_TP
+   tcb_offset = roundup (TLS_INIT_TCB_SIZE, align ?: 1);
+   tlsblock = __sbrk (tcb_offset + memsz + max_align
+-		     + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size));
++		     + TLS_PRE_TCB_SIZE + GLRO(dl_tls_static_surplus));
+   tlsblock += TLS_PRE_TCB_SIZE;
+ #else
+   /* In case a model with a different layout for the TCB and DTV
+--- a/elf/dl-tls.c
++++ b/elf/dl-tls.c
+@@ -29,10 +29,66 @@
+ #include <dl-tls.h>
+ #include <ldsodefs.h>
+ 
+-/* Amount of excess space to allocate in the static TLS area
+-   to allow dynamic loading of modules defining IE-model TLS data.  */
+-#define TLS_STATIC_SURPLUS	64 + DL_NNS * 100
++#define TUNABLE_NAMESPACE rtld
++#include <dl-tunables.h>
+ 
++/* Surplus static TLS, GLRO(dl_tls_static_surplus), is used for
++
++   - IE TLS in libc.so for all dlmopen namespaces except in the initial
++     one where libc.so is not loaded dynamically but at startup time,
++   - IE TLS in other libraries which may be dynamically loaded even in the
++     initial namespace,
++   - and optionally for optimizing dynamic TLS access.
++
++   The maximum number of namespaces is DL_NNS, but to support that many
++   namespaces correctly the static TLS allocation should be significantly
++   increased, which may cause problems with small thread stacks due to the
++   way static TLS is accounted (bug 11787).
++
++   So there is a rtld.nns tunable limit on the number of supported namespaces
++   that affects the size of the static TLS and by default it's small enough
++   not to cause problems with existing applications. The limit is not
++   enforced or checked: it is the user's responsibility to increase rtld.nns
++   if more dlmopen namespaces are used.
++
++   Audit modules use their own namespaces, they are not included in rtld.nns,
++   but come on top when computing the number of namespaces.  */
++
++/* Size of initial-exec TLS in libc.so.  */
++#define LIBC_IE_TLS 192
++/* Size of initial-exec TLS in libraries other than libc.so.
++   This should be large enough to cover runtime libraries of the
++   compiler such as libgomp and libraries in libc other than libc.so.  */
++#define OTHER_IE_TLS 144
++
++/* Calculate the size of the static TLS surplus, when the given
++   number of audit modules are loaded.  Must be called after the
++   number of audit modules is known and before static TLS allocation.  */
++void
++_dl_tls_static_surplus_init (size_t naudit)
++{
++  size_t nns, opt_tls;
++
++#if HAVE_TUNABLES
++  nns = TUNABLE_GET (nns, size_t, NULL);
++  opt_tls = TUNABLE_GET (optional_static_tls, size_t, NULL);
++#else
++  /* Default values of the tunables.  */
++  nns = 4;
++  opt_tls = 512;
++#endif
++  if (nns > DL_NNS)
++    nns = DL_NNS;
++  if (DL_NNS - nns < naudit)
++    _dl_fatal_printf ("Failed loading %lu audit modules, %lu are supported.\n",
++		      (unsigned long) naudit, (unsigned long) (DL_NNS - nns));
++  nns += naudit;
++
++  GL(dl_tls_static_optional) = opt_tls;
++  GLRO(dl_tls_static_surplus) = ((nns - 1) * LIBC_IE_TLS
++				 + nns * OTHER_IE_TLS
++				 + opt_tls);
++}
+ 
+ /* Out-of-memory handler.  */
+ static void
+@@ -218,7 +274,8 @@
+     }
+ 
+   GL(dl_tls_static_used) = offset;
+-  GL(dl_tls_static_size) = (roundup (offset + TLS_STATIC_SURPLUS, max_align)
++  GL(dl_tls_static_size) = (roundup (offset + GLRO(dl_tls_static_surplus),
++				     max_align)
+ 			    + TLS_TCB_SIZE);
+ #elif TLS_DTV_AT_TP
+   /* The TLS blocks start right after the TCB.  */
+@@ -262,7 +319,7 @@
+     }
+ 
+   GL(dl_tls_static_used) = offset;
+-  GL(dl_tls_static_size) = roundup (offset + TLS_STATIC_SURPLUS,
++  GL(dl_tls_static_size) = roundup (offset + GLRO(dl_tls_static_surplus),
+ 				    TLS_TCB_ALIGN);
+ #else
+ # error "Either TLS_TCB_AT_TP or TLS_DTV_AT_TP must be defined"
+--- a/elf/dl-tunables.list
++++ b/elf/dl-tunables.list
+@@ -126,4 +126,18 @@
+       default: 3
+     }
+   }
++
++  rtld {
++    nns {
++      type: SIZE_T
++      minval: 1
++      maxval: 16
++      default: 4
++    }
++    optional_static_tls {
++      type: SIZE_T
++      minval: 0
++      default: 512
++    }
++  }
+ }
+--- a/sysdeps/generic/ldsodefs.h
++++ b/sysdeps/generic/ldsodefs.h
+@@ -439,6 +439,9 @@
+   EXTERN size_t _dl_tls_static_used;
+   /* Alignment requirement of the static TLS block.  */
+   EXTERN size_t _dl_tls_static_align;
++  /* Remaining amount of static TLS that may be used for optimizing
++     dynamic TLS access (e.g. with TLSDESC).  */
++  EXTERN size_t _dl_tls_static_optional;
+ 
+ /* Number of additional entries in the slotinfo array of each slotinfo
+    list element.  A large number makes it almost certain take we never
+@@ -580,6 +583,11 @@
+      binaries, don't honor for PIEs).  */
+   EXTERN ElfW(Addr) _dl_use_load_bias;
+ 
++  /* Size of surplus space in the static TLS area for dynamically
++     loaded modules with IE-model TLS or for TLSDESC optimization.
++     See comments in elf/dl-tls.c where it is initialized.  */
++  EXTERN size_t _dl_tls_static_surplus;
++
+   /* Name of the shared object to be profiled (if any).  */
+   EXTERN const char *_dl_profile;
+   /* Filename of the output file.  */
+@@ -1086,6 +1094,10 @@
+ /* Calculate offset of the TLS blocks in the static TLS block.  */
+ extern void _dl_determine_tlsoffset (void) attribute_hidden;
+ 
++/* Calculate the size of the static TLS surplus, when the given
++   number of audit modules are loaded.  */
++void _dl_tls_static_surplus_init (size_t naudit) attribute_hidden;
++
+ #ifndef SHARED
+ /* Set up the TCB for statically linked applications.  This is called
+    early during startup because we always use TLS (for errno and the
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -201,7 +201,8 @@
+ 	 tst-unwind-ctor tst-unwind-main tst-audit13 \
+ 	 tst-sonamemove-link tst-sonamemove-dlopen tst-dlopen-tlsmodid \
+ 	 tst-dlopen-self tst-auditmany tst-initfinilazyfail tst-dlopenfail \
+-	 tst-dlopenfail-2
++	 tst-dlopenfail-2 \
++	 tst-tls-ie tst-tls-ie-dlmopen
+ #	 reldep9
+ tests-internal += loadtest unload unload2 circleload1 \
+ 	 neededtest neededtest2 neededtest3 neededtest4 \
+@@ -312,7 +313,11 @@
+ 		tst-auditmanymod7 tst-auditmanymod8 tst-auditmanymod9 \
+ 		tst-initlazyfailmod tst-finilazyfailmod \
+ 		tst-dlopenfailmod1 tst-dlopenfaillinkmod tst-dlopenfailmod2 \
+-		tst-dlopenfailmod3 tst-ldconfig-ld-mod
++		tst-dlopenfailmod3 tst-ldconfig-ld-mod \
++		tst-tls-ie-mod0 tst-tls-ie-mod1 tst-tls-ie-mod2 \
++		tst-tls-ie-mod3 tst-tls-ie-mod4 tst-tls-ie-mod5 \
++		tst-tls-ie-mod6
++
+ # Most modules build with _ISOMAC defined, but those filtered out
+ # depend on internal headers.
+ modules-names-tests = $(filter-out ifuncmod% tst-libc_dlvsym-dso tst-tlsmod%,\
+@@ -1699,3 +1704,23 @@
+ 
+ $(objpfx)tst-ldconfig-ld_so_conf-update.out: $(objpfx)tst-ldconfig-ld-mod.so
+ $(objpfx)tst-ldconfig-ld_so_conf-update: $(libdl)
++
++$(objpfx)tst-tls-ie: $(libdl) $(shared-thread-library)
++$(objpfx)tst-tls-ie.out: \
++  $(objpfx)tst-tls-ie-mod0.so \
++  $(objpfx)tst-tls-ie-mod1.so \
++  $(objpfx)tst-tls-ie-mod2.so \
++  $(objpfx)tst-tls-ie-mod3.so \
++  $(objpfx)tst-tls-ie-mod4.so \
++  $(objpfx)tst-tls-ie-mod5.so \
++  $(objpfx)tst-tls-ie-mod6.so
++
++$(objpfx)tst-tls-ie-dlmopen: $(libdl) $(shared-thread-library)
++$(objpfx)tst-tls-ie-dlmopen.out: \
++  $(objpfx)tst-tls-ie-mod0.so \
++  $(objpfx)tst-tls-ie-mod1.so \
++  $(objpfx)tst-tls-ie-mod2.so \
++  $(objpfx)tst-tls-ie-mod3.so \
++  $(objpfx)tst-tls-ie-mod4.so \
++  $(objpfx)tst-tls-ie-mod5.so \
++  $(objpfx)tst-tls-ie-mod6.so
+--- a/elf/dl-reloc.c
++++ b/elf/dl-reloc.c
+@@ -39,13 +39,16 @@
+ /* We are trying to perform a static TLS relocation in MAP, but it was
+    dynamically loaded.  This can only work if there is enough surplus in
+    the static TLS area already allocated for each running thread.  If this
+-   object's TLS segment is too big to fit, we fail.  If it fits,
+-   we set MAP->l_tls_offset and return.
+-   This function intentionally does not return any value but signals error
+-   directly, as static TLS should be rare and code handling it should
+-   not be inlined as much as possible.  */
++   object's TLS segment is too big to fit, we fail with -1.  If it fits,
++   we set MAP->l_tls_offset and return 0.
++   A portion of the surplus static TLS can be optionally used to optimize
++   dynamic TLS access (with TLSDESC or powerpc TLS optimizations).
++   If OPTIONAL is true then TLS is allocated for such optimization and
++   the caller must have a fallback in case the optional portion of surplus
++   TLS runs out.  If OPTIONAL is false then the entire surplus TLS area is
++   considered and the allocation only fails if that runs out.  */
+ int
+-_dl_try_allocate_static_tls (struct link_map *map)
++_dl_try_allocate_static_tls (struct link_map *map, bool optional)
+ {
+   /* If we've already used the variable with dynamic access, or if the
+      alignment requirements are too high, fail.  */
+@@ -68,8 +71,14 @@
+ 
+   size_t n = (freebytes - blsize) / map->l_tls_align;
+ 
+-  size_t offset = GL(dl_tls_static_used) + (freebytes - n * map->l_tls_align
+-					    - map->l_tls_firstbyte_offset);
++  /* Account optional static TLS surplus usage.  */
++  size_t use = freebytes - n * map->l_tls_align - map->l_tls_firstbyte_offset;
++  if (optional && use > GL(dl_tls_static_optional))
++    goto fail;
++  else if (optional)
++    GL(dl_tls_static_optional) -= use;
++
++  size_t offset = GL(dl_tls_static_used) + use;
+ 
+   map->l_tls_offset = GL(dl_tls_static_used) = offset;
+ #elif TLS_DTV_AT_TP
+@@ -83,6 +92,13 @@
+   if (used > GL(dl_tls_static_size))
+     goto fail;
+ 
++  /* Account optional static TLS surplus usage.  */
++  size_t use = used - GL(dl_tls_static_used);
++  if (optional && use > GL(dl_tls_static_optional))
++    goto fail;
++  else if (optional)
++    GL(dl_tls_static_optional) -= use;
++
+   map->l_tls_offset = offset;
+   map->l_tls_firstbyte_offset = GL(dl_tls_static_used);
+   GL(dl_tls_static_used) = used;
+@@ -110,12 +126,15 @@
+   return 0;
+ }
+ 
++/* This function intentionally does not return any value but signals error
++   directly, as static TLS should be rare and code handling it should
++   not be inlined as much as possible.  */
+ void
+ __attribute_noinline__
+ _dl_allocate_static_tls (struct link_map *map)
+ {
+   if (map->l_tls_offset == FORCED_DYNAMIC_TLS_OFFSET
+-      || _dl_try_allocate_static_tls (map))
++      || _dl_try_allocate_static_tls (map, false))
+     {
+       _dl_signal_error (0, map->l_name, NULL, N_("\
+ cannot allocate memory in static TLS block"));
+--- a/elf/dynamic-link.h
++++ b/elf/dynamic-link.h
+@@ -40,9 +40,10 @@
+     (__builtin_expect ((sym_map)->l_tls_offset				\
+ 		       != FORCED_DYNAMIC_TLS_OFFSET, 1)			\
+      && (__builtin_expect ((sym_map)->l_tls_offset != NO_TLS_OFFSET, 1)	\
+-	 || _dl_try_allocate_static_tls (sym_map) == 0))
++	 || _dl_try_allocate_static_tls (sym_map, true) == 0))
+ 
+-int _dl_try_allocate_static_tls (struct link_map *map) attribute_hidden;
++int _dl_try_allocate_static_tls (struct link_map *map, bool optional)
++  attribute_hidden;
+ 
+ #include <elf.h>
+ 
+--- /dev/null
++++ b/elf/tst-tls-ie-dlmopen.c
+@@ -0,0 +1,112 @@
++/* Test dlopen of modules with initial-exec TLS after dlmopen.
++   Copyright (C) 2016-2020 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++/* This test tries to check that surplus static TLS is not used up for
++   dynamic TLS optimizations and 4*144 = 576 bytes of static TLS is
++   still available for dlopening modules with initial-exec TLS after 3
++   new dlmopen namespaces are created.  It depends on rtld.nns=4 and
++   rtld.optional_static_tls=512 tunable settings.  */
++
++#include <errno.h>
++#include <pthread.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++static int do_test (void);
++#include <support/xthread.h>
++#include <support/xdlfcn.h>
++#include <support/check.h>
++#include <support/test-driver.c>
++
++/* Have some big TLS in the main exe: should not use surplus TLS.  */
++__thread char maintls[1000];
++
++static pthread_barrier_t barrier;
++
++/* Forces multi-threaded behaviour.  */
++static void *
++blocked_thread_func (void *closure)
++{
++  xpthread_barrier_wait (&barrier);
++  /* TLS load and access tests run here in the main thread.  */
++  xpthread_barrier_wait (&barrier);
++  return NULL;
++}
++
++static void *
++load_and_access (Lmid_t lmid, const char *mod, const char *func)
++{
++  /* Load module with TLS.  */
++  void *p = xdlmopen (lmid, mod, RTLD_NOW);
++  /* Access the TLS variable to ensure it is allocated.  */
++  void (*f) (void) = (void (*) (void))xdlsym (p, func);
++  f ();
++  return p;
++}
++
++static int
++do_test (void)
++{
++  void *mods[5];
++
++  {
++    int ret = pthread_barrier_init (&barrier, NULL, 2);
++    if (ret != 0)
++      {
++        errno = ret;
++        printf ("error: pthread_barrier_init: %m\n");
++        exit (1);
++      }
++  }
++
++  pthread_t blocked_thread = xpthread_create (NULL, blocked_thread_func, NULL);
++  xpthread_barrier_wait (&barrier);
++
++  printf ("maintls[%zu]:\t %p .. %p\n",
++	   sizeof maintls, maintls, maintls + sizeof maintls);
++  memset (maintls, 1, sizeof maintls);
++
++  /* Load modules with dynamic TLS (use surplus static TLS for libc
++     in new namespaces and may be for TLS optimizations too).  */
++  mods[0] = load_and_access (LM_ID_BASE, "tst-tls-ie-mod0.so", "access0");
++  mods[1] = load_and_access (LM_ID_NEWLM, "tst-tls-ie-mod1.so", "access1");
++  mods[2] = load_and_access (LM_ID_NEWLM, "tst-tls-ie-mod2.so", "access2");
++  mods[3] = load_and_access (LM_ID_NEWLM, "tst-tls-ie-mod3.so", "access3");
++  /* Load modules with initial-exec TLS (can only use surplus static TLS).  */
++  mods[4] = load_and_access (LM_ID_BASE, "tst-tls-ie-mod6.so", "access6");
++
++  /* Here 576 bytes + 3 * libc use of surplus static TLS is in use so less
++     than 1024 bytes are available (exact number depends on TLS optimizations
++     and the libc TLS use).  */
++  printf ("The next dlmopen should fail...\n");
++  void *p = dlmopen (LM_ID_BASE, "tst-tls-ie-mod4.so", RTLD_NOW);
++  if (p != NULL)
++    FAIL_EXIT1 ("error: expected dlmopen to fail because there is "
++		"not enough surplus static TLS.\n");
++  printf ("...OK failed with: %s.\n", dlerror ());
++
++  xpthread_barrier_wait (&barrier);
++  xpthread_join (blocked_thread);
++
++  /* Close the modules.  */
++  for (int i = 0; i < 5; ++i)
++    xdlclose (mods[i]);
++
++  return 0;
++}
+--- /dev/null
++++ b/elf/tst-tls-ie-mod.h
+@@ -0,0 +1,40 @@
++/* Module with specified TLS size and model.
++   Copyright (C) 2020 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++/* This file is parameterized by macros N, SIZE and MODEL.  */
++
++#include <stdio.h>
++#include <string.h>
++
++#define CONCATX(x, y) x ## y
++#define CONCAT(x, y) CONCATX (x, y)
++#define STRX(x) #x
++#define STR(x) STRX (x)
++
++#define VAR CONCAT (var, N)
++
++__attribute__ ((aligned (8), tls_model (MODEL)))
++__thread char VAR[SIZE];
++
++void
++CONCAT (access, N) (void)
++{
++  printf (STR (VAR) "[%d]:\t %p .. %p " MODEL "\n", SIZE, VAR, VAR + SIZE);
++  fflush (stdout);
++  memset (VAR, 1, SIZE);
++}
+--- /dev/null
++++ b/elf/tst-tls-ie-mod0.c
+@@ -0,0 +1,4 @@
++#define N 0
++#define SIZE 480
++#define MODEL "global-dynamic"
++#include "tst-tls-ie-mod.h"
+--- /dev/null
++++ b/elf/tst-tls-ie-mod1.c
+@@ -0,0 +1,4 @@
++#define N 1
++#define SIZE 120
++#define MODEL "global-dynamic"
++#include "tst-tls-ie-mod.h"
+--- /dev/null
++++ b/elf/tst-tls-ie-mod2.c
+@@ -0,0 +1,4 @@
++#define N 2
++#define SIZE 24
++#define MODEL "global-dynamic"
++#include "tst-tls-ie-mod.h"
+--- /dev/null
++++ b/elf/tst-tls-ie-mod3.c
+@@ -0,0 +1,4 @@
++#define N 3
++#define SIZE 16
++#define MODEL "global-dynamic"
++#include "tst-tls-ie-mod.h"
+--- /dev/null
++++ b/elf/tst-tls-ie-mod4.c
+@@ -0,0 +1,4 @@
++#define N 4
++#define SIZE 1024
++#define MODEL "initial-exec"
++#include "tst-tls-ie-mod.h"
+--- /dev/null
++++ b/elf/tst-tls-ie-mod5.c
+@@ -0,0 +1,4 @@
++#define N 5
++#define SIZE 128
++#define MODEL "initial-exec"
++#include "tst-tls-ie-mod.h"
+--- /dev/null
++++ b/elf/tst-tls-ie-mod6.c
+@@ -0,0 +1,4 @@
++#define N 6
++#define SIZE 576
++#define MODEL "initial-exec"
++#include "tst-tls-ie-mod.h"
+--- /dev/null
++++ b/elf/tst-tls-ie.c
+@@ -0,0 +1,111 @@
++/* Test dlopen of modules with initial-exec TLS.
++   Copyright (C) 2016-2020 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++/* This test tries to check that surplus static TLS is not used up for
++   dynamic TLS optimizations and 3*192 + 4*144 = 1152 bytes of static
++   TLS is available for dlopening modules with initial-exec TLS.  It
++   depends on rtld.nns=4 and rtld.optional_static_tls=512 tunable setting.  */
++
++#include <errno.h>
++#include <pthread.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++static int do_test (void);
++#include <support/xthread.h>
++#include <support/xdlfcn.h>
++#include <support/check.h>
++#include <support/test-driver.c>
++
++/* Have some big TLS in the main exe: should not use surplus TLS.  */
++__thread char maintls[1000];
++
++static pthread_barrier_t barrier;
++
++/* Forces multi-threaded behaviour.  */
++static void *
++blocked_thread_func (void *closure)
++{
++  xpthread_barrier_wait (&barrier);
++  /* TLS load and access tests run here in the main thread.  */
++  xpthread_barrier_wait (&barrier);
++  return NULL;
++}
++
++static void *
++load_and_access (const char *mod, const char *func)
++{
++  /* Load module with TLS.  */
++  void *p = xdlopen (mod, RTLD_NOW);
++  /* Access the TLS variable to ensure it is allocated.  */
++  void (*f) (void) = (void (*) (void))xdlsym (p, func);
++  f ();
++  return p;
++}
++
++static int
++do_test (void)
++{
++  void *mods[6];
++
++  {
++    int ret = pthread_barrier_init (&barrier, NULL, 2);
++    if (ret != 0)
++      {
++        errno = ret;
++        printf ("error: pthread_barrier_init: %m\n");
++        exit (1);
++      }
++  }
++
++  pthread_t blocked_thread = xpthread_create (NULL, blocked_thread_func, NULL);
++  xpthread_barrier_wait (&barrier);
++
++  printf ("maintls[%zu]:\t %p .. %p\n",
++	   sizeof maintls, maintls, maintls + sizeof maintls);
++  memset (maintls, 1, sizeof maintls);
++
++  /* Load modules with dynamic TLS (may use surplus static TLS
++     opportunistically).  */
++  mods[0] = load_and_access ("tst-tls-ie-mod0.so", "access0");
++  mods[1] = load_and_access ("tst-tls-ie-mod1.so", "access1");
++  mods[2] = load_and_access ("tst-tls-ie-mod2.so", "access2");
++  mods[3] = load_and_access ("tst-tls-ie-mod3.so", "access3");
++  /* Load modules with initial-exec TLS (can only use surplus static TLS).  */
++  mods[4] = load_and_access ("tst-tls-ie-mod4.so", "access4");
++  mods[5] = load_and_access ("tst-tls-ie-mod5.so", "access5");
++
++  /* Here 1152 bytes of surplus static TLS is in use and at most 512 bytes
++     are available (depending on TLS optimizations).  */
++  printf ("The next dlopen should fail...\n");
++  void *p = dlopen ("tst-tls-ie-mod6.so", RTLD_NOW);
++  if (p != NULL)
++    FAIL_EXIT1 ("error: expected dlopen to fail because there is "
++		"not enough surplus static TLS.\n");
++  printf ("...OK failed with: %s.\n", dlerror ());
++
++  xpthread_barrier_wait (&barrier);
++  xpthread_join (blocked_thread);
++
++  /* Close the modules.  */
++  for (int i = 0; i < 6; ++i)
++    xdlclose (mods[i]);
++
++  return 0;
++}
