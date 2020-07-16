@@ -1,0 +1,29 @@
+The elf/tst-tls-ie* tests try to load modules with 8-byte-aligned TLS data that
+will get allocated in the static TLS area, so we need at least 8-byte alignment.
+8-byte alignment requirement is not that uncommon on i386 anyway.
+
+And upstream happens to have 32-byte alignment from
+0c76fc3c2b34 ('Linux: Perform rseq registration at C startup and thread
+creation') which just rounds up max_align to 32 anyway.
+
+Index: glibc-2.31/sysdeps/mach/hurd/tls.h
+===================================================================
+--- glibc-2.31.orig/sysdeps/mach/hurd/tls.h
++++ glibc-2.31/sysdeps/mach/hurd/tls.h
+@@ -25,6 +25,7 @@
+ # include <stdint.h>
+ # include <stdbool.h>
+ # include <sysdep.h>
++# include <sys/param.h>
+ # include <mach/mig_errors.h>
+ # include <mach.h>
+ # include <atomic.h>
+@@ -34,7 +35,7 @@
+ # define TLS_INIT_TCB_SIZE sizeof (tcbhead_t)
+ 
+ /* Alignment requirements for the initial TCB.  */
+-# define TLS_INIT_TCB_ALIGN __alignof__ (tcbhead_t)
++# define TLS_INIT_TCB_ALIGN MAX(__alignof__ (tcbhead_t), 8)
+ 
+ /* This is the size of the TCB.  */
+ # define TLS_TCB_SIZE TLS_INIT_TCB_SIZE	/* XXX */
