@@ -281,7 +281,7 @@ test-xfail-tst-ptsname = yes
 # We always put LD_ORIGIN_PATH in the environment
 test-xfail-tst-execvpe5 = yes
 
-# supposed to be fixed in libgcc_s, but now segfaults?
+# libgcc_s support assumes non-SIGINFO signal handler parameters
 test-xfail-tst-backtrace6 = yes
 
 # Crashes on dividing by a profiling period 0 (not initialized)
