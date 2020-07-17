@@ -281,9 +281,7 @@ test-xfail-tst-ptsname = yes
 # We always put LD_ORIGIN_PATH in the environment
 test-xfail-tst-execvpe5 = yes
 
-# being fixed in libgcc_s
-test-xfail-tst-backtrace4 = yes
-test-xfail-tst-backtrace5 = yes
+# supposed to be fixed in libgcc_s, but now segfaults?
 test-xfail-tst-backtrace6 = yes
 
 # Crashes on dividing by a profiling period 0 (not initialized)
