@@ -1,0 +1,88 @@
+commit 115bcf921a52005b89ff2859ccae4a8fc6d6deed
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Jul 18 15:08:03 2020 +0200
+
+    hurd: Fix longjmp early in initialization
+    
+    When e.g. an LD_PRELOAD fails, _dl_signal_exception/error longjmps, but TLS
+    is not initialized yet, let along signal state.  We thus mustn't look at
+    them within __longjmp.
+    
+    * sysdeps/mach/hurd/i386/____longjmp_chk.S,__longjmp.S: Check for
+    initialized value of %gs, and that sigstate is non-NULL.
+
+diff --git a/sysdeps/mach/hurd/i386/____longjmp_chk.S b/sysdeps/mach/hurd/i386/____longjmp_chk.S
+index 4d3a331728..5131386c60 100644
+--- a/sysdeps/mach/hurd/i386/____longjmp_chk.S
++++ b/sysdeps/mach/hurd/i386/____longjmp_chk.S
+@@ -60,7 +60,14 @@ ENTRY (____longjmp_chk)
+ 	PTR_DEMANGLE (%ecx)
+ #endif
+ 
+-	movl	%gs:SIGSTATE_OFFSET,%edi
++	movw	%ds, %si
++	movw	%gs, %di
++	cmpw	%si, %di
++	jz	.Lok		/* TLS not initialized yet */
++
++	movl	%gs:SIGSTATE_OFFSET, %edi
++	testl	%edi, %edi
++	jnz	.Lok		/* sigstate not initialized yet */
+ 
+ 	testl	$SS_ONSTACK, (HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_FLAGS__OFFSET)(%edi)
+ 	jnz	.Lonstack
+diff --git a/sysdeps/mach/hurd/i386/__longjmp.S b/sysdeps/mach/hurd/i386/__longjmp.S
+index d123c214c9..73bbff9826 100644
+--- a/sysdeps/mach/hurd/i386/__longjmp.S
++++ b/sysdeps/mach/hurd/i386/__longjmp.S
+@@ -38,7 +38,14 @@ ENTRY (__longjmp)
+ 	PTR_DEMANGLE (%ecx)
+ #endif
+ 
+-	movl	%gs:SIGSTATE_OFFSET,%edi
++	movw	%ds, %si
++	movw	%gs, %di
++	cmpw	%si, %di
++	jz	.Lok		/* TLS not initialized yet */
++
++	movl	%gs:SIGSTATE_OFFSET, %edi
++	testl	%edi, %edi
++	jnz	.Lok		/* sigstate not initialized yet */
+ 
+ 	testl	$SS_ONSTACK, (HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_FLAGS__OFFSET)(%edi)
+ 	jz	.Lok
+commit 5baad9a6f948b7822db3392097e7d79e9e018655
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Jul 18 15:12:56 2020 +0200
+
+    hurd: Fix longjmp check for sigstate
+    
+    * sysdeps/mach/hurd/i386/____longjmp_chk.S,__longjmp.S: Properly check for
+    sigstate being NULL.
+
+diff --git a/sysdeps/mach/hurd/i386/____longjmp_chk.S b/sysdeps/mach/hurd/i386/____longjmp_chk.S
+index 5131386c60..a746a4f2ba 100644
+--- a/sysdeps/mach/hurd/i386/____longjmp_chk.S
++++ b/sysdeps/mach/hurd/i386/____longjmp_chk.S
+@@ -67,7 +67,7 @@ ENTRY (____longjmp_chk)
+ 
+ 	movl	%gs:SIGSTATE_OFFSET, %edi
+ 	testl	%edi, %edi
+-	jnz	.Lok		/* sigstate not initialized yet */
++	jz	.Lok		/* sigstate not initialized yet */
+ 
+ 	testl	$SS_ONSTACK, (HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_FLAGS__OFFSET)(%edi)
+ 	jnz	.Lonstack
+diff --git a/sysdeps/mach/hurd/i386/__longjmp.S b/sysdeps/mach/hurd/i386/__longjmp.S
+index 73bbff9826..af788ede0f 100644
+--- a/sysdeps/mach/hurd/i386/__longjmp.S
++++ b/sysdeps/mach/hurd/i386/__longjmp.S
+@@ -45,7 +45,7 @@ ENTRY (__longjmp)
+ 
+ 	movl	%gs:SIGSTATE_OFFSET, %edi
+ 	testl	%edi, %edi
+-	jnz	.Lok		/* sigstate not initialized yet */
++	jz	.Lok		/* sigstate not initialized yet */
+ 
+ 	testl	$SS_ONSTACK, (HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_FLAGS__OFFSET)(%edi)
+ 	jz	.Lok
