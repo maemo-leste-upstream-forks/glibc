@@ -66,3 +66,14 @@ Index: glibc-upstream/sysdeps/posix/clock_getres.c
        retval = realtime_getres (res);
        break;
  
+--- ./sysdeps/mach/clock_nanosleep.c.original	2020-07-21 00:31:35.226113142 +0200
++++ ./sysdeps/mach/clock_nanosleep.c	2020-07-21 00:31:49.026185761 +0200
+@@ -62,7 +62,7 @@
+ __clock_nanosleep (clockid_t clock_id, int flags, const struct timespec *req,
+ 		   struct timespec *rem)
+ {
+-  if (clock_id != CLOCK_REALTIME
++  if ((clock_id != CLOCK_REALTIME && clock_id != CLOCK_MONOTONIC)
+       || !valid_nanoseconds (req->tv_nsec)
+       || (flags != 0 && flags != TIMER_ABSTIME))
+     return EINVAL;
