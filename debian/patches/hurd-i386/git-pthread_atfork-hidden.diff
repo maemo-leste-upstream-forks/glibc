@@ -1,0 +1,55 @@
+commit 15e995a8fb94a00d76da03756579ae6ff645b161
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Jun 7 23:29:44 2020 +0000
+
+    htl: Fix registration of atfork handlers in modules
+    
+    We really need modules to use their own pthread_atfork so that
+    __dso_handle properly identifies them.
+    
+    * sysdeps/htl/pt-atfork.c (__pthread_atfork): Hide function.
+    (pthread_atfork): Hide alias.
+    * sysdeps/htl/old_pt-atfork.c (pthread_atfork): Rename macro to
+    __pthread_atfork to fix building the compatibility alias.
+
+diff --git a/sysdeps/htl/old_pt-atfork.c b/sysdeps/htl/old_pt-atfork.c
+index d954b68f63..c7231d1feb 100644
+--- a/sysdeps/htl/old_pt-atfork.c
++++ b/sysdeps/htl/old_pt-atfork.c
+@@ -19,8 +19,8 @@
+ #include <shlib-compat.h>
+ 
+ #if SHLIB_COMPAT(libpthread, GLIBC_2_12, GLIBC_2_23)
+-# define pthread_atfork __dyn_pthread_atfork
++# define __pthread_atfork __dyn_pthread_atfork
+ # include "pt-atfork.c"
+-# undef pthread_atfork
++# undef __pthread_atfork
+ compat_symbol (libpthread, __dyn_pthread_atfork, pthread_atfork, GLIBC_2_12);
+ #endif
+diff --git a/sysdeps/htl/pt-atfork.c b/sysdeps/htl/pt-atfork.c
+index d547dd58e6..db8068e656 100644
+--- a/sysdeps/htl/pt-atfork.c
++++ b/sysdeps/htl/pt-atfork.c
+@@ -21,11 +21,21 @@
+ #include <fork.h>
+ #include <dso_handle.h>
+ 
++/* Hide the symbol so that no definition but the one locally in the
++   executable or DSO is used.  */
+ int
++#ifndef __pthread_atfork
++/* Don't mark the compatibility function as hidden.  */
++attribute_hidden
++#endif
+ __pthread_atfork (void (*prepare) (void),
+ 		void (*parent) (void),
+ 		void (*child) (void))
+ {
+   return __register_atfork (prepare, parent, child, __dso_handle);
+ }
++#ifndef __pthread_atfork
++extern int pthread_atfork (void (*prepare) (void), void (*parent) (void),
++                           void (*child) (void)) attribute_hidden;
+ weak_alias (__pthread_atfork, pthread_atfork)
++#endif
