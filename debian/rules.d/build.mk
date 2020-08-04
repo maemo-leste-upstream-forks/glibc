@@ -11,6 +11,10 @@ ln -sf $(DEB_HOST_MULTIARCH)/fpu_control.h debian/$(1)/usr/include/; \
 for i in `ls debian/tmp-libc/usr/include/$(DEB_HOST_MULTIARCH)/sys`; do \
 	ln -sf ../$(DEB_HOST_MULTIARCH)/sys/$$i debian/$(1)/usr/include/sys/$$i; \
 done
+mkdir -p debian/$(1)/usr/include/finclude; \
+for i in `ls debian/tmp-libc/usr/include/finclude/$(DEB_HOST_MULTIARCH)`; do \
+	ln -sf $(DEB_HOST_MULTIARCH)/$$i debian/$(1)/usr/include/finclude/$$i; \
+done
 endef
 
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
@@ -263,7 +267,8 @@ endif
 	  mv debian/tmp-$(curpass)/usr/include/fpu_control.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
 	  mv debian/tmp-$(curpass)/usr/include/a.out.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
 	  mv debian/tmp-$(curpass)/usr/include/ieee754.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
-	  rm -rf debian/tmp-$(curpass)/usr/include/finclude ; \
+	  mkdir -p debian/tmp-$(curpass)/usr/include/finclude/$(DEB_HOST_MULTIARCH); \
+	  mv debian/tmp-$(curpass)/usr/include/finclude/math-vector-fortran.h debian/tmp-$(curpass)/usr/include/finclude/$(DEB_HOST_MULTIARCH); \
 	fi
 
 ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
