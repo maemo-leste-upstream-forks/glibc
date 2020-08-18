@@ -102,7 +102,6 @@ $(stamp)configure_%: $(stamp)config_sub_guess $(stamp)patch $(KERNEL_HEADER_DIR)
 		--enable-stackguard-randomization \
 		--enable-stack-protector=strong \
 		--enable-obsolete-rpc \
-		--enable-obsolete-nsl \
 		--with-pkgversion="Debian GLIBC $(DEB_VERSION)" \
 		--with-bugurl="http://www.debian.org/Bugs/" \
 		$(if $(filter $(pt_chown),yes),--enable-pt_chown) \
@@ -238,6 +237,11 @@ else
 	  $(MAKE) -f debian/generate-supported.mk IN=localedata/SUPPORTED \
 	    OUT=debian/tmp-$(curpass)/usr/share/i18n/SUPPORTED; \
 	fi
+
+	# Remove yppasswd.h and yppasswd.x as they are shipped by libnsl-dev
+	# This could probably be removed once we stop using --enable-obsolete-rpc.
+	rm $(CURDIR)/debian/tmp-$(curpass)/usr/include/rpcsvc/yppasswd.h
+	rm $(CURDIR)/debian/tmp-$(curpass)/usr/include/rpcsvc/yppasswd.x
 
 ifeq ($(DEB_HOST_ARCH_OS),linux)
 	# Install the Python pretty printers

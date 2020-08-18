@@ -25,6 +25,18 @@ glibc (2.31-4) UNRELEASED; urgency=medium
   * debian/po/pt_BR.po: Update Brazilian Portuguese debconf translation, by
     Adriano Rafael Gomes. Closes: #970199.
   * debian/po/de.po: recode to UTF-8.
+  * debian/rules.d/build.mk: stop passing --enable-obsolete-nsl.
+  * debian/debhelper.in/libc-dev{,-alt}.install: do not install libnsl.a.
+  * debian/debhelper.in/libc-dev.install.hurd-i386: ditto.
+  * debian/libc0.1.symbols.common, debian/libc0.3.symbols.hurd-i386,
+    debian/libc6.1.symbols.alpha, debian/libc6.symbols{common,hppa,sparc}:
+    remove libnss_nis.so.2 and libnss_nisplus.so.2 symbols.
+  * debian/rules.d/build.mk: do not ship <rpcsvc/yppasswd.h> and
+    <rpcsvc/yppasswd.x> as they are shipped by libnsl-dev.
+  * debian/control.in/libc, debian/rules.d/debhelper.mk: make libc6 to depend on
+    libnss-nis and libnss-nisplus, except for stage1 and stage2.
+  * debian/control.in/libc, debian/rules.d/debhelper.mk: make libc6-dev to
+    depend on libnsl-dev, except for stage1 and stage2.
 
  -- Samuel Thibault <sthibault@debian.org>  Thu, 06 Aug 2020 00:02:50 +0200
 
