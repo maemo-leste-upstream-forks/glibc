@@ -387,6 +387,10 @@ test-xfail-tst-ptrguard1 = yes
 test-xfail-tst-malloc-stats-cancellation = yes
 test-xfail-tst-waitid = yes
 
+# new in 2.33
+test-xfail-tst-cpu-features-cpuinfo = yes
+test-xfail-tst-cpu-features-supports = yes
+
 # actually never succeded
 test-xfail-tst-create_format1 = yes
 test-xfail-tst-getcwd-abspath = yes
