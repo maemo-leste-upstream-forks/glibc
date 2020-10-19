@@ -30,14 +30,10 @@ Also ignore __data_start.
 
 ---
  hurd/Versions                       |  3 ---
- misc/Makefile                       |  4 +++
- misc/tst-sbrk-pie.c                 |  3 +++
- misc/tst-sbrk-static.c              |  3 +++
- misc/tst-sbrk.c                     | 49 +++++++++++++++++++++++++++++++++++++
  sysdeps/mach/hurd/brk.c             | 16 ++++++------
  sysdeps/mach/hurd/i386/libc.abilist |  1 -
  sysdeps/mach/hurd/i386/vm_param.h   | 24 ++++++++++++++++++
- 8 files changed, 91 insertions(+), 12 deletions(-)
+ 4 files changed, 32 insertions(+), 12 deletions(-)
 
 diff --git a/hurd/Versions b/hurd/Versions
 index af6a0e45de..b68ad384a5 100644
@@ -52,94 +48,6 @@ index af6a0e45de..b68ad384a5 100644
      # variables used in macros & inline functions
      __hurd_threadvar_stack_mask; __hurd_threadvar_stack_offset;
  
-diff --git a/misc/Makefile b/misc/Makefile
-index b7be2bc19a..1294a21302 100644
---- a/misc/Makefile
-+++ b/misc/Makefile
-@@ -129,6 +129,10 @@ CFLAGS-sbrk.op = $(no-stack-protector)
- CFLAGS-brk.o = $(no-stack-protector)
- CFLAGS-brk.op = $(no-stack-protector)
- 
-+tests += tst-sbrk tst-sbrk-pie tst-sbrk-static
-+tests-pie += tst-sbrk-pie
-+tests-static += tst-sbrk-static
-+
- include ../Rules
- 
- $(objpfx)libg.a: $(dep-dummy-lib); $(make-dummy-lib)
-diff --git a/misc/tst-sbrk-pie.c b/misc/tst-sbrk-pie.c
-new file mode 100644
-index 0000000000..3896b9699e
---- /dev/null
-+++ b/misc/tst-sbrk-pie.c
-@@ -0,0 +1,3 @@
-+/* Test sbrk with -pie.  */
-+
-+#include <tst-sbrk.c>
-diff --git a/misc/tst-sbrk-static.c b/misc/tst-sbrk-static.c
-new file mode 100644
-index 0000000000..fef52718cd
---- /dev/null
-+++ b/misc/tst-sbrk-static.c
-@@ -0,0 +1,3 @@
-+/* Test sbrk with -static.  */
-+
-+#include <tst-sbrk.c>
-diff --git a/misc/tst-sbrk.c b/misc/tst-sbrk.c
-new file mode 100644
-index 0000000000..8db48ca2e9
---- /dev/null
-+++ b/misc/tst-sbrk.c
-@@ -0,0 +1,49 @@
-+/* Test sbrk.
-+
-+   Copyright (C) 2013-2015 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <http://www.gnu.org/licenses/>.  */
-+
-+#include <errno.h>
-+#include <stdio.h>
-+#include <unistd.h>
-+
-+static int
-+do_test (void)
-+{
-+  /* Try to advance the program break by 1 MiB.  */
-+  void *one_mib = sbrk (1 * 1024 * 1024);
-+  if (one_mib == (void *) -1)
-+    {
-+      if (errno != ENOMEM)
-+        printf ("sbrk (1 MiB) failed, and with wrong errno: %m\n");
-+      else
-+        printf ("sbrk (1 MiB) failed\n");
-+
-+      return 1;
-+    }
-+  else
-+    printf ("sbrk at %p\n", one_mib);
-+
-+  return 0;
-+}
-+
-+/* TODO: fix rlimit bug.  64 MiB (test-skeleton.c's default) should be
-+   enough.  */
-+#define TEST_DATA_LIMIT RLIM_INFINITY
-+
-+#define TEST_FUNCTION do_test ()
-+#include "../test-skeleton.c"
 diff --git a/sysdeps/mach/hurd/brk.c b/sysdeps/mach/hurd/brk.c
 index f8272e5f22..90798e2c7a 100644
 --- a/sysdeps/mach/hurd/brk.c
