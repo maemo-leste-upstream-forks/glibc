@@ -1,31 +1,33 @@
-Committed from glibc 2.33
+Committed for glibc 2.33
 
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+commit 8c6beab4e1c03ac57150241015486e3f497c17cc
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Wed Aug 5 23:48:58 2020 +0200
 
-hurd: Rework sbrk
-
-Making the brk start exactly at the end of the main application binary was
-requiring to get it through the _end symbol, which does not work any more
-with recent toolchains, and actually produces in libc.so a confusing
-external _end symbol that produces odd results, see
-https://sourceware.org/bugzilla/show_bug.cgi?id=23499
-
-Trying to do so is quite outdated anyway with the tendency for address
-randomization.
-
-Using _end was also allowing to include the main binary data within
-the RLIMIT_DATA, but this also seems outdated with dynamic library
-loading, and nowadays' memory consumption via malloc and mmap rather than
-statically-allocated data.
-
-This adds a BRK_START macro in <vm_param.h> that just tells where we
-want to start the brk, and thus removes the _end symbol.
-
-* sysdeps/mach/hurd/i386/vm_param.h: New file.
-* sysdeps/mach/hurd/brk.c: Use BRK_START as brk start instead of _end.
-Also ignore __data_start.
-* hurd/Versions: Remove _end symbol.
-* sysdeps/mach/hurd/i386/libc.abilist: Remove _end symbol.
+    hurd: Rework sbrk
+    
+    Making the brk start exactly at the end of the main application binary was
+    requiring to get it through the _end symbol, which does not work any more
+    with recent toolchains, and actually produces in libc.so a confusing
+    external _end symbol that produces odd results, see
+    https://sourceware.org/bugzilla/show_bug.cgi?id=23499
+    
+    Trying to do so is quite outdated anyway with the tendency for address
+    randomization.
+    
+    Using _end was also allowing to include the main binary data within
+    the RLIMIT_DATA, but this also seems outdated with dynamic library
+    loading, and nowadays' memory consumption via malloc and mmap rather than
+    statically-allocated data.
+    
+    This adds a BRK_START macro in <vm_param.h> that just tells where we
+    want to start the brk, and thus removes the _end symbol.
+    
+    * sysdeps/mach/hurd/i386/vm_param.h: New file.
+    * sysdeps/mach/hurd/brk.c: Use BRK_START as brk start instead of _end.
+    Also ignore __data_start.
+    * hurd/Versions: Remove _end symbol.
+    * sysdeps/mach/hurd/i386/libc.abilist: Remove _end symbol.
 
 
 ---
@@ -36,7 +38,7 @@ Also ignore __data_start.
  4 files changed, 32 insertions(+), 12 deletions(-)
 
 diff --git a/hurd/Versions b/hurd/Versions
-index af6a0e45de..b68ad384a5 100644
+index f5e8b8cb32..9b5448ab2f 100644
 --- a/hurd/Versions
 +++ b/hurd/Versions
 @@ -1,8 +1,5 @@
@@ -49,7 +51,7 @@ index af6a0e45de..b68ad384a5 100644
      __hurd_threadvar_stack_mask; __hurd_threadvar_stack_offset;
  
 diff --git a/sysdeps/mach/hurd/brk.c b/sysdeps/mach/hurd/brk.c
-index f8272e5f22..90798e2c7a 100644
+index 4fac03fcc3..a6d4880028 100644
 --- a/sysdeps/mach/hurd/brk.c
 +++ b/sysdeps/mach/hurd/brk.c
 @@ -19,6 +19,7 @@
@@ -104,7 +106,7 @@ index f8272e5f22..90798e2c7a 100644
    if (pagend < _hurd_data_end)
      {
 diff --git a/sysdeps/mach/hurd/i386/libc.abilist b/sysdeps/mach/hurd/i386/libc.abilist
-index e3fc05137b..297afc6a48 100644
+index 5f6154d518..72537218ba 100644
 --- a/sysdeps/mach/hurd/i386/libc.abilist
 +++ b/sysdeps/mach/hurd/i386/libc.abilist
 @@ -554,7 +554,6 @@ GLIBC_2.2.6 __xstat64 F
@@ -145,5 +147,3 @@ index 0000000000..96230bc149
 +#define BRK_START	0x10000000
 +
 +#endif /* i386/vm_param.h */
--- 
-tg: (963c37d5c0..) t/pie-sbrk (depends on: baseline)
