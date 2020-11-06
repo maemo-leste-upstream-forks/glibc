@@ -130,18 +130,12 @@ curpass = $(filter-out %_,$(subst _,_ ,$@))
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
   DEB_ARCH_REGULAR_PACKAGES = $(libc)-dev
   DEB_INDEP_REGULAR_PACKAGES = 
-  DEB_UDEB_PACKAGES = 
   ifeq ($(filter nocheck,$(DEB_BUILD_OPTIONS)),)
     DEB_BUILD_OPTIONS+=nocheck
   endif
 else
   DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg libc-bin libc-dev-bin
   DEB_INDEP_REGULAR_PACKAGES = glibc-doc glibc-source libc-l10n locales
-  ifneq ($(filter noudeb,$(DEB_BUILD_PROFILES)),)
-    DEB_UDEB_PACKAGES =
-  else
-    DEB_UDEB_PACKAGES = $(libc)-udeb
-  endif
   ## Locales can only be pre-generated during native compiles
   ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
     DEB_ARCH_REGULAR_PACKAGES += locales-all
@@ -213,8 +207,7 @@ binary-indep: build-indep testroot debian/control $(build-tree) \
 	$(patsubst %,$(stamp)binaryinst_%,$(DEB_INDEP_REGULAR_PACKAGES))
 
 binary-arch: build-arch testroot debian/control $(build-tree) \
-	$(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES)) \
-	$(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES))
+	$(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES))
 
 binary: binary-indep binary-arch
 
