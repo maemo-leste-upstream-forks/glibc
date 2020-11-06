@@ -1,15 +1,5 @@
-The GNU Libc Reference manual has to be removed for licensing reasons.
-But some files have a dependency on manual/errno.texi; the easiest
-solution is to drop those dependencies and make sure that MAKEINFO=:
-so that no target depends on manual/*.texi files.
-
----
- manual/Makefile            |  254 +++++++++++++++++++++++++++++++++++++++++++++
- sysdeps/gnu/Makefile       |    2 
- sysdeps/mach/hurd/Makefile |    2 
- 3 files changed, 256 insertions(+), 2 deletions(-)
-
-Index: b/manual/Makefile
+diff --git a/manual/Makefile b/manual/Makefile
+index c61e11dcd7..67e13904bb 100644
 --- a/manual/Makefile
 +++ b/manual/Makefile
 @@ -1,4 +1,5 @@
@@ -176,11 +166,12 @@ Index: b/manual/Makefile
 -endif
  # Catchall implicit rule for other installation targets from the parent.
  install-%: ;
-Index: b/sysdeps/gnu/Makefile
-===================================================================
---- a/sysdeps/gnu/Makefile	2012-02-17 18:24:59.000000000 -0800
-+++ b/sysdeps/gnu/Makefile	2012-10-16 09:25:03.000000000 -0700
-@@ -19,7 +19,7 @@
+ 
+diff --git a/sysdeps/gnu/Makefile b/sysdeps/gnu/Makefile
+index 97fcb6fb90..a6bfc94870 100644
+--- a/sysdeps/gnu/Makefile
++++ b/sysdeps/gnu/Makefile
+@@ -18,7 +18,7 @@
  # Generate the list of strings for errno codes from the section of the
  # manual which documents the codes.
  
@@ -189,11 +180,11 @@ Index: b/sysdeps/gnu/Makefile
  			    $(..)manual/errno.texi
  	$(AWK) -f $^ > $@-tmp
  # Make it unwritable so noone will edit it by mistake.
-Index: b/sysdeps/mach/hurd/Makefile
-===================================================================
---- a/sysdeps/mach/hurd/Makefile	2012-10-16 09:25:03.000000000 -0700
-+++ b/sysdeps/mach/hurd/Makefile	2012-10-16 09:25:03.000000000 -0700
-@@ -85,7 +85,7 @@
+diff --git a/sysdeps/mach/hurd/Makefile b/sysdeps/mach/hurd/Makefile
+index 039bcfc041..b387c5e6b4 100644
+--- a/sysdeps/mach/hurd/Makefile
++++ b/sysdeps/mach/hurd/Makefile
+@@ -88,7 +88,7 @@ $(common-objpfx)errnos.d: $(mach-errnos-deps)
  	    -e 's, \.\./, $(..),g' > $@t
  	mv -f $@t $@
  
