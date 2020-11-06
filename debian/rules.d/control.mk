@@ -16,7 +16,7 @@ $(patsubst %,debian/control.in/%,$(libc_packages)) :: debian/control.in/% : debi
 	    < $< > $@
 
 debian/control: $(stamp)control
-$(stamp)control: debian/rules.d/control.mk $(control_deps) debian/tests/control.in
+$(stamp)control: debian/rules.d/control.mk $(control_deps)
 
 	# Check that all files end with a new line
 	set -e ; for i in debian/control.in/* ; do \
@@ -47,5 +47,5 @@ $(stamp)control: debian/rules.d/control.mk $(control_deps) debian/tests/control.
 	rm $@T
 
 	# And generate the tests control file with the current GCC
-	sed -e 's%@triggers@%$(triggers)%g' debian/tests/control.in > debian/tests/control
+	# sed -e 's%@triggers@%$(triggers)%g' debian/tests/control.in > debian/tests/control
 	touch $@
